@@ -1,6 +1,8 @@
 package com.imdomestic.chorus;
 
 import com.imdomestic.chorus.platform.Services;
+import com.imdomestic.chorus.registry.ChorusItems;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 
@@ -27,5 +29,7 @@ public class CommonClass {
 
             Constants.LOG.info("Hello to {}", Constants.MOD_NAME);
         }
+
+        ChorusItems.init();
     }
 }
