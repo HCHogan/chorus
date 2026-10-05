@@ -2,6 +2,9 @@ package com.imdomestic.chorus;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraft.server.level.ServerPlayer;
 
 @Mod(Constants.MOD_ID)
 public class Chorus {
@@ -15,6 +18,10 @@ public class Chorus {
         // Use NeoForge to bootstrap the Common mod.
         Constants.LOG.info("Hello NeoForge world!");
         CommonClass.init();
-
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                Greeting.onPlayerJoin(player);
+            }
+        });
     }
 }

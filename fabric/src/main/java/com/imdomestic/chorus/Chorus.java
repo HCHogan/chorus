@@ -1,6 +1,7 @@
 package com.imdomestic.chorus;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 public class Chorus implements ModInitializer {
 
@@ -14,5 +15,6 @@ public class Chorus implements ModInitializer {
         // Use Fabric to bootstrap the Common mod.
         Constants.LOG.info("Hello Fabric world!");
         CommonClass.init();
+        ServerPlayConnectionEvents.JOIN.register((listener, sender, server) -> Greeting.onPlayerJoin(listener.player));
     }
 }
