@@ -1,6 +1,7 @@
 package com.imdomestic.chorus;
 
 import com.imdomestic.chorus.platform.Services;
+import com.imdomestic.chorus.registry.ChorusComponents;
 import com.imdomestic.chorus.registry.ChorusItems;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -30,6 +31,7 @@ public class CommonClass {
             Constants.LOG.info("Hello to {}", Constants.MOD_NAME);
         }
 
+        ChorusComponents.init();
         ChorusItems.init();
     }
 }

@@ -1,1 +1,11 @@
-{"item.chorus.engram": "Engram","item.chorus.engram.decrypted": "Decrypted: %s"}
+{
+  "item.chorus.engram": "Engram",
+  "item.chorus.engram.decrypted": "Decrypted: %s",
+  "item.chorus.engram.rarity.common": "Common",
+  "item.chorus.engram.rarity.uncommon": "Uncommon",
+  "item.chorus.engram.rarity.rare": "Rare",
+  "item.chorus.engram.rarity.legendary": "Legendary",
+  "item.chorus.engram.rarity.exotic": "Exotic",
+  "item.chorus.engram.rolls": "Rolls: %s"
+}
+

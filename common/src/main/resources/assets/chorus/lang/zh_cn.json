@@ -1,1 +1,11 @@
-{"item.chorus.engram": "印痕","item.chorus.engram.decrypted": "解密获得：%s"}
+{
+  "item.chorus.engram": "印痕",
+  "item.chorus.engram.decrypted": "解密获得：%s",
+  "item.chorus.engram.rarity.common": "普通",
+  "item.chorus.engram.rarity.uncommon": "罕见",
+  "item.chorus.engram.rarity.rare": "稀有",
+  "item.chorus.engram.rarity.legendary": "传说",
+  "item.chorus.engram.rarity.exotic": "异域",
+  "item.chorus.engram.rolls": "解密次数：%s"
+}
+
