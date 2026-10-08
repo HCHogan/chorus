@@ -10,6 +10,6 @@ public final class Greeting {
 
     public static void onPlayerJoin(ServerPlayer player) {
         player.sendSystemMessage(
-                Component.literal("Hello, your name is " + player.getPlainTextName() + "！").withStyle(ChatFormatting.AQUA));
+                Component.literal("Hello from chorus, your name is " + player.getPlainTextName() + "！").withStyle(ChatFormatting.AQUA));
     }
 }

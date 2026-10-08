@@ -2,6 +2,7 @@ package com.imdomestic.chorus.registry;
 
 import java.util.function.Supplier;
 
+import com.imdomestic.chorus.item.EngramItem;
 import com.imdomestic.chorus.platform.Services;
 
 import net.minecraft.core.registries.Registries;
@@ -12,7 +13,7 @@ public final class ChorusItems {
     }
 
     public static final Supplier<Item> ENGRAM = Services.REGISTRATION.register(Registries.ITEM, "engram",
-            key -> new Item(new Item.Properties().setId(key).stacksTo(16)));
+            key -> new EngramItem(new Item.Properties().setId(key).stacksTo(16)));
 
     public static void init() {
     }
