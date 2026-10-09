@@ -1,0 +1,29 @@
+package com.imdomestic.chorus.effect;
+
+import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.combat.ImpactData;
+import com.imdomestic.chorus.rule.RuleEngine;
+import com.imdomestic.chorus.stat.Measure;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/** Facts captured by an adapter. Query context also uses this shape; missing measurements are not zero. */
+public record EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
+        Map<String, Boolean> flags, Map<String, String> references, ImpactData impact)
+        implements RuleEngine.Payload {
+    /** Typed payloads may expose the common DSL event context without discarding their richer receipt. */
+    public interface Carrier extends RuleEngine.Payload { EffectEvent event(); }
+    public EffectEvent {
+        Objects.requireNonNull(actor); Objects.requireNonNull(victim); Objects.requireNonNull(source);
+        tags = Set.copyOf(tags); numbers = Map.copyOf(numbers); flags = Map.copyOf(flags); references = Map.copyOf(references);
+        Objects.requireNonNull(impact);
+    }
+    public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
+            Map<String, Boolean> flags, Map<String, String> references) {
+        this(actor, victim, source, tags, numbers, flags, references, ImpactData.EMPTY);
+    }
+    public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers) {
+        this(actor, victim, source, tags, numbers, Map.of(), Map.of());
+    }
+}

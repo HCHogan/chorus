@@ -1,0 +1,12 @@
+{
+  "id": "test:frame_of_reference",
+  "version": "1",
+  "duration": 8,
+  "max_stacks": 5,
+  "refresh": "reset",
+  "attach": "holder",
+  "instanced_by": "weapon",
+  "affects": "instance_weapon",
+  "on_stow": "pause",
+  "pause_rounding": 1
+}
