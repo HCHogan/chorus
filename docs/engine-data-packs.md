@@ -1,0 +1,941 @@
+# 加载和调试 Chorus 效果程序
+
+当前服务端已注册可重载的 `chorus:effect_program` 注册表。Fabric 与 NeoForge 均从 `data/<namespace>/chorus/effect_program/<path>.json` 加载完整 EffectProgram，条目 id 为 `<namespace>:<path>`。高优先级数据包覆盖同路径的完整程序，不合并内部 bundle / Buff / Profile。格式仍使用 [实现记录](engine-implementation.md) 中已经落地的 DSL。
+
+这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页与最小技能命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
+
+## 最小可运行数据包
+
+在测试世界的 `datapacks/chorus-demo/` 下建立两个文件。26.3 的服务端数据包格式为 121.0：
+
+`pack.mcmeta`：
+
+```json
+{"pack":{"description":"Chorus engine demo","min_format":121,"max_format":121}}
+```
+
+`data/example/chorus/effect_program/lifesteal.json`：
+
+```json
+{
+  "version": "example-1",
+  "bundles": [{
+    "id": "example:lifesteal",
+    "rules": [{
+      "id": "recover", "on": "chorus:hit",
+      "if": {"type": "chorus:source_is", "source": "owner"},
+      "do": [{
+        "type": "chorus:heal",
+        "amount": {
+          "type": "chorus:scale", "factor": 0.5,
+          "from": "damage", "to": "damage",
+          "of": {"type": "chorus:event_number", "name": "health_loss", "unit": "damage"}
+        }
+      }]
+    }]
+  }]
+}
+```
+
+此示例把该来源持有者造成的实际生命损失的一半恢复给自己；护盾、Absorption、免疫和无效伤害不算生命损失。50% 是机制演示参数，不是某个命运 2 perk 的校准数值。
+
+启用数据包并在目标维度运行以下管理命令：
+
+```mcfunction
+datapack enable "file/chorus-demo"
+reload
+chorus engine list
+chorus engine start example:lifesteal pve
+chorus engine attach @s example:lifesteal passive
+chorus engine status
+```
+
+attach / detach 的 target 必须是当前维度中的一个 LivingEntity；控制台应把 `@s` 换成玩家名或单实体选择器。它们需要原版 gamemaster 命令权限。start 默认 PvE，也可明确指定 `pvp`；活动模式与目标是不是玩家无关。
+
+卸下来源或停止测试：
+
+```mcfunction
+chorus engine detach @s passive
+chorus engine stop
+```
+
+- slot 是本目标下的管理来源标识，允许小写字母、数字、下划线、点与连字符。同一目标 + slot 重复绑定相同数据为空操作；不同 slot 是不同来源。
+- 同 slot 绑定不同数据会替换来源。绑定与解绑都先经时间轴追赶，结算之前的连续恢复，再改变来源；失效静态来源的定时器会被清理。已经授予的 Buff 依其自身生命周期继续存在，不被一律擦除。
+- `chorus:source_attached / source_detached` 事实携带 source_instance / bundle 引用及完整不可变来源快照。静态规则用 `chorus:own_source` 匹配本来源，包含原标签和归属，避免相同 bundle 或同键新词条处理旧词条的清理。被删除来源以旧快照执行自己的 detached 规则；其他活动来源仍可观察该事实。Java 负载为 `SourceChange.Fact`，通过 `EffectEvent.Carrier` 读取事件，不应强转为裸 `EffectEvent`。Buff 结束仍使用已有的 ended 快照协议。
+- `stop` 显式丢弃该维度运行时的暂态状态。已有运行时时，start 会拒绝覆盖；不会借重新启动偷偷清空来源、Buff、定时器或失败记录。
+
+## 装备定义与原子装配投影
+
+程序可声明可选的 `equipment`，默认空目录。以下为合并到已有程序中的字段示例；`test:gear_perk` 必须在该程序或参与链接的片段中声明为 source bundle。完整可执行合成夹具见 [equipment.json](../common/src/test/resources/effects/equipment.json)，数值仅用于验证机制。
+
+```json
+{
+  "equipment": {
+    "slots": [
+      {"id":"test:weapon_a","accepts":["test:weapon"],"weapon":true},
+      {"id":"test:arms","accepts":["test:arms"]},
+      {"id":"test:class_item","accepts":["test:class_item"]}
+    ],
+    "items": [{
+      "id":"test:rifle","tags":["test:weapon"],
+      "sockets":{"perk":{"required":true,"options":{
+        "normal":{"bundle":"test:gear_perk"},
+        "enhanced":{"bundle":"test:gear_perk","tags":["chorus:enhanced"]}
+      }}}
+    }],
+    "limits":[{"id":"test:exotic_armor","tag":"test:exotic",
+               "slots":["test:arms","test:class_item"],"maximum":1}]
+  }
+}
+```
+
+- 槽位接受与物品 `tags` 有交集的原型；每槽一件、同一装配中实例不能重复。`items[].effects` 是固定效果字典，`sockets` 是候选效果字典；可选插槽须显式设 `required:false`。未知槽位 / 原型 / 选项、缺少必选项和超出 limit 均拒绝。limit 的 slots 为空时作用于所有槽；计数只看物品标签，不看词条标签。
+- 每个效果的 `activation` 默认 `equipped`，收枪仍绑定。`drawn` 只在当前选定武器槽绑定，不能用于非武器槽。多数武器 perk 应保留 equipped，通过 `source_is:this_weapon` 识别自己的攻击；只有明确要求在手的触发再加 `weapon_drawn`。切枪不等于卸下所有武器来源。
+- 来源身份由 holder、物品实例和固定效果键 / 插槽键生成，前缀 `equipment/` 保留给装配事务。物品在兼容槽间移动但实际持握实例不变时，来源、定时器和 Buff 不重置；同插槽换词条或强化标签会替换对应来源。每个来源只合并物品标签与该效果的标签，不把另一词条的强化资格扩散过去。
+
+可信服务端宿主调用：
+
+```java
+Loadout next = new Loadout(Map.of("test:weapon_a",
+    new Loadout.Gear(itemInstanceId, "test:rifle", Map.of("perk", "enhanced"))),
+    Optional.of("test:weapon_a"));
+Loadout before = runtime.state().engine().domain().equipment().getOrDefault(holder, Loadout.EMPTY);
+runtime.equip(new EquipmentChange(holder, before, next));
+```
+
+`EquipmentCodecs.LOADOUT` 提供对应的 slots / drawn JSON 读写。`Gear` 只有 instance / definition / choices 元数据，没有 ItemStack、数量或耐久；`equip` 不证明玩家拥有物品，不能直接作为客户端请求处理器。玩家物品应通过下面的 PlayerEquipment 容器接口转移，物品组件与效果元数据分开保存。
+
+事务先追赶逻辑时间、验证 before 装配和其全部来源，再一次提交新来源、装配及现有武器 Buff 的 stow / draw 迁移。事实随后依次入队：weapon_stowed / weapon_drawn 及其 Buff 生命周期事实、按来源身份排序的全部 source_detached、全部 source_attached、equipment_changed。`equipment_changed` 的 Fact 携带完整 Receipt 和 before / after；事件数字 equipped_count 为 COUNT。清理动作读取旧来源标签，但看到的全局装备与来源已是新装配。世界动作随后失败时保留已提交状态和待确认操作，不自动重放或伪造回滚。
+
+`on_stow` 是切枪时对已有 Buff 的迁移策略；它不阻止收枪后新授予 Buff。需要这项限制的规则显式检查 `weapon_drawn`。该条件按绑定来源的 owner + weapon 查询装配；无装备记录或无武器归属返回 false，攻击 on_use 快照固定捕获时结果。
+
+非装备宿主可用 `runtime.replaceSources(SourceBatch)` 批量更新其他来源。每项带 before / after，先核对全部旧值再整体提交；即使某项不变也参与旧值验证，任何不一致均拒绝。相等重绑无事实且不重置定时器，替换取消旧来源绑定的定时器；独立 Buff 和 detached 延迟动作按其自身生命周期保留，需要清理的状态由旧来源自己的 detached 规则明确处理。`bind / unbind / replaceSources` 均拒绝直接修改 equipment/ 来源。
+
+## 实际物品容器与装备命令
+
+`PlayerEquipment.get(player)` 拥有独立于原版装备槽的真实 ItemStack 集合，槽名来自程序定义。`chorus:equipment` 物品组件保存 Gear 身份 / 原型 / 选项；实例 id 在创建物品时分配，普通交换不改变它。容器不向原版护甲槽或主手复制物品，保留原物品的名称、耐久、附魔和其他组件。snapshot / item 查询返回防御性副本，不能借修改查询结果改变持有物。
+
+服务端入口：
+
+```java
+PlayerEquipment equipment = PlayerEquipment.get(player);
+equipment.swap(player, "test:weapon_a", 0, equipment.revision());
+equipment.draw(player, Optional.of("test:weapon_a"), equipment.revision());
+equipment.move(player, "test:weapon_a", "test:weapon_b", equipment.revision());
+```
+
+swap 交换装备槽与原版主背包指定槽内的整份物品；背包槽为空即取回装备。只能操作本玩家的容器，要求服务器线程、玩家存活、revision 匹配，且不处于另一项装备操作中。装入物品必须恰好一件、有合法组件，并满足整个装配的槽位 / 选项 / 数量限制；与已装备物品或背包另一件物品重复的实例身份会被拒绝。它不提供跨玩家、仓库或全世界的实例唯一性数据库；生成 / 战利品宿主须分配唯一 id，不能复制既有组件冒充新实例。
+
+交换先验证候选装配，再追赶时间并核对当前背包与 revision，完成真实物品转移后以 `EquipmentChange.Commit` 将元数据写入纯状态，最后派发反应。第一条 attach / detach 世界动作已能看到完整的新容器和来源。反应异常不回滚物品、不重放未知世界动作；失败运行时仍允许把装备取回空背包槽，冻结的诊断状态保留到显式停止运行时。
+
+最小调试命令中，status / swap / draw / stow / move 只操作命令发起玩家自己；stamp 需要管理员权限，为手中一件尚未标记的物品创建新身份，并校验指定槽、原型和选项。以下使用 equipment.json 的合成定义，须先把该完整程序放进数据包并启动运行时；发布 jar 不包含测试夹具。示例假设玩家装备 revision 为 0，手中物品位于快捷栏第一个槽（背包索引 0）：
+
+```mcfunction
+chorus equipment stamp test:weapon_a test:rifle {"perk":"normal"}
+chorus equipment status
+chorus equipment swap test:weapon_a 0 0
+chorus equipment draw test:weapon_a 1
+chorus equipment swap test:weapon_a 0 2
+```
+
+最后一条把物品取回此前清空的背包槽。`stow <revision>` 清除持握选择，`move <from> <to> <revision>` 交换两个装备槽，持握选择跟随原物品。每次真实容器变更推进 revision；旧请求拒绝而不重放。stamp 不改变装备容器 revision。
+
+容器保存到玩家 NBT 的 chorus:equipment 字段，与当前规则目录解耦；缺少原型 / 槽位或非法选项会令该玩家的整套效果投影暂时停用，物品保留并显示 inactive 原因，仍可取回。没有活动运行时也可取回已有物品。玩家保存 / 加载和 respawn 的 ServerPlayer 替换已接线，替换时移动剩余装备所有权并清空旧对象。死亡掉落遵循 keepInventory 和 PREVENT_EQUIPMENT_DROP 附魔：NeoForge 加入外层 LivingDropsEvent 收集，不进入 ItemTossEvent；若其他模组取消死亡掉落，遵循该事件结果，不再复制一份放回装备槽。
+
+已安装运行时在 prepare、完整事件边界结束和服务器 tick 同步物理容器投影：死亡或离开该维度会解除旧来源，存活玩家按当前固定目录重新装配。死亡发生在装备反应的世界动作中时，先保留该边界事实，随后同步已掉落的容器，不递归进入解释器。跨维度 / 离线的活动 Buff 和技能状态迁移仍未实现；玩家 NBT 往返、死亡 / respawn 和异常后所有权已有双加载器测试，完整服务器重启与真实多客户端 UI 流程尚未验收。
+
+当前 draw 只改变装备持握状态，不把容器里的枪变成原版主手物品，不把空手攻击自动归类为武器命中。枪械输入、完整投射物内容、主手联动、原版属性 / 装备附魔适配及 HUD / 技能 UI 仍需接入。独立容器使用下面的专用展示协议同步。
+
+## 重载与边界
+
+`/reload` 会重新解析、检查引用与单位并编译目录中的程序。实际两端测试已验证：高优先级文件覆盖生效；错误字段使重载失败；失败后目录和活动运行时均保留原状态。
+
+已经启动的运行时持有完整不可变 CompiledEffects 对象。成功重载更新目录，后续启动读取新定义；已有运行时继续使用原定义和原状态。修改内容时应更新 version；当前尚未实现同一运行时内新旧来源版本并存、活动状态迁移、程序内容指纹及跨重启快照。因此不能把“重载保留旧运行时”当成已实现投射物 origin_bundle 快照系统。
+
+本入口的世界适配使用当前维度中的实体 UUID。显式伤害查真实 damage_type 注册表，以仍在本维度中的 owner 作为原版致伤者，不猜测直接投射物。状态施加在目标存在且存活时默认允许；具体内容免疫策略尚未装配。表现 cue 没有处理器时明确失败。资源账户可由下面的声明和初始化动作创建，恢复 Profile 自动参与服务器时钟；技能冷却表、CES / CMS 与真实技能归属仍需内容层装配。
+
+可重载注册表在当前 Fabric / NeoForge API 中不会自动同步到客户端；UI 所需的定义和运行状态同步仍待实现。普通世界没有数据包条目时保持空目录，也不会自行安装运行时。启动、绑定与管理权限已经通过双加载器 GameTest；玩家装备容器与保存 / 加载入口另有测试，完整内容游玩尚未验收。
+
+## 复用定义与链接程序片段
+
+多个词条可以引用同一份元素状态定义。先用 `EffectCodecs.PROGRAM` 解码各片段，再用 `CompiledEffects.link` 统一校验，得到一个完整、固定版本的程序：
+
+```java
+EffectProgram jolt = EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, joltJson).getOrThrow();
+EffectProgram voltshot = EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, voltshotJson).getOrThrow();
+CompiledEffects program = CompiledEffects.link(List.of(jolt, voltshot));
+JsonElement flattened = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, program).getOrThrow();
+```
+
+`joltJson` / `voltshotJson` 是调用方已经读取的 JSON。链接会连接各片段的 Buff、bundle、Profile、资源与装备声明，再执行全部引用、作用域和单位检查；不会复制或改写版本，也不会按片段顺序覆盖同名定义。所有片段及内部带版本的定义须使用同一个 ruleset version；各目录中的重复 id 均拒绝，即使内容相同。装备槽位、物品原型和 limit 各自检查重复，装备效果可引用其他片段的 source bundle。最多一个片段声明全局 defense_profile，它可引用其他片段定义的 Profile。空目录、混合版本、重复防御选择及缺失依赖均报错。
+
+链接不修改输入片段，结果可直接安装到运行时，也可编码为上述 flattened 完整程序交给现有数据包入口。现有注册表仍逐条加载完整程序，**尚不自动搜索片段、解析 JSON imports 或跨注册表条目链接**。不要把有未解析依赖的片段单独放进 effect_program 目录。
+
+[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。装备与合格的换弹完成事件仍需宿主接线。
+
+## 状态施加与只读资格
+
+`apply_status` 在世界确认目标存在、存活并允许该状态后，才提交 Buff。需要处理致死命中的内容可以先用 `check_status` 查询资格，例如在已有命中规则的致死分支中执行：
+
+```json
+[
+  {"action": {
+    "type": "chorus:check_status", "buff": "example:status", "target": "victim",
+    "allow_dead": true
+  }, "as": "eligibility"},
+  {"if": {"type": "chorus:result_flag", "binding": "eligibility", "field": "allowed"},
+   "then": [{"type": "chorus:select_targets", "center": "victim",
+     "radius": {"type": "chorus:constant", "value": 5, "unit": "meter"}}]}
+]
+```
+
+这个片段要求程序已声明 `example:status`；仅演示资格允许后观察死亡位置附近的目标，没有施加状态或造成伤害。
+
+- buff 必填；target 默认 victim；stacks / tier 默认 count = 1；duration 可选，单位 second，缺省使用 Buff 定义的持续时间。这些值一同传给宿主资格策略，恢复回执必须对应完全相同的请求。
+- allow_dead 默认 false。设为 true 只放宽存活条件，仍须通过宿主状态免疫 / 资格策略；目标缺失、移除或不在该维度时仍是 missing。
+- `check_status` 只有 allowed / denied / dead / missing 四个布尔结果，没有数值结果或 applied。dead 表示检查因存活要求而被拒绝；allow_dead=true 且资格允许时，死亡目标的结果也会是 allowed。
+- 检查不修改 Buff、不发施加事实，也不预留资格。之后若执行 `apply_status`，它仍会重新进行要求存活的检查；不能用允许死亡的查询回执代替施加回执。
+
+完整组合见 [volatile.json](../common/src/test/resources/effects/volatile.json)：显式施加意图与实际致死事实触发资格检查，允许后执行冷却、范围查询和爆炸。施加意图 `test:apply_volatile` 由测试宿主提供；测试宿主另把 `chorus_d2:volatile` 映射为测试伤害类型，并配置原版受伤冷却旁路标签。直接加载夹具并绑定来源不会自动获得这些接线；正式内容仍须定义真实伤害类型、来源与资格策略。数值假设见 [规则集](d2-ruleset.md)。
+
+## 补充护盾与查询效果资格
+
+护盾层仍由 Buff 的数值组件保存实际余量。可在该 Buff 条目的 shield 声明中指定补充上限 maximum（damage 单位的 Value）；省略时采用容量组件在定义中的初值。以下为 Buff 条目片段：
+
+```json
+{
+  "definition": {
+    "id":"example:shield", "version":"example-1", "duration":10,
+    "components":{"numbers":{"capacity":{"initial":0,"unit":"damage"}}}
+  },
+  "shield": {
+    "capacity":"capacity",
+    "maximum":{"type":"chorus:constant","value":5,"unit":"damage"}
+  }
+}
+```
+
+先 grant_buff 创建层，再用下面的动作补充；同一动作还可用于修复被伤害消耗的现有层：
+
+```json
+{"action":{
+  "type":"chorus:restore_shield", "buff":"example:shield", "target":"self",
+  "amount":{"type":"chorus:constant","value":2,"unit":"damage"}
+},"as":"restored"}
+```
+
+补充量是护盾容量 HP，不是进入该层前的伤害预算，不经过 taken_multiplier。动作纯粹更新既有容量，返回 requested / maximum / before / after / effective / overflow（均为 damage）和 changed / full 标志。只接受已声明为 shield 的 Buff；缺失实例、负数、错误单位或非法上限会明确失败，不自动创建护盾或检查目标世界实体。生命条件应先用 inspect_entity 显式观测。
+
+maximum 在接收护盾层的 Buff 作用域中求值；例如 self / component 指向该层持有者及实例，不误用补充来源的状态。上限只限制本次能新增多少：若已有余量高于当前上限，不扣除旧容量。它不自动改变初始容量，不刷新持续时间、替换 generation、改变原始施加者或重排 FIFO。多余请求和无法表示的极小增量不存成未来额度；允许显式修改暂停层的余量，但不会解除暂停或让它参与当前防御。
+
+effective > 0 时产生 `chorus:shield_restored`，携带恢复来源、受益者、层定义标签、shield_definition / shield_generation，以及 requested / effective / overflow / layer_before / layer_remaining / maximum 和 full。满容量或零量补充不产生此事实。状态先提交，再按原有队列分发事实；与世界动作等待组合时，重复回执不能再次补盾。它不调用原版 heal，也不改变 Absorption。
+
+| 条件 | 含义 |
+| --- | --- |
+| has_buff 的 match:bound | 默认行为，按当前来源和 Buff 的实例键匹配 |
+| has_buff 的 match:any | 此目标任意来源中，至少一个该定义的实例单独达到 minimum；不跨实例相加 |
+| has_buff_tag | 此目标至少一个现存 Buff 的定义含 tag；不限施加来源 |
+| has_shield | 此目标至少一层活动、未暂停的 Chorus 护盾余量大于零；可用 tag 筛选层的定义标签 |
+
+它们均接受 target（默认 self），只读取已提交的引擎状态。has_buff / has_buff_tag 保留原有 Buff 存在性语义，暂停实例仍可被查询；has_shield 判断实际参与防御的正容量层，不把空层或原版 Absorption 算进去。标签取自 Buff 定义，不读取来源标签或事件标签。用于 on_use 修饰时，来源侧判断会冻结，victim 判断留到命中时求值。
+
+Rift 内容将这两个概念分开：presence 带 `chorus:counts_as_overshield` 供交互资格使用，即使尚未生成容量；共享 rift_overshield 才保存能挡伤害的实际池。每位成员的多个 Rift 共用一个池和补充计时器：每 50 ms 观测存活且满血、没有带 `chorus_d2:void_overshield` 标签的正容量层后，补充 0.015，封顶 1.5（原表 3 HP/s、15 HP，测试缩放 0.1）。离开一个场保留其他场；最后一个场清理时移除该池，重新进入从零开始。正常观测失败、死亡、受伤或 Void 盾阻止生成时不累计补偿。
+
+这是一份明确的离散脉冲实现。刚在该 tick 恢复满血时会补完整一次脉冲，不计算此前不足 50 ms 的满血时长；首次脉冲、离场是否残留护盾、空层的 FIFO 年龄及多来源共享池保留首次归属仍需原作校准。下文的连续回充只读取引擎状态，没有自动替代这个世界满血观测策略。可运行示例见 healing_rift.json；shield_restoration.json 中的 Void 标签测试层只有合成的 1 点容量，不是完整 Void Overshield 定义。
+
+### 连续回充与受击延迟
+
+护盾声明可另加 `recovery`，rate 使用 damage_per_second 单位，if 为可选条件，默认 true。例如下面的 shield 片段用于已有容量组件和数值 ready 组件的护盾：
+
+```json
+{
+  "capacity":"capacity",
+  "maximum":{"type":"chorus:constant","value":10,"unit":"damage"},
+  "recovery":{
+    "rate":{"type":"chorus:constant","value":2.5,"unit":"damage_per_second"},
+    "if":{"type":"chorus:compare",
+      "left":{"type":"chorus:component","buff":"example:shield","component":"ready"},
+      "op":"gt","right":{"type":"chorus:constant","value":0,"unit":"count"}}
+  }
+}
+```
+
+rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个恢复表达式，不按 Buff 堆叠层数自动重复。可使用现有环境、组件和条件数值表达式；这不是施加时事件的重放，不能依赖之前事件的数值或动作结果。它不查询实体、不判断原版存活 / 满血，也不启动生命自然恢复。需要这些条件的内容须另行观测和维护资格，失效时结束层或关闭恢复。
+
+时间轴按段首状态对 `[from, until)` 积分。50 ms 网格是最大结算间隔；Buff 到期、定时器、外部输入和补满容量也形成边界，补满时间向上取整到整数微秒。暂停、条件不满足、零速率或满容量不积攒额度；后续改速率只影响后续时间。上限降低不伤害已有容量，容量恢复不改变原始 generation / 来源 / FIFO。任意依赖自身容量或其他连续量的表达式仍是分段常数近似，除了容量上限与已有时间轴边界，不会自动求出表达式内部的所有阈值。
+
+回充先写入真实的领域容量，再推进到期与世界治疗；到期的最后残段保存在 ended 快照中。后续世界回调中的伤害能立即消耗已经恢复的量，重复回执不会再次积分。正增加仍发 shield_restored，另带 `chorus:continuous_shield_recovery` 标签、interval_start / interval_end（second）和 rate（damage_per_second）；保留该层最初来源。若同一时刻也有生命恢复，先完成已分配的原版治疗命令及其事实，再分发护盾恢复事实、生命周期、资源与定时器信号。事件读取的是该边界之后的当前状态，已经结束的层不会为恢复事实重新挂回自身规则。
+
+受击延迟是内容规则：收到指定事实后将 ready 写为 0，用 schedule 的 replace 策略重置一次性计时器；own_timer 到期后写回 1。`chorus:own_shield` 仅能在 Buff 作用域使用，同时匹配层的 definition、generation 和受益者，可筛选 shield_damaged / shield_broken / shield_restored；不会让旧层事实影响同键的新层。它不自动选择事件类型。若任何持有者实际损失都应重置延迟，则监听 damage_taken 并筛选 victim=self；只由本层受伤中断则监听 shield_damaged + own_shield，取消 / 免疫命中不凭空触发这些损失事实。
+
+合成示例 [shield_recovery.json](../common/src/test/resources/effects/shield_recovery.json) 验证 70.001 ms 延迟与到期残段；[eternal_warrior.json](../common/src/test/resources/effects/eternal_warrior.json) 验证快照中的 75 HP 护盾、5 秒停伤延迟和 7 秒满量回充，使用 0.1 测试缩放。后者仍由明确的 test:fists_start / test:fists_end 输入控制，已能对明确标记的精准因子做层内抑制，见下节；真实超能、自动精准判定和武器增伤仍未接入。恢复专用 Profile、跨来源回充通道选择与完整基础护盾 / 自然恢复装配仍待完成。
+
+## 按当前护盾层计算攻击倍率
+
+`damage` 与 `capture_damage` 可声明 `shield_scaling_profile`。它独立于全局 `scaling_profile`，要求输入和输出都为 `multiplier`，每层以 1 为基值计算。省略时攻击侧层倍率为 1。以下动作要求程序已声明两个 Profile：
+
+```json
+{
+  "type": "chorus:damage", "target": "victim",
+  "amount": { "type": "chorus:constant", "value": 20, "unit": "damage" },
+  "damage_type": "minecraft:generic", "tags": ["chorus:weapon_direct"],
+  "scaling_profile": "test:weapon_damage",
+  "shield_scaling_profile": "test:shield_attack"
+}
+```
+
+攻击者的 modifier 可用 `{ "type": "chorus:layer_tag", "tag": "chorus:guardian_overshield" }` 判断当前接收层的 Buff 定义标签。它也可用于 `taken_multiplier` 中的 choose；普通攻击 / 防御查询没有层上下文，此条件为 false。层标签不会加入伤害标签或击杀信用，目标全身的 `has_shield` 不能代替当前层判断。
+
+层按 priority / FIFO 处理，只查询实际到达的正容量、未暂停层。该层的综合倍率为 `taken_multiplier × shield_scaling_profile.output`，损失容量除以综合倍率得到消耗的输入预算；余量交给下一层，最后才进入原版护甲 / Absorption / 生命。例如输入 20、容量 3、层攻击倍率 1.5：消耗 2 点预算，余下 18 点不再携带这项护盾专属增伤。零综合倍率沿用免疫层阻断规则。原版取消 / 免疫 / 无敌帧拒绝在此之前发生。
+
+所有层读取同一次命中的不可变状态，预算逐层递减，查询本身不先写入容量；`incoming_damage` 在即时层查询中表示抵达该层的剩余预算。沿用普通快照规则，on_use 的 event_number 在捕获时绑定；命中测量应使用 impact_number。零输入、空层和前层已吸收全部预算时不会继续求值后层表达式。
+
+`capture_damage` 同时固定护盾 Profile 和 on_use 来源操作数，保留 layer_tag、目标条件及 impact_number 到命中时。来源解绑也不丢失已捕获贡献；当前 on_hit 贡献与它们一起进入原分组，MAX 不会被提前折成两个相乘的倍率。`damage_snapshot` 使用快照中的选择，不能在命中时更换护盾 Profile。逐层回执的 `attackScaling` 保存独立计算轨迹；跨版本仍要求阶段与分组结构相容，目标 has_shield 使用当前规则目录查询。
+
+[under_over.json](../common/src/test/resources/effects/under_over.json) 与 [shield_scaling.json](../common/src/test/resources/effects/shield_scaling.json) 可链接为测试程序，分别提供词条与合成盾 / 输入。元素盾、勇士屏障、战员和 Guardian overshield 的标签由内容明确声明，宿主还须提供武器身份、直击 / 爆炸词条和 Guardian / bodyshot 标签。精准因子抑制另见下节；生命层专属 Profile、穿透和自动盾分类尚未提供；测试的 MAX 分组和跨层预算仍需按具体原作组合校准。
+
+### 护盾排除已经应用的攻击因子
+
+攻击 Profile 的 multiply 阶段可声明 `factor`，例如：
+
+```json
+{
+  "type": "chorus:apply", "id": "precision", "operation": "multiply",
+  "group": { "name": "precision", "reduction": "max" },
+  "factor": "chorus:precision"
+}
+```
+
+`factor` 必须是命名空间 ID，只允许标记 multiply 阶段。多个阶段可声明同一因子，排除时全部跳过；其他步骤仍按原顺序执行。阶段叫 precision 或事件带精准标签都不会自动产生因子。命中位置与倍率仍由宿主 / 内容提供，示例用显式 impact_number 读取精准增量。
+
+护盾可声明 `"excluded_attack_factors": ["chorus:precision"]`，仅在该层排除攻击 Profile 的对应阶段；默认空集合。不存在于该攻击的因子不改变伤害，未指定攻击 Profile 的原版伤害也不会被猜成暴击。使用 Java 的 shields 查询时，若攻击选了 Profile 且命中排除因子的层，必须传本次实际的 DamageBasis；不能只传一个已缩放数字。Minecraft 适配器已自动传递这份数据。
+
+排除过程保留本次已求值的贡献与旧 Profile，重新计算剩余数值步骤，包含后续 add、percent_of、曲线、clamp 和 round。例如基础 10，精准 ×2、随后 +5、上限 22：原输出 22，排除精准得 15，不能把 22 除以 2。当目标防御也有固定加值或上限时，同样用其本次已求值的贡献重算。
+
+这不是第二次模拟命中：来源 / 目标条件、Value 表达式和原版取消 / 格挡 / 无敌帧都不会再次执行。已通过原版门槛的预算，先按排除因子前后的攻击输出比例换算，再通过保存的目标防御步骤；层内使用两份防御输出的比例。后续层与生命继续使用原预算，只有当前层按比例扣容量。该比例延续 Chorus 的跨层预算约定，不代表任意第三方模组或原作采用相同算法。原输出为零却收到正预算时无法建立此比例，明确失败。
+
+`CalculationProfile.Result` 保存不可变 Inputs；`withoutFactors` 排除因子，`withBase` 更换同单位基值，均不读取效果状态。trace.factors 记录每个被标记阶段的真实倍率及 omitted 标志，即使阶段输入是零也能保留倍率。每层 factorSuppression 记录请求排除的因子、攻击 / 防御重算轨迹和最终比例，不改写 hit / kill 的精准标签。
+
+[precision_damage.json](../common/src/test/resources/effects/precision_damage.json) 与 Eternal Warrior 片段链接，验证精准后的固定加值、原版护甲 / Absorption、普通盾溢出、无敌帧差额和冻结攻击。精准抑制只覆盖明确标记的数值阶段；需要随阶段结果改变的量应写为 percent_of 等数值步骤，已经求值的 event_number 或条件不会因排除因子重新读取。自动弱点判定、分量聚合、原版暴击适配和 D2 精确跨层校准仍待完成。
+
+## 声明资源与支付成本
+
+程序根级的 `resources` 声明账户类型，具体实体通过 `initialize_resource` 创建账户。一个账户由 holder + resource id 唯一定位；重复初始化保留当前值，解绑来源也保留账户。来源负责授予使用规则和修饰，账户不会因切换来源而免费回满。
+
+例如 `data/example/chorus/effect_program/energy.json`：
+
+```json
+{
+  "version": "example-1",
+  "resources": [{"id": "example:energy", "capacity": 2, "initial": 0,
+    "base_rate": 0.5, "thresholds": [1]}],
+  "bundles": [{"id": "example:energy", "rules": [
+    {"id": "initialize", "on": "chorus:source_attached",
+      "if": {"type": "chorus:own_source"},
+      "do": [{"type": "chorus:initialize_resource", "resource": "example:energy"}]},
+    {"id": "ready", "on": "chorus:resource_changed",
+      "if": {"type": "chorus:resource_crossed", "resource": "example:energy", "threshold": 1, "direction": "up"},
+      "do": [{"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}]},
+    {"id": "use", "on": "chorus:hit",
+      "if": {"type": "chorus:source_is", "source": "owner"},
+      "do": [
+        {"action": {"type": "chorus:spend_resource", "resource": "example:energy", "payment": "hit",
+          "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}, "as": "cost"},
+        {"if": {"type": "chorus:result_flag", "binding": "cost", "field": "succeeded"},
+          "then": [{"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 2, "unit": "damage"}}]}
+      ]}
+  ]}]
+}
+```
+
+使用 `chorus engine start example:energy`、`chorus engine attach @s example:energy skill` 启动并绑定。该示例每秒恢复半份充能，第一次达到一份时回血；造成命中时尝试消费一份，成功再回血。全部数值都是通用机制演示参数。若已有运行时，先显式 stop；这会清空旧暂态状态。
+
+- 一份充能固定为 1；capacity = 2 不会把 `charge_fraction = 0.1` 翻倍。当前只实现共享能量的顺序回充。capacity / initial 必填，base_rate 默认 0，允许负速率表示持续消耗。capacity 必须为正，initial 和 thresholds 必须在容量内；阈值不允许重复。
+- `rate_profile` 可引用本程序中的 Profile，其输入、输出均须为 `charge_fraction_per_second`。base_rate 是输入，输出是本段积分速率，静态来源与 Buff 的 modifiers 按同一数值管线归约。速率查询携带 resource 引用、resource_value / capacity 测量和 `chorus:resource_rate_query` 标签；归属为账户持有者，不把多来源回能任意算给一把武器。完整示例见 [resource_regeneration.json](../common/src/test/resources/effects/resource_regeneration.json)。
+- 0、capacity 以及 thresholds 是精确逻辑时间边界；需要监听的中间整格必须声明。`resource_crossed` 默认匹配 self 的账户，支持 up / down；达到后停留在阈值上不会重复触发。一次性入账或消费跨越阈值同样生效。初始化只发 initialized，初值不冒充恢复过程。
+- 初始化返回 value / created；消费返回 paid / after / succeeded，并保留实际成本回执。余额不足时不部分扣款；零成本可以成功但 paid = 0。payment 是规则内唯一的本地标识，完整回执身份另含事件、规则实例及动作 OperationId；同一指令在循环中每次执行也是独立付款，不在不同激活或迭代间复用。
+- `chorus:resource_changed` 只在值变化时发布；`resource_granted` 另带请求 / 入账测量，`resource_spent` 在实际扣费后发布。统一测量为 before / after / delta / capacity，单位 charge_fraction；引用为 resource / reason，布尔值为 changed。恢复、普通入账、完整充能、消费、返还的 reason 分别为 regeneration / grant / full_charge / spend / refund。通用规则通常监听 changed，避免同时监听专项事实而重复发放同一收益。
+- 定义只描述账户，不自动创建所有玩家的资源。DSL 读取、入账或消费未初始化账户会报错；缺失定义、错误 Profile 单位、未声明的反应阈值在加载时拒绝。
+- 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。持久化、动态容量、parallel / linked、多份充能分配策略和持久成本账本尚未实现。
+
+### 按已付成本返还与完整充能
+
+`refund_cost` 引用当前动作序列中已有的成本结果，fraction 的单位为 multiplier、取值范围为 0–1。返还账户直接取自成本回执，不接受另一个 target / resource，避免把别人的支付返到自身账户。如下步骤可放进已有资源来源的规则中：
+
+```json
+[
+  {"action": {"type": "chorus:spend_resource", "resource": "example:energy", "payment": "cast",
+    "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}, "as": "cost"},
+  {"if": {"type": "chorus:result_flag", "binding": "cost", "field": "succeeded"}, "then": [
+    {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}},
+    {"action": {"type": "chorus:refund_cost", "cost": "cost",
+      "fraction": {"type": "chorus:constant", "value": 0.5, "unit": "multiplier"}}, "as": "refund"}
+  ]}
+]
+```
+
+这段示例支付一份、治疗、显式返还实际成本的 50%。治疗结果若要决定是否返还，需要绑定治疗回执并添加对应条件；引擎不会因世界动作被取消或失败自动退款。示例数值仅用于演示协议。
+
+- 每次 requested = paid × fraction，再由剩余成本额度限制 allowed，最后由资源容量限制 credited；overflow = allowed − credited。返还结果提供 requested / allowed / credited / overflow / paid / claimed / remaining，全部为 charge_fraction，另有 changed 标志。claimed 为这笔成本累计已认领额度，包括因容量不足而溢出的部分。
+- 多次引用原始 cost 或上一次 refund 都引用同一笔支付；分支退出、循环推进、未使用 `as` 的返还、世界等待都不会重置额度。例如实付 1，第一次返还 70% 时完全溢出，之后能量被消耗，再请求 70% 也最多只给 0.3。免费或支付失败时 paid = 0，任何比例返还都为 0。
+- 成本记录保留在当前规则 Frame 中，完成后释放；`as` 的普通词法作用域不变，分支结果不能向外引用。当前支持同一动作序列内跨世界等待的返还；跨后续事件、定时回调或 Buff 生命周期保存成本引用，以及跨重启恢复尚未实现。不要把 payment 字符串当成可以在任意未来事件中查询的全局账本键。
+- 每次显式返还发布 `chorus:resource_refunded`，即使 credited = 0 也带完整原因测量。它具有通用资源测量以及 requested / scaled / allowed / credited / overflow / paid / claimed / remaining，scaled 与 allowed 相同；payment 引用为实际支付身份。值变化时另发 resource_changed，返还不重复发 resource_granted。
+- `grant_full_charge` 使用 resource、target（默认 self）、charges（默认 count = 1）。charges 必须是非负整数；增加指定份数并保留已有部分进度，例如 capacity = 2 时 0.4 + 1 → 1.4。它不经过普通 chunk 的缩放，也不把账户设置为满值。结果与 grant_resource 相同，resource_granted 的 reason 为 full_charge。是否属于免费施放仍由实际支付规则决定，不由充能动作倒改成本回执。
+
+上述场景在 [resource_refund.json](../common/src/test/resources/effects/resource_refund.json) 中完整可执行，并有双加载器的实际治疗与资源断言。这是通用合成机制测试，不代表某个 Compendium 效果的全部触发、归因和数值已经验收。
+
+## 目标查询和逐目标执行
+
+以下步骤可放进 source 规则的 do 数组；查询半径、伤害和标签均为合成演示值。完整可执行程序见 [target_iteration.json](../common/src/test/resources/effects/target_iteration.json)，还展示了按每个目标实际伤害回血。
+
+```json
+[
+  {"action": {
+    "type": "chorus:select_targets", "center": "self", "relative_to": "self",
+    "relation": "not_allied", "include_center": false,
+    "radius": {"type": "chorus:constant", "value": 5, "unit": "chorus:meter"}
+  }, "as": "nearby"},
+  {"for_each": "nearby", "as": "enemy", "do": [
+    {"type": "chorus:damage", "target": {"binding": "enemy"}, "damage_type": "example:area",
+     "amount": {"type": "chorus:constant", "value": 2, "unit": "chorus:damage"}}
+  ]}
+]
+```
+
+- `center`、`relative_to` 默认 self；radius 必填，单位 meter，须为有限非负数。relation 默认 any，可选 allied / not_allied，按 relative_to 的原版队伍关系判定。include_center 默认 false；即使开启也不会纳入死亡实体或绕过队伍过滤。变量名 enemy 是作者命名，中立生物也可能是 not_allied。
+- 默认按脚底球形距离查询本维度已加载的存活 LivingEntity，排除旁观者与已移除实体，包含半径边界。一 meter 对应一格；也可使用下文的 area、取样点与显式视线筛选，最近排序通过 order 明确选择。仍存在的死亡实体可作中心，已移除中心返回 missing，不回退其他位置。不加载区块；宿主实体解析器应能解析查询返回的 UUID。
+- 结果的 `count` 字段单位 count，写作 `{"type":"chorus:result","binding":"nearby","field":"count"}`，可用于 compare 判断附近数量。布尔 `available` 用 result_flag 读取：成功但无目标为 true；缺失中心、关系参照或维度不匹配为 false，分别有 missing_center / missing_relative / wrong_dimension 标志。any 不要求世界中存在 relative_to。
+- `for_each` 读取前面已绑定的目标集合，按查询冻结的顺序执行；do 可以包含动作、条件和嵌套循环。每个目标先执行完整序列，等待真实回执后才推进下一目标。嵌套循环可以读取外层目标，各循环的局部结果不会向外泄漏，也不能遮蔽已有名称。
+- 目标参数既支持原有 self / victim / event_actor / source_owner / this_weapon 字符串，也支持循环的 `{"binding":"名称"}`；循环不改写原事件 victim。绑定必须是单个目标，不能把集合或伤害回执用作实体。
+- 世界查询只做一次并固定列表；后续目标移动仍按原身份执行，消失则由对应动作返回 missing / failed 等结果。新进入范围的实体不补进旧列表。再次查询必须显式执行新的 select_targets；跨帧成员差分可用下节的 target_sets，独立空间场物体及自动进入 / 离开事件尚未实现。
+- 循环外成本可供各目标共享返还额度，循环内每次支付则有独立额度；未绑定的返还也计入累计额度。成本引用仍限本规则 Frame，不能从循环外引用循环内的 cost。
+
+这提供范围效果的通用执行基础；Volatile 与 Jolt 的部分数据定义已组合这些机制，真实技能接线和完整数值校准仍待完成。具体边界见 [实现记录](engine-implementation.md)。
+
+### 保存成员与进入 / 离开差分
+
+Buff 可声明 `"components":{"target_sets":["members"]}`，每个新 generation 初始化为空集合，刷新保留。它与普通字符串去重 `sets`、数值 `numbers`、引用 `references` 分别检查类型，所有组件名称不能重名。保存内容只有实体身份，按身份文本升序去重，不包含距离、坐标或实体对象。
+
+以下是规则 do 数组片段，要求 example:field 已存在并声明 members。每次查询后提交成员集合，再分别处理离开和进入的身份；cue 名称和 3 米半径都是演示参数：
+
+```json
+[
+  {"action": {
+    "type": "chorus:select_targets", "center": "self",
+    "radius": {"type": "chorus:constant", "value": 3, "unit": "meter"}
+  }, "as": "nearby"},
+  {"action": {
+    "type": "chorus:sync_targets", "buff": "example:field",
+    "component": "members", "targets": "nearby"
+  }, "as": "changes"},
+  {"action": {"type": "chorus:difference_targets", "binding": "changes", "part": "exited"}, "as": "exited"},
+  {"for_each": "exited", "as": "member", "do": [
+    {"type": "chorus:play_cue", "cue": "example:exit", "target": {"binding": "member"}}
+  ]},
+  {"action": {"type": "chorus:difference_targets", "binding": "changes", "part": "entered"}, "as": "entered"},
+  {"for_each": "entered", "as": "member", "do": [
+    {"type": "chorus:play_cue", "cue": "example:enter", "target": {"binding": "member"}}
+  ]}
+]
+```
+
+| 动作 | 输入与结果 |
+| --- | --- |
+| read_targets | buff、component、可选 target（默认 self）；返回已保存的身份集合，提供 count |
+| sync_targets | 同上，并用 targets 指定此前绑定的查询集合或身份集合；提交新成员，返回类型化差分 |
+| difference_targets | binding 指定差分，part 为 before / after / entered / exited；返回可供 for_each 的身份集合 |
+
+差分提供 count 单位的 before_count / after_count / entered_count / exited_count，以及 observed / changed 布尔字段。entered = after − before，exited = before − after；before / after 在后续状态变化后仍保持原值。差分本身不是可迭代集合。
+
+成功查询到空集合是有效观测，会移除所有旧成员。查询不可用时，sync_targets 返回 observed=false、changed=false，保留旧集合，进入和离开均为空。规则可检查原查询的 missing_center 等标志，明确选择保留、结束场或其他行为。传入 read_targets / difference_targets 的身份集合时 observed=true，表示输入集合可用；这次同步没有重新观测世界，不保证实体仍存在。
+
+这些动作是纯状态操作，不产生隐式进入 / 离开事件，不自动施加或移除 Buff。身份集合的循环可用 member 作目标，但读取 member.distance 会在加载时报错；距离只能取自显式世界查询的目标结果。集合保存的是完整查询结果，包括原查询的关系、排除和数量限制；同步后采用身份顺序，不保留 nearest 排序。
+
+结束规则可以用 `read_targets` 读取自己已结束的 Buff 最终快照，再逐成员清理。即使同键的新 generation 已出现，也不会误读新实例的集合；sync_targets 则只更新当前活动实例，不能修改结束快照。场和成员身上的效果需要使用匹配的实例键，例如各自 instanced_by:source，才能在一个场结束时保留其他来源。同一来源重复施放是否刷新原场，还是创建新的施放身份，需由内容 / 宿主明确选择。
+
+完整 [membership_aura.json](../common/src/test/resources/effects/membership_aura.json) 使用 Buff 定时器每 50 ms 查询跟随持有者的 3 米范围：进入授予来源独立的恢复 Buff，离开移除；场持续 0.3 秒，到期、主动移除或中心不可用时清理最后成员。成员恢复使用同一通道的 2 HP/s，重叠场不叠加。这些均为合成参数，尚不是 Healing Rift / Well 的内容定义。
+
+采样之间沿用上一次成员，先把旧恢复积分到下一次观测时间，再处理变化；不会回推实体真正跨越边界的时刻，采样间短暂进出也可能不被观察到。成员表示被选中的身份，不保证后续 apply_status 成功；拒绝后是否重试须由规则决定。提交成员后若世界动作失败，沿用引擎保留已提交状态并停止推导的协议，不自动回滚或补偿。固定位置可用下文的 positions 组件保存；独立场物体、完整技能装配、运行时快照与持续场的客户端同步仍待实现。
+
+### 显式实体观测
+
+`inspect_entity` 是只读世界动作，`target` 默认 victim，支持循环的单个目标绑定。它返回请求时的不可变观测，通过 `as` 保存；后续动作、世界变化和延迟恢复都不会刷新这个值。需要当前信息时再次显式查询。
+
+```json
+[
+  {"action": {"type": "chorus:inspect_entity", "target": "victim"}, "as": "entity"},
+  {"if": {"type": "chorus:all", "of": [
+    {"type": "chorus:result_flag", "binding": "entity", "field": "available"},
+    {"type": "chorus:result_flag", "binding": "entity", "field": "alive"},
+    {"type": "chorus:result_flag", "binding": "entity", "field": "player"}
+  ]}, "then": [
+    {"type": "chorus:heal", "target": "victim",
+     "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+  ]}
+]
+```
+
+| 投影 | 类型 | 含义 |
+| --- | --- | --- |
+| available / missing | result_flag | 实体能否在当前维度解析，且尚未移除 |
+| alive / player | result_flag | 原版 isAlive / 是否为 Player；仅 available 时可读 |
+| health / max_health / absorption | result，damage | 原版当前生命、最大生命、Absorption；不含 Chorus Buff 护盾 |
+| health_fraction | result，multiplier | health / max_health，保留观测比例，不隐式裁剪 |
+
+缺失、已移除或跨维度实体返回 missing；仍存在的死亡实体可为 available 且 alive=false。缺失结果的 alive / player 和所有数值读取会报错，必须先用短路 all / 分支检查 available。未知字段、单位错误和将此结果当作目标 / 位置 / 集合使用均在加载时拒绝。回执须匹配原 EntityQuery，不能替换为其他实体的观测。
+
+`player` 只是 Minecraft 实体类别，不决定活动的 PvE / PvP 模式，也不代表完整的 Destiny Guardian、敌人等级或勇士分类。[entity_observation.json](../common/src/test/resources/effects/entity_observation.json) 展示按已观测生命缺口回血；[jolt.json](../common/src/test/resources/effects/jolt.json) 将玩家观测与伤害回执组合，只有另一玩家实际损失 HP / 护盾 / Absorption 后才允许中心玩家承受链伤。观测本身不预判后续伤害是否成功。
+
+### 固定位置与延迟范围
+
+`capture_position` 显式读取目标当前脚底坐标，target 默认 self，也可用 victim 或循环目标绑定。返回不可变的维度与 x / y / z，结果绑定类型为 position，有 available / missing 标志。死亡但仍存在的实体可以捕获位置；已移除、无法解析或不在当前维度的实体返回 missing，不用零坐标代替。
+
+下面是规则 do 数组片段。先捕获位置，再于 0.1 秒后查询该位置周围的目标；半径和延迟是演示参数：
+
+```json
+[
+  {"action": {"type": "chorus:capture_position", "target": "victim"}, "as": "place"},
+  {"if": {"type": "chorus:result_flag", "binding": "place", "field": "available"}, "then": [
+    {"after": {"type": "chorus:constant", "value": 0.1, "unit": "second"}, "lifetime": "detached", "do": [
+      {"action": {
+        "type": "chorus:select_targets", "center": {"position": "place"},
+        "radius": {"type": "chorus:constant", "value": 5, "unit": "meter"},
+        "exclude": ["source_owner"], "order": "nearest"
+      }, "as": "nearby"}
+    ]}
+  ]}
+]
+```
+
+`center: {"position":"place"}` 与实体 `center: "victim"` / `{"binding":"target"}` 不同：前者始终使用捕获的坐标，后者查询时解析实体的当前位置。坐标不跟随原实体，原实体随后移动或消失不影响它；每次 select_targets 仍重新读取范围内的当前成员与距离。把 capture_position 放入 after 内则在延迟到期时捕获，而不是释放时。
+
+固定位置没有对应的“中心实体”，include_center 对它不产生隐式排除；位于零距离的任何合格实体都可以入选，想排除原目标须明确写 exclude。关系仍通过 relative_to 的当前实体判断，坐标本身不保存阵营。nearest、limit、半径边界和距离曲线与实体中心相同，距离均从固定点到候选脚底计算。
+
+若直接使用 missing 的位置绑定，查询返回 missing_center 和空列表；坐标维度不同返回 wrong_dimension 和空列表，不跨维度查询、不加载区块。position 不能作为伤害 target、for_each 集合或伤害快照，词法作用域与其他结果一致。当前只捕获 LivingEntity 脚底位置，没有提供碰撞接触点、方块 / 物体位置、坐标运算、独立场物体或跨重启恢复。
+
+完整 [fixed_position.json](../common/src/test/resources/effects/fixed_position.json) 将一次位置捕获、伤害快照和三次嵌套延迟组合；每次爆发重新选择目标。测试使用 5 米、10 点伤害、100 / 150 / 200 ms，都是合成参数，不是 Kinetic Tremors 的数值定义。
+
+### 在 Buff 中保存固定位置
+
+定义可声明 `"components":{"positions":["anchor"],"target_sets":["members"]}`。位置组件与其他组件共用名称唯一性检查，首次创建 generation 时为缺失位置，刷新保留；保存的是不可变的维度与坐标，没有实体引用。它使不同事件和定时回调能读取同一个固定场位置。
+
+`write_position` 把已绑定的 position 精确复制到当前活动 Buff，`read_position` 返回该组件的 position 结果。两者都是纯状态动作，使用 buff、component、可选 target（默认 self）；write 另需 position 指定此前的结果绑定。以下片段要求 example:field 已存在且声明 anchor：
+
+```json
+[
+  {"action":{"type":"chorus:capture_position","target":"self"},"as":"captured"},
+  {"if":{"type":"chorus:result_flag","binding":"captured","field":"available"},"then":[
+    {"type":"chorus:write_position","buff":"example:field","component":"anchor","position":"captured"}
+  ]},
+  {"action":{"type":"chorus:read_position","buff":"example:field","component":"anchor"},"as":"saved"},
+  {"action":{
+    "type":"chorus:select_targets","center":{"position":"saved"},
+    "radius":{"type":"chorus:constant","value":5,"unit":"meter"}
+  },"as":"nearby"}
+]
+```
+
+read / write 均返回位置类型，可直接用于查询中心或再次复制，available / missing 只表示是否保存了坐标，不代表来源实体或区块仍存在。未初始化组件返回 missing；未声明组件或 Buff 不存在会报错。**write_position 会复制缺失值，从而显式清空已有坐标**；想在捕获失败时保留旧位置，需像示例一样检查 available。这与 sync_targets 对不可用查询的保留策略不同，两者不能混用。
+
+read_position 在自身 ended 规则中读取旧 generation 的最终快照；同键新实例不会替代它。write_position 只写当前活动实例，不修改结束快照。读取结果在后续覆盖、移除、延迟或来源解绑后保持原值；重新读取组件才会取得新值。坐标维度也原样保存，交给世界查询时继续验证，不自动转换维度。
+
+[healing_rift.json](../common/src/test/resources/effects/healing_rift.json) 是与 restoration.json 同版本链接的程序片段：宿主用 SourceChange.bind 为每次施放提供独立来源，own_source 只处理该来源的附加事件；先捕获脚底位置，成功后创建 15 秒 field 并写入 anchor，随后 buff_gained 规则开始每 50 ms 查询固定的 5 米范围。查询使用原版 allied 与 source_owner，成员变化授予 / 移除来源独立的 Rift presence，恢复速率复用 restoration.json 的定义。场结束清理最后成员，晚进入者不会多留 15 秒。
+
+每次施放的 EffectSource.instance 和 Origin.source 都要唯一；ability 可为同一个技能标识，不能用当前武器 / 装备来源冒充独立施放。重复绑定相同来源不重施放、不延长，解绑施放来源不删除已创建的 field。当前 fixed anchor 本身允许施放实体消失，但 allied 查询仍需要当前维度中的 source_owner；Rift 片段在关系参照不可用时明确结束并清理，这是待校准策略。无此关系依赖的 any 查询已验证可在原实体移除后继续。
+
+此片段尚未接入落地点 / 施放动画、按键与技能成本、来源离线后的阵营保留或表现物体；满血护盾已用上文的离散补充规则接入。脚底球形查询与 50 ms 采样是当前空间适配，不能当作原作地面场几何和精确跨界时序已校准。位置状态仍只保存在内存中。
+
+### 排除、排序、数量和距离曲线
+
+`select_targets` 新增以下可选字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `exclude` | 目标引用数组，默认空；例如 `["source_owner", {"binding":"previous"}]`，外层循环绑定须已存在 |
+| `order` | `identity`（默认 UUID 文本升序）或 `nearest`（距离升序，同距按 UUID 文本） |
+| `limit` | count 单位的 Value，须为非负整数；省略表示全部，0 表示不选任何目标 |
+
+过滤先于排序，排序先于数量截取；显式排除不受 include_center 开启影响。结果 count 是最终选中数量。查询集合的 for_each 元素还提供 `distance`（meter），它是查询时相对中心的距离快照，目标随后移动也不自动更新。
+
+例如以下 Value 可用作 multiplier，再与基础 damage 相乘：
+
+```json
+{
+  "type": "chorus:curve", "from": "meter", "to": "multiplier",
+  "of": {"type": "chorus:result", "binding": "target", "field": "distance"},
+  "curve": {
+    "type": "chorus:table", "interpolation": "linear", "boundary": "clamp",
+    "points": [
+      {"input": 0, "output": 1},
+      {"input": 3, "output": 1},
+      {"input": 7, "output": 0}
+    ]
+  }
+}
+```
+
+这里 3 米内保持全量，3–7 米线性下降至零。table 也可选 exact（只接受列出的点）或 floor（取前一档）；polynomial 用从常数项起的 coefficients、minimum / maximum 定义域。boundary = error 拒绝超出定义域，clamp 使用最近端点；所有结果仍须满足 damage、radius 等消费方约束，不自动把非法负伤害改成零。
+
+完整 [radial_falloff.json](../common/src/test/resources/effects/radial_falloff.json) 展示从事件读取目标上限、排除施加者、以事件受害者为中心、按距离决定伤害。双加载器测试验证目标在查询后移动时仍使用捕获距离。演示的基础伤害和线性曲线是合成机制验证，不代表任何具体 Compendium perk 的全部数值已校准。
+
+## 攻击修饰的取值时机
+
+modifier 可声明 `"evaluate":"on_use"`（默认）或 `"evaluate":"on_hit"`。前者在宿主捕获攻击时绑定来源侧数值与条件；`victim` 的资源 / Buff 读数及条件仍留到实际命中时求值。后者在命中时从当前攻击者的来源 / Buff 中收集。两者保留原本的 stage / group / stacking_key，在同一 Profile 中一起归约。
+
+例如 [damage_snapshot.json](../common/src/test/resources/effects/damage_snapshot.json) 的临时增益写作：
+
+```json
+{
+  "id": "live", "profile": "test:attack_damage", "stage": "empowering",
+  "group": "empowering", "op": "multiply", "stacking_key": "test:live",
+  "evaluate": "on_hit",
+  "value": {"type": "chorus:constant", "value": 0.4, "unit": "delta"},
+  "reference": "Synthetic snapshot test; not a calibrated Destiny effect",
+  "confidence": "assumed"
+}
+```
+
+时机字段本身不会生成投射物或定时任务。JSON 可用下节的 `capture_damage`、`after` 和 `damage_snapshot` 完成捕获及延迟伤害。Java 宿主也可在释放时调用 `runtime.captureDamage(attack)`，保存返回的 `DamageSnapshot`，命中时把 `snapshot.command(targetUuid)` 提供给原生伤害来源适配或世界命令执行器。捕获要求 attack 有明确 scaling_profile，使用当前已追赶的状态；原始 target 不参与捕获。每次命中可指定不同目标，其余攻击元数据固定。未携带快照的普通 damage 仍按即时查询计算；目标防御 Profile 总是使用命中时当前状态。
+
+快照包含旧 Profile、来源身份与部分求值后的表达式，不包含实体对象或可变装备引用。若新目录提供 on_hit 贡献，其阶段 / 分组结构必须与旧 Profile 相容；不相容会明确失败。计算轨迹逐贡献记录来源版本，不能把旧 Profile 的版本当成所有实时贡献的版本。快照不能跨 PvE / PvP 模式复用，命中时刻也不能早于捕获时刻。
+
+当前 capture 上下文只有 incoming_damage、damage_type、伤害标签和来源身份；尚未装配的事件测量不会默认为零。自定义 Value / Condition 参与 on_use 时须实现 `snapshot` 部分绑定，返回不可变数据表达式，不能保留 Evaluation 或可变世界状态。on_release / on_tick / on_proc、其他原版投射物自动适配、完整反应规则继承、派生筛选与持久化尚未完成；这些字段不能当作已支持的 JSON 使用。
+
+## 捕获结果并延迟执行
+
+以下是规则的 `do` 数组片段，需要所在程序定义 `test:attack_damage` Profile，并提供有 victim 的事件。基础值和延迟是演示参数。完整可编译程序见 [delayed_snapshot.json](../common/src/test/resources/effects/delayed_snapshot.json)。
+
+```json
+[
+  {
+    "action": {
+      "type": "chorus:capture_damage",
+      "amount": {"type": "chorus:constant", "value": 10, "unit": "damage"},
+      "damage_type": "minecraft:generic",
+      "scaling_profile": "test:attack_damage"
+    },
+    "as": "shot"
+  },
+  {
+    "after": {"type": "chorus:constant", "value": 0.1, "unit": "second"},
+    "lifetime": "detached",
+    "do": [
+      {
+        "action": {"type": "chorus:damage_snapshot", "snapshot": "shot", "target": "victim"},
+        "as": "hit"
+      },
+      {
+        "if": {"type": "chorus:result_flag", "binding": "hit", "field": "applied"},
+        "then": [{
+          "type": "chorus:heal", "target": "self",
+          "amount": {
+            "type": "chorus:scale",
+            "of": {"type": "chorus:result", "binding": "hit", "field": "effective"},
+            "from": "damage", "to": "damage", "factor": 0.5
+          }
+        }]
+      }
+    ]
+  }
+]
+```
+
+`capture_damage` 只产生类型化结果，不造成伤害。它接受 amount、damage_type、必填 scaling_profile，以及可选 tags、kill_tags、non_lethal、origin。`damage_snapshot.snapshot` 必须指向此前的攻击快照，target 默认 victim，也可引用循环目标；返回值与普通 damage 相同，effective 是实际损失。快照可读 base_damage，但不能当作目标或目标集合使用。
+
+after 调度完成后，原序列立即继续。delay 必须为正、有限、单位 second 且精确到微秒；嵌套 after 相对进入自身时刻计时。每次调度独立，不覆盖此前任务。生命周期可选：
+
+- `source`（默认）：静态来源解绑 / 替换、所属 Buff generation 结束时取消；Buff 暂停冻结剩余延迟。同刻先处理到期，不执行已结束来源的任务。
+- `detached`：继续执行已经调度的动作，即使来源被卸下、Buff 到期或暂停；保留原归属和捕获结果。它不让消失的 Buff 在未来重新变成可读取的当前状态。
+
+after 保存调度时可见的结果、来源及事件内容，在未来创建新动作帧。分支、循环和嵌套延迟遵循词法作用域，内部绑定不能逃逸或遮蔽外层名称。先查询再延迟会保留已选目标和距离；在延迟体内查询则读取未来的世界。中心可使用实体当前位置，也可通过 capture_position 保留固定世界坐标。
+
+普通 Value 默认在动作执行时求值。需要保留释放时的某个数值时，在 after 前执行 `{ "action": { "type": "chorus:capture_value", "value": 数值表达式 }, "as": "saved" }`，之后通过 `{ "type": "chorus:result", "binding": "saved", "field": "value" }` 读取。其单位保持原样；例如 Buff 规则可先捕获 by_buff_tier，再于 Buff 结束后进行延迟治疗。攻击修饰的冻结使用 capture_damage，不必手工逐项捕获。
+
+付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
+
+## 选择派生动作的来源
+
+`damage`、`capture_damage` 和 `heal` 接受可选 `origin`：
+
+| 值 | 归属 |
+| --- | --- |
+| `bound`（默认） | 当前规则绑定的静态来源，或 Buff 保存的施加来源 |
+| `event` | 当前触发事件的完整 source，包括 owner、source、weapon、ability 和来源标签 |
+
+例如甲施加的状态被乙的攻击触发时，状态规则可明确让连锁伤害归乙：
+
+```json
+{
+  "type": "chorus:damage", "origin": "event", "target": {"binding": "neighbor"},
+  "amount": {"type": "chorus:constant", "value": 4, "unit": "damage"},
+  "damage_type": "minecraft:generic", "scaling_profile": "example:chain_damage",
+  "tags": ["example:chain_damage"], "kill_tags": ["example:chain_kill"]
+}
+```
+
+此片段要求已有 neighbor 循环绑定和 example:chain_damage Profile；4 点只是演示数值。完整可执行示例见 [action_origin.json](../common/src/test/resources/effects/action_origin.json)。
+
+origin 只选择新世界动作的来源，不重新绑定规则。self 仍为原 Buff 持有者，source_owner、by_stacks、component、enhanced 等仍按原规则作用域解释；target 和范围查询的 relative_to 也独立指定。需要对触发事件的 actor 治疗或按其阵营查询，可显式使用 event_actor；event 的 source.owner 与 actor 并不保证相同，origin:event 始终读取 source，不用 actor 猜测来源。
+
+数值 Profile 随新 DamageCommand 的 source.owner 收集合格来源；因此换归属可能改变出伤修饰。事件来源带着某把武器的身份，不会自动获得 weapon_damage / weapon_kill：新动作的 tags、kill_tags 和 scaling_profile 仍各自声明，不复制触发事件的伤害信用。真实原版攻击者还需世界适配器由 command.source 构建 DamageSource，内置管理运行时已经这样映射。
+
+capture_damage 在捕获时选择 origin，并冻结该攻击者的 on_use 数值来源；之后 damage_snapshot 沿用快照归属，不接受 origin 重写。after / schedule 保留原触发事件，延迟体中的 origin:event 使用这份事件来源，后来的其他攻击不会替换它。只有明确的环境来源可以保留空 owner；没有可用 EffectEvent 时会报错，不回退到施加者。当前尚不支持任意实体重归属、逐字段混合来源或引用组件内的来源选择。
+
+## 命中时提供距离等数值
+
+攻击快照可以在来源卸下后继续使用当时的加伤，同时在每次命中时读取不同距离。在 for_each 的目标绑定 `target` 和此前捕获的 `shot` 作用域内：
+
+```json
+{
+  "type": "chorus:damage_snapshot", "snapshot": "shot", "target": {"binding": "target"},
+  "impact": {
+    "distance": {"type": "chorus:result", "binding": "target", "field": "distance"}
+  }
+}
+```
+
+`impact` 是字段名到 Value 的映射，普通 damage 也接受。字段在发出命令时求值一次。distance 的含义来自这里的目标查询结果，并非引擎保留的自动测量字段；Java 宿主可用 `snapshot.command(target, new ImpactData(...))` 提供同类输入。
+
+Profile 修饰通过下列表达式读取它：
+
+```json
+{"type": "chorus:impact_number", "name": "distance", "unit": "meter"}
+```
+
+将它作为 curve 输入，再把输出 delta 放进声明的 falloff 阶段，就能在“平加 → 加伤分组 → 衰减”的顺序中计算，而不必改写已冻结的基础伤害。impact_number 在 on_use 快照中保留为表达式；来源操作数仍冻结，来源之后消失不会删除该曲线。命中条件中的 impact_number 同样延后；on_hit 修饰和当前防御 / 盾层查询也能读取这份输入。完整可执行例见 [impact_snapshot.json](../common/src/test/resources/effects/impact_snapshot.json)，其中 3–7 米线性曲线和基础数值均为合成验收参数。
+
+命中事实保留 impact，后续规则仍用 impact_number 读取；event_number 则读取实际事实的 effective_damage 等数值。两个通道互不覆盖。emit / schedule / after 保留原测量，后续需要新距离时须重新 select_targets 并显式映射。capture_damage 不接受 impact；它捕获的是使用时攻击，命中数据在 damage_snapshot 时提供。
+
+字段必须非空，测量带明确单位，缺失或单位错误会使结算失败，不默认为零。现阶段尚无完整字段定义注册表或自动精准 / 碰撞测量；内容及宿主负责提供一致的字段。
+
+## 来源标签与条件数值
+
+`source_tag` 条件检查绑定来源的标签，包括静态 EffectSource.tags 和 Origin.tags；Buff 来源读取授予时保存的 Origin。它与读取本次事件的 event_tag 分开，不能用本次命中标签冒充装备的类别或强化状态。
+
+`by_source_tag` 将来源标签映射到 Value，各分支必须同单位，运行时必须恰好匹配一个；无匹配和多匹配都明确失败，没有隐含默认档位。其他未列出的来源标签不影响匹配。
+
+```json
+{
+  "type": "chorus:by_source_tag",
+  "values": {
+    "example:bow": {
+      "type": "chorus:enhanced",
+      "base": {"type": "chorus:constant", "value": 3, "unit": "count"},
+      "enhanced": {"type": "chorus:constant", "value": 2, "unit": "count"}
+    },
+    "example:smg": {"type": "chorus:constant", "value": 14, "unit": "count"}
+  }
+}
+```
+
+`choose` 是返回数值的条件表达式，可用于动作参数或修饰值；两个分支均做加载校验，但运行时只求选中的分支。if 使用已有 Condition，then / else 使用已有 Value，支持互相嵌套。
+
+```json
+{
+  "type": "chorus:choose",
+  "if": {"type": "chorus:source_tag", "tag": "example:empowered"},
+  "then": {"type": "chorus:constant", "value": 1.2, "unit": "multiplier"},
+  "else": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+}
+```
+
+数值快照会固定来源标签选择。choose 的条件若已固定，只捕获选中分支；若仍依赖 victim / impact，则保留条件并冻结两侧的来源操作数，目标值到命中时求值。它不会从世界补读缺失字段；未选中的运行时分支不求值，加载时仍必须类型正确。
+
+[kinetic_tremors.json](../common/src/test/resources/effects/kinetic_tremors.json) 用这些表达式配合计数组件、位置 / 攻击快照和 after 编码动能震颤的部分内容。测试宿主提供武器类别和 `chorus:target_rank/minor|elite|miniboss|boss|player` 标签、直击信用与实例身份；完整缩放、衰减、装备装配和待核对策略见 [实现记录](engine-implementation.md#kinetic-tremors-的当前内容边界)。
+
+## 装备展示协议与最小配装页
+
+Fabric / NeoForge 客户端默认按 K 打开独立配装页，可以在控制设置中改键。左边是规则集声明的装备槽，右边是主背包；选择两边后交换，或将装备取回第一个空背包槽。持握 / 收起只更改已实现的 drawn 状态；移槽先选源，再选目的槽。关闭页面停止订阅，刷新重新建立会话。页面不暂停游戏。
+
+`EquipmentPayloads` 在 common 定义三种 payload，加载器只负责注册与发送：
+
+- `equipment_visit`：打开 / 关闭指定页面实例的订阅。
+- `equipment_request`：页面 id、服务端会话 token、展示序号及 swap / draw / stow / move 的槽位或背包索引。没有可提交的物品、物主、词条或效果定义。
+- `equipment_view`：页面 / 会话身份、玩家 / 维度、展示序号、处理结果和完整展示快照。包含装备 ItemStack 组件、drawn / revision、主背包、可用槽、运行状态及 presentation / version；不发送整个解释器状态。
+
+服务端以真实连接玩家为所有者，只在服务器线程处理；核对会话、序号、实际物品 / 组件、规则运行时对象及状态。背包变化或同版本运行时替换也会令旧展示过期。每次处理过的请求都推进展示序号，包括拒绝和空操作，因此旧请求不能再次交换；页面从服务端返回值重建，不先移动本地物品。另一个容器打开或鼠标持有物品时拒绝操作。运行时缺失、定义不可用或效果失败仍展示物品，并沿用服务端已有的取回规则。
+
+只给正在查看的玩家同步，tick 比较完整内容后有变化才发送；页面关闭、离开维度、玩家对象移除或服务器停止时清理订阅。刷新使用新页面 id，旧页面回包被忽略。网络集合与字符串有长度上限；它不是仓库、交易或多人共享容器协议。
+
+装备目录可添加可选字段：
+
+```json
+"equipment": {
+  "presentation": "chorus_d2:equipment",
+  "slots": [],
+  "items": [],
+  "limits": []
+}
+```
+
+客户端将其解析为 `assets/chorus_d2/ui/equipment.json`。当前仅支持 `equipment_two_panel` 模板、ARGB 颜色和 slot_order；布局不能注入动作或修改装备合法性。槽位文字使用 `equipment.slot.<namespace>.<path>` 翻译键，缺失时显示整理过的路径。缺失 / 非法资源回退到通用主题。跨程序片段可以复用相同 presentation，冲突声明拒绝链接。
+
+这是可操作的基础配装页。D2 三维人物预览、装备详情 / 属性比较、技能选择、Buff HUD、拖放 / 快捷移动、完整无障碍和手柄导航仍待实现；D2 配色和槽位翻译位于 `assets/chorus_d2/`，不是完整原作界面复刻。
+
+## 技能选择与施放入口
+
+完整程序的 `abilities` 声明当前支持的即时动作技能。每个定义指定 id、槽位、可选成本、施放条件、标签、数值参数与 on_use 动作。它复用已有 DSL，可授予 Buff、查询目标、治疗 / 伤害及启动 detached 延迟动作；通用物理飞行已由文末 projectile 步骤接入；D2 专用投掷物、移动技能和持续引导等种类尚未实现。下面是结构完整的合成例子，数值不是命运 2 校准结果：
+
+```json
+{
+  "version": "example-1",
+  "resources": [{"id": "example:grenade", "capacity": 2, "initial": 2, "base_rate": 0.1, "thresholds": [1]}],
+  "abilities": [{
+    "id": "example:heal", "slot": "example:grenade",
+    "cost": {"resource": "example:grenade", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}},
+    "tags": ["example:grenade"],
+    "parameters": {"healing": {"value": {"type": "chorus:constant", "value": 4, "unit": "damage"}}},
+    "on_use": [{"type": "chorus:heal", "amount": {"type": "chorus:event_number", "name": "param.healing", "unit": "damage"}}]
+  }]
+}
+```
+
+cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 profile，输入 / 输出单位必须保持不变。参数与成本在接受施放前统一查询当前持有者的来源 / Buff 修饰，固定为本次施放的数据。参数之间没有隐式求值依赖；param.<name> 是给后续动作读取的已解析测量。省略 cost 表示无账户成本；amount = 0 表示使用已声明账户的免费施放，仍有 paid = 0 的成本回执。
+
+效果包可声明条件替换，source 与 buff 作用域都支持：
+
+```json
+"ability_overrides": [{
+  "id": "sprinting_variant", "slot": "example:grenade",
+  "ability": "example:heal", "replace_with": "example:other_heal", "priority": 10,
+  "if": {"type": "chorus:event_flag", "name": "sprinting"}
+}]
+```
+
+replace_with 必须在链接后的程序中存在且属于同槽；可选 ability 匹配本级开始时的当前定义，不填写则匹配该槽。按优先级从低到高解析，每级先收集全部符合条件的候选：不同目标冲突则整次施放拒绝，同一目标允许多个来源共同声明；本级替换完成后再解析下一级。只读取施放者的来源与仍有效、未暂停且适用的 Buff。基础 AbilityLoadout 不被替换结果覆盖。
+
+服务端 API：
+
+```java
+runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(Map.of("example:grenade", "example:heal"))));
+AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
+```
+
+选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before，预检定义 / 槽位后提交。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
+
+use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突和能量不足返回明确结果，不发 ability_used、不执行效果。成功时先提交实际资源扣除，再排入 resource_spent / resource_changed（仅有实际支付时）与 ability_used，世界操作随后执行。
+
+ability_used 的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
+
+有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。它不能跨后续事件或 after 保存成本引用，其他规则可观察 paid 但尚无可跨事件的退款权。即时技能没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
+
+最小命令：
+
+```mcfunction
+chorus ability choose example:grenade example:heal
+chorus ability status
+chorus ability use example:grenade
+chorus ability clear example:grenade
+```
+
+choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。按键 / 网络展示、完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
+
+## 区域形状、方向快照与视线
+
+`select_targets` 接受传统 radius（等同 sphere），或新的 area，必须二选一。area 的类型：
+
+- `chorus:sphere`：radius 为球半径。
+- `chorus:cylinder`：radius 为水平圆半径，height 为完整高度，沿世界 Y 轴，在中心上下各 height / 2。
+- `chorus:cone`：length 为沿轴线的正长度，radius 为远端平面的半径，direction 引用前面 capture_direction 得到的结果。是有限实心锥，不是半径球内的视角扇区。
+
+所有长度字段接受 meter 类型的 Value，可以引用已解析技能参数或已有结果；圆锥长度必须大于零，其余尺寸可为零。方向必须先显式捕获，不能从未声明的施放者朝向推断：
+
+```json
+[
+  {"action": {"type": "chorus:capture_direction", "target": "self"}, "as": "aim"},
+  {"action": {"type": "chorus:capture_position", "target": "self", "anchor": "eyes"}, "as": "origin"},
+  {"action": {
+    "type": "chorus:select_targets", "center": {"position": "origin"},
+    "area": {"type": "chorus:cone", "length": {"type": "chorus:constant", "value": 16, "unit": "meter"},
+      "radius": {"type": "chorus:constant", "value": 3.75, "unit": "meter"}, "direction": "aim"},
+    "target_anchor": "body", "line_of_sight": true, "relation": "not_allied", "relative_to": "self",
+    "exclude": ["self"], "order": "nearest", "limit": {"type": "chorus:constant", "value": 4, "unit": "count"}
+  }, "as": "targets"}
+]
+```
+
+此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 读取服务器实体的 look vector，保存带维度的归一化方向；capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。它还没有可写入 Buff 的方向组件或持久化 Codec。
+
+直接以实体为 center 的查询可以给 center_anchor；target_anchor 决定每个候选实体的取样点，均为 feet / body（碰撞箱中心高度）/ eyes。已捕获位置是精确坐标，不再叠加 center_anchor；这类查询若指定非默认 center_anchor 会在编译时报错。区域判断、距离和可选视线均使用同一对取样点，**不是整个碰撞箱与区域的相交测试**。球形旧请求仍保留脚底语义；非球形回执另保存相对坐标并验证它位于区域内，结果读取不再访问世界。
+
+line_of_sight 默认 false，不会替已有 Jolt / Rift 等内容偷偷加遮挡规则。true 时从中心取样点向目标取样点发射方块碰撞射线：使用 COLLIDER 形状，半砖只挡实际占据的部分，玻璃会挡；流体和其他实体不挡。这是当前 Minecraft 宿主的明确规则，尚未校准为各命运 2 效果对每种障碍物的行为。只访问已有的已加载 LevelChunk；任一端点或路径经过未知地形时不可见，不触发区块加载。
+
+所有关系 / 排除 / 形状 / 视线筛选完成后才排序和应用 limit，所以被墙挡住的最近目标不会挤掉更远的可见目标。查询返回的是一次观测：之后开门、转身或移动不会改写已有列表与距离；下一次查询才看到变化。视线与已选目标之间没有持续锁定或再次命中验证，内容如需这些检查必须另发查询。
+
+Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描手雷的视线要求；Arc D58 和 Solar D40 需要锥形范围。它们证明这些通用能力是必需的；当前合成 spatial_query.json 验证机制，没有据此宣称这些技能已经完整实现或几何端点已经校准。
+
+## 组合实例：电弧箭扫描与连锁
+
+[arcbolt.json](../common/src/test/resources/effects/arcbolt.json) 是可编译的部分内容实例，展示了以下组合：
+
+1. 宿主发出本次施放的落地事件，规则同时核对 owner 与 ability，并以 `origin: event` 捕获攻击快照。
+2. `select_targets` 在落点 12 米内选择视线可见的最近目标；先完成过滤，再应用 `limit: 1`。
+3. 在该单元素集合的 `for_each` 内安排 detached 的 1 秒延迟，保存首次目标身份。
+4. 延迟到期后捕获目标当前身体点，执行 `damage_snapshot`；读取实际 `effective_with_absorption`，大于零才查询下一跳。
+5. 下一跳用保存位置为中心、10 米范围、nearest / limit 1；`exclude` 显式列出施加者、落点实体及外层循环绑定的先前目标。四个嵌套阶段构成该基础技能的最多四目标规则。
+
+排除绑定作用域按嵌套结构保留，下一次施放重新建立自己的绑定。这个上限由内容规定，不会限制引擎里的合法循环。存储每次伤害前的位置还能让致死并被移除的目标作为连锁起点。首段锁定、后续视线 / 跳跃间隔和伤害资格的具体选择见 [电弧箭数值与缺口](d2-ruleset.md#电弧箭手雷arcbolt-grenade)。目前 `test:arcbolt_impact` 是验收宿主输入，victim 是表示落点的独立实体；不能直接把它当成已经存在的生产投射物事件。
+
+## 物理投射物与碰撞动作
+
+`projectile` 是与 `after / for_each` 并列的控制步骤。先用 `capture_position`（通常 `anchor: eyes`）、`capture_direction` 和 `capture_damage` 保存 `muzzle / aim / shot`，再发射：
+
+```json
+{
+  "projectile": {
+    "position": "muzzle",
+    "direction": "aim",
+    "speed": { "type": "chorus:constant", "value": 20, "unit": "meter_per_second" },
+    "gravity": { "type": "chorus:constant", "value": 0, "unit": "meter_per_second_squared" },
+    "drag": { "type": "chorus:constant", "value": 1, "unit": "multiplier" },
+    "lifetime": { "type": "chorus:constant", "value": 1, "unit": "second" }
+  },
+  "as": "impact",
+  "do": [
+    { "for_each": "impact", "as": "target", "do": [
+      { "type": "chorus:damage_snapshot", "snapshot": "shot", "target": { "binding": "target" } }
+    ] }
+  ]
+}
+```
+
+这些是合成参数。完整可编译程序见 [projectile.json](../common/src/test/resources/effects/projectile.json)，同时包含带成本的技能入口、落地范围动作和到期分支。
+
+`as` 只在每次接触 / 终止动作体里引入绑定，不会向发射后的外层步骤泄漏。此前可复制的结果会保留，实际施放来源 / self 和原程序动作定义固定；来源卸下不会取消已发射物。未预先捕获的状态读数仍在该次接触时求值。`cast_cost` 等付款 / 退款结果不可复制到该帧，捕获 paid 数字也不会获得退款权。
+
+| 接触结果的用途 | 行为 |
+| --- | --- |
+| `for_each: impact` | ENTITY 为命中的一个 LivingEntity 身份，其他结果为空集合；没有猜测目标或距离字段 |
+| 查询 `center: { "position": "impact" }` | 以真实接触点或终止位置发起后续范围查询 |
+| `result_flag` | `entity / block / expired / unloaded` 恰有一个为 true；`terminal` 表示飞行结束，`bounced / pierced` 表示此次接触后继续反弹 / 穿透 |
+| `result` | `count / sequence / bounces / entity_contacts / target_contacts`（count）、`age`（second）、`normal_x/y/z`（multiplier）；法线只有 BLOCK 为单位向量，其他为零 |
+
+发射使用 `ProjectileFlight.Launch / Receipt` 世界协议，操作账本防止重复发射；回执必须对应原请求。缺失位置 / 方向、错误维度、未知区块和宿主拒绝不会产生可执行实体，也不会自动退款或重试。当前步骤不在外层暴露命名的发射回执；需要按发射失败退款的内容仍需扩展结果接口。
+
+服务端每个 Minecraft tick（50 ms）推进一次：先加重力，再乘 drag，再移动。drag 是每 tick 的乘数，不是每秒速率。寿命向上量化到物理 tick，在最后一步先处理碰撞再处理到期；它不改变规则引擎计时器的微秒协议。速度 / 重力必须在 0–2000 的各自单位内，drag 在 0–1 内，寿命必须为正且能表示为有限整数微秒；超出宿主边界拒绝，不裁剪成另一个值。
+
+命中用每 tick 的完整线段扫描，方块碰撞形状先限制线段末端，再检查实体。实体碰撞箱向外扩张 0.125 米，方块使用中心射线；只有存活且非旁观的 LivingEntity 可作为直击目标，原施加者始终排除。没有自动阵营排除、投射物互撞、盾牌反射、追踪、水下阻力或方块 `onProjectileHit` 副作用。流体不遮挡。未知端点 / 途中区块终止为 unloaded，停在上个已知位置，绝不加载新地形；范围 / 阵营及爆炸视线由动作体另行声明。
+
+每次接触先提交计数，终止时才消费实体，再恢复独立动作体；后续失败会放弃余下飞行，已提交接触不重放。运行时停止 / 替换 / 故障后，旧飞行物会移除，不交给新程序执行。当前实体 `noSave / noSummon`，不支持传送门、区块卸载续接或重启持久化。两端使用原版实体跟踪协议同步运动，重力 / drag 是显示用同步数据，完整动作体和快照仅在服务端；默认紫水晶碎片外观只是占位。原版箭、雪球等不会被自动转成该协议，完整 origin_bundle / current_owner_bundle 反应继承仍未实现。
+
+
+### 反弹、穿透与重复命中
+
+`projectile.collision` 可选，省略时仍在第一个实体 / 方块接触后结束。以下配置允许一次墙面反弹、无限穿透实体，每个目标最多命中两次：
+
+```json
+"collision": {
+  "block_bounces": { "type": "chorus:constant", "value": 1, "unit": "count" },
+  "entity_pierces": "unlimited",
+  "max_hits_per_target": { "type": "chorus:constant", "value": 2, "unit": "count" },
+  "restitution": { "type": "chorus:constant", "value": 1, "unit": "multiplier" }
+}
+```
+
+三个次数字段接受 count 单位的整数 Value 或字符串 `unlimited`，均在发射时求值。默认值依次为 0、0、1；前两个允许零，每目标上限必须为正。有限值不能超过 2147483647，省略上限只能用 `unlimited`，不使用负数约定。`entity_pierces: 1` 表示穿过第一个目标，在第二次实体接触后停止；物理接触即计数，即使后续伤害被取消。墙面反弹与实体穿透预算独立，不限制引擎中的合法事件循环。
+
+反弹按表面单位法线计算 `v' = (v - 2(v·n)n) × restitution`，恢复系数为 0–1，默认 1。每次接触使用该 tick 尚未走完的时间继续扫掠，支持同 tick 多次碰撞。物理射线使用碰撞形状各包围盒的闭线段交点，包含恰好在 tick 末端 / 起点面上的接触和盒间接缝；从表面外接近不因前向采样被误判为嵌入。真正嵌在方块中的弹体直接结束。每目标次数独立于总穿透次数；同一目标必须先离开扩张后的碰撞箱，再进入才可再次命中，连续重叠不会每 tick 重复伤害。达到目标上限后，该目标不再阻挡此弹体。
+
+每次接触，包括非终止的反弹 / 穿透，都会执行一次 `do`，各次有独立操作身份和结果帧。`sequence` 从 1 开始；`bounces` 是已成功反弹的次数，`entity_contacts` 是总实体接触次数，`target_contacts` 是此目标累计次数（其他类型为 0）。这些计数均包含当前接触。`count` 仍为此次命中集合的大小（0 或 1）。可用 `result_flag.terminal` 限制只执行最终爆炸，也可将计数作为 `damage_snapshot.impact` 输入，驱动快照保留的命中期衰减表达式。
+
+[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。现有机制只覆盖墙面反射与沿轨迹穿透；从敌人转向另一敌人、自动追踪、盾牌反射与返回 / 接回动作仍待实现。
