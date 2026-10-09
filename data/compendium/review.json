@@ -1,0 +1,1627 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-10-05",
+  "entries": [
+    {
+      "id": "weapon/adrenaline_junkie",
+      "name": "Adrenaline Junkie",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A10",
+          "text_sha256": "01fd1af1b58c7944dffe9d48a6007bf45400f9b6413c7075b16df23d18a25d0c"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C10",
+          "text_sha256": "6d333f95777d21ea0f989512d75aff6e92d9188760bb0c65643656e8693e8086"
+        }
+      ],
+      "scope": "武器击杀逐层 / 手雷击杀五层、4.5 / 5 秒、刷新、收枪保留、伤害表与固定 +20 操控查询；真实死亡驱动下次伤害",
+      "acceptance": [
+        "武器实例互不串层，其他持有者不触发",
+        "手雷击杀让同持有者所有已绑定实例达到五层，即使收枪",
+        "普通与强化各自持续时间，满层刷新，到期边界重新一层",
+        "五档伤害与固定操控修饰",
+        "原版实际死亡产生击杀后修饰实际伤害"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/adrenaline_junkie.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AdrenalineJunkieTest.java",
+          "symbol": "weaponKillsUseFiveDamageStepsAndHandlingIsFlatNotPerStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AdrenalineJunkieTest.java",
+          "symbol": "grenadeKillActivatesEveryOwnedInstanceWhileStowedAndUsesEachInstancesEnhancement"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AdrenalineJunkieTest.java",
+          "symbol": "uncreditedOrAnotherOwnersKillsDoNotActivateAndExpiryKillStartsAtOne"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AdrenalineJunkieGameTest.java",
+          "symbol": "realWeaponKillsBuildOnlyTheirOwnWeaponDamageBuff"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AdrenalineJunkieGameTest.java",
+          "symbol": "realGrenadeKillActivatesBothStowedWeaponInstances"
+        }
+      ],
+      "gaps": [
+        "实际武器/手雷归因仍由测试宿主提供",
+        "操控属性尚未连接持枪动画/切枪时间",
+        "特殊伤害资格需随武器内容逐条校准"
+      ]
+    },
+    {
+      "id": "weapon/kill_clip",
+      "name": "Kill Clip",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A132",
+          "text_sha256": "f53cfa5a0b183e07904930f785209fc1ee4b84f6c04dab6f160c03a082826ed0"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C132",
+          "text_sha256": "5ef3f3a9bc93997a0ca4fe066c645667029625d5c7806dfaef6b0d0055afa56d"
+        }
+      ],
+      "scope": "JSON 击杀/换弹窗口、来源隔离、普通/强化时间；预置 Buff 的实际伤害",
+      "acceptance": [
+        "3.6 秒窗口与边界",
+        "25% 伤害及5/5.5秒",
+        "刷新/收枪/跨武器隔离",
+        "实际武器输入到世界伤害"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/kill_clip.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EffectProgramTest.java",
+          "symbol": "killClipJsonHandlesWeaponIsolationRefreshStowAndDamageEligibility"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EffectProgramTest.java",
+          "symbol": "killWindowUsesHalfOpenDeadlineAndEnhancedDurationIsDataDriven"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CombatProfileGameTest.java",
+          "symbol": "managedProfilesFlowThroughShieldArmorAndAbsorption"
+        }
+      ],
+      "gaps": [
+        "完整击杀/换弹来源装配",
+        "窗口收枪保留仍为内容假设"
+      ]
+    },
+    {
+      "id": "weapon/disruption_break",
+      "name": "Disruption Break",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A71",
+          "text_sha256": "683800b0f90e03978ffea9f3ef577174ae6399d6acc1d59f3a0a7eb4f285aeed"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C71",
+          "text_sha256": "25661ec71b8e964d2b12ed1cf027b6892284ad23631f4662453b2bc914ac6e5e"
+        }
+      ],
+      "scope": "独立层、来源、动能资格、环境持续时间；预置状态进入世界伤害",
+      "acceptance": [
+        "元素/屏障盾破盾触发",
+        "50% 动能易伤",
+        "多来源错开施加独立到期",
+        "PvE/PvP时间与强化例外"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/disruption_break.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EffectProgramTest.java",
+          "symbol": "independentVulnerabilityStacksMultiplyAndExpireSeparately"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CombatProfileGameTest.java",
+          "symbol": "managedProfilesFlowThroughShieldArmorAndAbsorption"
+        }
+      ],
+      "gaps": [
+        "实际破盾到对应武器来源装配",
+        "强化变体数值待明确"
+      ]
+    },
+    {
+      "id": "weapon/slice",
+      "name": "Slice",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A198",
+          "text_sha256": "87bd786502645b41722cc9421c3b8b79c1a64b1ab6e44eb856cdf1c1efc54b1d"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C198",
+          "text_sha256": "2217bbdcd21db6f95d9afaa1e43c268295d33c864301fa5328c1d82fcf09bd71"
+        }
+      ],
+      "scope": "技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界",
+      "acceptance": [
+        "技能激活后五次额度",
+        "Sever成功才消费",
+        "已施加目标与最后一层不重建",
+        "基础/强化与收枪规则"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/slice.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StatusComponentTest.java",
+          "symbol": "sliceConsumesOnlyAfterStatusCommitAndDoesNotRecreateTheLastCharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DamageGameTest.java",
+          "symbol": "sliceAcceptsTheLivingTargetAfterAnActualTotemSave"
+        }
+      ],
+      "gaps": [
+        "实际职业技能与武器来源装配",
+        "完整 Sever 减伤/延长",
+        "拒绝施加时是否刷新待原作核对"
+      ]
+    },
+    {
+      "id": "strand/sever",
+      "name": "Sever",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Strand",
+          "cell": "B8",
+          "text_sha256": "538889070df81c8c41f09d6e0716915cf4741989154e9ebbc18616f7b3e60ff2"
+        },
+        {
+          "sheet": "Strand",
+          "cell": "D8",
+          "text_sha256": "7dfca0aea64e9b30baf0a11e220eecda30e22cf91c7e9db0c5726292e50cf77d"
+        }
+      ],
+      "scope": "状态存在性和基础环境时间已作为 Slice 的子效果验证",
+      "acceptance": [
+        "输出减伤",
+        "环境持续时间及延长资格",
+        "刷新与来源归属"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/slice.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StatusComponentTest.java",
+          "symbol": "enhancedSliceUsesNineSecondsAndPvpStatusUsesFiveButMismatchedAuthorizationFails"
+        }
+      ],
+      "gaps": [
+        "40%/15% 敌人输出减伤",
+        "延长项10+5/5+2.5的内容条件",
+        "对应技能归属和实际施加来源"
+      ]
+    },
+    {
+      "id": "solar/cure",
+      "name": "Cure",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B4",
+          "text_sha256": "f22b5280088582f7c290768caa90c11d3e9bee41372bced2fa83c362262478fa"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D4",
+          "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
+        }
+      ],
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP",
+      "acceptance": [
+        "每级60/30HP，0.1秒过程",
+        "重复激活不延长冷却",
+        "真实治疗回执和来源"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/cure.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ScheduledEffectsTest.java",
+          "symbol": "cureHasTwoPulsesAndCooldownRejectsExtraActivationsWithoutRefreshingIt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ScheduledEffectsGameTest.java",
+          "symbol": "serverTicksExecuteJsonCureRecoveryAndResourceProfiles"
+        }
+      ],
+      "gaps": [
+        "两次等量脉冲为Chorus选择，原作细分恢复曲线未知",
+        "实际技能/装备来源装配"
+      ]
+    },
+    {
+      "id": "solar/restoration",
+      "name": "Restoration",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B7",
+          "text_sha256": "6a3c6c77892d34a5246dc63f64719d2e7873685a098f13e5e8f1234c375f1069"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D7",
+          "text_sha256": "fd25529d29a57d9d040a024bfc590bc657d82b79225af6e762c1a644dd511f30"
+        }
+      ],
+      "scope": "连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick",
+      "acceptance": [
+        "x1/x2环境恢复率",
+        "保留最长时间和最高强度",
+        "互斥覆盖与恢复",
+        "最后不足一tick区间",
+        "Phoenix Dive例外"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/restoration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RecoveryTest.java",
+          "symbol": "strengthChangesSplitTheIntervalAndReapplyPreservesHistoryAndHighestTier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RecoveryGameTest.java",
+          "symbol": "restorationAndRiftShareAChannelWithoutAddingTheirRates"
+        }
+      ],
+      "gaps": [
+        "与 Healing Rift 不叠加时的取高优先级未核对",
+        "Phoenix Dive 的4+2秒例外",
+        "实际技能来源和延长条件装配"
+      ]
+    },
+    {
+      "id": "class/healing_rift",
+      "name": "Healing Rift",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Class Abilities",
+          "cell": "B15",
+          "text_sha256": "0aea7053f7e15994f900a3160553df3c8fb55d92a2396449e7f0783e193d7c1e"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "D15",
+          "text_sha256": "e4fbb826968589ddb5cf86aa4314f7b9d3b7027801697503e7c4d6469cad7c5d"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "N15",
+          "text_sha256": "99e9811e7f4e225e4ee5fc631389e944f39c745de829b7a8884de5e34203d41a"
+        }
+      ],
+      "scope": "固定位置组件、5 米友方 / 自身范围、15 秒、40 / 35 HP/s 的 0.1 缩放、成员差分及晚进入清理、独立施放与重叠恢复通道；共享满血护盾池每 50 ms 补 0.015 至 1.5、Void 正容量阻止生成、空容量交互资格；部分内容已通过双端真实 tick / 扣盾 / 回血",
+      "acceptance": [
+        "5米区域、15秒",
+        "40/35 HP/s",
+        "满血护盾规则",
+        "冷却与主动回能系数",
+        "施放动画减伤 / 移动及具有护盾的交互资格"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/restoration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RecoveryTest.java",
+          "symbol": "suppressedSourceKeepsItsLifetimeAndResumesWhenWinnerExpires"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RecoveryGameTest.java",
+          "symbol": "restorationAndRiftShareAChannelWithoutAddingTheirRates"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/membership_aura.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TargetMembershipTest.java",
+          "symbol": "overlapAndCleanupAreSourceScopedAndDoNotRemoveAnotherFieldsPresence"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TargetMembershipTest.java",
+          "symbol": "savedIdentitiesCanBeCopiedAndEndReadsTheOldGenerationAfterImmediateReplacement"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetMembershipGameTest.java",
+          "symbol": "targetAndCenterMovementChangeMembershipOnceAndExpiryCleansActualHealing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetMembershipGameTest.java",
+          "symbol": "overlappingSourcesCleanIndependentlyWhenMembersAndCenterDisappear"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/healing_rift.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PositionComponentTest.java",
+          "symbol": "endedRulesReadOldCoordinatesEvenAfterSameKeyReplacementHasInitializedEmpty"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingRiftTest.java",
+          "symbol": "fixedFiveMeterFieldIncludesCasterAndAlliesAndUsesBothModeRatesUntilFifteenSeconds"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingRiftTest.java",
+          "symbol": "lateEntryStartsAtObservationAndFieldEndRemovesItsLongerPresence"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingRiftGameTest.java",
+          "symbol": "fixedRiftHealsAlliesForFifteenSecondsAfterCasterMovesAndSourceDetaches"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingRiftGameTest.java",
+          "symbol": "pvpOverlappingRiftsKeepOneHealingRateAndSeparateRemovalAndExpiry"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldRestorationTest.java",
+          "symbol": "maximumUsesReceivingLayerScopeAndLowerLimitsDoNotDamageExistingShield"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RiftShieldTest.java",
+          "symbol": "fullHealthPulsesUseOneSharedPoolAndReachTheCapInBothModes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RiftShieldTest.java",
+          "symbol": "woundedHealthDoesNotChargeAndTheFirstObservedFullPulseStartsGeneration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RiftShieldGameTest.java",
+          "symbol": "shieldChargesToCapTakesNativeDamageAndResumesOnlyAfterHealthIsFull"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RiftShieldGameTest.java",
+          "symbol": "overlappingPvpFieldsShareGenerationAndLeavingOneDoesNotClearAnother"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RiftShieldGameTest.java",
+          "symbol": "voidShieldBlocksGenerationWhileOtherLayersAndNativeAbsorptionStayIndependent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RiftShieldGameTest.java",
+          "symbol": "riftPresenceCountsForPerkQualificationEvenWhenNoShieldCapacityHasBeenGenerated"
+        }
+      ],
+      "gaps": [
+        "实际技能输入与施放来源装配；场目前为状态与查询组合，没有独立物体 / 表现",
+        "脚底球形范围、50 ms 采样、地面接触点及施放动画尚待校准",
+        "来源实体失联后保存阵营 / 跨维度生命周期；当前 allied 参照缺失时结束场为暂定策略",
+        "首次补盾与刚恢复满血时的完整脉冲、最后离场立即删盾、空层创建即确定 FIFO 年龄及重叠共享池首个来源等时序 / 归属策略待原作校准；Void 测试层不代表完整内容",
+        "施放时 20% 减伤与移动接线",
+        "118.7秒基础冷却与0.5x chunk scalar装配",
+        "互斥取高、0.1 生命投影及绝对恢复率校准；9.5.0 官方相对改动不重复应用到固定快照"
+      ]
+    },
+    {
+      "id": "weapon/frame_of_reference",
+      "name": "Frame of Reference",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A369",
+          "text_sha256": "64b43ad2ce81b99466aeee5989c9dbf8a4216ff8969e1fe43d77a35ff2506acc"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C369",
+          "text_sha256": "26b726fa771c149ee20fad1ec286c1163d3589a7216ab31e692bb954e4dcb8f6"
+        }
+      ],
+      "scope": "已验证独立Buff定义的收枪暂停与恢复；尚非完整词条",
+      "acceptance": [
+        "五层与8秒",
+        "收枪暂停/拿出恢复",
+        "所有数值档位及触发资格"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/buffs/frame_of_reference.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BuffCodecsTest.java",
+          "symbol": "jsonDefinitionDrivesRealPausePolicyAndRoundTrips"
+        }
+      ],
+      "gaps": [
+        "实际武器击杀叠层",
+        "增伤/装填及完整档位",
+        "真实武器输入/属性连接"
+      ]
+    },
+    {
+      "id": "weapon/rampage",
+      "name": "Rampage",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A172",
+          "text_sha256": "9c6aa95845a73edcec9a9568deba187100fbe690f0a6dfcc010810f04e6a9245"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C172",
+          "text_sha256": "ce84e4ddc7beb6c9512642f217e2a1ea0443c3636787c591c698e45b0bd57385"
+        }
+      ],
+      "scope": "文档草稿；核心有逐层衰减能力",
+      "acceptance": [
+        "10/21/33.1%伤害",
+        "4.5/5秒与逐层衰减",
+        "再次击杀刷新",
+        "收枪保留且武器隔离"
+      ],
+      "evidence": [],
+      "gaps": [
+        "后续逐层掉层间隔需明确",
+        "可执行内容与时间线",
+        "实际武器装配"
+      ]
+    },
+    {
+      "id": "arc/jolt",
+      "name": "Jolt",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Arc",
+          "cell": "B8",
+          "text_sha256": "df1cb97458e9f429cd06289a00b9d95e4e980269a81abc4a65c60807f73a8af1"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D8",
+          "text_sha256": "6ec40d97a8a8722b00be17c2c12a605651010472910cd9eb7efeb500ff264724"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C243",
+          "text_sha256": "e7a0e6d07265e4454be06cbfa36be8444bff6568ea4ea7eafe21ea74da961880"
+        }
+      ],
+      "scope": "独立 JSON 状态：施加击累计及顺序例外、刷新、阈值/冷却、触发者归属、实际其他玩家损失后的中心链伤、致死阈值及同因果链的相邻连锁；真实双端世界验收，缩放与余量等策略仍待校准",
+      "acceptance": [
+        "持续 10/PvP 5 秒，重新施加刷新；一般施加击计入，来源特例单独声明顺序",
+        "累计 115/PvP 45 伤害，放电间隔 0.8 秒；冷却期累计与溢出政策仍待明确",
+        "对 12 米内敌人造成 119/PvP 51 Arc 伤害；Guardian 中心仅在该链伤到其他 Guardian 时承受链伤",
+        "Overload 受到 Jolt 伤害后眩晕",
+        "施加者与放电触发者分开归属，武器身份不自动赋予武器伤害信用；官方归属及 Lightning Grenade 例外见 d2-ruleset"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/accumulator_initialization.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StatusComponentTest.java",
+          "symbol": "applyingHitCountsOnceEvenWhenRefreshInitializationAndExistingListenerBothRun"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/action_origin.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ActionOriginTest.java",
+          "symbol": "otherAttackerOwnsDerivedDamageAndHealingWithoutRebindingCarrierOrCopyingWeaponCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ActionOriginGameTest.java",
+          "symbol": "nativeHitByAnotherAttackerOwnsChainKillsHealingAndNumericModifiers"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/jolt.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "applicationCountsOnceIncludingImmediateThresholdAndReapplicationRefreshesDuration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "cooldownIsArmedBeforeChainDamageAndDiscardsHitsWithoutAllowingLaterReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "triggeringAttackerOwnsChainsWithoutChangingApplicationOwnerOrCopyingWeaponCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "playerCenterNeedsActualDamageToAnotherPlayerInEitherActivityMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "zeroLossDoesNotQualifyButRealShieldOrAbsorptionLossDoes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "missingOrDeadNeighborsAreSkippedAndMissingCenterNeverInventsTargets"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "afterDamageApplicationExcludesOnlyNewApplicationAndAlreadyActiveStatusStillCounts"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "lethalThresholdChainsBeforeDeathCleanupButDeathAloneAndExpiryDoNotDetonate"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "rejectedApplicationIncludingFirstFatalApplicationCannotCreateStatusOrChains"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "adjacentJoltedEnemiesMayChainInTheSameCausalTreeWithTheirOwnCooldowns"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "nativeApplyingHitCountsAndAnotherAttackerOwnsModeSpecificChainDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "playerCenterRequiresActualOtherPlayerLossIncludingAbsorptionAndRejectsCancelledChains"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "fatalThresholdStillChainsBeforeCleanupAndFreshAfterDamageApplicationDoesNotCount"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "adjacentJoltsMayCascadeWithinOneRootWithIndependentCooldowns"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "nativeCooldownBlocksEarlyHitsAndAllowsAnotherActivationAtExactDeadline"
+        }
+      ],
+      "gaps": [
+        "0.1 单位投影、完整等级缩放和 Guardian / 勇士分类仍待校准；尚无 Overload 眩晕",
+        "当前超额清零，冷却内伤害丢弃但去重，阈值不含 Absorption，刷新保留首次来源；这些选择缺少完整原作证据",
+        "阵营暂依赖仍在同维度的原施加者；离线/跨维度关系快照、真实技能/武器施加及正式伤害类型未装配",
+        "首次致死施加不创建状态或放电，来源特例由 test 标签显式选序，完整原作时序仍须按目标版本验收"
+      ]
+    },
+    {
+      "id": "void/volatile",
+      "name": "Volatile",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B9",
+          "text_sha256": "a9e1146636ddbb259c9f19563da0f1ab2f410bca3ada860188a70f1bd6e21233"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D9",
+          "text_sha256": "87848d9af6cd61347b520a80b7862dc7da5db5f3eb57c7a6d7fe74a5102e2daa"
+        }
+      ],
+      "scope": "JSON 施加击排除、两种环境阈值/持续/伤害、目标共享冷却、致死施加资格、归因及双加载器实际范围连锁",
+      "acceptance": [
+        "施加击排除；后续每个 damage_id 只累计一次",
+        "190/200 阈值、10/6 秒、145/80 最大伤害、5 米范围与引爆后 1 秒目标冷却；自然到期无爆炸",
+        "首次致死施加仍检查资格；已有状态致死命中和随后死亡事实只引爆一次",
+        "任意攻击者可引爆，明确来源与技能击杀资格；相邻 Volatile 可在同一因果根继续连锁",
+        "真实技能来源、实际伤害投影、距离曲线及重施加归因校准"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/volatile.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "applyingHitIsExcludedEvenWhenLargeOrReplayedAndSubsequentHitsAccumulateOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "cooldownIsSharedByTargetAndStartsAtDetonationWithExactReapplicationBoundary"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "pvpUsesItsOwnThresholdDurationAndExplosionDamageAndExpiryIsHarmless"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "anotherOwnersApplicationCannotStealAnActiveStatusOrBypassItsTargetCooldown"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "firstLethalApplicationChecksEligibilityAndExplodesOnceWithoutCreatingAStatus"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "anyAttackerCanDetonateButExplosionKeepsApplicationOwnerAndExplicitAbilityCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VolatileTest.java",
+          "symbol": "qualificationCannotSmuggleDeadPermissionIntoApplicationAndCannotBeReadAsApplied"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
+          "symbol": "nativeThresholdDetonatesSelfAndNearbyTargetsWithModeSpecificDamageAndCooldown"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
+          "symbol": "lethalApplyingHitTriggersOneQualifiedExplosionWithoutApplyingToADeadEntity"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
+          "symbol": "lethalHitOnAnExistingStatusDoesNotDetonateTwiceOrChangeTheApplicationOrigin"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
+          "symbol": "volatileExplosionsCanDetonateOtherVolatileTargetsInTheSameCausalRoot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
+          "symbol": "readOnlyDeadQualificationStillHonorsStatusPolicyAndMissingEntities"
+        }
+      ],
+      "gaps": [
+        "0.1 伤害/阈值缩放为夹具选择，尚未完成全局玩法校准",
+        "中心至 5 米线性衰减为显式假设；快照未给完整距离曲线",
+        "累计暂用实际 HP 与 Chorus 护盾损失，不含 Absorption；原作投影及目标等级缩放仍待校准",
+        "已有状态不刷新并保留首次来源为夹具策略；多来源重施加规则待校准",
+        "施加意图标签、武器/技能来源及正式伤害类型仍需内容装配；测试爆炸仅在测试数据包配置受伤冷却旁路",
+        "状态免疫与 D2 阵营尚未装配；施加者离线/跨维度时的关系快照尚未实现"
+      ]
+    },
+    {
+      "id": "reference/weapon_annotations",
+      "name": "Weapon Perks annotations",
+      "kind": "reference",
+      "archived": false,
+      "status": "not_applicable",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C4",
+          "text_sha256": "435766635ff1dd5d248fe1bf62b5e9c173d1298788eca6ffc47b1e7046a1939e"
+        }
+      ],
+      "scope": "↑ 表示强化；颜色编码、控制按键和括号必须按上下文解释",
+      "acceptance": [
+        "文本提取不能恢复颜色含义，数值未知不得填零"
+      ],
+      "evidence": [],
+      "gaps": []
+    },
+    {
+      "id": "weapon/chain_reaction",
+      "name": "Chain Reaction",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A41",
+          "text_sha256": "fee822a775ca4009845aa7dd925b18d8ad80800f5075994890a30cd0fbfbe779"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C41",
+          "text_sha256": "e6b0371f605b7252c4547e442fee09cf5fc3a0446f0bdaf620cb1e580b078c3e"
+        }
+      ],
+      "scope": "已核对需求；通用距离快照、冻结加伤与命中期衰减分阶段计算及真实范围扣血机制通过，尚不是该 perk 的实现",
+      "acceptance": [
+        "武器击杀触发与武器元素继承",
+        "按弹药/武器种类选择基础伤害和强化值，问号数值保持待核对",
+        "特殊弹药 2.4 米内不衰减 / 6 米到零，重弹药 3 米内不衰减 / 7 米到零",
+        "强化剑额外 +20 格挡耐力"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/radial_falloff.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TargetSelectionTest.java",
+          "symbol": "capturedDistanceDrivesPlateauFalloffAndBoundaryDamageAcrossWorldWaits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetSelectionGameTest.java",
+          "symbol": "radialCurveChangesActualDamageUsingCapturedDistancesAfterTargetsMove"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/impact_snapshot.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ImpactSnapshotTest.java",
+          "symbol": "perVictimFalloffRunsAfterFrozenFlatAndEmpoweringStagesEvenWhenSourceIsGone"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ImpactSnapshotGameTest.java",
+          "symbol": "delayedExplosionUsesFrozenBonusesAndPerTargetDistancesAfterQueryMovement"
+        }
+      ],
+      "gaps": [
+        "具体 perk 数据定义和武器击杀接线",
+        "问号基础数值、模式及武器/目标缩放校准",
+        "两个范围端点之间的真实衰减曲线未明确；测试线性插值不是原作断言",
+        "武器元素继承与强化剑格挡耐力装配"
+      ]
+    },
+    {
+      "id": "weapon/dragonfly",
+      "name": "Dragonfly",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A72",
+          "text_sha256": "8670f2333e6a938ce5f1a7fd56a9064ab2b27e293db64fb5e84e7bc5a1f6409c"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C72",
+          "text_sha256": "3609aebe26c926a1f0ac5993d2c529a85040fb603df150c47f213da2db381c78"
+        }
+      ],
+      "scope": "已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现",
+      "acceptance": [
+        "精准击杀触发并继承武器元素",
+        "按弹药类别与强化状态选择伤害",
+        "8 米范围且最远降至零"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/radial_falloff.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TargetSelectionTest.java",
+          "symbol": "capturedDistanceDrivesPlateauFalloffAndBoundaryDamageAcrossWorldWaits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetSelectionGameTest.java",
+          "symbol": "radialCurveChangesActualDamageUsingCapturedDistancesAfterTargetsMove"
+        }
+      ],
+      "gaps": [
+        "具体 perk 数据定义与精准击杀接线",
+        "完整距离曲线和基础伤害所用基准/目标缩放",
+        "武器元素与弹药类别自动装配"
+      ]
+    },
+    {
+      "id": "weapon/firefly",
+      "name": "Firefly",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A94",
+          "text_sha256": "c924d48acda046cb9a2c7744a1aa7aa3013854b0105f8f74e44a1ac416729bec"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C94",
+          "text_sha256": "642dba66339c04b06ac42e7259c4f2d1f6c12eaedd52991e16c3c4d5041b35cd"
+        }
+      ],
+      "scope": "已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现",
+      "acceptance": [
+        "精准击杀触发太阳伤害爆炸",
+        "7.5 米范围与武器/敌人类别缩放",
+        "6 秒装填速度增益，收枪保留"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/radial_falloff.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TargetSelectionTest.java",
+          "symbol": "capturedDistanceDrivesPlateauFalloffAndBoundaryDamageAcrossWorldWaits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetSelectionGameTest.java",
+          "symbol": "radialCurveChangesActualDamageUsingCapturedDistancesAfterTargetsMove"
+        }
+      ],
+      "gaps": [
+        "具体 perk 数据定义与精准击杀接线",
+        "原文两个装填数值的含义及距离衰减曲线待核对",
+        "武器/敌人类别数值缩放与实际装填动画"
+      ]
+    },
+    {
+      "id": "artifact/singularity_blade",
+      "name": "Singularity Blade",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Artifact Perks",
+          "cell": "F14",
+          "text_sha256": "28b0ef4bbf1565047fd1fea992d5066fb6d3942abea99a4cb4bbf6c83c858b76"
+        },
+        {
+          "sheet": "Artifact Perks",
+          "cell": "E15",
+          "text_sha256": "98c6469ca25723f9efe440f94baeefc3e99de86ac89195403551960eaac280a0"
+        }
+      ],
+      "scope": "已核对命中期状态资格要求；数值快照/实时修饰机制已有合成测试，但该神器反应规则未实现",
+      "acceptance": [
+        "Devour/Invisibility/Overshield 任一存在时，近战与剑命中施加 6 秒 Weaken",
+        "资格在命中时检查，而非使用时快照",
+        "上述条件下近战/剑击杀在 4 米内施加 6 秒 Weaken"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/damage_snapshot.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DamageSnapshotTest.java",
+          "symbol": "explicitOnHitContributionsMayAppearAndDisappearAfterLaunch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DamageSnapshotGameTest.java",
+          "symbol": "onHitBonusAcquiredAfterLaunchParticipatesInTheSameMaxGroup"
+        }
+      ],
+      "gaps": [
+        "该来源描述反应资格，数值 on_hit 测试不能证明该 perk 已实现",
+        "实际剑/近战信用、三种虚空 Buff 识别与状态免疫接线",
+        "独立数据规则、Weaken 数值、击杀范围施加与完整时间线",
+        "神器来源装配和本快照之后的可用性/改动未核对"
+      ]
+    },
+    {
+      "id": "weapon/kinetic_tremors",
+      "name": "Kinetic Tremors",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A135",
+          "text_sha256": "f8e7a838b2fed9a7488d49a4ece5f1f2c9038822c80ab54ebbe0a48428ff272d"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C135",
+          "text_sha256": "5b96ba7bef696051a08819ff59a3c82ec5badc7fc6caa27aa779a77dd50f5e11"
+        }
+      ],
+      "scope": "独立 JSON 已验证 12 类武器普通/强化门槛、直击窗口/去重/收枪、固定位置三波、初始类别/攻击快照和冷却；双加载器由真实命中驱动，完整缩放/衰减和生产来源未完成",
+      "acceptance": [
+        "同一目标连续直击计数，相邻命中间隔不超过 3 秒；不同武器类别与强化版本使用各自门槛，收枪保留计数",
+        "达到门槛后延迟 0.25 秒，在激活时的位置发出三次每秒一次的震波，目标移动不移动中心",
+        "每次 6 米范围，最多 90 / PvP 20 点动能伤害并计为武器伤害；具体衰减和 Chorus 单位投影需明确",
+        "战斗人员缩放依据初始触发目标等级，Miniboss / Boss 触发增伤 33.3%，动能加成及 Combatant Rank Modifiers 参与",
+        "最后一次震波后 2 秒内不能对同一目标重新触发"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/kinetic_tremors.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "allListedWeaponClassesUseTheirNormalAndEnhancedThresholds"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "directHitsRefreshOnlyOnceAndCounterPersistsThroughStowUntilTheExactTimeout"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "countersAndCooldownsAreIsolatedByTargetAndWeaponInstance"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "cooldownBlocksCountingThroughTwoSecondsAfterTheLastWaveWithoutBeingExtended"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "launchRankAndMaximumDamageAreFrozenAcrossWavesWhilePvpHasItsOwnBase"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KineticTremorsTest.java",
+          "symbol": "selectedSourceModifierRemainsInCapturedAttackAfterUnequippingAndDoesNotMergeAgain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KineticTremorsGameTest.java",
+          "symbol": "realHitsTriggerThreeFrozenRankWavesAfterStowDetachAndOriginRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KineticTremorsGameTest.java",
+          "symbol": "enhancedAndNormalWeaponsKeepSeparateCountersAndPvpCooldownReopensAfterFinalWave"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/impact_snapshot.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ImpactSnapshotTest.java",
+          "symbol": "perVictimFalloffRunsAfterFrozenFlatAndEmpoweringStagesEvenWhenSourceIsGone"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ImpactSnapshotGameTest.java",
+          "symbol": "delayedExplosionUsesFrozenBonusesAndPerTargetDistancesAfterQueryMovement"
+        }
+      ],
+      "gaps": [
+        "0.1 为明确的 Minecraft 投影；目前 6 米内统一最大伤害。通用 impact_number 已验证逐目标距离进入快照 Profile 的阶段；具体衰减曲线仍未校准或装配到本效果",
+        "仅按文本 33.3% 使用初始 Miniboss/Boss 因子 1.333；完整 Combatant Rank Modifiers 与 Kinetic Bonus Damage 未实现",
+        "武器实例/类别/强化、直击和目标 rank 标签由测试宿主提供；生产装备、敌人分类、正式伤害类型仍待接线",
+        "按目标+武器隔离冷却、冷却期间不存计数、只计 applied 直击、3 秒到期边界、触发时捕获位置/攻击及位置缺失时消费计数是需校准的内容策略",
+        "当前关系查询需要施加者仍在本维度，离线/跨维度阵营快照及完整 proc 资格未完成"
+      ]
+    },
+    {
+      "id": "weapon/voltshot",
+      "name": "Voltshot",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A243",
+          "text_sha256": "51abc145af9896ba82ce84a2af64c4db4fbc09fc650fda4363affe0b004a3afb"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C243",
+          "text_sha256": "e7a0e6d07265e4454be06cbfa36be8444bff6568ea4ea7eafe21ea74da961880"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "B8",
+          "text_sha256": "df1cb97458e9f429cd06289a00b9d95e4e980269a81abc4a65c60807f73a8af1"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D8",
+          "text_sha256": "6ec40d97a8a8722b00be17c2c12a605651010472910cd9eb7efeb500ff264724"
+        }
+      ],
+      "scope": "同版本片段链接共享 Jolt；5.3 秒击杀换弹窗、普通 7 / 强化 8 秒下一击、收枪保留与计时、武器/持有者隔离、命中消费、实际 Jolt 非武器击杀；真实双端伤害与 tick 验收",
+      "acceptance": [
+        "武器击杀后 5.3 秒内完成换弹触发；击杀/换弹必须匹配正确武器",
+        "之后 7 秒/强化 8 秒内下一次武器命中施加 Jolt 并消耗就绪状态",
+        "换弹窗口及就绪状态在收枪后保留",
+        "Jolt 不因武器来源而算作武器伤害，来源与信用独立"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/action_origin.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ActionOriginTest.java",
+          "symbol": "otherAttackerOwnsDerivedDamageAndHealingWithoutRebindingCarrierOrCopyingWeaponCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ActionOriginGameTest.java",
+          "symbol": "nativeHitByAnotherAttackerOwnsChainKillsHealingAndNumericModifiers"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/voltshot.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/jolt.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProgramLinkTest.java",
+          "symbol": "crossFragmentReferencesValidateAfterLinkingAndFlattenIntoTheExistingCodec"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "reloadRequiresMatchingCreditedWeaponKillAndOwnerAndDoesNotConfuseOtherReloadEvents"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "reloadWindowAndNormalOrEnhancedReadyDurationUseExactHalfOpenBoundaries"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "bothWindowsContinueThroughStowAndEachWeaponRetainsItsOwnReadyHit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "repeatedReloadsCanRefreshReadyUntilKillWindowEndsWithoutExtendingTheKillWindow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "firingMissesNonweaponAndOtherWeaponsDoNotConsumeButOnlyFirstCommittedWeaponHitApplies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "applyingHitCountsOnceOnNewAndRefreshedJoltInEitherModeAndLinkOrder"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "deniedDeadOrMissingStatusConsumesTheCommittedHitButCancelledOrFailedDamageHasNoHit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "joltKillCannotOpenAWeaponKillWindowOrConsumeAnotherWeaponsReadyCharge"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotTest.java",
+          "symbol": "actualWeaponLethalHitConsumesReadyAndOpensANewWindowEvenWhenDeadTargetRejectsJolt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotGameTest.java",
+          "symbol": "nativeKillReloadAndHitApplySharedJoltWhileKeepingAnotherWeaponsChargeAndTriggerOwnership"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotGameTest.java",
+          "symbol": "cancellationPreservesReadyButDeniedOrLethalHitsConsumeItAndRealWeaponDeathReopensWindow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotGameTest.java",
+          "symbol": "actualJoltKillAfterWeaponWindowExpiresCannotRearmVoltshot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotGameTest.java",
+          "symbol": "readyDurationsKeepRunningWhileStowedAndExpireSeparatelyOnRealTicks"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "真实装备、武器身份和合格换弹仍由测试宿主提供；数据包片段 imports 与自动来源装配未接入",
+        "窗口内重复换弹可重置就绪但不消耗击杀窗口、免疫/格挡命中及资格拒绝仍消费，就绪按同批首 hit 消费：均为待原作校准的内容策略",
+        "射击/多弹丸事务、玩家死亡/卸下装备清理策略未完成",
+        "共享 Jolt 的完整数值投影、等级/Guardian 分类、余量/冷却策略、离线阵营及 Overload 眩晕仍未完整验收"
+      ]
+    },
+    {
+      "id": "armor/eternal_warrior",
+      "name": "Eternal Warrior",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Exotic Armors",
+          "cell": "D34",
+          "text_sha256": "8fb66a8b28909c843164a6bee365491f53106e1df2027049fd8f9bda009fc95a"
+        },
+        {
+          "sheet": "Exotic Armors",
+          "cell": "F34",
+          "text_sha256": "1cc8655af4f468b2bc3596c68360f7113e68aef5a4df3fbc577cb49db3417331"
+        }
+      ],
+      "scope": "75 HP 护盾、5 秒停伤延迟、满容量 / 7 秒回充、再受伤重置、破盾 / 结束 / 死亡清理，以及按层排除明确精准因子；0.1 缩放，恢复与精准抑制均有纯核心和双端世界证据",
+      "acceptance": [
+        "施放 Fists of Havoc 授予 75 HP 护盾",
+        "护盾精准伤害处理",
+        "停伤 5 秒后在 7 秒内回充满量，仍须存在",
+        "Arc 击杀累积 Surge 与刷新",
+        "Fists of Havoc 击杀延长超能",
+        "超能结束授予 x4 Arc Weapon Surge 30 / 6 秒"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/eternal_warrior.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldRecoveryTest.java",
+          "symbol": "fractionalExpiryCommitsCapacityIntoEndedSnapshotAndPublishesIntervalsOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EternalWarriorTest.java",
+          "symbol": "bothModesUseFiveSecondsWithoutDamageAndSevenSecondsForAFullPool"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EternalWarriorTest.java",
+          "symbol": "laterDamageResetsDelayAndAnIntactLayerDoesNotBankSuppressedTime"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EternalWarriorTest.java",
+          "symbol": "breakEndAndDeathCancelRecoveryAndARecastStartsANewLayer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldRecoveryGameTest.java",
+          "symbol": "eternalWarriorWaitsFiveSecondsThenRecoversAndCannotRegrowAfterBreaking"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/precision_damage.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "omissionReplaysLaterAddClampAndRoundingInsteadOfDividingFinalDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "percentBasisAndCurvesUseTheReplayedEarlierStages"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "multipleStagesCanShareAFactorAndOmissionsComposeWithoutChangingOriginal"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "factorTraceDoesNotInferAMultiplierFromStageOutputOrZeroInput"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "damageBasisReplaysDefenseWithTheAlreadyAdmittedNativeBudget"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "validationRejectsAmbiguousFactorStagesBadUnitsAndZeroBasisProjection"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/stat/FactorProjectionTest.java",
+          "symbol": "factorDeclarationCodecRoundTripsAndLegacyProfilesHaveNoNamedFactors"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "eternalWarriorAcceptsBodyshotDamageForPrecisionHitsInBothModesWithoutChangingHitTags"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "onlyTheMarkedLayerSuppressesPrecisionAndRemainingBudgetKeepsItsOriginalBasis"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "laterFlatAttackAndDefenseContributionsAreReplayedInTheirOriginalStages"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "suppressionCombinesWithUnderOverAndLocalResistanceInCapturedAttacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "snapshotPreservesSourceFactorsButResolvesImpactAndNewShieldAtHit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "unmarkedPrecisionNamesAndNativeTagsDoNotInventAnAppliedFactor"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "reachedSuppressionRequiresResolvedProfilesButZeroAndUnreachedLayersDoNot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "retainedBasisNeverRereadsSourceOrTargetExpressionsDuringSuppression"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionShieldTest.java",
+          "symbol": "shieldPolicyRoundTripsAndRejectsMisspelledFieldsAndMalformedFactorIds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionShieldGameTest.java",
+          "symbol": "precisionSuppressionReplaysFlatDamageAndSpillsThroughAnotherShieldArmorAndAbsorption"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionShieldGameTest.java",
+          "symbol": "delayedAttackKeepsFactorDefinitionsAndSourceValuesWhileImpactAndShieldArriveLater"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionShieldGameTest.java",
+          "symbol": "rejectedPrecisionHitsKeepCapacityAndNativeCooldownAdmitsOnlyItsIncrement"
+        }
+      ],
+      "gaps": [
+        "真实装备与超能输入 / 来源装配；当前使用明确的开始 / 结束输入",
+        "精准层抑制已覆盖明确 Profile；真实碰撞 / 弱点和原版暴击自动映射、精确跨层溢出仍待校准",
+        "Arc 击杀的 2–3 门槛、Surge 分组 / 持续 / 刷新以及超能结束增伤",
+        "Fists of Havoc 击杀延长超能的实际数值与成本时间轴",
+        "线性回充、任意实际损失重置、破盾删除和超能结束清理为待原作校准策略；0.1 缩放未校准",
+        "75 / 5 / 7 数值仅固定快照，官方描述 / 2025-01-23 预览不构成独立数值验证",
+        "精准否定解释为本层排除已标记增伤，原版准入预算按比例保留；固定贡献重放与破盾后保留原预算为 Chorus 约定，未获原作独立校准"
+      ]
+    },
+    {
+      "id": "weapon/under_over",
+      "name": "Under-Over",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A239",
+          "text_sha256": "d92ad079b89587bf5828834f75e19ae156c3d982aaee72c52bcbb4d8f7ba8c8e"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C239",
+          "text_sha256": "e4bf658cfcebf4b92c53d45c9041a76f59c876e5ce2ab80a099e22d0759ad864"
+        }
+      ],
+      "scope": "普通 / 强化四类盾的攻击倍率、武器直击资格与爆炸词条排除、Woven Mail Guardian 躯干分支、来源快照与层标签延后；9 项纯核心和 3 项共享世界场景通过",
+      "acceptance": [
+        "元素盾与勇士屏障 50% / 55%，战员 overshield 125% / 140%，Guardian overshield 20% / 22%",
+        "只对绑定武器的直接伤害生效，排除 Explosive Damage Perks；其他武器与所有者隔离",
+        "Guardian 的 Woven Mail 躯干伤害增加 20% / 22%，与当前盾类型分开判断",
+        "按接收盾层使用倍率，不把护盾专属增伤带到破盾后的生命预算",
+        "释放时冻结强化与来源，命中时判断当前盾与目标状态；on_hit 在原组归约",
+        "与原版免疫 / 无敌帧、护甲和 Absorption 一致提交，逐层保留计算轨迹"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/under_over.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/shield_scaling.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "layerAttackBonusesMultiplyLocalResistanceAndNeverMultiplyVanillaOverflow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "targetLayerTagsRatherThanActivityModeChooseGuardianCombatantAndBarrierBonuses"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "wrongWeaponExplosivePerkAndOtherOwnersCannotSupplyLayerBonus"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "wovenMailBodyshotBranchUsesGlobalDamageWhileLayerTagsNeverBecomeAttackTags"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "snapshotFreezesEnhancementAndWeaponSourceButDefersLayerSelectionAndTargetState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "liveContributionsShareTheCapturedGroupInsteadOfMultiplyingAnAlreadyFoldedResult"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "snapshotVictimHasShieldQueriesUseTheCurrentCatalogue"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "unreachedAndEmptyLayersDoNotEvaluateTheirProfilesOrMissingMeasurements"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LayerProfileTest.java",
+          "symbol": "declarationsRoundTripAndRejectWrongProfileUnitsAndAlteredSnapshotProfile"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LayerProfileGameTest.java",
+          "symbol": "perLayerAttackScalingSpillsUnscaledBudgetIntoNativeArmorAndAbsorption"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LayerProfileGameTest.java",
+          "symbol": "detachedJsonAttackRetainsEnhancedBonusAndChoosesTheNewLayerAtImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LayerProfileGameTest.java",
+          "symbol": "rejectedHitsNeverConsumeLayersAndCooldownUsesUnscaledDamageBudget"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "真实装备、武器实例、直击 / 爆炸词条分量与 Guardian / bodyshot 分类仍由宿主明确提供",
+        "实际元素盾 / 勇士屏障 / 战员与 Guardian overshield 内容和标签自动装配尚未完成",
+        "Woven Mail 测试 Buff 只验证资格，没有完整减伤、来源与生命周期",
+        "跨层预算、MAX 分组及 Woven Mail / 护盾分支并存的叠加仍需原作校准；合成容量不代表原作投影",
+        "固定快照的绝对数值和强化值未获官方独立验证；7.2.0.1 仅支持分支和类别变更"
+      ]
+    },
+    {
+      "id": "ability/arcbolt",
+      "name": "Arcbolt Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Arc",
+          "cell": "B28",
+          "text_sha256": "0a45860f5e5e1e299794a67ddb1b951b579f2af7e172557766fbbea28fdd4d33"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D28",
+          "text_sha256": "e3bf82d1799be1ca05eb5a7a1d79a0b52a7600fad8435854dd1b0ef04f87fba2"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "N28",
+          "text_sha256": "5dd7d0b634a92c03da499a4c2be1dfbdb15e3585580fc5576bba374fd432812e"
+        }
+      ],
+      "scope": "落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收",
+      "acceptance": [
+        "落地扫描12米内视线可见的最近敌人，1秒后发出电弧",
+        "命中后从该目标向10米内最近未命中敌人连锁，最多4个目标",
+        "521 [PvP 85]基础伤害及完整目标等级/技能属性缩放",
+        "重轨迹投掷、落地输入、151.5秒基础冷却和0.75x chunk scalar装配"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/arcbolt.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArcboltTest.java",
+          "symbol": "frozenFirstTargetWaitsOneSecondThenChainsAtCurrentHitPositionsToFourDistinctEnemies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArcboltTest.java",
+          "symbol": "chainRequiresCommittedLossAndIncludesAbsorptionButCannotSkipARejectedSelectedEnemy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArcboltTest.java",
+          "symbol": "separateCastsCanHitSameEnemiesAndRetainTheirOwnOrigin"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArcboltTest.java",
+          "symbol": "emptyOrUnavailableScanDoesNotScheduleAndForeignOwnerOrAbilityCannotTrigger"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "realTickLocksVisibleTargetAndChainsFromMovedLethalHitThroughFourDistinctEnemies"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "cancelledSecondHitStopsChainWithoutRetargetingOrHurtingTheThirdEnemy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "removedFirstTargetProducesNoDamageAndCannotBeReplacedByALateEnemy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "lateWallDoesNotRewriteFirstScanAndSubsequentHopsUseExplicitNoSightPolicy"
+        }
+      ],
+      "gaps": [
+        "投掷轨迹、实体碰撞/落地点、释放输入和技能资源装配未接入；当前由测试宿主发出impact事件，以独立LivingEntity表示落点，显式排除它，不是生产投射物",
+        "521/85来自固定快照，0.1为明确的Minecraft伤害投影；绝对值、Grenade属性、完整等级/目标类别缩放仍待校准；9.0.0.1相对改动不再次乘到固定快照数值",
+        "初次锁定不在1秒后重扫或复验视线/距离；后续跳跃无额外延迟/视线要求；从伤害前捕获的目标身体点继续；拒绝或零损失终止且不重选；这些为待原作校准的内容策略",
+        "当前实际损失包括HP、Chorus护盾和Absorption；后续跳跃沿原施加者的实时not_allied关系，离线/跨维度阵营快照和D2敌我分类未完成",
+        "基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x及正式伤害类型、表现仍未实现"
+      ]
+    }
+  ]
+}

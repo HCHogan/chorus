@@ -1,0 +1,73 @@
+{
+  "snapshot_date": "2026-10-05",
+  "coordinate_system": "csv_snapshot_not_original_sheet",
+  "archive_file": "Destiny Data Compendium - AI - 2026-10-05.zip",
+  "archive_sha256": "fabb07e5d2d39fa17083000faf9a4f749af06432a78817a7ae5e3fcab362aeb8",
+  "workbook_file": "Destiny Data Compendium - data copy 2026-10-05.xlsx",
+  "workbook_sha256": "1fa62968bedff473b7cd2745f1f5e65bd30cbce14337ffe868e432ad48c3ba3d",
+  "manifest_sha256": "fd7f61a1291d8fec9e5fed8ccca447fcec4a1baefa5ae63423c15544d726c2fc",
+  "rows_sha256": "e0ca8f825294f92c1f1958f5da614046b311ba6fbfb397851367adf72fef387c",
+  "verified_worksheets": 22,
+  "verified_nonempty_rows": 2073,
+  "verified_cells": 6666,
+  "workbook_check": "All source-sheet nonempty literal cell strings match after XML newline normalization; no formulas accepted",
+  "newline_normalized_cells": [
+    {
+      "sheet": "Weapon Perks",
+      "cell": "A351"
+    },
+    {
+      "sheet": "Weapon Perks",
+      "cell": "A371"
+    },
+    {
+      "sheet": "Weapon Perks",
+      "cell": "A384"
+    },
+    {
+      "sheet": "Weapon Perks",
+      "cell": "A415"
+    },
+    {
+      "sheet": "Armor Perks",
+      "cell": "A11"
+    },
+    {
+      "sheet": "Armor Perks",
+      "cell": "A25"
+    },
+    {
+      "sheet": "Armor Perks",
+      "cell": "C42"
+    },
+    {
+      "sheet": "Armor Perks",
+      "cell": "A87"
+    },
+    {
+      "sheet": "Armor Mods",
+      "cell": "T21"
+    },
+    {
+      "sheet": "Armor Mods",
+      "cell": "T23"
+    },
+    {
+      "sheet": "Armor Mods",
+      "cell": "T24"
+    },
+    {
+      "sheet": "Exotic Weapons",
+      "cell": "A126"
+    },
+    {
+      "sheet": "Exotic Weapons",
+      "cell": "A151"
+    }
+  ],
+  "limitations": [
+    "CSV snapshot coordinates are not original online-sheet coordinates",
+    "No original formulas, images, colors, merged boundaries, comments or rich-text link targets",
+    "OLD sheets are historical; not evidence of current values"
+  ]
+}

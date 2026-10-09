@@ -1,0 +1,72 @@
+# Compendium 来源与覆盖清单
+
+由 `python3 tools/compendium.py report` 生成；人工判断保存在 `data/compendium/review.json`。
+
+基线为 2026-10-05 的 CSV 数据副本。22 张来源表、6666 个非空单元格已与用户工作簿逐格比对；XML 换行规范化差异另行记录，原始文本未改写。坐标不是在线原表行号。原文、URL、历史标志和摘要校验保存在 [固定快照](../data/compendium/2026-10-05/provenance.json)。
+
+单元格数量不是效果数量。一格可能包含多条机制、表头或公式说明；未人工审阅的内容一律保留为待审阅，不用关键词把它们算成已覆盖。下表统计来源审阅进度，不能据此计算全效果覆盖百分比。OLD 表单独保存与统计，不能混作当前数值。
+
+| 来源表 | 历史 | 文本单元格 | 已引用审阅 | 待审阅 |
+| --- | --- | ---: | ---: | ---: |
+| Landing | 否 | 37 | 0 | 37 |
+| Weapon Perks | 否 | 831 | 25 | 806 |
+| Armor Perks | 否 | 171 | 0 | 171 |
+| Artifact Perks | 否 | 313 | 2 | 311 |
+| Armor Mods | 否 | 286 | 0 | 286 |
+| Arc | 否 | 191 | 5 | 186 |
+| Solar | 否 | 210 | 4 | 206 |
+| Void | 否 | 223 | 2 | 221 |
+| Stasis | 否 | 155 | 0 | 155 |
+| Strand | 否 | 153 | 2 | 151 |
+| Prismatic | 否 | 196 | 0 | 196 |
+| Exotic Class | 否 | 79 | 0 | 79 |
+| Class Abilities | 否 | 59 | 3 | 56 |
+| Exotic Weapons | 否 | 303 | 0 | 303 |
+| Exotic Armors | 否 | 425 | 2 | 423 |
+| Game Mechanics | 否 | 683 | 0 | 683 |
+| OLD Episodic Artifact Perks | 是 | 355 | 0 | 355 |
+| OLD Seasonal Artifact Perks | 是 | 257 | 0 | 257 |
+| OLD Nether Mechanics | 是 | 126 | 0 | 126 |
+| OLD Armor Mods | 是 | 537 | 0 | 537 |
+| OLD Game Mechanics | 是 | 658 | 0 | 658 |
+| OLD Exotic Armors | 是 | 413 | 0 | 413 |
+
+## 已建立的需求与证据
+
+状态由审阅者填写；脚本验证源文本未漂移、文件与测试方法存在，不把文件存在或通用单测通过自动升级为效果验收通过。实际测试结果见 [实现记录](engine-implementation.md)。
+
+| 条目 | 状态 | 来源（快照） | 验证范围 / 未完成项 |
+| --- | --- | --- | --- |
+| Adrenaline Junkie | partial | Weapon Perks A10; Weapon Perks C10 | 武器击杀逐层 / 手雷击杀五层、4.5 / 5 秒、刷新、收枪保留、伤害表与固定 +20 操控查询；真实死亡驱动下次伤害；缺口：实际武器/手雷归因仍由测试宿主提供；操控属性尚未连接持枪动画/切枪时间；特殊伤害资格需随武器内容逐条校准 |
+| Kill Clip | partial | Weapon Perks A132; Weapon Perks C132 | JSON 击杀/换弹窗口、来源隔离、普通/强化时间；预置 Buff 的实际伤害；缺口：完整击杀/换弹来源装配；窗口收枪保留仍为内容假设 |
+| Disruption Break | partial | Weapon Perks A71; Weapon Perks C71 | 独立层、来源、动能资格、环境持续时间；预置状态进入世界伤害；缺口：实际破盾到对应武器来源装配；强化变体数值待明确 |
+| Slice | partial | Weapon Perks A198; Weapon Perks C198 | 技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界；缺口：实际职业技能与武器来源装配；完整 Sever 减伤/延长；拒绝施加时是否刷新待原作核对 |
+| Sever | partial | Strand B8; Strand D8 | 状态存在性和基础环境时间已作为 Slice 的子效果验证；缺口：40%/15% 敌人输出减伤；延长项10+5/5+2.5的内容条件；对应技能归属和实际施加来源 |
+| Cure | partial | Solar B4; Solar D4 | 两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；缺口：两次等量脉冲为Chorus选择，原作细分恢复曲线未知；实际技能/装备来源装配 |
+| Restoration | partial | Solar B7; Solar D7 | 连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick；缺口：与 Healing Rift 不叠加时的取高优先级未核对；Phoenix Dive 的4+2秒例外；实际技能来源和延长条件装配 |
+| Healing Rift | partial | Class Abilities B15; Class Abilities D15; Class Abilities N15 | 固定位置组件、5 米友方 / 自身范围、15 秒、40 / 35 HP/s 的 0.1 缩放、成员差分及晚进入清理、独立施放与重叠恢复通道；共享满血护盾池每 50 ms 补 0.015 至 1.5、Void 正容量阻止生成、空容量交互资格；部分内容已通过双端真实 tick / 扣盾 / 回血；缺口：实际技能输入与施放来源装配；场目前为状态与查询组合，没有独立物体 / 表现；脚底球形范围、50 ms 采样、地面接触点及施放动画尚待校准；来源实体失联后保存阵营 / 跨维度生命周期；当前 allied 参照缺失时结束场为暂定策略；首次补盾与刚恢复满血时的完整脉冲、最后离场立即删盾、空层创建即确定 FIFO 年龄及重叠共享池首个来源等时序 / 归属策略待原作校准；Void 测试层不代表完整内容；施放时 20% 减伤与移动接线；118.7秒基础冷却与0.5x chunk scalar装配；互斥取高、0.1 生命投影及绝对恢复率校准；9.5.0 官方相对改动不重复应用到固定快照 |
+| Frame of Reference | partial | Weapon Perks A369; Weapon Perks C369 | 已验证独立Buff定义的收枪暂停与恢复；尚非完整词条；缺口：实际武器击杀叠层；增伤/装填及完整档位；真实武器输入/属性连接 |
+| Rampage | unimplemented | Weapon Perks A172; Weapon Perks C172 | 文档草稿；核心有逐层衰减能力；缺口：后续逐层掉层间隔需明确；可执行内容与时间线；实际武器装配 |
+| Jolt | partial | Arc B8; Arc D8; Weapon Perks C243 | 独立 JSON 状态：施加击累计及顺序例外、刷新、阈值/冷却、触发者归属、实际其他玩家损失后的中心链伤、致死阈值及同因果链的相邻连锁；真实双端世界验收，缩放与余量等策略仍待校准；缺口：0.1 单位投影、完整等级缩放和 Guardian / 勇士分类仍待校准；尚无 Overload 眩晕；当前超额清零，冷却内伤害丢弃但去重，阈值不含 Absorption，刷新保留首次来源；这些选择缺少完整原作证据；阵营暂依赖仍在同维度的原施加者；离线/跨维度关系快照、真实技能/武器施加及正式伤害类型未装配；首次致死施加不创建状态或放电，来源特例由 test 标签显式选序，完整原作时序仍须按目标版本验收 |
+| Volatile | partial | Void B9; Void D9 | JSON 施加击排除、两种环境阈值/持续/伤害、目标共享冷却、致死施加资格、归因及双加载器实际范围连锁；缺口：0.1 伤害/阈值缩放为夹具选择，尚未完成全局玩法校准；中心至 5 米线性衰减为显式假设；快照未给完整距离曲线；累计暂用实际 HP 与 Chorus 护盾损失，不含 Absorption；原作投影及目标等级缩放仍待校准；已有状态不刷新并保留首次来源为夹具策略；多来源重施加规则待校准；施加意图标签、武器/技能来源及正式伤害类型仍需内容装配；测试爆炸仅在测试数据包配置受伤冷却旁路；状态免疫与 D2 阵营尚未装配；施加者离线/跨维度时的关系快照尚未实现 |
+| Weapon Perks annotations | not_applicable | Weapon Perks C4 | ↑ 表示强化；颜色编码、控制按键和括号必须按上下文解释 |
+| Chain Reaction | unimplemented | Weapon Perks A41; Weapon Perks C41 | 已核对需求；通用距离快照、冻结加伤与命中期衰减分阶段计算及真实范围扣血机制通过，尚不是该 perk 的实现；缺口：具体 perk 数据定义和武器击杀接线；问号基础数值、模式及武器/目标缩放校准；两个范围端点之间的真实衰减曲线未明确；测试线性插值不是原作断言；武器元素继承与强化剑格挡耐力装配 |
+| Dragonfly | unimplemented | Weapon Perks A72; Weapon Perks C72 | 已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现；缺口：具体 perk 数据定义与精准击杀接线；完整距离曲线和基础伤害所用基准/目标缩放；武器元素与弹药类别自动装配 |
+| Firefly | unimplemented | Weapon Perks A94; Weapon Perks C94 | 已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现；缺口：具体 perk 数据定义与精准击杀接线；原文两个装填数值的含义及距离衰减曲线待核对；武器/敌人类别数值缩放与实际装填动画 |
+| Singularity Blade | unimplemented | Artifact Perks F14; Artifact Perks E15 | 已核对命中期状态资格要求；数值快照/实时修饰机制已有合成测试，但该神器反应规则未实现；缺口：该来源描述反应资格，数值 on_hit 测试不能证明该 perk 已实现；实际剑/近战信用、三种虚空 Buff 识别与状态免疫接线；独立数据规则、Weaken 数值、击杀范围施加与完整时间线；神器来源装配和本快照之后的可用性/改动未核对 |
+| Kinetic Tremors | partial | Weapon Perks A135; Weapon Perks C135 | 独立 JSON 已验证 12 类武器普通/强化门槛、直击窗口/去重/收枪、固定位置三波、初始类别/攻击快照和冷却；双加载器由真实命中驱动，完整缩放/衰减和生产来源未完成；缺口：0.1 为明确的 Minecraft 投影；目前 6 米内统一最大伤害。通用 impact_number 已验证逐目标距离进入快照 Profile 的阶段；具体衰减曲线仍未校准或装配到本效果；仅按文本 33.3% 使用初始 Miniboss/Boss 因子 1.333；完整 Combatant Rank Modifiers 与 Kinetic Bonus Damage 未实现；武器实例/类别/强化、直击和目标 rank 标签由测试宿主提供；生产装备、敌人分类、正式伤害类型仍待接线；按目标+武器隔离冷却、冷却期间不存计数、只计 applied 直击、3 秒到期边界、触发时捕获位置/攻击及位置缺失时消费计数是需校准的内容策略；当前关系查询需要施加者仍在本维度，离线/跨维度阵营快照及完整 proc 资格未完成 |
+| Voltshot | partial | Weapon Perks A243; Weapon Perks C243; Arc B8; Arc D8 | 同版本片段链接共享 Jolt；5.3 秒击杀换弹窗、普通 7 / 强化 8 秒下一击、收枪保留与计时、武器/持有者隔离、命中消费、实际 Jolt 非武器击杀；真实双端伤害与 tick 验收；缺口：真实装备、武器身份和合格换弹仍由测试宿主提供；数据包片段 imports 与自动来源装配未接入；窗口内重复换弹可重置就绪但不消耗击杀窗口、免疫/格挡命中及资格拒绝仍消费，就绪按同批首 hit 消费：均为待原作校准的内容策略；射击/多弹丸事务、玩家死亡/卸下装备清理策略未完成；共享 Jolt 的完整数值投影、等级/Guardian 分类、余量/冷却策略、离线阵营及 Overload 眩晕仍未完整验收 |
+| Eternal Warrior | partial | Exotic Armors D34; Exotic Armors F34 | 75 HP 护盾、5 秒停伤延迟、满容量 / 7 秒回充、再受伤重置、破盾 / 结束 / 死亡清理，以及按层排除明确精准因子；0.1 缩放，恢复与精准抑制均有纯核心和双端世界证据；缺口：真实装备与超能输入 / 来源装配；当前使用明确的开始 / 结束输入；精准层抑制已覆盖明确 Profile；真实碰撞 / 弱点和原版暴击自动映射、精确跨层溢出仍待校准；Arc 击杀的 2–3 门槛、Surge 分组 / 持续 / 刷新以及超能结束增伤；Fists of Havoc 击杀延长超能的实际数值与成本时间轴；线性回充、任意实际损失重置、破盾删除和超能结束清理为待原作校准策略；0.1 缩放未校准；75 / 5 / 7 数值仅固定快照，官方描述 / 2025-01-23 预览不构成独立数值验证；精准否定解释为本层排除已标记增伤，原版准入预算按比例保留；固定贡献重放与破盾后保留原预算为 Chorus 约定，未获原作独立校准 |
+| Under-Over | partial | Weapon Perks A239; Weapon Perks C239 | 普通 / 强化四类盾的攻击倍率、武器直击资格与爆炸词条排除、Woven Mail Guardian 躯干分支、来源快照与层标签延后；9 项纯核心和 3 项共享世界场景通过；缺口：真实装备、武器实例、直击 / 爆炸词条分量与 Guardian / bodyshot 分类仍由宿主明确提供；实际元素盾 / 勇士屏障 / 战员与 Guardian overshield 内容和标签自动装配尚未完成；Woven Mail 测试 Buff 只验证资格，没有完整减伤、来源与生命周期；跨层预算、MAX 分组及 Woven Mail / 护盾分支并存的叠加仍需原作校准；合成容量不代表原作投影；固定快照的绝对数值和强化值未获官方独立验证；7.2.0.1 仅支持分支和类别变更 |
+| Arcbolt Grenade | partial | Arc B28; Arc D28; Arc N28 | 落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收；缺口：投掷轨迹、实体碰撞/落地点、释放输入和技能资源装配未接入；当前由测试宿主发出impact事件，以独立LivingEntity表示落点，显式排除它，不是生产投射物；521/85来自固定快照，0.1为明确的Minecraft伤害投影；绝对值、Grenade属性、完整等级/目标类别缩放仍待校准；9.0.0.1相对改动不再次乘到固定快照数值；初次锁定不在1秒后重扫或复验视线/距离；后续跳跃无额外延迟/视线要求；从伤害前捕获的目标身体点继续；拒绝或零损失终止且不重选；这些为待原作校准的内容策略；当前实际损失包括HP、Chorus护盾和Absorption；后续跳跃沿原施加者的实时not_allied关系，离线/跨维度阵营快照和D2敌我分类未完成；基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x及正式伤害类型、表现仍未实现 |
+
+## 使用
+
+```sh
+python3 tools/compendium.py check
+python3 tools/compendium.py show --sheet 'Weapon Perks' --cell C10
+python3 tools/compendium.py pending --sheet 'Weapon Perks' --limit 20
+python3 tools/compendium.py report --check
+```
+
+新增条目时人工区分名称、定义与上下文，并在 review.json 记录逐项验收要求、数据定义、具体测试方法及剩余缺口。新快照另建目录并复审文本变化，不沿用旧坐标自动宣称已覆盖。
