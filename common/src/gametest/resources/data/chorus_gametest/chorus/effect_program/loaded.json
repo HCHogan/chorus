@@ -1,0 +1,33 @@
+{
+  "version": "catalog-test-1",
+  "resources": [{"id": "chorus_gametest:energy", "capacity": 2, "initial": 1}],
+  "bundles": [{"id": "chorus_gametest:loaded", "rules": [
+    {"id": "attached", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+      {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+    ]},
+    {"id": "lifesteal", "on": "chorus:hit", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+      {"type": "chorus:heal", "amount": {"type": "chorus:scale", "factor": 0.5, "from": "damage", "to": "damage",
+        "of": {"type": "chorus:event_number", "name": "health_loss", "unit": "damage"}}}
+    ]}
+  ]}, {
+    "id": "chorus_gametest:active", "rules": [
+      {"id": "execute", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+        {"type": "chorus:damage", "target": "self", "damage_type": "minecraft:generic", "amount": {"type": "chorus:constant", "value": 2, "unit": "damage"}},
+        {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+      ]}
+    ]
+  }, {
+    "id": "chorus_gametest:resources", "rules": [
+      {"id": "initialize", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+        {"type": "chorus:initialize_resource", "resource": "chorus_gametest:energy"}
+      ]},
+      {"id": "cast", "on": "chorus_gametest:cast", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"action": {"type": "chorus:spend_resource", "resource": "chorus_gametest:energy", "payment": "cast",
+          "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}, "as": "cost"},
+        {"if": {"type": "chorus:result_flag", "binding": "cost", "field": "succeeded"}, "then": [
+          {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+        ]}
+      ]}
+    ]
+  }]
+}

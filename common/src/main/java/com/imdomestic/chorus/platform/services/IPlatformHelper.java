@@ -1,6 +1,12 @@
 package com.imdomestic.chorus.platform.services;
 
 public interface IPlatformHelper {
+    void sendEquipmentView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.EquipmentPayloads.View view);
+
+    /** Join the loader's death-drop collection, without starting a player toss transaction. */
+    default net.minecraft.world.entity.item.ItemEntity dropEquipmentOnDeath(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
+        return player.drop(stack, true, net.minecraft.util.Prediction.SERVER_ONLY);
+    }
 
     /**
      * Gets the name of the current platform

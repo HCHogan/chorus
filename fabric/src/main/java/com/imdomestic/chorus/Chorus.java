@@ -1,6 +1,10 @@
 package com.imdomestic.chorus;
 
 import net.fabricmc.api.ModInitializer;
+import com.imdomestic.chorus.platform.minecraft.MinecraftEffectRuntime;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 public class Chorus implements ModInitializer {
@@ -15,6 +19,16 @@ public class Chorus implements ModInitializer {
         // Use Fabric to bootstrap the Common mod.
         Constants.LOG.info("Hello Fabric world!");
         CommonClass.init();
+        com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
+        ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::stop);
+        net.fabricmc.fabric.api.event.registry.DynamicRegistries.registerReloadable(
+                com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.effect.data.EffectCodecs.COMPILED);
+        net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) ->
+                com.imdomestic.chorus.platform.minecraft.EffectCommands.register(dispatcher));
+        ServerTickEvents.END_LEVEL_TICK.register(MinecraftEffectRuntime::tick);
+        ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::tick);
+        ServerLevelEvents.UNLOAD.register((server, level) -> MinecraftEffectRuntime.unload(level));
+        ServerLifecycleEvents.SERVER_STOPPED.register(MinecraftEffectRuntime::stop);
         ServerPlayConnectionEvents.JOIN.register((listener, sender, server) -> Greeting.onPlayerJoin(listener.player));
     }
 }

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "chorus-gametest",
+  "version": "1.0.0",
+  "name": "Chorus integration tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.imdomestic.chorus.DamageGameTest",
+      "com.imdomestic.chorus.NativeRuntimeGameTest",
+      "com.imdomestic.chorus.ShieldGameTest",
+      "com.imdomestic.chorus.CombatProfileGameTest",
+      "com.imdomestic.chorus.HealingGameTest",
+      "com.imdomestic.chorus.ScheduledEffectsGameTest",
+      "com.imdomestic.chorus.RecoveryGameTest",
+      "com.imdomestic.chorus.EffectProgramsGameTest",
+      "com.imdomestic.chorus.ResourceRefundGameTest",
+      "com.imdomestic.chorus.AdrenalineJunkieGameTest",
+      "com.imdomestic.chorus.TargetIterationGameTest",
+      "com.imdomestic.chorus.TargetSelectionGameTest",
+      "com.imdomestic.chorus.VolatileGameTest",
+      "com.imdomestic.chorus.DamageSnapshotGameTest",
+      "com.imdomestic.chorus.ContinuationGameTest",
+      "com.imdomestic.chorus.FixedPositionGameTest",
+      "com.imdomestic.chorus.KineticTremorsGameTest",
+      "com.imdomestic.chorus.ImpactSnapshotGameTest",
+      "com.imdomestic.chorus.ActionOriginGameTest",
+      "com.imdomestic.chorus.EntityObservationGameTest",
+      "com.imdomestic.chorus.JoltGameTest",
+      "com.imdomestic.chorus.VoltshotGameTest",
+      "com.imdomestic.chorus.TargetMembershipGameTest",
+      "com.imdomestic.chorus.HealingRiftGameTest",
+      "com.imdomestic.chorus.RiftShieldGameTest",
+      "com.imdomestic.chorus.ShieldRecoveryGameTest",
+      "com.imdomestic.chorus.LayerProfileGameTest",
+      "com.imdomestic.chorus.PrecisionShieldGameTest",
+      "com.imdomestic.chorus.EquipmentGameTest",
+      "com.imdomestic.chorus.PlayerEquipmentGameTest",
+      "com.imdomestic.chorus.EquipmentNetworkGameTest",
+      "com.imdomestic.chorus.AbilityGameTest",
+      "com.imdomestic.chorus.SpatialQueryGameTest",
+      "com.imdomestic.chorus.ArcboltGameTest",
+      "com.imdomestic.chorus.ProjectileGameTest",
+      "com.imdomestic.chorus.ProjectileCollisionGameTest"
+    ],
+    "fabric-client-gametest": [
+      "com.imdomestic.chorus.ProjectileClientGameTest"
+    ]
+  }
+}

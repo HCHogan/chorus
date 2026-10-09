@@ -31,6 +31,7 @@ public class CommonClass {
             Constants.LOG.info("Hello to {}", Constants.MOD_NAME);
         }
 
+        com.imdomestic.chorus.registry.ChorusEntities.init();
         ChorusComponents.init();
         ChorusItems.init();
     }

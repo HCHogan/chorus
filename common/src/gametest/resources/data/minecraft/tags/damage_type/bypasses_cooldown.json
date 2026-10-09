@@ -1,0 +1,4 @@
+{
+  "replace": false,
+  "values": ["chorus_gametest:volatile", "chorus_gametest:delayed"]
+}

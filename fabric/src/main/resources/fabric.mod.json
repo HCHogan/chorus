@@ -15,6 +15,7 @@
     "icon": "${mod_id}.png",
     "environment": "*",
     "entrypoints": {
+        "client": ["com.imdomestic.chorus.ChorusClient"],
         "main": [
             "com.imdomestic.chorus.Chorus"
         ]

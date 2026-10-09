@@ -52,10 +52,78 @@ def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', Strin
 }
 sourceSets.configureEach {
     [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant ->
-        configurations.named(variant) {
+        configurations.matching { it.name == variant }.configureEach {
             attributes {
                 attribute(loaderAttribute, 'neoforge')
             }
         }
+    }
+}
+
+// Shared scenarios and the test mod are isolated from normal runs and distribution jars.
+sourceSets {
+    gametest {
+        java.srcDir project(':common').file('src/gametest/java')
+        resources.srcDir project(':common').file('src/gametest/resources')
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations.gametestImplementation.extendsFrom(configurations.implementation)
+configurations.gametestRuntimeOnly.extendsFrom(configurations.runtimeOnly)
+neoForge.addModdingDependenciesTo(sourceSets.gametest)
+neoForge.mods {
+    chorus_gametest { sourceSet sourceSets.gametest }
+}
+neoForge.runs.configureEach {
+    loadedMods = [neoForge.mods.getByName(mod_id)]
+}
+neoForge.runs {
+    gameTestServer {
+        type = 'gameTestServer'
+        sourceSet = sourceSets.gametest
+        loadedMods = [neoForge.mods.getByName(mod_id), neoForge.mods.chorus_gametest]
+        systemProperty('neoforge.enabledGameTestNamespaces', 'chorus_gametest')
+        gameDirectory = layout.buildDirectory.dir('runs/gametest')
+    }
+}
+tasks.named('processGametestResources', ProcessResources) {
+    from(project(':common').file('src/test/resources')) {
+        include 'effects/slice.json'
+        include 'effects/shields.json'
+        include 'effects/combat_profiles.json'
+        include 'effects/healing.json'
+        include 'effects/periodic.json'
+        include 'effects/cure.json'
+        include 'effects/restoration.json'
+        include 'effects/resource_regeneration.json'
+        include 'effects/resource_refund.json'
+        include 'effects/adrenaline_junkie.json'
+        include 'effects/target_iteration.json'
+        include 'effects/radial_falloff.json'
+        include 'effects/volatile.json'
+        include 'effects/damage_snapshot.json'
+        include 'effects/delayed_snapshot.json'
+        include 'effects/fixed_position.json'
+        include 'effects/kinetic_tremors.json'
+        include 'effects/impact_snapshot.json'
+        include 'effects/action_origin.json'
+        include 'effects/entity_observation.json'
+        include 'effects/jolt.json'
+        include 'effects/voltshot.json'
+        include 'effects/membership_aura.json'
+        include 'effects/healing_rift.json'
+        include 'effects/shield_restoration.json'
+        include 'effects/shield_recovery.json'
+        include 'effects/eternal_warrior.json'
+        include 'effects/under_over.json'
+        include 'effects/shield_scaling.json'
+        include 'effects/precision_damage.json'
+        include 'effects/equipment.json'
+        include 'effects/abilities.json'
+        include 'effects/spatial_query.json'
+        include 'effects/arcbolt.json'
+        include 'effects/projectile.json'
+        include 'effects/projectile_collisions.json'
     }
 }

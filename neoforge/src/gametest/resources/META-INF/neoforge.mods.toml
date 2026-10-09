@@ -1,0 +1,13 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="CC0-1.0"
+[[mods]]
+modId="chorus_gametest"
+version="1.0.0"
+displayName="Chorus server integration tests"
+[[dependencies.chorus_gametest]]
+modId="chorus"
+type="required"
+versionRange="[26.3.0.0,)"
+ordering="AFTER"
+side="BOTH"
