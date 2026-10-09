@@ -1,0 +1,557 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:healing_rift_field",
+        "version": "test-1",
+        "duration": 15,
+        "instanced_by": "source",
+        "refresh": "none",
+        "components": {
+          "positions": [
+            "anchor"
+          ],
+          "target_sets": [
+            "members"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:healing_rift_field_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:rift_overshield",
+        "version": "test-1",
+        "duration": "permanent",
+        "refresh": "none",
+        "attach": "target",
+        "tags": [
+          "chorus:overshield",
+          "chorus_d2:rift_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 0,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "maximum": {
+          "type": "chorus:constant",
+          "value": 1.5,
+          "unit": "damage"
+        }
+      },
+      "bundle": "chorus_d2:rift_overshield_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:healing_rift",
+      "rules": [
+        {
+          "id": "cast",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self"
+              },
+              "as": "place"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "place",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:healing_rift_field"
+                },
+                {
+                  "type": "chorus:write_position",
+                  "buff": "chorus_d2:healing_rift_field",
+                  "component": "anchor",
+                  "position": "place"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dismiss",
+          "on": "test:dismiss_rift",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:healing_rift_field"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:healing_rift_field_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "sample",
+              "event": "test:sample",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            },
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:healing_rift_field",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "place"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "meter"
+                },
+                "relation": "allied",
+                "relative_to": "source_owner",
+                "include_center": true
+              },
+              "as": "nearby"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "nearby",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:sync_targets",
+                    "buff": "chorus_d2:healing_rift_field",
+                    "component": "members",
+                    "targets": "nearby"
+                  },
+                  "as": "changes"
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "exited"
+                  },
+                  "as": "exited"
+                },
+                {
+                  "for_each": "exited",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:healing_rift_presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:has_buff",
+                          "buff": "chorus_d2:healing_rift_presence",
+                          "target": {
+                            "binding": "member"
+                          },
+                          "match": "any"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:rift_overshield",
+                          "target": {
+                            "binding": "member"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "entered"
+                  },
+                  "as": "entered"
+                },
+                {
+                  "for_each": "entered",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:healing_rift_presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:rift_overshield",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_rift_field"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sample",
+          "on": "test:sample",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "sample"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:healing_rift_field",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "place"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "meter"
+                },
+                "relation": "allied",
+                "relative_to": "source_owner",
+                "include_center": true
+              },
+              "as": "nearby"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "nearby",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:sync_targets",
+                    "buff": "chorus_d2:healing_rift_field",
+                    "component": "members",
+                    "targets": "nearby"
+                  },
+                  "as": "changes"
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "exited"
+                  },
+                  "as": "exited"
+                },
+                {
+                  "for_each": "exited",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:healing_rift_presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:has_buff",
+                          "buff": "chorus_d2:healing_rift_presence",
+                          "target": {
+                            "binding": "member"
+                          },
+                          "match": "any"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:rift_overshield",
+                          "target": {
+                            "binding": "member"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "entered"
+                  },
+                  "as": "entered"
+                },
+                {
+                  "for_each": "entered",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:healing_rift_presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:rift_overshield",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_rift_field"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cleanup",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_targets",
+                "buff": "chorus_d2:healing_rift_field",
+                "component": "members"
+              },
+              "as": "members"
+            },
+            {
+              "for_each": "members",
+              "as": "member",
+              "do": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_rift_presence",
+                  "target": {
+                    "binding": "member"
+                  }
+                },
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:healing_rift_presence",
+                      "target": {
+                        "binding": "member"
+                      },
+                      "match": "any"
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:rift_overshield",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:rift_overshield_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "shield",
+              "event": "test:rift_shield",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            }
+          ]
+        },
+        {
+          "id": "pulse",
+          "on": "test:rift_shield",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "shield"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:healing_rift_presence",
+                "target": "self",
+                "match": "any"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "vitals"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "vitals",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "vitals",
+                        "field": "alive"
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "vitals",
+                          "field": "health_fraction"
+                        },
+                        "op": "ge",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "multiplier"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:has_shield",
+                          "tag": "chorus_d2:void_overshield"
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:restore_shield",
+                      "buff": "chorus_d2:rift_overshield",
+                      "amount": {
+                        "type": "chorus:constant",
+                        "value": 0.015,
+                        "unit": "damage"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:rift_overshield",
+                  "target": "self"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

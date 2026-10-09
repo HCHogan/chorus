@@ -1,0 +1,46 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {"id": "test:weapon_damage", "version": "test-1", "input_unit": "damage", "steps": [
+      {"type": "chorus:apply", "id": "perks", "operation": "multiply", "group": {"name": "weapon_perk", "reduction": "product"}}
+    ]},
+    {"id": "test:handling", "version": "test-1", "input_unit": "stat_point", "steps": [
+      {"type": "chorus:apply", "id": "perks", "operation": "add", "group": {"name": "handling", "reduction": "sum"}}
+    ]}
+  ],
+  "buffs": [{"definition": {
+    "id": "chorus_d2:adrenaline_junkie", "version": "test-1", "duration": 4.5,
+    "max_stacks": 5, "refresh": "reset", "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep"
+  }, "bundle": "chorus_d2:adrenaline_junkie_active"}],
+  "bundles": [
+    {"id": "chorus_d2:adrenaline_junkie", "rules": [{
+      "id": "kill", "on": "chorus:kill", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:any", "of": [
+          {"type": "chorus:event_tag", "tag": "chorus:grenade_kill"},
+          {"type": "chorus:all", "of": [
+            {"type": "chorus:source_is", "source": "this_weapon"},
+            {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"}
+          ]}
+        ]}
+      ]}, "do": [{
+        "if": {"type": "chorus:event_tag", "tag": "chorus:grenade_kill"}, "then": [
+          {"type": "chorus:grant_buff", "buff": "chorus_d2:adrenaline_junkie", "stacks": {"type": "chorus:constant", "value": 5, "unit": "count"},
+            "duration": {"type": "chorus:enhanced", "base": {"type": "chorus:constant", "value": 4.5, "unit": "second"}, "enhanced": {"type": "chorus:constant", "value": 5, "unit": "second"}}}
+        ], "else": [
+          {"type": "chorus:grant_buff", "buff": "chorus_d2:adrenaline_junkie",
+            "duration": {"type": "chorus:enhanced", "base": {"type": "chorus:constant", "value": 4.5, "unit": "second"}, "enhanced": {"type": "chorus:constant", "value": 5, "unit": "second"}}}
+        ]
+      }]
+    }]},
+    {"id": "chorus_d2:adrenaline_junkie_active", "scope": "buff", "modifiers": [
+      {"id": "damage", "profile": "test:weapon_damage", "stage": "perks", "group": "weapon_perk", "op": "multiply", "stacking_key": "chorus_d2:adrenaline_junkie",
+        "value": {"type": "chorus:by_stacks", "values": [0.067, 0.133, 0.2, 0.266, 0.333], "unit": "delta"},
+        "if": {"type": "chorus:all", "of": [{"type": "chorus:event_tag", "tag": "chorus:weapon_damage"}, {"type": "chorus:not", "of": {"type": "chorus:event_tag", "tag": "chorus:explosive_perk_damage"}}]},
+        "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C10; damage attribution supplied by host", "confidence": "measured"},
+      {"id": "handling", "profile": "test:handling", "stage": "perks", "group": "handling", "op": "add", "stacking_key": "chorus_d2:adrenaline_junkie",
+        "value": {"type": "chorus:constant", "value": 20, "unit": "stat_point"},
+        "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C10", "confidence": "measured"}
+    ]}
+  ]
+}

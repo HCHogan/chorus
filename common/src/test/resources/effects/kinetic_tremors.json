@@ -1,0 +1,629 @@
+{
+  "version": "test-kinetic-tremors-v1",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_damage",
+      "version": "test-kinetic-tremors-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "empowering",
+          "operation": "multiply",
+          "group": {
+            "name": "empowering",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:kinetic_tremors_hits",
+        "version": "test-kinetic-tremors-v1",
+        "duration": 3,
+        "attach": "target",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "refresh": "reset",
+        "components": {
+          "numbers": {
+            "hits": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "seen_damage"
+          ]
+        }
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:kinetic_tremors_cooldown",
+        "version": "test-kinetic-tremors-v1",
+        "duration": 4.25,
+        "attach": "target",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:kinetic_tremors",
+      "rules": [
+        {
+          "id": "count",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:direct_weapon_hit"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "applied"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:kinetic_tremors_cooldown",
+                  "target": "victim"
+                }
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:smg"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:auto_rifle"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:pulse_rifle"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:non_burst_sidearm"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:hand_cannon_180"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:scout_other"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:scout_120"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:scout_150"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:hand_cannon_140"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:micro_missile_sidearm"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:bow"
+                  },
+                  {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus_d2:sniper_rifle"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:target_rank/minor"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:target_rank/elite"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:target_rank/miniboss"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:target_rank/boss"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:target_rank/player"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:by_source_tag",
+                  "values": {
+                    "chorus_d2:smg": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 14,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 13,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:auto_rifle": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 12,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 11,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:pulse_rifle": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 11,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 10,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:non_burst_sidearm": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 8,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 7,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:hand_cannon_180": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 6,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:scout_other": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 6,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:scout_120": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:scout_150": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:hand_cannon_140": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:micro_missile_sidearm": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:bow": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "count"
+                      }
+                    },
+                    "chorus_d2:sniper_rifle": {
+                      "type": "chorus:enhanced",
+                      "base": {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      },
+                      "enhanced": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "count"
+                      }
+                    }
+                  }
+                }
+              },
+              "as": "threshold"
+            },
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:kinetic_tremors_hits",
+                  "target": "victim"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:kinetic_tremors_hits",
+                  "target": "victim"
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:kinetic_tremors_hits",
+                "target": "victim",
+                "component": "hits",
+                "op": "add",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                },
+                "once_set": "seen_damage",
+                "event_reference": "damage_id"
+              },
+              "as": "counted"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "counted",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:kinetic_tremors_hits",
+                  "target": "victim",
+                  "duration": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "second"
+                  }
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "counted",
+                      "field": "after"
+                    },
+                    "op": "ge",
+                    "right": {
+                      "type": "chorus:result",
+                      "binding": "threshold",
+                      "field": "value"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_position",
+                        "target": "victim"
+                      },
+                      "as": "place"
+                    },
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:kinetic_tremors_hits",
+                      "target": "victim"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "place",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:scale",
+                              "of": {
+                                "type": "chorus:pvp",
+                                "pve": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:constant",
+                                      "value": 90,
+                                      "unit": "damage"
+                                    },
+                                    {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:event_tag",
+                                            "tag": "chorus:target_rank/miniboss"
+                                          },
+                                          {
+                                            "type": "chorus:event_tag",
+                                            "tag": "chorus:target_rank/boss"
+                                          }
+                                        ]
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 1.333,
+                                        "unit": "multiplier"
+                                      },
+                                      "else": {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "multiplier"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "pvp": {
+                                  "type": "chorus:constant",
+                                  "value": 20,
+                                  "unit": "damage"
+                                }
+                              },
+                              "factor": 0.1,
+                              "from": "damage",
+                              "to": "damage"
+                            },
+                            "damage_type": "chorus_d2:kinetic_tremors",
+                            "scaling_profile": "chorus_d2:weapon_damage",
+                            "tags": [
+                              "chorus:weapon_damage",
+                              "chorus:kinetic_damage",
+                              "chorus_d2:kinetic_tremors_damage"
+                            ],
+                            "kill_tags": [
+                              "chorus:weapon_kill"
+                            ]
+                          },
+                          "as": "shot"
+                        },
+                        {
+                          "type": "chorus:grant_buff",
+                          "buff": "chorus_d2:kinetic_tremors_cooldown",
+                          "target": "victim"
+                        },
+                        {
+                          "after": {
+                            "type": "chorus:constant",
+                            "value": 0.25,
+                            "unit": "second"
+                          },
+                          "lifetime": "detached",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:select_targets",
+                                "center": {
+                                  "position": "place"
+                                },
+                                "relative_to": "source_owner",
+                                "relation": "not_allied",
+                                "radius": {
+                                  "type": "chorus:constant",
+                                  "value": 6,
+                                  "unit": "meter"
+                                },
+                                "exclude": [
+                                  "source_owner"
+                                ]
+                              },
+                              "as": "nearby1"
+                            },
+                            {
+                              "for_each": "nearby1",
+                              "as": "target1",
+                              "do": [
+                                {
+                                  "type": "chorus:damage_snapshot",
+                                  "snapshot": "shot",
+                                  "target": {
+                                    "binding": "target1"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "after": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "second"
+                              },
+                              "lifetime": "detached",
+                              "do": [
+                                {
+                                  "action": {
+                                    "type": "chorus:select_targets",
+                                    "center": {
+                                      "position": "place"
+                                    },
+                                    "relative_to": "source_owner",
+                                    "relation": "not_allied",
+                                    "radius": {
+                                      "type": "chorus:constant",
+                                      "value": 6,
+                                      "unit": "meter"
+                                    },
+                                    "exclude": [
+                                      "source_owner"
+                                    ]
+                                  },
+                                  "as": "nearby2"
+                                },
+                                {
+                                  "for_each": "nearby2",
+                                  "as": "target2",
+                                  "do": [
+                                    {
+                                      "type": "chorus:damage_snapshot",
+                                      "snapshot": "shot",
+                                      "target": {
+                                        "binding": "target2"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "after": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "second"
+                                  },
+                                  "lifetime": "detached",
+                                  "do": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:select_targets",
+                                        "center": {
+                                          "position": "place"
+                                        },
+                                        "relative_to": "source_owner",
+                                        "relation": "not_allied",
+                                        "radius": {
+                                          "type": "chorus:constant",
+                                          "value": 6,
+                                          "unit": "meter"
+                                        },
+                                        "exclude": [
+                                          "source_owner"
+                                        ]
+                                      },
+                                      "as": "nearby3"
+                                    },
+                                    {
+                                      "for_each": "nearby3",
+                                      "as": "target3",
+                                      "do": [
+                                        {
+                                          "type": "chorus:damage_snapshot",
+                                          "snapshot": "shot",
+                                          "target": {
+                                            "binding": "target3"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
