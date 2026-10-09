@@ -1,0 +1,13 @@
+{
+  "id": "test:reload",
+  "version": "fixture-1",
+  "input_unit": "stat_point",
+  "steps": [
+    { "type": "chorus:apply", "id": "slow", "operation": "multiply", "group": { "name": "slow", "reduction": "product" } },
+    { "type": "chorus:clamp", "id": "cap", "minimum": 0, "maximum": 100 },
+    { "type": "chorus:curve", "id": "seconds", "output_unit": "second", "curve": {
+      "type": "chorus:table", "interpolation": "linear", "boundary": "error",
+      "points": [{ "input": 0, "output": 5 }, { "input": 100, "output": 1 }]
+    } }
+  ]
+}

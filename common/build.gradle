@@ -13,6 +13,13 @@ neoForge {
 }
 
 dependencies {
+    testImplementation(platform('org.junit:junit-bom:6.1.3'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    // NeoForm's compile-only game libraries are not inherited by the test runtime.
+    // Match Minecraft 26.3; pure-core tests do not bootstrap the game itself.
+    testImplementation('com.mojang:datafixerupper:10.0.21')
+    testImplementation('com.google.code.gson:gson:2.14.0')
     // Fabric and NeoForge both bundle Fabric Mixin, so it is safe to use it in common
     // If you need to update, check what version they are using to see what is compatible
     // https://github.com/neoforged/NeoForge/blob/26.3.x/gradle.properties#L37
@@ -21,6 +28,10 @@ dependencies {
     // Fabric and NeoForge both bundle MixinExtras, so it is safe to use it in common
     compileOnly(annotationProcessor('io.github.llamalad7:mixinextras-common:0.5.3'))
 
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 configurations {
