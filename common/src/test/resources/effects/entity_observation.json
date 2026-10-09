@@ -1,0 +1,16 @@
+{
+  "version": "test-entity-v1",
+  "bundles": [{ "id": "test:observe", "rules": [{ "id": "probe", "on": "test:probe", "do": [
+    { "action": { "type": "chorus:inspect_entity", "target": "victim" }, "as": "before" },
+    { "if": { "type": "chorus:all", "of": [
+      { "type": "chorus:result_flag", "binding": "before", "field": "available" },
+      { "type": "chorus:result_flag", "binding": "before", "field": "alive" },
+      { "type": "chorus:compare", "op": "le", "left": { "type": "chorus:result", "binding": "before", "field": "health_fraction" }, "right": { "type": "chorus:constant", "value": 0.5, "unit": "multiplier" } }
+    ] }, "then": [
+      { "type": "chorus:heal", "target": "victim", "amount": { "type": "chorus:arithmetic", "op": "add", "of": [
+        { "type": "chorus:result", "binding": "before", "field": "max_health" },
+        { "type": "chorus:scale", "of": { "type": "chorus:result", "binding": "before", "field": "health" }, "factor": -1, "from": "damage", "to": "damage" }
+      ] } }
+    ] }
+  ] }] }]
+}

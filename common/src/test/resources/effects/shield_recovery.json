@@ -1,0 +1,43 @@
+{
+  "version": "test-1",
+  "buffs": [{
+    "definition": {
+      "id": "test:recharging", "version": "test-1", "duration": 1,
+      "instanced_by": "weapon", "on_stow": "pause", "tags": ["test:recharging"],
+      "components": {"numbers": {
+        "capacity": {"initial": 0, "unit": "damage"},
+        "maximum": {"initial": 10, "unit": "damage"},
+        "rate": {"initial": 2.5, "unit": "damage_per_second"},
+        "enabled": {"initial": 1, "unit": "count"}
+      }}
+    },
+    "bundle": "test:recharging_active",
+    "shield": {
+      "capacity": "capacity",
+      "maximum": {"type": "chorus:component", "buff": "test:recharging", "component": "maximum"},
+      "recovery": {
+        "rate": {"type": "chorus:component", "buff": "test:recharging", "component": "rate"},
+        "if": {"type": "chorus:compare", "left": {"type": "chorus:component", "buff": "test:recharging", "component": "enabled"}, "op": "gt", "right": {"type": "chorus:constant", "value": 0, "unit": "count"}}
+      }
+    }
+  }],
+  "bundles": [
+    {"id": "test:shield_recovery", "rules": [
+      {"id": "grant", "on": "test:grant", "do": [
+        {"type": "chorus:grant_buff", "buff": "test:recharging", "target": "victim", "duration": {"type": "chorus:event_number", "name": "duration", "unit": "second"}}
+      ]},
+      {"id": "remove", "on": "test:remove", "do": [{"type": "chorus:remove_buff", "buff": "test:recharging", "target": "victim"}]},
+      {"id": "rate", "on": "test:rate", "do": [{"type": "chorus:update_component", "buff": "test:recharging", "target": "victim", "component": "rate", "op": "set", "value": {"type": "chorus:event_number", "name": "rate", "unit": "damage_per_second"}}]},
+      {"id": "damage", "on": "test:damage", "do": [{"type": "chorus:damage", "target": "victim", "damage_type": "minecraft:generic", "amount": {"type": "chorus:event_number", "name": "amount", "unit": "damage"}}]}
+    ]},
+    {"id": "test:recharging_active", "scope": "buff", "rules": [
+      {"id": "delay", "on": "chorus:shield_damaged", "if": {"type": "chorus:own_shield"}, "do": [
+        {"type": "chorus:update_component", "buff": "test:recharging", "component": "enabled", "op": "set", "value": {"type": "chorus:constant", "value": 0, "unit": "count"}},
+        {"type": "chorus:schedule", "name": "delay", "event": "test:recharge_ready", "policy": "replace", "delay": {"type": "chorus:constant", "value": 0.070001, "unit": "second"}}
+      ]},
+      {"id": "resume", "on": "test:recharge_ready", "if": {"type": "chorus:own_timer", "name": "delay"}, "do": [
+        {"type": "chorus:update_component", "buff": "test:recharging", "component": "enabled", "op": "set", "value": {"type": "chorus:constant", "value": 1, "unit": "count"}}
+      ]}
+    ]}
+  ]
+}

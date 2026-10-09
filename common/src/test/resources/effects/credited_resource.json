@@ -1,0 +1,17 @@
+{
+  "version": "test-1",
+  "resources": [{"id": "test:energy", "capacity": 2, "initial": 0}],
+  "buffs": [{"definition": {
+    "id": "test:counter", "version": "test-1", "duration": "permanent", "max_stacks": 10, "credit_overflow": true
+  }}],
+  "bundles": [{"id": "test:credited_resource", "rules": [{
+    "id": "gain", "on": "test:gain", "do": [
+      {"action": {"type": "chorus:grant_buff", "buff": "test:counter", "stacks": {"type": "chorus:event_number", "name": "stacks", "unit": "count"}}, "as": "gain"},
+      {"type": "chorus:play_cue", "cue": "test:gained"},
+      {"action": {"type": "chorus:grant_resource", "resource": "test:energy", "requested": {
+        "type": "chorus:scale", "of": {"type": "chorus:result", "binding": "gain", "field": "credited"},
+        "factor": 0.1, "from": "count", "to": "charge_fraction"
+      }}, "as": "energy"}
+    ]
+  }]}]
+}

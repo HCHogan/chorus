@@ -1,0 +1,313 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:precision_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "precision",
+          "operation": "multiply",
+          "group": {
+            "name": "precision",
+            "reduction": "max"
+          },
+          "factor": "chorus:precision"
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perk",
+          "operation": "multiply",
+          "group": {
+            "name": "perk",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "flat",
+          "operation": "add",
+          "group": {
+            "name": "flat",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:precision_defense",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "flat_defense",
+          "operation": "add",
+          "group": {
+            "name": "flat_defense",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "defense_profile": "test:precision_defense",
+  "bundles": [
+    {
+      "id": "test:precision_weapon",
+      "modifiers": [
+        {
+          "id": "precision",
+          "profile": "test:precision_damage",
+          "stage": "precision",
+          "group": "precision",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "precision_delta",
+            "unit": "delta"
+          },
+          "stacking_key": "test:precision",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:precision"
+              }
+            ]
+          },
+          "reference": "Synthetic factor projection test; only Eternal Warrior suppression policy uses Compendium Exotic Armors F34",
+          "confidence": "assumed"
+        },
+        {
+          "id": "perk",
+          "profile": "test:precision_damage",
+          "stage": "perk",
+          "group": "perk",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 0.5,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            }
+          },
+          "stacking_key": "test:perk",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic factor projection test; only Eternal Warrior suppression policy uses Compendium Exotic Armors F34",
+          "confidence": "assumed"
+        },
+        {
+          "id": "flat",
+          "profile": "test:precision_damage",
+          "stage": "flat",
+          "group": "flat",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          },
+          "stacking_key": "test:flat",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:source_tag",
+                "tag": "test:flat"
+              }
+            ]
+          },
+          "reference": "Synthetic factor projection test; only Eternal Warrior suppression policy uses Compendium Exotic Armors F34",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:precision_inputs",
+      "rules": [
+        {
+          "id": "fire",
+          "on": "test:precision_fire",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:weapon_direct",
+                "chorus:precision"
+              ],
+              "kill_tags": [
+                "chorus:weapon",
+                "chorus:precision"
+              ],
+              "scaling_profile": "test:precision_damage",
+              "impact": {
+                "precision_delta": {
+                  "type": "chorus:event_number",
+                  "name": "precision_delta",
+                  "unit": "delta"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "body",
+          "on": "test:body_fire",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:weapon_direct"
+              ],
+              "kill_tags": [
+                "chorus:weapon"
+              ],
+              "scaling_profile": "test:precision_damage"
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:precision_later",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "tags": [
+                  "chorus:weapon_direct",
+                  "chorus:precision"
+                ],
+                "kill_tags": [
+                  "chorus:weapon",
+                  "chorus:precision"
+                ],
+                "scaling_profile": "test:precision_damage"
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "shot",
+                  "impact": {
+                    "precision_delta": {
+                      "type": "chorus:event_number",
+                      "name": "precision_delta",
+                      "unit": "delta"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "plain",
+          "on": "test:precision_plain",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:precision_plain",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:flat_defense",
+      "modifiers": [
+        {
+          "id": "flat_defense",
+          "profile": "test:precision_defense",
+          "stage": "flat_defense",
+          "group": "flat_defense",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "damage"
+          },
+          "stacking_key": "test:flat_defense",
+          "if": {
+            "type": "chorus:constant",
+            "value": true
+          },
+          "reference": "Synthetic factor projection test; only Eternal Warrior suppression policy uses Compendium Exotic Armors F34",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:precision_plain",
+        "version": "test-1",
+        "duration": "permanent",
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 4,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "priority": 1
+      }
+    }
+  ]
+}

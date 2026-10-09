@@ -1,0 +1,276 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:z_first",
+        "version": "test-1",
+        "duration": 10,
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 0,
+              "unit": "damage"
+            },
+            "limit": {
+              "initial": 10,
+              "unit": "damage"
+            }
+          }
+        },
+        "instanced_by": "source",
+        "on_stow": "pause",
+        "tags": [
+          "test:shield"
+        ]
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "maximum": {
+          "type": "chorus:component",
+          "buff": "test:z_first",
+          "component": "limit"
+        }
+      }
+    },
+    {
+      "definition": {
+        "id": "test:a_second",
+        "version": "test-1",
+        "duration": "permanent",
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 100,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    },
+    {
+      "definition": {
+        "id": "test:void",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus_d2:void_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 1,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:shield_actions",
+      "rules": [
+        {
+          "id": "arm",
+          "on": "test:arm",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:z_first",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:a_second",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "attack",
+          "on": "test:attack",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 200,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic"
+            },
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:component",
+                "buff": "test:a_second",
+                "target": "victim",
+                "component": "capacity"
+              },
+              "damage_type": "minecraft:generic"
+            }
+          ]
+        },
+        {
+          "id": "restore",
+          "on": "test:restore",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:restore_shield",
+                "buff": "test:z_first",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                }
+              },
+              "as": "restored"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:result",
+                "binding": "restored",
+                "field": "effective"
+              }
+            }
+          ]
+        },
+        {
+          "id": "void",
+          "on": "test:void",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:void",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "remove_void",
+          "on": "test:remove_void",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:void",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "probe",
+          "on": "test:probe",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "test:z_first",
+                "target": "victim"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:bound",
+                  "target": "victim"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "test:z_first",
+                "target": "victim",
+                "match": "any"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:any",
+                  "target": "victim"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:has_buff_tag",
+                "target": "victim",
+                "tag": "test:shield"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:tag",
+                  "target": "victim"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:has_shield",
+                "target": "victim",
+                "tag": "test:shield"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:positive",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "probe_rift",
+          "on": "test:probe_rift",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff_tag",
+                "tag": "chorus:counts_as_overshield",
+                "target": "victim"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:counted",
+                  "target": "victim"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:has_shield",
+                "tag": "chorus_d2:rift_overshield",
+                "target": "victim"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:positive",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

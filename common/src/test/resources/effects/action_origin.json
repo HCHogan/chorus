@@ -1,0 +1,58 @@
+{
+  "version": "test-origin-v1",
+  "profiles": [{ "id": "test:chain_damage", "version": "test-origin-v1", "input_unit": "damage", "steps": [
+    { "type": "chorus:apply", "id": "power", "operation": "multiply", "group": { "name": "power", "reduction": "max" } }
+  ] }],
+  "buffs": [
+    { "definition": { "id": "test:carrier", "version": "test-origin-v1", "duration": 10, "attach": "target", "components": {
+      "numbers": { "damage": { "initial": 4, "unit": "damage" } }
+    } }, "bundle": "test:carrier_active" },
+    { "definition": { "id": "test:chain_kill", "version": "test-origin-v1", "duration": 10 } },
+    { "definition": { "id": "test:weapon_kill", "version": "test-origin-v1", "duration": 10 } },
+    { "definition": { "id": "test:heal_credit", "version": "test-origin-v1", "duration": 10 } }
+  ],
+  "bundles": [
+    { "id": "test:carrier_active", "scope": "buff", "rules": [
+      { "id": "release", "on": "test:release", "if": { "type": "chorus:target_is", "left": "victim", "right": "self" }, "do": [
+        { "action": { "type": "chorus:select_targets", "center": "self", "relative_to": "event_actor", "relation": "not_allied", "radius": { "type": "chorus:constant", "value": 4, "unit": "meter" }, "exclude": ["event_actor"] }, "as": "nearby" },
+        { "for_each": "nearby", "as": "target", "do": [
+          { "action": { "type": "chorus:damage", "origin": "event", "target": { "binding": "target" },
+            "amount": { "type": "chorus:component", "buff": "test:carrier", "component": "damage" }, "damage_type": "minecraft:generic", "scaling_profile": "test:chain_damage", "tags": ["test:chain"], "kill_tags": ["test:chain_kill"] }, "as": "hit" },
+          { "if": { "type": "chorus:result_flag", "binding": "hit", "field": "applied" }, "then": [
+            { "type": "chorus:heal", "origin": "event", "target": "event_actor", "amount": { "type": "chorus:scale", "of": { "type": "chorus:result", "binding": "hit", "field": "effective" }, "factor": 0.5, "from": "damage", "to": "damage" }, "tags": ["test:chain_heal"] }
+          ] }
+        ] }
+      ] },
+      { "id": "deferred", "on": "test:deferred", "if": { "type": "chorus:target_is", "left": "victim", "right": "self" }, "do": [
+        { "action": { "type": "chorus:capture_damage", "origin": "event", "amount": { "type": "chorus:component", "buff": "test:carrier", "component": "damage" }, "damage_type": "minecraft:generic", "scaling_profile": "test:chain_damage", "tags": ["test:chain"], "kill_tags": ["test:chain_kill"] }, "as": "shot" },
+        { "after": { "type": "chorus:constant", "value": 0.1, "unit": "second" }, "lifetime": "detached", "do": [
+          { "type": "chorus:damage_snapshot", "snapshot": "shot", "target": "victim" }
+        ] }
+      ] },
+      { "id": "schedule", "on": "test:schedule", "if": { "type": "chorus:target_is", "left": "victim", "right": "self" }, "do": [
+        { "type": "chorus:schedule", "name": "pulse", "event": "test:pulse", "delay": { "type": "chorus:constant", "value": 0.1, "unit": "second" } }
+      ] },
+      { "id": "pulse", "on": "test:pulse", "if": { "type": "chorus:own_timer", "name": "pulse" }, "do": [
+        { "type": "chorus:damage", "origin": "event", "amount": { "type": "chorus:component", "buff": "test:carrier", "component": "damage" }, "damage_type": "minecraft:generic", "tags": ["test:chain"] }
+      ] }
+    ] },
+    { "id": "test:power", "modifiers": [
+      { "id": "power", "profile": "test:chain_damage", "stage": "power", "group": "power", "op": "multiply", "stacking_key": "test:power",
+        "value": { "type": "chorus:by_source_tag", "values": {
+          "test:applier": { "type": "chorus:constant", "value": 1, "unit": "delta" },
+          "test:trigger": { "type": "chorus:constant", "value": 0.5, "unit": "delta" }
+        } }, "reference": "Synthetic ownership and numeric-query acceptance; not a Jolt scaling rule", "confidence": "assumed" }
+    ] },
+    { "id": "test:credit_observer", "rules": [
+      { "id": "chain_credit", "on": "chorus:kill", "if": { "type": "chorus:all", "of": [
+        { "type": "chorus:source_is", "source": "owner" }, { "type": "chorus:event_tag", "tag": "test:chain_kill" }
+      ] }, "do": [{ "type": "chorus:grant_buff", "buff": "test:chain_kill" }] },
+      { "id": "weapon_credit", "on": "chorus:kill", "if": { "type": "chorus:all", "of": [
+        { "type": "chorus:source_is", "source": "owner" }, { "type": "chorus:event_tag", "tag": "chorus:weapon_kill" }
+      ] }, "do": [{ "type": "chorus:grant_buff", "buff": "test:weapon_kill" }] },
+      { "id": "heal_credit", "on": "chorus:heal", "if": { "type": "chorus:all", "of": [
+        { "type": "chorus:source_is", "source": "owner" }, { "type": "chorus:event_tag", "tag": "test:chain_heal" }
+      ] }, "do": [{ "type": "chorus:grant_buff", "buff": "test:heal_credit" }] }
+    ] }
+  ]
+}

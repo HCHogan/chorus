@@ -1,0 +1,16 @@
+{
+  "version": "test-1",
+  "buffs": [{"definition": {"id": "test:lingering", "version": "test-1", "duration": 1}}],
+  "bundles": [{"id": "test:attachment", "health_recovery": [
+    {"id": "passive", "channel": "test:passive", "rate": {"type": "chorus:constant", "value": 2, "unit": "damage_per_second"}}
+  ], "rules": [
+    {"id": "attach", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+      {"type": "chorus:grant_buff", "buff": "test:lingering"},
+      {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}},
+      {"type": "chorus:schedule", "name": "later", "event": "test:later", "delay": {"type": "chorus:constant", "value": 0.1, "unit": "second"}}
+    ]},
+    {"id": "later", "on": "test:later", "if": {"type": "chorus:own_timer", "name": "later"}, "do": [
+      {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 2, "unit": "damage"}}
+    ]}
+  ]}]
+}

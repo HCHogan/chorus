@@ -1,0 +1,178 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:eternal_warrior_shield",
+        "version": "test-1",
+        "duration": "permanent",
+        "refresh": "none",
+        "tags": [
+          "chorus:overshield",
+          "chorus_d2:eternal_warrior_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 7.5,
+              "unit": "damage"
+            },
+            "ready": {
+              "initial": 1,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "bundle": "chorus_d2:eternal_warrior_shield_active",
+      "shield": {
+        "capacity": "capacity",
+        "excluded_attack_factors": ["chorus:precision"],
+        "recovery": {
+          "rate": {
+            "type": "chorus:constant",
+            "value": 1.0714285714285714,
+            "unit": "damage_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:component",
+              "buff": "chorus_d2:eternal_warrior_shield",
+              "component": "ready"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:eternal_warrior",
+      "rules": [
+        {
+          "id": "cast",
+          "on": "test:fists_start",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:eternal_warrior_shield"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:eternal_warrior_shield_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "interrupt",
+          "on": "chorus:damage_taken",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "victim",
+            "right": "self"
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:eternal_warrior_shield",
+              "component": "ready",
+              "op": "set",
+              "value": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "delay",
+              "event": "test:eternal_recharge_ready",
+              "policy": "replace",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "test:eternal_recharge_ready",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "delay"
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:eternal_warrior_shield",
+              "component": "ready",
+              "op": "set",
+              "value": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              }
+            }
+          ]
+        },
+        {
+          "id": "broken",
+          "on": "chorus:shield_broken",
+          "if": {
+            "type": "chorus:own_shield"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:eternal_warrior_shield"
+            }
+          ]
+        },
+        {
+          "id": "end",
+          "on": "test:fists_end",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:eternal_warrior_shield"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "victim",
+            "right": "self"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:eternal_warrior_shield"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

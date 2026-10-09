@@ -1,0 +1,357 @@
+{
+  "version": "test-1",
+  "defense_profile": "test:incoming_damage",
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:incoming_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "vulnerability",
+          "operation": "multiply",
+          "group": {
+            "name": "independent",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "resistance",
+          "operation": "resist",
+          "group": {
+            "name": "resistance",
+            "reduction": "resist"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:kill_clip_window",
+        "version": "test-1",
+        "duration": 3.6,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "refresh": "reset"
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:kill_clip",
+        "version": "test-1",
+        "duration": 5,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove",
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:kill_clip_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:disruption_break",
+        "version": "test-1",
+        "duration": 5.5,
+        "timer_mode": "per_stack",
+        "max_stacks": 2147483647,
+        "attach": "target"
+      },
+      "bundle": "chorus_d2:disruption_break_active"
+    },
+    {
+      "definition": {
+        "id": "test:resistance",
+        "version": "test-1",
+        "duration": 30
+      },
+      "bundle": "test:resistance_active"
+    },
+    {
+      "definition": {
+        "id": "test:shield",
+        "version": "test-1",
+        "duration": 30,
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:kill_clip",
+      "rules": [
+        {
+          "id": "window",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:kill_clip_window"
+            }
+          ]
+        },
+        {
+          "id": "activate",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:kill_clip_window"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:consume_buff",
+              "buff": "chorus_d2:kill_clip_window"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:kill_clip",
+              "duration": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:kill_clip_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:kill_clip",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.25,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:not",
+            "of": {
+              "type": "chorus:event_tag",
+              "tag": "chorus:explosive_perk_damage"
+            }
+          },
+          "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C132",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:disruption_break",
+      "rules": [
+        {
+          "id": "apply",
+          "on": "chorus:shield_broken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:elemental_shield"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:barrier_shield"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:guardian_shield"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:disruption_break",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:pvp",
+                "pve": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                },
+                "pvp": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "second"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:disruption_break_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "vulnerability",
+          "profile": "test:incoming_damage",
+          "stage": "vulnerability",
+          "group": "independent",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:disruption_break",
+          "multiplicity": "stack",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:kinetic_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:stasis_damage"
+                    },
+                    {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:strand_damage"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C71; base perk only",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "test:resistance_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "resistance",
+          "profile": "test:incoming_damage",
+          "stage": "resistance",
+          "group": "resistance",
+          "op": "resist",
+          "stacking_key": "test:resistance",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "resistance"
+          },
+          "reference": "Test-only 50% resistance; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:attack",
+      "rules": [
+        {
+          "id": "attack",
+          "on": "test:attack",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 16,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:mob_attack",
+                "scaling_profile": "test:weapon_damage",
+                "tags": [
+                  "chorus:kinetic_damage"
+                ]
+              },
+              "as": "hit"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

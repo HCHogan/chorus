@@ -1,0 +1,28 @@
+{
+  "version": "test-1",
+  "resources": [{"id": "test:energy", "capacity": 1, "initial": 0}],
+  "buffs": [
+    {"definition": {"id": "test:gate", "version": "test-1", "duration": "permanent"}},
+    {"definition": {"id": "test:counter", "version": "test-1", "duration": "permanent", "max_stacks": 10}}
+  ],
+  "bundles": [{"id": "test:branch", "rules": [{"id": "choose", "on": "test:choose", "do": [
+    {"type": "chorus:grant_buff", "buff": "test:gate"},
+    {"if": {"type": "chorus:has_buff", "buff": "test:gate"}, "then": [
+      {"type": "chorus:consume_buff", "buff": "test:gate"},
+      {"action": {"type": "chorus:grant_buff", "buff": "test:counter", "stacks": {"type": "chorus:constant", "value": 2, "unit": "count"}}, "as": "gain"},
+      {"type": "chorus:play_cue", "cue": "test:then"},
+      {"if": {"type": "chorus:result_flag", "binding": "gain", "field": "applied"}, "then": [
+        {"type": "chorus:grant_resource", "resource": "test:energy", "requested": {
+          "type": "chorus:scale", "of": {"type": "chorus:result", "binding": "gain", "field": "credited"},
+          "from": "count", "to": "charge_fraction", "factor": 0.1}}
+      ], "else": [{"type": "chorus:play_cue", "cue": "test:unreachable"}]}
+    ], "else": [
+      {"action": {"type": "chorus:grant_buff", "buff": "test:counter", "stacks": {"type": "chorus:constant", "value": 7, "unit": "count"}}, "as": "gain"},
+      {"type": "chorus:play_cue", "cue": "test:else"},
+      {"type": "chorus:grant_resource", "resource": "test:energy", "requested": {
+        "type": "chorus:scale", "of": {"type": "chorus:result", "binding": "gain", "field": "credited"},
+        "from": "count", "to": "charge_fraction", "factor": 0.1}}
+    ]},
+    {"type": "chorus:play_cue", "cue": "test:end"}
+  ]}]}]
+}

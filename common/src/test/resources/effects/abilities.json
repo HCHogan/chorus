@@ -1,0 +1,464 @@
+{
+  "version": "test-1",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 2,
+      "initial": 2,
+      "base_rate": 1,
+      "thresholds": [
+        1
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:cost",
+      "version": "test-1",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "boost",
+          "operation": "multiply",
+          "group": {
+            "name": "boost",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:potency",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "boost",
+          "operation": "multiply",
+          "group": {
+            "name": "boost",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:pulse",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:strong",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 8,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:free",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:refund",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 0.75,
+            "unit": "multiplier"
+          }
+        },
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 0.75,
+            "unit": "multiplier"
+          }
+        },
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:echo",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "after": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          },
+          "lifetime": "detached",
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "param.heal",
+                "unit": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:blocked",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      }
+    },
+    {
+      "id": "test:free_refund",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:grenade"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          },
+          "profile": "test:potency"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 0.75,
+            "unit": "multiplier"
+          }
+        },
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 0.75,
+            "unit": "multiplier"
+          }
+        },
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:transform",
+        "version": "test-1",
+        "duration": 0.2,
+        "refresh": "reset"
+      },
+      "bundle": "test:transform_rules"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:replacement",
+      "ability_overrides": [
+        {
+          "id": "sprint",
+          "slot": "test:grenade",
+          "replace_with": "test:strong",
+          "priority": 10,
+          "ability": "test:pulse",
+          "if": {
+            "type": "chorus:event_flag",
+            "name": "sprinting"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:conflict",
+      "ability_overrides": [
+        {
+          "id": "different",
+          "slot": "test:grenade",
+          "replace_with": "test:free",
+          "priority": 10,
+          "ability": "test:pulse"
+        }
+      ]
+    },
+    {
+      "id": "test:transform_rules",
+      "scope": "buff",
+      "ability_overrides": [
+        {
+          "id": "transform",
+          "slot": "test:grenade",
+          "replace_with": "test:free",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "id": "test:control",
+      "rules": [
+        {
+          "id": "transform",
+          "on": "test:transform",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:transform"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:boost",
+      "modifiers": [
+        {
+          "id": "boost",
+          "profile": "test:potency",
+          "stage": "boost",
+          "group": "boost",
+          "op": "multiply",
+          "stacking_key": "test:potency",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic ability test, not Destiny tuning",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:discount",
+      "modifiers": [
+        {
+          "id": "discount",
+          "profile": "test:cost",
+          "stage": "boost",
+          "group": "boost",
+          "op": "multiply",
+          "stacking_key": "test:discount",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic ability test, not Destiny tuning",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

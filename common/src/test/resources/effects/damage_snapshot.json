@@ -1,0 +1,321 @@
+{
+  "version": "test-snapshot-v1",
+  "defense_profile": "test:incoming",
+  "resources": [
+    {
+      "id": "test:power",
+      "capacity": 1,
+      "initial": 0.3
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:attack_damage",
+      "version": "test-snapshot-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "empowering",
+          "operation": "multiply",
+          "group": {
+            "name": "empowering",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "perks",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:incoming",
+      "version": "test-snapshot-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "vulnerability",
+          "operation": "multiply",
+          "group": {
+            "name": "vulnerability",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:empower",
+        "version": "test-snapshot-v1",
+        "duration": 30,
+        "max_stacks": 3
+      },
+      "bundle": "test:empower_active"
+    },
+    {
+      "definition": {
+        "id": "test:marked",
+        "version": "test-snapshot-v1",
+        "duration": 30,
+        "attach": "target",
+        "max_stacks": 3
+      }
+    },
+    {
+      "definition": {
+        "id": "test:vulnerability",
+        "version": "test-snapshot-v1",
+        "duration": 30,
+        "attach": "target"
+      },
+      "bundle": "test:vulnerability_active"
+    },
+    {
+      "definition": {
+        "id": "test:live",
+        "version": "test-snapshot-v1",
+        "duration": 30
+      },
+      "bundle": "test:live_active"
+    },
+    {
+      "definition": {
+        "id": "test:stacked",
+        "version": "test-snapshot-v1",
+        "duration": 30,
+        "max_stacks": 2,
+        "timer_mode": "per_stack"
+      },
+      "bundle": "test:stacked_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:attack",
+      "modifiers": [
+        {
+          "id": "conditional",
+          "profile": "test:attack_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "test:conditional",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:resource",
+                  "resource": "test:power",
+                  "target": "self"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "delta"
+              },
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:buff_count",
+                  "buff": "test:marked",
+                  "target": "victim"
+                },
+                "factor": 0.05,
+                "from": "count",
+                "to": "delta"
+              }
+            ]
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:resource",
+                  "resource": "test:power",
+                  "target": "self"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0.2,
+                  "unit": "charge_fraction"
+                }
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "test:marked",
+                "target": "victim"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:replacement",
+      "modifiers": [
+        {
+          "id": "replacement",
+          "profile": "test:attack_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "test:replacement",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.9,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:empower_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "empower",
+          "profile": "test:attack_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "test:empower",
+          "value": {
+            "type": "chorus:by_stacks",
+            "values": [
+              0.2,
+              0.3,
+              0.45
+            ],
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:live_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "live",
+          "profile": "test:attack_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "test:live",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.4,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed",
+          "evaluate": "on_hit"
+        }
+      ]
+    },
+    {
+      "id": "test:stacked_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "stacked",
+          "profile": "test:attack_damage",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "test:stacked",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed",
+          "multiplicity": "stack"
+        }
+      ]
+    },
+    {
+      "id": "test:vulnerability_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "vulnerability",
+          "profile": "test:incoming",
+          "stage": "vulnerability",
+          "group": "vulnerability",
+          "op": "multiply",
+          "stacking_key": "test:vulnerability",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:controls",
+      "rules": [
+        {
+          "id": "mark",
+          "on": "test:mark",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:marked",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "weaken",
+          "on": "test:weaken",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:vulnerability",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "live",
+          "on": "test:live",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:live"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

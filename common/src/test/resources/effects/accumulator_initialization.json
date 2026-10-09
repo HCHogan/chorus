@@ -1,0 +1,38 @@
+{
+  "version": "test-1",
+  "buffs": [{"definition": {
+    "id": "test:accumulator", "version": "test-1", "duration": 10,
+    "attach": "target", "refresh": "reset",
+    "components": {"numbers": {"damage": {"initial": 0, "unit": "damage"}}, "sets": ["seen_damage"]}
+  }, "bundle": "test:accumulator_active"}],
+  "bundles": [
+    {"id": "test:apply", "rules": [{
+      "id": "apply", "on": "chorus:hit",
+      "if": {"type": "chorus:event_tag", "tag": "test:apply"},
+      "do": [
+        {"action": {"type": "chorus:apply_status", "buff": "test:accumulator"}, "as": "status"},
+        {"if": {"type": "chorus:result_flag", "binding": "status", "field": "applied"}, "then": [
+          {"type": "chorus:update_component", "buff": "test:accumulator", "target": "victim", "component": "damage", "op": "add",
+            "value": {"type": "chorus:event_number", "name": "effective_damage", "unit": "damage"},
+            "once_set": "seen_damage", "event_reference": "damage_id"}
+        ]}
+      ]
+    }]},
+    {"id": "test:accumulator_active", "scope": "buff", "rules": [
+      {"id": "accumulate", "on": "chorus:hit",
+        "if": {"type": "chorus:target_is", "left": "victim", "right": "self"},
+        "do": [{"type": "chorus:update_component", "buff": "test:accumulator", "component": "damage", "op": "add",
+          "value": {"type": "chorus:event_number", "name": "effective_damage", "unit": "damage"},
+          "once_set": "seen_damage", "event_reference": "damage_id"}]},
+      {"id": "reset", "on": "test:reset", "do": [
+        {"type": "chorus:update_component", "buff": "test:accumulator", "component": "damage", "op": "set",
+          "value": {"type": "chorus:constant", "value": 0, "unit": "damage"}}
+      ]},
+      {"id": "inspect", "on": "test:inspect",
+        "if": {"type": "chorus:compare", "op": "ge",
+          "left": {"type": "chorus:component", "buff": "test:accumulator", "component": "damage"},
+          "right": {"type": "chorus:event_number", "name": "threshold", "unit": "damage"}},
+        "do": [{"type": "chorus:play_cue", "cue": "test:threshold"}]}
+    ]}
+  ]
+}

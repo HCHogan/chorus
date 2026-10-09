@@ -1,0 +1,39 @@
+{
+  "version": "test-1",
+  "resources": [{"id": "test:energy", "capacity": 2, "initial": 0, "base_rate": 0.5, "thresholds": [1], "rate_profile": "test:regeneration"}],
+  "profiles": [{"id": "test:regeneration", "version": "test-1", "input_unit": "charge_fraction_per_second", "steps": [
+    {"type": "chorus:apply", "id": "boost", "operation": "multiply", "group": {"name": "regen", "reduction": "product"}}
+  ]}],
+  "buffs": [{"definition": {"id": "test:boost", "version": "test-1", "duration": 0.5, "refresh": "reset"}, "bundle": "test:boosted"}],
+  "bundles": [
+    {"id": "test:resources", "rules": [
+      {"id": "initialize", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+        {"type": "chorus:initialize_resource", "resource": "test:energy"}
+      ]},
+      {"id": "initialize_again", "on": "test:initialize", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:initialize_resource", "resource": "test:energy"}
+      ]},
+      {"id": "boost", "on": "test:boost", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:grant_buff", "buff": "test:boost"}]},
+      {"id": "grant", "on": "test:grant", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"action": {"type": "chorus:grant_resource", "resource": "test:energy", "requested": {"type": "chorus:event_number", "name": "amount", "unit": "charge_fraction"}}, "as": "gain"}
+      ]},
+      {"id": "spend", "on": "test:spend", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"action": {"type": "chorus:spend_resource", "resource": "test:energy", "payment": "cast", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}, "as": "cost"},
+        {"if": {"type": "chorus:result_flag", "binding": "cost", "field": "succeeded"}, "then": [
+          {"type": "chorus:heal", "tags": ["test:cast"], "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+        ]}
+      ]},
+      {"id": "one_charge", "on": "chorus:resource_changed", "if": {"type": "chorus:resource_crossed", "resource": "test:energy", "threshold": 1, "direction": "up"}, "do": [
+        {"type": "chorus:heal", "tags": ["test:one"], "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+      ]},
+      {"id": "full", "on": "chorus:resource_changed", "if": {"type": "chorus:resource_crossed", "resource": "test:energy", "threshold": 2, "direction": "up"}, "do": [
+        {"type": "chorus:heal", "tags": ["test:full"], "amount": {"type": "chorus:constant", "value": 2, "unit": "damage"}}
+      ]}
+    ]},
+    {"id": "test:boosted", "scope": "buff", "modifiers": [
+      {"id": "speed", "profile": "test:regeneration", "stage": "boost", "group": "regen", "op": "multiply", "stacking_key": "test:boost",
+        "value": {"type": "chorus:pvp", "pve": {"type": "chorus:constant", "value": 1, "unit": "delta"}, "pvp": {"type": "chorus:constant", "value": 0.5, "unit": "delta"}},
+        "reference": "Synthetic regeneration test; not a Destiny effect value", "confidence": "assumed"}
+    ]}
+  ]
+}

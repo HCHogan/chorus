@@ -1,0 +1,30 @@
+{
+  "version": "test-1",
+  "buffs": [{"definition": {
+    "id": "chorus_d2:cure_cooldown", "version": "test-1", "duration": 1, "refresh": "none"
+  }, "bundle": "chorus_d2:cure_active"}],
+  "bundles": [
+    {"id": "chorus_d2:cure", "rules": [{
+      "id": "request", "on": "chorus:cure_requested", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:not", "of": {"type": "chorus:has_buff", "buff": "chorus_d2:cure_cooldown"}}
+      ]}, "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:cure_cooldown", "tier": {"type": "chorus:event_number", "name": "tier", "unit": "count"}}]
+    }]},
+    {"id": "chorus_d2:cure_active", "scope": "buff", "rules": [
+      {"id": "start", "on": "chorus:buff_gained", "if": {"type": "chorus:own_buff"}, "do": [
+        {"type": "chorus:schedule", "name": "restore", "event": "chorus_d2:cure_pulse",
+          "delay": {"type": "chorus:constant", "value": 0.05, "unit": "second"},
+          "interval": {"type": "chorus:constant", "value": 0.05, "unit": "second"}, "repeat": 2}
+      ]},
+      {"id": "restore", "on": "chorus_d2:cure_pulse", "if": {"type": "chorus:own_timer", "name": "restore"}, "do": [
+        {"type": "chorus:heal", "tags": ["chorus_d2:cure"], "amount": {
+          "type": "chorus:scale", "factor": 0.1, "from": "damage", "to": "damage", "of": {
+            "type": "chorus:pvp",
+            "pve": {"type": "chorus:by_buff_tier", "values": [30, 60, 90], "unit": "damage"},
+            "pvp": {"type": "chorus:by_buff_tier", "values": [15, 30, 45], "unit": "damage"}
+          }
+        }}
+      ]}
+    ]}
+  ]
+}

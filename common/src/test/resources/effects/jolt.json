@@ -1,0 +1,848 @@
+{
+  "version": "test-jolt-v1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:jolt",
+        "version": "test-jolt-v1",
+        "duration": 10,
+        "attach": "target",
+        "refresh": "reset",
+        "tags": [
+          "chorus:arc",
+          "chorus:debuff"
+        ],
+        "components": {
+          "numbers": {
+            "damage": {
+              "initial": 0,
+              "unit": "damage"
+            },
+            "guardian_hits": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "seen_damage"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:jolt_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:jolt_cooldown",
+        "version": "test-jolt-v1",
+        "duration": 0.8,
+        "attach": "target",
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:jolt_application",
+      "rules": [
+        {
+          "id": "apply",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:apply_jolt"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:apply_status",
+                "buff": "chorus_d2:jolt",
+                "duration": {
+                  "type": "chorus:pvp",
+                  "pve": {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "second"
+                  },
+                  "pvp": {
+                    "type": "chorus:constant",
+                    "value": 5,
+                    "unit": "second"
+                  }
+                }
+              },
+              "as": "status"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "status",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_tag",
+                        "tag": "test:jolt_after_damage"
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "status",
+                          "field": "stacks_before"
+                        },
+                        "op": "eq",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:jolt",
+                      "target": "victim",
+                      "component": "damage",
+                      "op": "add",
+                      "value": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "damage"
+                      },
+                      "once_set": "seen_damage",
+                      "event_reference": "damage_id"
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:jolt_count"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:jolt_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "victim",
+                "right": "self"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "applied"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:jolt",
+                "component": "damage",
+                "op": "add",
+                "value": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:has_buff",
+                    "buff": "chorus_d2:jolt_cooldown"
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "damage"
+                  },
+                  "else": {
+                    "type": "chorus:event_number",
+                    "name": "effective_damage",
+                    "unit": "damage"
+                  }
+                },
+                "once_set": "seen_damage",
+                "event_reference": "damage_id"
+              },
+              "as": "counted"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "counted",
+                    "field": "applied"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:jolt_cooldown"
+                    }
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "op": "ge",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "counted",
+                      "field": "after"
+                    },
+                    "right": {
+                      "type": "chorus:scale",
+                      "factor": 0.1,
+                      "from": "damage",
+                      "to": "damage",
+                      "of": {
+                        "type": "chorus:pvp",
+                        "pve": {
+                          "type": "chorus:constant",
+                          "value": 115,
+                          "unit": "damage"
+                        },
+                        "pvp": {
+                          "type": "chorus:constant",
+                          "value": 45,
+                          "unit": "damage"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:jolt",
+                  "component": "damage",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "damage"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:jolt",
+                  "component": "guardian_hits",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:jolt_cooldown"
+                },
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "center"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "center",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": "self",
+                        "relative_to": "source_owner",
+                        "relation": "not_allied",
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 12,
+                          "unit": "meter"
+                        }
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "nearby",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "for_each": "nearby",
+                          "as": "target",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:inspect_entity",
+                                "target": {
+                                  "binding": "target"
+                                }
+                              },
+                              "as": "neighbor"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "neighbor",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "neighbor",
+                                    "field": "alive"
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage",
+                                    "origin": "event",
+                                    "target": {
+                                      "binding": "target"
+                                    },
+                                    "damage_type": "chorus_d2:jolt",
+                                    "amount": {
+                                      "type": "chorus:scale",
+                                      "factor": 0.1,
+                                      "from": "damage",
+                                      "to": "damage",
+                                      "of": {
+                                        "type": "chorus:pvp",
+                                        "pve": {
+                                          "type": "chorus:constant",
+                                          "value": 119,
+                                          "unit": "damage"
+                                        },
+                                        "pvp": {
+                                          "type": "chorus:constant",
+                                          "value": 51,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    },
+                                    "tags": [
+                                      "chorus:arc_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:jolt_damage"
+                                    ]
+                                  },
+                                  "as": "chain"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "neighbor",
+                                        "field": "player"
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "op": "gt",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "chain",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:update_component",
+                                      "buff": "chorus_d2:jolt",
+                                      "component": "guardian_hits",
+                                      "op": "add",
+                                      "value": {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "count"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "center",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "center",
+                                    "field": "player",
+                                    "is": false
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "op": "ge",
+                                    "left": {
+                                      "type": "chorus:component",
+                                      "buff": "chorus_d2:jolt",
+                                      "component": "guardian_hits"
+                                    },
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:damage",
+                              "origin": "event",
+                              "target": "self",
+                              "damage_type": "chorus_d2:jolt",
+                              "amount": {
+                                "type": "chorus:scale",
+                                "factor": 0.1,
+                                "from": "damage",
+                                "to": "damage",
+                                "of": {
+                                  "type": "chorus:pvp",
+                                  "pve": {
+                                    "type": "chorus:constant",
+                                    "value": 119,
+                                    "unit": "damage"
+                                  },
+                                  "pvp": {
+                                    "type": "chorus:constant",
+                                    "value": 51,
+                                    "unit": "damage"
+                                  }
+                                }
+                              },
+                              "tags": [
+                                "chorus:arc_damage",
+                                "chorus:status_damage",
+                                "chorus_d2:jolt_damage"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "count",
+          "on": "chorus_d2:jolt_count",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "victim",
+                "right": "self"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "applied"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:jolt",
+                "component": "damage",
+                "op": "add",
+                "value": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:has_buff",
+                    "buff": "chorus_d2:jolt_cooldown"
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "damage"
+                  },
+                  "else": {
+                    "type": "chorus:event_number",
+                    "name": "effective_damage",
+                    "unit": "damage"
+                  }
+                },
+                "once_set": "seen_damage",
+                "event_reference": "damage_id"
+              },
+              "as": "counted"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "counted",
+                    "field": "applied"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:jolt_cooldown"
+                    }
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "op": "ge",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "counted",
+                      "field": "after"
+                    },
+                    "right": {
+                      "type": "chorus:scale",
+                      "factor": 0.1,
+                      "from": "damage",
+                      "to": "damage",
+                      "of": {
+                        "type": "chorus:pvp",
+                        "pve": {
+                          "type": "chorus:constant",
+                          "value": 115,
+                          "unit": "damage"
+                        },
+                        "pvp": {
+                          "type": "chorus:constant",
+                          "value": 45,
+                          "unit": "damage"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:jolt",
+                  "component": "damage",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "damage"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:jolt",
+                  "component": "guardian_hits",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:jolt_cooldown"
+                },
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "center"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "center",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": "self",
+                        "relative_to": "source_owner",
+                        "relation": "not_allied",
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 12,
+                          "unit": "meter"
+                        }
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "nearby",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "for_each": "nearby",
+                          "as": "target",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:inspect_entity",
+                                "target": {
+                                  "binding": "target"
+                                }
+                              },
+                              "as": "neighbor"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "neighbor",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "neighbor",
+                                    "field": "alive"
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage",
+                                    "origin": "event",
+                                    "target": {
+                                      "binding": "target"
+                                    },
+                                    "damage_type": "chorus_d2:jolt",
+                                    "amount": {
+                                      "type": "chorus:scale",
+                                      "factor": 0.1,
+                                      "from": "damage",
+                                      "to": "damage",
+                                      "of": {
+                                        "type": "chorus:pvp",
+                                        "pve": {
+                                          "type": "chorus:constant",
+                                          "value": 119,
+                                          "unit": "damage"
+                                        },
+                                        "pvp": {
+                                          "type": "chorus:constant",
+                                          "value": 51,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    },
+                                    "tags": [
+                                      "chorus:arc_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:jolt_damage"
+                                    ]
+                                  },
+                                  "as": "chain"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "neighbor",
+                                        "field": "player"
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "op": "gt",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "chain",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:update_component",
+                                      "buff": "chorus_d2:jolt",
+                                      "component": "guardian_hits",
+                                      "op": "add",
+                                      "value": {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "count"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "center",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "center",
+                                    "field": "player",
+                                    "is": false
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "op": "ge",
+                                    "left": {
+                                      "type": "chorus:component",
+                                      "buff": "chorus_d2:jolt",
+                                      "component": "guardian_hits"
+                                    },
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:damage",
+                              "origin": "event",
+                              "target": "self",
+                              "damage_type": "chorus_d2:jolt",
+                              "amount": {
+                                "type": "chorus:scale",
+                                "factor": 0.1,
+                                "from": "damage",
+                                "to": "damage",
+                                "of": {
+                                  "type": "chorus:pvp",
+                                  "pve": {
+                                    "type": "chorus:constant",
+                                    "value": 119,
+                                    "unit": "damage"
+                                  },
+                                  "pvp": {
+                                    "type": "chorus:constant",
+                                    "value": 51,
+                                    "unit": "damage"
+                                  }
+                                }
+                              },
+                              "tags": [
+                                "chorus:arc_damage",
+                                "chorus:status_damage",
+                                "chorus_d2:jolt_damage"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "end_on_death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "victim",
+            "right": "self"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:jolt"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

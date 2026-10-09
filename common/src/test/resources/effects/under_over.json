@@ -1,0 +1,244 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perk",
+          "operation": "multiply",
+          "group": {
+            "name": "perk",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:shield_attack",
+      "version": "test-1",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perk",
+          "operation": "multiply",
+          "group": {
+            "name": "perk",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:under_over",
+      "modifiers": [
+        {
+          "id": "shield",
+          "profile": "test:shield_attack",
+          "stage": "perk",
+          "group": "perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:under_over",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:any",
+              "of": [
+                {
+                  "type": "chorus:layer_tag",
+                  "tag": "chorus:combatant_elemental_shield"
+                },
+                {
+                  "type": "chorus:layer_tag",
+                  "tag": "chorus:barrier_champion_shield"
+                }
+              ]
+            },
+            "then": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:source_tag",
+                "tag": "chorus:enhanced"
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": 0.55,
+                "unit": "delta"
+              },
+              "else": {
+                "type": "chorus:constant",
+                "value": 0.5,
+                "unit": "delta"
+              }
+            },
+            "else": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:layer_tag",
+                "tag": "chorus:combatant_overshield"
+              },
+              "then": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:source_tag",
+                  "tag": "chorus:enhanced"
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 1.4,
+                  "unit": "delta"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1.25,
+                  "unit": "delta"
+                }
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:source_tag",
+                  "tag": "chorus:enhanced"
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 0.22,
+                  "unit": "delta"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 0.2,
+                  "unit": "delta"
+                }
+              }
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_direct"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:explosive_perk"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:layer_tag",
+                        "tag": "chorus:combatant_elemental_shield"
+                      },
+                      {
+                        "type": "chorus:layer_tag",
+                        "tag": "chorus:barrier_champion_shield"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:layer_tag",
+                    "tag": "chorus:combatant_overshield"
+                  },
+                  {
+                    "type": "chorus:layer_tag",
+                    "tag": "chorus:guardian_overshield"
+                  }
+                ]
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Weapon Perks C239; layer budget policy belongs to Chorus",
+          "confidence": "assumed"
+        },
+        {
+          "id": "woven",
+          "profile": "test:weapon_damage",
+          "stage": "perk",
+          "group": "perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:under_over",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 0.22,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0.2,
+              "unit": "delta"
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_direct"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:explosive_perk"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:guardian_target"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:bodyshot"
+              },
+              {
+                "type": "chorus:has_buff_tag",
+                "target": "victim",
+                "tag": "chorus_d2:woven_mail"
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Weapon Perks C239; layer budget policy belongs to Chorus",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

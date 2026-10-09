@@ -1,0 +1,192 @@
+{
+  "version": "test-position-v1",
+  "profiles": [
+    {
+      "id": "test:attack_damage",
+      "version": "test-position-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "empowering",
+          "operation": "multiply",
+          "group": {
+            "name": "empowering",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:fixed_burst",
+      "rules": [
+        {
+          "id": "burst",
+          "on": "test:burst",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "place"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "place",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:capture_damage",
+                    "amount": {
+                      "type": "chorus:constant",
+                      "value": 10,
+                      "unit": "damage"
+                    },
+                    "damage_type": "minecraft:generic",
+                    "scaling_profile": "test:attack_damage",
+                    "tags": [
+                      "test:wave"
+                    ],
+                    "kill_tags": [
+                      "test:weapon_kill"
+                    ]
+                  },
+                  "as": "shot"
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "place"
+                        },
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 5,
+                          "unit": "meter"
+                        },
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "order": "nearest"
+                      },
+                      "as": "nearby1"
+                    },
+                    {
+                      "for_each": "nearby1",
+                      "as": "target1",
+                      "do": [
+                        {
+                          "type": "chorus:damage_snapshot",
+                          "snapshot": "shot",
+                          "target": {
+                            "binding": "target1"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "after": {
+                        "type": "chorus:constant",
+                        "value": 0.05,
+                        "unit": "second"
+                      },
+                      "lifetime": "detached",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": {
+                              "position": "place"
+                            },
+                            "radius": {
+                              "type": "chorus:constant",
+                              "value": 5,
+                              "unit": "meter"
+                            },
+                            "exclude": [
+                              "source_owner"
+                            ],
+                            "order": "nearest"
+                          },
+                          "as": "nearby2"
+                        },
+                        {
+                          "for_each": "nearby2",
+                          "as": "target2",
+                          "do": [
+                            {
+                              "type": "chorus:damage_snapshot",
+                              "snapshot": "shot",
+                              "target": {
+                                "binding": "target2"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "after": {
+                            "type": "chorus:constant",
+                            "value": 0.05,
+                            "unit": "second"
+                          },
+                          "lifetime": "detached",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:select_targets",
+                                "center": {
+                                  "position": "place"
+                                },
+                                "radius": {
+                                  "type": "chorus:constant",
+                                  "value": 5,
+                                  "unit": "meter"
+                                },
+                                "exclude": [
+                                  "source_owner"
+                                ],
+                                "order": "nearest"
+                              },
+                              "as": "nearby3"
+                            },
+                            {
+                              "for_each": "nearby3",
+                              "as": "target3",
+                              "do": [
+                                {
+                                  "type": "chorus:damage_snapshot",
+                                  "snapshot": "shot",
+                                  "target": {
+                                    "binding": "target3"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

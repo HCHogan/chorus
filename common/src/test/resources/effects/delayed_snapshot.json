@@ -1,0 +1,580 @@
+{
+  "version": "test-after-v1",
+  "defense_profile": "test:incoming",
+  "profiles": [
+    {
+      "id": "test:attack_damage",
+      "version": "test-after-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "empowering",
+          "operation": "multiply",
+          "group": {
+            "name": "empowering",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:incoming",
+      "version": "test-after-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "vulnerability",
+          "operation": "multiply",
+          "group": {
+            "name": "vulnerability",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:empower",
+        "version": "test-after-v1",
+        "duration": 0.05
+      },
+      "bundle": "test:empower_active"
+    },
+    {
+      "definition": {
+        "id": "test:vulnerability",
+        "version": "test-after-v1",
+        "duration": 30,
+        "attach": "target"
+      },
+      "bundle": "test:vulnerability_active"
+    },
+    {
+      "definition": {
+        "id": "test:emitter",
+        "version": "test-after-v1",
+        "duration": 0.05,
+        "instanced_by": "weapon",
+        "on_stow": "pause"
+      },
+      "bundle": "test:emitter_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:launcher",
+      "rules": [
+        {
+          "id": "fire",
+          "on": "test:fire",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": "victim"
+                  },
+                  "as": "hit"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "hit",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:heal",
+                      "target": "self",
+                      "amount": {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "hit",
+                          "field": "effective"
+                        },
+                        "factor": 0.5,
+                        "from": "damage",
+                        "to": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:scheduled"
+            }
+          ]
+        },
+        {
+          "id": "attached",
+          "on": "test:attached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": "victim"
+                  },
+                  "as": "hit"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "hit",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:heal",
+                      "target": "self",
+                      "amount": {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "hit",
+                          "field": "effective"
+                        },
+                        "factor": 0.5,
+                        "from": "damage",
+                        "to": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "burst",
+          "on": "test:burst",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": "victim"
+                  },
+                  "as": "hit"
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.05,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": "victim"
+                      },
+                      "as": "second_hit"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "split",
+          "on": "test:split",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "victim",
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "meter"
+                },
+                "include_center": true,
+                "exclude": [
+                  "source_owner"
+                ]
+              },
+              "as": "nearby"
+            },
+            {
+              "for_each": "nearby",
+              "as": "target",
+              "do": [
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "target"
+                        }
+                      },
+                      "as": "hit"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "hit",
+                        "field": "applied"
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:heal",
+                          "target": "self",
+                          "amount": {
+                            "type": "chorus:scale",
+                            "of": {
+                              "type": "chorus:result",
+                              "binding": "hit",
+                              "field": "effective"
+                            },
+                            "factor": 0.5,
+                            "from": "damage",
+                            "to": "damage"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "area",
+          "on": "test:area",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": "victim",
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "meter"
+                    },
+                    "include_center": true,
+                    "exclude": [
+                      "source_owner"
+                    ]
+                  },
+                  "as": "nearby"
+                },
+                {
+                  "for_each": "nearby",
+                  "as": "target",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "target"
+                        }
+                      },
+                      "as": "hit"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:controls",
+      "rules": [
+        {
+          "id": "weaken",
+          "on": "test:weaken",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:vulnerability",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:empower_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "empower",
+          "profile": "test:attack_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "delta"
+          },
+          "stacking_key": "test:empower",
+          "reference": "Synthetic continuation protocol fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:vulnerability_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "vulnerability",
+          "profile": "test:incoming",
+          "stage": "vulnerability",
+          "group": "vulnerability",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "stacking_key": "test:vulnerability",
+          "reference": "Synthetic continuation protocol fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:emitter_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "buff_detached",
+          "on": "test:buff_detached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": "victim"
+                  },
+                  "as": "hit"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "buff_attached",
+          "on": "test:buff_attached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:projectile"
+                ],
+                "kill_tags": [
+                  "test:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "source",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": "victim"
+                  },
+                  "as": "hit"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

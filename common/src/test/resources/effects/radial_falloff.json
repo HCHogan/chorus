@@ -1,0 +1,28 @@
+{
+  "version": "test-radial-falloff-v1",
+  "buffs": [], "profiles": [],
+  "bundles": [{
+    "id": "test:radial", "scope": "source",
+    "rules": [{
+      "id": "blast", "on": "test:blast",
+      "do": [
+        {"action": {
+          "type": "chorus:select_targets", "center": "victim", "relative_to": "source_owner",
+          "exclude": ["source_owner"], "include_center": false, "order": "nearest",
+          "radius": {"type": "chorus:constant", "value": 7, "unit": "meter"},
+          "limit": {"type": "chorus:event_number", "name": "targets", "unit": "count"}
+        }, "as": "nearby"},
+        {"for_each": "nearby", "as": "target", "do": [
+          {"type": "chorus:damage", "target": {"binding": "target"}, "damage_type": "test:radial",
+           "amount": {"type": "chorus:arithmetic", "op": "mul", "of": [
+             {"type": "chorus:constant", "value": 10, "unit": "damage"},
+             {"type": "chorus:curve", "from": "meter", "to": "multiplier",
+              "of": {"type": "chorus:result", "binding": "target", "field": "distance"},
+              "curve": {"type": "chorus:table", "interpolation": "linear", "boundary": "clamp",
+                "points": [{"input": 0, "output": 1}, {"input": 3, "output": 1}, {"input": 7, "output": 0}]}}
+           ]}, "tags": ["test:area_damage"]}
+        ]}
+      ]
+    }], "modifiers": []
+  }]
+}

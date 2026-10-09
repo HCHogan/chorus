@@ -1,0 +1,74 @@
+{
+  "version": "test-impact-v1",
+  "defense_profile": "test:incoming",
+  "profiles": [
+    { "id": "test:attack_damage", "version": "test-impact-v1", "input_unit": "damage", "steps": [
+      { "type": "chorus:apply", "id": "flat", "operation": "add", "group": { "name": "flat", "reduction": "sum" } },
+      { "type": "chorus:apply", "id": "empowering", "operation": "multiply", "group": { "name": "empowering", "reduction": "max" } },
+      { "type": "chorus:apply", "id": "falloff", "operation": "multiply", "group": { "name": "falloff", "reduction": "product" } }
+    ] },
+    { "id": "test:incoming", "version": "test-impact-v1", "input_unit": "damage", "steps": [
+      { "type": "chorus:apply", "id": "vulnerability", "operation": "multiply", "group": { "name": "vulnerability", "reduction": "product" } }
+    ] }
+  ],
+  "buffs": [
+    { "definition": { "id": "test:empower", "version": "test-impact-v1", "duration": 0.05 }, "bundle": "test:empower_active" },
+    { "definition": { "id": "test:vulnerability", "version": "test-impact-v1", "duration": 30, "attach": "target" }, "bundle": "test:vulnerability_active" },
+    { "definition": { "id": "test:impact_log", "version": "test-impact-v1", "duration": "permanent", "attach": "target", "components": {
+      "numbers": { "distance": { "initial": 0, "unit": "meter" }, "actual": { "initial": 0, "unit": "damage" } }
+    } } }
+  ],
+  "bundles": [
+    { "id": "test:impact_attack", "modifiers": [
+      { "id": "flat", "profile": "test:attack_damage", "stage": "flat", "group": "flat", "op": "add", "stacking_key": "test:flat",
+        "value": { "type": "chorus:constant", "value": 5, "unit": "damage" },
+        "reference": "Synthetic phase-order acceptance; not a calibrated Destiny effect", "confidence": "assumed" },
+      { "id": "falloff", "profile": "test:attack_damage", "stage": "falloff", "group": "falloff", "op": "multiply", "stacking_key": "test:falloff",
+        "value": { "type": "chorus:curve", "of": { "type": "chorus:impact_number", "name": "distance", "unit": "meter" }, "from": "meter", "to": "delta",
+          "curve": { "type": "chorus:table", "points": [ { "input": 0, "output": 0 }, { "input": 3, "output": 0 }, { "input": 7, "output": -1 } ], "interpolation": "linear", "boundary": "clamp" } },
+        "reference": "Synthetic 3 to 7 meter linear falloff; not a Destiny curve", "confidence": "assumed" }
+    ], "rules": [
+      { "id": "burst", "on": "test:burst", "do": [
+        { "action": { "type": "chorus:capture_position", "target": "victim" }, "as": "place" },
+        { "action": { "type": "chorus:capture_damage", "amount": { "type": "chorus:constant", "value": 10, "unit": "damage" }, "damage_type": "minecraft:generic", "scaling_profile": "test:attack_damage", "tags": ["test:impact"], "kill_tags": ["test:weapon_kill"] }, "as": "shot" },
+        { "after": { "type": "chorus:constant", "value": 0.1, "unit": "second" }, "lifetime": "detached", "do": [
+          { "action": { "type": "chorus:select_targets", "center": { "position": "place" }, "radius": { "type": "chorus:constant", "value": 7, "unit": "meter" }, "exclude": ["source_owner"], "order": "nearest" }, "as": "nearby" },
+          { "for_each": "nearby", "as": "target", "do": [
+            { "type": "chorus:damage_snapshot", "snapshot": "shot", "target": { "binding": "target" }, "impact": {
+              "distance": { "type": "chorus:result", "binding": "target", "field": "distance" }
+            } }
+          ] }
+        ] }
+      ] },
+      { "id": "immediate", "on": "test:immediate", "do": [
+        { "type": "chorus:damage", "amount": { "type": "chorus:constant", "value": 10, "unit": "damage" }, "damage_type": "minecraft:generic", "scaling_profile": "test:attack_damage", "tags": ["test:impact"], "impact": {
+          "distance": { "type": "chorus:event_number", "name": "distance", "unit": "meter" }
+        } }
+      ] }
+    ] },
+    { "id": "test:empower_active", "scope": "buff", "modifiers": [
+      { "id": "empower", "profile": "test:attack_damage", "stage": "empowering", "group": "empowering", "op": "multiply", "stacking_key": "test:empower",
+        "value": { "type": "chorus:constant", "value": 0.2, "unit": "delta" },
+        "reference": "Synthetic snapshot acceptance", "confidence": "assumed" }
+    ] },
+    { "id": "test:live_impact", "modifiers": [
+      { "id": "live", "profile": "test:attack_damage", "stage": "empowering", "group": "empowering", "op": "multiply", "stacking_key": "test:live", "evaluate": "on_hit",
+        "if": { "type": "chorus:compare", "left": { "type": "chorus:impact_number", "name": "distance", "unit": "meter" }, "op": "ge", "right": { "type": "chorus:constant", "value": 5, "unit": "meter" } },
+        "value": { "type": "chorus:constant", "value": 0.4, "unit": "delta" },
+        "reference": "Synthetic impact conditional MAX acceptance", "confidence": "assumed" }
+    ] },
+    { "id": "test:vulnerability_active", "scope": "buff", "modifiers": [
+      { "id": "vulnerability", "profile": "test:incoming", "stage": "vulnerability", "group": "vulnerability", "op": "multiply", "stacking_key": "test:vulnerability",
+        "value": { "type": "chorus:choose", "if": { "type": "chorus:compare", "left": { "type": "chorus:impact_number", "name": "distance", "unit": "meter" }, "op": "ge", "right": { "type": "chorus:constant", "value": 5, "unit": "meter" } },
+          "then": { "type": "chorus:constant", "value": 0.5, "unit": "delta" }, "else": { "type": "chorus:constant", "value": 0, "unit": "delta" } },
+        "reference": "Synthetic current defensive impact-query acceptance", "confidence": "assumed" }
+    ] },
+    { "id": "test:impact_observer", "rules": [
+      { "id": "observe", "on": "chorus:hit", "if": { "type": "chorus:event_tag", "tag": "test:impact" }, "do": [
+        { "type": "chorus:grant_buff", "buff": "test:impact_log", "target": "victim" },
+        { "type": "chorus:update_component", "buff": "test:impact_log", "target": "victim", "component": "distance", "op": "set", "value": { "type": "chorus:impact_number", "name": "distance", "unit": "meter" } },
+        { "type": "chorus:update_component", "buff": "test:impact_log", "target": "victim", "component": "actual", "op": "set", "value": { "type": "chorus:event_number", "name": "effective_damage", "unit": "damage" } }
+      ] }
+    ] }
+  ]
+}

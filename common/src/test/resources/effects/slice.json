@@ -1,0 +1,49 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {"definition": {
+      "id": "chorus_d2:slice", "version": "compendium-2026-10-05", "duration": 8,
+      "max_stacks": 5, "stack_mode": "replace", "refresh": "reset",
+      "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep"
+    }, "bundle": "chorus_d2:slice_active"},
+    {"definition": {
+      "id": "chorus_d2:sever", "version": "compendium-2026-10-05", "duration": 10,
+      "attach": "target", "refresh": "reset"
+    }}
+  ],
+  "bundles": [
+    {"id": "chorus_d2:slice", "rules": [{
+      "id": "activate", "on": "chorus:class_ability_used",
+      "if": {"type": "chorus:source_is", "source": "owner"},
+      "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:slice",
+        "stacks": {"type": "chorus:constant", "value": 5, "unit": "count"},
+        "duration": {"type": "chorus:enhanced",
+          "base": {"type": "chorus:constant", "value": 8, "unit": "second"},
+          "enhanced": {"type": "chorus:constant", "value": 9, "unit": "second"}}
+      }]
+    }]},
+    {"id": "chorus_d2:slice_active", "scope": "buff", "rules": [{
+      "id": "sever", "on": "chorus:hit",
+      "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:event_flag", "name": "lethal", "is": false},
+        {"type": "chorus:not", "of": {"type": "chorus:has_buff", "buff": "chorus_d2:sever", "target": "victim"}}
+      ]},
+      "do": [
+        {"action": {"type": "chorus:apply_status", "buff": "chorus_d2:sever", "duration": {
+          "type": "chorus:pvp",
+          "pve": {"type": "chorus:constant", "value": 10, "unit": "second"},
+          "pvp": {"type": "chorus:constant", "value": 5, "unit": "second"}
+        }}, "as": "status"},
+        {"if": {"type": "chorus:result_flag", "binding": "status", "field": "applied"}, "then": [
+          {"type": "chorus:consume_buff", "buff": "chorus_d2:slice"},
+          {"type": "chorus:refresh_buff", "buff": "chorus_d2:slice", "duration": {
+            "type": "chorus:enhanced",
+            "base": {"type": "chorus:constant", "value": 8, "unit": "second"},
+            "enhanced": {"type": "chorus:constant", "value": 9, "unit": "second"}
+          }}
+        ]}
+      ]
+    }]}
+  ]
+}

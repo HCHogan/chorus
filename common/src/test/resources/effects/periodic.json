@@ -1,0 +1,33 @@
+{
+  "version": "test-1",
+  "buffs": [{"definition": {
+    "id": "test:pulse", "version": "test-1", "duration": 0.3,
+    "instanced_by": "weapon", "on_stow": "pause", "keep_highest_tier": true, "tags": ["test:pulse"]
+  }, "bundle": "test:pulse_active"}],
+  "bundles": [
+    {"id": "test:periodic", "rules": [
+      {"id": "apply", "on": "test:apply", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:grant_buff", "buff": "test:pulse", "tier": {"type": "chorus:event_number", "name": "tier", "unit": "count"}}
+      ]},
+      {"id": "stop", "on": "test:stop", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:remove_buff", "buff": "test:pulse"}]},
+      {"id": "later", "on": "test:later_start", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:schedule", "name": "later", "event": "test:later", "delay": {"type": "chorus:constant", "value": 0.1, "unit": "second"}}
+      ]},
+      {"id": "cancel", "on": "test:later_cancel", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:cancel_timer", "name": "later"}]},
+      {"id": "later_effect", "on": "test:later", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:own_timer", "name": "later"}, {"type": "chorus:event_tag", "tag": "test:captured"},
+        {"type": "chorus:event_reference", "name": "marker", "is": "original"}, {"type": "chorus:event_flag", "name": "ready"}
+      ]}, "do": [{"type": "chorus:heal", "target": "victim", "amount": {"type": "chorus:event_number", "name": "amount", "unit": "damage"}}]}
+    ]},
+    {"id": "test:pulse_active", "scope": "buff", "rules": [
+      {"id": "start", "on": "chorus:buff_gained", "if": {"type": "chorus:own_buff"}, "do": [
+        {"type": "chorus:schedule", "name": "pulse", "event": "test:pulse", "delay": {"type": "chorus:constant", "value": 0.070001, "unit": "second"},
+          "interval": {"type": "chorus:constant", "value": 0.070001, "unit": "second"}, "repeat": -1, "policy": "keep"}
+      ]},
+      {"id": "pulse", "on": "test:pulse", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:own_timer", "name": "pulse"}, {"type": "chorus:event_tag", "tag": "test:pulse"}
+      ]}, "do": [{"type": "chorus:heal", "amount": {"type": "chorus:by_buff_tier", "values": [1, 2], "unit": "damage"}}]},
+      {"id": "cancel", "on": "test:pulse_cancel", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:cancel_timer", "name": "pulse"}]}
+    ]}
+  ]
+}

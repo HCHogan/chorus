@@ -1,0 +1,391 @@
+{
+  "version": "test-1",
+  "equipment": {
+    "presentation": "chorus_d2:equipment",
+    "slots": [
+      {
+        "id": "test:weapon_a",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:weapon_b",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:arms",
+        "accepts": [
+          "test:arms"
+        ],
+        "weapon": false
+      },
+      {
+        "id": "test:class_item",
+        "accepts": [
+          "test:class_item"
+        ],
+        "weapon": false
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "effects": {
+          "passive": {
+            "bundle": "test:gear_passive"
+          },
+          "drawn": {
+            "bundle": "test:gear_drawn",
+            "activation": "drawn"
+          }
+        },
+        "sockets": {
+          "perk": {
+            "options": {
+              "normal": {
+                "bundle": "test:gear_perk"
+              },
+              "enhanced": {
+                "bundle": "test:gear_perk",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:arms",
+        "tags": [
+          "test:arms",
+          "test:exotic"
+        ],
+        "effects": {
+          "passive": {
+            "bundle": "test:gear_armor"
+          }
+        }
+      },
+      {
+        "id": "test:class_item",
+        "tags": [
+          "test:class_item",
+          "test:exotic"
+        ],
+        "effects": {
+          "passive": {
+            "bundle": "test:gear_armor"
+          }
+        }
+      }
+    ],
+    "limits": [
+      {
+        "id": "test:exotic_armor",
+        "tag": "test:exotic",
+        "slots": [
+          "test:arms",
+          "test:class_item"
+        ],
+        "maximum": 1
+      }
+    ]
+  },
+  "profiles": [
+    {
+      "id": "test:equipment_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "passive",
+          "operation": "multiply",
+          "group": {
+            "name": "passive",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perk",
+          "operation": "multiply",
+          "group": {
+            "name": "perk",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "drawn",
+          "operation": "multiply",
+          "group": {
+            "name": "drawn",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "armor",
+          "operation": "multiply",
+          "group": {
+            "name": "armor",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:gear_ready",
+        "version": "test-1",
+        "duration": 0.4,
+        "instanced_by": "weapon",
+        "on_stow": "pause"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:gear_passive",
+      "modifiers": [
+        {
+          "id": "passive",
+          "profile": "test:equipment_damage",
+          "stage": "passive",
+          "group": "passive",
+          "op": "multiply",
+          "stacking_key": "test:passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic equipment projection test",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:gear_perk",
+      "modifiers": [
+        {
+          "id": "perk",
+          "profile": "test:equipment_damage",
+          "stage": "perk",
+          "group": "perk",
+          "op": "multiply",
+          "stacking_key": "test:perk",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 0.5,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            }
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic equipment projection test",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:source_tag",
+                  "tag": "chorus:enhanced"
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "damage"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "damage"
+                }
+              }
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "later",
+              "event": "test:gear_later",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:gear_ready"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:source_tag",
+                  "tag": "chorus:enhanced"
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "damage"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:gear_later",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "later"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 4,
+                "unit": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "activate",
+          "on": "test:gear_activate",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:weapon_drawn"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:gear_ready"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:gear_drawn",
+      "modifiers": [
+        {
+          "id": "drawn",
+          "profile": "test:equipment_damage",
+          "stage": "drawn",
+          "group": "drawn",
+          "op": "multiply",
+          "stacking_key": "test:drawn",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:weapon_drawn"
+              }
+            ]
+          },
+          "reference": "Synthetic equipment projection test",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:gear_armor",
+      "modifiers": [
+        {
+          "id": "armor",
+          "profile": "test:equipment_damage",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "test:armor",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Synthetic equipment projection test",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

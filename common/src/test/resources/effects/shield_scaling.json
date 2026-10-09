@@ -1,0 +1,295 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:elemental",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus:combatant_elemental_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 3,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "test:overshield",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus:combatant_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 4.5,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 0.3,
+          "unit": "multiplier"
+        },
+        "priority": 1
+      }
+    },
+    {
+      "definition": {
+        "id": "test:guardian",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus:guardian_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 4.5,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "test:barrier",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus:barrier_champion_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 3,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "test:plain",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 3,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "test:woven",
+        "version": "test-1",
+        "duration": "permanent",
+        "tags": [
+          "chorus_d2:woven_mail"
+        ]
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:layer_inputs",
+      "rules": [
+        {
+          "id": "elemental",
+          "on": "test:elemental",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:elemental",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "overshield",
+          "on": "test:overshield",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:overshield",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "guardian",
+          "on": "test:guardian",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:guardian",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "barrier",
+          "on": "test:barrier",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:barrier",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "plain",
+          "on": "test:plain",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:plain",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "woven",
+          "on": "test:woven",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:woven",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "arm",
+          "on": "test:arm",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:elemental",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:overshield",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "test:fire",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "shield_scaling_profile": "test:shield_attack",
+              "tags": [
+                "chorus:weapon_direct"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:weapon_damage",
+                "shield_scaling_profile": "test:shield_attack",
+                "tags": [
+                  "chorus:weapon_direct"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "shot",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

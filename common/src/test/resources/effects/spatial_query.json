@@ -1,0 +1,90 @@
+{
+  "version": "test-1",
+  "bundles": [
+    {
+      "id": "test:spatial",
+      "rules": [
+        {
+          "id": "scan",
+          "on": "test:scan",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_direction"
+              },
+              "as": "aim"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position"
+              },
+              "as": "origin"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "origin"
+                    },
+                    "area": {
+                      "type": "chorus:cone",
+                      "length": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "meter"
+                      },
+                      "radius": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "meter"
+                      },
+                      "direction": "aim"
+                    },
+                    "relation": "any",
+                    "exclude": [
+                      "self"
+                    ],
+                    "line_of_sight": true,
+                    "target_anchor": "body",
+                    "order": "nearest",
+                    "limit": {
+                      "type": "chorus:constant",
+                      "value": 2,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "targets"
+                },
+                {
+                  "for_each": "targets",
+                  "as": "target",
+                  "do": [
+                    {
+                      "type": "chorus:heal",
+                      "target": {
+                        "binding": "target"
+                      },
+                      "amount": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

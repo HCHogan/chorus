@@ -1,0 +1,50 @@
+{
+  "version": "test-jolt-v1",
+  "buffs": [
+    {"definition": {
+      "id": "chorus_d2:voltshot_window", "version": "test-jolt-v1", "duration": 5.3,
+      "attach": "holder", "instanced_by": "weapon", "refresh": "reset", "on_stow": "keep"
+    }},
+    {"definition": {
+      "id": "chorus_d2:voltshot_ready", "version": "test-jolt-v1", "duration": 7,
+      "attach": "holder", "instanced_by": "weapon", "refresh": "reset", "on_stow": "keep"
+    }}
+  ],
+  "bundles": [{
+    "id": "chorus_d2:voltshot",
+    "rules": [
+      {"id": "weapon_kill_window", "on": "chorus:kill", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"}
+      ]}, "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:voltshot_window"}]},
+      {"id": "reload_arms_next_hit", "on": "chorus:reload_finished", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:has_buff", "buff": "chorus_d2:voltshot_window"}
+      ]}, "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:voltshot_ready", "duration": {
+        "type": "chorus:enhanced",
+        "base": {"type": "chorus:constant", "value": 7, "unit": "second"},
+        "enhanced": {"type": "chorus:constant", "value": 8, "unit": "second"}
+      }}]},
+      {"id": "next_weapon_hit", "on": "chorus:hit", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:event_tag", "tag": "chorus:weapon_damage"},
+        {"type": "chorus:has_buff", "buff": "chorus_d2:voltshot_ready"}
+      ]}, "do": [
+        {"action": {"type": "chorus:consume_buff", "buff": "chorus_d2:voltshot_ready"}, "as": "charge"},
+        {"if": {"type": "chorus:result_flag", "binding": "charge", "field": "applied"}, "then": [
+          {"action": {"type": "chorus:apply_status", "buff": "chorus_d2:jolt", "duration": {
+            "type": "chorus:pvp",
+            "pve": {"type": "chorus:constant", "value": 10, "unit": "second"},
+            "pvp": {"type": "chorus:constant", "value": 5, "unit": "second"}
+          }}, "as": "status"},
+          {"if": {"type": "chorus:result_flag", "binding": "status", "field": "applied"}, "then": [
+            {"type": "chorus:emit", "event": "chorus_d2:jolt_count"}
+          ]}
+        ]}
+      ]}
+    ]
+  }]
+}

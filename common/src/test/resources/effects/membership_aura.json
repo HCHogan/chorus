@@ -1,0 +1,357 @@
+{
+  "version": "test-membership-v1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:field",
+        "version": "test-membership-v1",
+        "duration": 0.3,
+        "instanced_by": "source",
+        "refresh": "reset",
+        "components": {
+          "target_sets": [
+            "members"
+          ],
+          "numbers": {
+            "count": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "seen"
+          ],
+          "references": [
+            "marker"
+          ]
+        }
+      },
+      "bundle": "test:field_active"
+    },
+    {
+      "definition": {
+        "id": "test:presence",
+        "version": "test-membership-v1",
+        "duration": "permanent",
+        "instanced_by": "source",
+        "attach": "target"
+      },
+      "bundle": "test:presence_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:aura",
+      "rules": [
+        {
+          "id": "start",
+          "on": "test:start",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_ability"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:field"
+            }
+          ]
+        },
+        {
+          "id": "stop",
+          "on": "test:stop",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_ability"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:field"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:field_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "sample",
+              "event": "test:sample",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "self",
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "meter"
+                },
+                "relation": "any"
+              },
+              "as": "nearby"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "nearby",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:sync_targets",
+                    "buff": "test:field",
+                    "component": "members",
+                    "targets": "nearby"
+                  },
+                  "as": "changes"
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "exited"
+                  },
+                  "as": "exited"
+                },
+                {
+                  "for_each": "exited",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "test:presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:exit",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "entered"
+                  },
+                  "as": "entered"
+                },
+                {
+                  "for_each": "entered",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "test:presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:enter",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "test:field"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sample",
+          "on": "test:sample",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "sample"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "self",
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "meter"
+                },
+                "relation": "any"
+              },
+              "as": "nearby"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "nearby",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:sync_targets",
+                    "buff": "test:field",
+                    "component": "members",
+                    "targets": "nearby"
+                  },
+                  "as": "changes"
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "exited"
+                  },
+                  "as": "exited"
+                },
+                {
+                  "for_each": "exited",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "test:presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:exit",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:difference_targets",
+                    "binding": "changes",
+                    "part": "entered"
+                  },
+                  "as": "entered"
+                },
+                {
+                  "for_each": "entered",
+                  "as": "member",
+                  "do": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "test:presence",
+                      "target": {
+                        "binding": "member"
+                      }
+                    },
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:enter",
+                      "target": {
+                        "binding": "member"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "test:field"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cleanup",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_targets",
+                "buff": "test:field",
+                "component": "members"
+              },
+              "as": "members"
+            },
+            {
+              "for_each": "members",
+              "as": "member",
+              "do": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "test:presence",
+                  "target": {
+                    "binding": "member"
+                  }
+                },
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:exit",
+                  "target": {
+                    "binding": "member"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:presence_active",
+      "scope": "buff",
+      "health_recovery": [
+        {
+          "id": "heal",
+          "channel": "test:aura",
+          "rate": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage_per_second"
+          }
+        }
+      ]
+    }
+  ]
+}

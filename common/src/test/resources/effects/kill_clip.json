@@ -1,0 +1,42 @@
+{
+  "version": "test-1",
+  "profiles": [{
+    "id": "test:weapon_damage", "version": "test-1", "input_unit": "damage",
+    "steps": [{"type": "chorus:apply", "id": "perks", "operation": "multiply", "group": {"name": "weapon_perk", "reduction": "product"}}]
+  }],
+  "buffs": [
+    {"definition": {
+      "id": "chorus_d2:kill_clip_window", "version": "test-1", "duration": 3.6,
+      "attach": "holder", "instanced_by": "weapon", "refresh": "reset"
+    }},
+    {"definition": {
+      "id": "chorus_d2:kill_clip", "version": "test-1", "duration": 5,
+      "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "remove", "refresh": "reset"
+    }, "bundle": "chorus_d2:kill_clip_active"}
+  ],
+  "bundles": [
+    {"id": "chorus_d2:kill_clip", "rules": [
+      {"id": "window", "on": "chorus:kill", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"}
+      ]}, "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:kill_clip_window"}]},
+      {"id": "activate", "on": "chorus:reload_finished", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:has_buff", "buff": "chorus_d2:kill_clip_window"}
+      ]}, "do": [
+        {"type": "chorus:consume_buff", "buff": "chorus_d2:kill_clip_window"},
+        {"type": "chorus:grant_buff", "buff": "chorus_d2:kill_clip", "duration": {
+          "type": "chorus:enhanced",
+          "base": {"type": "chorus:constant", "value": 5, "unit": "second"},
+          "enhanced": {"type": "chorus:constant", "value": 5.5, "unit": "second"}
+        }}
+      ]}
+    ]},
+    {"id": "chorus_d2:kill_clip_active", "scope": "buff", "modifiers": [{
+      "id": "damage", "profile": "test:weapon_damage", "stage": "perks", "group": "weapon_perk", "op": "multiply",
+      "stacking_key": "chorus_d2:kill_clip", "value": {"type": "chorus:constant", "value": 0.25, "unit": "delta"},
+      "if": {"type": "chorus:not", "of": {"type": "chorus:event_tag", "tag": "chorus:explosive_perk_damage"}},
+      "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C132", "confidence": "measured"
+    }]}
+  ]
+}

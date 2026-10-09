@@ -1,0 +1,51 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {"definition": {"id": "chorus_d2:restoration", "version": "test-1", "duration": 4,
+      "refresh": "historic_max", "extension_cap": 15, "keep_highest_tier": true, "tags": ["chorus_d2:restoration"]},
+      "bundle": "chorus_d2:restoration_active"},
+    {"definition": {"id": "chorus_d2:healing_rift_presence", "version": "test-1", "duration": 15,
+      "refresh": "reset", "instanced_by": "source", "attach": "target", "tags": ["chorus_d2:healing_rift", "chorus:counts_as_overshield"]}, "bundle": "chorus_d2:healing_rift_active"}
+  ],
+  "bundles": [
+    {"id": "test:recovery_inputs", "rules": [
+      {"id": "restoration", "on": "test:restoration", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:grant_buff", "buff": "chorus_d2:restoration",
+          "tier": {"type": "chorus:event_number", "name": "tier", "unit": "count"},
+          "duration": {"type": "chorus:event_number", "name": "duration", "unit": "second"}}
+      ]},
+      {"id": "rift", "on": "test:rift", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:grant_buff", "buff": "chorus_d2:healing_rift_presence",
+          "duration": {"type": "chorus:event_number", "name": "duration", "unit": "second"}}
+      ]},
+      {"id": "remove", "on": "test:remove", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:remove_buff", "buff": "chorus_d2:restoration"}
+      ]},
+      {"id": "leave", "on": "test:leave_rift", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:remove_buff", "buff": "chorus_d2:healing_rift_presence"}
+      ]},
+      {"id": "extend", "on": "test:extend", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+        {"type": "chorus:extend_buff", "buff": "chorus_d2:restoration",
+          "amount": {"type": "chorus:event_number", "name": "duration", "unit": "second"},
+          "cap": {"type": "chorus:constant", "value": 15, "unit": "second"}}
+      ]}
+    ]},
+    {"id": "chorus_d2:restoration_active", "scope": "buff", "health_recovery": [
+      {"id": "restore", "channel": "chorus_d2:restoration_or_rift", "tags": ["chorus_d2:restoration"],
+        "rate": {"type": "chorus:scale", "factor": 0.1, "from": "damage_per_second", "to": "damage_per_second", "of": {
+          "type": "chorus:pvp",
+          "pve": {"type": "chorus:by_buff_tier", "values": [35, 50], "unit": "damage_per_second"},
+          "pvp": {"type": "chorus:by_buff_tier", "values": [17.5, 25], "unit": "damage_per_second"}
+        }}
+      }
+    ]},
+    {"id": "chorus_d2:healing_rift_active", "scope": "buff", "health_recovery": [
+      {"id": "restore", "channel": "chorus_d2:restoration_or_rift", "tags": ["chorus_d2:healing_rift"],
+        "rate": {"type": "chorus:scale", "factor": 0.1, "from": "damage_per_second", "to": "damage_per_second", "of": {
+          "type": "chorus:pvp", "pve": {"type": "chorus:constant", "value": 40, "unit": "damage_per_second"},
+          "pvp": {"type": "chorus:constant", "value": 35, "unit": "damage_per_second"}
+        }}
+      }
+    ]}
+  ]
+}

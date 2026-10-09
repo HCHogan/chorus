@@ -1,0 +1,19 @@
+{
+  "version": "test-1",
+  "resources": [{"id": "test:energy", "capacity": 1, "initial": 0}],
+  "buffs": [{"definition": {
+    "id": "test:ending", "version": "test-1", "duration": 0.5, "max_stacks": 2
+  }, "bundle": "test:ending_rules"}],
+  "bundles": [
+    {"id": "test:start", "rules": [{"id": "apply", "on": "test:start", "do": [
+      {"type": "chorus:grant_buff", "buff": "test:ending", "stacks": {"type": "chorus:constant", "value": 2, "unit": "count"}}
+    ]}]},
+    {"id": "test:ending_rules", "scope": "buff", "rules": [{
+      "id": "expire", "on": "chorus:buff_ended", "if": {"type": "chorus:own_buff", "reason": "expired"},
+      "do": [
+        {"type": "chorus:grant_resource", "resource": "test:energy", "requested": {"type": "chorus:by_stacks", "values": [0.1, 0.25], "unit": "charge_fraction"}},
+        {"type": "chorus:play_cue", "cue": "test:expired"}
+      ]
+    }]}
+  ]
+}

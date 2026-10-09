@@ -1,0 +1,32 @@
+{
+  "version": "test-1",
+  "resources": [{"id": "test:energy", "capacity": 2, "initial": 2}],
+  "bundles": [{"id": "test:refund", "rules": [
+    {"id": "initialize", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+      {"type": "chorus:initialize_resource", "resource": "test:energy"}
+    ]},
+    {"id": "cast", "on": "test:cast", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+      {"action": {"type": "chorus:spend_resource", "resource": "test:energy", "payment": "cast",
+        "amount": {"type": "chorus:event_number", "name": "cost", "unit": "charge_fraction"}}, "as": "cost"},
+      {"if": {"type": "chorus:event_flag", "name": "top_up"}, "then": [
+        {"type": "chorus:grant_full_charge", "resource": "test:energy"}
+      ]},
+      {"if": {"type": "chorus:event_flag", "name": "early_refund"}, "then": [
+        {"type": "chorus:refund_cost", "cost": "cost", "fraction": {"type": "chorus:constant", "value": 0.7, "unit": "multiplier"}}
+      ]},
+      {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}, "tags": ["test:barrier"]},
+      {"type": "chorus:spend_resource", "resource": "test:energy", "payment": "drain",
+        "amount": {"type": "chorus:event_number", "name": "drain", "unit": "charge_fraction"}},
+      {"action": {"type": "chorus:refund_cost", "cost": "cost", "fraction": {"type": "chorus:constant", "value": 0.7, "unit": "multiplier"}}, "as": "refund"},
+      {"type": "chorus:heal", "amount": {"type": "chorus:scale", "factor": 1, "from": "charge_fraction", "to": "damage",
+        "of": {"type": "chorus:result", "binding": "refund", "field": "credited"}}, "tags": ["test:refund"]},
+      {"type": "chorus:refund_cost", "cost": "cost", "fraction": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}}
+    ]},
+    {"id": "full", "on": "test:full", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+      {"action": {"type": "chorus:grant_full_charge", "resource": "test:energy",
+        "charges": {"type": "chorus:event_number", "name": "charges", "unit": "count"}}, "as": "gain"},
+      {"type": "chorus:heal", "amount": {"type": "chorus:scale", "factor": 1, "from": "charge_fraction", "to": "damage",
+        "of": {"type": "chorus:result", "binding": "gain", "field": "credited"}}, "tags": ["test:full"]}
+    ]}
+  ]}]
+}

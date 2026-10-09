@@ -1,0 +1,34 @@
+{
+  "version": "test-target-iteration-v1",
+  "buffs": [],
+  "profiles": [],
+  "bundles": [{
+    "id": "test:area",
+    "scope": "source",
+    "rules": [{
+      "id": "leech",
+      "on": "test:area",
+      "do": [
+        {"action": {
+          "type": "chorus:select_targets", "center": "self",
+          "radius": {"type": "chorus:constant", "value": 5, "unit": "chorus:meter"}
+        }, "as": "nearby"},
+        {"for_each": "nearby", "as": "target", "do": [
+          {"action": {
+            "type": "chorus:damage", "target": {"binding": "target"},
+            "amount": {"type": "chorus:constant", "value": 2, "unit": "chorus:damage"},
+            "damage_type": "test:area", "tags": [], "kill_tags": []
+          }, "as": "hit"},
+          {"if": {"type": "chorus:result_flag", "binding": "hit", "field": "applied"}, "then": [
+            {"type": "chorus:heal", "target": "self", "amount": {
+              "type": "chorus:scale", "of": {"type": "chorus:result", "binding": "hit", "field": "effective"},
+              "factor": 0.5, "from": "chorus:damage", "to": "chorus:damage"
+            }}
+          ]}
+        ]},
+        {"type": "chorus:play_cue", "cue": "test:done"}
+      ]
+    }],
+    "modifiers": []
+  }]
+}

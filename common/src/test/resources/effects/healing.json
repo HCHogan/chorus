@@ -1,0 +1,28 @@
+{
+  "version": "test-1",
+  "buffs": [{"definition": {
+    "id": "test:healing_meter", "version": "test-1", "duration": 30,
+    "components": {"numbers": {
+      "effective": {"initial": 0, "unit": "damage"},
+      "overheal": {"initial": 0, "unit": "damage"},
+      "observed": {"initial": 0, "unit": "damage"}
+    }}
+  }}],
+  "bundles": [{"id": "test:healing", "rules": [
+    {"id": "heal", "on": "test:heal", "do": [
+      {"type": "chorus:grant_buff", "buff": "test:healing_meter"},
+      {"action": {"type": "chorus:heal", "amount": {"type": "chorus:event_number", "name": "amount", "unit": "damage"}, "tags": ["test:healing"]}, "as": "healing"},
+      {"type": "chorus:update_component", "buff": "test:healing_meter", "component": "effective", "op": "set", "value": {"type": "chorus:result", "binding": "healing", "field": "effective"}},
+      {"type": "chorus:update_component", "buff": "test:healing_meter", "component": "overheal", "op": "set", "value": {"type": "chorus:result", "binding": "healing", "field": "overheal"}}
+    ]},
+    {"id": "drain", "on": "test:drain", "do": [
+      {"type": "chorus:grant_buff", "buff": "test:healing_meter"},
+      {"action": {"type": "chorus:damage", "amount": {"type": "chorus:constant", "value": 10, "unit": "damage"}, "damage_type": "minecraft:mob_attack"}, "as": "hit"},
+      {"action": {"type": "chorus:heal", "amount": {"type": "chorus:result", "binding": "hit", "field": "health_loss"}, "tags": ["test:drain"]}, "as": "healing"},
+      {"type": "chorus:update_component", "buff": "test:healing_meter", "component": "effective", "op": "set", "value": {"type": "chorus:result", "binding": "healing", "field": "effective"}}
+    ]},
+    {"id": "observe", "on": "chorus:health_restored", "if": {"type": "chorus:target_is", "left": "self", "right": "victim"}, "do": [
+      {"type": "chorus:update_component", "buff": "test:healing_meter", "component": "observed", "op": "add", "value": {"type": "chorus:event_number", "name": "effective", "unit": "damage"}}
+    ]}
+  ]}]
+}

@@ -1,0 +1,233 @@
+{
+  "version": "test-position-v1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:anchor",
+        "version": "test-position-v1",
+        "duration": 1,
+        "refresh": "reset",
+        "components": {
+          "positions": [
+            "anchor",
+            "copy"
+          ],
+          "target_sets": [
+            "members"
+          ],
+          "sets": [
+            "seen"
+          ],
+          "references": [
+            "ref"
+          ],
+          "numbers": {
+            "n": {
+              "initial": 0,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "bundle": "test:anchor_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:positions",
+      "rules": [
+        {
+          "id": "init",
+          "on": "test:init",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:anchor"
+            }
+          ]
+        },
+        {
+          "id": "save",
+          "on": "test:save",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position"
+              },
+              "as": "place"
+            },
+            {
+              "type": "chorus:write_position",
+              "buff": "test:anchor",
+              "component": "anchor",
+              "position": "place"
+            }
+          ]
+        },
+        {
+          "id": "copy",
+          "on": "test:copy",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "test:anchor",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "type": "chorus:write_position",
+              "buff": "test:anchor",
+              "component": "copy",
+              "position": "place"
+            }
+          ]
+        },
+        {
+          "id": "read",
+          "on": "test:read",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "test:anchor",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "type": "chorus:select_targets",
+              "center": {
+                "position": "place"
+              },
+              "radius": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "meter"
+              }
+            }
+          ]
+        },
+        {
+          "id": "read_copy",
+          "on": "test:read_copy",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "test:anchor",
+                "component": "copy"
+              },
+              "as": "place"
+            },
+            {
+              "type": "chorus:select_targets",
+              "center": {
+                "position": "place"
+              },
+              "radius": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "meter"
+              }
+            }
+          ]
+        },
+        {
+          "id": "replace",
+          "on": "test:replace",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:anchor"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:anchor"
+            }
+          ]
+        },
+        {
+          "id": "remove",
+          "on": "test:remove",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:anchor"
+            }
+          ]
+        },
+        {
+          "id": "delay",
+          "on": "test:delay",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "test:anchor",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:select_targets",
+                  "center": {
+                    "position": "place"
+                  },
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 5,
+                    "unit": "meter"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:anchor_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "end",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "test:anchor",
+                "component": "anchor"
+              },
+              "as": "place"
+            },
+            {
+              "type": "chorus:select_targets",
+              "center": {
+                "position": "place"
+              },
+              "radius": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "meter"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
