@@ -1,0 +1,6 @@
+{
+  "template":"equipment_two_panel",
+  "background":"F212151B","panel":"FF20242B","border":"FF51565C",
+  "accent":"FFE4CD8D","text":"FFF3F0E7","muted":"FFC1BBAE",
+  "slot_order":["chorus_d2:kinetic","chorus_d2:energy","chorus_d2:power","chorus_d2:helmet","chorus_d2:arms","chorus_d2:chest","chorus_d2:legs","chorus_d2:class_item"]
+}

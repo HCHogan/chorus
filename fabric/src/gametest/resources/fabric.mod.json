@@ -44,6 +44,7 @@
       "com.imdomestic.chorus.ProjectileCollisionGameTest"
     ],
     "fabric-client-gametest": [
+      "com.imdomestic.chorus.EquipmentClientGameTest",
       "com.imdomestic.chorus.ProjectileClientGameTest"
     ]
   }
