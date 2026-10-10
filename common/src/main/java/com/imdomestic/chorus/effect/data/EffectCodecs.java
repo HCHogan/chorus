@@ -144,6 +144,8 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("name").forGetter(Condition.EventFlag::name), Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.EventFlag::expected)).apply(i, Condition.EventFlag::new)))
                 .register("chorus:target_is", Condition.TargetIs.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.fieldOf("left").forGetter(Condition.TargetIs::left), TARGET.fieldOf("right").forGetter(Condition.TargetIs::right)).apply(i, Condition.TargetIs::new)))
+                .register("chorus:target_ref_present", Condition.TargetRefPresent.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.fieldOf("target").forGetter(Condition.TargetRefPresent::target)).apply(i, Condition.TargetRefPresent::new)))
                 .register("chorus:result_flag", Condition.ResultFlag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("binding").forGetter(Condition.ResultFlag::binding), Codec.STRING.fieldOf("field").forGetter(Condition.ResultFlag::field),
                         Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.ResultFlag::expected)).apply(i, Condition.ResultFlag::new)))

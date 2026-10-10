@@ -105,6 +105,11 @@ public interface Condition {
         @Override public void validate(Validation v) { v.target(left); v.target(right);}
         @Override public boolean test(Evaluation e) { return e.target(left).equals(e.target(right)); }
     }
+    record TargetRefPresent(Evaluation.Target target) implements Condition {
+        public TargetRefPresent { java.util.Objects.requireNonNull(target); }
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) { return e.targetReference(target).isPresent(); }
+    }
     record EventFlag(String name, boolean expected) implements Condition {
         @Override public void validate(Validation v) {}
         @Override public boolean test(Evaluation e) {

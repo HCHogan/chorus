@@ -54,6 +54,7 @@ public final class SnapshotExpressions {
             case Condition.HasSourceTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasShield c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.TargetIs c -> target(c.left()) || target(c.right()) ? c : new Condition.Constant(c.test(e));
+            case Condition.TargetRefPresent c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.Compare c -> {
                 var left = c.left().snapshot(e); var right = c.right().snapshot(e);
                 var bound = new Condition.Compare(left, c.operation(), right);

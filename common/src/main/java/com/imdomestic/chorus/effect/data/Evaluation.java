@@ -63,6 +63,17 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         throw new IllegalStateException("Rule has no bound holder");
     }
     public String target(Target target) {
+        String value = targetValue(target);
+        if (value.isBlank()) throw new IllegalArgumentException("Missing target reference: " + target);
+        return value;
+    }
+    /** Reference availability only: never looks up an entity or hides invalid lexical bindings. */
+    public java.util.Optional<String> targetReference(Target target) {
+        if ((target == Target.VICTIM || target == Target.EVENT_ACTOR || target == Target.EVENT_WEAPON)
+                && EffectTimers.event(context.event().signal().payload()).isEmpty()) return java.util.Optional.empty();
+        return java.util.Optional.of(targetValue(target)).filter(value -> !value.isBlank());
+    }
+    private String targetValue(Target target) {
         String value = switch (target) {
             case BuiltinTarget builtin -> switch (builtin) {
                 case SELF -> self(); case VICTIM -> event().victim(); case EVENT_ACTOR -> event().actor();
@@ -74,7 +85,6 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
                 yield shape.target(result);
             }
         };
-        if (value.isBlank()) throw new IllegalArgumentException("Missing target reference: " + target);
         return value;
     }
     public EffectEvent event() {

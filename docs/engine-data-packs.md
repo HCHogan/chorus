@@ -204,6 +204,12 @@ Java 工具可用 `ProgramModule.CODEC` 解码模块，再把 id → 模块的 M
 
 [voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。ProgramImportsGameTest 还将这两份原始夹具写为数据包模块，经真实 reload 后直接执行新目录中的两模式击杀、就绪、Jolt 中心与邻居伤害。[voltshot_weapon.json](../common/src/test/resources/effects/voltshot_weapon.json) 另提供完整武器输入模块，imports 同时引用 chorus_d2:voltshot 与 chorus_d2:jolt。需要手工运行这个合成示例时，把三份文件按原文件名放到 `data/chorus_d2/chorus/effect_program/` 目录，并在两个被引用片段上设置 `"fragment": true`；装备原型和来源会由独立容器投影。它已通过真实玩家开火、手动换弹、切枪后的物理命中与 Jolt 链伤验收；弹药 / 射速 / 飞行等参数是测试值，多弹丸具体资格及完整 D2 武器原型仍待完成。
 
+## 目标引用是否存在
+
+`{"type":"chorus:target_ref_present","target":"event_actor"}` 只判断目标身份是否已提供，不查询世界，也不证明实体仍存在或存活。原版环境伤害可能没有攻击者；先用此条件守卫，再执行需要该身份的 `target_is` 或动作。`all` 按声明顺序短路，因此守卫应放在引用读取之前。
+
+target 必填，接受普通目标或已声明的词法目标绑定。没有事件事实、空的 event_actor / victim / event_weapon，或来源没有 this_weapon 时返回 false；未知目标名、缺失词法绑定及类型错误仍报错。直接读取必需目标的原有报错行为不变，不会把缺失引用替换成 self。用于 on_use 修饰时，victim 的存在性留到命中求值，来源侧存在性冻结；词法目标仍不能捕获进攻击快照。实体资格另用 inspect_entity / check_status 的世界回执。
+
 ## 状态施加与只读资格
 
 `apply_status` 在世界确认目标存在、存活并允许该状态后，才提交 Buff。需要处理致死命中的内容可以先用 `check_status` 查询资格，例如在已有命中规则的致死分支中执行：

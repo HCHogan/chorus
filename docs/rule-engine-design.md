@@ -160,6 +160,8 @@ death / kill 来自同一次已确认死亡，共享 death id。Fabric 的 `ALLO
 - **环境**：N 米内有至少 M 个敌人/友军。
 - **原版谓词透传**：直接嵌入原版的战利品谓词。
 
+已实现 `target_ref_present` 作为可选身份的显式守卫：无攻击者的事件可以返回 false，而必需引用读取仍拒绝缺失值。它不读世界、不判断存活、不隐藏错误的词法绑定；on_use 快照冻结来源侧存在性，victim 存在性延后到命中。字段与短路顺序见 [数据包说明](engine-data-packs.md#目标引用是否存在)。
+
 ### 动作
 
 - **buff**：`grant_buff`、`remove_buff`、`consume_buff`（可按层数）、`apply_status`（施加给目标）。

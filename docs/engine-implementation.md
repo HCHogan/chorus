@@ -675,7 +675,7 @@ DSL 的 ammo.capacity / missing、observe_ammo 和所有弹药动作统一使用
 | 类别 | 当前类型 |
 | --- | --- |
 | Value | constant、result、resource、ammo、round、event_number、impact_number、buff_count、component、by_stacks、by_buff_tier、by_source_tag、choose、arithmetic（add / mul / min / max）、scale、curve、enhanced、pvp |
-| Condition | constant、all、any、not、source_is、own_source、source_tag、event_tag、layer_tag、event_reference、event_flag、result_flag、resource_crossed、target_is、has_buff、has_buff_tag、has_shield、compare、own_buff、own_shield、own_timer |
+| Condition | constant、all、any、not、source_is、own_source、source_tag、event_tag、layer_tag、event_reference、event_flag、result_flag、resource_crossed、target_is、target_ref_present、has_buff、has_buff_tag、has_shield、compare、own_buff、own_shield、own_timer |
 | Action | grant_buff、consume_buff、remove_buff、extend_buff、refresh_buff、apply_status、check_status、select_targets、read_targets、sync_targets、difference_targets、inspect_entity、capture_position、read_position、write_position、capture_value、capture_damage、damage_snapshot、damage、heal、restore_shield、update_component、initialize_resource、grant_resource、spend_resource、refund_cost、grant_full_charge、initialize_ammo、observe_ammo、spend_ammo、refill_magazine、grant_ammo、schedule、cancel_timer、emit、play_cue |
 | 控制结构 | if / then / else、for_each、after（嵌套步骤，不是世界动作） |
 
@@ -943,6 +943,10 @@ Compendium 的既有 Rampage 审阅由 unimplemented 改为 partial，审阅总�
 weapon_stats.json 把稳定性 / 操控 / 装填的加值与 0–100 限幅、换弹动画秒数倍率从 Surplus 消费者中抽出。Pugilist 不再定义另一份同名操控 Profile，两者可链接到同一个目录。武器原型只保留自己的秒数曲线，内容对共用定义的引用由既有链接器校验。
 
 SharedWeaponStatsTest 将 Surplus 三档 +60 与 Pugilist +35 放到同一武器上，验证基础 10 + 60 + 35 先得 105 再限幅到 100，另一把枪不借用这 35。原有 20 项相关单元测试及两端 285 / 295 项世界测试通过；日志 `/tmp/chorus-shared-stats-gate.log`、`/tmp/chorus-shared-stats-unit.log`。
+
+### 可选目标身份守卫
+
+`target_ref_present` 通过 Evaluation.targetReference 查询已提供的身份，不访问世界。无事件事实或空目标返回 false，必需目标访问仍报错；无效词法绑定不会伪装成缺失。SnapshotExpressions 延后 victim、冻结来源侧存在性。3 项 TargetReferenceConditionTest 验证缺失事实与身份、必需读取、来源 / 目标快照、Codec 和错误绑定；内容可将守卫放在短路 all 的首项，安全筛除没有攻击者的伤害。
 
 ## 后续覆盖工作
 
