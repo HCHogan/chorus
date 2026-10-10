@@ -84,6 +84,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             }
             case TargetQuery query -> select(query);
             case com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch -> launch(launch);
+            case com.imdomestic.chorus.effect.object.WorldPickup.Spawn spawn -> pickup(spawn);
             default -> throw new IllegalArgumentException("No world executor for " + request.command().getClass().getName());
         };
     }
@@ -109,6 +110,27 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             }
         }
         return new com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt(launch, outcome, id);
+    }
+    private com.imdomestic.chorus.effect.object.WorldPickup.Receipt pickup(com.imdomestic.chorus.effect.object.WorldPickup.Spawn spawn) {
+        var outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.SPAWNED;
+        var id = Optional.<String>empty();
+        if (spawn.position().isEmpty()) outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.MISSING_POSITION;
+        else {
+            var point = spawn.position().orElseThrow();
+            var recipient = entities.apply(spawn.recipient());
+            if (!point.dimension().equals(level.dimension().identifier().toString())) outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.WRONG_DIMENSION;
+            else if (MinecraftVisibility.trace(level, point, point).isEmpty()) outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.UNLOADED;
+            else if (!present(recipient) || !recipient.isAlive() || recipient.isSpectator() || !recipient.getUUID().toString().equals(spawn.recipient()))
+                outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.MISSING_RECIPIENT;
+            else {
+                var runtime = MinecraftEffectRuntime.installed(level).orElseThrow(() -> new IllegalStateException("Pickup needs a rule runtime"));
+                if (runtime.failure().isPresent() || !runtime.program().program().version().equals(spawn.continuation().version())) throw new IllegalStateException("Pickup runtime mismatch");
+                var entity = new EffectObject(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_ENTITY.get(), level); entity.initialize(spawn, runtime);
+                if (level.addFreshEntity(entity) && !entity.isRemoved()) id = Optional.of(entity.getUUID().toString());
+                else { entity.discard(); outcome = com.imdomestic.chorus.effect.object.WorldPickup.Outcome.REJECTED; }
+            }
+        }
+        return new com.imdomestic.chorus.effect.object.WorldPickup.Receipt(spawn, outcome, id);
     }
     private TargetQuery.Result select(TargetQuery query) {
         LivingEntity centerEntity = query.center() instanceof TargetQuery.EntityCenter center ? entities.apply(center.entity()) : null;

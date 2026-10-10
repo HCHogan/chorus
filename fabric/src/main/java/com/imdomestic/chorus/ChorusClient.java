@@ -12,6 +12,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 public final class ChorusClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_ENTITY.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         EquipmentClient.init(ClientPlayNetworking::send, () -> ClientPlayNetworking.canSend(EquipmentPayloads.Visit.TYPE));
         ClientPlayNetworking.registerGlobalReceiver(EquipmentPayloads.View.TYPE, (view, context) -> EquipmentClient.accept(view));
         var open = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.equipment", InputConstants.KEY_K, KeyMapping.Category.INVENTORY));

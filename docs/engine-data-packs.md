@@ -1689,3 +1689,7 @@ withBase / withoutFactors 只重算已保存的数学输入，不重新读取状
 `contact` 支持 collected / expired 标志、count（拾取为 1，过期为 0）、age 秒数，以及位置和目标集合引用。生命周期区间为 [生成, 过期)，到期时不能同时拾取。每个逻辑单位单独持有版本、来源、词法结果和收集者；动作体为 detached，普通成本回执不能跨帧，显式 retain_cost 句柄继续共享原账本限额。
 
 成功收集会排入一次 chorus:pickup：actor / victim 是收集者，source 是生成者，tags 含 kind，numbers 含 count=1 / age，references 含 pickup_id / pickup_kind / collector。拾取者词条使用 target_is(self,event_actor)，不能用 source_is(owner) 代替。事实按既有队列在当前动作体后执行；生成和过期不会产生拾取事实。世界执行结果未知时停止后续推导，不重放奖励。接口与宿主进度见 [实现记录](engine-implementation.md#拾取物的逻辑协议)。
+
+Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位，recipient 必须是同维度存活实体的 UUID，生成失败不返回实体身份。接触距离按收集者脚底计算，并检查方块视线；spectator、死亡或暂时无法解析的收集者不能拾取，也不改选其他玩家。基础半径、速度和寿命在生成时固定，吸附 Profile 每 tick 按收集者现有来源 / Buff 求值，直线运动受已加载地形阻挡。6 m/s 等测试速度仅验证执行侧单位，不宣称已经复刻离子痕迹的路径。
+
+寿命按运行时逻辑时钟计算，暂时不 tick 不会重置剩余时间；实体重新 tick 时先判断到期，再判断接触。短命实体 noSave / noSummon，运行时关闭、替换或失败后丢弃，不跨重启或维度迁移。拾取先消费实体再执行动作体；故障后不重新生成或重试奖励。当前外观为原版物品渲染器的萤石粉占位，逻辑上不可捡入背包；私有只约束拾取资格，按收集者过滤客户端可见性尚未实现。暂未实现视觉合并、队友副本自动分发、公共抢占、弹药砖与具体 D2 能量路由。

@@ -78,12 +78,14 @@
       "com.imdomestic.chorus.DamageSnapshotComponentGameTest",
       "com.imdomestic.chorus.SolarGameTest",
       "com.imdomestic.chorus.EmberOfCharGameTest",
-      "com.imdomestic.chorus.IncandescentGameTest"
+      "com.imdomestic.chorus.IncandescentGameTest",
+      "com.imdomestic.chorus.PickupGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
       "com.imdomestic.chorus.ProjectileClientGameTest",
-      "com.imdomestic.chorus.ProjectileCatchClientGameTest"
+      "com.imdomestic.chorus.ProjectileCatchClientGameTest",
+      "com.imdomestic.chorus.PickupClientGameTest"
     ]
   }
 }
