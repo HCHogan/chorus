@@ -22,16 +22,16 @@ import net.minecraft.world.phys.Vec3;
 
 /** Logical weapon accounts and dependent native actions; this fixture does not simulate gun input. */
 public class AmmoGameTest {
-    private static final class Harness implements AutoCloseable {
-        final ServerPlayer player; final String holder; final MinecraftEffectRuntime runtime;
+    static final class Harness implements AutoCloseable {
+        final ServerPlayer player; final String holder; final MinecraftEffectRuntime runtime; final CompiledEffects program;
         final List<HealingCommand> heals = new ArrayList<>(); final List<Integer> magazines = new ArrayList<>();
         final List<String> cues = new ArrayList<>(); boolean failWorld;
-        Harness(GameTestHelper h) throws Exception {
+        Harness(GameTestHelper h) throws Exception { this(h, "ammunition"); }
+        Harness(GameTestHelper h, String fixture) throws Exception {
             player = h.makeMockServerPlayerInLevel(); player.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
             player.setPos(h.absoluteVec(new Vec3(3, 2, 3))); player.setNoGravity(true);
             player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); player.setHealth(10); holder = player.getUUID().toString();
-            CompiledEffects program;
-            try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/ammunition.json")), StandardCharsets.UTF_8)) {
+            try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
                 program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
             }
             var world = new MinecraftWorldActions(h.getLevel(), id -> holder.equals(id) ? player : null,

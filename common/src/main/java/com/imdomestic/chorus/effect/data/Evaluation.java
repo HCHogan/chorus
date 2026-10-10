@@ -103,6 +103,12 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         if (state == null) throw new IllegalArgumentException("Missing ammunition account");
         return state;
     }
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account) {
+        return account.capacityProfile().isEmpty() ? com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account)
+                : program.orElseThrow(() -> new IllegalArgumentException("Dynamic ammunition requires a compiled program"))
+                        .ammoCapacity(state, account, com.imdomestic.chorus.effect.ammo.AmmoCapacity.Query.dependencies(context.event().signal().payload()));
+    }
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(Target weapon) { return ammoView(state, ammo(weapon)); }
     /** Lexical visibility applies to the reference; refund accounting includes all executed branches. */
     public Resources.CostReceipt cost(String binding) {
         var shape = results.get(binding); var result = context.bindings().get(binding);

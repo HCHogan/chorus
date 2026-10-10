@@ -1,0 +1,379 @@
+{
+  "version": "test-capacity-v1",
+  "profiles": [
+    {
+      "id": "test:capacity",
+      "version": "test-capacity-v1",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "multiply",
+          "group": {
+            "name": "bonuses",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "integer",
+          "rounding": "ceil"
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:expanded",
+        "version": "test-capacity-v1",
+        "duration": 0.2,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep",
+        "refresh": "reset"
+      },
+      "bundle": "test:expanded"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:ammo",
+      "rules": [
+        {
+          "id": "initialize",
+          "on": "test:initialize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_ammo",
+              "capacity": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "round"
+              },
+              "magazine": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "round"
+              },
+              "reserves": {
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 50,
+                  "unit": "round"
+                },
+                "capacity": {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "round"
+                }
+              },
+              "capacity_profile": "test:capacity"
+            }
+          ]
+        },
+        {
+          "id": "expand",
+          "on": "test:expand",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:expanded"
+            }
+          ]
+        },
+        {
+          "id": "refill",
+          "on": "test:refill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refill_magazine"
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "applied"
+                },
+                "factor": 1,
+                "from": "round",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "overflow",
+          "on": "test:overflow",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refill_magazine",
+                "ceiling": {
+                  "type": "chorus:round",
+                  "input": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:ammo",
+                      "field": "capacity"
+                    },
+                    "factor": 2,
+                    "from": "round",
+                    "to": "round"
+                  },
+                  "mode": "ceiling"
+                }
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "applied"
+                },
+                "factor": 1,
+                "from": "round",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "generate",
+          "on": "test:generate",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ammo",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 30,
+                  "unit": "round"
+                }
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "applied"
+                },
+                "factor": 1,
+                "from": "round",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "percent",
+          "on": "test:percent",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ammo",
+                "amount": {
+                  "type": "chorus:round",
+                  "input": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:ammo",
+                      "field": "capacity"
+                    },
+                    "factor": 0.25,
+                    "from": "round",
+                    "to": "round"
+                  },
+                  "mode": "ceiling"
+                }
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "applied"
+                },
+                "factor": 1,
+                "from": "round",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "rounds",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "inspect",
+          "on": "test:inspect",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "view"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:view"
+            }
+          ]
+        },
+        {
+          "id": "freeze",
+          "on": "test:freeze",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:ammo",
+                  "field": "capacity"
+                }
+              },
+              "as": "saved"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.4,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:refill_magazine",
+                    "ceiling": {
+                      "type": "chorus:result",
+                      "binding": "saved",
+                      "field": "value"
+                    }
+                  },
+                  "as": "gain"
+                },
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "gain",
+                      "field": "applied"
+                    },
+                    "factor": 1,
+                    "from": "round",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "refilled",
+          "on": "chorus:ammo_refilled",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:refilled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:expanded",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "capacity",
+          "profile": "test:capacity",
+          "stage": "capacity",
+          "group": "bonuses",
+          "op": "multiply",
+          "stacking_key": "test:expanded",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic capacity test, not Destiny tuning",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

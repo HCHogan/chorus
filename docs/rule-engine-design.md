@@ -287,7 +287,9 @@ buff 实例用「持有者 × buff 定义 × 实例键」区分，状态除了�
 
 ### 武器弹药
 
-`AmmoState` 按在当前运行时内唯一的稳定武器实例身份保存整数 magazine / capacity 和有限或无限 reserves，单位为 `round`。capacity 是当前账户的基础弹匣容量，magazine 可以超过它；每次补弹另有 ceiling，只限制本次可补数量。词条结束或下次 ceiling 降低不会删掉已有溢出弹药。真实基础容量变化会影响后续百分比与其他词条，不能以临时溢出上限代替；当前动态基础容量重算仍未实现。
+`AmmoState` 按在当前运行时内唯一的稳定武器实例身份保存整数 magazine、未修饰容量输入和有限或无限 reserves，单位为 `round`。可选 capacity_profile 从未修饰值求当前有效基础容量，收集账户 holder 的来源 / Buff，并按实际武器身份筛选；DSL 的 capacity / missing、默认补弹上限和按容量百分比均读这个派生值。Java 原始账户的 capacity 字段是不可变输入，DSL 的 unmodified_capacity 对应它；有效值与计算轨迹由 AmmoCapacity.View 返回。查询不覆盖输入，不隐式增删弹药；加成到期 / 移除后自然恢复。
+
+magazine 可以超过有效基础容量；每次补弹另有 ceiling，只限制本次可补数量。词条结束或下次 ceiling 降低不会删掉已有溢出弹药。真实基础容量变化会影响后续百分比与其他词条，不能以临时溢出上限代替。Profile 明确取整阶段，最终必须是正整数 round；一次动作的结果保留该动作采用的容量，后续查询按最新状态重算。武器元数据变化导致的未修饰输入替换和账户转移仍待接线。
 
 已实现 `initialize_ammo / observe_ammo / spend_ammo / refill_magazine / grant_ammo`。初始化幂等、来源解绑不重置弹数；spend 余额不足不部分扣款；refill 从储备守恒转移；grant 明确生成弹药。结果包含 requested / applied / unfulfilled 和变化后账户，用实际 applied 驱动后续动作。无限储备显式表示，不暴露虚假的有限弹数；未初始化账户也不按零处理。小数请求必须先用 `round` Value 明确 floor / ceiling / half_up。
 

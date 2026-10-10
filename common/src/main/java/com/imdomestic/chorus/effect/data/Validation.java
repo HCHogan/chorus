@@ -24,6 +24,11 @@ public record Validation(Map<String, BuffDefinition> buffs, Map<String, ResultSh
         same(profile.inputUnit(), Unit.DAMAGE); same(profile.outputUnit(), Unit.DAMAGE);
         return profile;
     }
+    public CalculationProfile ammoProfile(String id) {
+        var profile = profiles.get(id);
+        if (profile == null) throw new IllegalArgumentException("Unknown ammunition capacity profile: " + id);
+        same(profile.inputUnit(), Unit.ROUND); same(profile.outputUnit(), Unit.ROUND); return profile;
+    }
     public CalculationProfile multiplierProfile(String id) {
         var profile = profiles.get(id);
         if (profile == null) throw new IllegalArgumentException("Unknown multiplier profile: " + id);

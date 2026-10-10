@@ -746,8 +746,27 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new EffectEvent(command.source().owner(), command.target(), command.source(), command.tags(),
                 Map.of("incoming_damage", new Measure(input, Unit.DAMAGE)), Map.of(), Map.of("damage_type", command.damageType()), command.impact());
     }
-    private static RuleEngine.Event queryEvent(EffectState state, EffectEvent query) {
+    private static RuleEngine.Event queryEvent(EffectState state, RuleEngine.Payload query) {
         return new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(), new RuleEngine.Signal("chorus:query", query));
+    }
+    /** Read current capacity from the affected weapon holder; the triggering action's origin is irrelevant. */
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoCapacity(EffectState state, String weapon) {
+        var account = state.ammunition().get(weapon);
+        if (account == null) throw new IllegalArgumentException("Missing ammunition account: " + weapon);
+        return ammoCapacity(state, account, java.util.Set.of());
+    }
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoCapacity(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account, java.util.Set<String> dependencies) {
+        if (account.capacityProfile().isEmpty()) return com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account);
+        if (!account.equals(state.ammunition().get(account.weapon()))) throw new IllegalArgumentException("Capacity query requires the current account");
+        var path = new HashSet<>(dependencies);
+        if (!path.add(account.weapon())) throw new IllegalArgumentException("Circular ammunition capacity expression: " + account.weapon());
+        var spec = account.capacityProfile().orElseThrow(); new Validation(buffs, Map.of(), false, profiles).ammoProfile(spec.profile());
+        var query = new EffectEvent(spec.holder(), account.weapon(), new BuffInstance.Origin(spec.holder(), account.weapon(), account.weapon(), ""),
+                java.util.Set.of("chorus:ammo_capacity_query"), Map.of("unmodified_capacity", new Measure(account.capacity(), Unit.ROUND), "magazine", new Measure(account.magazine(), Unit.ROUND)),
+                Map.of("infinite_reserves", account.reserve().isEmpty()), Map.of("weapon", account.weapon()));
+        var result = calculateEvent(state, spec.holder(), queryEvent(state, new com.imdomestic.chorus.effect.ammo.AmmoCapacity.Query(query, path)),
+                spec.profile(), new Measure(account.capacity(), Unit.ROUND), List.of());
+        return new com.imdomestic.chorus.effect.ammo.AmmoCapacity.View(account, com.imdomestic.chorus.effect.ammo.AmmoState.rounds(result.output().value()), Optional.of(result));
     }
     private void settled(EffectState state) {
         validateState(state);

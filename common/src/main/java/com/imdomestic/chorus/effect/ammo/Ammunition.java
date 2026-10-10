@@ -12,7 +12,7 @@ public final class Ammunition {
         public Result {
             Objects.requireNonNull(kind); Objects.requireNonNull(pool); Objects.requireNonNull(before); Objects.requireNonNull(after);
             if (requested < 0 || applied < 0 || applied > requested || !before.weapon().equals(after.weapon()) || before.capacity() != after.capacity()
-                    || !before.reserve().map(AmmoState.Reserve::capacity).equals(after.reserve().map(AmmoState.Reserve::capacity))) throw new IllegalArgumentException("Invalid ammunition receipt");
+                    || !before.capacityProfile().equals(after.capacityProfile()) || !before.reserve().map(AmmoState.Reserve::capacity).equals(after.reserve().map(AmmoState.Reserve::capacity))) throw new IllegalArgumentException("Invalid ammunition receipt");
             long magazineDelta = (long) after.magazine() - before.magazine();
             long reserveDelta = before.reserve().isPresent() ? (long) after.reserve().orElseThrow().rounds() - before.reserve().orElseThrow().rounds() : 0;
             long expectedMagazine = kind == Kind.REFILL || pool == Pool.MAGAZINE ? (kind == Kind.SPEND ? -applied : applied) : 0;

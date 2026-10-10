@@ -1826,7 +1826,7 @@
       "gaps": [
         "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
         "可记录随机抽样与完整分布、基础容量取得及换弹后转移顺序尚未校准",
-        "实际换弹进度 / 完成输入、动态基础容量和账户持久化待实现"
+        "实际换弹进度 / 完成输入和账户持久化待实现；动态基础容量机制已接 Profile，具体组合顺序待校准"
       ]
     },
     {
@@ -1925,7 +1925,7 @@
       "gaps": [
         "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
         "弹药砖资格、拾取增加储备与本词条转移的先后、不同弹药种类交互未验收",
-        "临时补弹上限与动态基础弹匣容量须分开；后者尚未实现"
+        "临时补弹上限与动态基础弹匣容量已分开；与具体容量词条的组合顺序和取整还需内容验收"
       ]
     },
     {
@@ -2103,6 +2103,108 @@
         }
       ],
       "gaps": []
+    },
+    {
+      "id": "perk/fail_deadly",
+      "name": "Fail-Deadly",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A364",
+          "text_sha256": "7d640462ede48f021125fab069740554c4c9daefc3d7a8dd3f72778e63f6b488"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C364",
+          "text_sha256": "05fe397ff838c5d89f8c596d07f59e98d6a6a859841f6acd16606244a33c2e90"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅需求；当前基础容量 Profile、按容量收益和溢出组合有机制验收，尚无该词条的数据定义",
+      "acceptance": [
+        "每次伤害实例叠层；普通武器最大层数对应弹匣，火箭为2倍容量，并有x2 / x4与Bipod的特殊弹数映射",
+        "至多100%增加基础弹匣容量；满层+15 / 强化+?射程、+5 / 强化+?辅瞄",
+        "武器击杀清除全部层数；收枪保留；基础容量与Overflow叠加并影响逐发装填和Bolt Charge等按弹匣计算的效果"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmoCapacityTest.java",
+          "symbol": "profileCombinesStaticAndBuffContributionsThenRoundsOnceWithAVisibleTrace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoCapacityGameTest.java",
+          "symbol": "realExpiryPreservesOverflowAndDetachedCapacitySnapshot"
+        }
+      ],
+      "gaps": [
+        "尚未提供独立内容定义；通用合成夹具不能证明该 perk 的触发、数值和实际玩法已实现",
+        "层数上限采用的容量阶段、火箭 / Bipod映射、中间层数曲线和强化未知属性须校准，不从最大值推导",
+        "实际伤害实例信用 / 去重、武器击杀清层、属性 / 逐发装填 / Bolt Charge内容和物品装配仍未实现"
+      ]
+    },
+    {
+      "id": "perk/timelost_magazine",
+      "name": "Timelost Magazine",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A409",
+          "text_sha256": "27d74ebdd1507d462cfb9988ecb94890f523f41b96022e80c6cb6fa5e99f6ce5"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C409",
+          "text_sha256": "89b62f077f91687f627f97e2cf6aa50f3af9b60b7b0809ffa54d772c47bbd71d"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅需求；当前基础容量 Profile、按容量收益和溢出组合有机制验收，尚无该词条的数据定义",
+      "acceptance": [
+        "超能结束时补充弹匣，100%增加基础弹匣容量持续20 / 强化21秒，收枪可触发和保留",
+        "基础容量与Overflow叠加并影响Bolt Charge；Found Verdict每次装填2发",
+        "武器击杀额外给予1?% / 强化+?%超能能量，未知数值不得填成确定值"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmoCapacityTest.java",
+          "symbol": "profileCombinesStaticAndBuffContributionsThenRoundsOnceWithAVisibleTrace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoCapacityGameTest.java",
+          "symbol": "realExpiryPreservesOverflowAndDetachedCapacitySnapshot"
+        }
+      ],
+      "gaps": [
+        "尚未提供独立内容定义；通用合成夹具不能证明该 perk 的触发、数值和实际玩法已实现",
+        "超能结束输入、先扩容还是先补弹及到期弹数策略尚需内容 / 原作验收",
+        "击杀回能问号保留未知；真实超能账户、Found Verdict逐发装填、Bolt Charge和物品装配未实现"
+      ]
     }
   ]
 }

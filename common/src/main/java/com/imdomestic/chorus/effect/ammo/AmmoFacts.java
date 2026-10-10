@@ -8,10 +8,14 @@ import java.util.*;
 public final class AmmoFacts {
     private AmmoFacts() {}
     public static EffectEvent changed(String actor, BuffInstance.Origin origin, Ammunition.Result result) {
+        return changed(actor, origin, result, AmmoCapacity.View.fixed(result.after()).capacity());
+    }
+    public static EffectEvent changed(String actor, BuffInstance.Origin origin, Ammunition.Result result, int capacity) {
         var numbers = new HashMap<String, Measure>();
         numbers.put("requested", new Measure(result.requested(), Unit.ROUND)); numbers.put("applied", new Measure(result.applied(), Unit.ROUND));
         numbers.put("unfulfilled", new Measure(result.unfulfilled(), Unit.ROUND)); numbers.put("before_magazine", new Measure(result.before().magazine(), Unit.ROUND));
-        numbers.put("magazine", new Measure(result.after().magazine(), Unit.ROUND)); numbers.put("capacity", new Measure(result.after().capacity(), Unit.ROUND));
+        numbers.put("magazine", new Measure(result.after().magazine(), Unit.ROUND)); numbers.put("capacity", new Measure(capacity, Unit.ROUND));
+        numbers.put("unmodified_capacity", new Measure(result.after().capacity(), Unit.ROUND));
         numbers.put("magazine_delta", new Measure(result.after().magazine() - result.before().magazine(), Unit.ROUND));
         result.after().reserve().ifPresent(reserve -> {
             numbers.put("reserves", new Measure(reserve.rounds(), Unit.ROUND)); numbers.put("reserve_capacity", new Measure(reserve.capacity(), Unit.ROUND));

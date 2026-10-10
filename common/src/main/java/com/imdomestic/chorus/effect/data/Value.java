@@ -32,7 +32,10 @@ public interface Value {
     }
     record Ammo(Evaluation.Target weapon, com.imdomestic.chorus.effect.ammo.AmmoState.Field field) implements Value {
         @Override public Unit unit(Validation v) { v.target(weapon); return Unit.ROUND; }
-        @Override public Measure evaluate(Evaluation e) { return new Measure(e.ammo(weapon).read(field), Unit.ROUND); }
+        @Override public Measure evaluate(Evaluation e) {
+            return new Measure(field == com.imdomestic.chorus.effect.ammo.AmmoState.Field.CAPACITY || field == com.imdomestic.chorus.effect.ammo.AmmoState.Field.MISSING
+                    ? e.ammoView(weapon).read(field) : e.ammo(weapon).read(field), Unit.ROUND);
+        }
     }
     enum Rounding { FLOOR, CEILING, HALF_UP }
     record Round(Value input, Rounding mode) implements Value {

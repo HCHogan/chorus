@@ -35,7 +35,11 @@
 
 这六项仍是需求审阅，状态为 unimplemented：通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表已提供这些 perk 的可执行内容定义。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体顺序仍需验收；来源有问号的参数保留未知。
 
-还要区分临时溢出上限与**改变基础容量**。C364 Fail-Deadly、C409 Timelost Magazine 明确指出基础容量变化还影响其他按弹匣计算的效果，并能与 Overflow 叠加。当前 AmmoState.capacity 在账户创建后固定，初始化不承担改容量或补满功能；动态基础容量的 Profile、重算顺序、逐发装填 / 热量 / 特殊射击模式及完整存档同步是后续能力，不能用增大 refill.ceiling 宣称已覆盖。
+还要区分临时溢出上限与**改变基础容量**。C364 Fail-Deadly、C409 Timelost Magazine 明确指出基础容量变化还影响其他按弹匣计算的效果，并能与 Overflow 叠加。现有 capacity_profile 已从固定输入、当前来源和 Buff 求有效基础容量，默认补弹 / 生成上限及按容量百分比统一读取它；refill.ceiling 另表达这一次的溢出上限。加成结束后不需要把容量改回旧值，也不删除已装弹数。具体 DSL 见 [动态基础容量](engine-data-packs.md#动态基础容量与数值快照)。
+
+两项已加入需求审阅，仍为 unimplemented。Fail-Deadly 需要每个伤害实例叠层、武器击杀清层、收枪保留、普通武器与火箭 / Bipod 的特殊层数映射，以及至多 +100% 基础容量、射程 / 辅瞄；强化属性中有 `?`，完整曲线也不能从最大值猜测。Timelost Magazine 需要超能结束时 refill、+100% 基础容量持续 20 / 强化 21 秒、Found Verdict 每次装两发，武器击杀额外回超能的 `1?% / +?%` 仍待核对。两者对 Bolt Charge 等按容量效果的交互也需要内容定义。
+
+`ammo_capacity.json` 的 5 发输入、200 ms 翻倍和两倍补弹上限只验证机制。实际加成 / refill 的先后、过期后已有子弹的原作策略、各容量阶段的取整、逐发装填 / 热量 / 特殊射击模式、原型容量随武器配置变化及完整存档同步仍待校准和接线，不能据此宣称两个词条已完整实现。
 
 ## 乘区分组
 

@@ -203,7 +203,9 @@ public final class EffectCodecs {
                 .register("chorus:initialize_ammo", AmmoActions.Initialize.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Initialize::weapon),
                         values.fieldOf("capacity").forGetter(AmmoActions.Initialize::capacity), values.fieldOf("magazine").forGetter(AmmoActions.Initialize::magazine),
-                        reserves.fieldOf("reserves").forGetter(AmmoActions.Initialize::reserves)).apply(i, AmmoActions.Initialize::new)))
+                        reserves.fieldOf("reserves").forGetter(AmmoActions.Initialize::reserves),
+                        ID.optionalFieldOf("capacity_profile").forGetter(AmmoActions.Initialize::capacityProfile),
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.Initialize::holder)).apply(i, AmmoActions.Initialize::new)))
                 .register("chorus:observe_ammo", AmmoActions.Observe.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Observe::weapon)).apply(i, AmmoActions.Observe::new)))
                 .register("chorus:spend_ammo", AmmoActions.Spend.class, RecordCodecBuilder.mapCodec(i -> i.group(

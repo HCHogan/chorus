@@ -406,12 +406,12 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 | 类型 | 字段 / 行为 |
 | --- | --- |
-| `initialize_ammo` | capacity / magazine / reserves 必填；reserves 为上例的有限账户或字符串 `unlimited`。基础容量须为正，初始弹匣允许溢出，有限储备须在容量内。重复初始化保留现值，基础容量或储备种类 / 容量不一致则拒绝。初始化不发布弹药变化事实 |
+| `initialize_ammo` | capacity / magazine / reserves 必填；reserves 为上例的有限账户或字符串 `unlimited`。容量输入须为正，初始弹匣允许溢出，有限储备须在容量内。可选 capacity_profile 和 holder（默认 self）见下文。重复初始化保留现值，容量输入、Profile / holder 或储备种类 / 容量不一致则拒绝。初始化不发布弹药变化事实 |
 | `observe_ammo` | 返回 available / created / infinite_reserves / finite_reserves。观察不会创建账户，created 恒为 false；initialize 的新建结果 created 为 true。未初始化时 available 为 false，不能直接读其弹数 |
 | `spend_ammo` | amount 必填，pool 为 magazine（默认）或 reserves；全部足额才扣除，失败 applied = 0。零请求可 complete，但不会产生实际弹药或开火事实 |
 | `refill_magazine` | amount / ceiling 均可省略；实际量受请求、弹匣空间和储备限制。从有限储备扣除同量；无限储备无需保存一个虚构的大数 |
 | `grant_ammo` | amount 必填，pool 默认 magazine，ceiling 可省略。给弹匣不会扣储备；给有限储备最多到储备容量；给无限储备 applied = 0。弹匣默认 ceiling 为基础容量，已有溢出不被删除 |
-| `ammo` Value | weapon 默认 this_weapon，field 为 magazine / capacity / missing / reserves / reserve_capacity；单位 round，missing = max(0, capacity − magazine)。不存在账户或读取无限储备的有限数值均报错 |
+| `ammo` Value | weapon 默认 this_weapon，field 为 magazine / capacity / unmodified_capacity / missing / reserves / reserve_capacity；单位 round。capacity 为当前有效基础容量，unmodified_capacity 为固定输入，missing = max(0, capacity − magazine)。不存在账户或读取无限储备的有限数值均报错 |
 | `round` Value | input 为任意同单位数值，mode 必填 floor / ceiling / half_up。保留单位；half_up 在恰好半数时远离零。它不自动将 charge_fraction 或 count 换成 round |
 
 实际弹数、容量、请求和 ceiling 都须为 0 至 2³¹−1 的整数（基础容量至少为 1）。常量在加载时校验，动态值在写状态前校验；不隐式截断小数。按基础容量的 60% 上取整可写为：
@@ -423,15 +423,37 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 }}
 ```
 
-三个变更动作的结果均提供变化后的 magazine / capacity / missing / reserves / reserve_capacity，以及 requested / applied / unfulfilled / magazine_delta（全部 round），和 complete / changed / infinite_reserves 标志。无限储备的 reserves / reserve_capacity 不可读取；先用 observe 的 finite_reserves，或变更结果的 infinite_reserves 分支。unfulfilled 是本次未完成数量，不保存为未来可领取额度，也不是消耗弹药的退款权。
+三个变更动作的结果均提供变化后的 magazine / reserves / reserve_capacity，以及本次采用的 capacity / unmodified_capacity / missing、requested / applied / unfulfilled / magazine_delta（全部 round），和 complete / changed / infinite_reserves 标志。missing 以本次采用的容量减去动作后的弹数计算。无限储备的 reserves / reserve_capacity 不可读取；先用 observe 的 finite_reserves，或变更结果的 infinite_reserves 分支。unfulfilled 是本次未完成数量，不保存为未来可领取额度，也不是消耗弹药的退款权。
 
-applied > 0 时，按动作分别发布 `chorus:ammo_spent / chorus:ammo_refilled / chorus:ammo_generated`；账户改变时另发 `chorus:ammo_changed`。无限储备的显式消费可 applied > 0 且 changed = false。事实携带 requested / applied / unfulfilled / before_magazine / magazine / capacity / magazine_delta；有限储备另有 reserves / reserve_capacity / reserve_delta。布尔值为 complete / changed / infinite_reserves，引用为 weapon / pool / reason，reason 是 spend / refill / generate。actor 为动作持有者，victim 和 weapon 引用指向实际受影响武器，source 保留动作发起来源；跨武器补给不能把收款武器冒充触发者。通用监听通常只监听 changed，避免同时监听专项事实重复发放收益。
+applied > 0 时，按动作分别发布 `chorus:ammo_spent / chorus:ammo_refilled / chorus:ammo_generated`；账户改变时另发 `chorus:ammo_changed`。无限储备的显式消费可 applied > 0 且 changed = false。事实携带 requested / applied / unfulfilled / before_magazine / magazine / capacity / unmodified_capacity / magazine_delta；有限储备另有 reserves / reserve_capacity / reserve_delta。布尔值为 complete / changed / infinite_reserves，引用为 weapon / pool / reason，reason 是 spend / refill / generate。actor 为动作持有者，victim 和 weapon 引用指向实际受影响武器，source 保留动作发起来源；跨武器补给不能把收款武器冒充触发者。通用监听通常只监听 changed，避免同时监听专项事实重复发放收益。
 
 这些事实不自动发布 `reload_finished`、shot_fired 或“射空弹匣”。一次逻辑扣弹不能证明真实射击，一次 refill 也不能触发 Kill Clip / Voltshot。合格换弹由武器宿主在完成后确认。动作本身不设置循环次数限制，内容可以按实际量和状态继续连锁。
 
 弹药写集在后续世界动作前提交；世界结果未知时保留已写弹数和待确认操作，不重新转移、自动退款或重放。显式快照中的来源 ammo 操作数冻结，victim 依赖保留到命中时读取；普通延迟动作内的 ammo 读取则按执行时账户求值。来源解绑和逻辑时钟不会丢失账户，detached 延迟动作可以继续，但默认绑定来源的生命周期规则不变。
 
-完整合成夹具见 [ammunition.json](../common/src/test/resources/effects/ammunition.json)，有两把武器隔离、整数取整和两端真实 tick / 治疗 / 异常验收。目前由可信服务端宿主提供武器身份；`initialize_ammo` 不是任意客户端可调用的装填接口。真实枪械输入、武器销毁 / 转移 / 跨维度时的账户迁移、基础容量动态重算、玩家 NBT 弹药保存和弹药同步 / HUD 尚未接入。现有逻辑账户不等于库存物品已经具有这些弹数。
+完整合成夹具见 [ammunition.json](../common/src/test/resources/effects/ammunition.json)，有两把武器隔离、整数取整和两端真实 tick / 治疗 / 异常验收。目前由可信服务端宿主提供武器身份；`initialize_ammo` 不是任意客户端可调用的装填接口。真实枪械输入、武器销毁 / 转移 / 跨维度时的账户迁移、未修饰容量输入随武器配置变更、玩家 NBT 弹药保存和弹药同步 / HUD 尚未接入。现有逻辑账户不等于库存物品已经具有这些弹数。
+
+### 动态基础容量与数值快照
+
+在 initialize_ammo 上添加 `"capacity_profile": "example:magazine"`，可选 `"holder": "self"` 指定收集修饰的实际武器持有者。Profile 必须已在程序中声明，输入 / 输出都是 round；原 capacity 参数作为未修饰输入固定保存。如下 Profile 先组合倍率，再统一向上取整：
+
+```json
+{"id": "example:magazine", "version": "example-v1", "input_unit": "round", "steps": [
+  {"type": "chorus:apply", "id": "bonuses", "operation": "multiply",
+    "group": {"name": "capacity", "reduction": "product"}},
+  {"type": "chorus:round", "id": "integer", "rounding": "ceil"}
+]}
+```
+
+来源或 Buff 的 modifier 引用这个 Profile / stage / group，使用常规 delta、分组与条件。Profile 和程序的 version 必须一致；修饰可用 `source_is: this_weapon` 或 Buff 的 `affects: instance_weapon` 保持武器隔离。上述乘积和最后上取整是示例选择，具体内容可以声明别的阶段顺序及 floor / nearest_even。动态最终值为 0、小数或超过 int 上限时明确失败，不静默裁剪。
+
+容量查询的 actor 是账户 holder，victim / source.weapon / weapon 引用都是实际被查询的武器，source.owner 也是账户 holder，source.source 为该武器 ID，ability 留空；不借用补给发起者的身份或强化标签。查询带 `chorus:ammo_capacity_query` 标签、unmodified_capacity / magazine 测量及 infinite_reserves 标志。它使用已结算的当前领域状态，可读取当前层数、未修饰容量、已装弹数等。跨持有者补给依然从接收账户的 holder 收集修饰。
+
+当前有效容量派生读取，不写回 AmmoState.capacity；Java 宿主用 `CompiledEffects.ammoCapacity(state, weapon)` 取得容量与完整 CalculationProfile.Result 轨迹。原始账户 read(capacity / missing) 对动态账户报错，要求显式取派生视图。动态容量只读重算不发 ammo_changed，不改变已有弹数或补齐弹匣。任何一次弹药动作先解析容量，再提交弹数；变更回执与事实保留本次采用的容量和输入。若本次写入又改变下一次容量条件，下一次查询才反映它。例如“弹数大于 1 时容量翻倍”，弹匣 1 / 容量 5 的一次默认 refill 只补到 5，后续新查询才得到容量 10。
+
+观察结果本身是快照；`capture_value` 可把当时的有效容量留给 detached 延迟动作，而延迟体中直接读 ammo.capacity 会取执行时状态。Buff 到期、收枪策略、来源解绑按原有生命周期生效，不要求内容再发一个“恢复原容量”动作。数值 Profile 直接或间接依赖自己正在求的有效容量时明确报数值自引用错误；读取 unmodified_capacity / magazine 不受此限制，事件和效果连锁也不受该检查限制。
+
+完整例子 [ammo_capacity.json](../common/src/test/resources/effects/ammo_capacity.json) 使用基础 5 发、200 ms 容量翻倍、400 ms 延迟等合成参数。纯核心与两端游戏测试验证 5 → 10 的容量变化再叠加 2 倍 refill ceiling 得到 20 发，Buff 到期后 capacity 恢复 5 而已装 20 发保留。它不是 Timelost Magazine 或 Fail-Deadly 的完整内容 / 数值验收。
 
 ## 目标查询和逐目标执行
 
