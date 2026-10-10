@@ -86,8 +86,9 @@ public class DuskfieldGameTest {
     @GameCase(environment="chorus_gametest:duskfield_independent",maxTicks=170)
     public void twoCastersKeepIndependentAnchorsAndSevenVersusNineSecondFieldLifetimes(GameTestHelper h){
         var t=new Harness(h,EffectState.Mode.PVE);try{
-            var other=t.player(10.5);t.floor(10);t.mob(3.5);t.mob(11.5);t.runtime.bind(DuranceGameTest.fragment("own",t.owner));t.cast(t.owner);t.cast(other);
-            t.at(6,()->{h.assertValueEqual(t.fields().size(),2,"two physical impacts have independent fields");h.assertValueEqual(t.fields().stream().map(b->b.origin().owner()).distinct().count(),2L,"caster credit merged");h.assertValueEqual(t.fields().stream().map(b->b.components().positions().get("anchor")).distinct().count(),2L,"anchors merged");});
+            // Keep both flights inside the 8x8 structure's ticking footprint, even at a chunk boundary.
+            var other=t.player(6.5);t.floor(6);t.mob(3.5);t.mob(7.5);t.runtime.bind(DuranceGameTest.fragment("own",t.owner));t.cast(t.owner);t.cast(other);
+            t.at(6,()->{h.assertValueEqual(t.fields().size(),2,"two physical impacts have independent fields; flights="+t.flights.stream().map(f->f.position()+" ticks="+f.tickCount+" progress="+f.progress()).toList());h.assertValueEqual(t.fields().stream().map(b->b.origin().owner()).distinct().count(),2L,"caster credit merged");h.assertValueEqual(t.fields().stream().map(b->b.components().positions().get("anchor")).distinct().count(),2L,"anchors merged");});
             t.finish(150,()->{h.assertValueEqual(t.fields().size(),1,"seven-second field did not end independently");h.assertValueEqual(t.fields().getFirst().origin().owner(),t.owner.getUUID().toString(),"wrong field survived");});
         }catch(Exception|Error e){t.close();throw e;}
     }
