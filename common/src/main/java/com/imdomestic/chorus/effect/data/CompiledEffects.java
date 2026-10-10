@@ -555,10 +555,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this));
     }
     private RuleEngine.EventRule<EffectState> compile(EffectProgram.Bundle bundle, EffectProgram.Rule rule, List<RuleEngine.EventRule<EffectState>> continuations) {
+        rule.procKey().ifPresent(CompiledEffects::namespaced);
         validatePayments(rule.actions(), new HashSet<>());
         rule.condition().validate(validation(bundle, Map.of()));
         var actions = compileSteps(bundle, rule.actions(), Map.of(), Map.of(), "", bundle.id() + "/rule/" + rule.id(), continuations);
         return new RuleEngine.EventRule<>(bundle.id() + "/rule/" + rule.id(), rule.on(), (state, context) -> {
+            if (rule.procKey().filter(key -> !ProcPolicy.from(context.event().signal().payload()).allows(key)).isPresent()) return false;
             boolean captured = rule.binding() == EffectProgram.ReactionBinding.ORIGIN_BUNDLE
                     && context.scope() instanceof EffectSource source
                     && ReactionSnapshot.from(context.event()).filter(s -> s.sources().contains(source)).isPresent();

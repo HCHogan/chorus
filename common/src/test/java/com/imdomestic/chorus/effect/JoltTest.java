@@ -22,18 +22,26 @@ class JoltTest {
         final EffectSession session;
         final List<RuleEngine.WorldRequest> requests = new ArrayList<>();
         final List<DamageCommand> chains = new ArrayList<>();
+        final List<Action.CueCommand> cues = new ArrayList<>();
         final Map<String, EntityQuery.View> views = new HashMap<>(Map.of("target", NPC, "neighbor", NPC));
         final Map<String, List<String>> nearby = new HashMap<>(Map.of("target", List.of("neighbor")));
         final Map<String, DamageReceipt.Outcome> outcomes = new HashMap<>();
         final Map<String, DamageReceipt> losses = new HashMap<>();
         StatusResult.Decision decision = StatusResult.Decision.ALLOWED;
         TargetQuery.Outcome queryOutcome = TargetQuery.Outcome.AVAILABLE;
-        Harness(EffectState.Mode mode) throws Exception {
+        Harness(EffectState.Mode mode) throws Exception { this(mode, false); }
+        Harness(EffectState.Mode mode, boolean probe) throws Exception {
             var state = EffectState.empty().withMode(mode).withSource(SOURCE)
                     .withSource(new EffectSource("other-application", SOURCE.bundle(), FOREIGN.owner(), FOREIGN, Set.of()));
-            session = new EffectSession(engine(load("jolt")), state, request -> {
+            var program = load("jolt");
+            if (probe) {
+                program = CompiledEffects.link(List.of(program.program(), load("proc_jolt_observer").program()));
+                state = state.withSource(new EffectSource("probe", "test:proc_observer", FOREIGN.owner(), FOREIGN, Set.of()));
+            }
+            session = new EffectSession(engine(program), state, request -> {
                 requests.add(request);
                 return switch (request.command()) {
+                    case Action.CueCommand cue -> { cues.add(cue); yield RuleEngine.Empty.INSTANCE; }
                     case StatusResult.Check check -> new StatusResult.Checked(check, decision);
                     case EntityQuery query -> new EntityQuery.Result(query, Optional.ofNullable(views.get(query.target())));
                     case TargetQuery query -> new TargetQuery.Result(query, queryOutcome, queryOutcome == TargetQuery.Outcome.AVAILABLE
@@ -66,6 +74,16 @@ class JoltTest {
         double accumulated() { return jolt().components().numbers().get("damage"); }
         long queries() { return requests.stream().filter(r -> r.command() instanceof TargetQuery).count(); }
         long selfHits() { return chains.stream().filter(c -> c.target().equals("target")).count(); }
+    }
+    @Test void chainDamageExcludesOnlyBoltDischargeWhileNativeTriggerAndOtherProcsStillReact() throws Exception {
+        for (var mode : EffectState.Mode.values()) {
+            var h = new Harness(mode, true); h.hit(0, "apply", 1, true);
+            h.hit(100_000, "trigger", "target", FOREIGN, mode == EffectState.Mode.PVE ? 10.5 : 3.5, false, false, false);
+            assertEquals(2, h.chains.size());
+            assertTrue(h.chains.stream().allMatch(c -> c.proc().deny().equals(Set.of("chorus_d2:bolt_discharge"))));
+            assertEquals(1, h.cues.stream().filter(c -> c.cue().equals("test:discharge")).count());
+            assertEquals(3, h.cues.stream().filter(c -> c.cue().equals("test:allowed")).count());
+        }
     }
     @Test void applicationCountsOnceIncludingImmediateThresholdAndReapplicationRefreshesDuration() throws Exception {
         for (var mode : EffectState.Mode.values()) {

@@ -38,13 +38,13 @@ public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageComma
     }
     public DamageCommand command(String target, ImpactData impact) {
         return new DamageCommand(target, attack.source(), attack.amount(), attack.damageType(), attack.tags(), attack.killTags(),
-                attack.nonLethal(), attack.scalingProfile(), Optional.of(this), impact, attack.shieldScalingProfile(), List.of(), attack.reactions());
+                attack.nonLethal(), attack.scalingProfile(), Optional.of(this), impact, attack.shieldScalingProfile(), List.of(), attack.reactions(), attack.proc());
     }
     public void validate(DamageCommand command) {
         if (!attack.source().equals(command.source()) || attack.amount() != command.amount() || !attack.damageType().equals(command.damageType())
                 || !attack.tags().equals(command.tags()) || !attack.killTags().equals(command.killTags()) || attack.nonLethal() != command.nonLethal()
                 || !attack.scalingProfile().equals(command.scalingProfile()) || !attack.shieldScalingProfile().equals(command.shieldScalingProfile())
-                || !attack.reactions().equals(command.reactions())) throw new IllegalArgumentException("Damage command differs from its captured attack");
+                || !attack.reactions().equals(command.reactions()) || !attack.proc().equals(command.proc())) throw new IllegalArgumentException("Damage command differs from its captured attack");
     }
     public List<NumericContribution> resolve(EffectState state, RuleEngine.Event event) {
         return resolve(state, event, contributions, Optional.empty());

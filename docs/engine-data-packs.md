@@ -880,7 +880,33 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 当前 origin_bundle 只允许 source 作用域，且事件限于 hit / damage_taken / shield_damaged / shield_broken / death_prevented / death / kill；Buff 作用域和其他事件在加载时拒绝。数值快照里的反应选择不可在命中时替换。受管命令在世界执行前校验目录，非空来源选择必须与当前完整程序相等，不能只凭同一个 version 字符串放行；多版本目录并存与迁移仍待实现。没有捕获规则的纯数值快照仍可使用原有跨目录数值路径。
 
-反应产生的新 damage / capture_damage 默认重新捕获当前来源，不自动继承父反应选择；明确的派生继承、丢失继承条件和 proc 排除尚未实现。反应里的 after 仍遵守自身 SOURCE / DETACHED 生命周期，来源已卸下时继续执行需显式 detached。运行时停止或替换仍停止旧物理飞行，保存反应规则不等于恢复了飞行实体。未知世界结果保留待确认操作，不重放已提交的扣血或治疗。
+反应产生的新 damage / capture_damage 默认重新捕获当前来源，不自动继承父反应选择；来源的派生继承和丢失继承条件尚未实现。独立的 proc 排除与继承见下一节。反应里的 after 仍遵守自身 SOURCE / DETACHED 生命周期，来源已卸下时继续执行需显式 detached。运行时停止或替换仍停止旧物理飞行，保存反应规则不等于恢复了飞行实体。未知世界结果保留待确认操作，不重放已提交的扣血或治疗。
+
+## 显式排除后续触发
+
+规则可声明 `proc_key`，伤害动作可声明独立的 `proc` 策略。默认不排除任何触发；规则没有 proc_key 时不受该筛选约束。键是内容约定的命名空间 ID，可以让同一效果的多个来源规则共用一个键；本程序没有接收者的键也允许存在，供后续内容组合使用。
+
+```json
+{"id":"discharge_probe","on":"chorus:hit","proc_key":"chorus_d2:bolt_discharge",
+ "do":[{"type":"chorus:play_cue","cue":"test:discharge"}]}
+```
+
+上面只是接收探针，不是完整 Bolt Charge。Jolt 等明确不能触发放电的伤害可以声明：
+
+```json
+{"type":"chorus:damage","target":"victim","damage_type":"minecraft:generic",
+ "amount":{"type":"chorus:constant","value":2,"unit":"damage"},
+ "tags":["test:chain"],
+ "proc":{"deny":["chorus_d2:bolt_discharge"]}}
+```
+
+2 点伤害为合成示例。deny 只拦截匹配 proc_key 的规则，不取消伤害，不删除 hit / kill 等事实，也不更改 weapon_kill 等信用或数值 Profile。当前来源、捕获的 origin_bundle 来源和活动 Buff 的规则都在求值条件之前检查此策略；没有对应键的普通监听照常执行。事件标签或规则本地 id 恰好与排除项同名，不等于声明了 proc_key。
+
+`damage` 与 `capture_damage` 的 proc 支持 `inherit: "fresh"`（默认）或 `"event"`。fresh 只使用本动作 deny；event 将触发事件的排除集合与本动作 deny 取并集，不解除父排除。是否继承与 `origin: bound / event` 的伤害归属选择相互独立。需要清除旧排除时显式选择 fresh，再列出该新伤害自身的排除项。
+
+capture_damage 在捕获时固定已解析的 ProcPolicy，after / projectile / damage_snapshot 沿用它；命中时不能重写。DamageFacts 将它带到命中、承伤、护盾、死亡保护与死亡 / 击杀事实，原版宿主可通过 DamageCommand.withProc 提供策略。emit / schedule 的事件上下文可保留策略；新的伤害动作仍遵循自身 inherit。Buff 自身长期保存父策略、状态变形时选择性继承等尚未接入。
+
+这是效果定义的排除表，不是循环控制。没有深度上限、祖先规则黑名单或每 root 一次限制；[proc_policy.json](../common/src/test/resources/effects/proc_policy.json) 的测试允许同一规则在同一 root 反复伤害，直到世界确认目标已死亡。未知回执保留 pending，不补造事实或重放。完整 Jolt 联动见 [规则集](d2-ruleset.md#jolt-的归属与施加顺序)。
 
 ## 伤害回执时消费 Buff
 

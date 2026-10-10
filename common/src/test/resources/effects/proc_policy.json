@@ -1,0 +1,521 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:proc_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:listener",
+        "version": "test-1",
+        "duration": 10
+      },
+      "bundle": "test:listener_active"
+    },
+    {
+      "definition": {
+        "id": "test:reward",
+        "version": "test-1",
+        "duration": 10
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:actor",
+      "rules": [
+        {
+          "id": "fire",
+          "on": "test:fire",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:proc_damage",
+              "tags": [
+                "test:child"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ],
+              "proc": {
+                "deny": [
+                  "test:blocked"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:proc_damage",
+                "tags": [
+                  "test:child"
+                ],
+                "kill_tags": [
+                  "chorus:weapon_kill"
+                ],
+                "proc": {
+                  "deny": [
+                    "test:blocked"
+                  ],
+                  "inherit": "event"
+                }
+              },
+              "as": "attack"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "attack",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "launch",
+          "on": "test:launch",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:proc_damage",
+                "tags": [
+                  "test:child"
+                ],
+                "kill_tags": [
+                  "chorus:weapon_kill"
+                ],
+                "proc": {
+                  "deny": [
+                    "test:blocked"
+                  ]
+                }
+              },
+              "as": "attack"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction",
+                "target": "self"
+              },
+              "as": "aim"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "for_each": "impact",
+                  "as": "target",
+                  "do": [
+                    {
+                      "type": "chorus:damage_snapshot",
+                      "snapshot": "attack",
+                      "target": {
+                        "binding": "target"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fresh",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:spawn_fresh"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:proc_damage",
+              "tags": [
+                "test:child"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "inherit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:spawn_inherit"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:proc_damage",
+              "tags": [
+                "test:child"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ],
+              "proc": {
+                "inherit": "event",
+                "deny": [
+                  "test:other"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:observer",
+      "rules": [
+        {
+          "id": "plain",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              },
+              "target": "self",
+              "tags": [
+                "test:plain"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "blocked",
+          "on": "chorus:hit",
+          "proc_key": "test:blocked",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "target": "self",
+              "tags": [
+                "test:blocked"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "other",
+          "on": "chorus:hit",
+          "proc_key": "test:other",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "damage"
+              },
+              "target": "self",
+              "tags": [
+                "test:other"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "origin",
+          "on": "chorus:hit",
+          "binding": "origin_bundle",
+          "proc_key": "test:blocked",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 4,
+                "unit": "damage"
+              },
+              "target": "self",
+              "tags": [
+                "test:origin"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "proc_key": "test:blocked",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:reward"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:listener_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "buff",
+          "on": "chorus:hit",
+          "proc_key": "test:blocked",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:child"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "damage"
+              },
+              "target": "self",
+              "tags": [
+                "test:buff"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:loop",
+      "rules": [
+        {
+          "id": "again",
+          "on": "chorus:hit",
+          "proc_key": "test:loop",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:loop"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:proc_damage",
+              "tags": [
+                "test:loop"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

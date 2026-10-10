@@ -5,6 +5,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 public class JoltGameTest extends com.imdomestic.chorus.test.JoltGameTest {
     @GameTest(structure = "chorus_gametest:empty") @Override
+    public void actualJoltChainsDenyBoltDischargeButKeepOtherHitReactions(GameTestHelper h) throws Exception { super.actualJoltChainsDenyBoltDischargeButKeepOtherHitReactions(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
     public void nativeApplyingHitCountsAndAnotherAttackerOwnsModeSpecificChainDamage(GameTestHelper h) throws Exception { super.nativeApplyingHitCountsAndAnotherAttackerOwnsModeSpecificChainDamage(h); }
     @GameTest(structure = "chorus_gametest:empty") @Override
     public void playerCenterRequiresActualOtherPlayerLossIncludingAbsorptionAndRejectsCancelledChains(GameTestHelper h) throws Exception { super.playerCenterRequiresActualOtherPlayerLossIncludingAbsorptionAndRejectsCancelledChains(h); }

@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.buff.*;
 import com.imdomestic.chorus.effect.ability.AbilityDefinition;
 import com.imdomestic.chorus.effect.weapon.WeaponDefinition;
 import com.imdomestic.chorus.effect.ammo.AmmoState;
+import com.imdomestic.chorus.effect.combat.ProcPolicy;
 import com.imdomestic.chorus.effect.resource.ResourceDefinition;
 import com.imdomestic.chorus.stat.*;
 import com.imdomestic.chorus.stat.codec.StatCodecs;
@@ -22,6 +23,10 @@ import java.util.Set;
 /** Open type registries plus closed record schemas. Parsing and compilation both return data errors. */
 public final class EffectCodecs {
     private EffectCodecs() {}
+    private static final Codec<ProcPolicy.Spec> PROC = strict(RecordCodecBuilder.create(i -> i.group(
+            ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("deny", Set.of()).forGetter(ProcPolicy.Spec::deny),
+            enumeration(ProcPolicy.Inherit.class).optionalFieldOf("inherit", ProcPolicy.Inherit.FRESH).forGetter(ProcPolicy.Spec::inherit)
+    ).apply(i, ProcPolicy.Spec::new)), Set.of("deny", "inherit"));
     private static final Codec<Evaluation.BoundTarget> BOUND_TARGET = strict(RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("binding").forGetter(Evaluation.BoundTarget::binding)
     ).apply(i, Evaluation.BoundTarget::new)), Set.of("binding"));
@@ -262,7 +267,8 @@ public final class EffectCodecs {
                         ID.optionalFieldOf("scaling_profile").forGetter(Action.Damage::scalingProfile),
                         Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.Damage::impact),
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.Damage::origin),
-                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.Damage::shieldScalingProfile)).apply(i, Action.Damage::new)))
+                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.Damage::shieldScalingProfile),
+                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.Damage::proc)).apply(i, Action.Damage::new)))
                 .register("chorus:capture_value", Action.CaptureValue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("value").forGetter(Action.CaptureValue::value)).apply(i, Action.CaptureValue::new)))
                 .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -272,7 +278,8 @@ public final class EffectCodecs {
                         Codec.BOOL.optionalFieldOf("non_lethal", false).forGetter(Action.CaptureDamage::nonLethal),
                         ID.fieldOf("scaling_profile").forGetter(Action.CaptureDamage::scalingProfile),
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.CaptureDamage::origin),
-                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.CaptureDamage::shieldScalingProfile)).apply(i, Action.CaptureDamage::new)))
+                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.CaptureDamage::shieldScalingProfile),
+                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.CaptureDamage::proc)).apply(i, Action.CaptureDamage::new)))
                 .register("chorus:damage_snapshot", Action.DamageCaptured.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
@@ -422,8 +429,9 @@ public final class EffectCodecs {
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.Rule::condition), step.listOf().fieldOf("do").forGetter(EffectProgram.Rule::actions),
-                enumeration(EffectProgram.ReactionBinding.class).optionalFieldOf("binding", EffectProgram.ReactionBinding.CURRENT_OWNER_BUNDLE).forGetter(EffectProgram.Rule::binding)
-        ).apply(i, EffectProgram.Rule::new)), Set.of("id", "on", "if", "do", "binding"));
+                enumeration(EffectProgram.ReactionBinding.class).optionalFieldOf("binding", EffectProgram.ReactionBinding.CURRENT_OWNER_BUNDLE).forGetter(EffectProgram.Rule::binding),
+                ID.optionalFieldOf("proc_key").forGetter(EffectProgram.Rule::procKey)
+        ).apply(i, EffectProgram.Rule::new)), Set.of("id", "on", "if", "do", "binding", "proc_key"));
         Codec<EffectProgram.Modifier> modifier = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Modifier::id), ID.fieldOf("profile").forGetter(EffectProgram.Modifier::profile),
                 Codec.STRING.fieldOf("stage").forGetter(EffectProgram.Modifier::stage), Codec.STRING.fieldOf("group").forGetter(EffectProgram.Modifier::group),

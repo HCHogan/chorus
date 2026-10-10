@@ -128,8 +128,11 @@ public interface Action {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Local<>(e.state(), new CapturedValue(value.evaluate(e)), List.of()); }
     }
-    record CaptureDamage(Value amount, String damageType, Set<String> tags, Set<String> killTags, boolean nonLethal, String scalingProfile, ActionOrigin origin, Optional<String> shieldScalingProfile) implements Action {
-        public CaptureDamage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); }
+    record CaptureDamage(Value amount, String damageType, Set<String> tags, Set<String> killTags, boolean nonLethal, String scalingProfile, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc) implements Action {
+        public CaptureDamage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); java.util.Objects.requireNonNull(proc); }
+        public CaptureDamage(Value amount, String damageType, Set<String> tags, Set<String> killTags, boolean nonLethal, String scalingProfile, ActionOrigin origin, Optional<String> shieldScalingProfile) {
+            this(amount, damageType, tags, killTags, nonLethal, scalingProfile, origin, shieldScalingProfile, ProcPolicy.Spec.DEFAULT);
+        }
         public CaptureDamage(Value amount, String damageType, Set<String> tags, Set<String> killTags, boolean nonLethal, String scalingProfile, ActionOrigin origin) {
             this(amount, damageType, tags, killTags, nonLethal, scalingProfile, origin, Optional.empty());
         }
@@ -143,7 +146,8 @@ public interface Action {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
-            var attack = new DamageCommand(e.self(), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, Optional.of(scalingProfile), Optional.empty(), ImpactData.EMPTY, shieldScalingProfile);
+            var attack = new DamageCommand(e.self(), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, Optional.of(scalingProfile), Optional.empty(), ImpactData.EMPTY, shieldScalingProfile)
+                    .withProc(proc.resolve(e.context().event().signal().payload()));
             var snapshot = e.program().orElseThrow(() -> new IllegalStateException("Snapshot action needs its compiled program")).captureDamage(e.state(), attack);
             return new RuleEngine.Local<>(e.state(), snapshot, List.of());
         }
@@ -193,8 +197,12 @@ public interface Action {
         }
     }
     record Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
-            boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile) implements Action {
-        public Damage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(scalingProfile); impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); }
+            boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc) implements Action {
+        public Damage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(scalingProfile); impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); java.util.Objects.requireNonNull(proc); }
+        public Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
+                boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile) {
+            this(target, amount, damageType, tags, killTags, nonLethal, scalingProfile, impact, origin, shieldScalingProfile, ProcPolicy.Spec.DEFAULT);
+        }
         public Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
                 boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin) {
             this(target, amount, damageType, tags, killTags, nonLethal, scalingProfile, impact, origin, Optional.empty());
@@ -219,7 +227,8 @@ public interface Action {
         }
         private DamageCommand request(Evaluation e) {
             var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
-            return prepareDamage(e, new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile));
+            return prepareDamage(e, new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile)
+                    .withProc(proc.resolve(e.context().event().signal().payload())));
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(request(e)); }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {

@@ -1042,6 +1042,8 @@ record DamageSnapshot(
 
 上例仅展示字段形状，具体状态选用自己的继承配置。basis 可以是 fresh_definition 或 named_projection。后者要声明投影已包含的倍率，子动作只应用尚未包含且允许的项；用命名投影表达分享 / 转换伤害，不能从已暴击的最终数字粗暴除一次暴击倍率代替定义。proc 默认允许，只有效果原文明确的排除才加入 deny。
 
+其中 proc 已有独立实现：规则声明 proc_key，damage / capture_damage 声明 `proc: {"deny":[...], "inherit":"fresh"|"event"}`；默认 fresh，只保留本动作排除，event 则与触发事件的排除取并集。实际命中事实携带策略，当前来源、已捕获来源和 Buff 规则在求值条件前筛选，其他规则照常执行。数值快照固定策略，命中时不可改写；归属与信用不因排除改变。Jolt 已声明禁止 Bolt Charge 放电，并用真实链伤与接收探针验收；完整 Bolt Charge 尚未实现。更广的来源 / 数值 / Buff 继承与 lose_on 仍是目标协议。字段见 [proc 说明](engine-data-packs.md#显式排除后续触发)。
+
 ### 伤害结算结果
 
 同一结算时刻、同一目标的伤害事务按分量及各自 Profile 计算，在确定顺序下更新血池。每个目标返回独立 DamageResult；延迟爆炸 / DOT 后续命中创建新 damage id，不把跨时间伤害强行并入一个结果。规则声明自己读哪个命名阶段或投影：

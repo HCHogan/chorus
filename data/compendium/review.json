@@ -611,15 +611,21 @@
           "sheet": "Weapon Perks",
           "cell": "C243",
           "text_sha256": "e7a0e6d07265e4454be06cbfa36be8444bff6568ea4ea7eafe21ea74da961880"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D5",
+          "text_sha256": "88fb6b3b914d27f1de4e549d1a075c2ebbd2ac104dbf381bf53256aa4f791ae3"
         }
       ],
-      "scope": "独立 JSON 状态：施加击累计及顺序例外、刷新、阈值/冷却、触发者归属、实际其他玩家损失后的中心链伤、致死阈值及同因果链的相邻连锁；真实双端世界验收，缩放与余量等策略仍待校准",
+      "scope": "独立 JSON 状态：施加击累计及顺序例外、刷新、阈值/冷却、触发者归属、实际其他玩家损失后的中心链伤、致死阈值及同因果链的相邻连锁；真实双端世界验收，缩放与余量等策略仍待校准；链伤显式排除Bolt Charge放电，普通命中及其他proc保留，已用接收探针与真实链伤验证",
       "acceptance": [
         "持续 10/PvP 5 秒，重新施加刷新；一般施加击计入，来源特例单独声明顺序",
         "累计 115/PvP 45 伤害，放电间隔 0.8 秒；冷却期累计与溢出政策仍待明确",
         "对 12 米内敌人造成 119/PvP 51 Arc 伤害；Guardian 中心仅在该链伤到其他 Guardian 时承受链伤",
         "Overload 受到 Jolt 伤害后眩晕",
-        "施加者与放电触发者分开归属，武器身份不自动赋予武器伤害信用；官方归属及 Lightning Grenade 例外见 d2-ruleset"
+        "施加者与放电触发者分开归属，武器身份不自动赋予武器伤害信用；官方归属及 Lightning Grenade 例外见 d2-ruleset",
+        "Jolt链伤不能触发Bolt Charge放电；该排除独立于来源/信用/伤害，不阻止其他合格反应"
       ],
       "evidence": [
         {
@@ -727,13 +733,28 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
           "symbol": "nativeCooldownBlocksEarlyHitsAndAllowsAnotherActivationAtExactDeadline"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/proc_jolt_observer.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/JoltTest.java",
+          "symbol": "chainDamageExcludesOnlyBoltDischargeWhileNativeTriggerAndOtherProcsStillReact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/JoltGameTest.java",
+          "symbol": "actualJoltChainsDenyBoltDischargeButKeepOtherHitReactions"
         }
       ],
       "gaps": [
         "0.1 单位投影、完整等级缩放和 Guardian / 勇士分类仍待校准；尚无 Overload 眩晕",
         "当前超额清零，冷却内伤害丢弃但去重，阈值不含 Absorption，刷新保留首次来源；这些选择缺少完整原作证据",
         "阵营暂依赖仍在同维度的原施加者；离线/跨维度关系快照、真实技能/武器施加及正式伤害类型未装配",
-        "首次致死施加不创建状态或放电，来源特例由 test 标签显式选序，完整原作时序仍须按目标版本验收"
+        "首次致死施加不创建状态或放电，来源特例由 test 标签显式选序，完整原作时序仍须按目标版本验收",
+        "Bolt Charge放电排除使用同proc_key接收探针验收；完整满层资格、武器命中计数、延迟、回能和真实放电尚未实现"
       ]
     },
     {

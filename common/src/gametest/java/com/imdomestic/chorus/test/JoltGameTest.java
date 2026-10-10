@@ -34,6 +34,7 @@ public class JoltGameTest {
         final LivingEntity applier, trigger, target, neighbor;
         final BuffInstance.Origin application, triggering;
         final List<DamageCommand> commands = new ArrayList<>();
+        final List<com.imdomestic.chorus.effect.data.Action.CueCommand> cues = new ArrayList<>();
         final List<DamageReceipt> receipts = new ArrayList<>();
         final List<StatusResult.Checked> qualifications = new ArrayList<>();
         final List<Long> queryRoots = new ArrayList<>();
@@ -41,7 +42,8 @@ public class JoltGameTest {
         final String marker = "jolt-" + UUID.randomUUID();
         MinecraftEffectRuntime runtime;
         boolean applying, afterDamage;
-        Harness(GameTestHelper helper, EffectState.Mode mode, boolean players) throws Exception {
+        Harness(GameTestHelper helper, EffectState.Mode mode, boolean players) throws Exception { this(helper, mode, players, false); }
+        Harness(GameTestHelper helper, EffectState.Mode mode, boolean players, boolean probe) throws Exception {
             this.helper = helper; applier = cow(1); trigger = cow(4);
             // Stay inside the test's loaded horizontal area; keep the trigger outside the radius vertically.
             trigger.setPos(trigger.getX(), trigger.getY() + 32, trigger.getZ());
@@ -54,14 +56,19 @@ public class JoltGameTest {
             try (var reader = new InputStreamReader(Objects.requireNonNull(JoltGameTest.class.getResourceAsStream("/effects/jolt.json")), StandardCharsets.UTF_8)) {
                 program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
             }
+            if (probe) try (var reader = new InputStreamReader(Objects.requireNonNull(JoltGameTest.class.getResourceAsStream("/effects/proc_jolt_observer.json")), StandardCharsets.UTF_8)) {
+                program = CompiledEffects.link(List.of(program.program(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow()));
+            }
             var type = helper.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse("chorus_gametest:delayed")));
-            var world = new MinecraftWorldActions(helper.getLevel(), this::resolve, command -> new DamageSource(type, null, resolve(command.source().owner())), (_, _) -> true, _ -> {});
+            var world = new MinecraftWorldActions(helper.getLevel(), this::resolve, command -> new DamageSource(type, null, resolve(command.source().owner())), (_, _) -> true, cues::add);
             TestDamageHooks.ALLOW_DAMAGE.register((entity, source, _) -> {
                 if (entity.entityTags().contains(marker) && source.typeHolder().equals(type)) nativeOwners.add(source.getEntity() == null ? "" : id((LivingEntity) source.getEntity()));
                 return true;
             });
             var source = new EffectSource("application", "chorus_d2:jolt_application", id(applier), application, Set.of());
-            runtime = MinecraftEffectRuntime.install(helper.getLevel(), program, EffectState.empty().withMode(mode).withSource(source),
+            var state = EffectState.empty().withMode(mode).withSource(source);
+            if (probe) state = state.withSource(new EffectSource("probe", "test:proc_observer", id(trigger), triggering, Set.of()));
+            runtime = MinecraftEffectRuntime.install(helper.getLevel(), program, state,
                     new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                         if (request.command() instanceof TargetQuery) queryRoots.add(runtime.state().engine().frames().getFirst().event().root());
                         var result = world.apply(request);
@@ -96,6 +103,17 @@ public class JoltGameTest {
         Optional<BuffInstance> buff(String definition, LivingEntity holder) { return runtime.state().engine().domain().buffs().instances().values().stream()
                 .filter(b -> b.definition().id().equals(definition) && b.key().holder().equals(id(holder))).findFirst(); }
         @Override public void close() { if (runtime != null) runtime.close(); entities.forEach(LivingEntity::discard); }
+    }
+    @GameCase public void actualJoltChainsDenyBoltDischargeButKeepOtherHitReactions(GameTestHelper h) throws Exception {
+        for (var mode : EffectState.Mode.values()) try (var t = new Harness(h, mode, false, true)) {
+            double threshold = mode == EffectState.Mode.PVE ? 11.5 : 4.5, chain = mode == EffectState.Mode.PVE ? 11.9 : 5.1;
+            t.hit(t.target, t.applier, 1, true); t.hit(t.target, t.trigger, (float) threshold - 1, false);
+            near(h, t.target.getHealth(), 100 - threshold - chain, "center real damage retained"); near(h, t.neighbor.getHealth(), 100 - chain, "neighbor real chain retained");
+            h.assertValueEqual(t.cues.stream().filter(c -> c.cue().equals("test:discharge")).count(), 1L, "only native trigger may reach discharge probe");
+            h.assertValueEqual(t.cues.stream().filter(c -> c.cue().equals("test:allowed")).count(), 3L, "unrelated proc sees native hit and both chains");
+            h.assertTrue(t.commands.stream().allMatch(c -> c.proc().deny().equals(Set.of("chorus_d2:bolt_discharge"))), "Jolt exclusion was not declared on every damage command");
+        }
+        h.succeed();
     }
     @GameCase public void nativeApplyingHitCountsAndAnotherAttackerOwnsModeSpecificChainDamage(GameTestHelper h) throws Exception {
         for (var mode : EffectState.Mode.values()) try (var test = new Harness(h, mode, false)) {

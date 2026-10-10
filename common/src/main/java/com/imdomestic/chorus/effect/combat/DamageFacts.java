@@ -28,7 +28,7 @@ public final class DamageFacts {
         var flags = Map.of("lethal", receipt.lethal(), "immune", receipt.outcome() == DamageReceipt.Outcome.IMMUNE,
                 "blocked", receipt.outcome() == DamageReceipt.Outcome.BLOCKED, "applied", receipt.outcome() == DamageReceipt.Outcome.APPLIED,
                 "death_prevented", receipt.deathPrevented());
-        var event = new EffectEvent(command.source().owner(), command.target(), command.source(), command.tags(), numbers, flags, references, command.impact(), command.reactions());
+        var event = new EffectEvent(command.source().owner(), command.target(), command.source(), command.tags(), numbers, flags, references, command.impact(), command.reactions(), command.proc());
         var signals = new ArrayList<RuleEngine.Signal>(); signals.add(new RuleEngine.Signal("chorus:hit", event));
         if (receipt.effective(true) > 0) signals.add(new RuleEngine.Signal("chorus:damage_taken", event));
         for (var shield : receipt.shields()) if (shield.trace().capacityLoss() > 0) {
@@ -38,7 +38,7 @@ public final class DamageFacts {
             shieldNumbers.put("layer_loss", new Measure(shield.trace().capacityLoss(), Unit.DAMAGE));
             shieldNumbers.put("layer_remaining", new Measure(shield.after(), Unit.DAMAGE));
             var shieldTags = new HashSet<>(event.tags()); shieldTags.addAll(shield.before().definition().tags());
-            var changed = new EffectEvent(event.actor(), event.victim(), event.source(), shieldTags, shieldNumbers, flags, shieldRefs, command.impact(), command.reactions());
+            var changed = new EffectEvent(event.actor(), event.victim(), event.source(), shieldTags, shieldNumbers, flags, shieldRefs, command.impact(), command.reactions(), command.proc());
             signals.add(new RuleEngine.Signal("chorus:shield_damaged", changed));
             if (shield.after() == 0) signals.add(new RuleEngine.Signal("chorus:shield_broken", changed));
         }
@@ -47,7 +47,7 @@ public final class DamageFacts {
             signals.add(new RuleEngine.Signal("chorus:death", event));
             if (!command.source().owner().isEmpty()) {
                 var tags = new HashSet<>(command.tags()); tags.addAll(command.killTags());
-                signals.add(new RuleEngine.Signal("chorus:kill", new EffectEvent(event.actor(), event.victim(), event.source(), tags, numbers, flags, references, command.impact(), command.reactions())));
+                signals.add(new RuleEngine.Signal("chorus:kill", new EffectEvent(event.actor(), event.victim(), event.source(), tags, numbers, flags, references, command.impact(), command.reactions(), command.proc())));
             }
         }
         return List.copyOf(signals);

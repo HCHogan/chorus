@@ -11,7 +11,8 @@ import java.util.Set;
 /** Facts captured by an adapter. Query context also uses this shape; missing measurements are not zero. */
 public record EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
         Map<String, Boolean> flags, Map<String, String> references, ImpactData impact,
-        java.util.Optional<com.imdomestic.chorus.effect.data.ReactionSnapshot> reactions)
+        java.util.Optional<com.imdomestic.chorus.effect.data.ReactionSnapshot> reactions,
+        com.imdomestic.chorus.effect.combat.ProcPolicy proc)
         implements RuleEngine.Payload {
     /** Typed payloads may expose the common DSL event context without discarding their richer receipt. */
     public interface Carrier extends RuleEngine.Payload { EffectEvent event(); }
@@ -20,7 +21,13 @@ public record EffectEvent(String actor, String victim, BuffInstance.Origin sourc
         tags = Set.copyOf(tags); numbers = Map.copyOf(numbers); flags = Map.copyOf(flags); references = Map.copyOf(references);
         Objects.requireNonNull(impact);
         Objects.requireNonNull(reactions);
+        Objects.requireNonNull(proc);
         if (reactions.isPresent() && !reactions.orElseThrow().owner().equals(source.owner())) throw new IllegalArgumentException("Foreign reaction owner");
+    }
+    public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
+            Map<String, Boolean> flags, Map<String, String> references, ImpactData impact,
+            java.util.Optional<com.imdomestic.chorus.effect.data.ReactionSnapshot> reactions) {
+        this(actor, victim, source, tags, numbers, flags, references, impact, reactions, com.imdomestic.chorus.effect.combat.ProcPolicy.ALLOW);
     }
     public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
             Map<String, Boolean> flags, Map<String, String> references, ImpactData impact) {

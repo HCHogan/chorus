@@ -1,0 +1,11 @@
+{
+  "version":"test-jolt-v1",
+  "bundles":[{"id":"test:proc_observer","rules":[
+    {"id":"discharge","on":"chorus:hit","proc_key":"chorus_d2:bolt_discharge",
+      "if":{"type":"chorus:source_is","source":"owner"},
+      "do":[{"type":"chorus:play_cue","cue":"test:discharge"}]},
+    {"id":"other","on":"chorus:hit","proc_key":"test:unrelated_proc",
+      "if":{"type":"chorus:source_is","source":"owner"},
+      "do":[{"type":"chorus:play_cue","cue":"test:allowed"}]}
+  ]}]
+}

@@ -56,8 +56,9 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     public record HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags) {
         public HealthRecovery { tags = java.util.Set.copyOf(tags); }
     }
-    public record Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding) {
-        public Rule { actions = List.copyOf(actions); java.util.Objects.requireNonNull(binding); }
+    public record Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding, Optional<String> procKey) {
+        public Rule { actions = List.copyOf(actions); java.util.Objects.requireNonNull(binding); java.util.Objects.requireNonNull(procKey); }
+        public Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding) { this(id, on, condition, actions, binding, Optional.empty()); }
         public Rule(String id, String on, Condition condition, List<Step> actions) { this(id, on, condition, actions, ReactionBinding.CURRENT_OWNER_BUNDLE); }
     }
     public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile {}

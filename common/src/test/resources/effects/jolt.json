@@ -361,7 +361,12 @@
                                       "chorus:arc_damage",
                                       "chorus:status_damage",
                                       "chorus_d2:jolt_damage"
-                                    ]
+                                    ],
+                                    "proc": {
+                                      "deny": [
+                                        "chorus_d2:bolt_discharge"
+                                      ]
+                                    }
                                   },
                                   "as": "chain"
                                 },
@@ -473,7 +478,12 @@
                                 "chorus:arc_damage",
                                 "chorus:status_damage",
                                 "chorus_d2:jolt_damage"
-                              ]
+                              ],
+                              "proc": {
+                                "deny": [
+                                  "chorus_d2:bolt_discharge"
+                                ]
+                              }
                             }
                           ]
                         }
@@ -703,7 +713,12 @@
                                       "chorus:arc_damage",
                                       "chorus:status_damage",
                                       "chorus_d2:jolt_damage"
-                                    ]
+                                    ],
+                                    "proc": {
+                                      "deny": [
+                                        "chorus_d2:bolt_discharge"
+                                      ]
+                                    }
                                   },
                                   "as": "chain"
                                 },
@@ -815,7 +830,12 @@
                                 "chorus:arc_damage",
                                 "chorus:status_damage",
                                 "chorus_d2:jolt_damage"
-                              ]
+                              ],
+                              "proc": {
+                                "deny": [
+                                  "chorus_d2:bolt_discharge"
+                                ]
+                              }
                             }
                           ]
                         }
