@@ -21,6 +21,7 @@ public final class SnapshotExpressions {
             case Value.Round v -> new Value.Round(v.input().snapshot(e), v.mode());
             case Value.BuffCount v -> target(v.target()) ? v : literal(v, e);
             case Value.Component v -> target(v.target()) ? v : literal(v, e);
+            case Value.Attribute v -> target(v.target()) ? new Value.Attribute(v.profile(),v.input().snapshot(e),v.target()) : literal(v,e);
             case Value.ByStacks v -> literal(v, e);
             case Value.ByBuffTier v -> literal(v, e);
             case Value.BySourceTag v -> v.selected(e).snapshot(e);

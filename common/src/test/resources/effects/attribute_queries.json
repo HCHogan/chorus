@@ -1,0 +1,305 @@
+{
+  "version": "attribute-query-test",
+  "profiles": [
+    {
+      "id": "test:points",
+      "version": "attribute-query-test",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
+    },
+    {
+      "id": "test:other",
+      "version": "attribute-query-test",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
+    },
+    {
+      "id": "test:damage",
+      "version": "attribute-query-test",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "multiply",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:capacity",
+      "version": "attribute-query-test",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:boost",
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "test:points",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "stacking_key": "test:points",
+          "reference": "Synthetic attribute query acceptance",
+          "confidence": "assumed"
+        },
+        {
+          "id": "trap",
+          "profile": "test:points",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1000,
+            "unit": "stat_point"
+          },
+          "stacking_key": "test:trap",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:contamination"
+          },
+          "reference": "Synthetic attribute query acceptance",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:penalty",
+      "modifiers": [
+        {
+          "id": "penalty",
+          "profile": "test:points",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": -60,
+            "unit": "stat_point"
+          },
+          "stacking_key": "test:penalty",
+          "reference": "Synthetic attribute query acceptance",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:attack",
+      "modifiers": [
+        {
+          "id": "owner",
+          "profile": "test:damage",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:attribute",
+              "profile": "test:points",
+              "target": "self",
+              "input": {
+                "type": "chorus:constant",
+                "value": 50,
+                "unit": "stat_point"
+              }
+            },
+            "factor": 0.01,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "stacking_key": "test:owner",
+          "reference": "Synthetic attribute query acceptance",
+          "confidence": "assumed"
+        },
+        {
+          "id": "victim",
+          "profile": "test:damage",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:attribute",
+              "profile": "test:points",
+              "target": "victim",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "stat_point"
+              }
+            },
+            "factor": 0.01,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "stacking_key": "test:victim",
+          "reference": "Synthetic attribute query acceptance",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:driver",
+      "rules": [
+        {
+          "id": "now",
+          "on": "test:now",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:attribute",
+                  "profile": "test:points",
+                  "target": "self",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 50,
+                    "unit": "stat_point"
+                  }
+                }
+              },
+              "as": "points"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "points",
+                  "field": "value"
+                },
+                "factor": 0.1,
+                "from": "stat_point",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:attribute",
+                  "profile": "test:points",
+                  "target": "self",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 50,
+                    "unit": "stat_point"
+                  }
+                }
+              },
+              "as": "points"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "points",
+                      "field": "value"
+                    },
+                    "factor": 0.1,
+                    "from": "stat_point",
+                    "to": "damage"
+                  }
+                },
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:attribute",
+                      "profile": "test:points",
+                      "target": "self",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 50,
+                        "unit": "stat_point"
+                      }
+                    },
+                    "factor": 0.1,
+                    "from": "stat_point",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

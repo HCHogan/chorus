@@ -351,6 +351,8 @@ CalculationTrace = 输入 / 版本 + 使用与排除的贡献及原因 + 各阶�
 
 实体属性可以投影到原版 Attribute 供客户端物理使用，但不得把已经归约的结果再次作为原版倍率叠加。伤害数值和技能资源由 Chorus 计算；生命值以原版为准，见「与原版和其他模组联动」。属性定义声明输入 / 输出单位，例如 `stat_point → second`，不能把装填属性点直接与装填时间倍率相加。
 
+属性作为其他公式的输入时，使用 `attribute` 只读表达式查询 `stat_point → stat_point` Profile，再由消费者应用冷却 / 回能等曲线。它读取当前实体自己的来源与 Buff，在独立查询上下文中归约加值及限幅，不把击杀标签、武器身份或外层测量带入属性计算，也不把计算结果写回基础属性。`calculate` 仍用于需要显式结果与完整轨迹的动作序列。来源侧属性在 on_use 捕获时冻结；victim 属性保留至各次命中查询。属性与动态弹匣容量共享不可变数值依赖路径，未定义的自引用报错；该路径不参与事件触发资格。
+
 ```json
 { "stat": "chorus:reload_speed", "op": "add", "stage": "stat_flat",
   "unit": "stat_point", "value": 70, "group": "flat", "stacking_key": "chorus:outlaw" }

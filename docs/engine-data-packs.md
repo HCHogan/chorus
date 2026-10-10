@@ -1623,6 +1623,23 @@ Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 
 
 ## 动作序列中的数值 Profile 查询
 
+### 在公式中读取实体属性
+
+`chorus:attribute` 是只读 Value，查询指定实体的当前属性，输入和输出必须均为 stat_point。它用于把装备 / 碎片加值和属性限幅的结果交给回能、冷却或伤害曲线，而不是让每条曲线直接读取未经修饰的基础组件：
+
+```json
+{"type":"chorus:attribute","profile":"chorus_d2:melee_stat","target":"self",
+ "input":{"type":"chorus:component","buff":"chorus_d2:melee_stat","component":"points"}}
+```
+
+`target` 默认 self，也支持现有目标引用。input 在调用处求值；Profile 在被查询实体的独立上下文中计算：actor / victim / source.owner 均为该实体，source.source 为 Profile ID，武器 / 技能、标签、测量、引用及历史观察为空。属性修饰自己的绑定来源仍可读取。这样外层武器击杀等条件不会意外参与实体属性；需要触发上下文或任意单位转换的查询继续使用下面的 calculate 动作。
+
+查询不写状态、不发事件、不执行世界请求，缺失 Profile / 错误单位 / 缺失基础组件明确失败。CompiledEffects.attribute 返回包含基础输入及贡献的完整 CalculationProfile.Result，表达式读取其输出；外层轨迹保存最终贡献数值，暂不自动嵌套属性的子轨迹。
+
+on_use 的来源属性必须在捕获时可求值，结果保存为常量；victim 属性保留为表达式，其 input 的来源操作数先冻结，命中时使用当前目标及当前程序的属性定义。缺失或不兼容的新定义明确失败。属性依赖按实体 + Profile 区分，跨实体读取同一 Profile 合法；直接、相互以及通过动态弹匣容量返回自身的数值依赖会报错，不改写状态或截断效果事件链。完整例子见 [attribute_queries.json](../common/src/test/resources/effects/attribute_queries.json)，其中加值与治疗 / 伤害比例均为合成验收输入。
+
+### 显式计算动作
+
 `chorus:calculate` 在当前已提交状态上执行一次只读查询，返回带类型的 `input` / `value` 字段。它不消费资源、不修改 Buff、不产生事件或世界请求。Java 的 `CalculationActions.Result` 保留被查询持有者、最终查询上下文与完整 `CalculationProfile.Result`，可检查各阶段、贡献来源、版本和置信度。
 
 ```json

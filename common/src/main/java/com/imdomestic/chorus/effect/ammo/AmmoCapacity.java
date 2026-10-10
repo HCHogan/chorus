@@ -31,6 +31,6 @@ public final class AmmoCapacity {
     /** Immutable dependency path diagnoses undefined numerical self-reference; it does not constrain event chains. */
     public record Query(EffectEvent event, Set<String> dependencies) implements EffectEvent.Carrier {
         public Query { Objects.requireNonNull(event); dependencies = Set.copyOf(dependencies); }
-        public static Set<String> dependencies(RuleEngine.Payload payload) { return payload instanceof Query q ? q.dependencies() : Set.of(); }
+        public static Set<String> dependencies(RuleEngine.Payload payload) { return com.imdomestic.chorus.effect.data.NumericQuery.Path.from(payload).ammunition(); }
     }
 }

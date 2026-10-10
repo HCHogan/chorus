@@ -81,6 +81,17 @@ public interface Value {
             return new Measure(value, instance.definition().components().number(component).unit());
         }
     }
+    /** Resolve an entity's attribute in its own isolated query context before applying a consumer's curve. */
+    record Attribute(String profile,Value input,Evaluation.Target target) implements Value {
+        public Attribute { java.util.Objects.requireNonNull(profile);java.util.Objects.requireNonNull(input);java.util.Objects.requireNonNull(target); }
+        @Override public Unit unit(Validation v) {
+            v.target(target);Validation.same(input.unit(v),Unit.STAT_POINT);return v.attributeProfile(profile).outputUnit();
+        }
+        @Override public Measure evaluate(Evaluation e) {
+            return e.program().orElseThrow(()->new IllegalStateException("Attribute requires a compiled program"))
+                    .attribute(e.state(),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload())).output();
+        }
+    }
     record ByStacks(List<Double> values, Unit quantity) implements Value {
         public ByStacks { values = List.copyOf(values); }
         @Override public Unit unit(Validation v) {
