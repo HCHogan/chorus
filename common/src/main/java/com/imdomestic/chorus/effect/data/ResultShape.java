@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT, ENTITY_OBSERVATION }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
@@ -99,13 +99,17 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     private static com.imdomestic.chorus.effect.target.EntityQuery.Result entity(RuleEngine.ActionResult result) {
         return (com.imdomestic.chorus.effect.target.EntityQuery.Result) result;
     }
+    public void requireEntityObservation() { if (reference != Reference.ENTITY_OBSERVATION) throw new IllegalArgumentException("Result is not an entity observation"); }
+    public boolean entityTag(RuleEngine.ActionResult result, com.imdomestic.chorus.effect.target.EntityQuery.TagSource source, String tag) {
+        requireEntityObservation(); return entity(result).available().hasTag(source, tag);
+    }
     public static final ResultShape ENTITY = new ResultShape(Map.of(
             "health", new Field(Unit.DAMAGE, result -> entity(result).available().health()),
             "max_health", new Field(Unit.DAMAGE, result -> entity(result).available().maximumHealth()),
             "absorption", new Field(Unit.DAMAGE, result -> entity(result).available().absorption()),
             "health_fraction", new Field(Unit.MULTIPLIER, result -> entity(result).available().health() / entity(result).available().maximumHealth())),
             Map.of("available", result -> entity(result).view().isPresent(), "missing", result -> entity(result).view().isEmpty(),
-                    "alive", result -> entity(result).available().alive(), "player", result -> entity(result).available().player()));
+                    "alive", result -> entity(result).available().alive(), "player", result -> entity(result).available().player()), false, Reference.ENTITY_OBSERVATION);
     public DamageSnapshot snapshot(RuleEngine.ActionResult result) { requireSnapshot(); return (DamageSnapshot) result; }
     public static final ResultShape DAMAGE_SNAPSHOT = new ResultShape(Map.of("base_damage", new Field(Unit.DAMAGE,
             result -> ((DamageSnapshot) result).attack().amount())), Map.of(), false, Reference.DAMAGE_SNAPSHOT);

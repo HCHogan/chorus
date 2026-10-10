@@ -146,6 +146,10 @@ public final class EffectCodecs {
                         TARGET.fieldOf("left").forGetter(Condition.TargetIs::left), TARGET.fieldOf("right").forGetter(Condition.TargetIs::right)).apply(i, Condition.TargetIs::new)))
                 .register("chorus:target_ref_present", Condition.TargetRefPresent.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.fieldOf("target").forGetter(Condition.TargetRefPresent::target)).apply(i, Condition.TargetRefPresent::new)))
+                .register("chorus:observed_entity_tag", Condition.ObservedEntityTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("binding").forGetter(Condition.ObservedEntityTag::binding),
+                        enumeration(com.imdomestic.chorus.effect.target.EntityQuery.TagSource.class).optionalFieldOf("source", com.imdomestic.chorus.effect.target.EntityQuery.TagSource.ENTITY).forGetter(Condition.ObservedEntityTag::source),
+                        Codec.STRING.fieldOf("tag").forGetter(Condition.ObservedEntityTag::tag)).apply(i, Condition.ObservedEntityTag::new)))
                 .register("chorus:result_flag", Condition.ResultFlag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("binding").forGetter(Condition.ResultFlag::binding), Codec.STRING.fieldOf("field").forGetter(Condition.ResultFlag::field),
                         Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.ResultFlag::expected)).apply(i, Condition.ResultFlag::new)))

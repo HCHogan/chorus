@@ -126,6 +126,18 @@ public interface Condition {
             return e.results().get(binding).flag(field, result) == expected;
         }
     }
+    record ObservedEntityTag(String binding, com.imdomestic.chorus.effect.target.EntityQuery.TagSource source, String tag) implements Condition {
+        public ObservedEntityTag {
+            if (binding == null || binding.isBlank() || tag == null || tag.isBlank()) throw new IllegalArgumentException("Missing entity observation binding or tag");
+            java.util.Objects.requireNonNull(source);
+        }
+        @Override public void validate(Validation v) { v.result(binding).requireEntityObservation(); }
+        @Override public boolean test(Evaluation e) {
+            var result = e.context().bindings().get(binding);
+            if (result == null) throw new IllegalArgumentException("Unbound result: " + binding);
+            return e.results().get(binding).entityTag(result, source, tag);
+        }
+    }
     record AbilityEnergyFlag(String slot, Evaluation.Target target, String field, boolean expected) implements Condition {
         public AbilityEnergyFlag {
             com.imdomestic.chorus.effect.ability.AbilityDefinition.id(slot);

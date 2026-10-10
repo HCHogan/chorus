@@ -847,6 +847,22 @@ Buff 可声明 `"components":{"target_sets":["members"]}`，每个新 generation
 
 `player` 只是 Minecraft 实体类别，不决定活动的 PvE / PvP 模式，也不代表完整的 Destiny Guardian、敌人等级或勇士分类。[entity_observation.json](../common/src/test/resources/effects/entity_observation.json) 展示按已观测生命缺口回血；[jolt.json](../common/src/test/resources/effects/jolt.json) 将玩家观测与伤害回执组合，只有另一玩家实际损失 HP / 护盾 / Absorption 后才允许中心玩家承受链伤。观测本身不预判后续伤害是否成功。
 
+### 观测实体分类标签
+
+`inspect_entity` 同时复制原版单实体标签（`/tag`）和数据包 `entity_type` 标签，两个集合独立保存。条件只读取已绑定回执：
+
+```json
+{"type":"chorus:observed_entity_tag","binding":"entity","source":"entity","tag":"chorus_d2:elite_or_higher"}
+```
+
+source 为 entity（默认）或 type。entity 精确匹配实例上的字符串标签，type 匹配实体类型所属的注册表标签 id；不会隐式合并、从生命值猜等级或把不存在的标签回退成其他等级。它们与 event_tag、source_tag、has_source_tag 分属不同上下文，互不读取。内容可通过 any 明确组合两种来源；如果存在互斥分类，优先级须由内容定义。
+
+例如 `data/chorus_d2/tags/entity_type/elite_or_higher.json` 可声明整类敌人，`/tag <实体> add chorus_d2:elite_or_higher` 可标记其中一个实例。引擎不内置 D2 等级枚举，也没有预设“牛就是精英”的正式映射；测试目录中的映射仅用于验收。原版保存单实体标签，数据包管理类型标签；这不等于已实现 Chorus 敌人定义、等级同步或迁移。
+
+必须先检查观测 available：缺失观测的标签读取报错，已观测实体没有该标签才返回 false。死亡但尚未移除的实体仍能读取分类。世界中改标签、死亡、移除或数据包重载不会修改旧回执，再次 inspect_entity 才取得新值。标签条件支持动作 if、choose 和 after 中保留的绑定；不提供隐式世界查询，也不能直接用于没有动作绑定的 modifier。若数值需要冻结，可显式 capture_value；实体观测本身仍不能当成目标 / 位置引用。
+
+[classified_burst.json](../common/src/test/resources/effects/classified_burst.json) 验证实际死亡时观察分类与位置，来源卸下、尸体移除和标签改变后，延迟查询仍选初始 4 / 8 米范围并造成实际伤害。它是 Incandescent 所需分类路径的通用测试，0.1 秒延迟和 1 点伤害是合成参数，尚未实现该 perk 的 Scorch / Ignition 内容。
+
 ### 固定位置与延迟范围
 
 `capture_position` 显式读取目标当前脚底坐标，target 默认 self，也可用 victim 或循环目标绑定。返回不可变的维度与 x / y / z，结果绑定类型为 position，有 available / missing 标志。死亡但仍存在的实体可以捕获位置；已移除、无法解析或不在当前维度的实体返回 missing，不用零坐标代替。

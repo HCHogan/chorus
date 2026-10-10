@@ -73,7 +73,8 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case EntityQuery query -> {
                 var target = entities.apply(query.target());
                 yield new EntityQuery.Result(query, present(target) ? Optional.of(new EntityQuery.View(target.isAlive(),
-                        target instanceof net.minecraft.world.entity.player.Player, target.getHealth(), target.getMaxHealth(), target.getAbsorptionAmount())) : Optional.empty());
+                        target instanceof net.minecraft.world.entity.player.Player, target.getHealth(), target.getMaxHealth(), target.getAbsorptionAmount(),
+                        target.entityTags(), target.getType().builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(java.util.stream.Collectors.toSet()))) : Optional.empty());
             }
             case DirectionQuery query -> {
                 var entity = entities.apply(query.target());

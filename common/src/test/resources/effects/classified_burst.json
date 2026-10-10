@@ -1,0 +1,121 @@
+{
+  "version": "test-classified-burst-v1",
+  "bundles": [
+    {
+      "id": "test:classified_burst",
+      "rules": [
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "classified"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "classified",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:capture_position",
+                    "target": "victim"
+                  },
+                  "as": "place"
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "place"
+                        },
+                        "radius": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "classified",
+                                "field": "player"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_gametest:elite"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_gametest:elite"
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 8,
+                            "unit": "meter"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 4,
+                            "unit": "meter"
+                          }
+                        },
+                        "exclude": [
+                          "source_owner"
+                        ]
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "for_each": "nearby",
+                      "as": "neighbor",
+                      "do": [
+                        {
+                          "type": "chorus:damage",
+                          "target": {
+                            "binding": "neighbor"
+                          },
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "damage"
+                          },
+                          "damage_type": "minecraft:generic",
+                          "tags": [
+                            "test:classified_burst"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
