@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Source-specific duration modifier and Slow integration; production ability lifecycles remain partial",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+    "path": "data/d2-research/2026-10-11/control-stasis-source.html.gz",
+    "retrieved_at": "2026-10-10T17:23:35.607152+00:00",
+    "html_sha256": "34194d03044168c07144b2acb77c937fbdb2400127e56673c559eeda7b8ae79b",
+    "gzip_sha256": "6ae546d699e2b5a2f523f04f3642b0c6f15f12eea7737e04e9d9d553463cf232"
+  },
+  "cells": [
+    {
+      "label": "Durance",
+      "original_cell": "B18",
+      "snapshot_cell": "B15",
+      "snapshot_text_sha256": "388eac00d4a6a66d8e25f0cadb6387ead5c432390202e28a4beb625ada8337c1",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Durance",
+      "original_cell": "D18",
+      "snapshot_cell": "D15",
+      "snapshot_text_sha256": "d5a49a98049dd44140b14aa7895f3f7ba8964a400abace572fb59bc24d96f4bb",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Durance",
+      "original_cell": "N18",
+      "snapshot_cell": "N15",
+      "snapshot_text_sha256": "2e2ae90e0cac8aab675913a0db26693af1f6cb528c12f3835ecf37dfc10be0a3",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Duskfield Grenade",
+      "original_cell": "B36",
+      "snapshot_cell": "B30",
+      "snapshot_text_sha256": "20c734b7159ed94c03cf971da51d7e3c303c349f196770395f4f29bb1f7b0384",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Duskfield Grenade",
+      "original_cell": "D36",
+      "snapshot_cell": "D30",
+      "snapshot_text_sha256": "f8eb5a691905977d096ff3797e0803f23b75fea96e899cada8aef145664573b7",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Withering Blade",
+      "original_cell": "B51",
+      "snapshot_cell": "B38",
+      "snapshot_text_sha256": "5e74bfbea5c542b1df1e4457c3859824228a9b5b6ef74f6823fd8284bb500270",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Withering Blade",
+      "original_cell": "D51",
+      "snapshot_cell": "D38",
+      "snapshot_text_sha256": "3d0fa7c7dda2e42081f69505917945d66d3619b3dfb3646606c8e04c1ed791a7",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Bleak Watcher",
+      "original_cell": "B103",
+      "snapshot_cell": "B62",
+      "snapshot_text_sha256": "4828809b05f860881b4e1fd431514a9163bd26a9b74a697bc6308cffb5658f10",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "label": "Bleak Watcher",
+      "original_cell": "D103",
+      "snapshot_cell": "D62",
+      "snapshot_text_sha256": "984da7d247a4fe01802eab5809bb74a6cd7e34b3dc40177b3f5ef71084af8d70",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "historical_crosscheck": {
+    "url": "https://www.bungie.net/7/en/News/article/50396",
+    "title": "Destiny 2 Hotfix 3.2.0.3",
+    "published_at": "2021-06-03",
+    "evidence_kind": "web search and article open extraction, not archived article HTML",
+    "quote": "Reduced Whisper of Durance slow-duration extension vs. players from 2s to 0.5s.",
+    "quote_sha256": "1648e44ce5619ce14e28b953f9bc2bba441107d7f625c3a77467adccab19b3c2",
+    "scope": "Historical Withering Blade and Winters Shroud player extension, not a universal current Durance constant"
+  },
+  "timings_seconds": {
+    "withering_blade_slow": {
+      "combatant": [
+        3.5,
+        3.5
+      ],
+      "guardian": [
+        1.5,
+        0.5
+      ]
+    },
+    "bleak_watcher_slow": {
+      "combatant": [
+        4.5,
+        4.5
+      ],
+      "guardian": [
+        2,
+        1.75
+      ]
+    },
+    "duskfield_slow": {
+      "combatant": [
+        2,
+        2
+      ],
+      "guardian": [
+        2,
+        2
+      ]
+    },
+    "duskfield_lifetime": [
+      7,
+      2
+    ],
+    "bleak_watcher_lifetime": [
+      25,
+      5
+    ]
+  },
+  "timing_format": "[base, Durance extension]",
+  "policies": [
+    "Sample current applier equipment at status application; existing timers retain their committed deadline",
+    "Repeated Durance sources use MAX, +10 Melee bonus deduplicates before 200 cap",
+    "Only explicit slow or durance_lingering query tags qualify; Freeze has its own duration",
+    "Every Slow producer supplies a nonnegative extension, including explicit zero; no omitted or universal fallback"
+  ],
+  "gaps": [
+    "Full producers and their target classification, projectiles, periodic fields and turret constructs are not implemented by the timing fixtures",
+    "Winters Shroud combatant duration has a question mark in source and is not treated as verified calibration",
+    "No 2025 or 2026 official Durance duration update was established by the targeted search; pinned Compendium remains the numerical baseline"
+  ]
+}

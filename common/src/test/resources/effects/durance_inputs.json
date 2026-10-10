@@ -1,0 +1,19 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {"definition": {"id": "test:durance_lingering", "version": "compendium-2026-10-05", "duration": 1, "max_stacks": 1, "attach": "target"}, "bundle": "test:durance_lingering_active"}
+  ],
+  "bundles": [
+    {"id": "test:durance_lingering_active", "scope": "buff"},
+    {"id": "test:durance_lingering_inputs", "parameters": {"duration": "second", "extension": "second"}, "rules": [
+      {"id": "start", "on": "test:start_lingering", "if": {"type": "chorus:own_source"}, "do": [
+        {"action": {"type": "chorus:calculate", "profile": "chorus_d2:stasis_duration", "target": "source_owner",
+          "tags": ["chorus_d2:durance_lingering"], "input": {"type": "chorus:source_parameter", "name": "duration"},
+          "numbers": {"durance_extension": {"type": "chorus:source_parameter", "name": "extension"}}
+        }, "as": "lifetime"},
+        {"type": "chorus:grant_buff", "buff": "test:durance_lingering", "target": "source_owner",
+          "duration": {"type": "chorus:result", "binding": "lifetime", "field": "value"}}
+      ]}
+    ]}
+  ]
+}

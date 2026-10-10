@@ -16,11 +16,14 @@ import org.junit.jupiter.api.Test;
 
 class SlowTest {
     static final String S="chorus_d2:slow",F="chorus_d2:freeze";
-    static EffectSource source(String id,String owner,double duration){var params=new HashMap<>(FreezeTest.source(id,owner,false).parameters());params.put("slow_duration",new Measure(duration,Unit.SECOND));params.put("slow_jump_delta",new Measure(-.3,Unit.DELTA));return new EffectSource(id,"chorus_d2:slow_application",owner,new BuffInstance.Origin(owner,id,"",""),Set.of(),params);}
+    static EffectSource source(String id,String owner,double duration){var params=new HashMap<>(FreezeTest.source(id,owner,false).parameters());params.put("slow_duration",new Measure(duration,Unit.SECOND));params.put("slow_durance_extension",new Measure(0,Unit.SECOND));params.put("slow_jump_delta",new Measure(-.3,Unit.DELTA));return new EffectSource(id,"chorus_d2:slow_application",owner,new BuffInstance.Origin(owner,id,"",""),Set.of(),params);}
     static final class Harness {
         final CompiledEffects p;final EffectSession session;final EffectSource a=source("a","caster",2),b=source("b","other",.5);final Map<String,EntityQuery.View> entities=new HashMap<>();final List<StatusResult.Check> checks=new ArrayList<>();StatusResult.Decision freezeDecision=StatusResult.Decision.ALLOWED,slowDecision=StatusResult.Decision.ALLOWED;boolean failFreeze;
         Harness(boolean guardian,boolean playerCaster)throws Exception{
-            p=link("slow","freeze","freeze_test_falloff","combat_damage","movement_attributes","weapon_stats","slow_inputs");entities.put("target",FreezeTest.view(guardian,"chorus_d2:elite"));entities.put("caster",FreezeTest.view(playerCaster));entities.put("other",FreezeTest.view(false));
+            this(guardian,playerCaster,link("slow","stasis_duration","freeze","freeze_test_falloff","combat_damage","movement_attributes","weapon_stats","slow_inputs"));
+        }
+        Harness(boolean guardian,boolean playerCaster,CompiledEffects program){
+            p=program;entities.put("target",FreezeTest.view(guardian,"chorus_d2:elite"));entities.put("caster",FreezeTest.view(playerCaster));entities.put("other",FreezeTest.view(false));
             session=new EffectSession(engine(p),EffectState.empty().withSource(a).withSource(b),r->switch(r.command()){
                 case EntityQuery q->new EntityQuery.Result(q,Optional.ofNullable(entities.get(q.target())));
                 case StatusResult.Check q->{checks.add(q);if(q.definition().id().equals(F)&&failFreeze)throw new IllegalStateException("unknown freeze authorization");yield new StatusResult.Checked(q,q.definition().id().equals(F)?freezeDecision:slowDecision);}

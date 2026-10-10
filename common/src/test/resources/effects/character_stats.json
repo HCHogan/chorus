@@ -87,6 +87,9 @@
             "families": {
               "chorus_d2:ember_of_eruption": {
                 "kind": "max"
+              },
+              "chorus_d2:durance": {
+                "kind": "max"
               }
             }
           }

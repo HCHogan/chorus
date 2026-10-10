@@ -963,7 +963,7 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 [slow.json](../common/src/test/resources/effects/slow.json) 以原表 Stasis B9/D9、固定 CSV B7/D7 为依据。表中给出百层冻结、战员和 Guardian 移速降低 50%、Guardian 跳跃高度降低 50% 及禁用移动技能；四项武器属性在 perk 后、100 点封顶前降低 75%。战员瞄准精度、Guardian 未知比例的 Flinch 和 Overload 眩晕仍是待实现要求。
 
-`chorus_d2:slow_application` 通过 Bundle includes 复用 Freeze 的施加来源，必须提供 `slow_duration: second`、`slow_jump_delta: delta` 及继承的 `combatant_threshold / shatter_radius / guardian_shatter_damage`。持续时间由具体生产者提供，不把一个技能的时长推广成所有 Slow 的固定值。`apply_slow` 事件须匹配 owner、source_instance、bundle，并提供正整数 `stacks: count`；零 / 负数不施加，单次输入封顶 100，缺失 / 小数不默默取整。参数超出条件范围不施加，缺少参数或单位不符在绑定时拒绝。
+`chorus_d2:slow_application` 通过 Bundle includes 复用 Freeze 的施加来源，必须提供 `slow_duration: second`、`slow_durance_extension: second`、`slow_jump_delta: delta` 及继承的 `combatant_threshold / shatter_radius / guardian_shatter_damage`。基础时间和非负 Durance 延长由具体生产者提供，无延长也须显式填 0；链接程序须包含 stasis_duration.json。不把一个技能的时长推广成所有 Slow 的固定值。`apply_slow` 事件须匹配 owner、source_instance、bundle，并提供正整数 `stacks: count`；零 / 负数不施加，单次输入封顶 100，缺失 / 小数不默默取整。参数超出条件范围不施加，缺少参数或单位不符在绑定时拒绝。
 
 施加前观察接收者的存活与实际玩家类别，已 Freeze 的目标不积累新 Slow；权限批准后才累计共享 Slow。达到 100 时保留本次施加来源并发出 `apply_freeze`，沿用既有目标等级、来源、Super、时长及状态授权。只有实际取得 Freeze 后才删除 Slow；直接 Freeze 同样清除它。冻结拒绝或缺少等级时保留 100 层与惩罚，之后合格施加可以重试；未知授权结果则停止运行时，保留已提交 Slow，不自动重放。解冻不还原已消费层数。
 
@@ -979,7 +979,27 @@ Slow 的实际投影与查询分别为：
 
 [slow_test_calibration.json](../common/src/test/resources/effects/slow_test_calibration.json) 的 2 秒和 jump delta -0.3 均是合成输入，客户端另用 10 秒以覆盖网络验收过程。真实原版跳跃冲量降到 70% **不等于跳跃高度降到 50%**；玩家空中 `getFlyingSpeed` 也不完全由 movement_speed 属性决定，因此这里仅证明地面减速与参数化跳跃，未宣称完成原作全方向移动。稳定性、操控与后坐力只在数值查询中验证，完整武器物理、动画和射击反馈还需接线。
 
-11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Slow 保持 **partial**：Durance 各来源延长、实际技能 / 武器生产者、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
+11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Durance 的来源专属延长已接入，见下节。Slow 保持 **partial**：实际技能 / 武器生产者及其完整 Durance 数据、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
+
+### Whisper of Durance：分别计算状态与技能存在时间
+
+[durance.json](../common/src/test/resources/effects/durance.json) 和 [stasis_duration.json](../common/src/test/resources/effects/stasis_duration.json) 使用现有 `calculate → apply_status / grant_buff` 链路，无需新增核心动作。原表 Stasis B18/D18/N18 对应固定 CSV B15/D15/N15；其余技能的原表行号偏移各不相同，不能统一加一个偏移量。原始 HTML、逐格核对和历史官方说明见 [来源记录](../data/d2-research/2026-10-11/durance.json)。
+
+| 来源 / 查询 | 战员：基础 + 延长（秒） | Guardian：基础 + 延长（秒） |
+| --- | --- | --- |
+| Withering Blade 的 Slow | 3.5 + 3.5 | 1.5 + 0.5 |
+| Bleak Watcher 的 Slow | 4.5 + 4.5 | 2 + 1.75 |
+| Duskfield 的 Slow | 2 + 2 | 2 + 2 |
+| Duskfield 场存在时间 | 7 + 2 | 7 + 2 |
+| Bleak Watcher 存在时间 | 25 + 5 | 25 + 5 |
+
+生产者应按来源和接收者选择基础时间与延长值，而不是给所有 Slow 乘统一倍率。Slow 在观察存活 / 非冻结目标后，以 `target:source_owner` 查询 `chorus_d2:stasis_duration`，显式标签 `chorus_d2:slow`，传入 `durance_extension: second`；随后将结果作为实际状态授权和施加的时间。敌人或队友身上的碎片不参与施加者查询。多个相同碎片贡献取 MAX；未装备时保持基础值，装备后缺失延长测量则报错，不能猜默认值。Slow 来源缺少校准参数在绑定时拒绝，负延长不施加。
+
+持续技能可用 `chorus_d2:durance_lingering` 标签查询同一 Profile，传入该技能自己的延长。这个标签须由已核对的生产者显式选择，不是所有冰影技能自动符合。Freeze、通用 stasis 标签、职业技能时间不会自动获得延长。状态与持续技能分别取样，不能把炮台的 +5 秒套进其每发 Slow，也不能让百层转换后的 Freeze 继承 Slow 的延长。
+
+当前政策是施加 / 创建时读取施加者的当前碎片，已提交的截止时间保持不变；卸下只影响之后查询。新 Slow 刷新仍取最晚截止时间并保留首次信用，达到百层的来源拥有 Freeze。Durance 的 +10 Melee 进入共享 character_stats，重复来源按同碎片去重，再与其他加值相加并按 200 点封顶。这些取样、重复装配与刷新规则是 Chorus 内容政策，并非已实测的全部原作边界。
+
+8 项 DuranceTest 验证上表时长、双方装备隔离、卸下 / 刷新 / 精确到期、授权、百层转换、+10 Melee 及缺失参数；3 项共享 DuranceGameTest 验证真实目标、tick 到期后原版移速恢复和 Freeze 控制。持续技能用测试 Buff 验证期限，**不代表冰炮台构造物、寻敌投射物或暮域周期场已实现**。Winter's Shroud 战员时长在原表带问号，未采为确定校准。生产技能全套来源、原作采样边界、正式子职业装配 / HUD / 持久化仍待完成，Durance 保持 **partial**。
 
 ### Freeze / Shatter 的分级控制与范围碎冰
 

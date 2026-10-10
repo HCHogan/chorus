@@ -33,7 +33,8 @@
       ],
       "parameters": {
         "slow_duration": "second",
-        "slow_jump_delta": "delta"
+        "slow_jump_delta": "delta",
+        "slow_durance_extension": "second"
       },
       "rules": [
         {
@@ -145,6 +146,19 @@
                   "value": 0,
                   "unit": "count"
                 }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "slow_durance_extension"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
               }
             ]
           },
@@ -184,6 +198,27 @@
               "then": [
                 {
                   "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:stasis_duration",
+                    "target": "source_owner",
+                    "tags": [
+                      "chorus_d2:slow"
+                    ],
+                    "input": {
+                      "type": "chorus:source_parameter",
+                      "name": "slow_duration"
+                    },
+                    "numbers": {
+                      "durance_extension": {
+                        "type": "chorus:source_parameter",
+                        "name": "slow_durance_extension"
+                      }
+                    }
+                  },
+                  "as": "slow_time"
+                },
+                {
+                  "action": {
                     "type": "chorus:apply_status",
                     "buff": "chorus_d2:slow",
                     "target": "victim",
@@ -204,8 +239,9 @@
                       ]
                     },
                     "duration": {
-                      "type": "chorus:source_parameter",
-                      "name": "slow_duration"
+                      "type": "chorus:result",
+                      "binding": "slow_time",
+                      "field": "value"
                     },
                     "tier": {
                       "type": "chorus:choose",

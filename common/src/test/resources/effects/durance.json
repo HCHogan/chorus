@@ -1,0 +1,20 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {"id": "chorus_d2:durance", "modifiers": [
+      {"id": "duration", "profile": "chorus_d2:stasis_duration", "stage": "durance", "group": "durance",
+        "op": "add", "stacking_key": "chorus_d2:durance",
+        "value": {"type": "chorus:event_number", "name": "durance_extension", "unit": "second"},
+        "if": {"type": "chorus:any", "of": [
+          {"type": "chorus:event_tag", "tag": "chorus_d2:slow"},
+          {"type": "chorus:event_tag", "tag": "chorus_d2:durance_lingering"}
+        ]},
+        "reference": "Compendium Stasis original D18 / CSV D15. Each qualified producer supplies its documented extension, including an explicit zero where appropriate. Application-time sampling and duplicate MAX are Chorus policies; this is not a universal duration multiplier.",
+        "confidence": "assumed"},
+      {"id": "melee_stat", "profile": "chorus_d2:melee_stat", "stage": "bonuses", "group": "bonuses",
+        "op": "add", "stacking_key": "chorus_d2:durance",
+        "value": {"type": "chorus:constant", "value": 10, "unit": "stat_point"},
+        "reference": "Compendium Stasis original N18 / CSV N15: +10 Melee.", "confidence": "measured"}
+    ]}
+  ]
+}

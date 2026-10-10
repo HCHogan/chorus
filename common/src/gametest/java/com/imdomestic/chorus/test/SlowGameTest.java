@@ -17,10 +17,10 @@ import net.minecraft.world.phys.Vec3;
 
 /** Source-calibrated Slow, successful conversion, actual attributes, jump impulse and ability gates. */
 public class SlowGameTest {
-    public static CompiledEffects program(){return CompiledEffects.link(List.of("slow","freeze","freeze_test_falloff","freeze_inputs","combat_damage","movement_attributes","weapon_stats","slow_inputs","amplified","amplified_movement","amplified_inputs").stream().map(name->EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow()).toList());}
+    public static CompiledEffects program(){return CompiledEffects.link(List.of("slow","stasis_duration","freeze","freeze_test_falloff","freeze_inputs","combat_damage","movement_attributes","weapon_stats","slow_inputs","amplified","amplified_movement","amplified_inputs").stream().map(name->EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow()).toList());}
     public static EffectSource source(LivingEntity actor,double duration){
         var freeze=FreezeGameTest.source(actor);var params=new HashMap<>(freeze.parameters());var calibration=ThreadedSpikeGameTest.json("slow_test_calibration");
-        params.put("slow_duration",new Measure(duration,Unit.SECOND));params.put("slow_jump_delta",new Measure(calibration.getAsJsonObject("slow_jump_delta").get("value").getAsDouble(),Unit.DELTA));
+        params.put("slow_duration",new Measure(duration,Unit.SECOND));params.put("slow_durance_extension",new Measure(0,Unit.SECOND));params.put("slow_jump_delta",new Measure(calibration.getAsJsonObject("slow_jump_delta").get("value").getAsDouble(),Unit.DELTA));
         return new EffectSource(actor.getUUID()+"/slow","chorus_d2:slow_application",freeze.holder(),freeze.origin(),Set.of(),params);
     }
     public static void event(MinecraftEffectRuntime runtime,EffectSource source,LivingEntity target,String type,double stacks){runtime.start(new RuleEngine.Signal("chorus_d2:"+type,new EffectEvent(source.holder(),target.getUUID().toString(),source.origin(),Set.of(),Map.of("stacks",new Measure(stacks,Unit.COUNT)),Map.of(),Map.of("source_instance",source.instance(),"bundle",source.bundle()))));}

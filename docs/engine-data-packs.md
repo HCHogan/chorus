@@ -2013,7 +2013,9 @@ actor、flags、references、impact 仍来自触发上下文；Buff 生命周期
 
 结果是不可变快照，允许跨 `after` / projectile 捕获。先 calculate 再延迟会保留原结果；把 calculate 放进回调会重新读取届时的修饰。`evaluate:on_use/on_hit` 只控制伤害快照的采样方式，独立 calculate 按当前查询求值所有合格贡献，不自动延迟或构造伤害快照。需要影响状态时间时，应先明确原作究竟按发射、施加还是其他时机取样。
 
-Continuity 的 fragment Bundle 只贡献该次查询提供的 extension，生产者只声明已知基础时间与对应扩展，不直接检查 fragment。采用 MAX 避免重复装配同一 fragment 叠加。该入口可表达 Sever 10+5 / 5+2.5，也能表达 Suspend 6+2 / 3+1 / 2+1；后者目前只有数值查询验证，不代表 Suspend 的位移、控制、Boss 和勇士机制已经实现。
+Continuity 的 fragment Bundle 只贡献该次查询提供的 extension，生产者只声明已知基础时间与对应扩展，不直接检查 fragment。采用 MAX 避免重复装配同一 fragment 叠加。该入口可表达 Sever 10+5 / 5+2.5，以及已接线的 Suspend 6+2 / 3+1 / 2+1；Suspend 的控制、Boss 例外和剩余缺口见 D2 规则文档。
+
+Durance 复用同一机制：链接 [stasis_duration.json](../common/src/test/resources/effects/stasis_duration.json)、[durance.json](../common/src/test/resources/effects/durance.json) 与 character_stats.json。查询 `chorus_d2:stasis_duration`，以 `target:source_owner` 读取施加者，显式传入 `durance_extension: second`；`chorus_d2:slow` 和 `chorus_d2:durance_lingering` 为合格查询标签。Slow 来源新增必填非负 `slow_durance_extension`，无延长填 0，不使用隐式常量。不同生产者和接收者选择不同基础时间 / 延长；持续技能存在时间另查一次。查询不自动延长 Freeze，不修改已提交期限，也不实现炮台或持续场本体；完整内容约定和验收边界见 [Durance](d2-ruleset.md#whisper-of-durance分别计算状态与技能存在时间)。
 
 ### 有序 Profile 组合查询
 

@@ -1,5 +1,5 @@
 {
-  "note": "Synthetic Slow duration and native jump impulse calibration, not D2 source timing or verified 50 percent jump height. Freeze calibration remains separate.",
+  "note": "Synthetic Slow duration and native jump impulse calibration, not D2 source timing or verified 50 percent jump height. Freeze calibration remains separate. Durance extension is explicitly zero for this synthetic producer.",
   "slow_duration": {
     "value": 2,
     "unit": "second"
@@ -7,5 +7,9 @@
   "slow_jump_delta": {
     "value": -0.3,
     "unit": "delta"
+  },
+  "slow_durance_extension": {
+    "value": 0,
+    "unit": "second"
   }
 }

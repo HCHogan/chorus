@@ -1,0 +1,8 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {"id": "chorus_d2:stasis_duration", "version": "compendium-2026-10-05", "input_unit": "second", "steps": [
+      {"type": "chorus:apply", "id": "durance", "operation": "add", "group": {"name": "durance", "reduction": "max"}}
+    ]}
+  ]
+}
