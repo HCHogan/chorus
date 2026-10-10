@@ -117,7 +117,7 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 
 伤害 tick、叠层衰减和点燃禁用窗口各自计时。当前时序政策：首 tick 在 0.5 秒，第二 tick 在 1.43 秒，之后间隔 0.56 秒；重复施加刷新衰减计时，保留伤害 tick 时序；到衰减等待时间的边界即首次减一层。第二 tick 和首次衰减的边界解释仍须原作校准。每次 tick 显式观测目标，按当前层数及 Boss 标签计算 PvE 原始伤害，再使用首次保存的攻击；目标死亡 / 缺失或层数耗尽会移除状态并取消自有定时器。
 
-达到 100 层后，保存当前位置和点燃攻击，先授予原目标 1.6 秒禁用状态并移除 Scorch，再按显式 `ignition_delay` 执行点燃。零表示立即爆炸，正值使用 detached 延迟动作；负值失败，不静默当作立即爆炸。爆炸查询保存位置 8 米内的当前非盟友，每个目标独立观测、独立结算伤害及实际回执。PvE 使用 676 原始伤害且无距离衰减；PvP 对原版玩家采用 Guardian 分支，对显式 `chorus_d2:construct` 实体标签采用构造体分支，未分类非玩家不猜为构造体。阵营参照缺失时没有可授权目标。`chorus_d2:boss` 也是明确宿主标签，尚非完整 D2 敌人目录。
+达到 100 层后，保存当前位置和点燃攻击，先授予原目标 1.6 秒禁用状态并移除 Scorch，再按显式 `ignition_delay` 执行点燃。零表示立即爆炸，正值使用 detached 延迟动作；负值失败，不静默当作立即爆炸。爆炸以保存位置和阈值时取得的 ignition_radius 查询当前非盟友，基础半径 8 米，Eruption 为 10 米；每个目标独立观测、独立结算伤害及实际回执。PvE 使用 676 原始伤害且无距离衰减；PvP 对原版玩家采用 Guardian 分支，对显式 `chorus_d2:construct` 实体标签采用构造体分支，未分类非玩家不猜为构造体。阵营参照缺失时没有可授权目标。`chorus_d2:boss` 也是明确宿主标签，尚非完整 D2 敌人目录。
 
 **待校准的时序政策：** 当前禁用窗口从达到阈值开始，爆炸中心固定于该时刻的位置；延迟值、原作禁用窗口的起算点、移动 / 死亡后爆炸位置和待爆期间再次施加的准确行为尚未确认。不得用合成延迟声称已经复现当前原作的无限点燃条件。
 
@@ -132,6 +132,7 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 | scorch_nonboss_factor | count → multiplier | 输入 0 为普通来源、1 为 `scorch_rank_exempt` 来源；返回非 Boss 目标倍率，Boss 使用 1。一般来源表列 1.2，Incandescent 豁免与该 20% 的关系需要显式校准 |
 | ignition_falloff | meter → multiplier | 当前被选目标的已测距离 → PvP 距离倍率；另提供 guardian 测量，PvE 不使用该倍率 |
 | ignition_delay | second → second | 以 0 请求校准的阈值至爆炸时长；结果为 0 或正微秒可表示时长，不提供隐式默认值 |
+| ignition_radius | meter → meter | Solar 自带，基础 8 米；原始 Scorch 来源持有者在达到阈值时取样，Eruption 的 MAX 组增加 25% 至 10 米；结果随待执行爆炸保留 |
 | solar_outgoing | damage → damage | 必须包含 payload / payload 的 ADD 阶段，接收 `solar_payload` 命中测量；之后声明来源允许的缩放与世界伤害单位换算 |
 
 宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；武器属性、武器 New Gear Bonus 的 5%、战斗单位等级倍率、Radiant、Surge、Verity 等具体资格及特殊来源仍需装配，当前没有声明这些 perk 全部生效。
@@ -155,6 +156,16 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 6 项 EmberOfCharTest 包括真实 40 / 60 层、其他施加者片段隔离、中心排除、正损失 / 死亡资格、解绑后延迟攻击与信用、爆炸期选择片段，以及四目标交替八轮点燃。该连锁输入为两目标初始各 100 层、另外两目标初始零层，Ashes 使每轮两个爆炸分别施加 60 层，后续无需额外输入。没有 Ashes 的 80 层、只有一次种子爆炸的 60 层均不会凭空点燃。卸下 Char 后已排队的一轮完成，后续自然停止。3 项共享 EmberOfCharGameTest 验证实际四目标五轮扣血、第六轮完成后停止、中心排除和真实死亡。验证的是引擎可表达持续反馈，不是靠提高 Char 层数来制造连锁。
 
 Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配；Ashes 已有 Char 和 Incandescent 的专属层数映射，其他来源及特例尚未实现。原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
+
+### Eruption 的点燃范围
+
+[ember_of_eruption.json](../common/src/test/resources/effects/ember_of_eruption.json) 通过共享 ignition_radius Profile 增加 25% 半径，8 → 10 米。2026-10-11 本地日期读取的[原表 Solar B22 / D22 / N22](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D22)与固定 CSV B19 / D19 / N19 的文本一致；HTML、UTC 抓取时间和哈希保存在[研究记录](../data/d2-research/2026-10-11/ember-of-eruption.json)。重复装配采用 MAX，不累乘。
+
+当前政策是在 100 层阈值时，查询第一位 Scorch 施加者的当前碎片并捕获半径。最后补层者或被点燃目标的配装不代替该持有者；延迟期间卸下碎片、解绑原来源不改变已排队爆炸，下一代达到阈值时重新取样。该时机尚未经过原作校准。即时及 detached 分支共用该结果，实际执行时才选择当前范围内的敌人；Char 随实际命中扩大传播范围，40 / 60 层及各目标禁用窗口均不改变。
+
+5 项 EmberOfEruptionTest 验证模式、重复装配、来源隔离、待爆期间换装、解绑、下一代重采样、边界和 Char 联动。2 项共享 EmberOfEruptionGameTest 验证真实 8 / 10 米边界、范围外目标不受伤、原施加者信用，以及待爆期间进入范围的敌人被命中。测试用 ignition_falloff 的合成曲线定义域从 8 扩展至 10 米；当前流程两种模式均查询距离曲线，只有 PvP 使用其倍率，所以宿主校准必须覆盖整个可选范围。测试曲线在 10 米为零，PvP 的该边界虽被选择但不因零损失获得 Char；PvE 仍按自己的伤害计算。
+
+Eruption 保持 partial：原表的 +10 Melee 属性尚未装配，其他直接点燃生产者、特殊来源、准确时序 / 衰减、完整子职业装配、HUD 和状态持久化仍待完成。
 
 ## 武器输入与 Kill Clip 集成边界
 

@@ -14,7 +14,7 @@
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
 | Arc | 否 | 191 | 7 | 184 |
-| Solar | 否 | 210 | 35 | 175 |
+| Solar | 否 | 210 | 38 | 172 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
 | Strand | 否 | 153 | 10 | 143 |
@@ -93,6 +93,7 @@
 | Ember of Solace | partial | Solar B24; Solar D24; Solar N24 | 受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换；缺口：Radiant 显式输入已接 Profile；全部真实施加来源仍待接入；完整装配与原作动态卸装行为仍需验证 |
 | Radiant | partial | Solar B6; Solar D6; Solar D51; Solar D52 | 共享状态与历史时长、Solace 受益者查询、20/10% 与勇士 30% 增伤、Well 25% 优先级；实际射弹逐目标分类；缺口：开火时增益/命中时分类为内容政策，仍需原作时序校准；完整 Well、Lumina、Golden Gun 与特殊变种及互斥仍未实现；合成 Well 仅验证数值优先级；真实授予来源、完整勇士目录、混合活动模式、其他伤害宿主接线、死亡清理、HUD 和持久化未完成 |
 | Ember of Empyrean | partial | Solar B18; Solar D18; Solar N18 | 实际 Solar 击杀按 T1–T4/Guardian 延长已有 Radiant 与 Restoration；独立 15 秒上限与 -10 Health 查询；缺口：完整敌人 Tier 目录与助攻归属尚待补齐；外部适配器须显式提供回执实体观察；Solace 不乘该延长表是当前原表解释，需直接计时校准；同击激活及其他特殊时序待核对；所有 Solar 伤害生产者的规范标签、完整子职业装配、死亡策略、Health 游戏投影、HUD 与存档未完成 |
+| Ember of Eruption | partial | Solar B19; Solar D19; Solar N19 | 共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围；缺口：+10 Melee 属性尚未装配；原作碎片取样时机、伤害曲线与点燃时序尚待校准；未覆盖所有直接点燃生产者及特殊来源；没有完整生产子职业装配、HUD 或状态持久化 |
 
 ## 使用
 

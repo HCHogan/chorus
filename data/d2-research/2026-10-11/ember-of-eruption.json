@@ -1,0 +1,70 @@
+{
+  "reviewed_at": "2026-10-11",
+  "entry": "Ember of Eruption",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B19",
+        "Solar D19",
+        "Solar N19"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-11/eruption-solar-source.html.gz",
+      "retrieved_at": "2026-10-10T13:06:06.645455+00:00",
+      "html_sha256": "c94103aea6db6a9fc30a74829703b87cf66e339696cfcf1184f27dcbec6c63e4",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "B22": "Eruption",
+        "D22": "Ignitions have 25% increased radius.\n8 -> 10 meters.",
+        "N22": "+10 Melee"
+      },
+      "normalized_text_matches_snapshot": true,
+      "access": "Fetched directly over HTTPS; web tool could not access the HTML endpoint."
+    }
+  ],
+  "confirmed_from_compendium": {
+    "ignition_radius_bonus": 0.25,
+    "base_radius_meters": 8,
+    "modified_radius_meters": 10,
+    "melee_stat_bonus": 10
+  },
+  "current_content_policies": {
+    "profile": "chorus_d2:ignition_radius; meter input and output, Eruption MAX group with 0.25 delta",
+    "sampling": "Current first Scorch source owner at threshold; radius retained by the queued detached explosion. Later source removal or fragment changes do not resize an already queued wave. Timing not measured in D2.",
+    "scope": "Shared Scorch-to-Ignition path; immediate and delayed bodies use the same captured radius.",
+    "selection": "Current sphere members at execution; source owner and allies excluded as before.",
+    "char": "Only reached targets with positive actual loss and live status eligibility receive the documented Char/Ashes stacks; no extra damage, stack multiplier or chain suppression."
+  },
+  "synthetic_acceptance": {
+    "delay_seconds": [
+      0,
+      1
+    ],
+    "world_damage_projection": 0.1,
+    "boundaries_meters": [
+      8,
+      9,
+      10,
+      10.01
+    ],
+    "evidence": [
+      "EmberOfEruptionTest",
+      "EmberOfEruptionGameTest"
+    ],
+    "not_claimed": "Complete D2 behavior, exact timing or production subclass assembly.",
+    "falloff": "Test polynomial 1 - 0.1 * meters now covers [0,10]. Both modes query it; only PvP multiplies damage by its value. At 10m, synthetic PvP damage is zero, so Char does not apply."
+  },
+  "remaining": [
+    "+10 Melee stat integration",
+    "Direct ignition producers and all source exceptions",
+    "Original fragment sampling time and inter-generation snapshot inheritance",
+    "Accurate damage/falloff and time calibration",
+    "Production subclass assembly, HUD and persistence"
+  ]
+}

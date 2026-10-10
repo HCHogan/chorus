@@ -612,6 +612,19 @@
                 {
                   "action": {
                     "type": "chorus:calculate",
+                    "profile": "chorus_d2:ignition_radius",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 8,
+                      "unit": "meter"
+                    },
+                    "target": "source_owner"
+                  },
+                  "as": "radius"
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
                     "profile": "chorus_d2:ignition_delay",
                     "input": {
                       "type": "chorus:constant",
@@ -652,9 +665,9 @@
                               "position": "place"
                             },
                             "radius": {
-                              "type": "chorus:constant",
-                              "value": 8,
-                              "unit": "meter"
+                              "type": "chorus:result",
+                              "binding": "radius",
+                              "field": "value"
                             },
                             "relation": "not_allied",
                             "relative_to": "source_owner",
@@ -960,9 +973,9 @@
                                   "position": "place"
                                 },
                                 "radius": {
-                                  "type": "chorus:constant",
-                                  "value": 8,
-                                  "unit": "meter"
+                                  "type": "chorus:result",
+                                  "binding": "radius",
+                                  "field": "value"
                                 },
                                 "relation": "not_allied",
                                 "relative_to": "source_owner",
@@ -1711,6 +1724,22 @@
           "operation": "add",
           "group": {
             "name": "equipped",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:ignition_radius",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "eruption",
+          "operation": "multiply",
+          "group": {
+            "name": "eruption",
             "reduction": "max"
           }
         }

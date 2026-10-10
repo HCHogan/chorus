@@ -31,6 +31,9 @@ public class SolarGameTest {
         boolean fail;
         Harness(GameTestHelper h,boolean pvp) throws Exception { this(h,pvp,0,false); }
         Harness(GameTestHelper h,boolean pvp,double windup,boolean charFragments) throws Exception {
+            this(h,pvp,windup,charFragments,new String[0]);
+        }
+        Harness(GameTestHelper h,boolean pvp,double windup,boolean charFragments,String... extraFragments) throws Exception {
             this.h=h; first=h.spawnWithNoFreeWill(EntityTypes.COW,2,40,2); second=h.spawnWithNoFreeWill(EntityTypes.COW,3,40,2);
             if(pvp) { var player=h.makeMockServerPlayerInLevel(); player.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket()); player.getAbilities().invulnerable=false; player.setInvulnerableTime(0); target=player; }
             else target=h.spawnWithNoFreeWill(EntityTypes.COW,4,40,2);
@@ -53,6 +56,7 @@ public class SolarGameTest {
                 fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json).getOrThrow());
             }
             if(charFragments) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("ember_of_char")).getOrThrow());
+            for(String name:extraFragments) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow());
             var program=CompiledEffects.link(fragments); var state=EffectState.empty().withMode(pvp?EffectState.Mode.PVP:EffectState.Mode.PVE);
             for(var s:List.of(a,b)) state=state.withSource(s).withSource(new EffectSource(s.instance()+"-solar","chorus_d2:solar_scaling",s.holder(),s.origin(),Set.of()));
             var type=h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE,Identifier.parse("chorus_gametest:delayed")));

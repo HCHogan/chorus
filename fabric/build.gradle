@@ -105,6 +105,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/stored_damage_snapshot.json'
         include 'effects/solar.json'
         include 'effects/ember_of_char.json'
+        include 'effects/ember_of_eruption.json'
         include 'effects/incandescent.json'
         include 'effects/incandescent_weapon.json'
         include 'effects/incandescent_test_calibration.json'

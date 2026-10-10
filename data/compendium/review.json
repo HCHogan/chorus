@@ -4739,6 +4739,92 @@
         "Solace 不乘该延长表是当前原表解释，需直接计时校准；同击激活及其他特殊时序待核对",
         "所有 Solar 伤害生产者的规范标签、完整子职业装配、死亡策略、Health 游戏投影、HUD 与存档未完成"
       ]
+    },
+    {
+      "id": "solar/ember_of_eruption",
+      "name": "Ember of Eruption",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B19",
+          "text_sha256": "f680be897ae960e618537b89d31fe5f17021463154215719dcb16cc3c07b4243"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D19",
+          "text_sha256": "0a378a9b056bea1962340db6b62f82ec754901eca318fa5e25449339e0386019"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N19",
+          "text_sha256": "2e2ae90e0cac8aab675913a0db26693af1f6cb528c12f3835ecf37dfc10be0a3"
+        }
+      ],
+      "scope": "共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围",
+      "acceptance": [
+        "PvE / PvP 的 8 / 10 米与重复来源 MAX；卸下后下一次阈值重新取样",
+        "最后补层者或受击目标的碎片不能替代第一施加者的配装",
+        "已排队爆炸保留阈值半径，来源卸下后仍执行；执行时查询当前范围成员",
+        "实际 8 / 10 米边界及范围外目标；扩大 Char 命中范围但不增加伤害、灼烧层数或限制连锁"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_eruption.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEruptionTest.java",
+          "symbol": "documentedRadiusAppliesInBothModesAndDuplicateFragmentDoesNotStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEruptionTest.java",
+          "symbol": "radiusBelongsToFirstScorchOwnerNotFinisherOrIgnitedTarget"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEruptionTest.java",
+          "symbol": "queuedIgnitionKeepsThresholdRadiusAndNextGenerationSamplesAgain"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEruptionTest.java",
+          "symbol": "extendedSpherePropagatesRealCharStacksAtTenMetersWithoutIncreasingDamageOrStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEruptionTest.java",
+          "symbol": "pvpExtendedReachStillRequiresPositiveFalloffDamageBeforeCharCanSpread"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfEruptionGameTest.java",
+          "symbol": "realEightAndTenMeterBoundariesControlDamageAndCharSpreadUsingOriginalOwner"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfEruptionGameTest.java",
+          "symbol": "delayedBlastKeepsCapturedRadiusAfterUnequippingAndQueriesCurrentMembers"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "+10 Melee 属性尚未装配",
+        "原作碎片取样时机、伤害曲线与点燃时序尚待校准",
+        "未覆盖所有直接点燃生产者及特殊来源",
+        "没有完整生产子职业装配、HUD 或状态持久化"
+      ]
     }
   ]
 }

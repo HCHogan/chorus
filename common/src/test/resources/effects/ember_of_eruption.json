@@ -1,0 +1,25 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_eruption",
+      "modifiers": [
+        {
+          "id": "radius",
+          "profile": "chorus_d2:ignition_radius",
+          "stage": "eruption",
+          "group": "eruption",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.25,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:ember_of_eruption",
+          "confidence": "measured",
+          "reference": "Compendium Solar D22 (original), D19 (CSV snapshot): +25% Ignition radius, 8 -> 10 meters."
+        }
+      ]
+    }
+  ]
+}

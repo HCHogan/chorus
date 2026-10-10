@@ -78,6 +78,7 @@
       "com.imdomestic.chorus.DamageSnapshotComponentGameTest",
       "com.imdomestic.chorus.SolarGameTest",
       "com.imdomestic.chorus.EmberOfCharGameTest",
+      "com.imdomestic.chorus.EmberOfEruptionGameTest",
       "com.imdomestic.chorus.IncandescentGameTest",
       "com.imdomestic.chorus.PickupGameTest",
       "com.imdomestic.chorus.FirespriteGameTest",
