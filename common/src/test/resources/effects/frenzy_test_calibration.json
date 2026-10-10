@@ -1,0 +1,26 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:frenzy_enhanced_refresh_duration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              7.8
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    }
+  ]
+}

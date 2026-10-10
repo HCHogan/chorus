@@ -250,7 +250,7 @@ buff 实例用「持有者 × buff 定义 × 实例键」区分，状态除了�
 | 3 kills within 6 seconds of each | 隐藏计数 buff：每次 +1 层并刷新，层数到 3 时触发并消耗 |
 | The next hit inflicts…（Voltshot） | 一次性 buff，下一次命中时消耗 |
 | 对同一目标多次命中（Kinetic Tremors） | 隐藏 buff 挂在**目标**身上，按来源区分 |
-| 持续交战 12 秒（Frenzy） | 隐藏 buff，加上 `buff_ended` 的 expired 原因 |
+| 持续交战 12 秒（Frenzy） | 可刷新接触窗口 + 不刷新的预热 + 激活状态；expired 取消断档预热，满 12 秒且窗口仍存活才激活 |
 | Incurs N second cooldown | 规则的 `cooldown`，本质也是隐藏 buff |
 
 ### 例子：Kill Clip
@@ -1281,7 +1281,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | Voltshot | 武器词条 | 下一次命中消耗 + 施加元素状态 | partial；5.3 秒完成窗口、7 / 8 秒下一击、收枪与武器隔离；真实玩家容器 / 换弹 / 物理开火到共享 Jolt 非武器击杀已验；完整武器原型、多弹丸事务与清理策略待完成 |
 | Kinetic Tremors | 武器词条 | 按目标计数、固定激活位置的延迟多次范围伤害、按目标冷却 | 部分 JSON / 时间线 / 双加载器真实命中已验：12 类武器普通/强化门槛、直击去重、收枪、三波、冷却、初始类别及攻击快照；完整缩放 / 衰减、触发细节校准与装备来源仍缺失 |
 | Incandescent | 武器词条 | 范围施加状态层数、按敌人等级取值 | 未写 |
-| Frenzy | 武器词条 | 持续交战计时（`buff_expired` 事件） | 未写 |
+| Frenzy | 武器词条 | 持续交战预热、断档重置、收枪保持和多 Profile 消费 | 部分 JSON / 8 项纯核心 / 4 项共享世界场景；真实非致死射击、承伤与换弹已验，强化刷新秒数及原作边界仍待校准 |
 | Feeding Frenzy | 武器词条 | 每层数值不同（分档查表） | 未写 |
 | Desperate Measures | 武器词条 | 同一 buff 多个等级、各等级触发不同 | 未写 |
 | 急切刀锋 | 武器词条 | 冲量（服务端发起 + 宽限期） | 未写 |

@@ -1,0 +1,307 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:frenzy_contact",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "chorus_d2:frenzy_contact"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:frenzy_windup",
+        "version": "compendium-2026-10-05",
+        "duration": 12,
+        "refresh": "none",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "chorus_d2:frenzy_windup"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:frenzy_active",
+        "version": "compendium-2026-10-05",
+        "duration": 7,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "chorus_d2:frenzy_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:frenzy",
+      "rules": [
+        {
+          "id": "combat",
+          "on": "chorus:damage_taken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_ref_present",
+                "target": "event_actor"
+              },
+              {
+                "type": "chorus:target_ref_present",
+                "target": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:target_is",
+                    "left": "self",
+                    "right": "victim"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "effective_with_absorption",
+                  "unit": "damage"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:target_is",
+                  "left": "event_actor",
+                  "right": "victim"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:environmental_damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:frenzy_active"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus:enhanced"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:frenzy_enhanced_refresh_duration",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 7,
+                          "unit": "second"
+                        }
+                      },
+                      "as": "refresh"
+                    },
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:frenzy_active",
+                      "duration": {
+                        "type": "chorus:result",
+                        "binding": "refresh",
+                        "field": "value"
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:frenzy_active"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:frenzy_contact",
+                  "duration": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 5.5,
+                      "unit": "second"
+                    }
+                  }
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:frenzy_windup"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:frenzy_contact"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:frenzy_windup"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:frenzy_active"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:frenzy_contact",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "gap",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff",
+            "reason": "expired"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:frenzy_windup"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:frenzy_windup",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "ready",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_buff",
+                "reason": "expired"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:frenzy_contact"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:frenzy_active"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:frenzy_contact"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:frenzy_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:frenzy",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.15,
+            "unit": "delta"
+          },
+          "reference": "Compendium 2026-10-05 Weapon Perks C101; timing and eligibility policies in data/d2-research/2026-10-10/frenzy.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "handling",
+          "profile": "chorus_d2:weapon_handling",
+          "stage": "perks",
+          "group": "handling",
+          "op": "add",
+          "stacking_key": "chorus_d2:frenzy",
+          "value": {
+            "type": "chorus:constant",
+            "value": 100,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium 2026-10-05 Weapon Perks C101",
+          "confidence": "measured"
+        },
+        {
+          "id": "reload",
+          "profile": "chorus_d2:weapon_reload",
+          "stage": "perks",
+          "group": "reload",
+          "op": "add",
+          "stacking_key": "chorus_d2:frenzy",
+          "value": {
+            "type": "chorus:constant",
+            "value": 100,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium 2026-10-05 Weapon Perks C101",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

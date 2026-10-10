@@ -204,6 +204,14 @@ Java 工具可用 `ProgramModule.CODEC` 解码模块，再把 id → 模块的 M
 
 [voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。ProgramImportsGameTest 还将这两份原始夹具写为数据包模块，经真实 reload 后直接执行新目录中的两模式击杀、就绪、Jolt 中心与邻居伤害。[voltshot_weapon.json](../common/src/test/resources/effects/voltshot_weapon.json) 另提供完整武器输入模块，imports 同时引用 chorus_d2:voltshot 与 chorus_d2:jolt。需要手工运行这个合成示例时，把三份文件按原文件名放到 `data/chorus_d2/chorus/effect_program/` 目录，并在两个被引用片段上设置 `"fragment": true`；装备原型和来源会由独立容器投影。它已通过真实玩家开火、手动换弹、切枪后的物理命中与 Jolt 链伤验收；弹药 / 射速 / 飞行等参数是测试值，多弹丸具体资格及完整 D2 武器原型仍待完成。
 
+### 持续条件窗口：Frenzy
+
+[frenzy.json](../common/src/test/resources/effects/frenzy.json) 链接 [weapon_stats.json](../common/src/test/resources/effects/weapon_stats.json)、[frenzy_weapon.json](../common/src/test/resources/effects/frenzy_weapon.json) 及显式校准 Profile 后可编译执行。模板同时包含普通 / 强化分支，链接器会检查所有分支；即使只装备普通版，也必须提供 `chorus_d2:frenzy_enhanced_refresh_duration`，输入与输出均为 second。测试使用 [frenzy_test_calibration.json](../common/src/test/resources/effects/frenzy_test_calibration.json) 的合成 7.8 秒；正式内容须以校准值替换，不能把测试文件当作原作数值目录。四个片段的 version 必须一致，共用属性目录只链接一次。
+
+接触 Buff 每次伤害 reset，预热 Buff 使用 refresh:none，接触 expired 时取消预热；预热 expired 且接触仍在时授予激活 Buff，再移除接触。主动移除的 reason 不会触发断档逻辑，两个状态同时过期也不会错误激活。激活阶段只刷新收益计时，不重建预热。三个状态均按 weapon 实例隔离，on_stow:keep；自己的 source_detached 显式清理它们。该组合复用现有生命周期规则，没有专用 Frenzy Java 执行器。
+
+模板在 damage_taken 上同时匹配 owner 致伤与 holder 承伤，先守卫 event_actor / victim 身份，再检查正的 effective_with_absorption、排除自伤与显式环境标签。伤害、操控、装填分别声明在各自 Profile；换弹先限幅属性，再查武器曲线，接受后保存秒数。原作解释与接线限制见 [Frenzy 规则集](d2-ruleset.md#frenzy)。这组文件位于测试资源，不会自动安装到玩家运行时。
+
 ## 目标引用是否存在
 
 `{"type":"chorus:target_ref_present","target":"event_actor"}` 只判断目标身份是否已提供，不查询世界，也不证明实体仍存在或存活。原版环境伤害可能没有攻击者；先用此条件守卫，再执行需要该身份的 `target_is` 或动作。`all` 按声明顺序短路，因此守卫应放在引用读取之前。

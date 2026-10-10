@@ -73,7 +73,8 @@
       "com.imdomestic.chorus.WellspringGameTest",
       "com.imdomestic.chorus.SurplusGameTest",
       "com.imdomestic.chorus.ProfilePipelineGameTest",
-      "com.imdomestic.chorus.RampageGameTest"
+      "com.imdomestic.chorus.RampageGameTest",
+      "com.imdomestic.chorus.FrenzyGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

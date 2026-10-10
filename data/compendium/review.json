@@ -3681,6 +3681,123 @@
         "已接受换弹保持时长是Chorus政策，原作中途技能变化是否重新采样待校准",
         "稳定性/操控目前只有数值结果，后坐力、举枪/开镜、HUD与完整子职业/存档仍未装配"
       ]
+    },
+    {
+      "id": "weapon/frenzy",
+      "name": "Frenzy",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A101",
+          "text_sha256": "148b8f01ccb30c07d3bd3fb26370f7976cdc4a08a1e1d2c6be996306d8cc274e"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C101",
+          "text_sha256": "42bfcc107d96259aaad2efbfe2450886c5cd52a82de97729cc1d7e4bd342f5df"
+        }
+      ],
+      "scope": "普通/强化的持续交战窗口、12秒激活、中断重来、收枪计时；15%伤害和100操控/装填共用Profile；真实非致死开火/承伤/换弹与无攻击者环境伤害排除；强化刷新时长要求独立校准Profile",
+      "acceptance": [
+        "普通5秒/强化5.5秒内持续造成或受到伤害，满12秒自动激活，无需最后再命中",
+        "15%伤害、100操控和100装填，武器实例隔离；属性先加值后统一限幅",
+        "普通激活/刷新7秒，强化刷新采用显式校准输入，缺失或单位不符在链接时拒绝",
+        "收枪可计时与激活；卸下清理接触、进度和增益，重装不借用旧到期事件",
+        "无攻击者、自伤、明确环境标签、免疫/取消/零损失不续期；正承伤和其他武器造成伤害可续期",
+        "实际换弹接受时取值，随后Buff到期不改写计划，实际储备守恒"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/frenzy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_stats.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/frenzy_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/frenzy_test_calibration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "twelveContinuousSecondsActivateWithoutANewHitAndAllThreeBenefitsUseTheirOwnProfiles"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "fiveSecondGapRestartsNormalProgressButEnhancedFivePointFiveWindowSurvives"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "contactExpiryAtActivationBoundaryWinsAndTheNextDamageStartsAFreshWindup"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "activeRefreshUsesSevenSecondsAndExplicitEnhancedCalibrationEvenAfterTheWarmupGapWindow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "positiveOwnerCombatIsRequiredAndSelfEnvironmentalAndUnrelatedDamageDoNotCount"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "stowKeepsProgressButDetachAndReattachCannotReceiveTheOldWindupExpiration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "reloadUsesSharedStatCapAndAcceptedTimeSurvivesSubsequentBuffExpiry"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FrenzyTest.java",
+          "symbol": "refreshCalibrationIsRequiredTypedAndNoUnmeasuredDefaultIsInventedByTheTemplate"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FrenzyGameTest.java",
+          "symbol": "nativeEnvironmentalDamageWithoutAnActorDoesNotStartCombat"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FrenzyGameTest.java",
+          "symbol": "nonlethalCombatActivatesStowedWeaponAndReloadKeepsAcceptedDurationAfterBuffExpiry"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FrenzyGameTest.java",
+          "symbol": "actualGapResetsNormalProgressWhileEnhancedWindowContinuesAndRefreshUsesCalibration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FrenzyGameTest.java",
+          "symbol": "returningAnActualItemAndReequippingItCannotInheritItsCancelledWindup"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "9.7.0官方说明强化刷新时长应更长，Compendium未给出具体值；测试7.8秒纯合成，完整强化装配须提供校准Profile",
+        "12秒到点自动激活、首次7秒从激活时刻开始、半开窗口先到期、卸装清理及on_use伤害取样是明确内容政策，待原作校准",
+        "无攻击者原版摔落已验；有归属环境伤害、友伤、吸收/盾伤及全部特殊proc资格与标签仍需映射和校准",
+        "原型伤害/弹量/弹道/射速/换弹曲线为合成；100操控只有数值，举枪/ADS表现未装配",
+        "自动玩家装配、HUD、存档与跨维度状态迁移未完成"
+      ]
     }
   ]
 }

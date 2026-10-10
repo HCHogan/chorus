@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "effect": "Frenzy",
+  "reviewed_at": "2026-10-10",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "cells": [
+        "Weapon Perks A101",
+        "Weapon Perks C101"
+      ],
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "path": "data/compendium/assets/2026-10-10-rampage/manifest.json",
+      "cells": [
+        "A102",
+        "C102"
+      ],
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=C102",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+      "section": "Weapon perks / Frenzy",
+      "claim": "Fixed enhanced Frenzy refreshing without its longer duration; does not specify the numeric enhanced refresh duration."
+    }
+  ],
+  "numbers": {
+    "qualification_seconds": {
+      "normal": 5,
+      "enhanced": 5.5
+    },
+    "windup_seconds": 12,
+    "initial_duration_seconds": 7,
+    "normal_refresh_seconds": 7,
+    "enhanced_refresh_seconds": null,
+    "damage_delta": 0.15,
+    "handling_points": 100,
+    "reload_points": 100
+  },
+  "unknown_value_contract": {
+    "required_profile": "chorus_d2:frenzy_enhanced_refresh_duration",
+    "input_unit": "second",
+    "input": 7,
+    "output_unit": "second",
+    "default": null,
+    "fixture": "common/src/test/resources/effects/frenzy_test_calibration.json",
+    "test_output_seconds": 7.8,
+    "test_value_confidence": "synthetic_not_measured_or_inferred"
+  },
+  "content_policies": [
+    "Contact window is reset by each eligible damage receipt; windup starts at first contact and is never reset by further contacts.",
+    "Contact expiry removes windup. Windup expiry activates only while the matching contact instance is still live, including at identical timestamps.",
+    "Initial seven seconds start at activation time, not at the last damage receipt. This sampling interpretation needs independent verification.",
+    "While active, eligible damage refreshes the active buff without rebuilding a 12-second windup; self-damage, missing actor/victim, environmental_damage-tagged damage and non-positive loss are excluded.",
+    "Positive HP, absorption or Chorus shield loss involving the owner counts, including damage from another weapon or ability. Environmental attribution and friendly-fire exceptions need further calibration.",
+    "Damage contributions apply to same-instance weapon_damage; this template does not copy Kill Clip-specific explosive-perk exclusions. Host tags define damage credit.",
+    "Stow keeps timers; detach clears all three buff types. Missing source references are not treated as existing actors; presence checks do not assert world entity liveness."
+  ],
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/frenzy_weapon.json",
+    "base_damage": 10,
+    "capacity": 5,
+    "initial_magazine": 4,
+    "reload_seconds": "2 - 0.01 * clamped_stat",
+    "projectile_speed": 20,
+    "shot_interval_seconds": 0.15,
+    "confidence": "synthetic_test_archetype"
+  }
+}

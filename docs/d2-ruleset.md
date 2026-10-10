@@ -30,6 +30,18 @@
 
 [rampage_weapon.json](../common/src/test/resources/effects/rampage_weapon.json) 的 10 点基础伤害、5 发弹匣、0.15 秒射击间隔、0.2 秒换弹和 20 m/s 飞行速度都是合成验收参数。普通玩家自动装配、完整武器 / 异域特例、存档与 HUD 仍未完成，覆盖保持 partial。原表图标已原样导入，尚未绑定界面；来源与政策集中于 [研究记录](../data/d2-research/2026-10-10/rampage.json)。
 
+## Frenzy
+
+[frenzy.json](../common/src/test/resources/effects/frenzy.json) 按固定 CSV `Weapon Perks!C101` 与 2026-10-10 抓取的[原表 C102](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=C102) 实现持续交战：普通 / 强化每 5 / 5.5 秒内造成或受到有效伤害，连续保持 12 秒后获得 15% 武器增伤、100 操控和 100 装填属性。两项属性经过共用 Profile 的 0–100 限幅，装填再进入武器自己的秒数曲线；操控尚无拿枪 / 开镜动画消费者。
+
+三个按武器实例隔离的 Buff 分别表达接触窗口、不可刷新的 12 秒预热和激活状态。每次合格伤害只刷新接触窗口，断档会取消预热；预热到期且接触窗口仍存活时自动激活，不要求第 12 秒另有命中。接触与预热同时到期时不激活。激活后独立使用 7 秒计时并由合格伤害刷新，不再受 5 / 5.5 秒预热窗口限制；收枪继续计时，卸下 / 替换词条清除三个状态，重新装备重新累计。
+
+[官方 9.7.0 更新](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0) 确认修复强化版刷新时没有延长持续时间的问题，但未给出精确秒数。因此强化刷新要求外部提供 `chorus_d2:frenzy_enhanced_refresh_duration` Profile，输入基础 7 second、输出 second，没有数值默认值。[测试校准文件](../common/src/test/resources/effects/frenzy_test_calibration.json) 的 7.8 秒是纯合成值。普通刷新用 7 秒；首次激活的 7 秒从激活时刻开始计，是当前对原表的解释，仍待原作时序校准。
+
+战斗资格从单一 `damage_taken` 事实判断持有者是攻击者或受害者，不要求这把枪造成伤害；HP、原版 Absorption 或 Chorus 护盾的正损失均可计入。身份缺失、自伤、显式 environmental_damage 标签及零损失不计入。真实无攻击者的摔落伤害已验证，但带归属的环境伤害、友军及特殊伤害分类仍需校准。增伤使用同实例 weapon_damage 信用、on_use 快照，不沿用 Kill Clip 的特殊爆炸排除；具体武器衍生伤害资格仍由内容声明。
+
+8 项 FrenzyTest 和 4 项共享 FrenzyGameTest 验证精确时间边界、普通 / 强化断档差异、输入 / 承伤、无击杀激活、收枪、物理卸装重装、真实子弹 10→11.5 伤害及换弹接受后 Buff 到期仍按已捕获秒数完成。[武器夹具](../common/src/test/resources/effects/frenzy_weapon.json) 的 5 发容量、4 发初始弹量和 `2 − 0.01 × 属性` 换弹曲线均为合成参数。自动内容装配、完整武器曲线、HUD 和活动存档尚未完成，覆盖保持 partial；来源、已知数值与假设见 [研究记录](../data/d2-research/2026-10-10/frenzy.json)。
+
 ## 武器输入与 Kill Clip 集成边界
 
 实际容器现可通过服务端单次开火入口执行武器声明的 on_fire。弹药成本与每实例射击间隔先提交，接受时取消手动换弹；空弹 / 冷却 / 条件失败不取消。间隔固定接受时的 Profile 结果，后续切枪 / 换手不重置。这是当前通用宿主策略，具体武器原型、长按、蓄力、burst、精准区域和真实散布仍需校准与实现；显式多弹丸结算已接入下述回执事件。
