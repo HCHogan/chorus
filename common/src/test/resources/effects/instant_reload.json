@@ -1,0 +1,12 @@
+{
+  "version": "test-1",
+  "resources": [{"id":"test:instant_energy","capacity":1,"initial":1,"base_rate":0}],
+  "abilities": [{
+    "id":"test:instant_reload","slot":"test:class","tags":["chorus:class_ability"],
+    "cost":{"resource":"test:instant_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+    "on_use":[
+      {"action":{"type":"chorus:reload_weapons","selection":"equipped","completion":"transferred","reason":"test:skill_reload"},"as":"reload"},
+      {"type":"chorus:heal","amount":{"type":"chorus:scale","of":{"type":"chorus:result","binding":"reload","field":"applied"},"from":"round","to":"damage","factor":1}}
+    ]
+  }]
+}

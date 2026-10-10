@@ -264,6 +264,12 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Spend::weapon),
                         enumeration(com.imdomestic.chorus.effect.ammo.Ammunition.Pool.class).optionalFieldOf("pool", com.imdomestic.chorus.effect.ammo.Ammunition.Pool.MAGAZINE).forGetter(AmmoActions.Spend::pool),
                         values.fieldOf("amount").forGetter(AmmoActions.Spend::amount)).apply(i, AmmoActions.Spend::new)))
+                .register("chorus:reload_weapons", ReloadActions.Reload.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(ReloadActions.Reload::holder),
+                        enumeration(com.imdomestic.chorus.effect.weapon.InstantReload.Selection.class).fieldOf("selection").forGetter(ReloadActions.Reload::selection),
+                        enumeration(com.imdomestic.chorus.effect.weapon.InstantReload.Completion.class).fieldOf("completion").forGetter(ReloadActions.Reload::completion),
+                        ID.fieldOf("reason").forGetter(ReloadActions.Reload::reason), enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(ReloadActions.Reload::origin)
+                ).apply(i, ReloadActions.Reload::new)))
                 .register("chorus:refill_magazine", AmmoActions.Refill.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Refill::weapon), values.optionalFieldOf("amount").forGetter(AmmoActions.Refill::amount),
                         values.optionalFieldOf("ceiling").forGetter(AmmoActions.Refill::ceiling)).apply(i, AmmoActions.Refill::new)))

@@ -81,6 +81,59 @@ final class CompiledWeapons {
         }
         return new RuleEngine.Local<>(updated, applied.result(), facts);
     }
+    private List<Loadout.Gear> instantWeapons(Loadout loadout, InstantReload.Selection selection) {
+        return loadout.slots().entrySet().stream()
+                .filter(entry -> selection == InstantReload.Selection.EQUIPPED || loadout.drawn().filter(entry.getKey()::equals).isPresent())
+                .map(Map.Entry::getValue).filter(gear -> definitions.containsKey(gear.definition())).toList();
+    }
+    Optional<InstantReload.Check> instant(EffectState state, String holder, InstantReload.Selection selection,
+            InstantReload.Completion completion, String reason, BuffInstance.Origin cause, RuleEngine.OperationId operation) {
+        var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
+        if (instantWeapons(loadout, selection).isEmpty()) return Optional.empty();
+        return Optional.of(new InstantReload.Check(holder, loadout, selection, completion, reason, cause, operation));
+    }
+    RuleEngine.Local<EffectState> instant(EffectState state, InstantReload.Checked checked, CompiledEffects program) {
+        var request = checked.query();
+        if (!checked.allowed()) return instantRejected(state, InstantReload.Outcome.REJECTED);
+        if (!request.equipment().equals(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY)))
+            return instantRejected(state, InstantReload.Outcome.STALE_EQUIPMENT);
+        var candidates = instantWeapons(request.equipment(), request.selection());
+        if (candidates.isEmpty()) return instantRejected(state, InstantReload.Outcome.EMPTY);
+        var transfers = new ArrayList<InstantReload.Transfer>();
+        // Resolve every capacity against the same pre-commit state; no weapon sees a partly reloaded loadout.
+        for (var gear : candidates) {
+            var view = program.ammoCapacity(state, gear.instance());
+            var mutation = Ammunition.refill(view.account(), view.read(AmmoState.Field.MISSING), view.capacity());
+            var tags = new HashSet<>(items.get(gear.definition()).tags()); tags.add("chorus:instant_reload");
+            var origin = new BuffInstance.Origin(request.holder(), request.cause().source(), gear.instance(), request.cause().ability(), tags);
+            transfers.add(new InstantReload.Transfer(gear, mutation, view.after(mutation.after()), origin,
+                    mutation.applied() > 0 || request.completion() == InstantReload.Completion.VERIFIED));
+        }
+        var updated = state; var facts = new ArrayList<RuleEngine.Signal>();
+        var manual = state.reloads().get(request.holder());
+        if (manual != null && candidates.stream().anyMatch(gear -> gear.instance().equals(manual.gear().instance()))) {
+            updated = clear(updated, manual); facts.add(fact("chorus:reload_cancelled", manual, "instant_reload", Map.of()));
+        }
+        for (var transfer : transfers) updated = updated.withAmmo(transfer.mutation().after());
+        for (var transfer : transfers) {
+            var ammo = AmmoFacts.changed(request.holder(), transfer.origin(), transfer.mutation(), transfer.view().capacity());
+            if (transfer.mutation().changed()) {
+                facts.add(new RuleEngine.Signal("chorus:ammo_refilled", ammo)); facts.add(new RuleEngine.Signal("chorus:ammo_changed", ammo));
+            }
+            if (transfer.completed()) {
+                var numbers = new HashMap<>(ammo.numbers()); numbers.put("duration", new Measure(0, Unit.SECOND)); numbers.put("scheduled_duration", new Measure(0, Unit.SECOND));
+                numbers.put("reload_step", new Measure(0, Unit.COUNT)); numbers.put("planned_rounds", new Measure(transfer.mutation().requested(), Unit.ROUND));
+                var event = new EffectEvent(request.holder(), transfer.gear().instance(), transfer.origin(), transfer.origin().tags(), numbers,
+                        Map.of("manual", false, "instant", true, "incremental", false), Map.of("weapon", transfer.gear().instance(), "item", transfer.gear().definition(),
+                                "reason", request.reason(), "reload", request.token(), "cause_owner", request.cause().owner(), "cause_source", request.cause().source(), "cause_weapon", request.cause().weapon(), "cause_ability", request.cause().ability()));
+                facts.add(new RuleEngine.Signal("chorus:reload_finished", new InstantReload.Completed(event, request, transfer)));
+            }
+        }
+        return new RuleEngine.Local<>(updated, new InstantReload.Result(InstantReload.Outcome.VERIFIED, transfers), facts);
+    }
+    private static RuleEngine.Local<EffectState> instantRejected(EffectState state, InstantReload.Outcome outcome) {
+        return new RuleEngine.Local<>(state, new InstantReload.Result(outcome, List.of()), List.of());
+    }
     RuleEngine.Local<EffectState> begin(EffectState state, WeaponReload.Request request, CompiledEffects program) {
         var gear = WeaponReload.drawn(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY));
         if (gear.isEmpty()) return reject(state, WeaponReload.Outcome.EMPTY_HANDS);

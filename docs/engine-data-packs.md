@@ -668,7 +668,7 @@ reload.value 是接受请求时求值的 Value。没有 Profile 时单位必须�
 
 三类事实的 actor 为持有者，victim 为武器实例，source 带物品标签和 `chorus:manual_reload`。引用包含 weapon / item / reload（请求标识）/ reason，manual 标志为 true，duration 是接受的秒数，scheduled_duration 是向上取整后的秒数。完成事实另带 requested / applied / unfulfilled、前后弹数、有效 / 未修饰容量及有限储备差值；不把它伪装成原版实体目标。
 
-[weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣与逐次装填，尚无冲刺中断、排热、闪身 / Dragon's Shadow 自动换弹、按键 / 动画 / HUD、跨运行时保存恢复。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
+[weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣与逐次装填，尚无冲刺中断、排热、完整闪身 / Dragon's Shadow 内容、按键 / 动画 / HUD、跨运行时保存恢复；效果触发的合格换弹动作见下文。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
 
 #### 逐次装填
 
@@ -694,6 +694,26 @@ rounds_profile 可省略；存在时接收 rounds 的单位并输出 round，输
 状态以 WAITING / BETWEEN_INSERTS 区分尚未装入和已经装入、等待完成反应的边界。旧 DUE / NEXT 重提不会重复转移。后续计算失败或完成反应的世界结果未知时，已装入的弹药保留，运行时停止继续推导，不回滚、补发或自动重试。每步必须正时长，不添加有限步骤次数来限制合法持续装填。
 
 这套协议已用实际玩家容器和普通 reload / fire 命令验证；按键、动画起止帧、不同武器的退出动画与原作逐发触发资格仍需内容侧校准。通用 refill_magazine 仍不产生 reload_finished。
+
+
+#### 效果触发的合格换弹
+
+`chorus:reload_weapons` 是独立动作，用于技能等效果明确授予换弹资格的场景：
+
+```json
+{"type":"chorus:reload_weapons","holder":"self","selection":"equipped",
+ "completion":"transferred","reason":"example:class_ability_reload","origin":"event"}
+```
+
+holder 默认 self，origin 默认 bound。selection、completion、reason 必填：selection 为 drawn（当前持握）或 equipped（全部已装备的已声明武器）；completion 为 transferred（实际装入才完成）或 verified（物理资格通过即完成，允许零转移）。满弹匣 / 储备为空是否触发 perk 是内容政策，不能从“技能换弹”名称猜测。reason 为命名空间 ID。动作本身无耗时；需要施放到换弹的延迟时由技能参数和 after 声明。
+
+执行时保存完整装备投影、原始原因 Origin 和 OperationId，通过只读世界操作验证玩家存活、维度、非旁观者及实际容器一致性。宿主拒绝或回执时装备已变化，不转移弹药、不发完成。所有匹配武器的容量与转移先针对同一提交前状态计算；任一失败不提交部分弹药。通过后一次写入全部余额，再发布事实，因此第一把武器的完成反应不会影响同一批第二把武器的已定转移。有限储备守恒，无限储备不创建有限账户，已有溢出弹数不裁掉。
+
+若被选武器正在手动 / 逐次装填，成功验证的效果换弹会取消该计划（reload_cancelled 的 reason=instant_reload），再提交批量转移；即使零转移也取消。只选 drawn 不影响其他武器，拒绝 / 空匹配不取消。旧计划到期不能补发弹药。已接受技能成本不因换弹拒绝而退回；世界验证结果未知时尚未提交弹药，后续世界反应未知时保留已提交批量弹药，均不自动重试。
+
+每把实际变化的武器发布 ammo_refilled / ammo_changed，每把符合 completion 的武器发布 reload_finished。完成事实 actor 为收取弹药的持有者、victim 为该武器实例，origin.weapon 为该武器，以便 Kill Clip 等按实例判断；origin.ability / source 保留引发效果的技能 / 来源，标签为该物品标签加 chorus:instant_reload。原始提供者完整 Origin 保存在 InstantReload.Completed.request.cause，DSL 引用另有 cause_owner / cause_source / cause_weapon / cause_ability。事实 manual=false、instant=true、incremental=false，duration / scheduled_duration=0 second、reload_step=0 count；reason 为配置值，reload 为该操作的稳定标识，planned_rounds 及弹药测量均按各武器记录。零时长描述此转移，不声称原作动画没有延迟。
+
+结果可绑定：matched_weapons / reloaded_weapons / changed_weapons 为 count，requested / applied 为所有武器合计的 round；verified / rejected / stale_equipment / empty 表示结果分支，changed / reloaded 表示至少一把实际变化 / 完成。changed 不包含取消手动计划。通用 refill_magazine 仍不发 reload_finished，不能替代本动作。
 
 
 ### 显式随机抽样

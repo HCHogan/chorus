@@ -380,6 +380,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     public CompiledEquipment equipment() { return equipment; }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
+    public Optional<InstantReload.Check> instantReload(EffectState state, String holder, InstantReload.Selection selection,
+            InstantReload.Completion completion, String reason, BuffInstance.Origin cause, RuleEngine.OperationId operation) {
+        settled(state); return weapons.instant(state, holder, selection, completion, reason, cause, operation);
+    }
+    public RuleEngine.Local<EffectState> completeInstantReload(EffectState state, InstantReload.Checked checked) {
+        settled(state); return weapons.instant(state, checked, this);
+    }
     public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
     public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
     public void validateSource(EffectSource source) {

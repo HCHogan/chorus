@@ -66,7 +66,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
             operationFacts = new ArrayList<>();
             try {
-                var actual = request.command() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query ? verifyReload(query) : world.apply(request);
+                var actual = switch (request.command()) {
+                    case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
+                    case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
+                    default -> world.apply(request);
+                };
                 if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
                 var writes = takeWrites();
                 return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
@@ -179,6 +183,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponFire.Commit(before, resolved.state()));
             refreshEquipment(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private com.imdomestic.chorus.effect.weapon.InstantReload.Checked verifyInstantReload(com.imdomestic.chorus.effect.weapon.InstantReload.Check query) {
+        ServerPlayer player;
+        try { player = equipmentOwners.get(java.util.UUID.fromString(query.holder())); }
+        catch (IllegalArgumentException invalid) { player = null; }
+        boolean allowed = player != null && !player.isRemoved() && player.level() == level && player.isAlive() && !player.isSpectator()
+                && PlayerEquipment.get(player).projection(program.equipment()).equals(query.equipment());
+        return new com.imdomestic.chorus.effect.weapon.InstantReload.Checked(query, allowed);
     }
     private com.imdomestic.chorus.effect.weapon.WeaponReload.Verified verifyReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query) {
         var plan = query.plan(); ServerPlayer player;

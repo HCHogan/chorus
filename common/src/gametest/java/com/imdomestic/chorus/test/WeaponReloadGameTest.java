@@ -3,10 +3,12 @@ package com.imdomestic.chorus.test;
 import static com.imdomestic.chorus.test.HealingGameTest.near;
 import com.google.gson.JsonParser;
 import com.imdomestic.chorus.effect.*;
+import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.HealingCommand;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.equipment.*;
+import com.imdomestic.chorus.effect.resource.ResourceState;
 import com.imdomestic.chorus.effect.weapon.WeaponReload;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
@@ -84,6 +86,54 @@ public class WeaponReloadGameTest {
     private static void incremental(com.google.gson.JsonObject data) {
         var weapon = data.getAsJsonArray("weapons").get(0).getAsJsonObject(); var settings = ThreadedSpikeGameTest.json("incremental_reload_settings");
         weapon.getAsJsonObject("reload").add("insert", settings.get("insert")); weapon.add("fire", settings.get("fire"));
+    }
+    @GameCase(environment = "chorus_gametest:instant_reload", maxTicks = 14)
+    public void ordinaryAbilityCommandReloadsOwnedWeaponsAtomicallyAndCancelsTheManualTimer(GameTestHelper h) throws Exception {
+        var t = new Harness(h, data -> {
+            var ability = ThreadedSpikeGameTest.json("instant_reload");
+            data.add("resources", ability.get("resources")); data.add("abilities", ability.get("abilities"));
+        });
+        try {
+            var owner = t.player("instant-"); var other = t.player("other-"); String holder = owner.getUUID().toString();
+            t.runtime.abilities(new AbilityChange(holder, AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("test:class", "test:instant_reload"))));
+            t.killFact(owner, "instant-a"); t.command(owner, "chorus weapon reload"); t.command(owner, "chorus ability use test:class"); t.settled();
+            near(h, t.state().resources().get(new ResourceState.Key(holder, "test:instant_energy")).value(), 0, "accepted ability paid once");
+            near(h, owner.getHealth(), 26, "action receipt and two per-weapon completion reactions"); near(h, other.getHealth(), 10, "other player unchanged");
+            h.assertValueEqual(t.heals.stream().map(HealingCommand::amount).toList(), List.of(8.,4.,4.), "aggregate receipt then per-weapon reactions");
+            for (var state : t.beforeHeals) for (String weapon : List.of("instant-a", "instant-b"))
+                h.assertValueEqual(state.ammunition().get(weapon).magazine(), 5, "reaction saw a partially committed batch");
+            h.assertTrue(t.state().buffs().instances().values().stream().anyMatch(b -> b.definition().id().equals("chorus_d2:kill_clip") && b.origin().weapon().equals("instant-a")), "qualified skill reload did not activate the weapon perk");
+            h.assertTrue(t.state().reloads().isEmpty(), "instant reload retained the manual plan");
+            h.runAfterDelay(6, () -> { try (t) {
+                t.runtime.prepare(); t.settled();
+                for (String weapon : List.of("instant-a", "instant-b")) {
+                    h.assertValueEqual(t.magazine(weapon), 5, "both equipped weapons filled"); h.assertValueEqual(t.reserve(weapon), 8, "finite reserve conserved");
+                }
+                h.assertValueEqual(t.magazine("other-a"), 1, "other holder's weapon untouched"); h.assertValueEqual(t.magazine("other-b"), 1, "other holder's stowed weapon untouched");
+                h.assertValueEqual(t.heals.size(), 3, "cancelled timer repeated completion"); h.succeed();
+            } });
+        } catch (Exception | Error error) { t.close(); throw error; }
+    }
+    @GameCase(environment = "chorus_gametest:instant_reload_liveness")
+    public void effectReloadRejectsPhysicallyIneligibleRecipients(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, data -> data.getAsJsonArray("bundles").add(JsonParser.parseString("""
+                {"id":"test:instant_provider","rules":[{"id":"reload","on":"test:reload_recipient","do":[
+                  {"type":"chorus:reload_weapons","holder":"victim","selection":"equipped","completion":"verified","reason":"test:recipient"}
+                ]}]}
+                """)))) {
+            var provider = t.player("provider-"); String source = provider.getUUID().toString();
+            t.runtime.bind(new EffectSource("provider", "test:instant_provider", source, new BuffInstance.Origin(source, "provider", "", ""), Set.of()));
+            var dead = t.player("dead-"); var spectator = t.player("spectator-"); var removed = t.player("removed-");
+            dead.setHealth(0); spectator.setGameMode(GameType.SPECTATOR); removed.discard();
+            for (var recipient : List.of(dead, spectator, removed))
+                t.runtime.start(new RuleEngine.Signal("test:reload_recipient", new EffectEvent(source, recipient.getUUID().toString(), new BuffInstance.Origin(source, "provider", "", ""), Set.of(), Map.of())));
+            t.settled();
+            for (String prefix : List.of("dead-", "spectator-", "removed-")) for (String suffix : List.of("a", "b")) {
+                h.assertValueEqual(t.magazine(prefix + suffix), 1, "ineligible recipient received ammunition");
+                h.assertValueEqual(t.reserve(prefix + suffix), 12, "ineligible recipient spent reserves");
+            }
+            h.assertTrue(t.heals.isEmpty(), "ineligible recipient received a qualified completion"); h.succeed();
+        }
     }
     @GameCase(environment = "chorus_gametest:weapon_reload_incremental", maxTicks = 25)
     public void ordinaryReloadCommandLoadsOneRoundPerDeadlineAndActivatesPerkOnFirstInsertion(GameTestHelper h) throws Exception {
