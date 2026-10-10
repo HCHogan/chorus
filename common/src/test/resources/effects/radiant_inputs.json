@@ -1,0 +1,138 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:well_presence",
+        "version": "compendium-2026-10-05",
+        "duration": 1
+      },
+      "bundle": "test:well_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:radiant_inputs",
+      "rules": [
+        {
+          "id": "radiant",
+          "on": "test:radiant",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:solar_effect_duration",
+                "target": "victim",
+                "input": {
+                  "type": "chorus:event_number",
+                  "name": "duration",
+                  "unit": "second"
+                }
+              },
+              "as": "duration"
+            },
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:radiant",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:result",
+                "binding": "duration",
+                "field": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "well",
+          "on": "test:well",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "test:well_presence",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "remove",
+          "on": "test:remove_radiant",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:radiant"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:well_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "well",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:radiance",
+          "priority": 100,
+          "evaluate": "on_use",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.25,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          },
+          "reference": "Synthetic Well presence verifies Solar D6 source priority only; not a complete Well implementation.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:independent_perk",
+      "modifiers": [
+        {
+          "id": "perk",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "test:perk",
+          "evaluate": "on_use",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic independent perk stage.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

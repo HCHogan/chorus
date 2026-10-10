@@ -4555,6 +4555,72 @@
         "Radiant 与全部真实施加来源尚未接入该 Profile",
         "完整装配与原作动态卸装行为仍需验证"
       ]
+    },
+    {
+      "id": "solar/radiant",
+      "name": "Radiant",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B6",
+          "text_sha256": "479682c90cdf868b9ecef5bde3878bfb14f26aaf0da999b146b2cdcef69b9010"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D6",
+          "text_sha256": "1919375b2abc8da1607b8cc0b0235d8ee4297de5771f517815923f71351685d9"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D51",
+          "text_sha256": "b4d67b1ea43f0ca371b727e3d82e7a49fa7411bae1b4dfee2ab621c5e93eaf6b"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D52",
+          "text_sha256": "c4936d9ee27031333842f8b4ab9013ca25be874200579fccd305064f296646b9"
+        }
+      ],
+      "scope": "共享状态与历史时长、Solace 受益者查询、20/10% 与勇士 30% 增伤、Well 25% 优先级；实际射弹逐目标分类",
+      "acceptance": [
+        "武器/Golden Gun 显式资格，普通技能不误增伤",
+        "来源优先级先于 MAX，独立词条另乘",
+        "缺失/非法命中分类不猜普通目标",
+        "完整 10 秒世界生命周期与到期后在途射弹"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/radiant.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/empowering_damage.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RadiantTest.java",
+          "symbol": "wellPriorityOverridesThirtyPercentWithoutAddingButIndependentPerkStillMultiplies"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RadiantGameTest.java",
+          "symbol": "actualProjectileObservesChampionAtImpactAndWellOverridesItsThirtyPercent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RadiantGameTest.java",
+          "symbol": "tenSecondExpiryDoesNotRewriteAnEarlierShotAndNewAttacksHaveNoExpiredBonus"
+        }
+      ],
+      "gaps": [
+        "开火时增益/命中时分类为内容政策，仍需原作时序校准",
+        "完整 Well、Lumina、Golden Gun 与特殊变种及互斥仍未实现；合成 Well 仅验证数值优先级",
+        "真实授予来源、完整勇士目录、混合活动模式、其他伤害宿主接线、死亡清理、HUD 和持久化未完成"
+      ]
     }
   ]
 }

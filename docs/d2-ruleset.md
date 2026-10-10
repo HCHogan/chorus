@@ -825,3 +825,16 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 官方 [2024-02-15 说明](https://www.bungie.net/7/en/News/Article/this_week_in_destiny_02_15_24) 支持 Mercy 延长 Restoration 2 秒、Solace 下 3 秒及历史计时修复；[7.3.5 补丁](https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5) 的 Mercy 措辞还提到 Radiant，与详细说明及当前固定快照的 Restoration 分支不一致。本实现以快照和详细说明的交集为准，没有据此添加 Mercy 延长 Radiant 的行为，也没有把历史公告当成当前全部数值的实测。
 
 仍未实现 Mercy 的队友复活分支：原表写 5+2.5 秒并将半径标为 ?，需要真实队友复活事件和明确的范围校准。原版重生、不死图腾不能代替该事件。死亡 / 重生时恢复的清理政策、全部施加来源、真实 HP 缩放、Health 属性游戏投影、子职业装配、HUD 与存档仍待完成；Mercy 和 Solace 均记录为 partial。
+
+
+## Radiant 与 empowering 来源优先级
+
+[radiant.json](../common/src/test/resources/effects/radiant.json) 按 CSV Solar D6 / 原表 D8 定义共享状态：基础 10 秒，重新施加恢复历史最长时长，延长上限 15 秒。测试施加入口使用 apply_status，并查询受益者 solar_effect_duration；Solace 下基础 10 秒变为 15 秒。完整真实技能 / 装备授予来源仍需装配。
+
+[empowering_damage.json](../common/src/test/resources/effects/empowering_damage.json) 使用现有 NumericGroup 的 family PRIORITY，再在 empowering 中 MAX；独立 perks 在另一阶段相乘。Radiant 与 Well 的数值来源共享 radiance 家族，Well 优先级较高，因此对勇士选择 25% 而不是 Radiant 30%，也不是两者相乘。测试 Well presence 仅验证这一优先级，不代表完整 Well。其他家族的更高 empowering 仍可参与 MAX。
+
+Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / melee / super 标签不自动获得资格。活动模式 PvE 为 20%，PvP 为 10%；PvE 对勇士取 30%。Golden Gun 资格由 Solar D51/D52 支持，当前沿用 D6 的共享加成解释，完整超能、Celestial 变种、Well / Lumina 互斥及对勇士的特殊数值仍需单独校准。
+
+攻击可在开火时保存 Radiant 是否有效；radiant_champion 则是每次命中的 count 输入，必须精确为 0 或 1。新武器夹具在实际射弹接触时 inspect_entity，从 entity / type 标记选择该输入，再调用 damage_snapshot。缺观察、单位错误或非二值不会悄悄按普通敌人算；原版未标记实体按普通目标处理是这份内容的分类协议，不代表已有全部 D2 敌人目录。开火后过期 / 收枪仍保留之前射弹的增益，是当前可验证的 Chorus 时序政策，不是对原作全部武器快照行为的完成声明。
+
+官方 [2026-06-04 技能预览](https://www.bungie.net/7/en/News/Article/dev_insights_abilities_armor_preview) 调整了对勇士加成并移除 Radiant 武器伤害的屏障晕眩；数值使用 Compendium 的绝对 30%，不在其上重复乘 1.1。[9.5.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0) 还让 Well 内开火的 Golden Gun 获得 Radiant 资格；[2026-02-19 已知问题](https://www.bungie.net/7/en/News/Article/twid_02_19_2026) 列过 Lumina 覆盖 Golden Gun 的 Radiant 增益，不能据此推断已修复或所有来源同样互斥。完整来源、混合交战模式、非射弹宿主接线、死亡清理、UI 与存档仍待实现。[来源记录](../data/d2-research/2026-10-10/radiant.json) 保留上述边界与坐标映射。

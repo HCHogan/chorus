@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effect": "Radiant",
+  "implementation_status": "partial; shared status, duration history, explicit damage eligibility, impact classification and empowering priority",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B6",
+        "Solar D6",
+        "Solar D51",
+        "Solar D52"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-10/firesprite-solar-source.html.gz",
+      "retrieved_at": "2026-10-10T11:13:58.663075+00:00",
+      "html_sha256": "8a9e5d3f4220df4991465d8f9f10ec6817bef380314f32cc7c588734ff834298",
+      "mapping": [
+        {
+          "original": "B8",
+          "snapshot": "B6",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D8",
+          "snapshot": "D6",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D77",
+          "snapshot": "D51",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D79",
+          "snapshot": "D52",
+          "normalized_text_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "official_sandbox_preview",
+      "date": "2026-06-04",
+      "url": "https://www.bungie.net/7/en/News/Article/dev_insights_abilities_armor_preview",
+      "support": "Radiant weapon damage gains a Champion bonus and no longer stuns Barrier Champions; use the Compendium absolute 30%, do not multiply another 1.1 onto it."
+    },
+    {
+      "kind": "official_patch",
+      "date": "2025-12-02",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "support": "Golden Gun receives Radiant eligibility inside Well. Full Golden Gun and Well sources remain outside this fixture."
+    },
+    {
+      "kind": "official_known_issue",
+      "date": "2026-02-19",
+      "url": "https://www.bungie.net/7/en/News/Article/twid_02_19_2026",
+      "support": "Lumina overriding Radiant on Golden Gun was listed as a known issue; no fixed or universal source-priority conclusion inferred."
+    }
+  ],
+  "compendium_values": {
+    "pve_delta": 0.2,
+    "pvp_delta": 0.1,
+    "champion_delta": 0.3,
+    "default_duration_seconds": 10,
+    "extension_cap_seconds": 15,
+    "well_override_delta": 0.25
+  },
+  "current_policy": {
+    "eligibility": "Explicit weapon_damage or golden_gun_damage tag. No generic grenade, melee or super eligibility.",
+    "classification": "PvE damage requires radiant_champion count exactly 0/1 supplied per impact; missing/wrong/nonbinary input fails rather than silently selecting ordinary damage. Physical test weapon queries entity/type tags at contact. Native unmarked MC entities are ordinary under this declared tagging policy.",
+    "priority": "Radiant and test Well presence share radiance family with PRIORITY, then MAX among empowering candidates; independent weapon-perk stage remains multiplicative. Well presence is synthetic, not full Well gameplay.",
+    "duration": "historic_max; explicit application sources query recipient solar_effect_duration. Solace increases 10 to 15 seconds; reapply retains longer history.",
+    "snapshot": "Buff availability and activity mode on use, target Champion input at impact. Post-fire expiry/stow do not rewrite earlier shots. This is explicit Chorus content policy needing D2 timing calibration.",
+    "golden_gun": "Uses the literal Solar D6/D51/D52 shared-bonus interpretation in query tests; Golden Gun/Well/Celestial and Champion interactions need dedicated validation.",
+    "anti_champion": "No Barrier stun or shield bypass inferred from obsolete Radiant descriptions."
+  },
+  "remaining": [
+    "Production granting sources and subclass assembly",
+    "Full Well/Lumina/Golden Gun and variant-specific priority and snapshot rules",
+    "Complete Champion catalogue and mixed-activity mode classification",
+    "Native non-projectile weapons need the same explicit per-impact classification adapter",
+    "Death/respawn cleanup policy, UI and persistence"
+  ]
+}

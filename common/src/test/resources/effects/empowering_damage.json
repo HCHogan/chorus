@@ -1,0 +1,35 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:empowering_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "empowering",
+          "operation": "multiply",
+          "group": {
+            "name": "empowering",
+            "reduction": "max",
+            "families": {
+              "chorus_d2:radiance": {
+                "kind": "priority"
+              }
+            }
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "perks",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ]
+}

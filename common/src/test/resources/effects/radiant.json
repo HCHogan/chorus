@@ -1,0 +1,84 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:radiant",
+        "version": "compendium-2026-10-05",
+        "duration": 10,
+        "refresh": "historic_max",
+        "extension_cap": 15,
+        "tags": [
+          "chorus_d2:radiant"
+        ]
+      },
+      "bundle": "chorus_d2:radiant_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:radiant_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:radiance",
+          "priority": 0,
+          "evaluate": "on_use",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:impact_number",
+                "name": "radiant_champion",
+                "unit": "count"
+              },
+              "from": "count",
+              "to": "delta",
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0.2
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.3
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              }
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.1,
+              "unit": "delta"
+            }
+          },
+          "if": {
+            "type": "chorus:any",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:golden_gun_damage"
+              }
+            ]
+          },
+          "reference": "Compendium CSV Solar D6, D51-D52; original Solar D8. Champion input observed at impact; attack-side availability sampled on use is an explicit content policy.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

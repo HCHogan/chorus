@@ -14,7 +14,7 @@
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
 | Arc | 否 | 191 | 7 | 184 |
-| Solar | 否 | 210 | 28 | 182 |
+| Solar | 否 | 210 | 32 | 178 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
 | Strand | 否 | 153 | 10 | 143 |
@@ -91,6 +91,7 @@
 | Ember of Searing | partial | Solar B22; Solar D22; Solar N22 | 以伤害回执时的灼烧观察判断已确认击杀，按显式 T1–T4 / Guardian 分支回当前近战能量，并独立请求共享 Firesprite；Class +10 查询；缺口：原表百分比属性基准未说明，测试除以 2.25 为参考点假设；当前原作基础量及 CES 资格待实测；需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求；助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准；Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现 |
 | Ember of Mercy | partial | Solar B20; Solar D20; Solar N20 | 确认拾取 Firesprite 后授予或延长 Restoration；读取收集者当前 Solace，Health +10 查询；缺口：队友复活事件和 ? 米范围未实现，不能用原版重生替代；实际生命缩放、死亡生命周期、Health 游戏投影、完整子职业装配、HUD 和存档待实现 |
 | Ember of Solace | partial | Solar B24; Solar D24; Solar N24 | 受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换；缺口：Radiant 与全部真实施加来源尚未接入该 Profile；完整装配与原作动态卸装行为仍需验证 |
+| Radiant | partial | Solar B6; Solar D6; Solar D51; Solar D52 | 共享状态与历史时长、Solace 受益者查询、20/10% 与勇士 30% 增伤、Well 25% 优先级；实际射弹逐目标分类；缺口：开火时增益/命中时分类为内容政策，仍需原作时序校准；完整 Well、Lumina、Golden Gun 与特殊变种及互斥仍未实现；合成 Well 仅验证数值优先级；真实授予来源、完整勇士目录、混合活动模式、其他伤害宿主接线、死亡清理、HUD 和持久化未完成 |
 
 ## 使用
 
