@@ -79,7 +79,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         this.bundles = index(program.bundles(), EffectProgram.Bundle::id);
         this.equipment = new CompiledEquipment(program.equipment(), id -> {
             if (bundle(id).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipment requires a source-scoped bundle: " + id);
-        });
+        }, id -> bundle(id).parameters());
         this.profiles = index(program.profiles(), CalculationProfile::id);
         this.resources = index(program.resources(), ResourceDefinition::id);
         this.abilities = index(program.abilities(), AbilityDefinition::id);
@@ -376,6 +376,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
     public void validateSource(EffectSource source) {
         if (bundle(source.bundle()).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipped source references a buff-only bundle");
+        EffectParameters.validate(bundle(source.bundle()).parameters(), source.parameters());
     }
     public void validateSources(SourceBatch batch) { batch.edits().forEach(edit -> { unmanagedSource(edit.instance()); edit.after().ifPresent(this::validateSource); }); }
     public void validateSourceChange(SourceChange change) { unmanagedSource(change.instance()); change.replacement().ifPresent(this::validateSource); }
@@ -579,7 +580,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return java.util.Collections.unmodifiableMap(result);
     }
     private Validation validation(EffectProgram.Bundle bundle, Map<String, ResultShape> results) {
-        return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields);
+        return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields, bundle.parameters());
     }
     Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
         return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this));

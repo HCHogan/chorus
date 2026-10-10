@@ -16,6 +16,20 @@ public interface Value {
         @Override public Unit unit(Validation v) { Numbers.finite(value, "constant"); return quantity; }
         @Override public Measure evaluate(Evaluation e) { return new Measure(value, quantity); }
     }
+    record SourceParameter(String name) implements Value {
+        public SourceParameter { com.imdomestic.chorus.effect.EffectParameters.name(name); }
+        @Override public Unit unit(Validation v) {
+            var unit = v.parameters().get(name);
+            if (v.buffSource() || unit == null) throw new IllegalArgumentException("Undeclared source parameter: " + name);
+            return unit;
+        }
+        @Override public Measure evaluate(Evaluation e) {
+            if (!(e.context().scope() instanceof com.imdomestic.chorus.effect.EffectSource source)) throw new IllegalArgumentException("Source parameter requires a bound effect source");
+            var value = source.parameters().get(name);
+            if (value == null) throw new IllegalArgumentException("Missing source parameter: " + name);
+            return value;
+        }
+    }
     record Result(String binding, String field) implements Value {
         @Override public Unit unit(Validation v) { return v.result(binding).unit(field); }
         @Override public Measure evaluate(Evaluation e) {

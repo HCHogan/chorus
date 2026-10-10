@@ -8,6 +8,11 @@ import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
+import com.imdomestic.chorus.stat.*;
+import com.imdomestic.chorus.network.EquipmentNetworkServer;
+import com.imdomestic.chorus.network.EquipmentPayloads.*;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import io.netty.buffer.Unpooled;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.JsonOps;
 import java.io.InputStreamReader;
@@ -43,9 +48,10 @@ public class PlayerEquipmentGameTest {
         final List<HealingCommand> heals = new ArrayList<>();
         MinecraftEffectRuntime runtime;
         boolean failCleanup, dieOnAttach;
-        Harness(GameTestHelper h) throws Exception {
+        Harness(GameTestHelper h) throws Exception { this(h, "equipment"); }
+        Harness(GameTestHelper h, String fixture) throws Exception {
             this.h = h;
-            try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/equipment.json")), StandardCharsets.UTF_8)) {
+            try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
                 program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
             }
             install(program);
@@ -92,6 +98,53 @@ public class PlayerEquipmentGameTest {
     }
     private static boolean identity(ItemStack s, String instance) { var gear = s.get(ChorusComponents.EQUIPMENT.get()); return gear != null && gear.instance().equals(instance); }
 
+    @GameCase public void numericEquipmentRollsDriveNativeHealingAndSurviveSaveAndWire(GameTestHelper h) throws Exception {
+        try (var test = new Harness(h, "equipment_parameters")) {
+            var p = test.player(); var equipment = PlayerEquipment.get(p); var item = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            p.getInventory().setItem(0, item); String stamp = "chorus equipment stamp_roll test:arms test:armor {\"parameters\":{\"roll\":{\"value\":20,\"unit\":\"stat_point\"}}}";
+            var source = p.createCommandSourceStack().withSuppressedOutput();
+            boolean denied = false; try { command(source.withPermission(PermissionSet.NO_PERMISSIONS), stamp); } catch (CommandSyntaxException expected) { denied = true; }
+            h.assertTrue(denied && !item.has(ChorusComponents.EQUIPMENT.get()), "unprivileged numeric stamp succeeded");
+            command(source.withPermission(PermissionSet.ALL_PERMISSIONS), stamp); var stamped = item.copy();
+            equipment.swap(p, "test:arms", 0, 0); test.settled(); near(h, p.getHealth(), 12, "numeric attach healing");
+            near(h, test.program.attribute(test.runtime.state().engine().domain(), p.getUUID().toString(), "test:points", new Measure(0, Unit.STAT_POINT), NumericQuery.Path.empty()).output().value(), 20, "physical armor attribute");
+            var sources = test.runtime.state().engine().domain().sources(); equipment.move(p, "test:arms", "test:class_item", equipment.revision());
+            h.assertValueEqual(test.runtime.state().engine().domain().sources(), sources, "move reset numeric source"); near(h, p.getHealth(), 12, "move repeated attach");
+            var sent = new ArrayList<View>(); var network = new EquipmentNetworkServer((_, view) -> sent.add(view)); network.visit(p, new Visit(UUID.randomUUID(), true));
+            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), h.getLevel().registryAccess());
+            try {
+                View.CODEC.encode(buf, sent.getLast()); var decoded = View.CODEC.decode(buf);
+                h.assertTrue(decoded.content().same(sent.getLast().content()), "wire lost numeric equipment");
+                h.assertValueEqual(decoded.content().equipment().items().get("test:class_item").get(ChorusComponents.EQUIPMENT.get()).parameters(), Map.of("roll", new Measure(20, Unit.STAT_POINT)), "typed values on wire");
+            } finally { buf.release(); }
+            var output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, h.getLevel().registryAccess()); p.saveWithoutId(output);
+            p.discard(); test.runtime.prepare(); test.players.remove(p);
+            var restored = test.player(); restored.load(TagValueInput.create(ProblemReporter.DISCARDING, h.getLevel().registryAccess(), output.buildResult()));
+            float before = restored.getHealth(); test.runtime.trackEquipment(restored); test.runtime.prepare(); test.settled();
+            var actual = PlayerEquipment.get(restored); h.assertTrue(ItemStack.matches(actual.item("test:class_item"), stamped), "NBT lost exact roll");
+            near(h, restored.getHealth(), before + 2, "saved parameters reattached");
+            near(h, test.program.attribute(test.runtime.state().engine().domain(), restored.getUUID().toString(), "test:points", new Measure(0, Unit.STAT_POINT), NumericQuery.Path.empty()).output().value(), 20, "restored armor attribute");
+            actual.swap(restored, "test:class_item", 0, actual.revision()); test.settled(); near(h, restored.getHealth(), before + 4, "cleanup read stored parameters");
+            h.assertTrue(ItemStack.matches(restored.getInventory().getItem(0), stamped), "retrieval lost roll");
+        }
+        h.succeed();
+    }
+    @GameCase public void invalidNumericRollsCannotMutatePhysicalEquipmentThroughClientRequests(GameTestHelper h) throws Exception {
+        try (var test = new Harness(h, "equipment_parameters")) {
+            var p = test.player(); var equipment = PlayerEquipment.get(p); var sent = new ArrayList<View>();
+            var network = new EquipmentNetworkServer((_, view) -> sent.add(view));
+            for (var values : List.of(Map.<String, Measure>of(), Map.of("roll", new Measure(101, Unit.STAT_POINT)), Map.of("roll", new Measure(2.5, Unit.STAT_POINT)), Map.of("roll", new Measure(20, Unit.DAMAGE)))) {
+                var invalid = new ItemStack(Items.DIAMOND_CHESTPLATE); invalid.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear("invalid", "test:armor", Map.of(), values));
+                p.getInventory().setItem(0, invalid); network.visit(p, new Visit(UUID.randomUUID(), true)); var view = sent.getLast(); var state = test.runtime.state().engine().domain();
+                network.request(p, new Request(view.screen(), view.session(), view.sequence(), Operation.SWAP, "test:arms", "", 0));
+                h.assertValueEqual(sent.getLast().reply(), Reply.REJECTED, "invalid numeric roll accepted");
+                h.assertTrue(equipment.isEmpty() && ItemStack.matches(p.getInventory().getItem(0), invalid), "rejection moved inventory");
+                h.assertValueEqual(equipment.revision(), 0L, "rejection changed revision"); h.assertValueEqual(test.runtime.state().engine().domain(), state, "rejection mutated domain");
+            }
+            h.assertTrue(test.heals.isEmpty(), "invalid roll triggered world action"); test.settled();
+        }
+        h.succeed();
+    }
     @GameCase public void commandsTransferOneOwnedStackPreserveComponentsAndValidateRevisionBeforeReactions(GameTestHelper h) throws Exception {
         try (var test = new Harness(h)) {
             var p = test.player(); var equipment = PlayerEquipment.get(p); var original = new ItemStack(Items.DIAMOND_SWORD); original.setDamageValue(7);

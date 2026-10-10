@@ -2,6 +2,8 @@ package com.imdomestic.chorus.platform.minecraft;
 
 import com.google.gson.JsonParser;
 import com.imdomestic.chorus.effect.equipment.Loadout;
+import com.imdomestic.chorus.effect.equipment.EquipmentCodecs;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.imdomestic.chorus.registry.ChorusComponents;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -9,7 +11,6 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import java.util.Map;
 import java.util.Optional;
@@ -50,18 +51,28 @@ public final class EquipmentCommands {
                 .then(Commands.literal("move").then(Commands.argument("from", IdentifierArgument.id()).then(Commands.argument("to", IdentifierArgument.id())
                         .then(Commands.argument("revision", LongArgumentType.longArg(0)).executes(c -> execute(c.getSource(), p -> PlayerEquipment.get(p).move(p,
                                 c.getArgument("from", Identifier.class).toString(), c.getArgument("to", Identifier.class).toString(), LongArgumentType.getLong(c, "revision"))))))))
-                .then(Commands.literal("stamp").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                        .then(Commands.argument("slot", IdentifierArgument.id()).then(Commands.argument("definition", IdentifierArgument.id())
-                                .then(Commands.argument("choices", StringArgumentType.greedyString()).executes(c -> execute(c.getSource(), p -> {
-                                    var runtime = MinecraftEffectRuntime.installed(p.level()).orElseThrow(() -> new IllegalStateException("Stamp requires an installed ruleset"));
-                                    var held = p.getInventory().getSelectedItem();
-                                    if (held.getCount() != 1 || held.has(ChorusComponents.EQUIPMENT.get())) throw new IllegalArgumentException("Stamp requires one unstamped held item");
-                                    Map<String,String> choices;
-                                    try { choices = Codec.unboundedMap(Codec.STRING, Codec.STRING).parse(JsonOps.INSTANCE, JsonParser.parseString(StringArgumentType.getString(c, "choices"))).getOrThrow(); }
-                                    catch (RuntimeException invalid) { throw new IllegalArgumentException("Choices must be a JSON object of socket/option strings", invalid); }
-                                    var gear = new Loadout.Gear(UUID.randomUUID().toString(), c.getArgument("definition", Identifier.class).toString(), choices);
-                                    runtime.program().equipment().validate(new Loadout(Map.of(c.getArgument("slot", Identifier.class).toString(), gear), Optional.empty()));
-                                    held.set(ChorusComponents.EQUIPMENT.get(), gear); p.getInventory().setChanged(); p.inventoryMenu.broadcastChanges();
-                                }))))))));
+                .then(stampCommand("stamp", false)).then(stampCommand("stamp_roll", true))));
+    }
+    private static LiteralArgumentBuilder<CommandSourceStack> stampCommand(String name, boolean structured) {
+        return Commands.literal(name).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.argument("slot", IdentifierArgument.id()).then(Commands.argument("definition", IdentifierArgument.id())
+                        .then(Commands.argument("roll", StringArgumentType.greedyString()).executes(c -> execute(c.getSource(), p -> {
+                            var runtime = MinecraftEffectRuntime.installed(p.level()).orElseThrow(() -> new IllegalStateException("Stamp requires an installed ruleset"));
+                            var held = p.getInventory().getSelectedItem();
+                            if (held.getCount() != 1 || held.has(ChorusComponents.EQUIPMENT.get())) throw new IllegalArgumentException("Stamp requires one unstamped held item");
+                            com.google.gson.JsonObject input;
+                            try { input = JsonParser.parseString(StringArgumentType.getString(c, "roll")).getAsJsonObject(); }
+                            catch (RuntimeException invalid) { throw new IllegalArgumentException("Roll must be a JSON object", invalid); }
+                            var data = new com.google.gson.JsonObject();
+                            if (structured) {
+                                if (!java.util.Set.of("choices", "parameters").containsAll(input.keySet())) throw new IllegalArgumentException("Roll accepts only choices and parameters");
+                                input.entrySet().forEach(entry -> data.add(entry.getKey(), entry.getValue()));
+                            } else data.add("choices", input);
+                            data.addProperty("instance", UUID.randomUUID().toString());
+                            data.addProperty("definition", c.getArgument("definition", Identifier.class).toString());
+                            var gear = EquipmentCodecs.GEAR.parse(JsonOps.INSTANCE, data).getOrThrow();
+                            runtime.program().equipment().validate(new Loadout(Map.of(c.getArgument("slot", Identifier.class).toString(), gear), Optional.empty()));
+                            held.set(ChorusComponents.EQUIPMENT.get(), gear); p.getInventory().setChanged(); p.inventoryMenu.broadcastChanges();
+                        })))));
     }
 }

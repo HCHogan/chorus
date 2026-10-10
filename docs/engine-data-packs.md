@@ -103,7 +103,7 @@ Loadout before = runtime.state().engine().domain().equipment().getOrDefault(hold
 runtime.equip(new EquipmentChange(holder, before, next));
 ```
 
-`EquipmentCodecs.LOADOUT` 提供对应的 slots / drawn JSON 读写。`Gear` 只有 instance / definition / choices 元数据，没有 ItemStack、数量或耐久；`equip` 不证明玩家拥有物品，不能直接作为客户端请求处理器。玩家物品应通过下面的 PlayerEquipment 容器接口转移，物品组件与效果元数据分开保存。
+`EquipmentCodecs.LOADOUT` 提供对应的 slots / drawn JSON 读写。`Gear` 保存 instance / definition / choices / parameters 元数据，没有 ItemStack、数量或耐久；`equip` 不证明玩家拥有物品，不能直接作为客户端请求处理器。玩家物品应通过下面的 PlayerEquipment 容器接口转移，物品组件与效果元数据分开保存。
 
 事务先追赶逻辑时间、验证 before 装配和其全部来源，再一次提交新来源、装配及现有武器 Buff 的 stow / draw 迁移。事实随后依次入队：weapon_stowed / weapon_drawn 及其 Buff 生命周期事实、按来源身份排序的全部 source_detached、全部 source_attached、equipment_changed。`equipment_changed` 的 Fact 携带完整 Receipt 和 before / after；事件数字 equipped_count 为 COUNT。清理动作读取旧来源标签，但看到的全局装备与来源已是新装配。世界动作随后失败时保留已提交状态和待确认操作，不自动重放或伪造回滚。
 
@@ -111,9 +111,50 @@ runtime.equip(new EquipmentChange(holder, before, next));
 
 非装备宿主可用 `runtime.replaceSources(SourceBatch)` 批量更新其他来源。每项带 before / after，先核对全部旧值再整体提交；即使某项不变也参与旧值验证，任何不一致均拒绝。相等重绑无事实且不重置定时器，替换取消旧来源绑定的定时器；独立 Buff 和 detached 延迟动作按其自身生命周期保留，需要清理的状态由旧来源自己的 detached 规则明确处理。`bind / unbind / replaceSources` 均拒绝直接修改 equipment/ 来源。
 
+### 每件装备的数值参数
+
+同一物品原型可承载不同属性词条，不需要为每个数值组合生成一份 Bundle。声明、物品实例值、效果参数绑定分三层：
+
+```json
+{
+  "id": "test:armor",
+  "tags": ["test:armor"],
+  "parameters": {
+    "grenade_roll": {"unit":"stat_point", "minimum":0, "maximum":100, "integral":true}
+  },
+  "effects": {
+    "stats": {"bundle":"test:armor_stats", "parameters":{"points":"grenade_roll"}}
+  }
+}
+```
+
+这是 `equipment.items[]` 片段；0–100 仅为合成验收范围，不是命运 2 护甲掉落规则。目标 `test:armor_stats` Bundle 声明 `"parameters":{"points":"stat_point"}`，其修饰或动作使用 `{"type":"chorus:source_parameter","name":"points"}` 读取当前绑定来源的值，单位由 Bundle 声明确定。将此表达式用于属性 Profile 的加法修饰，即可按原有 family / group 策略合并多件装备属性，再供 `chorus:attribute` 消费；不需要 attach 时向同一 Buff 手动加值、detach 时猜测减值。
+
+对应物品组件里的 Gear 示例：
+
+```json
+{"instance":"unique-item-id", "definition":"test:armor", "choices":{},
+ "parameters":{"grenade_roll":{"value":20,"unit":"stat_point"}}}
+```
+
+所有声明参数必填；缺少、多余、非有限数、单位不符、越界或要求整数却给小数均拒绝，不静默补零或钳制。范围两端包含在内。Bundle 参数同样要求名称集合和单位完全匹配，直接 `runtime.bind` 的来源及初始状态也会校验；Bundle 只约束单位，物品原型另约束该原型允许的数值范围。固定效果与每个插槽候选的映射都在编译时校验，未选择的候选也不能含无效映射。参数字典与 Measure 均不可变。
+
+- 移动同一实例不改变参数或来源身份。相同 instance 的已投影参数变化会替换对应来源：旧 detach 读取旧参数，attach 读取新参数，规则看到的全局装配已经完整更新。未投影到某效果的字段变化不会重启该效果。
+- `on_use` 数值快照把来源参数固定为常量；`on_hit` 读取参与本次查询的来源参数。已接受的 detached 动作和 `origin_bundle` 反应规则保留原始 EffectSource，包括参数；不会向后查同名新物品。
+- 参数不自动写入伤害归因 Origin 或事件数字，也不自动传给新 Buff。BUFF 作用域不能声明或读取来源参数；需要跨 Buff 生命周期保留的值须显式写入类型化组件。能力 / 开火动作目前没有装备参数词法环境，不能把本表达式当作任意装备查表。
+- 旧 Bundle、Gear 和 Effect 省略 parameters 时仍为空字典。数值字段随真实 ItemStack 组件进行玩家 NBT 和装备展示协议同步；客户端操作依旧只引用服务端背包槽，不能提交自选属性数值。
+
+管理员可使用结构化命令给一件未标记的手持物品赋值，实例 id 仍由服务器分配；此例须先安装上述完整定义：
+
+```mcfunction
+chorus equipment stamp_roll test:arms test:armor {"choices":{},"parameters":{"grenade_roll":{"value":20,"unit":"stat_point"}}}
+```
+
+`stamp_roll` 的末尾对象只接受 choices / parameters。原 `stamp <slot> <definition> <choices-json>` 语法继续适用于不要求数值参数的原型。两种入口都会先校验整个候选装备再写物品组件；普通玩家无法调用这两个赋值命令。生产掉落分布、跨字段总点数约束、主手属性映射、配装页属性明细和完整 D2 护甲 catalogue 尚未提供。
+
 ## 实际物品容器与装备命令
 
-`PlayerEquipment.get(player)` 拥有独立于原版装备槽的真实 ItemStack 集合，槽名来自程序定义。`chorus:equipment` 物品组件保存 Gear 身份 / 原型 / 选项；实例 id 在创建物品时分配，普通交换不改变它。容器不向原版护甲槽或主手复制物品，保留原物品的名称、耐久、附魔和其他组件。snapshot / item 查询返回防御性副本，不能借修改查询结果改变持有物。
+`PlayerEquipment.get(player)` 拥有独立于原版装备槽的真实 ItemStack 集合，槽名来自程序定义。`chorus:equipment` 物品组件保存 Gear 身份 / 原型 / 选项 / 带单位的数值参数；实例 id 在创建物品时分配，普通交换不改变它。容器不向原版护甲槽或主手复制物品，保留原物品的名称、耐久、附魔和其他组件。snapshot / item 查询返回防御性副本，不能借修改查询结果改变持有物。
 
 服务端入口：
 

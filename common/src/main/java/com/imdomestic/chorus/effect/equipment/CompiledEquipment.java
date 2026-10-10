@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.equipment;
 
 import com.imdomestic.chorus.effect.EffectSource;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.stat.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -12,12 +13,24 @@ public final class CompiledEquipment {
     private final Map<String, EquipmentSchema.Slot> slots;
     private final Map<String, EquipmentSchema.Item> items;
     public CompiledEquipment(EquipmentSchema schema, Consumer<String> validateBundle) {
+        this(schema, validateBundle, _ -> Map.of());
+    }
+    public CompiledEquipment(EquipmentSchema schema, Consumer<String> validateBundle, Function<String, Map<String, Unit>> bundleParameters) {
         this.schema = Objects.requireNonNull(schema); slots = index(schema.slots(), EquipmentSchema.Slot::id); items = index(schema.items(), EquipmentSchema.Item::id);
         index(schema.limits(), EquipmentSchema.Limit::id);
         for (var limit : schema.limits()) if (!slots.keySet().containsAll(limit.slots())) throw new IllegalArgumentException("Limit references unknown equipment slot");
         for (var item : items.values()) {
-            item.effects().values().forEach(effect -> validateBundle.accept(effect.bundle()));
-            item.sockets().values().forEach(socket -> socket.options().values().forEach(effect -> validateBundle.accept(effect.bundle())));
+            Consumer<EquipmentSchema.Effect> validate = effect -> {
+                validateBundle.accept(effect.bundle());
+                var declared = bundleParameters.apply(effect.bundle());
+                if (!declared.keySet().equals(effect.parameters().keySet())) throw new IllegalArgumentException("Incomplete equipment effect parameter mapping: " + effect.bundle());
+                effect.parameters().forEach((parameter, field) -> {
+                    var spec = item.parameters().get(field);
+                    if (spec == null || !spec.unit().equals(declared.get(parameter))) throw new IllegalArgumentException("Invalid equipment effect parameter mapping: " + field);
+                });
+            };
+            item.effects().values().forEach(validate);
+            item.sockets().values().forEach(socket -> socket.options().values().forEach(validate));
         }
     }
     private static <T> Map<String,T> index(List<T> values, Function<T,String> id) {
@@ -31,6 +44,8 @@ public final class CompiledEquipment {
             var slot = slots.get(entry.getKey()); var gear = entry.getValue(); var item = items.get(gear.definition());
             if (slot == null || item == null) throw new IllegalArgumentException("Unknown equipment slot or item");
             if (Collections.disjoint(slot.accepts(), item.tags())) throw new IllegalArgumentException("Item is not accepted by slot: " + slot.id());
+            if (!item.parameters().keySet().equals(gear.parameters().keySet())) throw new IllegalArgumentException("Equipment parameter names do not match item declaration");
+            item.parameters().forEach((name, spec) -> spec.validate(gear.parameters().get(name)));
             for (var choice : gear.choices().entrySet()) {
                 var socket = item.sockets().get(choice.getKey());
                 if (socket == null || !socket.options().containsKey(choice.getValue())) throw new IllegalArgumentException("Unknown equipment socket choice");
@@ -61,7 +76,9 @@ public final class CompiledEquipment {
                 if (effect.activation() == EquipmentSchema.Activation.DRAWN && !loadout.drawn().filter(slot.id()::equals).isPresent()) return;
                 var tags = new HashSet<>(item.tags()); tags.addAll(effect.tags());
                 String instance = "equipment/" + holder.length() + ":" + holder + "/" + gear.instance().length() + ":" + gear.instance() + "/" + key;
-                result.put(instance, new EffectSource(instance, effect.bundle(), holder, origin, tags));
+                var parameters = new TreeMap<String, Measure>();
+                effect.parameters().forEach((name, field) -> parameters.put(name, gear.parameters().get(field)));
+                result.put(instance, new EffectSource(instance, effect.bundle(), holder, origin, tags, parameters));
             });
         }
         return Collections.unmodifiableMap(result);

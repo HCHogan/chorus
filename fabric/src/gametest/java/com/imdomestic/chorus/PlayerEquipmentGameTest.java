@@ -5,6 +5,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 public class PlayerEquipmentGameTest extends com.imdomestic.chorus.test.PlayerEquipmentGameTest {
     @GameTest(structure = "chorus_gametest:empty") @Override
+    public void numericEquipmentRollsDriveNativeHealingAndSurviveSaveAndWire(GameTestHelper h) throws Exception { super.numericEquipmentRollsDriveNativeHealingAndSurviveSaveAndWire(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void invalidNumericRollsCannotMutatePhysicalEquipmentThroughClientRequests(GameTestHelper h) throws Exception { super.invalidNumericRollsCannotMutatePhysicalEquipmentThroughClientRequests(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
     public void deathInsideAttachReactionDropsTheAlreadyTransferredItemWithoutResurrectingOwnership(GameTestHelper h) throws Exception { super.deathInsideAttachReactionDropsTheAlreadyTransferredItemWithoutResurrectingOwnership(h); }
     @GameTest(structure = "chorus_gametest:empty") @Override
     public void commandsTransferOneOwnedStackPreserveComponentsAndValidateRevisionBeforeReactions(GameTestHelper h) throws Exception { super.commandsTransferOneOwnedStackPreserveComponentsAndValidateRevisionBeforeReactions(h); }

@@ -15,6 +15,7 @@ public final class SnapshotExpressions {
     public static Value value(Value value, Evaluation e) {
         return switch (value) {
             case Value.Constant ignored -> value;
+            case Value.SourceParameter v -> literal(v, e);
             case Value.Resource v -> target(v.target()) ? v : literal(v, e);
             case Value.AbilityEnergy v -> target(v.target()) ? v : literal(v, e);
             case Value.Ammo v -> target(v.weapon()) ? v : literal(v, e);

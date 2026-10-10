@@ -6,11 +6,15 @@ import java.util.Objects;
 import java.util.Set;
 
 /** An equipped/configured bundle instance. Removing it does not rewrite an already-started frame. */
-public record EffectSource(String instance, String bundle, String holder, BuffInstance.Origin origin, Set<String> tags)
+public record EffectSource(String instance, String bundle, String holder, BuffInstance.Origin origin, Set<String> tags,
+        java.util.Map<String, com.imdomestic.chorus.stat.Measure> parameters)
         implements RuleEngine.Payload {
     public EffectSource {
         Objects.requireNonNull(instance); Objects.requireNonNull(bundle); Objects.requireNonNull(holder); Objects.requireNonNull(origin);
-        tags = Set.copyOf(tags);
+        tags = Set.copyOf(tags); parameters = EffectParameters.copy(parameters);
         if (instance.isBlank() || bundle.isBlank() || holder.isBlank()) throw new IllegalArgumentException("Invalid effect source");
+    }
+    public EffectSource(String instance, String bundle, String holder, BuffInstance.Origin origin, Set<String> tags) {
+        this(instance, bundle, holder, origin, tags, java.util.Map.of());
     }
 }

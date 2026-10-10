@@ -48,6 +48,8 @@ public final class EffectCodecs {
 
     public static TypeRegistry<Value> valueTypes(Codec<Value> self) {
         return new TypeRegistry<Value>()
+                .register("chorus:source_parameter", Value.SourceParameter.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("name").forGetter(Value.SourceParameter::name)).apply(i, Value.SourceParameter::new)))
                 .register("chorus:ammo", Value.Ammo.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(Value.Ammo::weapon),
                         enumeration(com.imdomestic.chorus.effect.ammo.AmmoState.Field.class).fieldOf("field").forGetter(Value.Ammo::field)).apply(i, Value.Ammo::new)))
@@ -650,8 +652,9 @@ public final class EffectCodecs {
                 ID.fieldOf("id").forGetter(EffectProgram.Bundle::id), enumeration(EffectProgram.Scope.class).optionalFieldOf("scope", EffectProgram.Scope.SOURCE).forGetter(EffectProgram.Bundle::scope),
                 rule.listOf().optionalFieldOf("rules", List.of()).forGetter(EffectProgram.Bundle::rules), modifier.listOf().optionalFieldOf("modifiers", List.of()).forGetter(EffectProgram.Bundle::modifiers),
                 recovery.listOf().optionalFieldOf("health_recovery", List.of()).forGetter(EffectProgram.Bundle::recovery),
-                replacement.listOf().optionalFieldOf("ability_overrides", List.of()).forGetter(EffectProgram.Bundle::abilityOverrides)
-        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides"));
+                replacement.listOf().optionalFieldOf("ability_overrides", List.of()).forGetter(EffectProgram.Bundle::abilityOverrides),
+                Codec.unboundedMap(Codec.STRING, StatCodecs.UNIT).optionalFieldOf("parameters", Map.of()).forGetter(EffectProgram.Bundle::parameters)
+        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides", "parameters"));
         Codec<EffectProgram.ShieldRecovery> shieldRecovery = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("rate").forGetter(EffectProgram.ShieldRecovery::rate),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.ShieldRecovery::condition)

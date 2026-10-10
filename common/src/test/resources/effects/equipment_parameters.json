@@ -1,0 +1,198 @@
+{
+  "version": "equipment-parameters-test",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:arms",
+        "accepts": [
+          "test:armor"
+        ]
+      },
+      {
+        "id": "test:class_item",
+        "accepts": [
+          "test:armor"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:armor",
+        "tags": [
+          "test:armor"
+        ],
+        "parameters": {
+          "roll": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 100,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "test:rolled",
+            "parameters": {
+              "points": "roll"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "profiles": [
+    {
+      "id": "test:points",
+      "version": "equipment-parameters-test",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:damage",
+      "version": "equipment-parameters-test",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "multiply",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:rolled",
+      "parameters": {
+        "points": "stat_point"
+      },
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "test:points",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "points"
+          },
+          "evaluate": "on_hit",
+          "stacking_key": "test:points",
+          "reference": "Synthetic equipment parameter acceptance; not Destiny armor calibration",
+          "confidence": "assumed"
+        },
+        {
+          "id": "damage",
+          "profile": "test:damage",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:source_parameter",
+              "name": "points"
+            },
+            "factor": 0.01,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "stacking_key": "test:damage",
+          "reference": "Synthetic equipment parameter acceptance; not Destiny armor calibration",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "attached",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:source_parameter",
+                  "name": "points"
+                },
+                "factor": 0.1,
+                "from": "stat_point",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "detached",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:source_parameter",
+                  "name": "points"
+                },
+                "factor": 0.1,
+                "from": "stat_point",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:source_parameter",
+                      "name": "points"
+                    },
+                    "factor": 0.1,
+                    "from": "stat_point",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

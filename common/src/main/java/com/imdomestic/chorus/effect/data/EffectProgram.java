@@ -48,8 +48,14 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Buff(BuffDefinition definition, String bundle, Optional<Shield> shield) { this(definition, bundle, shield, Optional.empty()); }
         public Buff(BuffDefinition definition, String bundle) { this(definition, bundle, Optional.empty()); }
     }
-    public record Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides) {
-        public Bundle { abilityOverrides = List.copyOf(abilityOverrides); rules = List.copyOf(rules); modifiers = List.copyOf(modifiers); recovery = List.copyOf(recovery); }
+    public record Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides,
+            java.util.Map<String, com.imdomestic.chorus.stat.Unit> parameters) {
+        public Bundle {
+            abilityOverrides = List.copyOf(abilityOverrides); rules = List.copyOf(rules); modifiers = List.copyOf(modifiers); recovery = List.copyOf(recovery);
+            parameters = com.imdomestic.chorus.effect.EffectParameters.copy(parameters);
+            if (scope != Scope.SOURCE && !parameters.isEmpty()) throw new IllegalArgumentException("Only source bundles declare parameters");
+        }
+        public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides) { this(id, scope, rules, modifiers, recovery, abilityOverrides, java.util.Map.of()); }
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery) { this(id, scope, rules, modifiers, recovery, List.of()); }
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers) { this(id, scope, rules, modifiers, List.of()); }
     }
