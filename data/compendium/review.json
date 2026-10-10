@@ -2236,14 +2236,15 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表固定回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail；145.2 秒基础恢复、0.8 CES、近战属性主动/被动曲线与一次参考基准归一化，物理/持续时间测试值不作为 D2 数值",
+      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表固定回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail；145.2 秒基础恢复、0.8 CES、近战属性主动/被动曲线与一次参考基准归一化，物理/持续时间测试值不作为 D2 数值；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成",
       "acceptance": [
         "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
         "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
         "施加Sever，持续时间在快照中为未知；返回施加者与近战输入接回",
         "0/1/2/3/4/5+次命中对应普通回能5/10/20/30/35/40%，接回20/30/50/70/85/100%",
         "Strand职业接回时每次击杀给予2秒Woven Mail、上限10秒；145.2秒基础冷却与0.8x chunk scalar",
-        "外部收益使用接收者当前近战属性与0.8 CES；参考值只归一化一次，自身返回/接回表固定豁免；属性变更先结算旧恢复速率"
+        "外部收益使用接收者当前近战属性与0.8 CES；参考值只归一化一次，自身返回/接回表固定豁免；属性变更先结算旧恢复速率",
+        "基础技能选择启用回能修饰；真实护甲实例与碎片按当前持有者汇总属性，无需 stat Buff 初始化；可选固有点数只加一次，换装分段与实际奖励接线通过"
       ],
       "evidence": [
         {
@@ -2432,14 +2433,33 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/EnergyGainGameTest.java",
           "symbol": "unknownLaterWorldResultKeepsTheAlreadyCreditedGain"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorStatInputsTest.java",
+          "symbol": "nakedSelectionsUseFragmentPointsWithoutAnyAttributeBuffInitialization"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/armor-stat-inputs.json"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "actualArmorSwapSplitsSelectedMeleeRegenerationAndChangesTheNextGrant"
         }
       ],
       "gaps": [
         "模板必须先提供 calibration 参数；未知半径、Sever/Continuity 时间与速度/转向/寿命/窗口没有 D2 默认值，独立测试校准文件不代表原作测量",
         "墙面与实体前序计数、免疫/格挡计 hits 而取消/失败不计、仅 APPLIED 非死亡目标尝试 Sever、当前子职业及输出修饰取样均为显式内容政策，仍需原作边界校准",
         "去程第九次接触或终止后新建回程，仍需实际早返时机、同实体阶段切换、近战输入/grapple 优先级和 Phalanx 盾穿透；图形接回按键验收尚未通过",
-        "0.8 CES 与近战主动/被动属性曲线已接入并用原表数字对照；Pugilist 基础技能槽路由已接入；其他技能共享池变更、其余回能 perk/模组生产者、完整伤害/目标/等级缩放、混合交战分类、属性/子职业/装备装配、表现与状态持久化仍未完成",
-        "原表回能按完整一格充能授予，不是实付成本退款；来源变更、死亡或模式切换的原作具体资格仍需测量"
+        "0.8 CES 与近战主动/被动属性曲线已接入并用原表数字对照；Pugilist 基础技能槽路由已接入；其他技能共享池变更、其余回能 perk/模组生产者、完整伤害/目标/等级缩放、混合交战分类、完整生产子职业/装备目录、表现与状态持久化仍未完成",
+        "原表回能按完整一格充能授予，不是实付成本退款；来源变更、死亡或模式切换的原作具体资格仍需测量",
+        "原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线"
       ]
     },
     {
@@ -4133,13 +4153,14 @@
           "text_sha256": "d8d69930e739a480060260150b225cbf0747df06d25ce276ef525fa36a6e0ca7"
         }
       ],
-      "scope": "点燃实际伤害后对非中心目标施加 40 / Ashes 60 层；保留原施加者信用，跨目标本地禁用窗口持续反馈；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点",
+      "scope": "点燃实际伤害后对非中心目标施加 40 / Ashes 60 层；保留原施加者信用，跨目标本地禁用窗口持续反馈；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成",
       "acceptance": [
         "Char 40 / Ashes 60，排除点燃中心且不受其他施加者片段影响",
         "正实际损失触发；免疫 / 取消 / 零损失或死亡目标无灼烧",
         "四目标无需后续外部输入即可多轮互相点燃；不设置全局连锁上限",
         "移除 Char 后已排队爆炸完成，但不再产生下一轮",
-        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证"
+        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证",
+        "基础技能选择启用回能修饰；真实护甲实例与碎片按当前持有者汇总属性，无需 stat Buff 初始化；可选固有点数只加一次，换装分段与实际奖励接线通过"
       ],
       "evidence": [
         {
@@ -4212,13 +4233,32 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
           "symbol": "physicalFirespriteUsesCollectorsCurrentCharBonusAndKeepsBasePoints"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorStatInputsTest.java",
+          "symbol": "nakedSelectionsUseFragmentPointsWithoutAnyAttributeBuffInitialization"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/armor-stat-inputs.json"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "actualArmorComponentsAndCharScalePhysicalPickupWithoutCreatingStatBuffs"
         }
       ],
       "gaps": [
         "点燃真实延迟、禁用窗口起点、移动中心与片段取样时机未校准",
         "Solar Fulmination、直接点燃来源及代际数值快照继承未覆盖",
         "无生产子职业装配或状态持久化",
-        "宿主基础属性初始化、护甲属性汇总及生产子职业装配未完成；跨子职业技能账户组合仅为机制验收"
+        "已支持显式实际护甲数值汇总；正式掉落 / archetype / 总值校验及生产子职业限制未完成，跨子职业测试组合不代表合法配装",
+        "原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线"
       ]
     },
     {
@@ -4328,13 +4368,14 @@
           "text_sha256": "0f35241e3bd7008a420776d7b732f14dfe7342eb748ac44b41446aa3879e7254"
         }
       ],
-      "scope": "私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准",
+      "scope": "私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成",
       "acceptance": [
         "生成不回能；已知失败不占冷却，未知结果不重试",
         "收集者与来源隔离；来源卸下后仍按当前基础手雷选择、属性和 CES 结算",
         "无选择、无成本账户或满能量仍消费单位；过期不发拾取事实",
         "真实服务器保留原表 25 秒寿命与 5 秒生成冷却，世界后续失败不重放已提交回能",
-        "回执 feet 坐标支持尸体移动 / 删除后的生成；未知位置明确诊断，不可用 / 异维度 / 未加载位置拒绝且不消耗冷却"
+        "回执 feet 坐标支持尸体移动 / 删除后的生成；未知位置明确诊断，不可用 / 异维度 / 未加载位置拒绝且不消耗冷却",
+        "基础技能选择启用回能修饰；真实护甲实例与碎片按当前持有者汇总属性，无需 stat Buff 初始化；可选固有点数只加一次，换装分段与实际奖励接线通过"
       ],
       "evidence": [
         {
@@ -4370,13 +4411,32 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
           "symbol": "unobservedMissingForeignAndUnloadedPositionsCannotCreateOrStartCooldown"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorStatInputsTest.java",
+          "symbol": "nakedSelectionsUseFragmentPointsWithoutAnyAttributeBuffInitialization"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/armor-stat-inputs.json"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "actualArmorComponentsAndCharScalePhysicalPickupWithoutCreatingStatBuffs"
         }
       ],
       "gaps": [
         "原表 11.25% 未注明属性基准；测试除以 2.25 得 5% 为待验证假设，不能视为当前实测值",
         "0.5 米接触半径为合成校准",
         "共享冷却归属、生成点及按成功生成开始冷却需原作校准",
-        "未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现"
+        "未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现",
+        "原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线"
       ]
     },
     {
@@ -4793,13 +4853,14 @@
           "text_sha256": "2e2ae90e0cac8aab675913a0db26693af1f6cb528c12f3835ecf37dfc10be0a3"
         }
       ],
-      "scope": "共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点",
+      "scope": "共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成",
       "acceptance": [
         "PvE / PvP 的 8 / 10 米与重复来源 MAX；卸下后下一次阈值重新取样",
         "最后补层者或受击目标的碎片不能替代第一施加者的配装",
         "已排队爆炸保留阈值半径，来源卸下后仍执行；执行时查询当前范围成员",
         "实际 8 / 10 米边界及范围外目标；扩大 Char 命中范围但不增加伤害、灼烧层数或限制连锁",
-        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证"
+        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证",
+        "基础技能选择启用回能修饰；真实护甲实例与碎片按当前持有者汇总属性，无需 stat Buff 初始化；可选固有点数只加一次，换装分段与实际奖励接线通过"
       ],
       "evidence": [
         {
@@ -4877,13 +4938,32 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
           "symbol": "realTickEruptionChangesPassiveAndChunkReturnsAtCurrentMeleeStat"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorStatInputsTest.java",
+          "symbol": "nakedSelectionsUseFragmentPointsWithoutAnyAttributeBuffInitialization"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/armor-stat-inputs.json"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "actualArmorSwapSplitsSelectedMeleeRegenerationAndChangesTheNextGrant"
         }
       ],
       "gaps": [
         "原作碎片取样时机、伤害曲线与点燃时序尚待校准",
         "未覆盖所有直接点燃生产者及特殊来源",
         "没有完整生产子职业装配、HUD 或状态持久化",
-        "宿主基础属性初始化、护甲属性汇总及生产子职业装配未完成；跨子职业技能账户组合仅为机制验收"
+        "已支持显式实际护甲数值汇总；正式掉落 / archetype / 总值校验及生产子职业限制未完成，跨子职业测试组合不代表合法配装",
+        "原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线"
       ]
     }
   ]

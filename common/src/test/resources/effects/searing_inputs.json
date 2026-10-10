@@ -20,7 +20,12 @@
           "unit": "charge_fraction"
         }
       },
-      "on_use": []
+      "on_use": [],
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:threaded_spike_energy_scaling"
+        }
+      }
     }
   ],
   "bundles": [

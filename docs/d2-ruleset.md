@@ -171,7 +171,7 @@ Eruption 的 +10 Melee 已接入下述共享属性与回能曲线。覆盖保持
 
 [character_stats.json](../common/src/test/resources/effects/character_stats.json) 增加 grenade_stat / melee_stat Profile，按“基础点数 → 来源加值 SUM → 0–200 限幅”计算；Char / Eruption 各自的家族用 MAX，避免同一碎片重复绑定多次加 10。原表 Char N19 / 快照 N16 为 +10 Grenade，Eruption N22 / 快照 N19 为 +10 Melee，见[核对与验收记录](../data/d2-research/2026-10-11/solar-fragment-stats.json)。基础 Buff 的 points 只保存宿主输入，不因换装增减或限幅而改写。
 
-threaded_spike_energy / arcbolt_energy 的主动收益及被动恢复修饰现在使用 `attribute` 读取最终点数，再进入原有曲线。属性 Profile 的 200 上限与现有回能曲线的 100 饱和点各自保留；0.8 / 0.75 CES 不并入属性，自身 fixed 返能继续绕过收益 Profile。拾取或外部收益使用接收者当前属性；换装前先结算旧速率，之后用新属性积分。使用这些片段的程序须链接 character_stats，宿主须初始化相应基础属性组件，包括明确的零属性；片段不推断护甲总属性或替宿主创建基础输入。
+threaded_spike_energy / arcbolt_energy 的主动收益及被动恢复修饰现在使用 `attribute` 读取最终点数，再进入原有曲线。属性 Profile 的 200 上限与现有回能曲线的 100 饱和点各自保留；0.8 / 0.75 CES 不并入属性，自身 fixed 返能继续绕过收益 Profile。拾取或外部收益使用接收者当前属性；换装前先结算旧速率，之后用新属性积分。使用这些片段的程序须链接 character_stats，并由实际基础技能的 effects 挂载对应 energy_scaling 来源。曲线查询零输入的最终属性；裸装和仅有碎片时无需初始化属性 Buff。可选 grenade_stat / melee_stat Buff 只提供不含装备的固有点数，护甲贡献由 armor_stats 的六项参数读取。
 
 4 项 SolarFragmentStatsTest 验证玩家隔离、重复 / 卸下、基础值不变、0 / 100 / 200 边界、CES / fixed 分离及换装时的分段积分。2 项共享 SolarFragmentStatsGameTest 验证物理 Firesprite 拾取时的当前 Char 属性，以及实际服务器 tick 上 Eruption 换装对近战恢复和外部收益的影响。这里用已有 Arcbolt / Threaded Spike 账户作为属性消费者验收，跨子职业组合是合成装配，不表示这些碎片可在原作中与这两项技能同时装备；生产子职业约束及 Solar 技能目录仍未接入。
 
@@ -349,7 +349,13 @@ Class:
 
 Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害、受到伤害、击杀、拾球分别按已提交的事实计算主动收益。具体收益系数、漫游超能系数和目标修正必须逐条校准，不能拿上述 chunk 公式代替完整 Super 生成机制。
 
-当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。melee_stat 数值组件保存接收者的基础点数，经 character_stats 的属性 Profile 取得加值 / 限幅后结果再进入曲线；属性变化前的时间先按旧速率结算。未初始化基础组件时没有对应 Buff 修饰，只留下资源基准，不可据此认为碎片加值已经生效。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。Arcbolt 手雷资源与 Demolitionist 已另行接入；其余手雷 / 职业技能 / Super 的资源、其他回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。threaded_spike 的基础选择挂载 threaded_spike_energy_scaling 来源，查询 character_stats 汇总的当前近战点数；护甲和碎片无需 stat Buff 初始化即可进入曲线。可选 melee_stat 组件作为独立固有点数只加一次，变化前的时间先按旧速率结算。清除选择只卸载其数值修饰，不删除或回满已有账户。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。Arcbolt 手雷资源与 Demolitionist 已另行接入；其余手雷 / 职业技能 / Super 的资源、其他回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+
+### 真实装备输入与来源核对
+
+[armor_stats.json](../common/src/test/resources/effects/armor_stats.json) 把每件装备提供的 Health / Grenade / Melee / Class / Super / Weapons 数值贡献给角色 Profile；`armor_stat_inputs.json` 用五个独立槽验证真实 ItemStack 输入。两件护甲可分别贡献点数，装备交换前后按旧 / 新速率分段积分，拾取奖励读取收集当时的新装配。物品参数、可选固有组件、最终属性上限和回能曲线各自独立。片段只接已给定的物品数值，不生成随机词条或证明原作合法护甲组合。
+
+2026-10-11 重新读取原表时，Game Mechanics 原坐标 E187 仍写 `211.5%%` 手雷主动回能，部分数值含问号；与 [Bungie 2026-06-04 更新说明](https://www.bungie.net/7/en/News/Article/dev_insights_abilities_armor_preview) 的最高 +125% 不一致。重新按显式范围读取 [Engineeeer Armor Stat Info](https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/edit)：D9:N9 为被动倍率、D10:N10 为主动加成，末项分别为 2.75 / 1.25，和现有拟合输出一致。因此本次保留现有曲线与 fitted 置信度，并记录原表文字冲突未解决；不把装配迁移视为重新测量。旧 armor-energy.json 的 gviz 数组坐标比本次原表显式范围少一行，定位原表时使用新的范围记录。原始 HTML / gviz 返回与哈希见 [数据来源](../data/d2-research/2026-10-11/armor-stat-inputs.json)。
 
 ## Pugilist
 

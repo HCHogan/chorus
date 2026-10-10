@@ -98,6 +98,50 @@
           "maximum": 200
         }
       ]
+    },
+    {
+      "id": "chorus_d2:super_stat",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapons_stat",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
     }
   ]
 }

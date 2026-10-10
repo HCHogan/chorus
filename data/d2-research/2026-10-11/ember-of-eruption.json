@@ -67,8 +67,7 @@
     "Production subclass assembly, HUD and persistence"
   ],
   "attribute_update": {
-    "date": "2026-10-11",
-    "record": "data/d2-research/2026-10-11/solar-fragment-stats.json",
-    "status": "Stat bonus feeds current recipient passive/energy curves; production subclass assembly and armor input remain incomplete."
+    "record": "data/d2-research/2026-10-11/armor-stat-inputs.json",
+    "status": "Selected ability passives now consume actual armor and fragment points without base Buff initialization; complete production gear and subclass assembly remain pending."
   }
 }

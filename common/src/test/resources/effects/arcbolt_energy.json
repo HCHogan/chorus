@@ -82,6 +82,27 @@
       "scope": "buff",
       "modifiers": [
         {
+          "id": "base_points",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:grenade_base",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:grenade_stat",
+            "component": "points"
+          },
+          "reference": "Explicit intrinsic stat input; armor contributions are separate. No hidden initialization is required for selected ability scaling.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:arcbolt_energy_scaling",
+      "scope": "source",
+      "modifiers": [
+        {
           "id": "passive",
           "profile": "chorus_d2:arcbolt_regeneration",
           "stage": "stat",
@@ -96,9 +117,9 @@
                 "type": "chorus:attribute",
                 "profile": "chorus_d2:grenade_stat",
                 "input": {
-                  "type": "chorus:component",
-                  "buff": "chorus_d2:grenade_stat",
-                  "component": "points"
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
                 }
               },
               "op": "ge",
@@ -121,9 +142,9 @@
                   "type": "chorus:attribute",
                   "profile": "chorus_d2:grenade_stat",
                   "input": {
-                    "type": "chorus:component",
-                    "buff": "chorus_d2:grenade_stat",
-                    "component": "points"
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
                   }
                 },
                 "op": "ge",
@@ -139,9 +160,9 @@
                   "type": "chorus:attribute",
                   "profile": "chorus_d2:grenade_stat",
                   "input": {
-                    "type": "chorus:component",
-                    "buff": "chorus_d2:grenade_stat",
-                    "component": "points"
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
                   }
                 },
                 "curve": {
@@ -163,9 +184,9 @@
                   "type": "chorus:attribute",
                   "profile": "chorus_d2:grenade_stat",
                   "input": {
-                    "type": "chorus:component",
-                    "buff": "chorus_d2:grenade_stat",
-                    "component": "points"
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
                   }
                 },
                 "curve": {
@@ -185,7 +206,7 @@
               }
             }
           },
-          "reference": "Engineeeer Armor Stat Info, checked 2026-10-10. Passive coefficients Z12:AC12 and Z16:AA16; energy curve D9:N9. Community fit, not official precision. Compendium CSV Arc N28 supplies the independent 0.75 recipient scalar.",
+          "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Arc N28 supplies the independent .75 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
           "confidence": "fitted"
         },
         {
@@ -214,9 +235,9 @@
                       "type": "chorus:attribute",
                       "profile": "chorus_d2:grenade_stat",
                       "input": {
-                        "type": "chorus:component",
-                        "buff": "chorus_d2:grenade_stat",
-                        "component": "points"
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
                       }
                     },
                     "factor": 0.031415926535897934,
@@ -238,7 +259,7 @@
               }
             ]
           },
-          "reference": "Engineeeer Armor Stat Info, checked 2026-10-10. Passive coefficients Z12:AC12 and Z16:AA16; energy curve D9:N9. Community fit, not official precision. Compendium CSV Arc N28 supplies the independent 0.75 recipient scalar.",
+          "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Arc N28 supplies the independent .75 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
           "confidence": "fitted"
         }
       ]

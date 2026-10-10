@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "sources": [
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "file": "data/d2-research/2026-10-11/armor-stat-inputs-source.html.gz",
+      "retrieved_at": "2026-10-10T13:57:39.084266+00:00",
+      "html_sha256": "7131286411f1f4b30ac1a2ed542dc4ae6e449a3237187da3326552d30c90cb0f",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "C172": "Health",
+        "E172": "Picking up Orbs of Power restores Health, at a rate of +0.7 HP per point, up to +70 HP per Orb at 100 points.\nAdditionally grants 0.1% Flinch Resist while ADS per point, up to 10% Flinch Resist at 100 points.\n\n↑ENHANCED BENEFIT\nGrants faster Shield Regeneration and increased Shield HP against Combatants per point above 100.\nProvides up to 25% faster start of Shield Recharge, 50% increased Shield Recharge Rate and +20 Shield HP against Combatants at 200 points.",
+        "C180": "Melee",
+        "E180": "Grants ?% Additional Base Melee Ability Regeneration Rate and ?% Increased Melee Ability Gains.\nStat provides up to ?% Additional Base Melee Ability Regeneration Rate and ?% Increased Melee Ability Gains at 100 points.\n\n↑ENHANCED BENEFIT\nGrants 0.3% [0.2%] more Melee Damage per point above 100.\nProvides up to 1.3x [20%] Melee Damage at 200 points.\nWorks with Unpowered, Powered, and Glaive Melee Damage. Damage increase is multiplicative.",
+        "C187": "Grenade",
+        "E187": "Grants Additional Base Grenade Ability Regeneration Rate and Increased Grenade Ability Gains.\nStat provides up to ?% Additional Base Grenade Ability Regeneration Rate and 211.5%% Increased Grenade Ability Gains at 100 points.\n\n↑ENHANCED BENEFIT\nGrants 0.65% [0.2%] increased Grenade Ability Damage per point above 100.\nProvides up to 65% [20%] increased Grenade Ability Damage at 200 points.",
+        "C194": "Super",
+        "E194": "Grants Increased Super Ability Gains per point.\nProvides up to ?% Increased Super Ability Chunk Gains at 100 points.\n\n↑ENHANCED BENEFIT\nGrants 0.45% increased Super Ability Damage per point above 100.\nProvides up to 45% increased Super Ability Damage at 200 points. \nWell of Radiance and Ward of Dawn instead receive up to 33% increased Super Ability Duration at 200 points.",
+        "C196": "Class",
+        "E196": "Grants Additional Base Class Ability Regeneration Rate and Increased Class Ability Gains.\nStat provides up to ?% Additional Base Class Ability Regeneration Rate and 90% Increased Class Ability Gains at 100 points.\n\n↑ENHANCED BENEFIT\nClass Ability Usage grants a Overshield for (Thruster/Dodge = 5 | Rift/Barricades = 10) seconds.\nOvershield Health scales at a rate of 0.4 [0.1] HP per point, up to a maximum of 40 [10] HP Overshield at 200 points.\nDamage dealt to the Overshield by Guardians is reduced by 50%, increasing its maximum eHP in PvP to 20.\n\nClass Abilities that deal damage scale up by 0.65% [0.1?%] increased damage per point, up to 65% [10%] increased damage at 200 points.",
+        "C203": "Weapons",
+        "E203": "Grants increased Handling and Reload Speed per point, up to 0.9x Handling Duration Multiplier and 0.9x Reload Duration Multiplier at 100 points.\nAdditionally increases Weapon Damage against Rank-and-File and Elite Combatants by 0.15% per point, up to 15% increased Weapon Damage at 100 points.\nHandling bonus doesn't exceed 100 Handling Stow Animation Duration.\n\n↑ENHANCED BENEFIT\nAmmo Bricks have a 1% chance to drop increased ammo per point above 100, up to 100% chance at 200 points.\nPrimary/Special Weapon Damage is increased by 0.15% against Bosses and 0.05% against Guardians per point, up to 15% [5%] Increased Weapon Damage at 200 points against Bosses and Guardians, respectively.\n\nPower Weapon Damage is increased by 0.1% against Bosses and 0.05% against Guardians per point, up to 10% [5%] Increased Weapon Damage at 200 points."
+      }
+    },
+    {
+      "kind": "official_update",
+      "url": "https://www.bungie.net/7/en/News/Article/dev_insights_abilities_armor_preview",
+      "published_at": "2026-06-04",
+      "supports": "Six stat names and armor archetype combinations; 125% active ability cooldown bonus. It does not establish the community curve coefficients."
+    },
+    {
+      "kind": "inherited_community_fit",
+      "record": "data/d2-research/2026-10-10/armor-energy.json",
+      "supports": "Existing grenade/melee passive and chunk curve coefficients; unchanged by this migration."
+    },
+    {
+      "kind": "original_community_sheet_range",
+      "url": "https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/gviz/tq?headers=0&tqx=out:json&sheet=Armor%20Stat%20Info&range=D9:N9",
+      "file": "data/d2-research/2026-10-11/armor-stat-passive-gviz.json.gz",
+      "retrieved_at": "2026-10-10T14:00:56.377951+00:00",
+      "sha256": "7cf62a113e82390d7ad84183aed8c6af2a8a4f11f097da7ea0513b1081326903",
+      "explicit_range": "Armor Stat Info!D9:N9",
+      "values": [
+        1.0,
+        1.0721181419999999,
+        1.200449576,
+        1.381168594,
+        1.7421051047500002,
+        1.88446655,
+        2.199394072,
+        2.55660968,
+        2.62055578,
+        2.68450188,
+        2.75
+      ]
+    },
+    {
+      "kind": "original_community_sheet_range",
+      "url": "https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/gviz/tq?headers=0&tqx=out:json&sheet=Armor%20Stat%20Info&range=D10:N10",
+      "file": "data/d2-research/2026-10-11/armor-stat-chunk-gviz.json.gz",
+      "retrieved_at": "2026-10-10T14:01:28.895702+00:00",
+      "sha256": "bc3b5c7e03cf6526a546cb502b6e899afd8e5257fff178d9e111105b42fd9f0d",
+      "explicit_range": "Armor Stat Info!D10:N10",
+      "values": [
+        0.0,
+        0.030589677315529085,
+        0.11936437851565784,
+        0.2576342173172042,
+        0.5272284593498556,
+        0.625,
+        0.8181356214843419,
+        0.9923657826827956,
+        1.130635621484342,
+        1.219410322684471,
+        1.25
+      ]
+    }
+  ],
+  "implementation": {
+    "consumers": "Ability effects select source-scoped arcbolt_energy_scaling/threaded_spike_energy_scaling, querying derived attributes with explicit zero input. No stat Buff needs to be initialized.",
+    "intrinsic_input": "Optional grenade_stat/melee_stat Buff points now contribute to attribute profiles only. Supply intrinsic points excluding equipment to avoid double counting.",
+    "armor": "armor_stats bundle supplies six typed stat contributions; character_stats sums each profile then clamps 0..200. Five-slot test item schema passes explicit physical gear values."
+  },
+  "limits": [
+    "Armor stat input bounds 0..200 are a synthetic representation constraint, not a Destiny drop distribution or validated total budget.",
+    "Physical helmet/arms/chest/legs/class item inputs are tested; full production item catalogue, class restrictions, archetypes and mods remain incomplete.",
+    "Health/Class/Super/Weapons attributes are queryable; full native gameplay consumers are not added by this migration.",
+    "Arcbolt grenade selections and cross-subclass combinations in fixtures remain synthetic; only Threaded Spike has the existing explicit calibrated action prototype.",
+    "Original formulas and per-point precision are not remeasured; existing CES and fitted curve saturation at 100 remain unchanged.",
+    "Historical armor-energy.json used gviz array coordinates; fresh explicit-range queries place passive samples at D9:N9 and active bonus samples at D10:N10. Use the new range references for original-sheet coordinates."
+  ],
+  "source_conflicts": [
+    {
+      "source": "Compendium original Game Mechanics E187",
+      "observed": "211.5%% Increased Grenade Ability Gains at 100 points",
+      "comparison": "Official June 4 ability update states maximum active bonus 125%; fresh explicit-range Engineeeer Armor Stat Info N10 equals 1.25.",
+      "decision": "Retain existing separately fitted +125% chunk curve, mark Compendium text conflict unresolved. This migration makes no new numerical calibration claim."
+    }
+  ]
+}

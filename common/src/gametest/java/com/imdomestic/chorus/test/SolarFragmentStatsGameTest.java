@@ -3,7 +3,13 @@ package com.imdomestic.chorus.test;
 import static com.imdomestic.chorus.test.HealingGameTest.near;
 import com.google.gson.*;
 import com.imdomestic.chorus.effect.*;
-import com.imdomestic.chorus.stat.Unit;
+import com.imdomestic.chorus.stat.*;
+import com.imdomestic.chorus.effect.data.NumericQuery;
+import com.imdomestic.chorus.effect.equipment.Loadout;
+import com.imdomestic.chorus.platform.minecraft.PlayerEquipment;
+import com.imdomestic.chorus.registry.ChorusComponents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import java.util.*;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -15,6 +21,61 @@ public class SolarFragmentStatsGameTest {
             for(var field:ThreadedSpikeGameTest.json(name).entrySet())if(field.getValue().isJsonArray()){
                 if(!data.has(field.getKey()))data.add(field.getKey(),new JsonArray());field.getValue().getAsJsonArray().forEach(v->data.getAsJsonArray(field.getKey()).add(v));
             }
+    }
+    static void armor(JsonObject data) {
+        ThreadedSpikeGameTest.json("armor_stats").getAsJsonArray("bundles").forEach(v -> data.getAsJsonArray("bundles").add(v));
+        var schema = ThreadedSpikeGameTest.json("armor_stat_inputs").getAsJsonObject("equipment");
+        if (!data.has("equipment")) data.add("equipment", new JsonObject());
+        schema.entrySet().forEach(entry -> {
+            var equipment = data.getAsJsonObject("equipment"); if (!equipment.has(entry.getKey())) equipment.add(entry.getKey(), new JsonArray());
+            entry.getValue().getAsJsonArray().forEach(v -> equipment.getAsJsonArray(entry.getKey()).add(v));
+        });
+    }
+    static ItemStack armorItem(String instance, String slot, double points) {
+        var values = new TreeMap<String, Measure>();
+        for (String stat : List.of("health", "grenade", "melee", "class", "super", "weapons")) values.put(stat, new Measure(points, Unit.STAT_POINT));
+        var stack = new ItemStack(Items.DIAMOND_CHESTPLATE); stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(instance, "test:armor_" + slot, Map.of(), values)); return stack;
+    }
+    static void equipArmor(ProjectileGameTest.Harness t, String instance, String slot, double points) {
+        t.owner.getInventory().setItem(0, armorItem(instance, slot, points)); var equipment = PlayerEquipment.get(t.owner); equipment.swap(t.owner, "chorus_d2:" + slot, 0, equipment.revision());
+    }
+    static double points(ProjectileGameTest.Harness t, String stat) {
+        return t.runtime.program().attribute(t.runtime.state().engine().domain(), FirespriteGameTest.id(t.owner), "chorus_d2:" + stat + "_stat", new Measure(0, Unit.STAT_POINT), NumericQuery.Path.empty()).output().value();
+    }
+    @GameCase public void actualArmorComponentsAndCharScalePhysicalPickupWithoutCreatingStatBuffs(GameTestHelper h) throws Exception {
+        try (var t = FirespriteGameTest.harness(h, data -> { solar(data); armor(data); })) {
+            equipArmor(t, "helmet", "helmet", 50); equipArmor(t, "arms", "arms", 20); IncandescentGameTest.bind(t, "char", "chorus_d2:ember_of_char", "");
+            near(h, points(t, "grenade"), 80, "two physical armor rolls plus Char");
+            h.assertTrue(FirespriteGameTest.buff(t, t.owner, "chorus_d2:grenade_stat").isEmpty(), "armor created a hidden stat input");
+            FirespriteGameTest.pair(t); var equipment = PlayerEquipment.get(t.owner);
+            equipment.swap(t.owner, "chorus_d2:helmet", 0, equipment.revision()); near(h, points(t, "grenade"), 30, "unequipped helmet no longer contributes");
+            var removed = t.owner.getInventory().getItem(0).get(ChorusComponents.EQUIPMENT.get());
+            h.assertValueEqual(removed.parameters().get("grenade"), new Measure(50, Unit.STAT_POINT), "raw item roll survived removal");
+            double before = FirespriteGameTest.energy(t); var pickup = t.pickups.getFirst(); t.owner.setPos(pickup.position()); pickup.tick();
+            near(h, FirespriteGameTest.energy(t) - before, .05 * .75 * chunk(30), "collection reads current physical armor plus fragment");
+            h.assertTrue(pickup.isRemoved() && t.runtime.failure().isEmpty(), "physical armor pickup failed");
+            h.assertTrue(FirespriteGameTest.buff(t, t.owner, "chorus_d2:grenade_stat").isEmpty(), "pickup required stat Buff initialization");
+        }
+        h.succeed();
+    }
+    @GameCase(environment="chorus_gametest:armor_energy_change", maxTicks=45)
+    public void actualArmorSwapSplitsSelectedMeleeRegenerationAndChangesTheNextGrant(GameTestHelper h) throws Exception {
+        var t = new ProjectileGameTest.Harness(h, "threaded_spike", data -> { EnergyGainGameTest.prepare(data); solar(data); armor(data); }, true);
+        try {
+            EnergyGainGameTest.start(t); equipArmor(t, "old-arms", "arms", 50); IncandescentGameTest.bind(t, "eruption", "chorus_d2:ember_of_eruption", "");
+            long start = t.runtime.nowMicros(); long[] changed = {-1};
+            h.runAfterDelay(10, () -> { try { equipArmor(t, "new-arms", "arms", 60); changed[0] = t.runtime.nowMicros(); } catch (Exception | Error e) { t.close(); throw e; } });
+            t.finish(30, () -> {
+                long end = t.runtime.nowMicros(); h.assertTrue(changed[0] > start && changed[0] < end, "physical swap occurred between real ticks");
+                near(h, ThreadedSpikeGameTest.energy(t), ((changed[0]-start)*passive(60)+(end-changed[0])*passive(70))/1_000_000/145.2, "physical armor splits selected passive rate");
+                near(h, points(t, "melee"), 70, "new armor and Eruption sum");
+                h.assertTrue(FirespriteGameTest.buff(t, t.owner, "chorus_d2:melee_stat").isEmpty(), "physical armor depended on base stat Buff");
+                double before = ThreadedSpikeGameTest.energy(t); EnergyGainGameTest.send(t, "base", "amount", .04, Unit.CHARGE);
+                near(h, ThreadedSpikeGameTest.energy(t)-before, .04*.8*chunk(70), "next actual grant uses new armor");
+                var old = t.owner.getInventory().getItem(0).get(ChorusComponents.EQUIPMENT.get());
+                h.assertValueEqual(old.instance(), "old-arms", "swap returned original item"); h.assertValueEqual(old.parameters().get("melee"), new Measure(50, Unit.STAT_POINT), "swap preserved old raw value");
+            });
+        } catch (Exception | Error e) { t.close(); throw e; }
     }
     @GameCase public void physicalFirespriteUsesCollectorsCurrentCharBonusAndKeepsBasePoints(GameTestHelper h)throws Exception {
         for(boolean equippedAtCollection:List.of(false,true))try(var t=FirespriteGameTest.harness(h,SolarFragmentStatsGameTest::solar)){

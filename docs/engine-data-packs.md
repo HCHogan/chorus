@@ -1396,7 +1396,7 @@ cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 pr
 
 这组效果由基础 AbilityLoadout 决定：ability_overrides 临时解析出另一个施放定义，不挂载替代定义的 effects，也不卸载原选择。技能的施放 if 仅约束施放；常驻效果若有自己的生效条件，应写在 Bundle 的条件里。多个玩家和多个技能槽使用独立来源身份，数值是否叠加仍由 Profile 的 family / group 决定。
 
-资源账户与选择期效果的生命周期分开：移除选择不会删除 / 补满账户，卸载的来源不再贡献恢复倍率，账户仍按剩余来源和资源基础恢复率推进。角色暂停 / 死亡 / 离线政策、技能选择跨维度与 NBT 持久化未由本字段补齐，仍由后续宿主装配定义。合成 `ability_effects.json` 只验证这条通用链路；现有 D2 回能夹具的 Buff 输入尚待迁移。
+资源账户与选择期效果的生命周期分开：移除选择不会删除 / 补满账户，卸载的来源不再贡献恢复倍率，账户仍按剩余来源和资源基础恢复率推进。角色暂停 / 死亡 / 离线政策、技能选择跨维度与 NBT 持久化未由本字段补齐，仍由后续宿主装配定义。合成 `ability_effects.json` 验证这条通用链路；D2 的 Arcbolt / Threaded Spike 回能修饰已迁入选择期来源，参见下述 D2 装备属性输入。
 
 ### 施放时的条件替换与入口
 
@@ -1696,14 +1696,24 @@ Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 
 
 ```json
 {"type":"chorus:attribute","profile":"chorus_d2:melee_stat","target":"self",
- "input":{"type":"chorus:component","buff":"chorus_d2:melee_stat","component":"points"}}
+ "input":{"type":"chorus:constant","value":0,"unit":"stat_point"}}
 ```
 
 `target` 默认 self，也支持现有目标引用。input 在调用处求值；Profile 在被查询实体的独立上下文中计算：actor / victim / source.owner 均为该实体，source.source 为 Profile ID，武器 / 技能、标签、测量、引用及历史观察为空。属性修饰自己的绑定来源仍可读取。这样外层武器击杀等条件不会意外参与实体属性；需要触发上下文或任意单位转换的查询继续使用下面的 calculate 动作。
 
-查询不写状态、不发事件、不执行世界请求，缺失 Profile / 错误单位 / 缺失基础组件明确失败。CompiledEffects.attribute 返回包含基础输入及贡献的完整 CalculationProfile.Result，表达式读取其输出；外层轨迹保存最终贡献数值，暂不自动嵌套属性的子轨迹。
+查询不写状态、不发事件、不执行世界请求，缺失 Profile / 错误单位 / 显式组件输入缺失明确失败。CompiledEffects.attribute 返回包含基础输入及贡献的完整 CalculationProfile.Result，表达式读取其输出；外层轨迹保存最终贡献数值，暂不自动嵌套属性的子轨迹。
 
 on_use 的来源属性必须在捕获时可求值，结果保存为常量；victim 属性保留为表达式，其 input 的来源操作数先冻结，命中时使用当前目标及当前程序的属性定义。缺失或不兼容的新定义明确失败。属性依赖按实体 + Profile 区分，跨实体读取同一 Profile 合法；直接、相互以及通过动态弹匣容量返回自身的数值依赖会报错，不改写状态或截断效果事件链。完整例子见 [attribute_queries.json](../common/src/test/resources/effects/attribute_queries.json)，其中加值与治疗 / 伤害比例均为合成验收输入。
+
+### D2 装备属性输入
+
+`character_stats.json` 定义 Health / Grenade / Melee / Class / Super / Weapons 六个属性 Profile，每项合计来源贡献后限制在 0–200。`armor_stats.json` 的 SOURCE Bundle 要求六项 stat_point 参数，按实际装备来源累加，不先钳制或改写物品原始值。`armor_stat_inputs.json` 展示 helmet / arms / chest / legs / class_item 五槽与显式物品参数映射；其中 `test:armor_*` 和每项 0–200 的输入范围只是验收原型，不是原作合法掉落生成器，不校验六项总点数、金装特例或 archetype。
+
+实际技能定义通过 `effects.energy_scaling.bundle` 选择 `chorus_d2:arcbolt_energy_scaling` 或 `chorus_d2:threaded_spike_energy_scaling`，两者查询零输入的最终 grenade_stat / melee_stat 再套用已有主动 / 被动曲线。裸装、首次选择和只有碎片时均无需先创建属性 Buff。卸载技能来源后该曲线不再贡献，资源账户仍按固定定义的基础率 / CES 及剩余来源运行。
+
+原 `grenade_stat / melee_stat` Buff 现在只把 points 加进对应属性 Profile，可用于独立的角色固有输入；没有时贡献为零。宿主若继续填写这些组件，须只填未由装备来源表示的点数，不能把已汇总护甲值再填进去。查询 Profile 的 input 同样用 0，避免把组件既作为 input 又作为修饰加两次。Buff 存储值与实际 Gear 数值均不随最后的限幅改写。
+
+5 项 ArmorStatInputsTest 与两端实际玩家护甲换装 / Firesprite 拾取 / Threaded Spike 回能验收覆盖这条链路。该阶段未实现 Health / Class / Super / Weapons 的全部玩法消费方，也没有正式护甲掉落、职业限制或完整属性 UI；Arcbolt 的合成选择不能当成完整手雷动作实现。来源与曲线冲突见 [核对记录](../data/d2-research/2026-10-11/armor-stat-inputs.json)。
 
 ### 显式计算动作
 

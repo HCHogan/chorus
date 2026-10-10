@@ -391,7 +391,12 @@
             "unit": "damage"
           }
         }
-      ]
+      ],
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      }
     },
     {
       "id": "test:free_grenade",
@@ -416,7 +421,12 @@
             "unit": "damage"
           }
         }
-      ]
+      ],
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      }
     },
     {
       "id": "test:not_grenade",
@@ -441,7 +451,12 @@
             "unit": "damage"
           }
         }
-      ]
+      ],
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      }
     },
     {
       "id": "test:blocked_grenade",
@@ -470,6 +485,11 @@
       "if": {
         "type": "chorus:any",
         "of": []
+      },
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
       }
     }
   ]

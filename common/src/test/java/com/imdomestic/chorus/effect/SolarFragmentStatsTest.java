@@ -3,6 +3,7 @@ package com.imdomestic.chorus.effect;
 import static com.imdomestic.chorus.effect.EffectTestSupport.*;
 import static org.junit.jupiter.api.Assertions.*;
 import com.imdomestic.chorus.effect.buff.*;
+import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -25,7 +26,9 @@ class SolarFragmentStatsTest {
                 s=s.withSource(source(owner+"-inputs","test:solar_attribute_inputs",owner));
                 for(String resource:List.of(MELEE,GRENADE))s=s.withResource(new ResourceState(new ResourceState.Key(owner,resource),0,1,0));
             }
-            session=new EffectSession(engine(p),s,_ ->{throw new AssertionError("attribute/energy must not touch the world");});stat("owner",50);stat("recipient",50);
+            session=new EffectSession(engine(p),s,_ ->{throw new AssertionError("attribute/energy must not touch the world");});
+            for(String owner:List.of("owner","recipient"))session.start(0,new AbilityChange(owner,AbilityLoadout.EMPTY,new AbilityLoadout(Map.of("chorus_d2:melee","chorus_d2:threaded_spike","chorus_d2:grenade","test:attribute_grenade"))).signal());
+            stat("owner",50);stat("recipient",50);
         }
         EffectState state(){return session.state().engine().domain();}
         long now(){return state().buffs().timeMicros();}
@@ -33,7 +36,7 @@ class SolarFragmentStatsTest {
         void bind(String owner,String name,String instance){session.start(now(),SourceChange.bind(source(instance,"chorus_d2:ember_of_"+name,owner)));}
         void remove(String instance){session.start(now(),SourceChange.remove(instance));}
         double raw(String owner,String stat){return state().buffs().instances().values().stream().filter(b->b.key().holder().equals(owner)&&b.definition().id().equals("chorus_d2:"+stat+"_stat")).findFirst().orElseThrow().components().numbers().get("points");}
-        double points(String owner,String stat){return p.attribute(state(),owner,"chorus_d2:"+stat+"_stat",new Measure(raw(owner,stat),Unit.STAT_POINT),NumericQuery.Path.empty()).output().value();}
+        double points(String owner,String stat){return p.attribute(state(),owner,"chorus_d2:"+stat+"_stat",new Measure(0,Unit.STAT_POINT),NumericQuery.Path.empty()).output().value();}
         EnergyActions.Result gain(String owner,String resource,EnergyGains.Basis basis){
             var s=source("grant","test:solar_attribute_inputs","owner");var event=new EffectEvent("owner",owner,s.origin(),Set.of(),Map.of());
             var resources=p.program().resources().stream().collect(java.util.stream.Collectors.toMap(ResourceDefinition::id,r->r));

@@ -1,0 +1,324 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "chorus_d2:helmet",
+        "accepts": [
+          "chorus_d2:helmet"
+        ]
+      },
+      {
+        "id": "chorus_d2:arms",
+        "accepts": [
+          "chorus_d2:arms"
+        ]
+      },
+      {
+        "id": "chorus_d2:chest",
+        "accepts": [
+          "chorus_d2:chest"
+        ]
+      },
+      {
+        "id": "chorus_d2:legs",
+        "accepts": [
+          "chorus_d2:legs"
+        ]
+      },
+      {
+        "id": "chorus_d2:class_item",
+        "accepts": [
+          "chorus_d2:class_item"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:armor_helmet",
+        "tags": [
+          "chorus_d2:helmet"
+        ],
+        "parameters": {
+          "health": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "grenade": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "melee": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "class": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "super": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "weapons": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "chorus_d2:armor_stats",
+            "parameters": {
+              "health": "health",
+              "grenade": "grenade",
+              "melee": "melee",
+              "class": "class",
+              "super": "super",
+              "weapons": "weapons"
+            }
+          }
+        }
+      },
+      {
+        "id": "test:armor_arms",
+        "tags": [
+          "chorus_d2:arms"
+        ],
+        "parameters": {
+          "health": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "grenade": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "melee": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "class": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "super": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "weapons": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "chorus_d2:armor_stats",
+            "parameters": {
+              "health": "health",
+              "grenade": "grenade",
+              "melee": "melee",
+              "class": "class",
+              "super": "super",
+              "weapons": "weapons"
+            }
+          }
+        }
+      },
+      {
+        "id": "test:armor_chest",
+        "tags": [
+          "chorus_d2:chest"
+        ],
+        "parameters": {
+          "health": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "grenade": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "melee": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "class": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "super": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "weapons": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "chorus_d2:armor_stats",
+            "parameters": {
+              "health": "health",
+              "grenade": "grenade",
+              "melee": "melee",
+              "class": "class",
+              "super": "super",
+              "weapons": "weapons"
+            }
+          }
+        }
+      },
+      {
+        "id": "test:armor_legs",
+        "tags": [
+          "chorus_d2:legs"
+        ],
+        "parameters": {
+          "health": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "grenade": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "melee": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "class": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "super": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "weapons": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "chorus_d2:armor_stats",
+            "parameters": {
+              "health": "health",
+              "grenade": "grenade",
+              "melee": "melee",
+              "class": "class",
+              "super": "super",
+              "weapons": "weapons"
+            }
+          }
+        }
+      },
+      {
+        "id": "test:armor_class_item",
+        "tags": [
+          "chorus_d2:class_item"
+        ],
+        "parameters": {
+          "health": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "grenade": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "melee": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "class": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "super": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          },
+          "weapons": {
+            "unit": "stat_point",
+            "minimum": 0,
+            "maximum": 200,
+            "integral": true
+          }
+        },
+        "effects": {
+          "stats": {
+            "bundle": "chorus_d2:armor_stats",
+            "parameters": {
+              "health": "health",
+              "grenade": "grenade",
+              "melee": "melee",
+              "class": "class",
+              "super": "super",
+              "weapons": "weapons"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

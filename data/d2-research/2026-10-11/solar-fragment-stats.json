@@ -47,5 +47,9 @@
     "Host base-stat initialization and real armor point aggregation remain unassembled.",
     "The inherited passive/energy formulas are community fits, not remeasured by this change.",
     "Solar ability catalog, production subclass restrictions, HUD and persistence remain incomplete."
-  ]
+  ],
+  "follow_up": {
+    "record": "data/d2-research/2026-10-11/armor-stat-inputs.json",
+    "status": "Ability-selected curves now read zero-based aggregated armor/fragment/intrinsic stats without stat Buff initialization. The historical base requirement above describes the prior stage."
+  }
 }

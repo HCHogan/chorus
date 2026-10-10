@@ -4,6 +4,7 @@ import static com.imdomestic.chorus.effect.EffectTestSupport.*;
 import static org.junit.jupiter.api.Assertions.*;
 import com.google.gson.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -28,6 +29,7 @@ class EnergyGainTest {
             var state = EffectState.empty().withSource(SOURCE).withResource(new ResourceState(new ResourceState.Key("recipient", ENERGY), 0, 1, 0))
                     .withResource(new ResourceState(new ResourceState.Key("grantor", ENERGY), 0, 1, 0));
             session = new EffectSession(engine(program), state, _ -> RuleEngine.Empty.INSTANCE);
+            for (String holder : List.of("grantor", "recipient")) session.start(0, new AbilityChange(holder, AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("chorus_d2:melee", "chorus_d2:threaded_spike"))).signal());
         }
         EffectState state() { return session.state().engine().domain(); }
         void stat(String target, double value, long at) { session.start(at, new RuleEngine.Signal("test:stat", event(target, Map.of("stat", new Measure(value, STAT))))); }

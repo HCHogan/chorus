@@ -1,0 +1,102 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:armor_stats",
+      "parameters": {
+        "health": "stat_point",
+        "grenade": "stat_point",
+        "melee": "stat_point",
+        "class": "stat_point",
+        "super": "stat_point",
+        "weapons": "stat_point"
+      },
+      "modifiers": [
+        {
+          "id": "health",
+          "profile": "chorus_d2:health_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "health"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "grenade",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "grenade"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "melee",
+          "profile": "chorus_d2:melee_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "melee"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "class",
+          "profile": "chorus_d2:class_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "class"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "super",
+          "profile": "chorus_d2:super_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "super"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "weapons",
+          "profile": "chorus_d2:weapons_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:armor_stats",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "weapons"
+          },
+          "reference": "Explicit armor instance stat values; profile sums contributions and caps totals. This module does not generate or validate Destiny drop distributions.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

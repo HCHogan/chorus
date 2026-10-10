@@ -289,7 +289,12 @@
             "unit": "damage"
           }
         }
-      ]
+      ],
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      }
     },
     {
       "id": "test:costless",

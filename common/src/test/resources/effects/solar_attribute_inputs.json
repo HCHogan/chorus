@@ -47,5 +47,25 @@
         }
       ]
     }
+  ],
+  "abilities": [
+    {
+      "id": "test:attribute_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:arcbolt_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy_scaling": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      },
+      "on_use": []
+    }
   ]
 }
