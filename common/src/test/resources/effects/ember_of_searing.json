@@ -1,0 +1,339 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_searing",
+      "rules": [
+        {
+          "id": "scorched_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_has_buff",
+                "buff": "chorus_d2:scorch",
+                "target": "victim",
+                "match": "any"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "classified"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "classified",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "classified",
+                        "field": "player"
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:combatant_tier_1"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "type",
+                                    "tag": "chorus_d2:combatant_tier_1"
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:combatant_tier_2"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "type",
+                                    "tag": "chorus_d2:combatant_tier_2"
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:combatant_tier_3"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "type",
+                                    "tag": "chorus_d2:combatant_tier_3"
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:combatant_tier_4"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "classified",
+                                    "source": "type",
+                                    "tag": "chorus_d2:combatant_tier_4"
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          ]
+                        },
+                        "op": "eq",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:searing_base_energy",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "classified",
+                        "field": "player"
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 0.2,
+                        "unit": "charge_fraction"
+                      },
+                      "else": {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:any",
+                          "of": [
+                            {
+                              "type": "chorus:observed_entity_tag",
+                              "binding": "classified",
+                              "source": "entity",
+                              "tag": "chorus_d2:combatant_tier_1"
+                            },
+                            {
+                              "type": "chorus:observed_entity_tag",
+                              "binding": "classified",
+                              "source": "type",
+                              "tag": "chorus_d2:combatant_tier_1"
+                            }
+                          ]
+                        },
+                        "then": {
+                          "type": "chorus:constant",
+                          "value": 0.08,
+                          "unit": "charge_fraction"
+                        },
+                        "else": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:combatant_tier_2"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:combatant_tier_2"
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 0.15,
+                            "unit": "charge_fraction"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "classified",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:combatant_tier_3"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "classified",
+                                  "source": "type",
+                                  "tag": "chorus_d2:combatant_tier_3"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 0.175,
+                              "unit": "charge_fraction"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0.25,
+                              "unit": "charge_fraction"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "as": "base"
+                },
+                {
+                  "type": "chorus:grant_ability_energy",
+                  "slot": "chorus_d2:melee",
+                  "amount": {
+                    "type": "chorus:result",
+                    "binding": "base",
+                    "field": "value"
+                  },
+                  "value_basis": "base",
+                  "tags": [
+                    "chorus_d2:ember_of_searing"
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:searing_unclassified"
+                }
+              ]
+            },
+            {
+              "type": "chorus:emit",
+              "event": "chorus_d2:spawn_firesprite"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "class_bonus",
+          "profile": "chorus_d2:class_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:searing_class_bonus",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Solar N22 / original N25, checked 2026-10-10. Stat query only.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

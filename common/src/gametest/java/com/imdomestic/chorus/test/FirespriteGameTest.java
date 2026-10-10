@@ -31,8 +31,9 @@ public class FirespriteGameTest {
             }
         }
     }
-    static ProjectileGameTest.Harness harness(GameTestHelper h) throws Exception {
-        var t=new ProjectileGameTest.Harness(h,"firesprite",FirespriteGameTest::prepare,true);
+    static ProjectileGameTest.Harness harness(GameTestHelper h) throws Exception { return harness(h, _ -> {}); }
+    static ProjectileGameTest.Harness harness(GameTestHelper h,java.util.function.Consumer<JsonObject> edit) throws Exception {
+        var t=new ProjectileGameTest.Harness(h,"firesprite",data->{prepare(data);edit.accept(data);},true);
         t.owner.setPos(t.owner.chunkPosition().getMinBlockX()+6.5,t.owner.getY(),t.owner.chunkPosition().getMinBlockZ()+6.5);
         t.owner.setGameMode(GameType.SURVIVAL);var equipment=PlayerEquipment.get(t.owner);
         for(String id:List.of("a","b")){

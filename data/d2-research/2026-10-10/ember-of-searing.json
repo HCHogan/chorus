@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effect": "Ember of Searing",
+  "implementation_status": "partial; receipt-observed Scorch, explicit combatant tier input, current melee routing and independent Firesprite request",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B22",
+        "Solar D22",
+        "Solar N22"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-10/firesprite-solar-source.html.gz",
+      "retrieved_at": "2026-10-10T11:13:58.663075+00:00",
+      "html_sha256": "8a9e5d3f4220df4991465d8f9f10ec6817bef380314f32cc7c588734ff834298",
+      "mapping": [
+        {
+          "original": "B25",
+          "snapshot": "B22",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D25",
+          "snapshot": "D22",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "N25",
+          "snapshot": "N22",
+          "normalized_text_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "official_historical_mechanism",
+      "url": "https://www.bungie.net/7/en/News/Article/ability-changes-lightfall-d2",
+      "support": "Addition of Firesprite creation when defeating Scorched targets; not current numerical calibration."
+    },
+    {
+      "kind": "firsthand_bug_report_not_verified_specification",
+      "url": "https://www.bungie.net/en/Forums/Post/265221874?page=0&path=1&sort=0",
+      "published": "2026-04-10",
+      "support": "Player reports no melee gain when the same blow both applies Scorch and kills. Bungie Help asked for evidence; this is not confirmation or a completed fix."
+    }
+  ],
+  "compendium_values": {
+    "tier_1": 0.08,
+    "tier_2": 0.15,
+    "tier_3": 0.175,
+    "tier_4": 0.25,
+    "guardian": 0.2,
+    "energy_basis": "not stated",
+    "class_stat": 10
+  },
+  "current_policy": {
+    "qualification": "Confirmed kill actor owns fragment; Scorch was present on victim at damage receipt observation. Scorch may have been applied by someone else. Assists without kill actor credit do not qualify; current D2 assist semantics require verification.",
+    "death_order": "Use immutable event_has_buff observation because live Scorch is removed by preceding death reaction. A later hit reaction does not retroactively qualify the same kill.",
+    "classification": "Actual player observation uses Guardian branch. Otherwise exactly one distinct combatant_tier_1..4 tag from entity or type observations is required. Enemy rank labels such as boss/elite are not implicitly mapped to tiers.",
+    "unknown_classification": "Missing/ambiguous tier or missing entity emits chorus_d2:searing_unclassified and skips the uncomputable melee leg; still requests the independently known Firesprite leg. No invented base amount or retroactive repayment.",
+    "energy": "Current base melee slot, recipient scalar and current Melee stat at kill processing. No melee gain cooldown is inferred from Firesprite cooldown.",
+    "firesprite": "Requests the shared per-owner firesprite_system; existing generation cooldown only suppresses pickup creation.",
+    "class_stat": "Query-only +10, removed with fragment source."
+  },
+  "calibration": {
+    "required": "chorus_d2:searing_base_energy, charge_fraction -> charge_fraction",
+    "test_normalization": {
+      "factor": 0.4444444444444444,
+      "confidence": "unverified reference-basis hypothesis, not a current measured Searing baseline"
+    },
+    "test_recipient": {
+      "resource": "test:searing_melee_energy",
+      "gain_profile": "chorus_d2:threaded_spike_gain",
+      "recipient_scalar": 0.8,
+      "initial": 0,
+      "passive_rate": 0,
+      "note": "Synthetic recipient account isolates chunk gains; this is not the full Threaded Spike ability."
+    }
+  },
+  "remaining": [
+    "Current baseline and CES eligibility measurement for Searing",
+    "Complete combatant tier catalogue and actual kill/assist attribution policy",
+    "Special same-hit Scorch/ignition ordering and effects removed during native combat",
+    "Production subclass assembly and native Class-stat projection",
+    "Firesprite calibration, other pickup interactions, UI and persistence"
+  ]
+}

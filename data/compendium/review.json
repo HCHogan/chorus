@@ -4369,6 +4369,70 @@
         "Health / Class / AE 只有属性查询，未投影回血、职业技能缩放和空中射击",
         "完整子职业装配、UI、所有特殊武器击杀资格和存档未完成"
       ]
+    },
+    {
+      "id": "solar/ember_of_searing",
+      "name": "Ember of Searing",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B22",
+          "text_sha256": "a7f0d3e5233e764086afbc120430292a1f0c0f766355d14312bac6ea6153c87c"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D22",
+          "text_sha256": "56052e48a303ff54ea3368493880c05f59dced30da7fafda8b19b9a8ae4e71c1"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N22",
+          "text_sha256": "ecfd8618f010311dc03d27ef51735bf5916196e087ce46d5533f1855da176762"
+        }
+      ],
+      "scope": "以伤害回执时的灼烧观察判断已确认击杀，按显式 T1–T4 / Guardian 分支回当前近战能量，并独立请求共享 Firesprite；Class +10 查询",
+      "acceptance": [
+        "death 已清理实时 Scorch 后仍可用 event_has_buff 判断击杀资格，允许他人施加的灼烧",
+        "T1–T4 与 Guardian 原表比例经必需校准 Profile 后按当前近战属性和 CES 结算",
+        "无灼烧、已过期、他人击杀及未确认死亡不产生收益",
+        "Firesprite 生成冷却不阻止近战回能；缺近战选择仍可生成拾取物",
+        "原版普通伤害、装备物理子弹和实际 Scorch tick 死亡均贯通"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_searing.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfSearingTest.java",
+          "symbol": "everyExplicitCombatantTierAndGuardianBranchRestoresCurrentMeleeAfterDeathCleanup"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfSearingTest.java",
+          "symbol": "missingOrAmbiguousClassificationPublishesGapWithoutGuessingEnergyAndStillRequestsPickup"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfSearingGameTest.java",
+          "symbol": "nativeAndPhysicalKillsOfAnotherSourcesScorchRestoreMeleeWhileFirespriteCooldownIsIndependent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfSearingGameTest.java",
+          "symbol": "actualScorchTickDeathUsesItsOriginalKillerAndRetainsObservedScorchForSearing"
+        }
+      ],
+      "gaps": [
+        "原表百分比属性基准未说明，测试除以 2.25 为参考点假设；当前原作基础量及 CES 资格待实测",
+        "需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求",
+        "助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准",
+        "Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现"
+      ]
     }
   ]
 }

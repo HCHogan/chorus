@@ -14,7 +14,7 @@
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
 | Arc | 否 | 191 | 7 | 184 |
-| Solar | 否 | 210 | 19 | 191 |
+| Solar | 否 | 210 | 22 | 188 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
 | Strand | 否 | 153 | 10 | 143 |
@@ -88,6 +88,7 @@
 | Ember of Ashes | partial | Solar B12; Solar D12 | Char 的 40 → 60 与 Incandescent 的八分支专属层数；以 ashes_equipped 查询持有者选择，不套用全局 1.5 倍；缺口：通用 50% 向上取整以及 Caliban / Tommy / Skyburner 等特例未装配；其余来源仍需按各自原表数值映射；原作时序校准、生产子职业与状态持久化未完成 |
 | Firesprite | partial | Solar B5; Solar D5 | 私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准；缺口：原表 11.25% 未注明属性基准；测试除以 2.25 得 5% 为待验证假设，不能视为当前实测值；0.5 米接触半径为合成校准；共享冷却归属、生成点及按成功生成开始冷却需原作校准；未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现 |
 | Ember of Tempering | partial | Solar B25; Solar D25; Solar N25 | 太阳武器击杀给自己与 15 米队友 8 秒最多三层 Tempering，Health +20/40/60、AE +20、碎片 Class -10 查询；已有 Buff 的再次击杀请求 Firesprite；缺口：跨来源共享叠层、卸下碎片后既有 Buff 保留、无碎片队友自行生成 Firesprite 为当前内容政策，需原作校准；Health / Class / AE 只有属性查询，未投影回血、职业技能缩放和空中射击；完整子职业装配、UI、所有特殊武器击杀资格和存档未完成 |
+| Ember of Searing | partial | Solar B22; Solar D22; Solar N22 | 以伤害回执时的灼烧观察判断已确认击杀，按显式 T1–T4 / Guardian 分支回当前近战能量，并独立请求共享 Firesprite；Class +10 查询；缺口：原表百分比属性基准未说明，测试除以 2.25 为参考点假设；当前原作基础量及 CES 资格待实测；需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求；助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准；Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现 |
 
 ## 使用
 

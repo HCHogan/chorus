@@ -63,6 +63,23 @@ Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个�
 
 这两项状态为 partial：定义仍是可组合的验收数据，尚未接入完整生产子职业装配。实际回能基准、接触半径、特殊击杀资格、其他 Firesprite 生成来源、Mercy、Health / Class / AE 的实际玩法投影、HUD、真实素材与存档尚未完成。
 
+## Ember of Searing 与回执时目标状态
+
+原表 Solar B25 / D25 / N25（固定 CSV B22 / D22 / N22）给出击杀灼烧目标后的近战收益与 Firesprite，并给碎片 +10 Class。保存的 HTML、对应单元格及政策在 [Searing 来源记录](../data/d2-research/2026-10-10/ember-of-searing.json)。[Bungie 历史说明](https://www.bungie.net/7/en/News/Article/ability-changes-lightfall-d2)可确认生成 Firesprite 的机制，不作为当前百分比的测量依据。
+
+| 原表目标分类 | 表示的近战收益 |
+|---|---|
+| T1 / T2 / T3 / T4 Combatant | 8% / 15% / 17.5% / 25% |
+| Guardian | 20% |
+
+这些值未注明当前属性基准。内容必须链接 `chorus_d2:searing_base_energy`（charge_fraction → charge_fraction），先把表值归一化为当前基础量，再交 `grant_ability_energy` 的当前基础近战选择、属性与 CES。测试暂以除以 2.25 作为参考点假设，使用初始为零、无被动恢复的合成近战账户和 Threaded Spike 的 .8 gain Profile 验证一次路由；不把测试输出当成当前 Searing 实测数值。
+
+资格按已确认 kill 的 actor 持有碎片，且 victim 的回执时 BuffObservation 中存在 Scorch；不要求灼烧也由击杀者施加。death 的清理已经移除实时 Scorch 后仍能判断。未确认死亡、无灼烧或观察时已过期不产生收益；本次 hit 反应后来添加的状态不改写历史。助攻是否应另行获得收益、同击施加 / 点燃的例外仍待校准。[2026-04-10 的一手问题报告](https://www.bungie.net/en/Forums/Post/265221874?page=0&path=1&sort=0)提到同击施加并击杀未回能；官方只要求进一步证据，不能据此当成已经确认的机制或修复。
+
+等级输入要求实际 player 观察，或在非玩家的 entity / type 标签中恰好出现一种 `chorus_d2:combatant_tier_1` 至 `_4`。同一种标签同时存在于两处仍只算一种；不同 tier 冲突则未分类。不得把 elite / boss 等敌人 Rank 标签自动当作这里的 Tier，完整目录需要另外装配。缺失实体、没有 tier 或 tier 冲突会发 `chorus_d2:searing_unclassified`，跳过无法计算的近战收益，但仍请求已知的 Firesprite 分支；这是显式不完整输入，不是零收益的游戏设定，也没有事后补领逻辑。
+
+近战回能与 Firesprite 的持有者级生成冷却独立。多个有效击杀在同一生成冷却中仍各获得近战能量；没有近战选择仍可生成 Firesprite。Class +10 只影响现有属性查询，卸下来源后消失。本项仍为 partial：当前回能基准 / CES 资格、完整等级目录、特殊死亡顺序、助攻、子职业生产装配、Class 实际玩法、HUD 与持久化均未完成。
+
 ## Incandescent 与共享 Solar 状态的接入依据
 
 共享 Scorch / Ignition 与 [Incandescent](../common/src/test/resources/effects/incandescent.json) 已接通，并有实际玩家装备、物理子弹击杀到范围爆炸、Scorch 和后续点燃的验收；覆盖保持 partial。2026-10-10 抓取的[原表 Weapon Perks A125 / C125](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1662574278&range=C125)与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸基础伤害最多 30 Solar。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：

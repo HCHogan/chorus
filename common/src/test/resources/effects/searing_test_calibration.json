@@ -1,0 +1,27 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:searing_base_energy",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "unverified_reference_normalization",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.4444444444444444
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    }
+  ]
+}
