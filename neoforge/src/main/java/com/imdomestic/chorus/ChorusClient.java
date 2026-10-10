@@ -17,6 +17,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
 public final class ChorusClient {
     public ChorusClient(IEventBus bus) {
+        bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(com.imdomestic.chorus.network.MovementInputPayload.TYPE, (payload, context) -> com.imdomestic.chorus.client.MovementInputClient.accept(payload)));
         bus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new));
         bus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_ENTITY.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new));
         EquipmentClient.init(ClientPacketDistributor::sendToServer, () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(EquipmentPayloads.Visit.TYPE));

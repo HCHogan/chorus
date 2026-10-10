@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 public final class FabricEquipmentNetworking {
     private FabricEquipmentNetworking() {}
     public static void init() {
+        PayloadTypeRegistry.clientboundPlay().register(MovementInputPayload.TYPE, MovementInputPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(EquipmentPayloads.Visit.TYPE, EquipmentPayloads.Visit.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(EquipmentPayloads.Request.TYPE, EquipmentPayloads.Request.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(EquipmentPayloads.View.TYPE, EquipmentPayloads.View.CODEC);

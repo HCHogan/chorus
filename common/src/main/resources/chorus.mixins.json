@@ -24,10 +24,18 @@
     "PlayerMeleeAttackMixin",
     "StabAttackMixin",
     "CubeMeleeAttackMixin",
-    "DragonMeleeAttackMixin"
+    "DragonMeleeAttackMixin",
+    "LivingMovementInputMixin",
+    "RelativeMovementInputMixin",
+    "GroundJumpMixin",
+    "LiquidJumpMixin",
+    "ServerMovementInputMixin",
+    "MovementTrackingMixin"
   ],
   "client": [
-    "MixinMinecraft"
+    "MixinMinecraft",
+    "ClientInputAccessor",
+    "LocalMovementInputMixin"
   ],
   "server": [],
   "injectors": {

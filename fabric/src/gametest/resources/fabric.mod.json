@@ -97,6 +97,7 @@
       "com.imdomestic.chorus.ActionGateGameTest",
       "com.imdomestic.chorus.NativeRangedGameTest",
       "com.imdomestic.chorus.NativeMeleeGameTest",
+      "com.imdomestic.chorus.NativeMovementGameTest",
       "com.imdomestic.chorus.BuffRemovalGameTest",
       "com.imdomestic.chorus.SuppressionGameTest",
       "com.imdomestic.chorus.SuppressionNativeGameTest"
@@ -108,7 +109,8 @@
       "com.imdomestic.chorus.PickupClientGameTest",
       "com.imdomestic.chorus.ImpulseClientGameTest",
       "com.imdomestic.chorus.NativeAttributeClientGameTest",
-      "com.imdomestic.chorus.AmplifiedClientGameTest"
+      "com.imdomestic.chorus.AmplifiedClientGameTest",
+      "com.imdomestic.chorus.NativeMovementClientGameTest"
     ]
   }
 }

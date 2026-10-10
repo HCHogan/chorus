@@ -45,6 +45,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final NativeSource sources;
     private final CompiledEffects program;
     private final MinecraftAttributeProjection nativeAttributes;
+    private final MinecraftMovementProjection nativeMovement;
     private final long originTick, originMicros;
     private List<RuleEngine.Signal> operationFacts;
     private EffectState combatView;
@@ -64,12 +65,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         this.level = Objects.requireNonNull(level); this.sources = Objects.requireNonNull(sources);
         this.program = Objects.requireNonNull(program);
         this.nativeAttributes = new MinecraftAttributeProjection(level,program);
+        this.nativeMovement = new MinecraftMovementProjection(level,program);
         this.originTick = level.getGameTime(); this.originMicros = initial.buffs().timeMicros();
         this.session = new EffectSession(program.engine(clock, 256), initial, request -> {
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
             operationFacts = new ArrayList<>();
             try {
-                refreshAttributes();
+                refreshProjections();
                 var actual = switch (request.command()) {
                     case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
                     case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
@@ -86,7 +88,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
         var runtime = new MinecraftEffectRuntime(level, program, initial, clock, world, sources);
         if (LIVE.putIfAbsent(level, runtime) != null) throw new IllegalStateException("Level already has a rule runtime");
-        try { DamageCapture.install(level, runtime); runtime.refreshAttributes(); }
+        try { DamageCapture.install(level, runtime); runtime.refreshProjections(); }
         catch (RuntimeException error) { try { runtime.close(); } catch(RuntimeException cleanup) { error.addSuppressed(cleanup); } throw error; }
         return runtime;
     }
@@ -121,7 +123,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         }
     }
     public List<MinecraftAttributeProjection.Report> nativeAttributeReport() { return nativeAttributes.reports(); }
-    private void refreshAttributes() { if(!closed&&failure.isEmpty())nativeAttributes.reconcile(view()); }
+    public List<MinecraftMovementProjection.Report> nativeMovementReport() { return nativeMovement.reports(); }
+    private void refreshProjections() { if(!closed&&failure.isEmpty()){nativeAttributes.reconcile(view());nativeMovement.reconcile(view());} }
     /** Capture before a host launches its projectile or detached delayed attack. The host retains the returned immutable data. */
     public com.imdomestic.chorus.effect.data.DamageSnapshot captureDamage(DamageCommand attack) {
         thread(); prepare();
@@ -172,7 +175,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.ability.AbilityUse.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.ability.AbilityUse.Commit(before, resolved.state()));
-            refreshEquipment(); refreshAttributes(); return receipt;
+            refreshEquipment(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Self-owned input: the server derives the weapon, ammunition and duration from its real container. */
@@ -189,7 +192,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponReload.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponReload.Commit(before, resolved.state()));
-            refreshEquipment(); refreshAttributes(); return receipt;
+            refreshEquipment(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
@@ -206,7 +209,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponFire.Commit(before, resolved.state()));
-            refreshEquipment(); refreshAttributes(); return receipt;
+            refreshEquipment(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     private com.imdomestic.chorus.effect.weapon.InstantReload.Checked verifyInstantReload(com.imdomestic.chorus.effect.weapon.InstantReload.Check query) {
@@ -240,7 +243,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         finally { transferringEquipment = false; }
         try {
             session.observe(nowMicros(), transition.emitted(), new com.imdomestic.chorus.effect.equipment.EquipmentChange.Commit(change));
-            refreshEquipment(); refreshAttributes();
+            refreshEquipment(); refreshProjections();
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     public void trackEquipment(ServerPlayer player) {
@@ -274,13 +277,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void start(RuleEngine.Signal signal) {
         thread();
         if (failure.isPresent()) throw new IllegalStateException("Failed runtime requires explicit recovery");
-        try { session.start(nowMicros(), signal); refreshEquipment(); refreshAttributes(); }
+        try { session.start(nowMicros(), signal); refreshEquipment(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshAttributes(); }
+        try { if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, List.of()); }
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
@@ -397,7 +400,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (operationFacts != null) { operationFacts.addAll(signals); return; }
         var shieldCommit = new ShieldDamage.Commit(shieldWrites); var writes = takeWrites();
         if (signals.isEmpty() && !writes.changed()) return;
-        try { session.observe(nowMicros(), signals, writes); refreshEquipment(); refreshAttributes(); }
+        try { session.observe(nowMicros(), signals, writes); refreshEquipment(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, observations, shieldCommit, writes, signals); }
     }
     @Override public void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure) {
@@ -444,6 +447,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this); nativeAttributes.close();
+        closed = true; equipmentOwners.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        RuntimeException cleanup=null;
+        try { nativeAttributes.close(); } catch(RuntimeException error) { cleanup=error; }
+        try { nativeMovement.close(); } catch(RuntimeException error) { if(cleanup==null)cleanup=error;else cleanup.addSuppressed(error); }
+        if(cleanup!=null)throw cleanup;
     }
 }

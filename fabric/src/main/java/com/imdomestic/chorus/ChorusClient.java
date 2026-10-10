@@ -11,6 +11,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 public final class ChorusClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
+        ClientPlayNetworking.registerGlobalReceiver(com.imdomestic.chorus.network.MovementInputPayload.TYPE, (payload, context) -> com.imdomestic.chorus.client.MovementInputClient.accept(payload));
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_ENTITY.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         EquipmentClient.init(ClientPlayNetworking::send, () -> ClientPlayNetworking.canSend(EquipmentPayloads.Visit.TYPE));

@@ -1501,7 +1501,7 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
 查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
@@ -1509,7 +1509,7 @@ Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_
 
 手动换弹额外在宿主确认后的 `complete`、每次装填反应结算后的下一次 `continue` 复核限制。完成前拒绝不转移弹药；下一步拒绝保留刚完成的弹药转移、回血和其他反应。取消会清除计划及计时器，发布 `reload_cancelled`，`reason=action_restricted`；其 `ActionGate.Cancelled` payload 同时实现常规 EffectEvent.Carrier 并保留拒绝 Decision。授予限制 Buff 本身不会立即取消已接受计划；若它在下个复核边界之前过期，计划仍可继续。
 
-该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。活动技能 Buff 可通过下节的批量结束动作终止，原版远程攻击接线见下节；原版左键 / 物品使用、AI 移动、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
+该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。活动技能 Buff 可通过下节的批量结束动作终止，原版远程攻击接线见下节；原版近战及主动移动输入接线见下文；其他物品使用、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
 
 ## 原版生物的远程攻击资格
 
@@ -1521,7 +1521,7 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 
 `MinecraftEffectRuntime.nativeActionReport()` 保留最近一次查询的不可变输入、逻辑时间、Decision 或查询失败原因；它只用于诊断，不发布新事件，也不无限积累实体引用。查询错误拒绝本次尝试并记录运行时失败。运行时失败后查询沿用最后已提交状态，其他没有命中限制的生物仍可射击；没有把查询错误伪装成有效拒绝声明。
 
-这个入口不检查既有弹体的飞行或命中，不撤销已结算伤害，也不限制 DOT / 点燃反馈。其他模组自定义发射入口、原版近战 / 法术召唤、移动失能、玩家左键及客户端禁用展示仍需各自接线。[native_ranged.json](../common/src/test/resources/effects/native_ranged.json) 是合成机制验收，不增加 Compendium 效果覆盖数。
+这个入口不检查既有弹体的飞行或命中，不撤销已结算伤害，也不限制 DOT / 点燃反馈。其他模组自定义发射入口、法术召唤、完整移动失能及客户端禁用展示仍需各自接线；原版近战与主动移动输入见下文。[native_ranged.json](../common/src/test/resources/effects/native_ranged.json) 是合成机制验收，不增加 Compendium 效果覆盖数。
 
 ## 原版近战与接触攻击资格
 
@@ -1532,6 +1532,18 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 查询使用 start 阶段，事件带 `chorus:native_melee_attack`，references 包含 native_attack / entity_type；actor 和 victim 是实际实体 ID，包括非 LivingEntity 目标。来源保留实体 / 类型标签：原版玩家明确提供 `chorus:guardian`，Mob 提供 `chorus:combatant`，其他 LivingEntity 不猜角色。weapon / ability 留空，不把手持原版物品自动注册成 Chorus 装备。原版攻击实际成功后，仍沿原有 DamageCapture 路径提交事实，不额外制造一次命中或伤害。
 
 门槛不取消先前接受的物品使用、冲刺 / 激流运动、投射物或已提交的世界动作。玩家客户端仍可能播放挥手，禁用提示和预测尚未接入；近战接触拒绝不等于已经取消全部使用动画或移动。爆炸、咆哮、荆棘 / 河豚反伤及其他模组自定义攻击需要自己的入口。近战门槛也不自动加入压制、Freeze 或 Suspend 内容，具体状态的资格和例外由内容声明。[native_melee.json](../common/src/test/resources/effects/native_melee.json) 为合成验收，不增加 Compendium 效果覆盖数。
+
+## 原版主动移动输入与跳跃限制
+
+`movement_input` 与 `jump` 是独立的 action_gates。前者禁止 moveRelative 接收的主动方向加速，后者禁止新的地面 / 液体跳跃；只设置其中一个不会隐式设置另一个。它们不改已有速度、重力或外部击退，也不撤销已接受的 apply_impulse。SOURCE / BUFF 的持有者、暂停、过期及多来源拒绝规则沿用 ActionGate，不设置 NoAI、不停整个 Brain、寻路或攻击流程。
+
+服务端在状态提交、时间推进及原版输入读取边界归约两种资格。movement_input 查询使用 continue，jump 查询使用 start；标签分别为 chorus:native_movement_input / chorus:native_jump，actor 为实际持有者，victim 为空，references 包含 native_input=minecraft:movement_input 与 entity_type；当前实体 / 类型标签、guardian / combatant 角色及 on_ground / sprinting / crouching 与原版攻击入口相同。weapon / ability 为空。查询不发布事件，不改变效果链。
+
+`MinecraftMovementProjection` 保存最近一批每持有者的完整 Decision / 失败证据，Chorus 的 S2C movement_input 消息只同步维度、实体 ID、UUID 和两位输入掩码；只发送给支持此通道的区块观察者及玩家本人，开始追踪和玩家加载完成时另发当前快照。客户端核对维度 / UUID，实体卸载自然丢弃状态，不保留全局实体 ID 缓存。查询异常拒绝对应输入、保存 QUERY_FAILED 且不伪造 Decision，再停止运行时；已提交的限制保留到显式清理。关闭 / 卸载只清除这个运行时仍持有的掩码；跨维度的新运行时接管后，旧运行时不能清除新值。标记不写 NBT，不代表 Buff 持久化。
+
+客户端在键盘 tick 后、自动跳跃后和读取上一帧边缘前过滤输入。movement_input 清除方向、冲刺及 shift 输入（包括飞行下降 / 水中下潜）；jump 清除跳跃输入（包括飞行上升 / 自动跳跃），并清除尚未释放的骑乘跳跃蓄力，避免把禁用误作释放按键。服务端同时过滤已持有及新到达的普通输入包。原版 moveRelative 在两侧过滤加速，地面 / 液体跳跃入口涵盖原版 Rabbit、Sniffer、Cube、MagmaCube、Mob、Bee 的重写，保留重力和碰撞流程。
+
+这是输入控制，不是完全定身。游泳朝向产生的竖直加速、鞘翅滑翔、特殊 AI 直接写速度、长跳 / 冲撞 / 传送、完整骑乘运动与其他模组自定义移动仍需自己的动作或运动约束；玩家位置包沿用原版验证，尚无针对修改客户端的服务端定身位置校正。同步期间已在途的输入和惯性也不会追溯撤销。Freeze 的完全定身、Suspend 的高度约束 / 有限横移、Slow 的比例减速与效果资格不能只靠这两个布尔门槛完成。[native_movement.json](../common/src/test/resources/effects/native_movement.json) 是合成验收，未增加 Compendium 完成数。
 
 ## 按标签批量结束 Buff
 

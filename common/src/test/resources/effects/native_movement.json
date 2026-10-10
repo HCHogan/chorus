@@ -1,0 +1,12 @@
+{
+  "version":"test-1",
+  "buffs":[{"definition":{"id":"test:movement_lock","version":"test-1","duration":0.3,"attach":"target"},"bundle":"test:movement_lock"}],
+  "bundles":[
+    {"id":"test:movement_guard","action_gates":[{"id":"move","action":"movement_input"}]},
+    {"id":"test:jump_guard","action_gates":[{"id":"jump","action":"jump"}]},
+    {"id":"test:movement_lock","scope":"buff","action_gates":[{"id":"move","action":"movement_input"},{"id":"jump","action":"jump"}]},
+    {"id":"test:movement_inputs","rules":[{"id":"grant","on":"test:lock","if":{"type":"chorus:source_is","source":"owner"},"do":[{"type":"chorus:grant_buff","buff":"test:movement_lock","target":"victim"}]}]},
+    {"id":"test:ground_jump_guard","action_gates":[{"id":"jump","action":"jump","if":{"type":"chorus:event_flag","name":"on_ground"}}]},
+    {"id":"test:movement_bad_query","action_gates":[{"id":"missing","action":"movement_input","if":{"type":"chorus:event_flag","name":"not_observed"}}]}
+  ]
+}
