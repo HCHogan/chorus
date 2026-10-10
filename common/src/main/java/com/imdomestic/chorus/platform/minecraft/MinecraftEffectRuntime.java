@@ -102,12 +102,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public TimelineEngine.State<EffectState> state() { return session.state(); }
     public CompiledEffects program() { return program; }
     public Optional<MinecraftNativeActions.Report> nativeActionReport(){return nativeActionReport;}
-    boolean authorizeNativeRanged(net.minecraft.world.entity.Mob actor,LivingEntity victim,String attack){
+    boolean authorizeNativeAction(LivingEntity actor,net.minecraft.world.entity.Entity victim,String attack,com.imdomestic.chorus.effect.input.ActionGate.Kind kind){
         thread();
-        var kind=com.imdomestic.chorus.effect.input.ActionGate.Kind.RANGED_ATTACK;
         if(!program.hasActionGates(kind))return true;
         prepare();
-        var input=MinecraftNativeActions.input(actor,victim,attack);long now=view().buffs().timeMicros();
+        var input=MinecraftNativeActions.input(actor,victim,attack,kind);long now=view().buffs().timeMicros();
         if(actor.level()!=level||actor.isRemoved()||!actor.isAlive()){
             nativeActionReport=Optional.of(new MinecraftNativeActions.Report(now,input,MinecraftNativeActions.Outcome.INELIGIBLE,Optional.empty(),Optional.empty()));return false;
         }

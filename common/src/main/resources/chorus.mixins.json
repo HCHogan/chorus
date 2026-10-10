@@ -19,7 +19,12 @@
     "GuardianRangedAttackMixin",
     "BreezeRangedAttackMixin",
     "WardenRangedAttackMixin",
-    "DragonRangedAttackMixin"
+    "DragonRangedAttackMixin",
+    "MobMeleeAttackMixin",
+    "PlayerMeleeAttackMixin",
+    "StabAttackMixin",
+    "CubeMeleeAttackMixin",
+    "DragonMeleeAttackMixin"
   ],
   "client": [
     "MixinMinecraft"

@@ -1,0 +1,10 @@
+{
+  "version":"test-1",
+  "buffs":[{"definition":{"id":"test:melee_lock","version":"test-1","duration":0.3,"attach":"target"},"bundle":"test:melee_lock"}],
+  "bundles":[
+    {"id":"test:melee_guard","action_gates":[{"id":"melee","action":"melee_attack"}]},
+    {"id":"test:melee_lock","scope":"buff","action_gates":[{"id":"melee","action":"melee_attack"}]},
+    {"id":"test:melee_inputs","rules":[{"id":"grant","on":"test:lock","if":{"type":"chorus:source_is","source":"owner"},"do":[{"type":"chorus:grant_buff","buff":"test:melee_lock","target":"victim"}]}]},
+    {"id":"test:ranged_guard","action_gates":[{"id":"ranged","action":"ranged_attack"}]}
+  ]
+}

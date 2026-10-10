@@ -944,3 +944,12 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 当前 completion=transferred：只有实际装入子弹的武器触发换弹 perk，满弹匣 / 无储备不发完成。这是待校准政策；原表只明确它属于 Reload，未证明零转移资格，核心的 verified 政策可表达另一种结果。普通 refill_magazine 不因这条技能定义改变语义。有限储备守恒、无限储备保持无限；本定义不会生成弹药或为另一持有者换弹。
 
 四项纯核心测试和两端共享的实际玩家场景验证了支付 / 延迟、三武器批量转移、实例信用、延迟期间换装、另一玩家隔离、零转移政策及 Kill Clip 激活。测试里的武器弹量、无限弹药武器和治疗观察器为合成输入。闪身位移 / 动画、15 米拾取、追踪 / 辅助瞄准中断、Class 被动 / 块状回能倍率与增强护盾、金装组合、职业选择限制、正式内容装配、按键 / HUD 和弹药持久化仍未完成，审阅状态保持 partial。
+
+
+## Slow / Freeze / Suspend 的控制接口核对
+
+2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
+
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 需要区分战斗人员的禁止移动和 Guardian 的有限水平移动 / 腰射，并保留 Boss 的短暂状态及后续伤害。
+
+移动控制、升空约束与玩家同步仍待实现，不能用禁止近战或将所有生物设成 NoAI 来代替。当前只新增通用近战接口与合成验收，未给上述四个效果增加已实现覆盖声明。

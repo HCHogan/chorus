@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "requirements research; no full Slow, Freeze, Suspend or Champion implementation claim",
+  "sources": {
+    "Stasis": {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+      "path": "data/d2-research/2026-10-11/control-stasis-source.html.gz",
+      "retrieved_at": "2026-10-10T17:23:35.607152+00:00",
+      "html_sha256": "34194d03044168c07144b2acb77c937fbdb2400127e56673c559eeda7b8ae79b",
+      "gzip_sha256": "6ae546d699e2b5a2f523f04f3642b0c6f15f12eea7737e04e9d9d553463cf232",
+      "entries": {
+        "Slow": {
+          "label": "Slow",
+          "original_label": "B9",
+          "original_description": "D9",
+          "snapshot_label": "B7",
+          "snapshot_description": "D7",
+          "normalized_text_matches_snapshot": true
+        },
+        "Freeze": {
+          "label": "Freeze",
+          "original_label": "B10",
+          "original_description": "D10",
+          "snapshot_label": "B8",
+          "snapshot_description": "D8",
+          "normalized_text_matches_snapshot": true
+        },
+        "Shatter": {
+          "label": "Shatter",
+          "original_label": "B11",
+          "original_description": "D11",
+          "snapshot_label": "B9",
+          "snapshot_description": "D9",
+          "normalized_text_matches_snapshot": true
+        }
+      }
+    },
+    "Strand": {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1870531554",
+      "path": "data/d2-research/2026-10-11/control-strand-source.html.gz",
+      "retrieved_at": "2026-10-10T17:23:38.438835+00:00",
+      "html_sha256": "c1448eeac412974b1327ef6b619c1c4cd0ec5eaaebaf30f9763e14b3d1d45851",
+      "gzip_sha256": "136a37dab149c6b8df3928a5e8657b938213384200e97331bcfaa854f976adce",
+      "entries": {
+        "Suspend": {
+          "label": "Suspend",
+          "original_label": "B11",
+          "original_description": "D11",
+          "snapshot_label": "B9",
+          "snapshot_description": "D9",
+          "normalized_text_matches_snapshot": true
+        }
+      }
+    }
+  },
+  "official_update": {
+    "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+    "published_at": "2026-06-09",
+    "path": "data/d2-research/2026-10-11/control-bungie-9-7-0.html.gz",
+    "html_sha256": "6e6fdaaf225739211af2f25e040f395d99ee82c10b1cfd77183a5a0021c4205a",
+    "gzip_sha256": "5ae258545278d2a95b0fdf7db3799430f878eaa733eb5d8aea48cbcffd5ce87d",
+    "fact": "9.7.0 reverts Shatter damage stun to Unstoppable Champions. Freeze application is not itself this damage trigger.",
+    "retrieved_at": "2026-10-10T17:28:17.547532+00:00"
+  },
+  "requirements": {
+    "Slow": [
+      "100 stacks transitions to Freeze",
+      "Movement and weapon-stat penalties differ by Guardian/combatant",
+      "Movement abilities restricted; Overload reaction is distinct from a generic action gate"
+    ],
+    "Freeze": [
+      "Shooting, ability and locomotion restrictions; Boss control exception",
+      "Damage factors and basic/glaive melee qualification",
+      "Damage threshold or explicit Shatter, with attribution",
+      "Guardian duration, grounded Super and Breakout exceptions"
+    ],
+    "Suspend": [
+      "Combatant shooting, ability and locomotion restrictions",
+      "Guardian limited movement and hipfire remain possible",
+      "Boss status remains present without immobilization, then damage",
+      "Rank-specific duration and Continuity adjustments"
+    ]
+  },
+  "next_core_work": [
+    "Locomotion and lift constraints with server/client synchronization",
+    "Control-state interruption versus persistent world effects",
+    "Tier/Champion rules and status producers remain data-driven"
+  ],
+  "implemented_this_stage": {
+    "core": "Independent melee_attack gate and vanilla mob, player, stab, cube and dragon contact adapters",
+    "evidence": [
+      "common/src/test/java/com/imdomestic/chorus/effect/NativeMeleeTest.java",
+      "common/src/gametest/java/com/imdomestic/chorus/test/NativeMeleeGameTest.java"
+    ],
+    "scope": "Synthetic generic mechanism only; no full D2 control effect claimed"
+  }
+}

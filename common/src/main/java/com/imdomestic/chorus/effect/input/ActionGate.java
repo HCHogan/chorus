@@ -9,7 +9,7 @@ import java.util.*;
 /** Query-only action restrictions. All matching denials apply; none implicitly undo an accepted action. */
 public final class ActionGate {
     private ActionGate() {}
-    public enum Kind { ABILITY_USE, WEAPON_FIRE, WEAPON_RELOAD, RANGED_ATTACK }
+    public enum Kind { ABILITY_USE, WEAPON_FIRE, WEAPON_RELOAD, RANGED_ATTACK, MELEE_ATTACK }
     public enum Phase { START, CONTINUE, COMPLETE }
     public record Declaration(String id,Kind action,Condition condition) {
         public Declaration { EffectTimers.localName(id);Objects.requireNonNull(action);Objects.requireNonNull(condition); }

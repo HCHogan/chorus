@@ -1501,7 +1501,7 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
 查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
@@ -1522,6 +1522,16 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 `MinecraftEffectRuntime.nativeActionReport()` 保留最近一次查询的不可变输入、逻辑时间、Decision 或查询失败原因；它只用于诊断，不发布新事件，也不无限积累实体引用。查询错误拒绝本次尝试并记录运行时失败。运行时失败后查询沿用最后已提交状态，其他没有命中限制的生物仍可射击；没有把查询错误伪装成有效拒绝声明。
 
 这个入口不检查既有弹体的飞行或命中，不撤销已结算伤害，也不限制 DOT / 点燃反馈。其他模组自定义发射入口、原版近战 / 法术召唤、移动失能、玩家左键及客户端禁用展示仍需各自接线。[native_ranged.json](../common/src/test/resources/effects/native_ranged.json) 是合成机制验收，不增加 Compendium 效果覆盖数。
+
+## 原版近战与接触攻击资格
+
+`melee_attack` 独立于 `ability_use / weapon_fire / ranged_attack`，使用相同的 SOURCE / BUFF 禁止条件、持有者隔离及拒绝依据。它拦截 Minecraft 服务端普通玩家 `attack`、生物 `doHurtTarget` 及其原版覆盖方法、LivingEntity / Player 的 `stabAttack`、史莱姆 / 岩浆怪的接触伤害、末影龙逐目标的头部 / 翅膀接触攻击。原版守卫者在光束中借用 doHurtTarget 结算物理分量，此调用保留为 ranged_attack，不因禁止近战而丢失半束伤害。
+
+玩家普通攻击在重置攻击冷却、扣武器耐久、横扫、击退或伤害前拒绝。生物覆盖方法在攻击动画、原版状态或其他附带行为前拒绝；例如蜜蜂不消耗毒刺，铁傀儡不启动攻击动画，监守者不因失败近战启动音波冷却。矛刺连同其非伤害击退 / 强制下坐骑分支受限；末影龙的逐目标接触在推力和伤害前检查。史莱姆的一般实体碰撞仍按原版进行，只有接触攻击被拒绝。
+
+查询使用 start 阶段，事件带 `chorus:native_melee_attack`，references 包含 native_attack / entity_type；actor 和 victim 是实际实体 ID，包括非 LivingEntity 目标。来源保留实体 / 类型标签：原版玩家明确提供 `chorus:guardian`，Mob 提供 `chorus:combatant`，其他 LivingEntity 不猜角色。weapon / ability 留空，不把手持原版物品自动注册成 Chorus 装备。原版攻击实际成功后，仍沿原有 DamageCapture 路径提交事实，不额外制造一次命中或伤害。
+
+门槛不取消先前接受的物品使用、冲刺 / 激流运动、投射物或已提交的世界动作。玩家客户端仍可能播放挥手，禁用提示和预测尚未接入；近战接触拒绝不等于已经取消全部使用动画或移动。爆炸、咆哮、荆棘 / 河豚反伤及其他模组自定义攻击需要自己的入口。近战门槛也不自动加入压制、Freeze 或 Suspend 内容，具体状态的资格和例外由内容声明。[native_melee.json](../common/src/test/resources/effects/native_melee.json) 为合成验收，不增加 Compendium 效果覆盖数。
 
 ## 按标签批量结束 Buff
 
