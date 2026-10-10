@@ -11,7 +11,7 @@ final class BundleComposition {
     private BundleComposition() {}
     static List<EffectProgram.Bundle> resolve(List<EffectProgram.Bundle> declarations) {
         var catalogue=new LinkedHashMap<String,EffectProgram.Bundle>();
-        for(var bundle:declarations)if(catalogue.putIfAbsent(bundle.id(),bundle)!=null)throw new IllegalArgumentException("Duplicate bundle: "+bundle.id());
+        for(var bundle:declarations)if(catalogue.putIfAbsent(bundle.id(),bundle)!=null)throw new IllegalArgumentException("Duplicate definition: "+bundle.id());
         var result=new ArrayList<EffectProgram.Bundle>();
         for(var root:declarations){
             var ordered=new LinkedHashMap<String,EffectProgram.Bundle>();
