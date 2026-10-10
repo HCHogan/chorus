@@ -27,7 +27,7 @@ class AmplifiedTest {
         final Map<String,Optional<EntityQuery.View>> entities=new HashMap<>(Map.of("player",Optional.of(view(true,true,Set.of(),Optional.of(movement(false)))),"ally",Optional.of(view(true,true,Set.of(),Optional.of(movement(false))))));
         Harness()throws Exception{this(false,EffectState.Mode.PVE);}
         Harness(boolean rolling,EffectState.Mode mode)throws Exception{
-            var names=new ArrayList<>(List.of("amplified","amplified_movement","amplified_inputs","weapon_stats"));if(rolling)names.addAll(List.of("rolling_storm_weapon","rolling_storm","bolt_charge"));
+            var names=new ArrayList<>(List.of("amplified","amplified_movement","movement_attributes","amplified_inputs","weapon_stats"));if(rolling)names.addAll(List.of("rolling_storm_weapon","rolling_storm","bolt_charge"));
             var parts=new ArrayList<EffectProgram>();for(String name:names){var data=json(name);version(data);parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow());}
             program=CompiledEffects.link(parts);
             session=new EffectSession(engine(program),EffectState.empty().withMode(mode),request->switch(request.command()){

@@ -16,6 +16,15 @@
           }
         },
         {
+          "type": "chorus:apply",
+          "id": "slowing",
+          "operation": "multiply",
+          "group": {
+            "name": "slowing",
+            "reduction": "max"
+          }
+        },
+        {
           "type": "chorus:clamp",
           "id": "stat_cap",
           "minimum": 0,
@@ -38,6 +47,15 @@
           }
         },
         {
+          "type": "chorus:apply",
+          "id": "slowing",
+          "operation": "multiply",
+          "group": {
+            "name": "slowing",
+            "reduction": "max"
+          }
+        },
+        {
           "type": "chorus:clamp",
           "id": "stat_cap",
           "minimum": 0,
@@ -57,6 +75,15 @@
           "group": {
             "name": "reload",
             "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "slowing",
+          "operation": "multiply",
+          "group": {
+            "name": "slowing",
+            "reduction": "max"
           }
         },
         {
@@ -96,6 +123,37 @@
           "group": {
             "name": "airborne_effectiveness",
             "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_recoil_direction",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "recoil_direction",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "slowing",
+          "operation": "multiply",
+          "group": {
+            "name": "slowing",
+            "reduction": "max"
           }
         },
         {

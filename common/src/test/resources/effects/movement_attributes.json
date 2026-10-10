@@ -1,0 +1,139 @@
+{
+  "version": "compendium-2026-10-05",
+  "native_attributes": [
+    {
+      "id": "chorus_d2:movement_speed",
+      "attribute": "minecraft:movement_speed",
+      "operation": "add_multiplied_total",
+      "profile": "chorus_d2:movement_speed_contribution",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "chorus_d2:jump_strength",
+      "attribute": "minecraft:jump_strength",
+      "operation": "add_multiplied_total",
+      "profile": "chorus_d2:jump_strength_contribution",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:movement_speed_contribution",
+      "version": "compendium-2026-10-05",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "to_multiplier",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              1
+            ],
+            "minimum": -1,
+            "maximum": 1000000.0,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        },
+        {
+          "type": "chorus:apply",
+          "id": "status",
+          "operation": "multiply",
+          "group": {
+            "name": "status",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "to_delta",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              -1,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1000000.0,
+            "boundary": "error"
+          },
+          "output_unit": "delta"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:jump_strength_contribution",
+      "version": "compendium-2026-10-05",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "to_multiplier",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              1
+            ],
+            "minimum": -1,
+            "maximum": 1000000.0,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        },
+        {
+          "type": "chorus:apply",
+          "id": "status",
+          "operation": "multiply",
+          "group": {
+            "name": "status",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "to_delta",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              -1,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1000000.0,
+            "boundary": "error"
+          },
+          "output_unit": "delta"
+        }
+      ]
+    }
+  ]
+}

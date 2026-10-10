@@ -24,7 +24,7 @@ public class AmplifiedGameTest {
         catch(Exception failure){throw new RuntimeException(failure);}
     }
     public static void merge(JsonObject data){
-        for(String name:List.of("amplified","amplified_movement","weapon_stats"))for(var entry:data(name).entrySet())if(!entry.getKey().equals("version")){
+        for(String name:List.of("amplified","amplified_movement","movement_attributes","weapon_stats"))for(var entry:data(name).entrySet())if(!entry.getKey().equals("version")){
             if(!data.has(entry.getKey()))data.add(entry.getKey(),new JsonArray());data.getAsJsonArray(entry.getKey()).addAll(entry.getValue().getAsJsonArray());
         }
     }

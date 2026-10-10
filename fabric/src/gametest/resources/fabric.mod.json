@@ -106,6 +106,7 @@
       "com.imdomestic.chorus.DisplacementGameTest",
       "com.imdomestic.chorus.SuspendGameTest",
       "com.imdomestic.chorus.FreezeGameTest",
+      "com.imdomestic.chorus.SlowGameTest",
       "com.imdomestic.chorus.FreezeDamageGameTest"
     ],
     "fabric-client-gametest": [
@@ -121,7 +122,8 @@
       "com.imdomestic.chorus.HorizontalSpeedClientGameTest",
       "com.imdomestic.chorus.DisplacementClientGameTest",
       "com.imdomestic.chorus.SuspendClientGameTest",
-      "com.imdomestic.chorus.FreezeClientGameTest"
+      "com.imdomestic.chorus.FreezeClientGameTest",
+      "com.imdomestic.chorus.SlowClientGameTest"
     ]
   }
 }

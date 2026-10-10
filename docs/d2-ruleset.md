@@ -582,6 +582,8 @@ Speed Booster 有自己的周期计时器，每次确认仍在冲刺就将剩余
 
 可选 `chorus_d2:arc_movement_calibration` 来源必须提供三个 delta 参数：`amplified_speed / speed_booster_speed / speed_booster_jump`。前两个投影到 movement_speed，极速替换增幅的速度贡献；最后一个投影到 jump_strength。测试中的 0.2 / 0.5 / 0.1 是合成验收输入，不是 D2 参数。特别是原作“跳跃高度 +25%”不能直接写成原版跳跃初速度 +25%；“最大移动速度”也不能以固定 delta 声称准确复现。这些参数应在正式运动曲线与其他效果合成规则确定后校准。
 
+原版属性绑定与两个共享 Profile 现位于 [movement_attributes.json](../common/src/test/resources/effects/movement_attributes.json)，Arc 校准包只提供贡献；组合程序需显式链接此模块。Profile 先累加增速 delta，转为倍率后乘独立状态因子，再转回原版属性 delta。合成输入下 Amplified +20% 与 Slow ×0.5 得到整体 ×0.6，移除 Slow 后恢复 ×1.2；该合成政策已有世界测试，不代表已校准原作的速度上限、滑铲或空中加速度。
+
 7 项 AmplifiedTest 验证加权进度与精确六秒边界、来源 / 分类隔离、连续 / 中断 / 未知冲刺、极速独立寿命、接收者与属性查询、两层减伤、死亡清理、严格校准输入和 Rolling Storm 组合。3 项共享世界场景验证真实电弧击杀、原版属性与真实 tick、实际生物攻击的 HP 结果。真实 Fabric 客户端按键链路的完成证据见实现记录。
 
 **两项均为 partial。** 尚未实现最大移动速度曲线、8.5 / 11 米滑铲、极速滑铲后持续到死亡的基础滑铲提升、敌人瞄准精度降低、真实操控动画、完整生产子职业 / 星相装配、HUD 或存档。原表数值被保留为需求；没有用原版属性临时值替代这些缺口。
@@ -952,10 +954,32 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
 
-现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤分类修饰已接线，近战叠加实测、Breakout 与实际技能来源仍未完成；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 已接通百层到 Freeze 的转换、区分目标的地面移动 / 武器惩罚及移动技能门禁；空中速度与跳跃高度仍需校准；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤分类修饰已接线，近战叠加实测、Breakout 与实际技能来源仍未完成；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
 
-已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Suspend、Freeze 和 Shatter 均保持 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
+已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Slow、Suspend、Freeze 和 Shatter 均保持 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
 
+
+### Slow 的百层转换与属性惩罚
+
+[slow.json](../common/src/test/resources/effects/slow.json) 以原表 Stasis B9/D9、固定 CSV B7/D7 为依据。表中给出百层冻结、战员和 Guardian 移速降低 50%、Guardian 跳跃高度降低 50% 及禁用移动技能；四项武器属性在 perk 后、100 点封顶前降低 75%。战员瞄准精度、Guardian 未知比例的 Flinch 和 Overload 眩晕仍是待实现要求。
+
+`chorus_d2:slow_application` 通过 Bundle includes 复用 Freeze 的施加来源，必须提供 `slow_duration: second`、`slow_jump_delta: delta` 及继承的 `combatant_threshold / shatter_radius / guardian_shatter_damage`。持续时间由具体生产者提供，不把一个技能的时长推广成所有 Slow 的固定值。`apply_slow` 事件须匹配 owner、source_instance、bundle，并提供正整数 `stacks: count`；零 / 负数不施加，单次输入封顶 100，缺失 / 小数不默默取整。参数超出条件范围不施加，缺少参数或单位不符在绑定时拒绝。
+
+施加前观察接收者的存活与实际玩家类别，已 Freeze 的目标不积累新 Slow；权限批准后才累计共享 Slow。达到 100 时保留本次施加来源并发出 `apply_freeze`，沿用既有目标等级、来源、Super、时长及状态授权。只有实际取得 Freeze 后才删除 Slow；直接 Freeze 同样清除它。冻结拒绝或缺少等级时保留 100 层与惩罚，之后合格施加可以重试；未知授权结果则停止运行时，保留已提交 Slow，不自动重放。解冻不还原已消费层数。
+
+当前内容明确选择：不同来源共享层数，持续时间取现有截止时间与新截止时间较晚者；现有 Slow 保留最初施加者和跳跃参数，触发百层的来源拥有新 Freeze。以上归属、刷新、重复冻结排除与失败重试都是 Chorus 的暂定政策，原表未完整规定这些边界，尚需原作实测。首个来源卸下不会自动删已授予状态；运行时持久化和全体死亡清理仍未完成。
+
+Slow 的实际投影与查询分别为：
+
+| 接收者 | 当前已接线行为 |
+| --- | --- |
+| 战员、Guardian | 共享 movement_speed Profile 乘 ×0.5，输出至原版 movement_speed；清除和到期移除该贡献 |
+| Guardian | jump_strength 乘必填校准因子；`ability_use` 最终技能含 `chorus:movement_ability` 时拒绝，普通方向、跳跃、射击和其他技能仍可使用 |
+| Guardian | Stability / Handling / Reload / Recoil Direction 在 perks 之后乘 ×0.25，再 clamp 到 0–100；160→40，80→20；例如 80 Handling + Amplified 40 后再 Slow 得到 30 |
+
+[slow_test_calibration.json](../common/src/test/resources/effects/slow_test_calibration.json) 的 2 秒和 jump delta -0.3 均是合成输入，客户端另用 10 秒以覆盖网络验收过程。真实原版跳跃冲量降到 70% **不等于跳跃高度降到 50%**；玩家空中 `getFlyingSpeed` 也不完全由 movement_speed 属性决定，因此这里仅证明地面减速与参数化跳跃，未宣称完成原作全方向移动。稳定性、操控与后坐力只在数值查询中验证，完整武器物理、动画和射击反馈还需接线。
+
+11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Slow 保持 **partial**：Durance 各来源延长、实际技能 / 武器生产者、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
 
 ### Freeze / Shatter 的分级控制与范围碎冰
 
@@ -998,7 +1022,7 @@ combat_damage.json 的有序阶段为 ability_stat → melee → perk → frozen
 
 6 项 FreezeDamageTest 与 3 项 FreezeDamageGameTest 验证分类、等级、与 Woven Mail 的顺序、捕获后状态变化和实际扣血；新增 OneTwoPunchGameTest 从真实霰弹命中进入冻结目标的两次近战：基础 10 的第一次按较高词条得到 25，词条消费后第二次仍由 Freeze 得到 22。这里验收的是上述可追踪内容政策，冻结近战实测冲突、原作完整近战分类及混合 PvE / Guardian 环境中的主武器政策仍待校准。
 
-[Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 的 Boss 冻结类型和 Celestial Nighthawk 对冻结 Boss 的异常增伤，不能将旧异常固化为通用规则。Slow 百层转换、Stasis Crystal 碎裂、实际技能 / 武器生产者、Shatter 对势不可挡的眩晕、持久化和正式 HUD / 视觉仍未完成。
+[Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 的 Boss 冻结类型和 Celestial Nighthawk 对冻结 Boss 的异常增伤，不能将旧异常固化为通用规则。Stasis Crystal 碎裂、实际 Slow / Freeze 技能与武器生产者、Shatter 对势不可挡的眩晕、持久化和正式 HUD / 视觉仍未完成。
 
 ## Suspend 的分级状态与脱离伤害
 

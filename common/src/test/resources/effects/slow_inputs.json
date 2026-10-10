@@ -1,0 +1,7 @@
+{
+  "version":"compendium-2026-10-05",
+  "abilities":[
+    {"id":"test:slow_move","slot":"test:slow_slot","tags":["chorus:movement_ability"],"on_use":[{"type":"chorus:play_cue","cue":"test:move"}]},
+    {"id":"test:slow_plain","slot":"test:slow_slot","on_use":[{"type":"chorus:play_cue","cue":"test:plain"}]}
+  ]
+}

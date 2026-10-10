@@ -5595,7 +5595,8 @@
         "Boss保留减益但不限制行动；其他目标禁止新攻击、技能和运动；地面Guardian的Super例外由服务端状态决定",
         "冻结结束一次性施放标签；缺失、死亡、未分类和授权拒绝不控制目标",
         "HP加Chorus护盾实际损失按damage_id及Buff generation累计，旧冻结命中不计入新实例；致死、达到阈值或显式请求碎冰",
-        "冻结贡献在命中时加入攻击者同一Profile；发射后冻结/解冻生效，未知分类不猜测；实际增伤后的损失进入碎冰阈值"
+        "冻结贡献在命中时加入攻击者同一Profile；发射后冻结/解冻生效，未知分类不猜测；实际增伤后的损失进入碎冰阈值",
+        "Slow达到百层经同一施加规则取得Freeze后清除Slow；拒绝不消费已累计状态"
       ],
       "evidence": [
         {
@@ -5660,11 +5661,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
           "symbol": "actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
+          "symbol": "successfulHundredStackConversionRemovesSlowAndThawNeverRestoresConsumedStacks"
         }
       ],
       "gaps": [
         "基础承伤修饰和Basic/Glaive近战已实现；冻结近战与其他配装增伤的实际叠加有公开冲突，当前采用Compendium的同组取高/相加政策，未完成原作实测校准",
-        "Breakout技能替换与生命成本、实际Super状态生产者、Slow百层转换、Champion反应未完成",
+        "Breakout技能替换与生命成本、实际Super状态生产者、Champion反应未完成",
         "战斗人员阈值使用必填参数；100伤害仅为合成测试值；阈值排除原版Absorption、忽略重施加及禁止换弹政策待校准",
         "技能/武器/子职业生产装配、实体效果持久化、视觉/HUD与NeoForge真实客户端尚未验收",
         "主武器减伤按全局活动模式选择PvE/PvP；生产攻击标签、混合Guardian上下文和所有实际近战资格待验收"
@@ -5745,6 +5751,98 @@
         "保持最初冻结者信用和非友方筛选政策待实测；施加者实体失联后的阵营参照尚未解决",
         "Stasis Crystal碎裂、具体技能/武器装配、势不可挡眩晕与其他Champion状态未完成",
         "冻结近战叠加实测校准、生产内容装配、持久化和视觉反馈未完成"
+      ]
+    },
+    {
+      "id": "stasis/slow",
+      "name": "Slow",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B7",
+          "text_sha256": "4b2bebbf33aeb7aea11cbab9d95019a647ca038b638f99f593aae85b986ed2e2"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D7",
+          "text_sha256": "71f416ddcad70da6388e638ce0b5fc2f1c5d6c2f7434587c736a1c9008adf43f"
+        }
+      ],
+      "scope": "按来源时长积累共享层数并在百层成功冻结后清除；原版地面减速、参数化跳跃、Guardian移动技能限制和四项武器属性惩罚；失败保留与跨来源归属采用显式暂定政策",
+      "acceptance": [
+        "合法存活接收者通过状态授权后累计正整数层数，达到100复用Freeze分类与授权；Freeze成功清Slow，拒绝保留100，未知结果停止且不重放",
+        "战员与Guardian原版movement_speed乘0.5；Guardian跳跃使用显式校准冲量，移动技能按最终技能标签拒绝，普通行动保留",
+        "Guardian稳定性、操控、换弹和后坐力方向在perk后、100点封顶前乘0.25；160到40、80到20；Amplified加值再Slow得到30 Handling",
+        "不同来源刷新保留最晚截止时间与首次Slow信用，跨过阈值的来源拥有Freeze；清除、到期和解冻不恢复已消费层数",
+        "Amplified与Slow先增速再乘减速，实际玩家地面输入位移减少，本地与远端属性同步且冻结/解冻后正确恢复"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/slow.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/movement_attributes.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_stats.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SlowTest.java",
+          "symbol": "exactlyOneHundredStacksReuseFreezeApplicationAndClearOnlyAfterSuccess"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SlowTest.java",
+          "symbol": "guardianWeaponPenaltyIsAfterPerksBeforeCapAndCombatantsKeepWeaponStats"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SlowTest.java",
+          "symbol": "unknownFreezeAuthorizationKeepsCommittedSlowAndStopsWithoutReplaying"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
+          "symbol": "actualGuardianAndCombatantAttributesJumpImpulseAndMovementAbilityHaveSeparatePenalties"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
+          "symbol": "deniedFreezeRetainsCommittedSlowAndCanRetryAfterHostAuthorizationChanges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
+          "symbol": "shorterRefreshKeepsOriginalExpiryAndAnotherCasterOwnsThresholdConversion"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
+          "symbol": "slowMultipliesAmplifiedSpeedAndCleansingPreservesTheIndependentArcContribution"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/SlowClientGameTest.java",
+          "symbol": "runTest"
+        }
+      ],
+      "gaps": [
+        "各Slow生产者时长和Durance延长未装配；2秒及客户端10秒只是合成验收输入",
+        "Guardian空中速度尚未适配；jump delta -0.3只是冲量校准输入，不能声称已复现跳高减半；NPC瞄准精度和Guardian Flinch未完成",
+        "共享刷新、第一Slow施加者/最后Freeze施加者信用、冻结期间忽略Slow、失败保留及重试均为暂定内容政策，需原作实测",
+        "四项武器数值已进入共享Profile，但稳定性、操控、后坐力的完整实际武器反馈与Champion过载反应未完成",
+        "生产技能/武器/子职业装配、全体死亡清理、持久化、正式视觉/HUD和NeoForge真实客户端仍未验收"
       ]
     }
   ]

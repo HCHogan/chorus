@@ -1,0 +1,560 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:slow",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "max_stacks": 100,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "tags": [
+          "chorus_d2:slow",
+          "chorus_d2:stasis_debuff"
+        ],
+        "components": {
+          "numbers": {
+            "jump_delta": {
+              "initial": 0,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "bundle": "chorus_d2:slow_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:slow_application",
+      "includes": [
+        "chorus_d2:freeze_application"
+      ],
+      "parameters": {
+        "slow_duration": "second",
+        "slow_jump_delta": "delta"
+      },
+      "rules": [
+        {
+          "id": "apply_slow",
+          "on": "chorus_d2:apply_slow",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:own_source"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "slow_duration"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "slow_jump_delta"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": -1,
+                  "unit": "delta"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "slow_jump_delta"
+                },
+                "op": "le",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "delta"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "combatant_threshold"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "shatter_radius"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "guardian_shatter_damage"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "stacks",
+                  "unit": "count"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "target"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "target",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "target",
+                    "field": "alive"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:freeze",
+                      "target": "victim",
+                      "match": "any"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:apply_status",
+                    "buff": "chorus_d2:slow",
+                    "target": "victim",
+                    "stacks": {
+                      "type": "chorus:arithmetic",
+                      "op": "min",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "stacks",
+                          "unit": "count"
+                        },
+                        {
+                          "type": "chorus:constant",
+                          "value": 100,
+                          "unit": "count"
+                        }
+                      ]
+                    },
+                    "duration": {
+                      "type": "chorus:source_parameter",
+                      "name": "slow_duration"
+                    },
+                    "tier": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "target",
+                        "field": "player"
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      }
+                    }
+                  },
+                  "as": "status"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "status",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "status",
+                          "field": "stacks_before"
+                        },
+                        "op": "eq",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:slow",
+                          "target": "victim",
+                          "component": "jump_delta",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:source_parameter",
+                            "name": "slow_jump_delta"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "status",
+                          "field": "stacks_after"
+                        },
+                        "op": "ge",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 100,
+                          "unit": "count"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:emit",
+                          "event": "chorus_d2:apply_freeze"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "clear_slow",
+          "on": "chorus_d2:clear_slow",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:own_source"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:slow",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:slow_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "ground_speed",
+          "profile": "chorus_d2:movement_speed_contribution",
+          "stage": "status",
+          "group": "status",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/ground_speed",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "jump",
+          "profile": "chorus_d2:jump_strength_contribution",
+          "stage": "status",
+          "group": "status",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/jump",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:slow",
+            "component": "jump_delta"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "weapon_stability",
+          "profile": "chorus_d2:weapon_stability",
+          "stage": "slowing",
+          "group": "slowing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/weapon_stability",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.75,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_handling",
+          "profile": "chorus_d2:weapon_handling",
+          "stage": "slowing",
+          "group": "slowing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/weapon_handling",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.75,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_reload",
+          "profile": "chorus_d2:weapon_reload",
+          "stage": "slowing",
+          "group": "slowing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/weapon_reload",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.75,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_recoil_direction",
+          "profile": "chorus_d2:weapon_recoil_direction",
+          "stage": "slowing",
+          "group": "slowing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:slow/weapon_recoil_direction",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.75,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium CSV Stasis D7. Shared timer, source credit and native movement mapping are explicit Chorus policies.",
+          "confidence": "measured"
+        }
+      ],
+      "action_gates": [
+        {
+          "id": "movement_ability",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    0,
+                    1
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:movement_ability"
+              }
+            ]
+          }
+        }
+      ],
+      "rules": [
+        {
+          "id": "clear_on_freeze",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "victim",
+                "right": "self"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:freeze"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:slow"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
