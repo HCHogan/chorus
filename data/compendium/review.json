@@ -364,7 +364,7 @@
           "text_sha256": "ab23e489bb74ede0fd413233bbe2d3d6ac2dc587ea20701554166cb7b2625313"
         }
       ],
-      "scope": "通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒、拒绝施加与到期；Suspend 的 6+2 / 3+1 / 2+1 仅作来源特定的数值查询验证",
+      "scope": "通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒；Suspend 接入6+2 / 3+1 / 2+1秒授权、控制与实际世界到期，Boss固定1秒",
       "acceptance": [
         "延长量由实际来源声明，不把 normally 50% 无条件施加到所有 Strand 状态",
         "只读取施加者 fragment，受害者或其他玩家的来源不参与；重复绑定不叠加",
@@ -440,11 +440,25 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/suspend.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuspendTest.java",
+          "symbol": "actualRecipientClassificationSelectsDurationsIndependentlyOfGlobalPvpMode"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "realRankDurationsAndApplierContinuityExpireAtThreeFourSixAndEightSeconds"
         }
       ],
       "gaps": [
         "真实子职业与 fragment 选择槽尚未装配；世界测试由可信宿主绑定来源/武器归因",
-        "Suspend 数值例外只有查询验收，控制动作、Boss/勇士规则未装配；Unravel 及所有技能生产者尚未逐项完成",
+        "Suspend 战斗人员控制与 Boss 脱离伤害已接线；Guardian 完整移动/操作、勇士规则、Unravel 及所有技能生产者尚未完成",
         "Threaded Spike ?+? 和其他未知来源时长不以全局默认值替代",
         "施加时配装采样、重复来源 MAX 和跨来源状态刷新为明确政策，原作换装/快照/刷新交互尚待校准"
       ]
@@ -5451,6 +5465,93 @@
         "共享Buff默认10秒，PvP五秒由验收施加器显式提供；压制手雷及全部真实来源和特例时长未逐项接入",
         "取剩余时间最大值、同实例保留最初来源及标签驱动的中断边界为当前内容政策，原作刷新与跨施加者归属仍待校准",
         "状态HUD、客户端操作提示、生产装配和持久化未完成"
+      ]
+    },
+    {
+      "id": "strand/suspend",
+      "name": "Suspend",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Strand",
+          "cell": "B9",
+          "text_sha256": "4948e134182f84200d4e8197f88fd1d8510a7004f281222325311858b969380a"
+        },
+        {
+          "sheet": "Strand",
+          "cell": "D9",
+          "text_sha256": "ab23e489bb74ede0fd413233bbe2d3d6ac2dc587ea20701554166cb7b2625313"
+        }
+      ],
+      "scope": "实际接收者分级施加与 Continuity，普通/精英和小Boss的逐步抬升、运动与新攻击限制；Boss可查询减益及一秒后300 Strand伤害；Guardian垂直抬升、两秒基础时长和保留横移/武器的部分状态",
+      "acceptance": [
+        "按实际Player或明确敌人等级选择6+2/3+1/1/2+1秒，施加者Continuity独立查询，Boss不延长",
+        "宿主授权前不授予控制；未分类、死亡、缺失和明确拒绝不改变状态",
+        "两轴悬停与逐步抬升按实际距离更新，碰撞停止；重施加不累加高度，清除和到期恢复行动",
+        "Boss不受运动/攻击限制，一秒内仍可查询Suspend；仅自然到期执行300 Strand基础伤害，来源退出不改信用",
+        "Guardian保留水平运动与武器，完整有限横移/腰射/镜头和勇士眩晕仍待验收",
+        "伤害未知结果保留已扣血与已结束状态，停止且不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/suspend.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuspendTest.java",
+          "symbol": "actualRecipientClassificationSelectsDurationsIndependentlyOfGlobalPvpMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuspendTest.java",
+          "symbol": "firstApplicationInitializesLiftBeforeGainReactionAndRefreshDoesNotStackHeight"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuspendTest.java",
+          "symbol": "bossKeepsTheDebuffUntilOneSecondThenSnapsOnceWithOriginalCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "tieredSuspensionBlocksActualCombatantShotsAndMeleeButBossesRemainActive"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "realRankDurationsAndApplierContinuityExpireAtThreeFourSixAndEightSeconds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "bossHasAnObservableDebuffWithoutControlThenTakesOneActualThreeHundredDamageSnap"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "unknownBossDamageResultKeepsCommittedHealthAndNeverRepeatsTheSnap"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/SuspendClientGameTest.java",
+          "symbol": "runTest"
+        }
+      ],
+      "gaps": [
+        "Guardian有限横移速度、完整操作/ADS与腰射限制、第三人称镜头未实现；当前只保证高度约束、横移和武器保持可用",
+        "势不可挡及全部Champion状态/冷却/抗性规则未实现；Champion标签不代替目标等级",
+        "原表没有抬升高度/速度数值；必填校准参数与合成测试值分离，未完成原作运动校准",
+        "reset刷新、单实例首位施加者信用、重施加不再次抬升和动态分类政策尚待原作实测",
+        "原版敌人仅使用明确实体或类型标签；真实D2敌人目录、全部技能生产者与更短来源时长尚未装配",
+        "逻辑伤害类型到正式chorus-d2伤害目录、HUD、子职业/fragment选择与持久化仍未完成",
+        "Fabric 已验收玩家/战斗人员分离同步与到期/清除释放；NeoForge 真实客户端和高延迟观感尚未验收"
       ]
     }
   ]

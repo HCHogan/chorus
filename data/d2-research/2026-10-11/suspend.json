@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "retrieved_at": "2026-10-10T18:44:27.250690+00:00",
+  "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1870531554",
+  "path": "data/d2-research/2026-10-11/suspend-strand-source.html.gz",
+  "html_sha256": "4021bd489e597969726308426623b6a3c9029885347a2f259c314766cd90f533",
+  "gzip_sha256": "6e26779660e5f95e51b67742b893d29bd88bd37380eb1a69671c8e34a44e325d",
+  "original_cells": [
+    "B11",
+    "D11"
+  ],
+  "snapshot_cells": [
+    "B9",
+    "D9"
+  ],
+  "normalized_text_matches_snapshot": true,
+  "status": "partial; tier-specific suspension and boss snap, not full Guardian control or Champion behavior",
+  "unmeasured": [
+    "lift height and speed",
+    "Guardian horizontal hover speed",
+    "first-application credit and reset refresh policy",
+    "producer-specific durations shorter than rank maximum"
+  ]
+}

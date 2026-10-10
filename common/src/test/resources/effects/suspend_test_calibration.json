@@ -1,0 +1,11 @@
+{
+  "note": "Synthetic Minecraft geometry for tests, not measured D2 parameters.",
+  "lift_height": {
+    "value": 1.05,
+    "unit": "meter"
+  },
+  "lift_step": {
+    "value": 0.25,
+    "unit": "meter"
+  }
+}

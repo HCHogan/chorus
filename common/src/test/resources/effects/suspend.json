@@ -1,0 +1,998 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:suspend",
+        "version": "compendium-2026-10-05",
+        "duration": 6,
+        "attach": "target",
+        "refresh": "reset",
+        "tags": [
+          "chorus_d2:suspend",
+          "chorus_d2:strand_debuff"
+        ],
+        "components": {
+          "numbers": {
+            "remaining": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "step": {
+              "initial": 0,
+              "unit": "meter"
+            }
+          }
+        }
+      },
+      "bundle": "chorus_d2:suspend_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:suspend_application",
+      "parameters": {
+        "lift_height": "meter",
+        "lift_step": "meter"
+      },
+      "rules": [
+        {
+          "id": "apply",
+          "on": "chorus_d2:apply_suspend",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "lift_height"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "lift_step"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "lift_step"
+                },
+                "op": "le",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 64,
+                  "unit": "meter"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "target"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "target",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "target",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:capture_value",
+                    "value": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "target",
+                        "field": "player"
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:any",
+                          "of": [
+                            {
+                              "type": "chorus:observed_entity_tag",
+                              "binding": "target",
+                              "source": "entity",
+                              "tag": "chorus_d2:boss"
+                            },
+                            {
+                              "type": "chorus:observed_entity_tag",
+                              "binding": "target",
+                              "source": "type",
+                              "tag": "chorus_d2:boss"
+                            }
+                          ]
+                        },
+                        "then": {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "count"
+                        },
+                        "else": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "target",
+                                "source": "entity",
+                                "tag": "chorus_d2:miniboss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "target",
+                                "source": "type",
+                                "tag": "chorus_d2:miniboss"
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 2,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:any",
+                                  "of": [
+                                    {
+                                      "type": "chorus:observed_entity_tag",
+                                      "binding": "target",
+                                      "source": "entity",
+                                      "tag": "chorus_d2:rank_and_file"
+                                    },
+                                    {
+                                      "type": "chorus:observed_entity_tag",
+                                      "binding": "target",
+                                      "source": "type",
+                                      "tag": "chorus_d2:rank_and_file"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "chorus:any",
+                                  "of": [
+                                    {
+                                      "type": "chorus:observed_entity_tag",
+                                      "binding": "target",
+                                      "source": "entity",
+                                      "tag": "chorus_d2:elite"
+                                    },
+                                    {
+                                      "type": "chorus:observed_entity_tag",
+                                      "binding": "target",
+                                      "source": "type",
+                                      "tag": "chorus_d2:elite"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "as": "kind"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "kind",
+                      "field": "value"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:strand_debuff_duration",
+                        "target": "source_owner",
+                        "tags": [
+                          "chorus_d2:suspend"
+                        ],
+                        "input": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "kind",
+                              "field": "value"
+                            },
+                            "op": "eq",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 4,
+                              "unit": "count"
+                            }
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 2,
+                            "unit": "second"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "kind",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 3,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "second"
+                            },
+                            "else": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "kind",
+                                  "field": "value"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 2,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 3,
+                                "unit": "second"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 6,
+                                "unit": "second"
+                              }
+                            }
+                          }
+                        },
+                        "numbers": {
+                          "continuity_extension": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "kind",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 4,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "second"
+                            },
+                            "else": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "kind",
+                                  "field": "value"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 3,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "second"
+                              },
+                              "else": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "kind",
+                                    "field": "value"
+                                  },
+                                  "op": "eq",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 2,
+                                    "unit": "count"
+                                  }
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "second"
+                                },
+                                "else": {
+                                  "type": "chorus:constant",
+                                  "value": 2,
+                                  "unit": "second"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "as": "duration"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:apply_status",
+                        "buff": "chorus_d2:suspend",
+                        "tier": {
+                          "type": "chorus:result",
+                          "binding": "kind",
+                          "field": "value"
+                        },
+                        "duration": {
+                          "type": "chorus:result",
+                          "binding": "duration",
+                          "field": "value"
+                        }
+                      },
+                      "as": "status"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "status",
+                            "field": "applied"
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "status",
+                              "field": "stacks_before"
+                            },
+                            "op": "eq",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:suspend",
+                          "target": "victim",
+                          "component": "remaining",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:source_parameter",
+                            "name": "lift_height"
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:suspend",
+                          "target": "victim",
+                          "component": "step",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:source_parameter",
+                            "name": "lift_step"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "chorus_d2:clear_suspend",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:own_source"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:suspend",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:suspend_active",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "ability_use",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "weapon_fire",
+          "action": "weapon_fire",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "ranged_attack",
+          "action": "ranged_attack",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "melee_attack",
+          "action": "melee_attack",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "horizontal_motion",
+          "action": "horizontal_motion",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                0
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "jump",
+          "action": "jump",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
+          "id": "vertical_motion",
+          "action": "vertical_motion",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        }
+      ],
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_buff"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    1,
+                    1,
+                    0,
+                    1
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:suspend",
+                  "component": "remaining"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "rise",
+              "event": "chorus_d2:suspend_rise",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            }
+          ]
+        },
+        {
+          "id": "rise",
+          "on": "chorus_d2:suspend_rise",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "rise"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:by_buff_tier",
+                      "values": [
+                        1,
+                        1,
+                        0,
+                        1
+                      ],
+                      "unit": "count"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:suspend",
+                      "component": "remaining"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "meter"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:capture_position"
+                  },
+                  "as": "feet"
+                },
+                {
+                  "action": {
+                    "type": "chorus:world_direction",
+                    "position": "feet",
+                    "x": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "multiplier"
+                    },
+                    "y": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "multiplier"
+                    },
+                    "z": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "multiplier"
+                    }
+                  },
+                  "as": "up"
+                },
+                {
+                  "action": {
+                    "type": "chorus:displace_entity",
+                    "direction": "up",
+                    "distance": {
+                      "type": "chorus:arithmetic",
+                      "op": "min",
+                      "of": [
+                        {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:suspend",
+                          "component": "step"
+                        },
+                        {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:suspend",
+                          "component": "remaining"
+                        }
+                      ]
+                    },
+                    "tags": [
+                      "chorus_d2:suspend"
+                    ]
+                  },
+                  "as": "move"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "move",
+                    "field": "observed"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:suspend",
+                      "component": "remaining",
+                      "op": "add",
+                      "value": {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "move",
+                          "field": "delta_y"
+                        },
+                        "factor": -1,
+                        "from": "meter",
+                        "to": "meter"
+                      }
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:any",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "move",
+                            "field": "clipped"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "move",
+                              "field": "changed"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:component",
+                              "buff": "chorus_d2:suspend",
+                              "component": "remaining"
+                            },
+                            "op": "le",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1e-06,
+                              "unit": "meter"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:cancel_timer",
+                          "name": "rise"
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:suspend",
+                          "component": "remaining",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "meter"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:cancel_timer",
+                      "name": "rise"
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:suspend",
+                      "component": "remaining",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "meter"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:cancel_timer",
+                  "name": "rise"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "boss_snap",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_buff",
+                "reason": "expired"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "self",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 300,
+                "unit": "damage"
+              },
+              "damage_type": "chorus_d2:suspend_snap",
+              "tags": [
+                "chorus:strand",
+                "chorus:suspend_boss_snap",
+                "chorus:derived"
+              ],
+              "scaling_profile": "chorus_d2:outgoing"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

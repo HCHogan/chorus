@@ -509,13 +509,13 @@ Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益
 | --- | --- | --- | --- | --- |
 | Sever PvE | 10 秒 | +5 秒 | 15 秒 | Slice 实际命中、状态授权、伤害输出与持续时间 |
 | Sever PvP | 5 秒 | +2.5 秒 | 7.5 秒 | 同上，真实 tick 验证过基础时长仍生效、延长后到期 |
-| Suspend 普通/精英战员 | 6 秒 | +2 秒 | 8 秒 | 只读数值查询；尚未装配控制动作 |
-| Suspend 小 Boss | 3 秒 | +1 秒 | 4 秒 | 只读数值查询 |
-| Suspend Guardian | 2 秒 | +1 秒 | 3 秒 | 只读数值查询 |
+| Suspend 普通/精英战员 | 6 秒 | +2 秒 | 8 秒 | 实际抬升、运动 / 攻击限制与真实 tick 到期 |
+| Suspend 小 Boss | 3 秒 | +1 秒 | 4 秒 | 同上，独立等级时间 |
+| Suspend Guardian | 2 秒 | +1 秒 | 3 秒 | 状态授权、垂直抬升与到期；横移速度、镜头及腰射限制仍待实现 |
 
 Slice 当前按状态施加动作前的配装计算时间；装备 fragment 后才触发命中会使用新时间，卸下 fragment 只影响新施加，不回头改写已有状态的到期点。重复来源采用 MAX，状态授权拒绝仍不消费或刷新 Slice。这些是明确且已测试的 Chorus 政策，原作换装/快照边界仍待校准。通用查询还支持先保存结果跨回调使用，或回调内读取当前配装；内容必须显式选择。
 
-覆盖保持 partial：没有把 Suspend 的数字查询视作其控制、Boss 特例、勇士晕眩已实现；Unravel 的完整生产者、各技能的特定基数、真实子职业选择和 fragment 槽尚未装配。Threaded Spike 的 `?+?` 保留未知。[Bungie 9.1.0](https://origin-static01.bungie.net/7/en/News/Article/destiny_update_9_1_0)曾单独修正 Tear 的 Sever 未受 Continuity 延长的问题，说明生产者资格也需逐项验证；该历史补丁不能替代当前各来源时长。
+覆盖保持 partial：Suspend 现已接控制与 Boss 脱离伤害，Guardian 完整控制和勇士晕眩仍未完成；Unravel 的完整生产者、各技能的特定基数、真实子职业选择和 fragment 槽尚未装配。Threaded Spike 的 `?+?` 保留未知。[Bungie 9.1.0](https://origin-static01.bungie.net/7/en/News/Article/destiny_update_9_1_0)曾单独修正 Tear 的 Sever 未受 Continuity 延长的问题，说明生产者资格也需逐项验证；该历史补丁不能替代当前各来源时长。
 
 ## Eternal Warrior 护盾回充
 
@@ -950,6 +950,32 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
 
-现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 需要区分战斗人员的禁止移动和 Guardian 的有限水平移动 / 腰射，并保留 Boss 的短暂状态及后续伤害。
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 的有限水平移动 / 腰射限制与镜头仍需进一步实现，见下节。
 
-已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线或完成目标等级、Boss、状态结束伤害等规则，不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。当前接口及合成验收未给上述四个效果增加已实现覆盖声明，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
+已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Suspend 新增 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
+
+
+## Suspend 的分级状态与脱离伤害
+
+[suspend.json](../common/src/test/resources/effects/suspend.json) 链接 continuity.json 和 combat_damage.json，以现有动作、组件、周期调度与行动门槛表达共享 Suspend。2026-10-11 再次读取[原表 Strand B11 / D11](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1870531554&range=D11)，与固定 CSV B9 / D9 归一化一致；HTML、坐标、哈希与未知项保存在 [Suspend 来源记录](../data/d2-research/2026-10-11/suspend.json)。
+
+| 接收者 | 模板时长 | 施加者有 Continuity | 当前动作 |
+| --- | --- | --- | --- |
+| Rank-and-File / Elite | 6 秒 | 8 秒 | 固定两轴并逐步抬升；拒绝新技能、武器开火、原版射击、近战和跳跃 |
+| Miniboss | 3 秒 | 4 秒 | 同上 |
+| Boss | 1 秒 | 1 秒 | 保留可查询的 Suspend / Strand debuff，不限制行动、不抬升；自然到期后向自身执行基础 300 Strand 伤害 |
+| Guardian（实际 Player） | 2 秒 | 3 秒 | 逐步抬升并固定 Y，禁止跳跃，允许横向运动和武器；完整有限横移、ADS / 其他操作限制及第三人称镜头尚未接入 |
+
+这些是原表所列的最大默认时间，不替代各手雷 / 技能可能更短的来源时长。分类读取 inspect_entity 的实际接收者，不以世界全局 PvE / PvP 模式代替。实际 Player 优先，其后依次为明确 boss、miniboss、rank_and_file / elite 实体或类型标签；Boss 因此胜过同时存在的低等级标签。没有可用观察、死亡或没有等级的非玩家跳过，不把所有原版怪猜作普通战员。Champion 标签本身不是等级；势不可挡眩晕及其他勇士机制未实现。
+
+通用施加模板为 chorus_d2:suspend_application，声明必填的 lift_height / lift_step（meter）来源参数。可信宿主向 chorus_d2:apply_suspend 发送 actor=施加者、victim=接收者，并以 references.source_instance / bundle 指明该模板实例；同持有者的另一施加模板不会重复响应。请求先检查高度非负、步长在 (0,64]，再观察分类、查询施加者当前 Continuity，最后经 apply_status 的宿主授权。受害者或队友的 fragment 不参与，重复 Continuity 按已有 MAX 规则归约，Boss 扩展量为零。该模板是可验证的公共施加入口，真实手雷、技能与子职业尚未自动装配；不应绕过模板用 Buff 的六秒默认值代替所有分类。
+
+内部 tier 1/2/3/4 分别表示普通或精英、小 Boss、Boss、Guardian，是此定义的控制模式枚举，不是通用抗性等级。首次授权成功后将几何参数写入该状态的组件，随后 gained 反应启动每 50 ms 的附着抬升计时器；执行 min(step, remaining)，仅扣实际 delta_y。触顶、零位移、拒绝或耗尽高度会将 remaining 归零并停止抬升，状态继续保持已达高度。合成测试的 1.05 米 / 0.25 米在 [独立校准夹具](../common/src/test/resources/effects/suspend_test_calibration.json) 中，不是 D2 测量；生产模板没有猜测高度和速度。
+
+当前刷新明确采用 reset：重新从本次查得的时长计时，不把多个命中的持续时间相加；同一接收者使用同一状态实例并保留最早施加者信用和原组件。再施加不会从已抬高的位置再累加高度，也不会在移走天花板后重新启动已经归零的升空。等级在每次请求观察、控制模式随成功重施加更新；不存在自动全局敌人分类。刷新、跨来源信用、动态变级和升空恢复规则均是待原作实测的内容政策，未列为已校准结论。
+
+Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害，原施加来源卸下不会抹掉已授予状态或脱离时的原始信用。命令使用 chorus_d2:suspend_snap 逻辑伤害类型、chorus:strand / chorus:suspend_boss_snap / chorus:derived 标签和共享 outgoing Profile；保持与 Bolt Charge 的派生触发分类一致。测试宿主将逻辑类型映射为原版 generic 并验证真实 300 HP 损失，正式伤害类型、抗性与技能来源装配仍须由 chorus-d2 提供。世界伤害结果未知时保留已结束状态与实际扣血，运行时停止，不重复 snap。
+
+9 项单元测试及 6 项共享世界场景覆盖分级时间、来源隔离、拒绝施加、真实原版射击 / 近战与运动、抬升参数、世界三 / 四 / 六 / 八秒边界、实际 Guardian 两秒到期、Boss 脱离伤害和未知结果不重放。Guardian 的原版空中移动使用 getFlyingSpeed 常量，普通 movement_speed 属性并不直接提供所需横移控制；不能把修改地面速度当成这一要求已经完成。有限横移曲线、腰射 / ADS、Guardian 其他操作资格、第三人称、Champion 晕眩、HUD、生产技能与敌人目录、持久化仍为缺口，审阅保持 partial。
+
+真实 Fabric 客户端另验收了同一施加者对玩家 / 远端骷髅的不同轴约束、玩家横移期间保持高度、两秒玩家状态先结束而六秒战斗人员状态仍存在，以及清除战斗人员状态后恢复下落。该验收沿用现有位置与锚点同步，不证明高延迟观感、限速、第三人称或 NeoForge 客户端已经完成。

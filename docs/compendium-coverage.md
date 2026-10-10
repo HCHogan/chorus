@@ -17,7 +17,7 @@
 | Solar | 否 | 210 | 38 | 172 |
 | Void | 否 | 223 | 7 | 216 |
 | Stasis | 否 | 155 | 3 | 152 |
-| Strand | 否 | 153 | 10 | 143 |
+| Strand | 否 | 153 | 11 | 142 |
 | Prismatic | 否 | 196 | 0 | 196 |
 | Exotic Class | 否 | 79 | 0 | 79 |
 | Class Abilities | 否 | 59 | 6 | 53 |
@@ -42,7 +42,7 @@
 | Disruption Break | partial | Weapon Perks A71; Weapon Perks C71 | 独立层、来源、动能资格、环境持续时间；预置状态进入世界伤害；缺口：实际破盾到对应武器来源装配；强化变体数值待明确 |
 | Slice | partial | Weapon Perks A198; Weapon Perks C198 | 技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界；与共享 Sever 链接后减少受影响者后续输出，读取施加者的 Continuity 配置；缺口：实际职业技能与武器来源装配；Continuity 的真实子职业装配与刷新/取样校准；当前按状态施加前读取配装；拒绝施加时是否刷新待原作核对 |
 | Sever | partial | Strand B8; Strand D8 | 共享 Sever 定义修饰受影响者输出 40% / 15%；Slice 基础 10 / 5 秒、实际原版扣血、与目标 Woven Mail 组合及延迟命中的实时查询；Continuity 按施加者当前来源延长至 15 / 7.5 秒，卸下后已提交时长保留；缺口：Continuity 已接 Slice 的 10+5 / 5+2.5；全部技能来源特例及真实子职业/fragment 选择装配仍未完成；具体技能和原版伤害的 Profile、真实来源标签尚未自动装配；混合交战分类仍待校准；on_hit 取样和单实例 reset 刷新为显式内容策略，原作对应边界仍待校准；不拿默认时长补齐 Threaded Spike 的未知值 |
-| Thread of Continuity | partial | Strand B15; Strand D15; Strand D8; Strand D9 | 通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒、拒绝施加与到期；Suspend 的 6+2 / 3+1 / 2+1 仅作来源特定的数值查询验证；缺口：真实子职业与 fragment 选择槽尚未装配；世界测试由可信宿主绑定来源/武器归因；Suspend 数值例外只有查询验收，控制动作、Boss/勇士规则未装配；Unravel 及所有技能生产者尚未逐项完成；Threaded Spike ?+? 和其他未知来源时长不以全局默认值替代；施加时配装采样、重复来源 MAX 和跨来源状态刷新为明确政策，原作换装/快照/刷新交互尚待校准 |
+| Thread of Continuity | partial | Strand B15; Strand D15; Strand D8; Strand D9 | 通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒；Suspend 接入6+2 / 3+1 / 2+1秒授权、控制与实际世界到期，Boss固定1秒；缺口：真实子职业与 fragment 选择槽尚未装配；世界测试由可信宿主绑定来源/武器归因；Suspend 战斗人员控制与 Boss 脱离伤害已接线；Guardian 完整移动/操作、勇士规则、Unravel 及所有技能生产者尚未完成；Threaded Spike ?+? 和其他未知来源时长不以全局默认值替代；施加时配装采样、重复来源 MAX 和跨来源状态刷新为明确政策，原作换装/快照/刷新交互尚待校准 |
 | Woven Mail | partial | Strand B7; Strand D7 | 共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予；max_remaining 按官方规则保留较长剩余时长；缺口：Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配；独立减伤组合、Under-Over 分组及盾层叠加仍待原作校准；max_remaining 刷新已有官方依据及短/长来源回归，详见 d2-ruleset；Threaded Spike 已部分装配按击杀时长，仍需物理/子职业校准；Warding、Into the Fray 等其他生产者还未装配，合成测试超能不代表真实技能实现 |
 | Cure | partial | Solar B4; Solar D4 | 两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；缺口：两次等量脉冲为Chorus选择，原作细分恢复曲线未知；实际技能/装备来源装配 |
 | Restoration | partial | Solar B7; Solar D7 | 连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick；缺口：HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile；与 Healing Rift 不叠加时的当前优先级未完整校准；Phoenix Dive 等真实技能来源、死亡生命周期与生产装配待实现；Mercy / Empyrean 已接延长 |
@@ -100,6 +100,7 @@
 | Amplified | partial | Arc B4; Arc D4 | 六秒电弧击杀加权进度、15秒共享增幅、接收者隔离、属性查询及PvE战斗人员15%减伤；使用真实移动观察进入极速准备，并与Rolling Storm组合；缺口：生产Arc子职业唯一内在来源、星相等其他获得来源、来源切换与持久化未自动装配；Mobility到实际移动曲线、操控实际动画、8.5米滑铲、战斗人员瞄准精度降低未实现；原版移动投影必须显式提供校准参数；激活后计数重置、溢出丢弃、重施加取长、未标记非玩家按普通目标以及Champion分类均为当前内容政策，需原作边界校准；真实伤害测试显式提供combatant来源标签；默认原版来源不会自动猜测D2战斗人员；HUD与完整多人体验未验收 |
 | Speed Booster | partial | Arc B4; Arc D4 | 增幅期间连续冲刺2.5秒、独立极速状态、停止后2秒余留、15%独立PvE减伤及显式校准的原版速度/跳跃投影；缺口：最大移动速度、11米滑铲、永久8.5米基础滑铲提升未实现；25%跳跃高度不能直接等同于25%原版jump_strength；原版速度/跳跃增量为必需校准输入，测试0.2/0.5/0.1仅证明协议，不代表原作手感或物理映射；50ms采样可能漏掉一tick以内的冲刺变化；着地/空中/碰撞等D2动作边界、传送与完整客户端预测尚未建模；多人远程服与NeoForge真实客户端未验收；生产装配、表现/HUD及存档未完成 |
 | Suppression | partial | Void B8; Void D8 | 共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；明确普通/精英分类的原版远程攻击限制、动态分类、驱散和实际十秒到期恢复；实际玩家能量、武器与重新施放验收；缺口：普通/精英禁止射击已接原版远程攻击入口；迷失方向等完整AI失能、过载勇士眩晕及模组自定义攻击入口尚未实现；敌人等级采用明确实体/类型标签，未分类目标不猜普通；正式D2敌人目录与NPC Chorus武器发射装配仍待实现；活动Super与Transcendence使用合成Buff及能量/回血/武器输入验证；完整技能原型、持续能量消耗、动画与宿主移动模式尚待装配；共享Buff默认10秒，PvP五秒由验收施加器显式提供；压制手雷及全部真实来源和特例时长未逐项接入；取剩余时间最大值、同实例保留最初来源及标签驱动的中断边界为当前内容政策，原作刷新与跨施加者归属仍待校准；状态HUD、客户端操作提示、生产装配和持久化未完成 |
+| Suspend | partial | Strand B9; Strand D9 | 实际接收者分级施加与 Continuity，普通/精英和小Boss的逐步抬升、运动与新攻击限制；Boss可查询减益及一秒后300 Strand伤害；Guardian垂直抬升、两秒基础时长和保留横移/武器的部分状态；缺口：Guardian有限横移速度、完整操作/ADS与腰射限制、第三人称镜头未实现；当前只保证高度约束、横移和武器保持可用；势不可挡及全部Champion状态/冷却/抗性规则未实现；Champion标签不代替目标等级；原表没有抬升高度/速度数值；必填校准参数与合成测试值分离，未完成原作运动校准；reset刷新、单实例首位施加者信用、重施加不再次抬升和动态分类政策尚待原作实测；原版敌人仅使用明确实体或类型标签；真实D2敌人目录、全部技能生产者与更短来源时长尚未装配；逻辑伤害类型到正式chorus-d2伤害目录、HUD、子职业/fragment选择与持久化仍未完成；Fabric 已验收玩家/战斗人员分离同步与到期/清除释放；NeoForge 真实客户端和高延迟观感尚未验收 |
 
 ## 使用
 
