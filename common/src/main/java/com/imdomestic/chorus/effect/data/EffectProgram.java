@@ -32,6 +32,7 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     public enum Scope { SOURCE, BUFF }
     public enum Multiplicity { INSTANCE, STACK }
     public enum Evaluate { ON_USE, ON_HIT }
+    public enum ReactionBinding { CURRENT_OWNER_BUNDLE, ORIGIN_BUNDLE }
     public record Shield(String capacity, Value takenMultiplier, int priority, Optional<Value> maximum, Optional<ShieldRecovery> recovery, java.util.Set<String> excludedAttackFactors) {
         public Shield {
             java.util.Objects.requireNonNull(maximum); java.util.Objects.requireNonNull(recovery); excludedAttackFactors = java.util.Set.copyOf(excludedAttackFactors);
@@ -55,8 +56,9 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     public record HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags) {
         public HealthRecovery { tags = java.util.Set.copyOf(tags); }
     }
-    public record Rule(String id, String on, Condition condition, List<Step> actions) {
-        public Rule { actions = List.copyOf(actions); }
+    public record Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding) {
+        public Rule { actions = List.copyOf(actions); java.util.Objects.requireNonNull(binding); }
+        public Rule(String id, String on, Condition condition, List<Step> actions) { this(id, on, condition, actions, ReactionBinding.CURRENT_OWNER_BUNDLE); }
     }
     public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile {}
     public record Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot) implements Step {

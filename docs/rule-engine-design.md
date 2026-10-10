@@ -977,7 +977,7 @@ process(e):
 
 evaluate 可取 on_use、on_release、on_hit、on_tick、on_proc；只在对应动作存在这些时机时合法。冻结数值与冻结目标条件是两件事：目标依赖尚未满足时，保存冻结的来源操作数、表达式和分组路径，到指定时机补齐目标输入。
 
-当前已实现数值快照的 `on_use`（modifier 默认值）与 `on_hit`，其余时机仍是目标协议，Codec 会拒绝。`captureDamage` 绑定来源操作数及来源条件，保留 victim 表达式到命中时求值；`snapshot.command(target)` 固定伤害归属和参数，命中时合并当前攻击者的 on_hit 贡献并执行原 Profile，目标防御另用当前规则。JSON、10 项纯核心和 3 项共享世界测试已验证来源移除 / 到期、不同目标、MAX 合并及旧 Profile 跨运行时替换。完整行为与限制见 [实现记录](engine-implementation.md)；已由 projectile 步骤绑定到物理飞行；尚未完整保存 origin_bundle 反应规则或派生继承。
+当前已实现数值快照的 `on_use`（modifier 默认值）与 `on_hit`，其余时机仍是目标协议，Codec 会拒绝。`captureDamage` 绑定来源操作数及来源条件，保留 victim 表达式到命中时求值；`snapshot.command(target)` 固定伤害归属和参数，命中时合并当前攻击者的 on_hit 贡献并执行原 Profile，目标防御另用当前规则。JSON、10 项纯核心和 3 项共享世界测试已验证来源移除 / 到期、不同目标、MAX 合并及旧 Profile 跨运行时替换。完整行为与限制见 [实现记录](engine-implementation.md)；已由 projectile 步骤绑定到物理飞行；来源层的 origin_bundle 选择现已保存，Buff 规则、跨目录版本和派生筛选继承仍待实现。
 
 命中测量已经实现独立的 `ImpactData` 通道：普通 damage / damage_snapshot 的 `impact` 参数或 Java 的 `snapshot.command(target, impact)` 显式提供带单位的数值。`impact_number` 在 on_use 表达式和条件中保持符号形式，到命中时求值；来源消失不丢失已捕获的曲线或贡献，也不需要把整个贡献改为 on_hit。它能在 Profile 指定阶段中应用逐目标距离衰减，基础伤害及组内归约仍保持原有语义。攻击、防御、盾层查询与实际命中事实携带同一份输入；输入独立于回执测得的 effective_damage 等结果。8 项纯核心与 2 项共享世界测试验证顺序、距离快照、当前 MAX / 防御和真实扣血；测试曲线不是已校准的 D2 数据。完整字段注册表、碰撞自动测量及具体内容装配仍待完成。
 
@@ -1001,7 +1001,9 @@ record DamageSnapshot(
 - 即时命中的武器走同一路径，快照只存在一瞬间。
 - 快照是数据，不是闭包：可以打印、比较、在 JUnit 里重放。世界物体不写存档，快照暂时不需要存盘用的 Codec。
 
-反应规则默认读取 `current_owner_bundle`；需要随发射来源保留的规则显式声明 `origin_bundle`，读取固定版本的来源包。数值快照不自动保留全部反应规则，也不因当前切枪而把来源改成手持武器。两份索引中同一规则实例在同一事件内只执行一次。owner 死亡或下线时，伤害按定义继续，要求 owner 存活 / 在线的反应跳过；具体来源 perk 采用哪种绑定仍需内容逐条验证。
+反应规则默认读取 `current_owner_bundle`；需要随发射来源保留的规则显式声明 `binding: "origin_bundle"`，读取固定版本的来源包。当前已支持 source 作用域的伤害事实：captureDamage 保存攻击所有者的来源身份和标签，命中后只从该选择执行 origin 规则；当前索引不重复加入同一规则。来源解绑 / 替换不改写旧选择，新装备不会追溯进入旧攻击。条件中的当前 Buff / 世界资格仍在命中时判断，不能把来源选择理解成冻结全部状态。字段见 [反应绑定](engine-data-packs.md#保留攻击释放时的反应规则)。
+
+数值快照不自动保留全部反应规则，也不因当前切枪而把来源改成手持武器。多版本反应目录并存、Buff 规则继承和派生物继承筛选仍待实现；当前非空选择要求完整程序相等，不会把旧规则替换为同名新规则。owner 死亡或下线时，伤害按定义继续，要求 owner 存活 / 在线的反应应显式检查资格；具体 perk 采用哪种绑定仍需逐条验证。
 
 ## 核心语义 v0.3
 
@@ -1021,7 +1023,7 @@ record DamageSnapshot(
 
 实现上可以继续用标签，但每个维度是一组独立的标签，规则只查自己关心的那一组。
 
-派生动作已经支持 `origin: bound / event`：普通 damage、capture_damage 和 heal 默认使用绑定来源，可明确改为当前触发事件的完整 source。这个选择只影响新动作的归属；状态施加者、规则 self / 组件读取、目标选择不变，tags / kill_tags / scaling_profile 仍独立声明。capture_damage 固定所选来源及其 on_use 贡献，后续 damage_snapshot 不再重归属。该通道已经过 6 项纯核心及 2 项共享世界测试，能表达“甲施加、乙触发”并保持数值查询、原版攻击者与击杀事实一致；不等于 origin_bundle 反应规则继承已经实现。Bungie [7.1.0 的 Jolt 归属修正](https://www.bungie.net/7/en/News/Article/season-deep-update-7-1-0) 是这一反例的依据，完整 Jolt 数值及来源例外见 [规则集](d2-ruleset.md)。
+派生动作已经支持 `origin: bound / event`：普通 damage、capture_damage 和 heal 默认使用绑定来源，可明确改为当前触发事件的完整 source。这个选择只影响新动作的归属；状态施加者、规则 self / 组件读取、目标选择不变，tags / kill_tags / scaling_profile 仍独立声明。capture_damage 固定所选来源及其 on_use 贡献，后续 damage_snapshot 不再重归属。该通道已经过 6 项纯核心及 2 项共享世界测试，能表达“甲施加、乙触发”并保持数值查询、原版攻击者与击杀事实一致；与独立的 origin_bundle 反应选择分开；该动作来源通道本身不继承父反应规则。Bungie [7.1.0 的 Jolt 归属修正](https://www.bungie.net/7/en/News/Article/season-deep-update-7-1-0) 是这一反例的依据，完整 Jolt 数值及来源例外见 [规则集](d2-ruleset.md)。
 
 另外携带 attack / component / batch / cast id、活动规则集、双方类别、目标 Rank / Tier、命中位置与距离、精准标记和快照引用。精准与黄色数字分开。一次查询从同一只读视图取值，不能由 Value.eval 反向执行其他动作。
 
@@ -1266,7 +1268,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | 钩爪 | 技能 | 客户端预测、钩住缠结返还能量、钩爪近战 | 未写 |
 | 滑翔 | 技能 | 只改原版属性 | 未写 |
 | 棱镜术士 build | 综合 | 跨来源级联、动作顺序、查询期条件、资源、替换优先级、resist 相乘（见 d2-ruleset.md 的走查） | 未写 |
-| 超新星炸弹快照 | 运行时 | 放出后切装不影响伤害；目标方修饰命中时取值；派生物继承快照；on\_hit 例外 | 通用数值快照 JSON / 纯核心 / 真实延迟扣血已验；炸弹实体、技能数值、派生继承及反应绑定未实现 |
+| 超新星炸弹快照 | 运行时 | 放出后切装不影响伤害；目标方修饰命中时取值；派生物继承快照；on\_hit 例外 | 通用数值快照 JSON / 纯核心 / 真实延迟扣血已验；炸弹实体、技能数值、派生继承及该技能的反应绑定未实现 |
 | Disruption Break 两层错开施加 | 反例：计时器 | 第一层到期不会带走或刷新第二层 | 基础版 JSON / 时间线 / 数值查询通过；游戏未验 |
 | Restoration 延长、倒计时、重新施加 | 反例：历史值 | 重新施加时恢复到历史最长持续时间，保留最高强度 | 纯 Buff 状态与 JSON 连续恢复通过；两端验证互斥 / 到期残段 / 实际回血 / tick；原作覆盖优先级、Phoenix Dive 例外及真实技能来源仍未验 |
 | Cure 恢复过程与重复激活冷却 | 元素状态 | PvE / PvP 总量、短时恢复、1 秒内重复请求不恢复也不延长冷却 | JSON / 纯核心及双加载器真实 tick 通过；两次等量恢复为 Chorus 选择，实际技能 / 装备来源尚未装配 |
@@ -1301,7 +1303,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | 一次攻击多个分量共同致死；状态初始化与旧监听同时存在 | 一次死亡迁移；施加击累计一次，Jolt / Volatile 各按自己的规则 |
 | 恢复增益在积分区间中途到期；DOT 间隔不是 tick 整数倍 | 在到期点分段积分；按绝对 due_at 递推不累计漂移 |
 | Profile 引用缺失阶段、单位不匹配、数据值 unknown | 明确加载错误 / 禁用未完成内容，不静默算零 |
-| 旧投射物飞行中热重载 / 切枪 | 数值快照已保留来源与旧 Profile；当前防御、兼容布局的 on_hit 贡献可实时求值；物理实体与 origin_bundle / current_owner_bundle 反应绑定仍待实现 |
+| 旧投射物飞行中热重载 / 切枪 | 数值快照已保留来源与旧 Profile；当前防御、兼容布局的 on_hit 贡献可实时求值；显式物理实体与来源层反应绑定已接入；不兼容反应目录拒绝，活动版本迁移与派生继承待实现 |
 
 ### 例子：Rampage
 
@@ -1341,7 +1343,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 - [ ] 遭遇战脚本：只用同一套规则加状态机，还是另外开放 mcfunction 作为逃生口。
 - [ ] 公开发布前，把命运 2 的词条名、金装名换成自己的名字（Bungie 知识产权）。
 - [x] 装备存储采用独立容器，槽位由内容包定义，支持三武器与五件护甲的声明；不能直接映射原版护甲槽。已实现真实物品转移、玩家保存 / 加载及死亡 / respawn 接线；已有网络校验与最小配装页；完整 D2 物品装配、主手联动、HUD / 技能 UI 和跨模组适配仍待完成。
-- [ ] 来源绑定协议已支持 origin_bundle / current_owner_bundle；逐条验证武器卸下后是否继续触发，例如庆典飞行毒池与羸弱能量球。
+- [ ] 来源层绑定协议已支持 origin_bundle / current_owner_bundle；仍需逐条验证武器卸下后是否继续触发，例如庆典飞行毒池与羸弱能量球。
 - [ ] 校准资源 value_basis、CES / CMS 豁免、Super 主动收益、完整冰霜护甲层数表、Scorch 与生命恢复的冲突数值；区分 measured / fitted / assumed。
 - [ ] 多充能已有 sequential / parallel / linked 协议，Ophidia Spathe 等具体时间线尚未验证；漫游超能消耗策略与技能执行实例仍需用例。
 - [ ] 世界物体之间的关系：Anarchy 连线、缠结拿取投掷、Briarbinds 回收重部署。

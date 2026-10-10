@@ -421,8 +421,9 @@ public final class EffectCodecs {
         });
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),
-                conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.Rule::condition), step.listOf().fieldOf("do").forGetter(EffectProgram.Rule::actions)
-        ).apply(i, EffectProgram.Rule::new)), Set.of("id", "on", "if", "do"));
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.Rule::condition), step.listOf().fieldOf("do").forGetter(EffectProgram.Rule::actions),
+                enumeration(EffectProgram.ReactionBinding.class).optionalFieldOf("binding", EffectProgram.ReactionBinding.CURRENT_OWNER_BUNDLE).forGetter(EffectProgram.Rule::binding)
+        ).apply(i, EffectProgram.Rule::new)), Set.of("id", "on", "if", "do", "binding"));
         Codec<EffectProgram.Modifier> modifier = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Modifier::id), ID.fieldOf("profile").forGetter(EffectProgram.Modifier::profile),
                 Codec.STRING.fieldOf("stage").forGetter(EffectProgram.Modifier::stage), Codec.STRING.fieldOf("group").forGetter(EffectProgram.Modifier::group),

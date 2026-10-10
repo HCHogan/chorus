@@ -226,7 +226,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
         thread();
-        try { return Objects.requireNonNull(sources.describe(target, source, amount)); }
+        try {
+            var command = Objects.requireNonNull(sources.describe(target, source, amount));
+            return failure.isPresent() ? command : program.prepareReactions(view(), command);
+        }
         catch (RuntimeException error) { failed(error, List.of()); return nativeSource(target, source, amount); }
     }
     @Override public ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis) {

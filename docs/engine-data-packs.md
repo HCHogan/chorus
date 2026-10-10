@@ -150,7 +150,7 @@ chorus equipment swap test:weapon_a 0 2
 
 `/reload` 会重新解析、检查引用与单位并编译目录中的程序。实际两端测试已验证：高优先级文件覆盖生效；错误字段使重载失败；失败后目录和活动运行时均保留原状态。
 
-已经启动的运行时持有完整不可变 CompiledEffects 对象。成功重载更新目录，后续启动读取新定义；已有运行时继续使用原定义和原状态。修改内容时应更新 version；当前尚未实现同一运行时内新旧来源版本并存、活动状态迁移、程序内容指纹及跨重启快照。因此不能把“重载保留旧运行时”当成已实现投射物 origin_bundle 快照系统。
+已经启动的运行时持有完整不可变 CompiledEffects 对象。成功重载更新目录，后续启动读取新定义；已有运行时继续使用原定义和原状态。修改内容时应更新 version；当前尚未实现同一运行时内新旧来源版本并存、活动状态迁移、程序内容指纹及跨重启快照。来源规则现已另有 origin_bundle 捕获协议，但非空选择仍要求完整程序相等；重载保留旧运行时不等于多版本反应共存。
 
 本入口的世界适配使用当前维度中的实体 UUID。显式伤害查真实 damage_type 注册表，以仍在本维度中的 owner 作为原版致伤者，不猜测直接投射物。状态施加在目标存在且存活时默认允许；具体内容免疫策略尚未装配。表现 cue 没有处理器时明确失败。资源账户可由下面的声明和初始化动作创建，恢复 Profile 自动参与服务器时钟；技能冷却表、CES / CMS 与真实技能归属仍需内容层装配。
 
@@ -858,6 +858,30 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
 
+## 保留攻击释放时的反应规则
+
+来源规则可声明 `binding: "origin_bundle"`，默认值是 `current_owner_bundle`。默认规则在处理事件时使用仍绑定的来源；origin_bundle 只从该攻击保存的来源选择中执行。两者共用既有广度优先队列，同一来源的同一规则不会重复加入。
+
+```json
+{"id":"origin_kill","on":"chorus:kill","binding":"origin_bundle",
+ "if":{"type":"chorus:all","of":[
+   {"type":"chorus:source_is","source":"owner"},
+   {"type":"chorus:source_is","source":"this_weapon"},
+   {"type":"chorus:event_tag","tag":"chorus:weapon_kill"}
+ ]},
+ "do":[{"type":"chorus:grant_buff","buff":"test:kill_reward"}]}
+```
+
+该片段需要相应 Buff 定义；完整合成夹具见 [reaction_binding.json](../common/src/test/resources/effects/reaction_binding.json)，不代表任何 D2 perk 已校准。
+
+`capture_damage` / `CompiledEffects.captureDamage` 同时保存数值快照与不可变 ReactionSnapshot：攻击所有者、包含 origin_bundle 规则的已绑定来源、各来源的身份 / 武器 / 技能 / 强化标签，以及完整定义目录。来源解绑或同一插槽改装不改写旧选择，飞行途中新增词条不会进入旧攻击；空选择也被保留。这里只捕获攻击所有者的静态来源，不捕获 Buff 的组件或活动层数。规则条件在命中时求值，只有来源身份和标签固定；检查当前生命、状态、在手或在线资格仍须由内容明确声明。
+
+普通受管 damage 在发出请求前捕获这份选择，damage_snapshot 沿用释放时的选择。原版伤害观察入口在 describe 时捕获即时选择，宿主不必为普通原版命中自行预处理。外部宿主若自己发出 DamageFacts，应先调用 prepareReactions；单独创建一个未带反应快照的 EffectEvent 不会补出 origin_bundle 规则。身份选择不自动授予 weapon_kill 等信用，也不改变数值修饰的 on_use / on_hit 语义。
+
+当前 origin_bundle 只允许 source 作用域，且事件限于 hit / damage_taken / shield_damaged / shield_broken / death_prevented / death / kill；Buff 作用域和其他事件在加载时拒绝。数值快照里的反应选择不可在命中时替换。受管命令在世界执行前校验目录，非空来源选择必须与当前完整程序相等，不能只凭同一个 version 字符串放行；多版本目录并存与迁移仍待实现。没有捕获规则的纯数值快照仍可使用原有跨目录数值路径。
+
+反应产生的新 damage / capture_damage 默认重新捕获当前来源，不自动继承父反应选择；明确的派生继承、丢失继承条件和 proc 排除尚未实现。反应里的 after 仍遵守自身 SOURCE / DETACHED 生命周期，来源已卸下时继续执行需显式 detached。运行时停止或替换仍停止旧物理飞行，保存反应规则不等于恢复了飞行实体。未知世界结果保留待确认操作，不重放已提交的扣血或治疗。
+
 ## 伤害回执时消费 Buff
 
 下一击增益可以在 buff 上声明 `consume_on_damage`。`damage` / `damage_snapshot` 发出世界请求前，只读捕获当前符合条件的 Buff 键与 generation；对应回执完成时，先消费同 generation 的层数，再执行同一动作体的下一条指令。hit 等后续反应仍走既有广度优先队列，不为此更改全局事件顺序。
@@ -1142,7 +1166,7 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 命中用每 tick 的完整线段扫描，方块碰撞形状先限制线段末端，再检查实体。实体碰撞箱向外扩张 0.125 米，方块使用中心射线；只有存活且非旁观的 LivingEntity 可作为直击目标，原施加者始终排除。没有自动阵营排除、投射物互撞、盾牌反射、水下阻力或方块 `onProjectileHit` 副作用。流体不遮挡。未知端点 / 途中区块终止为 unloaded，停在上个已知位置，绝不加载新地形；范围 / 阵营及爆炸视线由动作体另行声明。
 
-每次接触先提交计数，终止时才消费实体，再恢复独立动作体；后续失败会放弃余下飞行，已提交接触不重放。运行时停止 / 替换 / 故障后，旧飞行物会移除，不交给新程序执行。当前实体 `noSave / noSummon`，不支持传送门、区块卸载续接或重启持久化。两端使用原版实体跟踪协议同步运动，重力 / drag 是显示用同步数据，完整动作体和快照仅在服务端；默认紫水晶碎片外观只是占位。原版箭、雪球等不会被自动转成该协议，完整 origin_bundle / current_owner_bundle 反应继承仍未实现。
+每次接触先提交计数，终止时才消费实体，再恢复独立动作体；后续失败会放弃余下飞行，已提交接触不重放。运行时停止 / 替换 / 故障后，旧飞行物会移除，不交给新程序执行。当前实体 `noSave / noSummon`，不支持传送门、区块卸载续接或重启持久化。两端使用原版实体跟踪协议同步运动，重力 / drag 是显示用同步数据，完整动作体和快照仅在服务端；默认紫水晶碎片外观只是占位。原版箭、雪球等不会被自动转成该协议。显式伤害快照已携带来源层 origin_bundle 选择；Buff 规则、多版本并存和派生筛选继承仍待实现。
 
 
 ### 反弹、穿透与重复命中

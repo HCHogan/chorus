@@ -1,0 +1,297 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:kill_reward",
+        "version": "test-1",
+        "duration": 3,
+        "instanced_by": "weapon"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:weapon",
+      "rules": [
+        {
+          "id": "launch",
+          "on": "test:launch",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:damage",
+                "tags": [
+                  "test:direct"
+                ],
+                "kill_tags": [
+                  "chorus:weapon_kill"
+                ]
+              },
+              "as": "attack"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction",
+                "target": "self"
+              },
+              "as": "aim"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "for_each": "impact",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "type": "chorus:damage_snapshot",
+                      "snapshot": "attack",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "delay",
+          "on": "test:delay",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:damage",
+                "tags": [
+                  "test:direct"
+                ],
+                "kill_tags": [
+                  "chorus:weapon_kill"
+                ]
+              },
+              "as": "attack"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "attack",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "instant",
+          "on": "test:instant",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 4,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:damage",
+              "tags": [
+                "test:direct"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ],
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "origin_hit",
+          "on": "chorus:hit",
+          "binding": "origin_bundle",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:direct"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "self",
+              "amount": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "damage"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "damage"
+                }
+              },
+              "tags": [
+                "test:origin_heal"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "current_hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:direct"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "self",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "tags": [
+                "test:current_heal"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "origin_kill",
+          "on": "chorus:kill",
+          "binding": "origin_bundle",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:direct"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:kill_reward"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:empty"
+    }
+  ]
+}

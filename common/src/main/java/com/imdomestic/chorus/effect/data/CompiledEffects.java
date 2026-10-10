@@ -36,6 +36,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final Map<String, RuleEngine.EventRule<EffectState>> abilityRules;
     private final Map<String, RuleEngine.EventRule<EffectState>> fireRules;
     private final Map<String, List<RuleEngine.EventRule<EffectState>>> sourceRules;
+    private final java.util.Set<String> originRules;
     private final Map<String, String> buffBundles;
     private final BuffRules<EffectState> buffRules;
     private final List<RuleEngine.EventRule<EffectState>> definitions;
@@ -118,6 +119,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         buffs.values().forEach(definition -> version(definition.version())); profiles.values().forEach(profile -> version(profile.version()));
         var continuations = new ArrayList<RuleEngine.EventRule<EffectState>>();
         var compiled = new LinkedHashMap<String, List<RuleEngine.EventRule<EffectState>>>();
+        var originRules = new HashSet<String>();
         for (var bundle : program.bundles()) {
             var ids = new HashSet<String>();
             var rules = new ArrayList<RuleEngine.EventRule<EffectState>>();
@@ -125,6 +127,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 localId(rule.id()); namespaced(rule.on());
                 if (rule.on().startsWith("chorus:internal/")) throw new IllegalArgumentException("Reserved internal event");
                 if (!ids.add(rule.id())) throw new IllegalArgumentException("Duplicate rule: " + rule.id());
+                if (rule.binding() == EffectProgram.ReactionBinding.ORIGIN_BUNDLE) {
+                    if (bundle.scope() != EffectProgram.Scope.SOURCE || !ReactionSnapshot.EVENTS.contains(rule.on()))
+                        throw new IllegalArgumentException("origin_bundle requires a source rule on a damage fact");
+                    originRules.add(bundle.id() + "/rule/" + rule.id());
+                }
                 rules.add(compile(bundle, rule, continuations));
             }
             ids.clear();
@@ -152,6 +159,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var sourceRules = new LinkedHashMap<String, List<RuleEngine.EventRule<EffectState>>>();
         for (var bundle : program.bundles()) if (bundle.scope() == EffectProgram.Scope.SOURCE) sourceRules.put(bundle.id(), compiled.get(bundle.id()));
         this.sourceRules = Map.copyOf(sourceRules);
+        this.originRules = java.util.Set.copyOf(originRules);
         var attached = new LinkedHashMap<BuffDefinition, List<RuleEngine.EventRule<EffectState>>>();
         var buffBundles = new HashMap<String, String>();
         for (var buff : program.buffs()) if (!buff.bundle().isEmpty()) {
@@ -354,6 +362,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private static void unmanagedSource(String instance) { if (instance.startsWith("equipment/")) throw new IllegalArgumentException("Equipment sources must change through EquipmentChange"); }
     /** Attack scaling uses only the attack owner's modifiers; target debuffs belong in the defense profile. */
     public Optional<CalculationProfile.Result> outgoing(EffectState state, DamageCommand command, double input) {
+        command.reactions().ifPresent(snapshot -> snapshot.requireCompatible(program));
         if (command.snapshot().isEmpty()) return damageCalculation(state, command, command.source().owner(), command.scalingProfile(), input);
         settled(state); Numbers.nonnegative(input, "damage profile input");
         var snapshot = command.snapshot().orElseThrow(); snapshot.validate(command);
@@ -550,7 +559,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         rule.condition().validate(validation(bundle, Map.of()));
         var actions = compileSteps(bundle, rule.actions(), Map.of(), Map.of(), "", bundle.id() + "/rule/" + rule.id(), continuations);
         return new RuleEngine.EventRule<>(bundle.id() + "/rule/" + rule.id(), rule.on(), (state, context) -> {
-            if (context.scope() instanceof EffectSource source && !source.equals(state.sources().get(source.instance()))) {
+            boolean captured = rule.binding() == EffectProgram.ReactionBinding.ORIGIN_BUNDLE
+                    && context.scope() instanceof EffectSource source
+                    && ReactionSnapshot.from(context.event()).filter(s -> s.sources().contains(source)).isPresent();
+            if (context.scope() instanceof EffectSource source && !captured && !source.equals(state.sources().get(source.instance()))) {
                 // Only the exact removal fact may run with an old source; ordinary stale bindings stay inactive.
                 if (!context.event().signal().type().equals("chorus:source_detached")
                         || !(context.event().signal().payload() instanceof SourceChange.Fact fact)
@@ -755,11 +767,19 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var rule = fireRules.get(accepted.definition().item());
             result.add(new RuleEngine.RuleBinding("shot/" + accepted.shot().token(), rule.definition(), new WeaponFire.Scope(accepted.event())));
         }
-        for (var source : state.sources().values()) for (var rule : sourceRules.get(source.bundle())) if (rule.eventType().equals(event.signal().type())) {
+        for (var source : state.sources().values()) for (var rule : sourceRules.get(source.bundle())) if (!originRules.contains(rule.definition()) && rule.eventType().equals(event.signal().type())) {
             if (event.signal().type().equals("chorus:source_detached") && event.signal().payload() instanceof SourceChange.Fact fact
                     && fact.detached() && source.equals(fact.source())) continue;
             result.add(new RuleEngine.RuleBinding(sourceId(source) + "/" + rule.definition(), rule.definition(), source));
         }
+        ReactionSnapshot.from(event).ifPresent(snapshot -> {
+            snapshot.requireCompatible(program);
+            for (var source : snapshot.sources()) {
+                validateSource(source);
+                for (var rule : sourceRules.get(source.bundle())) if (originRules.contains(rule.definition()) && rule.eventType().equals(event.signal().type()))
+                    result.add(new RuleEngine.RuleBinding(sourceId(source) + "/" + rule.definition(), rule.definition(), source));
+            }
+        });
         result.addAll(buffRules.resolve(state, event)); return List.copyOf(result);
     }
     private static String sourceId(EffectSource source) { return "source/" + source.instance().length() + ":" + source.instance(); }
@@ -821,7 +841,17 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
             if (policy.condition().test(evaluation(state, context, Map.of()))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks()));
         }
-        return command.withConsumptions(candidates);
+        return prepareReactions(state, command).withConsumptions(candidates);
+    }
+    /** Capture rule selection independently from damage scaling or receipt-time buff consumption. */
+    public DamageCommand prepareReactions(EffectState state, DamageCommand command) {
+        settled(state);
+        if (command.reactions().isPresent()) {
+            command.reactions().orElseThrow().requireCompatible(program); return command;
+        }
+        var sources = state.sources().values().stream().filter(s -> s.holder().equals(command.source().owner())
+                && sourceRules.get(s.bundle()).stream().anyMatch(r -> originRules.contains(r.definition()))).toList();
+        return command.withReactions(new ReactionSnapshot(command.source().owner(), program, sources));
     }
     private static EffectEvent damageQuery(DamageCommand command, double input) {
         return new EffectEvent(command.source().owner(), command.target(), command.source(), command.tags(),
@@ -866,7 +896,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var captured = captureContributions(state, attack.source().owner(), event, profileId);
         var shieldScaling = attack.shieldScalingProfile().map(id -> new DamageSnapshot.ShieldScaling(
                 new Validation(buffs, Map.of(), false, profiles).multiplierProfile(id), captureContributions(state, attack.source().owner(), event, id)));
-        return new DamageSnapshot(state.buffs().timeMicros(), state.mode(), attack, profiles.get(profileId), buffs, resources, captured, shieldScaling);
+        return new DamageSnapshot(state.buffs().timeMicros(), state.mode(), prepareReactions(state, attack), profiles.get(profileId), buffs, resources, captured, shieldScaling);
     }
     private List<DamageSnapshot.Contribution> captureContributions(EffectState state, String holder, RuleEngine.Event event, String profileId) {
         var captured = new ArrayList<DamageSnapshot.Contribution>();

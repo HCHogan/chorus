@@ -10,7 +10,8 @@ import java.util.Set;
 
 /** Facts captured by an adapter. Query context also uses this shape; missing measurements are not zero. */
 public record EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
-        Map<String, Boolean> flags, Map<String, String> references, ImpactData impact)
+        Map<String, Boolean> flags, Map<String, String> references, ImpactData impact,
+        java.util.Optional<com.imdomestic.chorus.effect.data.ReactionSnapshot> reactions)
         implements RuleEngine.Payload {
     /** Typed payloads may expose the common DSL event context without discarding their richer receipt. */
     public interface Carrier extends RuleEngine.Payload { EffectEvent event(); }
@@ -18,6 +19,12 @@ public record EffectEvent(String actor, String victim, BuffInstance.Origin sourc
         Objects.requireNonNull(actor); Objects.requireNonNull(victim); Objects.requireNonNull(source);
         tags = Set.copyOf(tags); numbers = Map.copyOf(numbers); flags = Map.copyOf(flags); references = Map.copyOf(references);
         Objects.requireNonNull(impact);
+        Objects.requireNonNull(reactions);
+        if (reactions.isPresent() && !reactions.orElseThrow().owner().equals(source.owner())) throw new IllegalArgumentException("Foreign reaction owner");
+    }
+    public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
+            Map<String, Boolean> flags, Map<String, String> references, ImpactData impact) {
+        this(actor, victim, source, tags, numbers, flags, references, impact, java.util.Optional.empty());
     }
     public EffectEvent(String actor, String victim, BuffInstance.Origin source, Set<String> tags, Map<String, Measure> numbers,
             Map<String, Boolean> flags, Map<String, String> references) {
