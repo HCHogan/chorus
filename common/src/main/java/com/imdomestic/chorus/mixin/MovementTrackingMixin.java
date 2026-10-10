@@ -11,5 +11,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class MovementTrackingMixin {
     @Shadow @Final private Entity entity;
     @Inject(method="addPairing",at=@At("TAIL"))
-    private void chorus$pair(ServerPlayer player,CallbackInfo ci){if(entity instanceof LivingEntity living)MovementInputNetwork.sync(living,player);}
+    private void chorus$pair(ServerPlayer player,CallbackInfo ci){if(entity instanceof LivingEntity living){MovementInputNetwork.sync(living,player);com.imdomestic.chorus.network.HorizontalSpeedNetwork.sync(living,player);}}
 }

@@ -30,6 +30,7 @@ public class Chorus {
         eventBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> {
             var registrar = event.registrar("1").optional();
             registrar.playToClient(com.imdomestic.chorus.network.MovementInputPayload.TYPE, com.imdomestic.chorus.network.MovementInputPayload.CODEC);
+            registrar.playToClient(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE, com.imdomestic.chorus.network.HorizontalSpeedPayload.CODEC);
             registrar.playToServer(com.imdomestic.chorus.network.ProjectileCatchPayload.TYPE, com.imdomestic.chorus.network.ProjectileCatchPayload.CODEC,
                     (payload, context) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.EquipmentPayloads.Visit.TYPE, com.imdomestic.chorus.network.EquipmentPayloads.Visit.CODEC,

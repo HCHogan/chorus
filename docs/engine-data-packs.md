@@ -2088,6 +2088,30 @@ EntityObservation 的 `positions` 按 `PositionQuery(target, anchor)` 保存不�
 
 Minecraft 宿主在显式查询与伤害回执的实体采样中保存全部七项；`read_event_entity` 读取的仍是回执当时的冻结状态，后续停止冲刺、改变姿态、移除来源或实体不会改写该结果。旧适配器使用原有 View 构造器时，移动信息保持未观察；实体缺失或移动信息未提供时 `movement_observed` 返回 false，直接读取任何一个移动字段都会失败，不虚构“没有冲刺”。实体元数据可用与移动信息可用须分别判断。历史回执、emit、延迟动作和后续计算沿用原有观察传播规则；没有新增客户端输入包、移动事件或属性反馈查询。
 
+## 水平速度上限
+
+Bundle 可声明 `horizontal_speed_limits`，适用于 SOURCE 与 BUFF。每项必须有局部唯一 `id`、单位为 `meter_per_second` 的 `speed: Value`，可选 `if: Condition`。省略列表表示没有上限；零是禁止水平位移的有效上限，负数与非有限数非法。
+
+```json
+{
+  "id": "example:hover",
+  "parameters": {"speed": "meter_per_second"},
+  "horizontal_speed_limits": [
+    {"id": "hover", "speed": {"type": "chorus:source_parameter", "name": "speed"}}
+  ]
+}
+```
+
+`CompiledEffects.horizontalSpeedLimit(state, input)` 是纯查询：读取 actor 自身来源及作用于该接收者、未暂停且仍有效的 Buff，按实例与声明 id 排序，取所有匹配上限的最小值，同时保留各项 Bundle、实例、施加者与数值。空结果与零独立表示。上下文增加 `chorus:horizontal_speed_query` 标签；条件为假时不读取该项 speed。使用既有 Value / Condition 的类型与作用域规则，不提供虚构的历史动作回执。可读取已写入的 Buff 数值组件；若需要数值 Profile，应先由已有 calculate 动作计算并写入相应组件。
+
+Minecraft 以每游戏 tick 20 分之一秒换算速度。宿主限制 X/Z 合成速度的长度，不分别限制两轴，因此斜向移动不会获得额外额度；Y 保留原语义，也可叠加 vertical_motion。move 先限制请求，再运行原版碰撞；实际坐标写入消耗该实体本 tick 的水平路程额度，普通 setPos / setPosRaw 与重复位置包共享额度。坐标写入前计账，回调内再次移动也不能刷新额度。碰撞未走出的路程不消耗额度；闲置 tick 不积攒额度，同 tick 更换或删除后重新添加来源也不重置已用路程。
+
+玩家位置包先取得受限目的地，继续原版碰撞、纵向移动与其他校验，再纠正到实际接受位置；不把客户端目标坐标直接当作授权传送。明确的宿主传送与 displace_entity 可以绕过本次路程额度，随后继续限速，并且不会补充本 tick 额度。外部冲量和 AI 设置的速度也经过该上限；apply_impulse 回执读取真实接受的分量。生效时下坐骑，期间拒绝重新骑乘；这些是当前宿主政策，不代表已校准的 D2 移动曲线。
+
+独立可选通道 `chorus:horizontal_speed_v1` 携带维度、实体 id / UUID 和可选上限，支持开始追踪、玩家加载、数值变化及清除同步。客户端只预测本地玩家的额度；远端实体直接消费原版权威追踪位置，避免对同一段运动重复限速。身份不匹配消息被忽略。客户端不运行第二套 Buff 规则。
+
+运行时在规则状态提交、世界动作前与 prepare 边界更新投影。`nativeHorizontalSpeedReport()` 保留每个可查询 holder 的归约证据；查询失败为该 holder 投影零上限、记录错误并停止运行时，不构造正常归约结果。显式 close 只清理仍由自身拥有的投影，不清除后继运行时的值。不持久化临时速度状态。严格的逐服务端 tick 额度会影响网络批量到包与高延迟下的移动观感；当前验证仅涵盖本地集成客户端，网络容差与 D2 参数仍需单独校准。
+
 ## 原版属性投影
 
 程序根的 `native_attributes` 将纯 Profile 的归约结果投影为当前运行时拥有的原版临时 AttributeModifier。旧程序省略它时没有投影。下面是可独立编译的合成加速示例；绑定 `example:fast` 来源后，当前原版移动速度乘以 1.5，解绑则移除该贡献：

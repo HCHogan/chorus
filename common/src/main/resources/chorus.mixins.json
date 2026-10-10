@@ -32,7 +32,9 @@
     "ServerMovementInputMixin",
     "MovementTrackingMixin",
     "EntityMotionConstraintMixin",
-    "ServerMotionConstraintMixin"
+    "ServerMotionConstraintMixin",
+    "LivingHorizontalSpeedMixin",
+    "EntityHorizontalSpeedMixin"
   ],
   "client": [
     "MixinMinecraft",

@@ -19,7 +19,7 @@ abstract class ServerMotionConstraintMixin {
     @Shadow private int aboveGroundTickCount;
     @WrapMethod(method="handlePlayerPositionChange")
     private void chorus$position(double x,double y,double z,float yaw,float pitch,boolean onGround,boolean horizontalCollision,Operation<Void> original){
-        MinecraftMovementInput.mask(player);var requested=new Vec3(x,y,z);var constrained=MinecraftMotionConstraints.position(player,requested);
+        MinecraftMovementInput.mask(player);MinecraftHorizontalSpeed.prepare(player);var requested=new Vec3(x,y,z);var constrained=MinecraftHorizontalSpeed.position(player,MinecraftMotionConstraints.position(player,requested));
         // Vanilla still validates free axes, collisions, speed and state. Never teleport directly to client coordinates.
         original.call(constrained.x,constrained.y,constrained.z,yaw,pitch,onGround,horizontalCollision);
         if(!constrained.equals(requested))player.connection.teleport(player.getX(),player.getY(),player.getZ(),player.getYRot(),player.getXRot());
@@ -32,7 +32,7 @@ abstract class ServerMotionConstraintMixin {
     }
     @Inject(method="tick",at=@At("HEAD"))
     private void chorus$floating(CallbackInfo ci){
-        MinecraftMovementInput.mask(player);
+        MinecraftMovementInput.mask(player);MinecraftHorizontalSpeed.prepare(player);
         if((MinecraftMotionConstraints.mask(player)&MinecraftMovementInput.VERTICAL)!=0){clientIsFloating=false;aboveGroundTickCount=0;}
     }
 }

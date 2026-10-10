@@ -16,5 +16,5 @@ abstract class ServerMovementInputMixin {
     @ModifyExpressionValue(method="handlePlayerInput",at=@At(value="INVOKE",target="Lnet/minecraft/network/protocol/game/ServerboundPlayerInputPacket;input()Lnet/minecraft/world/entity/player/Input;"))
     private Input chorus$input(Input input){return MinecraftMovementInput.filter(input,MinecraftMovementInput.mask(player));}
     @Inject(method="handleAcceptPlayerLoad",at=@At("TAIL"))
-    private void chorus$loaded(net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket packet,CallbackInfo ci){com.imdomestic.chorus.network.MovementInputNetwork.sync(player,player);}
+    private void chorus$loaded(net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket packet,CallbackInfo ci){com.imdomestic.chorus.network.MovementInputNetwork.sync(player,player);com.imdomestic.chorus.network.HorizontalSpeedNetwork.sync(player,player);}
 }

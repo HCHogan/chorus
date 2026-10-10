@@ -99,6 +99,7 @@
       "com.imdomestic.chorus.NativeMeleeGameTest",
       "com.imdomestic.chorus.NativeMovementGameTest",
       "com.imdomestic.chorus.NativeMotionGameTest",
+      "com.imdomestic.chorus.HorizontalSpeedGameTest",
       "com.imdomestic.chorus.BuffRemovalGameTest",
       "com.imdomestic.chorus.SuppressionGameTest",
       "com.imdomestic.chorus.SuppressionNativeGameTest",
@@ -115,6 +116,7 @@
       "com.imdomestic.chorus.AmplifiedClientGameTest",
       "com.imdomestic.chorus.NativeMovementClientGameTest",
       "com.imdomestic.chorus.NativeMotionClientGameTest",
+      "com.imdomestic.chorus.HorizontalSpeedClientGameTest",
       "com.imdomestic.chorus.DisplacementClientGameTest",
       "com.imdomestic.chorus.SuspendClientGameTest"
     ]

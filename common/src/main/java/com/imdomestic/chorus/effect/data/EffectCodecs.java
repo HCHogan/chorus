@@ -704,14 +704,20 @@ public final class EffectCodecs {
                 enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::condition)
         ).apply(i, com.imdomestic.chorus.effect.input.ActionGate.Declaration::new)), Set.of("id", "action", "if"));
+        Codec<com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration> speedLimit = strict(RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::id),
+                values.fieldOf("speed").forGetter(com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::speed),
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::condition)
+        ).apply(i, com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::new)), Set.of("id", "speed", "if"));
         Codec<EffectProgram.Bundle> bundle = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("id").forGetter(EffectProgram.Bundle::id), enumeration(EffectProgram.Scope.class).optionalFieldOf("scope", EffectProgram.Scope.SOURCE).forGetter(EffectProgram.Bundle::scope),
                 rule.listOf().optionalFieldOf("rules", List.of()).forGetter(EffectProgram.Bundle::rules), modifier.listOf().optionalFieldOf("modifiers", List.of()).forGetter(EffectProgram.Bundle::modifiers),
                 recovery.listOf().optionalFieldOf("health_recovery", List.of()).forGetter(EffectProgram.Bundle::recovery),
                 replacement.listOf().optionalFieldOf("ability_overrides", List.of()).forGetter(EffectProgram.Bundle::abilityOverrides),
                 Codec.unboundedMap(Codec.STRING, StatCodecs.UNIT).optionalFieldOf("parameters", Map.of()).forGetter(EffectProgram.Bundle::parameters),
-                actionGate.listOf().optionalFieldOf("action_gates", List.of()).forGetter(EffectProgram.Bundle::actionGates)
-        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides", "parameters", "action_gates"));
+                actionGate.listOf().optionalFieldOf("action_gates", List.of()).forGetter(EffectProgram.Bundle::actionGates),
+                speedLimit.listOf().optionalFieldOf("horizontal_speed_limits", List.of()).forGetter(EffectProgram.Bundle::horizontalSpeedLimits)
+        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides", "parameters", "action_gates", "horizontal_speed_limits"));
         Codec<EffectProgram.ShieldRecovery> shieldRecovery = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("rate").forGetter(EffectProgram.ShieldRecovery::rate),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.ShieldRecovery::condition)

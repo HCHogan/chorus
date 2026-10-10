@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 abstract class ClientMotionConstraintMixin {
     @WrapMethod(method="setValuesFromPositionPacket")
     private static boolean chorus$serverTeleport(PositionMoveRotation change,Set<Relative> relatives,Entity entity,boolean interpolate,Operation<Boolean> original){
-        if(MinecraftMotionConstraints.mask(entity)==0)return original.call(change,relatives,entity,interpolate);
+        if(MinecraftMotionConstraints.mask(entity)==0&&MinecraftHorizontalSpeed.speed(entity).isEmpty())return original.call(change,relatives,entity,interpolate);
         var state=(MinecraftMovementInput.Synced)entity;state.chorus$beginMotionTeleport();
         // A constrained entity takes an authoritative teleport immediately, before accepting the next anchor snapshot.
         try{return original.call(change,relatives,entity,false);}finally{state.chorus$endMotionTeleport();}

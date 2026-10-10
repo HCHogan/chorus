@@ -6,6 +6,7 @@ import java.util.Objects;
 public record Unit(String id) {
     public static final Unit STAT_POINT = new Unit("chorus:stat_point");
     public static final Unit SECOND = new Unit("chorus:second");
+    public static final Unit METER_PER_SECOND = new Unit("chorus:meter_per_second");
     public static final Unit METER = new Unit("chorus:meter");
     public static final Unit DAMAGE = new Unit("chorus:damage");
     public static final Unit DAMAGE_PER_SECOND = new Unit("chorus:damage_per_second");

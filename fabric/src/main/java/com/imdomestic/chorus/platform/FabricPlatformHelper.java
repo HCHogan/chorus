@@ -14,6 +14,11 @@ public class FabricPlatformHelper implements IPlatformHelper {
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, payload);
     }
 
+    @Override public void sendHorizontalSpeed(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.HorizontalSpeedPayload payload) {
+        if (net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(player, com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE))
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, payload);
+    }
+
     @Override
     public String getPlatformName() {
         return "Fabric";

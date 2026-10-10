@@ -15,6 +15,11 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, payload);
     }
 
+    @Override public void sendHorizontalSpeed(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.HorizontalSpeedPayload payload) {
+        if (player.connection.hasChannel(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE))
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, payload);
+    }
+
     @Override
     public net.minecraft.world.entity.item.ItemEntity dropEquipmentOnDeath(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
         // CommonHooks.onPlayerTossEvent starts its own capture and would erase the surrounding death capture.

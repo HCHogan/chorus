@@ -8,6 +8,7 @@ import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
 import com.imdomestic.chorus.effect.input.ActionGate;
+import com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit;
 import com.imdomestic.chorus.effect.weapon.*;
 import com.imdomestic.chorus.effect.projectile.*;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -27,6 +28,8 @@ import java.util.function.Function;
 public final class CompiledEffects implements RuleEngine.RuleResolver<EffectState> {
     private final java.util.EnumSet<ActionGate.Kind> actionKinds=java.util.EnumSet.noneOf(ActionGate.Kind.class);
     public boolean hasActionGates(ActionGate.Kind kind){return actionKinds.contains(kind);}
+    private boolean horizontalSpeedLimits;
+    public boolean hasHorizontalSpeedLimits(){return horizontalSpeedLimits;}
     private final EffectProgram program;
     private final Map<String, BuffDefinition> buffs;
     private final Map<String, EffectProgram.Bundle> bundles;
@@ -145,6 +148,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 actionKinds.add(gate.action());
                 if(!gateIds.add(gate.id()))throw new IllegalArgumentException("Duplicate action gate: "+bundle.id()+"/"+gate.id());
                 gate.condition().validate(validation(bundle,Map.of()));
+            }
+            var limitIds=new HashSet<String>();
+            for(var limit:bundle.horizontalSpeedLimits()){
+                horizontalSpeedLimits=true;
+                if(!limitIds.add(limit.id()))throw new IllegalArgumentException("Duplicate horizontal speed limit: "+bundle.id()+"/"+limit.id());
+                limit.validate(validation(bundle,Map.of()));
             }
             var ids = new HashSet<String>();
             var rules = new ArrayList<RuleEngine.EventRule<EffectState>>();
@@ -360,6 +369,28 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             if(site.declaration().condition().test(e))denials.add(new ActionGate.Denial(site.declaration().id(),site.bundle(),site.instance(),e.origin()));
         }
         return new ActionGate.Decision(action,phase,query,denials);
+    }
+    private record LimitSite(HorizontalSpeedLimit.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
+    public HorizontalSpeedLimit.Decision horizontalSpeedLimit(EffectState state,EffectEvent input){
+        settled(state);if(input.actor().isBlank())throw new IllegalArgumentException("Speed limit needs an actor");
+        var tags=new HashSet<>(input.tags());tags.add("chorus:horizontal_speed_query");
+        var query=new EffectEvent(input.actor(),input.victim(),input.source(),tags,input.numbers(),input.flags(),input.references(),input.impact(),input.reactions(),input.proc(),input.observedBuffs(),input.observedEntities());
+        var sites=new ArrayList<LimitSite>();
+        for(var source:state.sources().values())if(source.holder().equals(input.actor()))for(var limit:bundle(source.bundle()).horizontalSpeedLimits())sites.add(new LimitSite(limit,source.bundle(),source,sourceId(source)));
+        for(var buff:state.buffs().instances().values())if(buff.key().holder().equals(input.actor())&&buff.pausedAt().isEmpty()&&buff.activeCount(state.buffs().timeMicros())>0&&buff.affects(input.source().weapon(),input.source().ability())){
+            String id=buffBundles.get(buff.definition().id());if(id==null)continue;
+            for(var limit:bundle(id).horizontalSpeedLimits())sites.add(new LimitSite(limit,id,new BuffRules.Scope(buff,false),"buff/"+buff.generation()));
+        }
+        sites.sort(java.util.Comparator.comparing(LimitSite::instance).thenComparing(s->s.declaration().id()));
+        var event=queryEvent(state,query);var contributions=new ArrayList<HorizontalSpeedLimit.Contribution>();
+        for(var site:sites){
+            var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of());
+            if(site.declaration().condition().test(e)){
+                var speed=site.declaration().speed().evaluate(e);Validation.same(speed.unit(),Unit.METER_PER_SECOND);
+                contributions.add(new HorizontalSpeedLimit.Contribution(site.declaration().id(),site.bundle(),site.instance(),e.origin(),speed.value()));
+            }
+        }
+        return new HorizontalSpeedLimit.Decision(query,contributions);
     }
     private RuleEngine.Local<EffectState> rejectedAbility(EffectState state, AbilityUse.Request request, String base, String resolved, AbilityUse.Outcome outcome, Optional<Resources.SpendResult> cost) {
         return new RuleEngine.Local<>(state, new AbilityUse.Receipt(request.cast(), request.slot(), base, resolved, outcome, cost), List.of());

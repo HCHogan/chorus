@@ -46,6 +46,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final CompiledEffects program;
     private final MinecraftAttributeProjection nativeAttributes;
     private final MinecraftMovementProjection nativeMovement;
+    private final MinecraftHorizontalSpeedProjection nativeHorizontalSpeed;
     private final long originTick, originMicros;
     private List<RuleEngine.Signal> operationFacts;
     private EffectState combatView;
@@ -66,6 +67,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         this.program = Objects.requireNonNull(program);
         this.nativeAttributes = new MinecraftAttributeProjection(level,program);
         this.nativeMovement = new MinecraftMovementProjection(level,program);
+        this.nativeHorizontalSpeed = new MinecraftHorizontalSpeedProjection(level,program);
         this.originTick = level.getGameTime(); this.originMicros = initial.buffs().timeMicros();
         this.session = new EffectSession(program.engine(clock, 256), initial, request -> {
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
@@ -124,7 +126,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public List<MinecraftAttributeProjection.Report> nativeAttributeReport() { return nativeAttributes.reports(); }
     public List<MinecraftMovementProjection.Report> nativeMovementReport() { return nativeMovement.reports(); }
-    private void refreshProjections() { if(!closed&&failure.isEmpty()){nativeAttributes.reconcile(view());nativeMovement.reconcile(view());} }
+    public List<MinecraftHorizontalSpeedProjection.Report> nativeHorizontalSpeedReport() { return nativeHorizontalSpeed.reports(); }
+    private void refreshProjections() { if(!closed&&failure.isEmpty()){nativeAttributes.reconcile(view());nativeMovement.reconcile(view());nativeHorizontalSpeed.reconcile(view());} }
     /** Capture before a host launches its projectile or detached delayed attack. The host retains the returned immutable data. */
     public com.imdomestic.chorus.effect.data.DamageSnapshot captureDamage(DamageCommand attack) {
         thread(); prepare();
@@ -451,6 +454,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         RuntimeException cleanup=null;
         try { nativeAttributes.close(); } catch(RuntimeException error) { cleanup=error; }
         try { nativeMovement.close(); } catch(RuntimeException error) { if(cleanup==null)cleanup=error;else cleanup.addSuppressed(error); }
+        try { nativeHorizontalSpeed.close(); } catch(RuntimeException error) { if(cleanup==null)cleanup=error;else cleanup.addSuppressed(error); }
         if(cleanup!=null)throw cleanup;
     }
 }

@@ -1,0 +1,10 @@
+{
+  "version":"test-1",
+  "buffs":[{"definition":{"id":"test:slow","version":"test-1","duration":0.3,"attach":"target"},"bundle":"test:slow"}],
+  "bundles":[
+    {"id":"test:speed","parameters":{"speed":"meter_per_second"},"horizontal_speed_limits":[{"id":"ceiling","speed":{"type":"chorus:source_parameter","name":"speed"}}]},
+    {"id":"test:slow","scope":"buff","horizontal_speed_limits":[{"id":"ceiling","speed":{"type":"chorus:constant","value":1,"unit":"meter_per_second"}}]},
+    {"id":"test:broken","horizontal_speed_limits":[{"id":"missing","speed":{"type":"chorus:event_number","name":"missing","unit":"meter_per_second"}}]},
+    {"id":"test:speed_inputs","rules":[{"id":"grant","on":"test:slow","if":{"type":"chorus:source_is","source":"owner"},"do":[{"type":"chorus:grant_buff","buff":"test:slow","target":"victim"}]}]}
+  ]
+}

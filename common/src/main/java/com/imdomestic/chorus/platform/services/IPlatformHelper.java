@@ -4,6 +4,8 @@ public interface IPlatformHelper {
     void sendEquipmentView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.EquipmentPayloads.View view);
     void sendMovementInput(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.MovementInputPayload payload);
 
+    void sendHorizontalSpeed(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.HorizontalSpeedPayload payload);
+
     /** Join the loader's death-drop collection, without starting a player toss transaction. */
     default net.minecraft.world.entity.item.ItemEntity dropEquipmentOnDeath(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
         return player.drop(stack, true, net.minecraft.util.Prediction.SERVER_ONLY);
