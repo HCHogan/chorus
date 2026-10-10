@@ -3838,7 +3838,8 @@
         "30 基础爆炸 × 显式距离曲线；正实际损失及状态资格后上灼烧",
         "两把枪共同叠到点燃时仍保留首次来源；禁用窗口只阻止重新施加",
         "来源数值快照在卸装后仍用于真实 Scorch；非 Boss 豁免解释由独立校准决定",
-        "未知状态回执不重放已经造成的爆炸伤害"
+        "未知状态回执不重放已经造成的爆炸伤害",
+        "回执分类和 feet 位置在尸体移除 / 改级 / 移动后保留；派生爆炸击杀使用各自死亡中心继续连锁；未知输入明确诊断且不实时兜底"
       ],
       "evidence": [
         {
@@ -3901,6 +3902,21 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "unknownOrUnavailableHistoryReportsGapWithoutUsingCurrentCorpse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "corpseRankChangesMovementAndRemovalCannotChangeConfirmedBlast"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "derivedLethalBlastUsesSecondReceiptCenterAfterBothCorpsesAreRemoved"
         }
       ],
       "gaps": [

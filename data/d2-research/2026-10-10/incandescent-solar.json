@@ -249,8 +249,8 @@
     "unit_test": "IncandescentTest",
     "world_test": "IncandescentGameTest",
     "entry": "Same owner and same weapon weapon_kill; actual player containers, command fire and physical impacts tested. Stowed equipment remains eligible; unequipped perk at impact does not trigger.",
-    "classification": "Corpse player flag or instance/type elite, champion, miniboss, boss tags select 8m. Observable untagged nonplayers use 4m. Missing corpse observations skip.",
-    "sampling": "Classification, enhancement, Ashes and corpse position sampled when kill rule runs; blast attack captured then. Immediate explosion is a current policy, not an in-game timing measurement.",
+    "classification": "Receipt-time entity observation supplies victim player or instance/type elite, champion, miniboss, boss tags for 8m; observable untagged nonplayers use 4m. Unknown or unavailable metadata/feet position emits incandescent_unresolved and skips; never query the current corpse as fallback.",
+    "sampling": "Victim metadata and feet position are captured after native hurt returns, before consumption and death/kill reactions. Enhancement, Ashes and attack are sampled when the kill rule executes. Subsequent corpse removal, movement or reclassification cannot change the saved branch/center. Immediate explosion and receipt-time feet sampling remain explicit content policies requiring D2 calibration.",
     "selection": "Current non-allied living neighbors, excludes source owner and killed center. Exact feet-distance query; no implicit line-of-sight check.",
     "qualification": "Positive actual explosion health/shield/absorption loss, no Scorch lockout, then world status permission. Cancelled/immune/zero-loss/dead/denied targets receive no Scorch. This policy still needs D2 edge-case validation.",
     "credit": "Equipment source tags weapon_damage and scorch_rank_exempt are copied to Scorch. Weapon identity and weapon kill credit persist through first-source Solar state. Weapon-credited derived kills may trigger another burst; exhaustive original proc exclusions unverified.",
@@ -276,6 +276,7 @@
       "Full enemy classification catalog",
       "Immunity/shield/status timing and derived proc exclusions",
       "Production weapon/subclass assembly and persistence"
-    ]
+    ],
+    "receipt_acceptance": "2026-10-11: physical death cleanup changes rank and moves/removes corpse before kill reaction; original radius, stacks and distance damage survive. A lethal derived burst records its own next center and can continue after both corpses are removed."
   }
 }

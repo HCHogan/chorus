@@ -176,7 +176,24 @@
       "id": "test:empty"
     },
     {
-      "id": "test:projectile"
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "unresolved",
+          "on": "chorus_d2:incandescent_unresolved",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:incandescent_unresolved"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "test:power"

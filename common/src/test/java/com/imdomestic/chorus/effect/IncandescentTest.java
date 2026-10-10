@@ -45,11 +45,13 @@ class IncandescentTest {
         final Map<String,Double> health=new HashMap<>(); final Map<String,WorldPosition> positions=new HashMap<>();
         final Map<String,Set<String>> tags=new HashMap<>(),types=new HashMap<>(); final Set<String> players=new HashSet<>(),missing=new HashSet<>();
         final List<DamageCommand> hits=new ArrayList<>(); final List<Double> amounts=new ArrayList<>(); final List<TargetQuery> queries=new ArrayList<>();
-        final List<ProjectileFlight.Launch> shots=new ArrayList<>(); int sequence,checks; boolean unknownStatus,denied,cancelBurst;
+        final List<ProjectileFlight.Launch> shots=new ArrayList<>(); int sequence,checks; boolean unknownStatus,denied,cancelBurst,omitMetadata,omitPosition,missingPosition;
+        final List<String> entityReads=new ArrayList<>(),positionReads=new ArrayList<>(),cues=new ArrayList<>();
+        java.util.function.BiConsumer<DamageCommand,DamageReceipt> afterReceipt=(_,_) -> {};
         Harness(boolean credit) throws Exception {this(credit,1);}
         Harness(boolean credit,double exemptNonbossFactor) throws Exception {
             program=program(credit,exemptNonbossFactor); session=new EffectSession(engine(program),EffectState.empty(),this::execute);
-            entity("player",1000,-10); draw("primary"); bind("solar","chorus_d2:solar_scaling","");
+            entity("player",1000,-10); draw("primary"); bind("solar","chorus_d2:solar_scaling","");bind("inputs","test:projectile","");
         }
         void entity(String id,double hp,double x) { health.put(id,hp);positions.put(id,point(x)); }
         EffectState state(){return session.state().engine().domain();}
@@ -64,11 +66,18 @@ class IncandescentTest {
         void kill(String target,long time){fire();impact(target,time);assertEquals(0,health.get(target));}
         Optional<BuffInstance> scorch(String target){return state().buffs().instances().values().stream().filter(b->b.definition().id().equals(SCORCH)&&b.key().holder().equals(target)).findFirst();}
         List<DamageCommand> bursts(){return hits.stream().filter(c->c.tags().contains("chorus_d2:incandescent_damage")).toList();}
+        Optional<EntityQuery.View> view(String target){return missing.contains(target)||!health.containsKey(target)?Optional.empty():Optional.of(new EntityQuery.View(health.get(target)>0,players.contains(target),health.get(target),1000,0,tags.getOrDefault(target,Set.of()),types.getOrDefault(target,Set.of())));}
+        DamageReceipt observed(DamageCommand command,DamageReceipt receipt){
+            var entities=omitMetadata?Map.<String,Optional<EntityQuery.View>>of():Map.of(command.target(),view(command.target()));
+            var points=omitPosition?Map.<PositionQuery,Optional<WorldPosition>>of():Map.of(new PositionQuery(command.target()),missingPosition?Optional.<WorldPosition>empty():Optional.ofNullable(positions.get(command.target())));
+            var result=receipt.withObservedEntities(new EntityObservation(now(),entities,points));afterReceipt.accept(command,result);return result;
+        }
         RuleEngine.ActionResult execute(RuleEngine.WorldRequest request){return switch(request.command()){
-            case PositionQuery q -> new PositionQuery.Result(q,Optional.ofNullable(positions.get(q.target())));
+            case PositionQuery q -> {positionReads.add(q.target());yield new PositionQuery.Result(q,Optional.ofNullable(positions.get(q.target())));}
             case DirectionQuery q -> new DirectionQuery.Result(q,Optional.of(new WorldDirection("test:world",1,0,0)));
             case ProjectileFlight.Launch launch -> {shots.add(launch);yield new ProjectileFlight.Receipt(launch,ProjectileFlight.Outcome.LAUNCHED,Optional.of("projectile-"+shots.size()));}
-            case EntityQuery q -> new EntityQuery.Result(q,missing.contains(q.target())||!health.containsKey(q.target())?Optional.empty():Optional.of(new EntityQuery.View(health.get(q.target())>0,players.contains(q.target()),health.get(q.target()),1000,0,tags.getOrDefault(q.target(),Set.of()),types.getOrDefault(q.target(),Set.of()))));
+            case EntityQuery q -> {entityReads.add(q.target());yield new EntityQuery.Result(q,view(q.target()));}
+            case Action.CueCommand c -> {cues.add(c.cue());yield RuleEngine.Empty.INSTANCE;}
             case TargetQuery q -> {
                 queries.add(q); var center=((TargetQuery.PositionCenter)q.center()).position().orElseThrow();
                 var targets=positions.entrySet().stream().filter(e->!q.exclude().contains(e.getKey())).map(e->new TargetQuery.Target(e.getKey(),Math.abs(e.getValue().x()-center.x()))).filter(t->t.distance()<=q.radius()).sorted(q.comparator()).toList();
@@ -77,9 +86,9 @@ class IncandescentTest {
             case StatusResult.Check q -> { checks++; if(unknownStatus)throw new IllegalStateException("unknown status after Incandescent damage");yield new StatusResult.Checked(q,denied?StatusResult.Decision.DENIED:health.get(q.target())>0?StatusResult.Decision.ALLOWED:StatusResult.Decision.DEAD); }
             case DamageCommand c -> {
                 hits.add(c); double amount=program.outgoing(state(),c,c.amount()).orElseThrow().output().value();amounts.add(amount);
-                if(cancelBurst&&c.tags().contains("chorus_d2:incandescent_damage"))yield new DamageReceipt(request.id().toString(),DamageReceipt.Outcome.IMMUNE,0,0,0,Optional.empty(),false);
+                if(cancelBurst&&c.tags().contains("chorus_d2:incandescent_damage"))yield observed(c,new DamageReceipt(request.id().toString(),DamageReceipt.Outcome.IMMUNE,0,0,0,Optional.empty(),false));
                 double before=health.get(c.target()),loss=Math.min(before,amount);health.put(c.target(),before-loss);
-                yield new DamageReceipt(request.id().toString(),DamageReceipt.Outcome.APPLIED,0,0,loss,before>0&&loss==before?Optional.of(request.id()+"/death"):Optional.empty(),false);
+                yield observed(c,new DamageReceipt(request.id().toString(),DamageReceipt.Outcome.APPLIED,0,0,loss,before>0&&loss==before?Optional.of(request.id()+"/death"):Optional.empty(),false));
             }
             default -> throw new AssertionError(request.command());
         };}
@@ -150,6 +159,31 @@ class IncandescentTest {
         h.kill("corpse",100_000);assertEquals(0,h.health.get("near"));assertEquals(2,h.queries.size());
         assertTrue(h.scorch("near").isEmpty());assertEquals(30,h.scorch("far").orElseThrow().count());
         assertTrue(h.bursts().stream().allMatch(c->c.source().weapon().equals("a")&&c.proc().deny().isEmpty()));
+    }
+    @Test void recordedClassificationAndPositionSurviveRemovalAndOppositeLiveRankWithoutCorpseQueries()throws Exception{
+        for(boolean strong:List.of(false,true))for(boolean removed:List.of(false,true)){
+            var h=new Harness(true);h.draw("secondary");h.ashes();h.entity("corpse",5,0);h.entity("near",1000,2);h.entity("far",1000,6);
+            if(strong)h.tags.put("corpse",Set.of("chorus_d2:elite"));
+            h.afterReceipt=(c,r)->{if(c.target().equals("corpse")&&r.lethal()){h.tags.put("corpse",strong?Set.of():Set.of("chorus_d2:boss"));h.positions.put("corpse",point(100));if(removed){h.missing.add("corpse");h.positions.remove("corpse");}}};
+            h.kill("corpse",100_000);assertEquals(strong?60:45,h.scorch("near").orElseThrow().count());assertEquals(strong,h.scorch("far").isPresent());
+            assertEquals(strong?8:4,h.queries.getFirst().radius());assertEquals(Optional.of(point(0)),((TargetQuery.PositionCenter)h.queries.getFirst().center()).position());
+            assertFalse(h.entityReads.contains("corpse"));assertFalse(h.positionReads.contains("corpse"));assertTrue(h.cues.isEmpty());
+        }
+    }
+    @Test void unknownOrUnavailableHistoryReportsGapWithoutUsingCurrentCorpse()throws Exception{
+        for(String kind:List.of("metadata_unknown","metadata_unavailable","position_unknown","position_unavailable")){
+            var h=new Harness(true);h.entity("corpse",5,0);h.entity("near",1000,2);
+            h.omitMetadata=kind.equals("metadata_unknown");h.omitPosition=kind.equals("position_unknown");h.missingPosition=kind.equals("position_unavailable");if(kind.equals("metadata_unavailable"))h.missing.add("corpse");
+            h.kill("corpse",100_000);assertTrue(h.queries.isEmpty()&&h.bursts().isEmpty()&&h.scorch("near").isEmpty());assertEquals(List.of("test:incandescent_unresolved"),h.cues);
+            assertFalse(h.entityReads.contains("corpse"));assertFalse(h.positionReads.contains("corpse"));
+        }
+    }
+    @Test void eachDerivedLethalBurstUsesItsOwnReceiptPointAfterBothCorpsesAreRemoved()throws Exception{
+        var h=new Harness(true);h.entity("corpse",5,0);h.entity("near",1,2);h.entity("far",1000,5);
+        h.afterReceipt=(c,r)->{if(r.lethal()){h.missing.add(c.target());h.positions.remove(c.target());}};
+        h.kill("corpse",100_000);assertEquals(0,h.health.get("near"));assertEquals(30,h.scorch("far").orElseThrow().count());
+        assertEquals(List.of(Optional.of(point(0)),Optional.of(point(2))),h.queries.stream().map(q->((TargetQuery.PositionCenter)q.center()).position()).toList());
+        assertTrue(h.bursts().stream().allMatch(c->c.source().weapon().equals("a")&&c.proc().deny().isEmpty()));assertTrue(h.cues.isEmpty());
     }
     @Test void incompleteCalibrationIsRejectedAndTheLinkedProgramRoundTrips() throws Exception {
         assertThrows(IllegalStateException.class,()->load("incandescent"));var p=program(true);

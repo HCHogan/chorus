@@ -12,4 +12,8 @@ public class IncandescentGameTest extends com.imdomestic.chorus.test.Incandescen
     public void actualScorchRetainsWeaponBonusAndRankExemptionAfterEquipmentIsRemoved(GameTestHelper h) throws Exception {super.actualScorchRetainsWeaponBonusAndRankExemptionAfterEquipmentIsRemoved(h);}
     @GameTest(structure="chorus_gametest:empty") @Override
     public void actualUncreditedKillAndPerkRemovedInFlightDoNotExplode(GameTestHelper h) throws Exception {super.actualUncreditedKillAndPerkRemovedInFlightDoNotExplode(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void corpseRankChangesMovementAndRemovalCannotChangeConfirmedBlast(GameTestHelper h)throws Exception{super.corpseRankChangesMovementAndRemovalCannotChangeConfirmedBlast(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void derivedLethalBlastUsesSecondReceiptCenterAfterBothCorpsesAreRemoved(GameTestHelper h)throws Exception{super.derivedLethalBlastUsesSecondReceiptCenterAfterBothCorpsesAreRemoved(h);}
 }

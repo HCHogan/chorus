@@ -26,304 +26,324 @@
           },
           "do": [
             {
-              "action": {
-                "type": "chorus:inspect_entity",
-                "target": "victim"
-              },
-              "as": "classified"
-            },
-            {
               "if": {
-                "type": "chorus:result_flag",
-                "binding": "classified",
-                "field": "available"
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_entity_observed",
+                    "target": "victim"
+                  },
+                  {
+                    "type": "chorus:event_position_observed",
+                    "target": "victim",
+                    "anchor": "feet"
+                  }
+                ]
               },
               "then": [
                 {
                   "action": {
-                    "type": "chorus:calculate",
-                    "profile": "chorus_d2:ashes_equipped",
-                    "input": {
-                      "type": "chorus:constant",
-                      "value": 0,
-                      "unit": "count"
-                    },
-                    "target": "self"
-                  },
-                  "as": "ashes"
-                },
-                {
-                  "action": {
-                    "type": "chorus:capture_value",
-                    "value": {
-                      "type": "chorus:choose",
-                      "if": {
-                        "type": "chorus:any",
-                        "of": [
-                          {
-                            "type": "chorus:result_flag",
-                            "binding": "classified",
-                            "field": "player"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:elite"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:champion"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:miniboss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:boss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:elite"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:champion"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:miniboss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:boss"
-                          }
-                        ]
-                      },
-                      "then": {
-                        "type": "chorus:constant",
-                        "value": 8,
-                        "unit": "meter"
-                      },
-                      "else": {
-                        "type": "chorus:constant",
-                        "value": 4,
-                        "unit": "meter"
-                      }
-                    }
-                  },
-                  "as": "radius"
-                },
-                {
-                  "action": {
-                    "type": "chorus:capture_value",
-                    "value": {
-                      "type": "chorus:choose",
-                      "if": {
-                        "type": "chorus:any",
-                        "of": [
-                          {
-                            "type": "chorus:result_flag",
-                            "binding": "classified",
-                            "field": "player"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:elite"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:champion"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:miniboss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "entity",
-                            "tag": "chorus_d2:boss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:elite"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:champion"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:miniboss"
-                          },
-                          {
-                            "type": "chorus:observed_entity_tag",
-                            "binding": "classified",
-                            "source": "type",
-                            "tag": "chorus_d2:boss"
-                          }
-                        ]
-                      },
-                      "then": {
-                        "type": "chorus:enhanced",
-                        "base": {
-                          "type": "chorus:choose",
-                          "if": {
-                            "type": "chorus:compare",
-                            "left": {
-                              "type": "chorus:result",
-                              "binding": "ashes",
-                              "field": "value"
-                            },
-                            "op": "gt",
-                            "right": {
-                              "type": "chorus:constant",
-                              "value": 0,
-                              "unit": "count"
-                            }
-                          },
-                          "then": {
-                            "type": "chorus:constant",
-                            "value": 50,
-                            "unit": "count"
-                          },
-                          "else": {
-                            "type": "chorus:constant",
-                            "value": 40,
-                            "unit": "count"
-                          }
-                        },
-                        "enhanced": {
-                          "type": "chorus:choose",
-                          "if": {
-                            "type": "chorus:compare",
-                            "left": {
-                              "type": "chorus:result",
-                              "binding": "ashes",
-                              "field": "value"
-                            },
-                            "op": "gt",
-                            "right": {
-                              "type": "chorus:constant",
-                              "value": 0,
-                              "unit": "count"
-                            }
-                          },
-                          "then": {
-                            "type": "chorus:constant",
-                            "value": 60,
-                            "unit": "count"
-                          },
-                          "else": {
-                            "type": "chorus:constant",
-                            "value": 45,
-                            "unit": "count"
-                          }
-                        }
-                      },
-                      "else": {
-                        "type": "chorus:enhanced",
-                        "base": {
-                          "type": "chorus:choose",
-                          "if": {
-                            "type": "chorus:compare",
-                            "left": {
-                              "type": "chorus:result",
-                              "binding": "ashes",
-                              "field": "value"
-                            },
-                            "op": "gt",
-                            "right": {
-                              "type": "chorus:constant",
-                              "value": 0,
-                              "unit": "count"
-                            }
-                          },
-                          "then": {
-                            "type": "chorus:constant",
-                            "value": 40,
-                            "unit": "count"
-                          },
-                          "else": {
-                            "type": "chorus:constant",
-                            "value": 30,
-                            "unit": "count"
-                          }
-                        },
-                        "enhanced": {
-                          "type": "chorus:choose",
-                          "if": {
-                            "type": "chorus:compare",
-                            "left": {
-                              "type": "chorus:result",
-                              "binding": "ashes",
-                              "field": "value"
-                            },
-                            "op": "gt",
-                            "right": {
-                              "type": "chorus:constant",
-                              "value": 0,
-                              "unit": "count"
-                            }
-                          },
-                          "then": {
-                            "type": "chorus:constant",
-                            "value": 45,
-                            "unit": "count"
-                          },
-                          "else": {
-                            "type": "chorus:constant",
-                            "value": 30,
-                            "unit": "count"
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "as": "stacks"
-                },
-                {
-                  "action": {
-                    "type": "chorus:capture_position",
+                    "type": "chorus:read_event_entity",
                     "target": "victim"
+                  },
+                  "as": "classified"
+                },
+                {
+                  "action": {
+                    "type": "chorus:read_event_position",
+                    "target": "victim",
+                    "anchor": "feet"
                   },
                   "as": "place"
                 },
                 {
                   "if": {
-                    "type": "chorus:result_flag",
-                    "binding": "place",
-                    "field": "available"
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "classified",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "place",
+                        "field": "available"
+                      }
+                    ]
                   },
                   "then": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:ashes_equipped",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        },
+                        "target": "self"
+                      },
+                      "as": "ashes"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:capture_value",
+                        "value": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "classified",
+                                "field": "player"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:elite"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:champion"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:miniboss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:boss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:elite"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:champion"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:miniboss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:boss"
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 8,
+                            "unit": "meter"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 4,
+                            "unit": "meter"
+                          }
+                        }
+                      },
+                      "as": "radius"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:capture_value",
+                        "value": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "classified",
+                                "field": "player"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:elite"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:champion"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:miniboss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "entity",
+                                "tag": "chorus_d2:boss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:elite"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:champion"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:miniboss"
+                              },
+                              {
+                                "type": "chorus:observed_entity_tag",
+                                "binding": "classified",
+                                "source": "type",
+                                "tag": "chorus_d2:boss"
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:enhanced",
+                            "base": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "ashes",
+                                  "field": "value"
+                                },
+                                "op": "gt",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 50,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 40,
+                                "unit": "count"
+                              }
+                            },
+                            "enhanced": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "ashes",
+                                  "field": "value"
+                                },
+                                "op": "gt",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 60,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 45,
+                                "unit": "count"
+                              }
+                            }
+                          },
+                          "else": {
+                            "type": "chorus:enhanced",
+                            "base": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "ashes",
+                                  "field": "value"
+                                },
+                                "op": "gt",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 40,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 30,
+                                "unit": "count"
+                              }
+                            },
+                            "enhanced": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "ashes",
+                                  "field": "value"
+                                },
+                                "op": "gt",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 45,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 30,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "as": "stacks"
+                    },
                     {
                       "action": {
                         "type": "chorus:capture_damage",
@@ -501,7 +521,19 @@
                         }
                       ]
                     }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:incandescent_unresolved"
+                    }
                   ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:incandescent_unresolved"
                 }
               ]
             }

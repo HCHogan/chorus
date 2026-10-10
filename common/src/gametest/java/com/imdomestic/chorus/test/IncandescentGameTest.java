@@ -27,8 +27,9 @@ public class IncandescentGameTest {
         }
         if(!credit)data.getAsJsonArray("weapons").get(0).getAsJsonObject().getAsJsonObject("fire").getAsJsonArray("on_fire").get(2).getAsJsonObject().getAsJsonObject("action").add("kill_tags",new JsonArray());
     }
-    static ProjectileGameTest.Harness harness(GameTestHelper h,boolean ashes,boolean credit) throws Exception {
-        var t=new ProjectileGameTest.Harness(h,"incandescent",d->prepare(d,credit),true);
+    static ProjectileGameTest.Harness harness(GameTestHelper h,boolean ashes,boolean credit) throws Exception {return harness(h,ashes,credit,_ -> {});}
+    static ProjectileGameTest.Harness harness(GameTestHelper h,boolean ashes,boolean credit,java.util.function.Consumer<JsonObject> edit) throws Exception {
+        var t=new ProjectileGameTest.Harness(h,"incandescent",d->{prepare(d,credit);edit.accept(d);},true);
         double x=t.owner.chunkPosition().getMinBlockX()+6.5,z=t.owner.chunkPosition().getMinBlockZ()+6.5;
         t.owner.setPos(x,t.owner.getY(),z);RampageGameTest.equip(t);
         bind(t,"solar","chorus_d2:solar_scaling","");if(ashes)bind(t,"ashes","chorus_d2:ember_of_ashes","");return t;
@@ -96,6 +97,29 @@ public class IncandescentGameTest {
                 h.assertTrue(dot.getFirst().killTags().contains("chorus:weapon_kill"),"Scorch lost weapon kill credit");
             });
         }catch(Exception|Error e){t.close();throw e;}
+    }
+    @GameCase public void corpseRankChangesMovementAndRemovalCannotChangeConfirmedBlast(GameTestHelper h)throws Exception{
+        for(boolean strong:List.of(false,true))for(boolean removed:List.of(false,true))try(var t=harness(h,true,true,EmberOfSearingGameTest::addCorpseCleanup)){
+            bind(t,"cleanup","test:corpse_cleanup","");var corpse=cow(t,0,5);var point=corpse.position();if(strong)corpse.addTag("chorus_d2:elite");
+            var nearTarget=cow(t,2,500);var far=cow(t,6,500);var outside=cow(t,8.01,500);
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){if(strong)corpse.removeTag("chorus_d2:elite");else corpse.addTag("chorus_d2:boss");corpse.setPos(corpse.getX()+20,corpse.getY(),corpse.getZ());if(removed)corpse.discard();}};
+            PugilistGameTest.draw(t,strong?"secondary":"primary");PugilistGameTest.impact(t,PugilistGameTest.fire(t),corpse);
+            h.assertValueEqual(scorch(t,nearTarget).orElseThrow().count(),strong?60:40,"original class selects documented layers");h.assertValueEqual(scorch(t,far).isPresent(),strong,"original four/eight meter radius");
+            h.assertTrue(scorch(t,outside).isEmpty(),"outside original burst radius");near(h,nearTarget.getHealth(),497.6,"damage uses original center distance");near(h,far.getHealth(),strong?498.8:500,"strong radius and distance retained");
+            var center=((com.imdomestic.chorus.effect.target.TargetQuery.PositionCenter)t.queries.getFirst().center()).position().orElseThrow();near(h,center.x(),point.x,"historical center x");near(h,center.y(),point.y,"historical center y");near(h,center.z(),point.z,"historical center z");
+            h.assertValueEqual(t.cues.stream().map(com.imdomestic.chorus.effect.data.Action.CueCommand::cue).toList(),List.of("test:remove_corpse"),"history remains available");h.assertTrue(t.runtime.failure().isEmpty(),"historical blast failed");
+        }h.succeed();
+    }
+    @GameCase public void derivedLethalBlastUsesSecondReceiptCenterAfterBothCorpsesAreRemoved(GameTestHelper h)throws Exception{
+        try(var t=harness(h,false,true,EmberOfSearingGameTest::addCorpseCleanup)){
+            bind(t,"cleanup","test:corpse_cleanup","");var corpse=cow(t,0,5);var second=cow(t,2,1);var far=cow(t,5,500);double x=corpse.getX();
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse"))for(var dead:List.of(corpse,second))if(dead.isDeadOrDying()&&!dead.isRemoved()){dead.setPos(dead.getX()+20,dead.getY(),dead.getZ());dead.discard();}};
+            PugilistGameTest.impact(t,PugilistGameTest.fire(t),corpse);
+            h.assertTrue(corpse.isRemoved()&&second.isRemoved(),"each death was cleaned before its kill reaction");h.assertValueEqual(scorch(t,far).orElseThrow().count(),30,"second burst reaches beyond first radius");near(h,far.getHealth(),497.9,"distance three from second death center");
+            h.assertValueEqual(t.queries.size(),2,"two receipt-derived blasts without a chain suppression");
+            for(int i=0;i<2;i++){var point=((com.imdomestic.chorus.effect.target.TargetQuery.PositionCenter)t.queries.get(i).center()).position().orElseThrow();near(h,point.x(),x+i*2,"each death has its own center");}
+            h.assertTrue(hits(t,"incandescent").stream().allMatch(d->d.source().weapon().equals("a")&&d.proc().deny().isEmpty()),"derived credit or proc policy changed");h.assertTrue(t.runtime.failure().isEmpty(),"derived blast failed");
+        }h.succeed();
     }
     @GameCase public void actualUncreditedKillAndPerkRemovedInFlightDoNotExplode(GameTestHelper h) throws Exception {
         for(boolean remove:List.of(false,true))try(var t=harness(h,false,remove)) {
