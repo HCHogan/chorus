@@ -20,7 +20,7 @@
 | Strand | 否 | 153 | 10 | 143 |
 | Prismatic | 否 | 196 | 0 | 196 |
 | Exotic Class | 否 | 79 | 0 | 79 |
-| Class Abilities | 否 | 59 | 3 | 56 |
+| Class Abilities | 否 | 59 | 6 | 53 |
 | Exotic Weapons | 否 | 303 | 0 | 303 |
 | Exotic Armors | 否 | 425 | 2 | 423 |
 | Game Mechanics | 否 | 683 | 4 | 679 |
@@ -95,7 +95,8 @@
 | Ember of Empyrean | partial | Solar B18; Solar D18; Solar N18 | 实际 Solar 击杀按 T1–T4/Guardian 延长已有 Radiant 与 Restoration；独立 15 秒上限与 -10 Health 查询；缺口：完整敌人 Tier 目录与助攻归属尚待补齐；外部适配器须显式提供回执实体观察；Solace 不乘该延长表是当前原表解释，需直接计时校准；同击激活及其他特殊时序待核对；所有 Solar 伤害生产者的规范标签、完整子职业装配、死亡策略、Health 游戏投影、HUD 与存档未完成 |
 | Ember of Eruption | partial | Solar B19; Solar D19; Solar N19 | 共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成；缺口：原作碎片取样时机、伤害曲线与点燃时序尚待校准；未覆盖所有直接点燃生产者及特殊来源；没有完整生产子职业装配、HUD 或状态持久化；已支持显式实际护甲数值汇总；正式掉落 / archetype / 总值校验及生产子职业限制未完成，跨子职业测试组合不代表合法配装；原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线 |
 | Enhanced Melee / Grenade damage stats | partial | Game Mechanics C29; Game Mechanics E29; Game Mechanics C35; Game Mechanics E35 | 普通近战/手雷的100–200点伤害增量；装备与碎片合计后限幅、独立乘算、两种模式和实际技能取样策略；缺口：角色属性倍率来源仍由测试宿主显式绑定，未完成生产自动装配、原版拳击/偃月伤害分类与完整目录；系数来自原表，未重新实测；取样时机是显式内容政策，不宣称与原作一致；抓钩双信用、全部近战加算组、Super/Class、状态伤害、目标/等级与混合模式资格仍需专用内容和实测；Arcbolt目前仍由宿主提供落点事件，未串成完整投掷/能量技能；状态持久化和HUD未完成 |
-| Dual Loader | partial | Weapon Perks A74; Weapon Perks C74 | 普通每次额外装入1发，强化额外2发；独立武器归属的插入数量Profile、逐次手动装填、容量/储备裁剪及双玩家实际装备命令验收；缺口：逐次取样、MAX分组及各reload perk逐发触发时机为明确内容策略；与Timelost Magazine等其他装填数量效果的组合需原作校准；验收武器使用合成一发基础、五发容量和首次/重复秒数，不是正式D2武器目录或实测动画；按键/动作表现、冲刺取消、技能换弹、弹药持久化仍未完成 |
+| Dual Loader | partial | Weapon Perks A74; Weapon Perks C74 | 普通每次额外装入1发，强化额外2发；独立武器归属的插入数量Profile、逐次手动装填、容量/储备裁剪及双玩家实际装备命令验收；缺口：逐次取样、MAX分组及各reload perk逐发触发时机为明确内容策略；与Timelost Magazine等其他装填数量效果的组合需原作校准；验收武器使用合成一发基础、五发容量和首次/重复秒数，不是正式D2武器目录或实测动画；按键/动作表现、冲刺取消、完整技能换弹内容、弹药持久化仍未完成 |
+| Marksman's Dodge | partial | Class Abilities B6; Class Abilities D6; Class Abilities N6; Weapon Perks C250 | 技能定义的换弹分支：支付职业能量、显式校准延迟后原子换弹全部当前装备武器，逐武器触发换弹perk；42秒基础冷却、CES 1；不是完整闪身；缺口：闪身位移/动画、15米弹药拾取、PvE投射物追踪与PvP辅助瞄准中断尚未实现；Class属性对被动/块状回能的曲线、增强属性护盾、金装组合、职业/子职业限制与正式装配未完成；实际换弹帧、延迟期间的配装取样/取消选择语义、满弹匣/无储备时perk资格仍待原作校准；当前策略均显式记录；测试武器弹量和完成后的治疗为合成观察器；按键/HUD与弹药持久化未完成 |
 
 ## 使用
 

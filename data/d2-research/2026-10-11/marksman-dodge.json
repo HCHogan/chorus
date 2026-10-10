@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10T14:43:49.208375+00:00",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+      "file": "data/d2-research/2026-10-11/marksman-dodge-source.html.gz",
+      "coordinate_system": "original_google_sheet",
+      "html_sha256": "fa8353f0fddc552a140aed0c3e0da9e545bbb75488b01d74aeabbfe255ef96b1",
+      "cells": {
+        "B9": "Marksman's Dodge",
+        "D9": "Performs an evasive maneuver that reloads all weapons and picks up Ammo Bricks within 15 meters.\nRemoves Combatant Projectile Tracking, as well as Aim Assist against Guardians during the Dodge Animation.",
+        "N9": "Base Cooldown: 42 seconds\n\nChunk Scalar:  1x"
+      }
+    },
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "file": "data/d2-research/2026-10-11/dual-loader-source.html.gz",
+      "coordinate_system": "original_google_sheet",
+      "html_sha256": "1349d50ee3ea0a112df32673130b9e2fba03e64c10a30f3863555971a31698ba",
+      "cells": {
+        "C251": "Reload Perk Notes:\n\nGenerate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines.\n\nOverflow = Increases Base Magazine Capacity by a certain amount, rounded up.\n\nRefill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons.\nFor Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting\n\nReload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads.\nFor Heat Weapons, finishing a manual vent will count as a regular reload."
+      }
+    }
+  ],
+  "implementation": {
+    "ability": "chorus_d2:marksman_dodge",
+    "scope": "Reload branch only; not a complete dodge ability.",
+    "base_cooldown_seconds": 42,
+    "chunk_scalar": 1,
+    "energy": "One-charge account, base rate 1/42; no Class stat modifiers yet. Identity gain path represents CES 1.",
+    "reload": "Equipped declared weapons at the scheduled reload moment; physically verified then atomically transferred.",
+    "timing": "calibration.reload_delay is required and snapshotted before payment. Test-only 0.2 seconds is not original-game timing.",
+    "zero_transfer": "transferred policy is an explicit assumption; full magazine or zero reserves do not qualify without actual transfer.",
+    "lifetime": "Accepted reload is detached from later ability deselection; recipient liveness and physical equipment still checked at execution. This is a Chorus content policy, not original-game calibration."
+  },
+  "limits": [
+    "Dodge motion, animation, 15m ammo-brick pickup, combatant projectile tracking removal and Guardian aim-assist removal are not implemented.",
+    "Class stat recharge/gain curves, enhanced Class overshield, exotic interactions, subclass restrictions, input/HUD and production selection assembly remain incomplete.",
+    "Reload timing, equipment sampling, deselection/cancellation and zero-transfer perk qualification need original-game validation.",
+    "Test weapons, capacities and reload healing observers are synthetic; weapon ammunition is not yet persisted across runtimes.",
+    "The original Weapon Perks HTML was reused from the earlier same-day Dual Loader capture; Class Abilities was fetched for this review."
+  ]
+}

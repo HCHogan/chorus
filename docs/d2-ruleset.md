@@ -893,3 +893,16 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 [dual_loader.json](../common/src/test/resources/effects/dual_loader.json) 为 this_weapon 提供 round 加值，经 [reload_insert_rounds.json](../common/src/test/resources/effects/reload_insert_rounds.json) 的独立 Profile 供 reload.insert 查询。基础一次一发时，普通 / 强化分别计划装入 2 / 3 发；到期仍按当前弹匣缺口和储备裁剪，例如剩余一发空间时只转移一发。它不增加容量、不生成弹药，不修改整弹匣 refill 或技能换弹资格。
 
 每步接受时取样、下一步在上一步完成反应后读取，以及额外弹数组采用 MAX，均是明确的 Chorus 内容策略；与 Timelost Magazine 等其他装填数量效果的原作组合待校准。验收用真实装备词条、普通手动换弹命令及两名玩家，武器基础一发 / 五发容量 / 0.2 秒首次 / 0.1 秒重复都是合成参数。完整武器目录、动画 / 按键、弹药持久化和所有 reload perk 的原作逐发资格仍未完成。
+
+
+## Marksman's Dodge（神射手闪身）：换弹分支
+
+2026-10-11 原表 `Class Abilities!B9/D9/N9` 说明：闪身换弹全部武器、拾取 15 米内弹药，并在动画期间移除 PvE 投射物追踪和对玩家的辅助瞄准；基础冷却 42 秒、Chunk Scalar 1。对应固定 CSV 坐标为 `B6/D6/N6`。原表 `Weapon Perks!C251`（CSV C250）将 Marksman's Dodge 与 Dragon's Shadow 列为触发换弹 perk 的 Reload。[来源记录](../data/d2-research/2026-10-11/marksman-dodge.json) 保存原始 HTML、哈希、坐标和实现边界。
+
+[marksman_dodge.json](../common/src/test/resources/effects/marksman_dodge.json) 只提供换弹分支的技能模板：职业槽单份能量，基础再生率 1/42、默认直接回能路径对应 CES 1；不包含 Class 属性倍率。接受施放先求值并固定 calibration.reload_delay，然后支付 1 份能量，detached 延迟执行 reload_weapons(equipped)。延迟必须为正的整数微秒；未提供校准参数时不能施放，且不会扣费。[测试校准](../common/src/test/resources/effects/marksman_dodge_test_calibration.json) 的 0.2 秒只用于验收，不能作为原作动画时间。
+
+换弹执行时才取得当前配装，经过真实容器 / 存活资格复核后统一转移全部武器弹药，再发布各自完成事件。因此接受后替换武器时，新装备武器会被换弹，已卸下的旧武器保持余额；同一批的第一项完成反应不会改变后续武器的已定转移。接受后的任务在取消技能选择后继续，重新选择不补满能量。这些取样 / 生命周期规则是明确的 Chorus 内容政策，原作边界尚未实测。
+
+当前 completion=transferred：只有实际装入子弹的武器触发换弹 perk，满弹匣 / 无储备不发完成。这是待校准政策；原表只明确它属于 Reload，未证明零转移资格，核心的 verified 政策可表达另一种结果。普通 refill_magazine 不因这条技能定义改变语义。有限储备守恒、无限储备保持无限；本定义不会生成弹药或为另一持有者换弹。
+
+四项纯核心测试和两端共享的实际玩家场景验证了支付 / 延迟、三武器批量转移、实例信用、延迟期间换装、另一玩家隔离、零转移政策及 Kill Clip 激活。测试里的武器弹量、无限弹药武器和治疗观察器为合成输入。闪身位移 / 动画、15 米拾取、追踪 / 辅助瞄准中断、Class 被动 / 块状回能倍率与增强护盾、金装组合、职业选择限制、正式内容装配、按键 / HUD 和弹药持久化仍未完成，审阅状态保持 partial。

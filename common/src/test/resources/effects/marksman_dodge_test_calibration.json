@@ -1,0 +1,4 @@
+{
+  "note": "Synthetic reload timing for Minecraft acceptance tests, not a measured Destiny dodge animation. Positive integral microseconds are required.",
+  "parameters": {"reload_delay": {"type": "chorus:constant", "value": 0.2, "unit": "second"}}
+}

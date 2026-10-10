@@ -1,0 +1,18 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [{
+    "id": "chorus_d2:marksman_dodge_energy",
+    "capacity": 1, "initial": 1, "base_rate": 0.023809523809523808
+  }],
+  "abilities": [{
+    "id": "chorus_d2:marksman_dodge", "slot": "chorus_d2:class",
+    "tags": ["chorus:class_ability", "chorus_d2:hunter_dodge"],
+    "cost": {"resource": "chorus_d2:marksman_dodge_energy", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}},
+    "parameters": {"reload_delay": {"value": {"type": "chorus:event_number", "name": "calibration.reload_delay", "unit": "second"}}},
+    "on_use": [{
+      "after": {"type": "chorus:event_number", "name": "param.reload_delay", "unit": "second"},
+      "lifetime": "detached",
+      "do": [{"type": "chorus:reload_weapons", "selection": "equipped", "completion": "transferred", "reason": "chorus_d2:marksman_dodge", "origin": "event"}]
+    }]
+  }]
+}

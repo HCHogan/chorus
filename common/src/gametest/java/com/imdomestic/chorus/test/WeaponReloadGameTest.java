@@ -87,6 +87,38 @@ public class WeaponReloadGameTest {
         var weapon = data.getAsJsonArray("weapons").get(0).getAsJsonObject(); var settings = ThreadedSpikeGameTest.json("incremental_reload_settings");
         weapon.getAsJsonObject("reload").add("insert", settings.get("insert")); weapon.add("fire", settings.get("fire"));
     }
+    @GameCase(environment = "chorus_gametest:marksman_dodge", maxTicks = 14)
+    public void marksmanDodgeReloadsTheCurrentPhysicalLoadoutAfterItsCalibratedDelay(GameTestHelper h) throws Exception {
+        var t = new Harness(h, data -> {
+            var ability = ThreadedSpikeGameTest.json("marksman_dodge");
+            ability.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject("reload_delay")
+                    .add("value", ThreadedSpikeGameTest.json("marksman_dodge_test_calibration").getAsJsonObject("parameters").get("reload_delay"));
+            // Merge only into the older synthetic weapon harness; retain the content's original version on disk.
+            data.add("resources", ability.get("resources")); data.add("abilities", ability.get("abilities"));
+        });
+        try {
+            var owner = t.player("dodge-"); t.player("other-"); String holder = owner.getUUID().toString();
+            t.runtime.abilities(new AbilityChange(holder, AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("chorus_d2:class", "chorus_d2:marksman_dodge"))));
+            t.killFact(owner, "dodge-b"); t.command(owner, "chorus ability use chorus_d2:class"); t.settled();
+            near(h, t.state().resources().get(new ResourceState.Key(holder, "chorus_d2:marksman_dodge_energy")).value(), 0, "accepted dodge cost");
+            h.assertValueEqual(t.magazine("dodge-a"), 1, "no transfer at cast acceptance"); h.assertTrue(t.heals.isEmpty(), "reload happened before configured delay");
+            var replacement = new ItemStack(Items.DIAMOND_SWORD); replacement.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear("dodge-c", "test:rifle", Map.of("perk", "kill_clip")));
+            owner.getInventory().setItem(0, replacement); var equipment = PlayerEquipment.get(owner);
+            equipment.swap(owner, "test:primary", 0, equipment.revision()); t.draw(owner, "secondary");
+            h.runAfterDelay(6, () -> { try (t) {
+                t.runtime.prepare(); t.settled();
+                h.assertValueEqual(t.magazine("dodge-a"), 1, "unequipped original weapon untouched");
+                for (String weapon : List.of("dodge-b", "dodge-c")) {
+                    h.assertValueEqual(t.magazine(weapon), 5, "current equipped weapon reloaded"); h.assertValueEqual(t.reserve(weapon), 8, "reserves conserved");
+                    for (var state : t.beforeHeals) h.assertValueEqual(state.ammunition().get(weapon).magazine(), 5, "reaction observed partial batch");
+                }
+                h.assertValueEqual(t.magazine("other-a"), 1, "other player unaffected"); h.assertValueEqual(t.heals.size(), 2, "one completion per current weapon");
+                near(h, owner.getHealth(), 18, "per-weapon completion observer");
+                h.assertTrue(t.state().buffs().instances().values().stream().anyMatch(b -> b.definition().id().equals("chorus_d2:kill_clip") && b.origin().weapon().equals("dodge-b")), "dodge reload did not activate the matching weapon perk");
+                h.succeed();
+            } });
+        } catch (Exception | Error error) { t.close(); throw error; }
+    }
     @GameCase(environment = "chorus_gametest:instant_reload", maxTicks = 14)
     public void ordinaryAbilityCommandReloadsOwnedWeaponsAtomicallyAndCancelsTheManualTimer(GameTestHelper h) throws Exception {
         var t = new Harness(h, data -> {

@@ -2840,7 +2840,7 @@
       "scope": "Generate 凭空生成至基础弹匣；Refill 从有限储备转移、不触发换弹词条；Reload 包含指定技能及手动排热完成",
       "acceptance": [
         "区分生成 / 溢出 / 补弹 / 合格换弹，不用通用补弹事实冒充换弹完成",
-        "热量武器的散热 / 手动排热和 Marksman Dodge / Dragon Shadow 分类是内容需求，尚未据此实现这些对象"
+        "Marksman Dodge 已有独立的部分换弹分支；热量武器散热 / 手动排热、完整闪身和 Dragon Shadow 仍待实现"
       ],
       "evidence": [
         {
@@ -5134,7 +5134,81 @@
       "gaps": [
         "逐次取样、MAX分组及各reload perk逐发触发时机为明确内容策略；与Timelost Magazine等其他装填数量效果的组合需原作校准",
         "验收武器使用合成一发基础、五发容量和首次/重复秒数，不是正式D2武器目录或实测动画",
-        "按键/动作表现、冲刺取消、技能换弹、弹药持久化仍未完成"
+        "按键/动作表现、冲刺取消、完整技能换弹内容、弹药持久化仍未完成"
+      ]
+    },
+    {
+      "id": "class/marksman_dodge",
+      "name": "Marksman's Dodge",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Class Abilities",
+          "cell": "B6",
+          "text_sha256": "573c0f3738c65e68dfd8ff64f5443c55bbf8d5c936e7002aa577e9384c0d43a0"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "D6",
+          "text_sha256": "5b3a8b65a7287b095bd175e99c2ef49365704382e7c955db5fc754a87b5d6526"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "N6",
+          "text_sha256": "d7ca9fc2a2e404c05719d1bbe3f7e611d154edb2d16bf97c79cbfc8f5ecbfd0d"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "技能定义的换弹分支：支付职业能量、显式校准延迟后原子换弹全部当前装备武器，逐武器触发换弹perk；42秒基础冷却、CES 1；不是完整闪身",
+      "acceptance": [
+        "缺少校准参数时在支付之前失败；参数在施放接受时固定，测试0.2秒不代表原作动画",
+        "三把装备武器均被选择；有限储备守恒、无限储备不生成有限账户，全部转移先于任何完成反应",
+        "装备在延迟期间变化时以执行瞬间的配装为准；原始技能原因和每把武器的换弹信用保留",
+        "实际玩家使用普通技能命令，替换原武器后新武器和另一把武器补满，其他玩家及原武器不变，Kill Clip获得对应武器完成",
+        "已付款任务在取消选择后继续，重新选择不补满能量；失去资格不退费；满弹匣不触发为当前显式策略"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/marksman_dodge.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanDodgeTest.java",
+          "symbol": "dodgePaysOnceAndReloadsAllThreeWeaponsAfterTheCalibratedDelay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanDodgeTest.java",
+          "symbol": "reloadSamplesTheCurrentLoadoutAndAcceptedWorkSurvivesAbilityDeselection"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanDodgeTest.java",
+          "symbol": "missingCalibrationFailsBeforePaymentAndTheBaseEnergyDefinitionKeepsSourceValues"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanDodgeTest.java",
+          "symbol": "deniedDelayedReloadKeepsThePaidChargeAndTheTransferPolicySkipsAlreadyFullWeapons"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponReloadGameTest.java",
+          "symbol": "marksmanDodgeReloadsTheCurrentPhysicalLoadoutAfterItsCalibratedDelay"
+        }
+      ],
+      "gaps": [
+        "闪身位移/动画、15米弹药拾取、PvE投射物追踪与PvP辅助瞄准中断尚未实现",
+        "Class属性对被动/块状回能的曲线、增强属性护盾、金装组合、职业/子职业限制与正式装配未完成",
+        "实际换弹帧、延迟期间的配装取样/取消选择语义、满弹匣/无储备时perk资格仍待原作校准；当前策略均显式记录",
+        "测试武器弹量和完成后的治疗为合成观察器；按键/HUD与弹药持久化未完成"
       ]
     }
   ]
