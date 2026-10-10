@@ -2036,7 +2036,7 @@
           "text_sha256": "5dd7d0b634a92c03da499a4c2be1dfbdb15e3585580fc5576bba374fd432812e"
         }
       ],
-      "scope": "落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收；另有独立151.5秒/0.75能量定义与手雷属性曲线，Demolitionist真实击杀回能与合成施放支付验收",
+      "scope": "落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收；另有独立151.5秒/0.75能量定义与手雷属性曲线，Demolitionist真实击杀回能与合成施放支付验收；共享 outgoing 属性倍率，延迟连锁冻结捕获时装备属性",
       "acceptance": [
         "落地扫描12米内视线可见的最近敌人，1秒后发出电弧",
         "命中后从该目标向10米内最近未命中敌人连锁，最多4个目标",
@@ -2101,11 +2101,29 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DemolitionistGameTest.java",
           "symbol": "actualWeaponKillsRestoreGrenadeAndAbilityRefillsDoNotTriggerKillClipOrClown"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/combat_damage.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ability_stat_damage.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArcboltTest.java",
+          "symbol": "actualChainRetainsCapturedArmorStatsAndTheNextChainUsesTheNewRoll"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "actualDelayedBoltsRetainEnhancedGrenadeStatAfterArmorRemoval"
         }
       ],
       "gaps": [
         "投掷轨迹、实体碰撞/落地点和释放输入未接入；当前由测试宿主发出impact事件，以独立LivingEntity表示落点，显式排除它，不是生产投射物；能量定义已有独立验收，尚未与落地/连锁组合成技能",
-        "521/85来自固定快照，0.1为明确的Minecraft伤害投影；绝对值、Grenade属性、完整等级/目标类别缩放仍待校准；9.0.0.1相对改动不再次乘到固定快照数值",
+        "521/85来自固定快照，0.1为明确的Minecraft伤害投影；Grenade 增强属性已接共享输出，绝对值、属性取样时机、完整等级/目标类别缩放仍待校准；9.0.0.1相对改动不再次乘到固定快照数值",
         "初次锁定不在1秒后重扫或复验视线/距离；后续跳跃无额外延迟/视线要求；从伤害前捕获的目标身体点继续；拒绝或零损失终止且不重选；这些为待原作校准的内容策略",
         "当前实际损失包括HP、Chorus护盾和Absorption；后续跳跃沿原施加者的实时not_allied关系，离线/跨维度阵营快照和D2敌我分类未完成",
         "基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x资源侧已接入，正式伤害类型、投掷与表现仍未实现"
@@ -2236,7 +2254,7 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表固定回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail；145.2 秒基础恢复、0.8 CES、近战属性主动/被动曲线与一次参考基准归一化，物理/持续时间测试值不作为 D2 数值；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成",
+      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表固定回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail；145.2 秒基础恢复、0.8 CES、近战属性主动/被动曲线与一次参考基准归一化，物理/持续时间测试值不作为 D2 数值；选择期回能来源和实际护甲参数已接线，无基础 Buff 时仍可读取碎片加成；Melee 超过 100 的属性倍率按每次接触查询，实际物品换装改变同一投射物的后续命中",
       "acceptance": [
         "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
         "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
@@ -2451,6 +2469,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
           "symbol": "actualArmorSwapSplitsSelectedMeleeRegenerationAndChangesTheNextGrant"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ability_stat_damage.json"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "physicalArmorSwapChangesThreadedSpikesNextContactWithoutRecasting"
         }
       ],
       "gaps": [
@@ -4964,6 +4991,89 @@
         "没有完整生产子职业装配、HUD 或状态持久化",
         "已支持显式实际护甲数值汇总；正式掉落 / archetype / 总值校验及生产子职业限制未完成，跨子职业测试组合不代表合法配装",
         "原表 Game Mechanics E187 的手雷回能文字与官方和当前拟合表冲突，记录待校准；本阶段不改写既有曲线"
+      ]
+    },
+    {
+      "id": "reference/enhanced_ability_damage",
+      "name": "Enhanced Melee / Grenade damage stats",
+      "kind": "reference",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C29",
+          "text_sha256": "2e24eb8ac3378a24fb64d99f02cd9135880e26f0b84b5dd3feac1be91a16a00f"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "E29",
+          "text_sha256": "b334a79d541d8b6d9235a978b2c8c63b22aa2918809b7312e4b55826efc2fc4c"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C35",
+          "text_sha256": "74723f182aa96b1bae715da43a1e9bd81e688cfa3295206b9a2fc1e2b64a2bf3"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "E35",
+          "text_sha256": "47406b6b0b572af862826b25bd89a82eebf4835433f0c2ad9f8fa770f6109bd1"
+        }
+      ],
+      "scope": "普通近战/手雷的100–200点伤害增量；装备与碎片合计后限幅、独立乘算、两种模式和实际技能取样策略",
+      "acceptance": [
+        "100以下无增量，PvE近战每点0.3%/手雷0.65%，PvP均0.2%，200封顶",
+        "只读取攻击持有者的对应属性；三类近战使用显式信用，来源身份不推断伤害类型",
+        "装备加碎片先汇总；无属性Buff/技能选择也能工作，查询不写状态",
+        "独立于perk和Sever乘算；同角色重复绑定不重复叠乘；双信用不走普通分支",
+        "真实Threaded Spike在两次接触之间换物品读取当前值；真实Arcbolt延迟连锁保留捕获值"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ability_stat_damage.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/combat_damage.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityStatDamageTest.java",
+          "symbol": "enhancedMeleeAndGrenadeUseTheirOwnModeSlopeOnlyAboveOneHundred"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityStatDamageTest.java",
+          "symbol": "eachCreditUsesItsOwnStatRatherThanTheLargestEquippedNumber"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityStatDamageTest.java",
+          "symbol": "statFactorMultipliesIndependentPerksAndSeverInsteadOfJoiningTheirMaximum"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityStatDamageTest.java",
+          "symbol": "capturePinsSourceStatWhileDirectDamageAndSeverReadCurrentState"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "physicalArmorSwapChangesThreadedSpikesNextContactWithoutRecasting"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
+          "symbol": "actualDelayedBoltsRetainEnhancedGrenadeStatAfterArmorRemoval"
+        }
+      ],
+      "gaps": [
+        "角色属性倍率来源仍由测试宿主显式绑定，未完成生产自动装配、原版拳击/偃月伤害分类与完整目录",
+        "系数来自原表，未重新实测；取样时机是显式内容政策，不宣称与原作一致",
+        "抓钩双信用、全部近战加算组、Super/Class、状态伤害、目标/等级与混合模式资格仍需专用内容和实测",
+        "Arcbolt目前仍由宿主提供落点事件，未串成完整投掷/能量技能；状态持久化和HUD未完成"
       ]
     }
   ]

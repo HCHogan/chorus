@@ -39,7 +39,7 @@ public class StrandDefenseGameTest {
             entities = List.of(attacker, target, ally, recipient);
             for (var e : entities) { e.setNoGravity(true); e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200); e.setHealth(200); e.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1); }
             var fragments = new ArrayList<EffectProgram>();
-            for (String name : List.of("strand_defense", "strand_inputs")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + name + ".json")), StandardCharsets.UTF_8)) {
+            for (String name : List.of("combat_damage", "strand_defense", "strand_inputs")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + name + ".json")), StandardCharsets.UTF_8)) {
                 fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow());
             }
             var program = CompiledEffects.link(fragments); var origin = new BuffInstance.Origin(id(ally), "grant", "", "");

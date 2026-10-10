@@ -25,7 +25,7 @@ public class ThreadedSpikeGameTest {
     static void prepare(JsonObject data) {
         var params = data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters");
         json("threaded_spike_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e -> params.getAsJsonObject(e.getKey()).add("value", e.getValue()));
-        for (String name : List.of("strand_defense", "continuity", "strand_inputs", "threaded_spike_energy", "character_stats")) {
+        for (String name : List.of("combat_damage", "strand_defense", "continuity", "strand_inputs", "threaded_spike_energy", "character_stats")) {
             var fragment = json(name);
             for (var e : fragment.entrySet()) if (!e.getKey().equals("version")) {
                 if (e.getValue().isJsonArray()) {

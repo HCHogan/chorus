@@ -145,6 +145,7 @@ public class DamageGameTest {
              var continuity = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/continuity.json")), StandardCharsets.UTF_8)) {
             var compiled = com.imdomestic.chorus.effect.data.CompiledEffects.link(List.of(
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow(),
+                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("combat_damage")).getOrThrow(),
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(strand)).getOrThrow(),
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(continuity)).getOrThrow()));
             var origin = new BuffInstance.Origin("attacker", "perk", "weapon", "");

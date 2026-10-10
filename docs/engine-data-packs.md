@@ -1677,7 +1677,7 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 ## 共享 Strand 防御示例
 
-[strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 声明 Sever、Woven Mail 和查询 Profile；[slice.json](../common/src/test/resources/effects/slice.json) 现在是引用 Sever 的片段，必须与 continuity.json 一起同版本链接后编译，数据包可用 imports / fragment 组织，不能单独启动 slice。strand_inputs.json 仅提供合成触发和超能测试，未装配真实 D2 技能。
+[strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 声明 Sever、Woven Mail 与 incoming Profile，outgoing 由 [combat_damage.json](../common/src/test/resources/effects/combat_damage.json) 提供；[slice.json](../common/src/test/resources/effects/slice.json) 是引用 Sever 的片段，必须与这两个模块及 continuity.json 同版本链接后编译，数据包可用 imports / fragment 组织，不能单独启动 slice。strand_inputs.json 仅提供合成触发和超能测试，未装配真实 D2 技能。
 
 Sever 通过受影响持有者的 outgoing Profile 修饰输出。伤害命令须显式选择 chorus_d2:outgoing；原版 nativeSource 默认不选此 Profile，生产宿主仍需装配。默认定义时长为 10 秒。Slice 先用 calculate 查询施加者的 strand_debuff_duration，再把 10 / 5 秒基础加上已装备 Continuity 的 5 / 2.5 秒扩展，作为 apply_status.duration；不能把任意来源的未知时间自动替换成默认值。
 
@@ -1714,6 +1714,14 @@ on_use 的来源属性必须在捕获时可求值，结果保存为常量；vict
 原 `grenade_stat / melee_stat` Buff 现在只把 points 加进对应属性 Profile，可用于独立的角色固有输入；没有时贡献为零。宿主若继续填写这些组件，须只填未由装备来源表示的点数，不能把已汇总护甲值再填进去。查询 Profile 的 input 同样用 0，避免把组件既作为 input 又作为修饰加两次。Buff 存储值与实际 Gear 数值均不随最后的限幅改写。
 
 5 项 ArmorStatInputsTest 与两端实际玩家护甲换装 / Firesprite 拾取 / Threaded Spike 回能验收覆盖这条链路。该阶段未实现 Health / Class / Super / Weapons 的全部玩法消费方，也没有正式护甲掉落、职业限制或完整属性 UI；Arcbolt 的合成选择不能当成完整手雷动作实现。来源与曲线冲突见 [核对记录](../data/d2-research/2026-10-11/armor-stat-inputs.json)。
+
+### D2 增强属性伤害
+
+[combat_damage.json](../common/src/test/resources/effects/combat_damage.json) 独立定义 `chorus_d2:outgoing`，使用它的 Strand 状态 / Threaded Spike / Arcbolt 组合须显式链接该模块。`ability_stat_damage.json` 依赖这个 Profile 与 `character_stats.json`，提供 `chorus_d2:ability_stat_damage` SOURCE；由宿主按角色绑定，不能只在选中近战或装备某件护甲时启用，因为未充能 / 偃月近战也可受益。重复来源经过同阶段 MAX 只贡献一次，不表示引擎已自动安装这个来源。
+
+两个修饰分别要求 melee_damage / grenade_damage 且排除另一个标签，查询 self 的对应属性、输入 0 stat_point，扣去 100 后下限为 0，再换算成 delta。multiply 动作接收的是增量，例如 PvE 200 近战点数贡献 `0.3 delta`，阶段应用 `1 + 0.3`，不能传入 `1.3 multiplier`。阶段与 perk / outgoing_debuff 分开；普通路径同时有两种信用时均不生效，抓钩等混合公式要提供独立内容规则。
+
+on_use 在 capture_damage 时冻结来源属性；没有 capture_damage 的直接伤害则每次查询。Arcbolt 延迟连锁冻结、Threaded Spike 接触时读取当前物理装备这两种策略已验，仍待原作取样时机校准。来源坐标、倍率、缺口与完整例子见 [D2 数值规则](d2-ruleset.md) 和 [核对记录](../data/d2-research/2026-10-11/enhanced-ability-damage.json)。这些模块仍是测试资源，没有改变发布 jar 的内容集。
 
 ### 显式计算动作
 

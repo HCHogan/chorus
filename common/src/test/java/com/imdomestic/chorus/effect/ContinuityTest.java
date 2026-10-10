@@ -19,7 +19,7 @@ class ContinuityTest {
         final List<StatusResult.Check> checks = new ArrayList<>();
         StatusResult.Decision decision = StatusResult.Decision.ALLOWED;
         Harness(EffectState.Mode mode, boolean enhanced) throws Exception {
-            program = link("continuity", "strand_defense", "slice");
+            program = link("continuity", "combat_damage", "strand_defense", "slice");
             var base = source(SLICE); weapon = new EffectSource(base.instance(), base.bundle(), base.holder(), base.origin(), enhanced ? Set.of("chorus:enhanced") : Set.of());
             session = new EffectSession(engine(program), EffectState.empty().withMode(mode).withSource(weapon), request -> {
                 var check = (StatusResult.Check) request.command(); checks.add(check); return new StatusResult.Checked(check, decision);

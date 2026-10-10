@@ -26,7 +26,7 @@ class ThreadedSpikeTest {
         var inputs = JsonParser.parseString("""
             {"version":"compendium-2026-10-05","bundles":[{"id":"test:subclass"}]}
             """);
-        return CompiledEffects.link(List.of(data, json("strand_defense"), json("continuity"), json("threaded_spike_energy"), json("character_stats"), inputs).stream()
+        return CompiledEffects.link(List.of(data, json("combat_damage"), json("strand_defense"), json("continuity"), json("threaded_spike_energy"), json("character_stats"), inputs).stream()
                 .map(j -> EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, j).getOrThrow()).toList());
     }
     static EffectSource subclass(String holder) { return new EffectSource("class-" + holder, "test:subclass", holder,

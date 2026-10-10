@@ -19,7 +19,7 @@ class EnergyGainTest {
     static final Unit STAT = new Unit("chorus:stat_point");
     static final BuffInstance.Origin ORIGIN = new BuffInstance.Origin("grantor", "producer", "weapon", "");
     static final EffectSource SOURCE = new EffectSource("input", "test:spike_energy", "grantor", ORIGIN, Set.of());
-    static CompiledEffects program() throws Exception { return link("threaded_spike", "strand_defense", "continuity", "threaded_spike_energy", "character_stats", "spike_energy_inputs"); }
+    static CompiledEffects program() throws Exception { return link("threaded_spike", "combat_damage", "strand_defense", "continuity", "threaded_spike_energy", "character_stats", "spike_energy_inputs"); }
     static EffectEvent event(String target, Map<String, Measure> numbers) { return new EffectEvent("grantor", target, ORIGIN, Set.of("chorus_d2:class_mod_energy"), numbers); }
     static final class Harness {
         final CompiledEffects program; final EffectSession session; final ResourceDefinition resource;

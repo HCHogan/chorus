@@ -1,0 +1,222 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ability_stat_damage",
+      "modifiers": [
+        {
+          "id": "melee",
+          "profile": "chorus_d2:outgoing",
+          "stage": "ability_stat",
+          "group": "ability_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:ability_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:grenade_damage"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "max",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:attribute",
+                        "profile": "chorus_d2:melee_stat",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "stat_point"
+                        },
+                        "target": "self"
+                      },
+                      {
+                        "type": "chorus:constant",
+                        "value": -100,
+                        "unit": "stat_point"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "factor": 0.003,
+              "from": "stat_point",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "max",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:attribute",
+                        "profile": "chorus_d2:melee_stat",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "stat_point"
+                        },
+                        "target": "self"
+                      },
+                      {
+                        "type": "chorus:constant",
+                        "value": -100,
+                        "unit": "stat_point"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "factor": 0.002,
+              "from": "stat_point",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium original Game Mechanics E180, checked 2026-10-11; data/d2-research/2026-10-11/enhanced-ability-damage.json. Explicit primary-credit tags; stat sampling at capture or direct damage query is Chorus content policy, not measured Destiny timing.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "grenade",
+          "profile": "chorus_d2:outgoing",
+          "stage": "ability_stat",
+          "group": "ability_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:ability_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:grenade_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:melee_damage"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "max",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:attribute",
+                        "profile": "chorus_d2:grenade_stat",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "stat_point"
+                        },
+                        "target": "self"
+                      },
+                      {
+                        "type": "chorus:constant",
+                        "value": -100,
+                        "unit": "stat_point"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "factor": 0.0065,
+              "from": "stat_point",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "max",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:attribute",
+                        "profile": "chorus_d2:grenade_stat",
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "stat_point"
+                        },
+                        "target": "self"
+                      },
+                      {
+                        "type": "chorus:constant",
+                        "value": -100,
+                        "unit": "stat_point"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "factor": 0.002,
+              "from": "stat_point",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium original Game Mechanics E187, checked 2026-10-11; data/d2-research/2026-10-11/enhanced-ability-damage.json. Explicit primary-credit tags; stat sampling at capture or direct damage query is Chorus content policy, not measured Destiny timing.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

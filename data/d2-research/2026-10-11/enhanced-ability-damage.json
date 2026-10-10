@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10T14:12:56.215831+00:00",
+  "source_record": "data/d2-research/2026-10-11/armor-stat-inputs.json",
+  "original_sheet_cells": [
+    "E180",
+    "E187",
+    "E196"
+  ],
+  "fresh_html_sha256": "84735447adaf99c848deae914b879a3aa16207f378af926ce24f960a311843ef",
+  "saved_capture_sha256": "7131286411f1f4b30ac1a2ed542dc4ae6e449a3237187da3326552d30c90cb0f",
+  "cells_unchanged": true,
+  "coordinate_system": "original_google_sheet; immutable CSV review uses different coordinates",
+  "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1800463143",
+  "formulas": {
+    "enhanced_points": "max(0, clamp(sum(intrinsic + armor + fragments), 0, 200) - 100)",
+    "melee_pve": "1 + .003 * enhanced_points",
+    "melee_pvp": "1 + .002 * enhanced_points",
+    "grenade_pve": "1 + .0065 * enhanced_points",
+    "grenade_pvp": "1 + .002 * enhanced_points"
+  },
+  "implementation": {
+    "profile": "chorus_d2:outgoing extracted from strand_defense into combat_damage.json; ability_stat multiplier stage is separate from legacy perk maximum and live outgoing_debuff resistance",
+    "binding": "Host explicitly binds one chorus_d2:ability_stat_damage SOURCE per participating combatant, independent of selected ability or equipped armor. No production automatic character assembly yet.",
+    "classification": "Exactly one of chorus:melee_damage or chorus:grenade_damage selects this ordinary attack policy; both or neither contributes no stat bonus. Source weapon/ability strings do not infer credit. Glaive melee requires explicit melee credit.",
+    "sampling": "on_use values freeze with capture_damage; uncaptured direct DamageCommand queries current attributes. Arcbolt captures at supplied impact signal before 1 second activation; Threaded Spike queries each contact. Explicit Chorus policies, not measured original Destiny behavior.",
+    "stacking": "Derived stat query input is zero, caps after source contributions, returns delta in an independent multiply/MAX stage. Duplicate stat scaling bindings cannot multiply twice."
+  },
+  "limits": [
+    "This is reference content under test resources, not a released production content pack or automatic native punch/Glaive classifier.",
+    "Generic perk MAX is inherited from the existing fixture; complete Destiny melee additive subgroups, buffs, target and level scaling remain incomplete.",
+    "Dual-credit Grapple requires its dedicated combined-stat profile and classification; it must not use the ordinary mutually exclusive melee/grenade policy.",
+    "Scorch/Ignition inherit no bonus from an ability identity; their separate profiles and source-specific eligibility still need calibration.",
+    "Super damage versus Well/Ward duration, Class overshield and damaging Class abilities are not implemented here. Original E196 does include damaging Class ability scaling (.65% per point PvE; .1?% PvP); prior documentation saying Class has no damage bonus was corrected.",
+    "Stat coefficients follow current Compendium text, not a new in-game measurement. No new rounding or cross-mode combat policy is asserted.",
+    "The grenade chunk-gain text conflict recorded in armor-stat-inputs.json remains unresolved and is independent of enhanced damage."
+  ]
+}

@@ -27,7 +27,7 @@ class StrandDefenseTest {
     static double incoming(CompiledEffects p, EffectState s, DamageCommand c, double amount) { return p.defense(s, c, amount).orElseThrow().output().value(); }
 
     @Test void severFollowsTheAffectedAttackerRatherThanItsApplierOrVictim() throws Exception {
-        var p = load("strand_defense");
+        var p = link("combat_damage", "strand_defense");
         for (var mode : EffectState.Mode.values()) {
             var s = grant(p, EffectState.empty().withMode(mode), SEVER, "attacker", 10_000_000);
             assertEquals(mode == EffectState.Mode.PVE ? 60 : 85, outgoing(p, s, attack("attacker", false, Set.of())), 1e-10);
@@ -40,6 +40,7 @@ class StrandDefenseTest {
 
     @Test void wovenBypassesOnlyItsOwnResistanceForGuardianPrecisionAndMelee() throws Exception {
         var data = json("strand_defense");
+        json("combat_damage").getAsJsonArray("profiles").forEach(v -> data.getAsJsonArray("profiles").add(v));
         data.getAsJsonArray("buffs").add(JsonParser.parseString("""
           {"definition":{"id":"test:other_dr","version":"compendium-2026-10-05","duration":10},"bundle":"test:other_dr"}
           """));
@@ -59,7 +60,7 @@ class StrandDefenseTest {
     }
 
     @Test void liveSeverAndTargetDefenseComposeAtImpactEvenForAnEarlierAttackSnapshot() throws Exception {
-        var p = load("strand_defense"); var empty = EffectState.empty();
+        var p = link("combat_damage", "strand_defense"); var empty = EffectState.empty();
         var shot = p.captureDamage(empty, attack("attacker", false, Set.of()));
         var s = grant(p, grant(p, empty, SEVER, "attacker", 10_000_000), WOVEN, "target", 10_000_000);
         assertEquals(33, incoming(p, s, shot.command("target"), outgoing(p, s, shot.command("target"))), 1e-10);
@@ -70,7 +71,7 @@ class StrandDefenseTest {
     }
 
     @Test void sliceLinksTheSameSeverAndOnlyChangesTheDebuffedTargetsLaterOutput() throws Exception {
-        var p = link("slice", "strand_defense", "continuity"); var source = source("chorus_d2:slice");
+        var p = link("slice", "combat_damage", "strand_defense", "continuity"); var source = source("chorus_d2:slice");
         for (var mode : EffectState.Mode.values()) {
             var engine = engine(p); var state = send(engine, engine.initial(EffectState.empty().withSource(source).withMode(mode)), 0, "chorus:class_ability_used", event(source));
             var facts = DamageFacts.from(new DamageCommand("attacker", source.origin(), 1, "minecraft:generic", Set.of(), Set.of(), false),
@@ -88,7 +89,7 @@ class StrandDefenseTest {
     }
 
     @Test void repeatedGrantsKeepTheLongerRemainingDurationAndExpireExactly() throws Exception {
-        var p = load("strand_defense"); var s = grant(p, EffectState.empty(), WOVEN, "target", 10_000_000);
+        var p = link("combat_damage", "strand_defense"); var s = grant(p, EffectState.empty(), WOVEN, "target", 10_000_000);
         s = s.withBuffs(Buffs.advanceStep(s.buffs(), 2_000_000).store());
         s = grant(p, s, WOVEN, "target", 3_000_000);
         assertEquals(1, s.buffs().instances().size());
@@ -104,7 +105,7 @@ class StrandDefenseTest {
     }
 
     @Test void onlyTheRecipientsAcceptedSuperRemovesMailGrantedByAnotherPlayer() throws Exception {
-        var p = link("strand_defense", "strand_inputs"); var source = new EffectSource("grant", "test:strand_inputs", "ally", APPLIER, Set.of());
+        var p = link("combat_damage", "strand_defense", "strand_inputs"); var source = new EffectSource("grant", "test:strand_inputs", "ally", APPLIER, Set.of());
         var session = new EffectSession(engine(p), EffectState.empty().withSource(source), request -> { throw new AssertionError(request); });
         for (String owner : List.of("target", "ally")) session.start(0, new AbilityChange(owner, AbilityLoadout.EMPTY,
                 new AbilityLoadout(Map.of("test:super", "test:super", "test:ordinary", "test:ordinary"))).signal());
@@ -125,7 +126,7 @@ class StrandDefenseTest {
     }
 
     @Test void acceptedStartCommitsCostAndRemovesOldMailBeforeTheBodyCanGrantNewMail() throws Exception {
-        var p = link("strand_defense", "strand_inputs");
+        var p = link("combat_damage", "strand_defense", "strand_inputs");
         var initial = grant(p, EffectState.empty(), WOVEN, "target", 10_000_000);
         var sessionRef = new EffectSession[1]; var observed = new ArrayList<DamageCommand>();
         var session = new EffectSession(engine(p), initial, request -> {
@@ -156,7 +157,7 @@ class StrandDefenseTest {
         var under = JsonParser.parseString(json("under_over").toString().replace("test-1", "compendium-2026-10-05")
                 .replace("test:weapon_damage", "chorus_d2:outgoing")).getAsJsonObject();
         under.getAsJsonArray("profiles").remove(0);
-        var p = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("strand_defense")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, under).getOrThrow()));
+        var p = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("combat_damage")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("strand_defense")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, under).getOrThrow()));
         for (boolean enhanced : List.of(false, true)) {
             var body = attack("attacker", true, Set.of("chorus:weapon_direct", "chorus:guardian_target", "chorus:bodyshot"));
             var s = EffectState.empty().withMode(EffectState.Mode.PVP).withSource(new EffectSource("perk", "chorus_d2:under_over", "attacker", body.source(), enhanced ? Set.of("chorus:enhanced") : Set.of()));
@@ -170,10 +171,10 @@ class StrandDefenseTest {
     }
 
     @Test void linkedDefinitionsRoundTripAndSliceRequiresItsSharedDependency() throws Exception {
-        var p = link("strand_defense", "strand_inputs", "continuity", "slice");
+        var p = link("combat_damage", "strand_defense", "strand_inputs", "continuity", "slice");
         var encoded = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, p).getOrThrow();
         assertEquals(p.program(), EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, encoded).getOrThrow().program());
         assertThrows(RuntimeException.class, () -> load("slice"));
-        assertThrows(RuntimeException.class, () -> link("strand_defense", "strand_defense"));
+        assertThrows(RuntimeException.class, () -> link("combat_damage", "strand_defense", "strand_defense"));
     }
 }

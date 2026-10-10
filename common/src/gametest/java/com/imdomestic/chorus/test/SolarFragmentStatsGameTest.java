@@ -42,6 +42,27 @@ public class SolarFragmentStatsGameTest {
     static double points(ProjectileGameTest.Harness t, String stat) {
         return t.runtime.program().attribute(t.runtime.state().engine().domain(), FirespriteGameTest.id(t.owner), "chorus_d2:" + stat + "_stat", new Measure(0, Unit.STAT_POINT), NumericQuery.Path.empty()).output().value();
     }
+    @GameCase public void physicalArmorSwapChangesThreadedSpikesNextContactWithoutRecasting(GameTestHelper h) throws Exception {
+        try (var t = new ProjectileGameTest.Harness(h, "threaded_spike", data -> {
+            ThreadedSpikeGameTest.prepare(data); armor(data);
+            ThreadedSpikeGameTest.json("ability_stat_damage").getAsJsonArray("bundles").forEach(v -> data.getAsJsonArray("bundles").add(v));
+        }, true)) {
+            var first = ThreadedSpikeGameTest.target(t, 2.5, 44, 3.5, 1000);
+            var second = ThreadedSpikeGameTest.target(t, 2.5, 54, 3.5, 1000);
+            equipArmor(t, "high", "arms", 200); IncandescentGameTest.bind(t, "scaling", "chorus_d2:ability_stat_damage", "");
+            ThreadedSpikeGameTest.cast(t); var projectile = t.projectiles.getFirst();
+            for (int i = 0; i < 20 && t.hits.isEmpty(); i++) projectile.tick();
+            h.assertValueEqual(t.hits.size(), 1, "first real projectile contact");
+            near(h, 1000 - first.getHealth(), 427 * 1.3, "200 melee stat enhances first hit");
+            equipArmor(t, "low", "arms", 100);
+            for (int i = 0; i < 20 && t.hits.size() < 2; i++) projectile.tick();
+            h.assertValueEqual(t.hits.size(), 2, "same projectile reaches second target");
+            near(h, 1000 - second.getHealth(), 427 * .82, "current armor controls second hit while base decay stays cast-bound");
+            h.assertTrue(t.hits.stream().allMatch(d -> d.snapshot().isEmpty()), "Threaded Spike uses its explicit direct-contact policy");
+            h.assertTrue(t.runtime.failure().isEmpty(), "physical armor damage failed");
+        }
+        h.succeed();
+    }
     @GameCase public void actualArmorComponentsAndCharScalePhysicalPickupWithoutCreatingStatBuffs(GameTestHelper h) throws Exception {
         try (var t = FirespriteGameTest.harness(h, data -> { solar(data); armor(data); })) {
             equipArmor(t, "helmet", "helmet", 50); equipArmor(t, "arms", "arms", 20); IncandescentGameTest.bind(t, "char", "chorus_d2:ember_of_char", "");

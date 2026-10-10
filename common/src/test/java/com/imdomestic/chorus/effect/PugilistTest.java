@@ -18,7 +18,7 @@ class PugilistTest {
         var tags = new HashSet<String>(); tags.add("chorus_d2:" + type); if (enhanced) tags.add("chorus:enhanced");
         return new EffectSource(id, "chorus_d2:pugilist", owner, new BuffInstance.Origin(owner, id, id, ""), tags);
     }
-    static CompiledEffects program() throws Exception { return link("threaded_spike", "threaded_spike_energy", "character_stats", "strand_defense", "continuity", "spike_energy_inputs", "pugilist", "ability_energy_targets", "weapon_stats"); }
+    static CompiledEffects program() throws Exception { return link("threaded_spike", "threaded_spike_energy", "character_stats", "combat_damage", "strand_defense", "continuity", "spike_energy_inputs", "pugilist", "ability_energy_targets", "weapon_stats"); }
     static class Harness {
         final CompiledEffects program = program(); final EffectSource a, b; final EffectSession session;
         Harness(boolean enhanced, String type) throws Exception {

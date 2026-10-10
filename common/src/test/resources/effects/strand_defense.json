@@ -2,10 +2,6 @@
   "version": "compendium-2026-10-05",
   "defense_profile": "chorus_d2:incoming",
   "profiles": [
-    {"id": "chorus_d2:outgoing", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": [
-      {"type": "chorus:apply", "id": "perk", "operation": "multiply", "group": {"name": "perk", "reduction": "max"}},
-      {"type": "chorus:apply", "id": "outgoing_debuff", "operation": "resist", "group": {"name": "outgoing_debuff", "reduction": "resist"}}
-    ]},
     {"id": "chorus_d2:incoming", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": [
       {"type": "chorus:apply", "id": "resistance", "operation": "resist", "group": {"name": "resistance", "reduction": "resist"}}
     ]}

@@ -301,7 +301,13 @@ melee_bonus: sum
 
 近战增伤加算，Melee 属性作为独立基础伤害提升；近战增伤不自动缩放该攻击产生的 Scorch / Ignition（Bungie 2025-06-19）。冰冻的上述近战加成已经进入子组，不再在目标阶段重复乘入。PvP 系数使用单独数据。
 
-常见 PvE 的增强属性增量，按来源 Profile 选择：Melee 为 `0.003×h(S)`（`Game Mechanics!E29`），Grenade 为 `0.0065×h(S)`（`E35`），Super 为 `0.0045×h(S)`（`E41`）。Class 属性超过 100 的强化效果是施放职业技能时获得 overshield（`E42`），不是伤害增量；职业技能攻击是否按手雷属性增伤目前没有来源，记为 assumed 待核。Well / Ward 的超能属性加成改的是持续时间而不是伤害（`E41`），不能仅凭 super credit 强行套伤害增量。
+常见 PvE 的增强属性增量，按来源 Profile 选择：Melee 为 `0.003×h(S)`（`Game Mechanics!E29`），Grenade 为 `0.0065×h(S)`（`E35`），Super 为 `0.0045×h(S)`（`E41`）。Class 超过 100 时提供施放护盾，原表也列出伤害型职业技能按 Class 属性每点增加 PvE 0.65% 伤害，PvP 写作 `0.1?%`，仍待核实（固定 CSV `E42`；2026-10-11 原表 `E196`）。它不能直接复用 Grenade 属性输入；护盾、职业技能增伤和具体技能资格尚未接入。Well / Ward 的超能属性加成改的是持续时间而不是伤害（`E41`），不能仅凭 super credit 强行套伤害增量。
+
+当前普通近战 / 手雷的增强伤害已由 [ability_stat_damage.json](../common/src/test/resources/effects/ability_stat_damage.json) 表达，原表 `Game Mechanics!E180/E187` 复核与限制保存在 [来源记录](../data/d2-research/2026-10-11/enhanced-ability-damage.json)。PvP 两者均为 `1 + 0.002×h(S)`；PvE 分别为 `1 + 0.003×h(Melee)` 和 `1 + 0.0065×h(Grenade)`。零输入查询最终属性，装备 / 固有值 / 碎片先相加再限幅，100 以下无伤害加成，200 以上不继续增加。Melee 覆盖带明确近战信用的未充能、充能和偃月近战，武器 / 技能身份字符串本身不决定资格。
+
+共享 `combat_damage.json` 的 outgoing Profile 使用独立 ability_stat 乘算阶段，再结算既有 perk 与 Sever；这只验证属性倍率独立于其他因子，没有完成上文全部近战加算子组。宿主须给角色绑定 `chorus_d2:ability_stat_damage` 来源，独立于装备和技能选择；未实现生产角色自动装配。普通路径要求 melee_damage / grenade_damage 恰好一个；两者兼有不加普通属性倍率，须走下述抓钩等专用 Profile，不能把中性结果当作已校准的双信用伤害。
+
+属性修饰声明 on_use：Arcbolt 在宿主提供 impact 时捕获，之后一秒延迟和连锁保留原属性；Threaded Spike 的基础值随施放保存，但每次直接接触伤害查询当前属性。两个策略均已有纯核心 / 双加载器实际扣血验收，**取样时机仍是内容策略，未证明等同原作**。Arcbolt 的能量施放与落地事件仍未组装成完整手雷，Scorch / Ignition 也不因来源身份自动继承这些倍率。
 
 抓钩近战对 Boss 使用专用 Profile（Bungie 9.7.0）：
 

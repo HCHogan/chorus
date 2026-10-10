@@ -1,0 +1,39 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:outgoing",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "ability_stat",
+          "operation": "multiply",
+          "group": {
+            "name": "ability_stat",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perk",
+          "operation": "multiply",
+          "group": {
+            "name": "perk",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "outgoing_debuff",
+          "operation": "resist",
+          "group": {
+            "name": "outgoing_debuff",
+            "reduction": "resist"
+          }
+        }
+      ]
+    }
+  ]
+}

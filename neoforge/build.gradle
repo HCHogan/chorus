@@ -90,7 +90,7 @@ neoForge.runs {
 tasks.named('processGametestResources', ProcessResources) {
     from(project(':common').file('src/test/resources')) {
         include 'effects/slice.json'
-        include 'effects/strand_defense.json'
+        include 'effects/strand_defense.json', 'effects/combat_damage.json', 'effects/ability_stat_damage.json'
         include 'effects/continuity.json'
         include 'effects/continuity_inputs.json'
         include 'effects/strand_inputs.json'

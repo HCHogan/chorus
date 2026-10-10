@@ -557,6 +557,8 @@ known_conflicts / selected_resolution
 
 施放时的条件替换仍只改变本次调用，不改变基础来源。常驻效果可以提供恢复 Profile 修饰、监听事件和拥有 source 寿命的定时器；on_use 仍是独立即时帧。卸载取消来源计时器与绑定延迟，已接受的 detached 动作和攻击快照保留原参数。资源账户不随选择卸载清空，继续采用剩余来源与基础恢复率。具体 JSON 和生命周期见 [选中技能的常驻效果](engine-data-packs.md#选中技能的常驻效果)。D2 Arcbolt / Threaded Spike 回能曲线已随基础选择挂载，六项护甲参数经角色 Profile 汇总后进入曲线，裸装不再依赖初始化属性 Buff；可选固有点数与装备贡献分开。角色暂停 / 死亡策略、技能持久化、正式护甲目录与子职业装配仍待完成。
 
+普通近战 / 手雷的 100–200 属性伤害已复用现有只读 attribute 表达式与独立乘算阶段，见 [D2 增强属性伤害](engine-data-packs.md#d2-增强属性伤害)。该角色来源独立于能力选择，避免未充能 / 偃月近战丢失属性收益；自动装配尚待完成。攻击是否冻结属性仍由 capture_damage 决定：Arcbolt 当前捕获、Threaded Spike 当前逐次接触查询，均为待原作校准的显式内容策略。抓钩双信用、Super / Class 和状态伤害各需专用资格，不能自动套普通属性曲线。
+
 ### 已接受施放的开始阶段
 
 `chorus:ability_started` 与 `chorus:ability_used` 保留相同的已解析定义、成本回执及参数，不再次求值或扣费。资源事实在前，started 的即时动作随后，used 才执行技能动作体；派生事件仍按广度优先顺序排队，不把 started 解释为全局抢占或可取消的前置钩子。免费施放同样有这两个成功事件，资格或支付拒绝两者都不发。队友授予的 Woven Mail 以 Buff 持有者匹配施放者，在 started 移除旧状态；超能动作体可以重新授予 Woven Mail，新的效果不会被这次清理误删。这是通用阶段契约，核心不识别 Sever、Woven Mail 或 Super 的游戏含义。

@@ -75,7 +75,7 @@ class CalculationActionTest {
     }
 
     @Test void buffOwnedQueryCanSelectItsOriginalApplierInsteadOfItsAffectedHolder() throws Exception {
-        var p = link("continuity", "strand_defense"); var s = EffectState.empty().withSource(fragment("owner-fragment", "owner"));
+        var p = link("continuity", "combat_damage", "strand_defense"); var s = EffectState.empty().withSource(fragment("owner-fragment", "owner"));
         s = s.withBuffs(Buffs.grant(s.buffs(), p.buff("chorus_d2:sever"), "carrier", "carrier", OWNER, 1, 1, 10_000_000).store());
         var buff = s.buffs().instances().values().iterator().next(); var e = evaluation(p, s, new BuffRules.Scope(buff, false), event(fragment("trigger", "trigger")));
         assertEquals(15, calculate(query(10, 5, "chorus_d2:sever"), e).calculation().output().value());
@@ -98,7 +98,7 @@ class CalculationActionTest {
     }
 
     @Test void capturedCalculationKeepsItsValueWhileAQueryInsideALaterCallbackUsesCurrentLoadout() throws Exception {
-        var p = link("continuity", "continuity_inputs", "strand_defense");
+        var p = link("continuity", "continuity_inputs", "combat_damage", "strand_defense");
         var input = new EffectSource("driver", "test:continuity_inputs", "owner", OWNER, Set.of());
         var checks = new ArrayList<StatusResult.Check>();
         var session = new EffectSession(engine(p), EffectState.empty().withSource(input).withSource(fragment("fragment", "owner")), request -> {
@@ -132,7 +132,7 @@ class CalculationActionTest {
     }
 
     @Test void querySchemasRejectUnknownProfilesWrongUnitsFutureBindingsAndUnknownFields() throws Exception {
-        var p = link("continuity", "continuity_inputs", "strand_defense");
+        var p = link("continuity", "continuity_inputs", "combat_damage", "strand_defense");
         for (String mutation : List.of("profile", "unit", "binding", "target", "victim", "blank", "extra")) {
             var data = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, p).getOrThrow().getAsJsonObject();
             var bundle = data.getAsJsonArray("bundles").asList().stream().map(JsonElement::getAsJsonObject).filter(b -> b.get("id").getAsString().equals("test:continuity_inputs")).findFirst().orElseThrow();

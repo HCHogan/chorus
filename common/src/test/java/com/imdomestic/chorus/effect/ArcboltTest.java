@@ -15,7 +15,7 @@ class ArcboltTest {
     private static final EffectSource SOURCE = new EffectSource("arcbolt", "chorus_d2:arcbolt", "owner",
             new BuffInstance.Origin("owner", "selection", "", "chorus_d2:arcbolt"), Set.of());
     private static final class Harness {
-        final CompiledEffects program = load("arcbolt");
+        final CompiledEffects program = link("arcbolt", "combat_damage", "character_stats", "armor_stats", "armor_stat_inputs", "ability_stat_damage");
         final EffectSession session;
         final List<TargetQuery> queries = new ArrayList<>();
         final List<DamageCommand> hits = new ArrayList<>();
@@ -52,6 +52,19 @@ class ArcboltTest {
         void fire(String cast) { fire(new BuffInstance.Origin("owner", cast, "", "chorus_d2:arcbolt")); }
         void fire(BuffInstance.Origin origin) { session.start(0, new RuleEngine.Signal("test:arcbolt_impact", new EffectEvent("owner", "impact", origin, Set.of(), Map.of()))); }
         void advance(long time) { session.observe(time, List.of()); assertTrue(session.state().idle(), session.state().engine().failure().toString()); }
+    }
+    @Test void actualChainRetainsCapturedArmorStatsAndTheNextChainUsesTheNewRoll() throws Exception {
+        for (var mode : EffectState.Mode.values()) {
+            var h = new Harness(mode); h.candidates = List.of("a");
+            h.session.start(0, SourceChange.bind(AbilityStatDamageTest.scaling("scaling", "owner")));
+            var high = ArmorStatInputsTest.one("arms", 200); var low = ArmorStatInputsTest.one("arms", 100);
+            h.session.start(0, new com.imdomestic.chorus.effect.equipment.EquipmentChange("owner", com.imdomestic.chorus.effect.equipment.Loadout.EMPTY, high).signal());
+            h.fire("high-stat-cast"); h.session.start(0, new com.imdomestic.chorus.effect.equipment.EquipmentChange("owner", high, low).signal());
+            h.advance(1_000_000); double base = mode == EffectState.Mode.PVE ? 52.1 : 8.5;
+            assertEquals(base * (mode == EffectState.Mode.PVE ? 1.65 : 1.2), h.amounts.getFirst(), 1e-10);
+            h.session.start(1_000_000, new RuleEngine.Signal("test:arcbolt_impact", new EffectEvent("owner", "impact", SOURCE.origin(), Set.of(), Map.of())));
+            h.advance(2_000_000); assertEquals(2, h.amounts.size()); assertEquals(base, h.amounts.getLast(), 1e-10);
+        }
     }
     @Test void frozenFirstTargetWaitsOneSecondThenChainsAtCurrentHitPositionsToFourDistinctEnemies() throws Exception {
         for (var mode : EffectState.Mode.values()) {

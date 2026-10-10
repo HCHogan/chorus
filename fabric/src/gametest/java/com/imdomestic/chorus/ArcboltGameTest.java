@@ -4,6 +4,9 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class ArcboltGameTest extends com.imdomestic.chorus.test.ArcboltGameTest {
+    @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:arcbolt_stat_snapshot", maxTicks = 60) @Override
+    public void actualDelayedBoltsRetainEnhancedGrenadeStatAfterArmorRemoval(GameTestHelper h) throws Exception { super.actualDelayedBoltsRetainEnhancedGrenadeStatAfterArmorRemoval(h); }
+
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:arcbolt_chain", maxTicks = 60) @Override
     public void realTickLocksVisibleTargetAndChainsFromMovedLethalHitThroughFourDistinctEnemies(GameTestHelper h) throws Exception { super.realTickLocksVisibleTargetAndChainsFromMovedLethalHitThroughFourDistinctEnemies(h); }
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:arcbolt_cancel", maxTicks = 60) @Override

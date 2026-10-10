@@ -28,7 +28,7 @@ public class ContinuityGameTest {
             h = helper; owner = h.spawnWithNoFreeWill(EntityTypes.COW, 2, 40, 2); victim = h.spawnWithNoFreeWill(EntityTypes.COW, 4, 40, 2); witness = h.spawnWithNoFreeWill(EntityTypes.COW, 4, 40, 4);
             for (var entity : List.of(owner, victim, witness)) { entity.setNoGravity(true); entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); entity.setHealth(100); entity.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1); }
             var fragments = new ArrayList<EffectProgram>();
-            for (String file : List.of("strand_defense", "continuity", "continuity_inputs", "slice")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + file + ".json")), StandardCharsets.UTF_8)) {
+            for (String file : List.of("combat_damage", "strand_defense", "continuity", "continuity_inputs", "slice")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + file + ".json")), StandardCharsets.UTF_8)) {
                 fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow());
             }
             var program = CompiledEffects.link(fragments); var origin = new BuffInstance.Origin(id(owner), "perk", "weapon-a", "");

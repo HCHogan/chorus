@@ -1,7 +1,6 @@
 package com.imdomestic.chorus.test;
 
 import static com.imdomestic.chorus.test.HealingGameTest.near;
-import com.google.gson.JsonParser;
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
@@ -10,8 +9,6 @@ import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.mojang.serialization.JsonOps;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -46,10 +43,10 @@ public class ArcboltGameTest {
             this.h = h; owner = cow(1, 220, 1); impact = cow(2.5, 40, 3.5);
             source = new EffectSource("arcbolt", "chorus_d2:arcbolt", id(owner), new BuffInstance.Origin(id(owner), "selection", "", "chorus_d2:arcbolt"), Set.of());
             cast = new BuffInstance.Origin(id(owner), "cast-" + UUID.randomUUID(), "", "chorus_d2:arcbolt");
-            CompiledEffects program;
-            try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/arcbolt.json")), StandardCharsets.UTF_8)) {
-                program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow();
-            }
+            var fragments = new ArrayList<EffectProgram>();
+            for (String name : List.of("arcbolt", "combat_damage", "character_stats", "armor_stats", "armor_stat_inputs", "ability_stat_damage"))
+                fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
+            var program = CompiledEffects.link(fragments);
             var type = h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse("chorus_gametest:delayed")));
             var world = new MinecraftWorldActions(h.getLevel(), this::resolve, d -> new DamageSource(type, null, resolve(d.source().owner())), (_, _) -> true, _ -> {});
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withMode(mode).withSource(source),
@@ -83,6 +80,28 @@ public class ArcboltGameTest {
             });
         }
         @Override public void close() { runtime.close(); entities.forEach(LivingEntity::discard); blocks.forEach((p, state) -> h.getLevel().setBlockAndUpdate(p, state)); }
+    }
+    @GameCase(environment = "chorus_gametest:arcbolt_stat_snapshot", maxTicks = 60)
+    public void actualDelayedBoltsRetainEnhancedGrenadeStatAfterArmorRemoval(GameTestHelper h) throws Exception {
+        var t = new Harness(h, EffectState.Mode.PVE);
+        try {
+            var first = t.cow(2.5, 44, 3.5); var second = t.cow(2.5, 54, 3.5);
+            var values = new TreeMap<String, com.imdomestic.chorus.stat.Measure>();
+            for (String stat : List.of("health", "class", "grenade", "melee", "super", "weapons"))
+                values.put(stat, new com.imdomestic.chorus.stat.Measure(stat.equals("grenade") ? 200 : 0, com.imdomestic.chorus.stat.Unit.STAT_POINT));
+            var gear = new com.imdomestic.chorus.effect.equipment.Loadout(Map.of("chorus_d2:arms",
+                    new com.imdomestic.chorus.effect.equipment.Loadout.Gear("armor", "test:armor_arms", Map.of(), values)), Optional.empty());
+            t.runtime.bind(new EffectSource("scaling", "chorus_d2:ability_stat_damage", id(t.owner), new BuffInstance.Origin(id(t.owner), "scaling", "", ""), Set.of()));
+            t.runtime.equip(new com.imdomestic.chorus.effect.equipment.EquipmentChange(id(t.owner), com.imdomestic.chorus.effect.equipment.Loadout.EMPTY, gear));
+            t.fire();
+            t.runtime.equip(new com.imdomestic.chorus.effect.equipment.EquipmentChange(id(t.owner), gear, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY));
+            t.runtime.unbind("scaling");
+            t.finish(() -> {
+                h.assertValueEqual(t.hits.size(), 2, "two actual delayed bolts");
+                for (var enemy : List.of(first, second)) near(h, enemy.getHealth(), 100 - 52.1 * 1.65, "captured grenade multiplier survives armor and scaling-source removal");
+                h.assertTrue(t.hits.getFirst().snapshot().isPresent() && t.hits.getFirst().snapshot().equals(t.hits.getLast().snapshot()), "chain reuses immutable attack snapshot");
+            });
+        } catch (Exception | Error e) { t.close(); throw e; }
     }
     @GameCase(environment = "chorus_gametest:arcbolt_chain", maxTicks = 60)
     public void realTickLocksVisibleTargetAndChainsFromMovedLethalHitThroughFourDistinctEnemies(GameTestHelper h) throws Exception {
