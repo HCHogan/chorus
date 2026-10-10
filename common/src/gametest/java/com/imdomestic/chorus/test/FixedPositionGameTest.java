@@ -62,6 +62,12 @@ public class FixedPositionGameTest {
         var origin = cow(h, 4, 4); var owner = cow(h, 5, 4); var edge = cow(h, 9, 4); var outside = cow(h, 10, 4);
         var replacement = cow(h, 4, 4);
         try {
+            // The empty test structure does not own the adjacent chunk. Keep this geometry-only
+            // fixture in the center's loaded chunk, independent of the test grid's placement.
+            double left = origin.chunkPosition().getMinBlockX(), y = origin.getY(), z = origin.getZ();
+            origin.setPos(left + 4.5, y, z); owner.setPos(left + 5.5, y, z);
+            edge.setPos(left + 9.5, y, z); outside.setPos(left + 10.5, y, z); replacement.setPos(left + 4.5, y, z);
+            h.assertTrue(resolve(h, id(edge)) == edge, "boundary fixture must be a loaded entity");
             var world = world(h);
             var captured = (PositionQuery.Result) execute(world, new PositionQuery(id(origin)));
             origin.discard(); var center = new TargetQuery.PositionCenter(captured.position());
