@@ -26,7 +26,7 @@ public final class CalculationActions {
         var context = e.timerEvent(); var measurements = new HashMap<>(context.numbers());
         numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
         return new EffectEvent(context.actor(), victim.map(e::target).orElse(context.victim()), origin.resolve(e), tags, measurements,
-                context.flags(), context.references(), context.impact());
+                context.flags(), context.references(), context.impact()).withObservedBuffs(context.observedBuffs());
     }
     public record CalculatePipeline(List<String> profiles, Evaluation.Target target, Value input, ActionOrigin origin,
             Set<String> tags, Map<String, Value> numbers, Optional<Evaluation.Target> victim) implements Action {

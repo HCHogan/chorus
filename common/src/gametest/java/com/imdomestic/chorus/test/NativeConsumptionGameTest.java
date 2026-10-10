@@ -95,6 +95,8 @@ public class NativeConsumptionGameTest {
         try (var t = new Harness(h, 1, false, false)) {
             t.run("arm"); var first = t.hit(); var second = t.hit();
             near(h, first.healthLoss(), 25, "first native hit"); near(h, second.healthLoss(), 10, "next native hit");
+            h.assertValueEqual(first.observedBuffs().orElseThrow().require(t.source.holder()).size(), 1, "first receipt samples before its own consumption");
+            h.assertTrue(second.observedBuffs().orElseThrow().require(t.source.holder()).isEmpty(), "later receipt observes consumed state");
             h.assertTrue(first.consumptionSettled() && second.consumptionSettled(), "native receipts mark resolved consumption");
             h.assertValueEqual(t.events.stream().map(e -> e.signal().type()).toList(), List.of("chorus:hit", "chorus:damage_taken", "chorus:buff_ended", "chorus:hit", "chorus:damage_taken"), "ordered facts once");
             h.assertValueEqual(t.stacks(), 0, "spent charge"); t.healthy();

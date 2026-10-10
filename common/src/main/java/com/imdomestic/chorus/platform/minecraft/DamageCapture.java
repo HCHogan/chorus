@@ -33,6 +33,7 @@ public final class DamageCapture {
         default DamageCommand revise(String id, DamageCommand command) { return command; }
         default Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) { return Optional.empty(); }
         default void abandoned(String id) {}
+        default Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) { return Optional.empty(); }
         Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount);
         Optional<CalculationProfile.Result> defense(DamageCommand command, double amount);
         ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis);
@@ -105,6 +106,7 @@ public final class DamageCapture {
         boolean publish;
         boolean managedOrigin;
         Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts = Optional.empty();
+        Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observedBuffs = Optional.empty();
         Call(String id, LivingEntity target, DamageSource source, boolean nonLethal) {
             this.id = id; this.target = target; this.source = source; this.nonLethal = nonLethal;
         }
@@ -115,7 +117,7 @@ public final class DamageCapture {
                     ? DamageReceipt.Outcome.APPLIED : immune ? DamageReceipt.Outcome.IMMUNE
                     : blocked || shieldBlocked ? DamageReceipt.Outcome.BLOCKED : DamageReceipt.Outcome.CANCELLED;
             return new DamageReceipt(id, outcome, shieldLoss, absorptionLoss, healthLoss,
-                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts);
+                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts, observedBuffs);
         }
     }
     public static final class Scope implements AutoCloseable {
@@ -130,7 +132,10 @@ public final class DamageCapture {
             if (!owner) { call.layer = previousLayer; return; }
             if (CALLS.get().peek() != call) throw new IllegalStateException("Damage calls closed out of order");
             if (call.observer != null) {
-                if (completed) call.consumptionFacts = call.observer.finished(call.id, call.command, call.receipt(accepted), call.managedOrigin);
+                if (completed) {
+                    call.observedBuffs = call.observer.observeBuffs(call.command);
+                    call.consumptionFacts = call.observer.finished(call.id, call.command, call.receipt(accepted), call.managedOrigin);
+                }
                 else call.observer.abandoned(call.id);
             }
             CALLS.get().pop();

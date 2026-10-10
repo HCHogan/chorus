@@ -290,6 +290,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             reservations.remove(id); activeDamage.pop(); return Optional.of(consumed.emitted());
         } catch (RuntimeException error) { failed(error, List.of()); if (id.equals(activeDamage.peek())) activeDamage.pop(); return Optional.empty(); }
     }
+    @Override public Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) {
+        thread();
+        if (failure.isPresent()) return Optional.empty();
+        return Optional.of(com.imdomestic.chorus.effect.buff.BuffObservation.capture(view().buffs(), command.source().owner(), command.target()));
+    }
     @Override public void abandoned(String id) {
         thread();
         if (id.equals(activeDamage.peek())) activeDamage.pop();

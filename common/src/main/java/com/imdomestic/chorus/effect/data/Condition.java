@@ -146,6 +146,25 @@ public interface Condition {
         @Override public void validate(Validation v) { v.target(target); EnergyActions.ABILITY_OBSERVATION.requireFlag(field); }
         @Override public boolean test(Evaluation e) { return EnergyActions.ABILITY_OBSERVATION.flag(field, EnergyActions.observeAbility(e, slot, target)) == expected; }
     }
+    record EventBuffsAvailable(Evaluation.Target target) implements Condition {
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) { return e.event().observedBuffs().filter(b -> b.available(e.target(target))).isPresent(); }
+    }
+    record EventHasBuff(String buff, Evaluation.Target target, int minimum, BuffMatch match) implements Condition {
+        @Override public void validate(Validation v) { new HasBuff(buff, target, minimum, match).validate(v); }
+        @Override public boolean test(Evaluation e) {
+            var entries = eventBuffs(e, target);
+            return entries.stream().anyMatch(b -> b.key().definition().equals(buff) && b.stacks() >= minimum
+                    && (match == BuffMatch.ANY || b.key().equals(e.key(buff, target))));
+        }
+    }
+    record EventHasBuffTag(String tag, Evaluation.Target target) implements Condition {
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) { return eventBuffs(e, target).stream().anyMatch(b -> b.tags().contains(tag)); }
+    }
+    private static List<com.imdomestic.chorus.effect.buff.BuffObservation.Entry> eventBuffs(Evaluation e, Evaluation.Target target) {
+        return e.event().observedBuffs().orElseThrow(() -> new IllegalArgumentException("Event has no buff observation")).require(e.target(target));
+    }
     enum BuffMatch { BOUND, ANY }
     record HasBuff(String buff, Evaluation.Target target, int minimum, BuffMatch match) implements Condition {
         public HasBuff { java.util.Objects.requireNonNull(match); }

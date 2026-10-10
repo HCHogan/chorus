@@ -1,0 +1,16 @@
+{
+  "version":"test-event-buffs",
+  "buffs":[{"definition":{"id":"test:marked","version":"test-event-buffs","duration":2,"max_stacks":5,"instanced_by":"source","tags":["test:debuff"]},"bundle":"test:mark"}],
+  "bundles":[
+    {"id":"test:mark","scope":"buff","rules":[{"id":"cleanup","on":"chorus:death","if":{"type":"chorus:target_is","left":"self","right":"victim"},"do":[{"type":"chorus:remove_buff","buff":"test:marked"}]}]},
+    {"id":"test:driver","rules":[
+      {"id":"attack","on":"test:attack","do":[{"type":"chorus:damage","target":"victim","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"damage_type":"minecraft:generic"}]},
+      {"id":"history","on":"chorus:kill","if":{"type":"chorus:event_has_buff","buff":"test:marked","minimum":2},"do":[
+        {"if":{"type":"chorus:not","of":{"type":"chorus:has_buff","buff":"test:marked","target":"victim","match":"any"}},"then":[{"type":"chorus:play_cue","cue":"test:cleaned"}]},
+        {"type":"chorus:emit","event":"test:copied"},
+        {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[{"if":{"type":"chorus:event_has_buff_tag","tag":"test:debuff"},"then":[{"type":"chorus:play_cue","cue":"test:delayed"}]}]}
+      ]},
+      {"id":"copy","on":"test:copied","if":{"type":"chorus:event_buffs_available"},"do":[{"if":{"type":"chorus:event_has_buff","buff":"test:marked"},"then":[{"type":"chorus:play_cue","cue":"test:copied"}]}]}
+    ]}
+  ]
+}

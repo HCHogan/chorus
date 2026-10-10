@@ -80,7 +80,8 @@
       "com.imdomestic.chorus.EmberOfCharGameTest",
       "com.imdomestic.chorus.IncandescentGameTest",
       "com.imdomestic.chorus.PickupGameTest",
-      "com.imdomestic.chorus.FirespriteGameTest"
+      "com.imdomestic.chorus.FirespriteGameTest",
+      "com.imdomestic.chorus.EventBuffObservationGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

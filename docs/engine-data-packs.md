@@ -1695,3 +1695,19 @@ withBase / withoutFactors 只重算已保存的数学输入，不重新读取状
 Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位，recipient 必须是同维度存活实体的 UUID，生成失败不返回实体身份。接触距离按收集者脚底计算，并检查方块视线；spectator、死亡或暂时无法解析的收集者不能拾取，也不改选其他玩家。基础半径、速度和寿命在生成时固定，吸附 Profile 每 tick 按收集者现有来源 / Buff 求值，直线运动受已加载地形阻挡。6 m/s 等测试速度仅验证执行侧单位，不宣称已经复刻离子痕迹的路径。
 
 寿命按运行时逻辑时钟计算，暂时不 tick 不会重置剩余时间；实体重新 tick 时先判断到期，再判断接触。短命实体 noSave / noSummon，运行时关闭、替换或失败后丢弃，不跨重启或维度迁移。拾取先消费实体再执行动作体；故障后不重新生成或重试奖励。当前外观为原版物品渲染器的萤石粉占位，逻辑上不可捡入背包；私有只约束拾取资格，按收集者过滤客户端可见性尚未实现。Firesprite 首批内容已通过显式校准 Profile 与 grant_ability_energy 路由当前手雷账户，见 [D2 规则集](d2-ruleset.md#firesprite-与-ember-of-tempering)。暂未实现视觉合并、队友副本自动分发、公共抢占、弹药砖和其他 D2 拾取物的完整内容。
+
+
+## 事实携带的 Buff 观察值
+
+`event_has_buff`（buff、target 默认 victim、minimum 默认 1、match 默认 any）与 `event_has_buff_tag`（tag、target 默认 victim）读取事实的不可变观察值。它们不会重新查询当前 BuffStore。`event_buffs_available` 可先判断指定 target 是否确实被观察；未观察会报错，确认观察为空才表示没有 Buff，not 也不能把缺数据转成“不存在”的证据。match:bound 按当前绑定来源计算实例键；any 要求某一个实例独立达到 minimum，不跨来源相加。暂停实例保留存在性，已到期层不进入观察。
+
+伤害适配器在**回执确认、该次 Buff 消费与派生事实执行之前**采样攻击者和受击者。此时物理伤害及护盾写入已经发生，因此它不是攻击进入前的完整状态快照。每份原版嵌套伤害分别采样；其后的 hit / damage_taken / shield / death / kill 共享该份观察，后来清理、授予、刷新或到期不会改写历史。纯核心 Action 在宿主尚未结算消费且没有提供观察时，从完成动作的状态补采样；已由宿主结算消费却没有观察的回执保持未知，不假造消费前值。
+
+```json
+{"type":"chorus:all","of":[
+  {"type":"chorus:event_buffs_available","target":"victim"},
+  {"type":"chorus:event_has_buff","buff":"example:marked","target":"victim","match":"any"}
+]}
+```
+
+观察记录保留 holder、采样时刻、实例键 / generation、施加来源、定义 tags、层数、tier 与暂停标记；不复制组件、资源或完整世界。emit、原上下文的 after / 物理续体及派生 calculate / grant_energy 查询保留已有记录；改写查询 victim 不会自动获得该新目标的历史观察。新生成的资源 / 拾取等独立事实没有被自动赋予旧伤害观察。普通 has_buff / has_buff_tag 继续读当前状态。事件观察条件用于 on_use 数值快照时按已有事件值冻结，不推测将来命中的目标状态。
