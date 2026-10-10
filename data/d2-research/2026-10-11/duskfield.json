@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Partial Duskfield producer with explicit physical and initial-blast calibration",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+    "path": "data/d2-research/2026-10-11/duskfield-source.html.gz",
+    "retrieved_at": "2026-10-10T21:32:34.469090+00:00",
+    "html_sha256": "e67cbcd33ffb6627ea3b5141405e97139b376520bc196cf5def43659be708961",
+    "gzip_sha256": "c860627af912710c2c020c6a53bb913fa6dc3462889afe8568676ddd9f9756e1"
+  },
+  "cells": [
+    {
+      "original_cell": "B36",
+      "snapshot_cell": "B30",
+      "snapshot_text_sha256": "20c734b7159ed94c03cf971da51d7e3c303c349f196770395f4f29bb1f7b0384",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D36",
+      "snapshot_cell": "D30",
+      "snapshot_text_sha256": "f8eb5a691905977d096ff3797e0803f23b75fea96e899cada8aef145664573b7",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N36",
+      "snapshot_cell": "N30",
+      "snapshot_text_sha256": "f7e8e18de04aba3a863543ce50d6be2be58aef9e0c5a80d98451620c33427719",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "historical_crosscheck": {
+    "url": "https://www.bungie.net/7/en/News/Article/50880",
+    "published_at": "2021-12-07",
+    "evidence_kind": "web search extraction, not archived full article",
+    "quote": "No longer pulls enemies on detonation",
+    "quote_sha256": "d19c938ca15f744c653cbe5363f81b79d8b37fc25e3ea2c2305a72974af7f4da",
+    "scope": "No pull is implemented. Historical cooldown and percentage changes do not replace the current Compendium values."
+  },
+  "requirements": {
+    "base_cooldown_seconds": 131.7,
+    "chunk_scalar": 0.875,
+    "impact_damage_maximum": 20,
+    "impact_radius_meters": null,
+    "impact_slow_stacks_combatant_guardian": [
+      20,
+      10
+    ],
+    "field_radius_meters": 4,
+    "field_damage_per_tick": 1,
+    "field_slow_stacks_combatant_guardian": [
+      10,
+      5
+    ],
+    "field_interval_seconds_pve_pvp": [
+      0.35,
+      0.3
+    ],
+    "field_duration_seconds": 7,
+    "field_durance_extension_seconds": 2,
+    "slow_duration_seconds": 2,
+    "slow_durance_extension_seconds": 2
+  },
+  "unresolved": [
+    "Medium trajectory does not establish absolute speed, gravity, drag or lifetime. Required calibration values remain separate.",
+    "Initial blast radius is explicitly unknown in the source. Synthetic radius 2 and linear falloff are not measured Destiny 2 values.",
+    "First pulse phase, endpoint inclusion, sampling/overlap and mixed Guardian/combatant cadence need original-game evidence. Tests choose first pulse after one period and lifetime [created, expiry).",
+    "Durance is sampled at field creation and each Slow application. Existing field/Slow deadlines do not shrink on unequip. These are explicit Chorus policies.",
+    "Current native relation lookup requires the original owner to remain resolvable. Missing relation ends the field; persistent faction/owner-independent fields need a separate design.",
+    "Touch of Winter, Renewal Grasps, other exotic interactions, production subclass assembly, visuals and persistence remain incomplete."
+  ]
+}

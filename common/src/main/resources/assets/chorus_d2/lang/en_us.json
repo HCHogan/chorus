@@ -6,5 +6,8 @@
   "equipment.slot.chorus_d2.arms": "Gauntlets",
   "equipment.slot.chorus_d2.chest": "Chest armor",
   "equipment.slot.chorus_d2.legs": "Leg armor",
-  "equipment.slot.chorus_d2.class_item": "Class item"
+  "equipment.slot.chorus_d2.class_item": "Class item",
+  "death.attack.chorus_d2.ability_dot": "%1$s was defeated by a lingering ability",
+  "death.attack.chorus_d2.ability_dot.player": "%1$s was defeated by %2$s's lingering ability",
+  "death.attack.chorus_d2.ability_dot.item": "%1$s was defeated by %2$s's lingering ability"
 }

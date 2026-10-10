@@ -1,0 +1,27 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:duskfield_impact_falloff",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_linear_falloff",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              -0.5
+            ],
+            "minimum": 0,
+            "maximum": 2,
+            "boundary": "clamp"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    }
+  ]
+}

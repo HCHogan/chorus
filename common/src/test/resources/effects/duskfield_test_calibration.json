@@ -1,0 +1,63 @@
+{
+  "note": "Synthetic flight, initial blast radius/falloff, first-pulse phase and shared Slow/Freeze calibration. These are not measured Destiny 2 physics. Source-backed field radius and subsequent cadence remain in the producer.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "impact_radius": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "meter"
+    },
+    "first_pulse_delay": {
+      "type": "chorus:pvp",
+      "pve": {
+        "type": "chorus:constant",
+        "value": 0.35,
+        "unit": "second"
+      },
+      "pvp": {
+        "type": "chorus:constant",
+        "value": 0.3,
+        "unit": "second"
+      }
+    },
+    "slow_jump_delta": {
+      "type": "chorus:constant",
+      "value": -0.3,
+      "unit": "delta"
+    },
+    "combatant_threshold": {
+      "type": "chorus:constant",
+      "value": 100,
+      "unit": "damage"
+    },
+    "shatter_radius": {
+      "type": "chorus:constant",
+      "value": 4,
+      "unit": "meter"
+    },
+    "guardian_shatter_damage": {
+      "type": "chorus:constant",
+      "value": 80,
+      "unit": "damage"
+    }
+  }
+}

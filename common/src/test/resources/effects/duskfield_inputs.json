@@ -1,0 +1,46 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:duskfield_control",
+      "rules": [
+        {
+          "id": "dismiss",
+          "on": "test:dismiss_duskfield",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buffs_with_tag",
+              "target": "self",
+              "tag": "chorus_d2:duskfield_field"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:duskfield_stats",
+      "parameters": {
+        "points": "stat_point"
+      },
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "test:points",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "points"
+          },
+          "reference": "Synthetic stat input",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

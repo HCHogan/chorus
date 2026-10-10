@@ -855,6 +855,28 @@ Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单�
 
 Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义。核心已有独立预算和可选 `total_continuations` 共享继续次数；具备表达能力不等于已确认原作混合接触顺序。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_energy 的 fixed 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
 
+## Duskfield 暮域手雷与固定周期场
+
+[duskfield.json](../common/src/test/resources/effects/duskfield.json) 通过实际技能支付、投射物接触、固定位置 Buff、周期计时器和 invoke_bundle 组合实现。它与 duskfield_energy、Slow / Freeze、stasis_duration、Durance、character_stats、combat_damage、movement_attributes、weapon_stats 及外部碎冰 / 落点衰减 Profile 同版本链接。原表 Stasis B36/D36/N36 与 CSV B30/D30/N30 已逐格核对，新抓取的 HTML 与哈希见 [来源记录](../data/d2-research/2026-10-11/duskfield.json)。[官方 3.4.0 更新](https://www.bungie.net/7/en/News/Article/50880)曾移除引爆拉拽；该历史记录不替代当前表格的冷却和其他数值。
+
+| 阶段 | 伤害 | 战员 / Guardian 的 Slow | 时长 / 周期 |
+| --- | --- | --- | --- |
+| 落点爆发 | 至多 20，衰减由校准 Profile 提供 | 20 / 10 层 | Slow 2 秒，Durance 延长 2 秒；原表爆炸半径未知 |
+| 固定区域 | 每跳 1 | 每跳 10 / 5 层 | PvE / PvP 每 0.35 / 0.3 秒一跳，半径 4 米 |
+| 区域寿命 | — | 已授予的 Slow 独立计时 | 7 秒，Durance 延长 2 秒 |
+
+单格能量初始充满，每次施放支付一格，基础恢复为每 131.7 秒一格。duskfield_energy 使用独立 0.875 CES 和已记录的 Grenade 主动 / 被动拟合曲线，由基础技能选择挂载 energy_scaling 来源。100 Grenade 时外部基础 4% 变成 `4% × 0.875 × 2.25 = 7.875%`，被动速率为 `2.75 / 131.7`；清除 / 重新选择不回满账户。完整职业模组和其余回能来源仍需装配。
+
+实体或方块接触先在原施放者上建立按独立施放身份区分的 field Buff，保存精确接触位置和 Slow / Freeze 校准；再执行落点范围伤害。到期 / 未加载地形终止不产生爆炸或区域。Buff 自有周期计时器每次重新查询固定球形范围，施放者移动、技能卸下及旧目标离场不改变中心；新目标和当前阵营关系参与下一跳。生命周期区间暂定为 `[创建, 到期)`，到期不再补一跳，明确移除 field 也会撤销它的计时器，但不会移除已施加的 Slow。
+
+Durance 在落点创建区域时决定 7 / 9 秒的场寿命，在每次 Slow 施加时另行决定 2 / 4 秒的状态时长。后来卸下碎片不缩短已有截止时间；后续新查询使用当前装备。区域独自叠到百层即可调用共享 Freeze，冻结仍使用自己的时长和原始手雷信用。多个独立场保留各自位置 / 生命周期，Slow 层数按已有共享政策归并。
+
+周期伤害显式使用发布资源中的 `chorus_d2:ability_dot`，加入原版 `bypasses_cooldown` 标签，使 0.3 / 0.35 秒的每跳 1 点不被 Minecraft 的受伤冷却吞掉。它没有加入绕过护甲或无敌的标签，仍走正常扣血、护盾、死亡与归属回执。落点爆发使用普通伤害类型。两端游戏测试直接按声明的 damage_type 查询真实注册表，没有用测试伤害类型替换这条周期路径。
+
+8 项 DuskfieldTest 和 5 项共享 DuskfieldGameTest 覆盖两种周期、落点 / 逐跳层数、到期端点、精确四米边界、晚进入 / 离场、施放者移动、两来源独立场、Durance 分别取样、持续叠层到 Freeze，以及未知实际扣血后保留支付 / 区域并停止、不重放。场结束不会取消另一场，来源移除不会重写已有归属。
+
+覆盖保持 **partial**。未知的落点爆炸半径、衰减、物理轨迹和第一跳相位须显式校准；测试的 2 米落点半径、线性衰减、20 m/s、零重力及一周期后首跳不是原作事实。当前用目标脚底点球形查询、无额外视线筛选，Slow 层数按实际目标类型、周期按发射时活动模式选取；原作混合目标、重叠场和端点政策待确认。阵营查询仍依赖可解析的原施放者，关系参照移除后明确结束区域。Touch of Winter、Renewal Grasps、其余金装 / 碎片 / Champion、正式子职业与按键 / 动画 / HUD、持久化及 NeoForge 真实客户端尚未完成。技能模板仍在测试资源中，不能将新增伤害类型等同于完整技能已经发布。
+
 ## Withering Blade 两充能技能模板
 
 [withering_blade.json](../common/src/test/resources/effects/withering_blade.json) 与 withering_blade_energy、slow、stasis_duration、durance、freeze、character_stats、combat_damage、movement_attributes 和 weapon_stats 同版本链接；接触伤害及碎冰衰减另由校准 Profile 提供。[来源记录](../data/d2-research/2026-10-11/withering-blade.json) 保留原表 Stasis B51/D51/N51 与固定 CSV B38/D38/N38 的对应和校验和。此定义仍是需校准的测试技能模板，没有随发布 jar 提供正式子职业目录。
@@ -995,7 +1017,7 @@ Slow 的实际投影与查询分别为：
 
 [slow_test_calibration.json](../common/src/test/resources/effects/slow_test_calibration.json) 的 2 秒和 jump delta -0.3 均是合成输入，客户端另用 10 秒以覆盖网络验收过程。真实原版跳跃冲量降到 70% **不等于跳跃高度降到 50%**；玩家空中 `getFlyingSpeed` 也不完全由 movement_speed 属性决定，因此这里仅证明地面减速与参数化跳跃，未宣称完成原作全方向移动。稳定性、操控与后坐力只在数值查询中验证，完整武器物理、动画和射击反馈还需接线。
 
-11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Durance 的来源专属延长与 Withering Blade 命中已接入。Slow 保持 **partial**：其余技能 / 武器生产者及其完整 Durance 数据、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
+11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Durance 的来源专属延长、Withering Blade 命中与 Duskfield 周期场已接入。Slow 保持 **partial**：其余技能 / 武器生产者及其完整 Durance 数据、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
 
 ### Whisper of Durance：分别计算状态与技能存在时间
 
@@ -1015,7 +1037,7 @@ Slow 的实际投影与查询分别为：
 
 当前政策是施加 / 创建时读取施加者的当前碎片，已提交的截止时间保持不变；卸下只影响之后查询。新 Slow 刷新仍取最晚截止时间并保留首次信用，达到百层的来源拥有 Freeze。Durance 的 +10 Melee 进入共享 character_stats，重复来源按同碎片去重，再与其他加值相加并按 200 点封顶。这些取样、重复装配与刷新规则是 Chorus 内容政策，并非已实测的全部原作边界。
 
-8 项 DuranceTest 验证上表时长、双方装备隔离、卸下 / 刷新 / 精确到期、授权、百层转换、+10 Melee 及缺失参数；3 项共享 DuranceGameTest 验证真实目标、tick 到期后原版移速恢复和 Freeze 控制。持续技能用测试 Buff 验证期限，**不代表冰炮台构造物、寻敌投射物或暮域周期场已实现**。Winter's Shroud 战员时长在原表带问号，未采为确定校准。生产技能全套来源、原作采样边界、正式子职业装配 / HUD / 持久化仍待完成，Durance 保持 **partial**。
+8 项 DuranceTest 验证上表时长、双方装备隔离、卸下 / 刷新 / 精确到期、授权、百层转换、+10 Melee 及缺失参数；3 项共享 DuranceGameTest 验证真实目标、tick 到期后原版移速恢复和 Freeze 控制。Withering Blade 的实际命中与 Duskfield 的落点、周期场及 7 / 9 秒生命周期已有独立验收；Bleak Watcher 仍只用测试 Buff 验证期限，**不代表冰炮台构造物及其寻敌投射物已实现**。Winter's Shroud 战员时长在原表带问号，未采为确定校准。生产技能全套来源、原作采样边界、正式子职业装配 / HUD / 持久化仍待完成，Durance 保持 **partial**。
 
 ### Freeze / Shatter 的分级控制与范围碎冰
 

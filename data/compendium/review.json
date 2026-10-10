@@ -5959,10 +5959,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
           "symbol": "twoUnequippedBladesApplyCurrentDuranceThenFreezeWithFinalCastCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "unequippedGrenadeKeepsNineSecondFieldButLaterSlowUsesCurrentDuranceAndFreezes"
         }
       ],
       "gaps": [
-        "Withering Blade已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
+        "Withering Blade和Duskfield已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
         "Guardian空中速度尚未适配；jump delta -0.3只是冲量校准输入，不能声称已复现跳高减半；NPC瞄准精度和Guardian Flinch未完成",
         "共享刷新、第一Slow施加者/最后Freeze施加者信用、冻结期间忽略Slow、失败保留及重试均为暂定内容政策，需原作实测",
         "四项武器数值已进入共享Profile，但稳定性、操控、后坐力的完整实际武器反馈与Champion过载反应未完成",
@@ -6007,7 +6012,7 @@
           "text_sha256": "984da7d247a4fe01802eab5809bb74a6cd7e34b3dc40177b3f5ef71084af8d70"
         }
       ],
-      "scope": "来源专属Slow时长延长与持续技能期限查询；施加者当前装备取样、重复去重及+10 Melee；Withering Blade实际命中已接入，其他生产者待完成",
+      "scope": "来源专属Slow时长延长与持续技能期限查询；施加者当前装备取样、重复去重及+10 Melee；Withering Blade和Duskfield实际命中/周期场已接入",
       "acceptance": [
         "飞镖、炮台和暮域Slow分别提供对应战员/Guardian基础时间与延长；只读取施加者，重复Durance不叠加",
         "卸下不修改已有截止时间，后续施加重新查询；短刷新保留最晚期限和首次信用",
@@ -6066,13 +6071,147 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
           "symbol": "twoUnequippedBladesApplyCurrentDuranceThenFreezeWithFinalCastCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "unequippedGrenadeKeepsNineSecondFieldButLaterSlowUsesCurrentDuranceAndFreezes"
         }
       ],
       "gaps": [
-        "Withering Blade实际飞镖已接入；暮域周期场、炮台构造物及其余生产者未装配，持续技能目前只验证期限查询",
+        "Withering Blade实际飞镖与Duskfield周期场已接入；Bleak Watcher构造物及其余生产者未装配，炮台目前只验证期限查询",
         "Winter’s Shroud战员时长有问号，未假定确定数值；其他来源需逐条核对",
         "施加时取样、重复MAX、共享刷新和来源信用仍是待原作实测的Chorus政策",
         "正式子职业/装备内容、HUD、状态持久化与NeoForge真实客户端仍未验收"
+      ]
+    },
+    {
+      "id": "ability/duskfield",
+      "name": "Duskfield Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B30",
+          "text_sha256": "20c734b7159ed94c03cf971da51d7e3c303c349f196770395f4f29bb1f7b0384"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D30",
+          "text_sha256": "f8eb5a691905977d096ff3797e0803f23b75fea96e899cada8aef145664573b7"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "N30",
+          "text_sha256": "f7e8e18de04aba3a863543ce50d6be2be58aef9e0c5a80d98451620c33427719"
+        }
+      ],
+      "scope": "需显式飞行/落点校准的暮域技能模板；实际碰撞创建固定4米周期场、逐跳伤害与Slow/Freeze、Durance分别取样、131.7秒基础回充及0.875 CES；真实持续伤害使用独立伤害类型避免原版受伤冷却吞跳",
+      "acceptance": [
+        "实体/方块接触创建区域，寿命耗尽或未知地形不凭空爆炸；单格充能、131.7秒基础恢复、0.875块状回能倍率与当前Grenade曲线",
+        "落点至多20伤害与战员/Guardian 20/10 Slow；落点半径未知，必须显式校准，测试2米和线性衰减不当作原作事实",
+        "固定4米区域每0.35/0.3秒造成1伤害与10/5 Slow，基础存在7秒，Durance延长2秒；Slow自身基础2秒、延长2秒",
+        "施放归属与固定位置独立保存，区域每跳重新查询当前成员；来源卸下不取消区域，不跟随施放者或初始命中目标移动",
+        "Durance在区域创建和每次Slow时分别读取施加者当前装备；已有截止时间保持不变；百层转换复用Freeze及独立时长",
+        "不同施放保留独立位置、截止时间与伤害归属；明确移除区域取消后续计时，不移除已授予Slow",
+        "持续技能专用原版伤害类型仅绕过受伤冷却，使真实0.3/0.35秒伤害均能结算；仍使用正常伤害/死亡/护盾回执",
+        "未知世界结果保留能量支付、已有区域及实际扣血，停止后续跳数与状态施加且不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/duskfield.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/duskfield_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/main/resources/data/chorus_d2/damage_type/ability_dot.json"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-11/duskfield.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "missingCalibrationFailsBeforePaymentAndKnownEnergyUsesCurrentGrenadeStats"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "impactAndPeriodicValuesAreSeparateAndExpiryHasNoExtraEndpointPulse"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "fieldIsFixedAndEachPulseReadsCurrentMembersAndTeamInsteadOfFollowingTheCaster"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "duranceIsSampledAtFieldCreationAndEachSlowApplicationIndependently"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "sharedSlowReachesFreezeFromTheFieldWithoutASecondCastAndDuranceDoesNotExtendFreeze"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "independentCastsKeepAnchorsCreditAndLifetimesAndExplicitDismissalLeavesExistingSlow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "cancelledInitialDamageOrDeniedSlowDoesNotPreventTheIndependentFieldButMissingOwnerEndsIt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DuskfieldTest.java",
+          "symbol": "unknownPulseRetainsSpentChargeExistingFieldAndPriorDamageWithoutReplay"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "nativeDotBypassesHitCooldownAndFixedFieldFindsLateEntrantsWithoutFollowingOwner"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "unequippedGrenadeKeepsNineSecondFieldButLaterSlowUsesCurrentDuranceAndFreezes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "actualGuardianUsesFiveStacksAndPointThreeSecondPulsesUntilFreeze"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "twoCastersKeepIndependentAnchorsAndSevenVersusNineSecondFieldLifetimes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
+          "symbol": "unknownNativeTickKeepsCommittedDamageAndChargeWithoutFurtherPulses"
+        }
+      ],
+      "gaps": [
+        "飞行轨迹、落点爆炸半径/衰减、第一跳相位、到期端点是否有伤害及混合目标时序仍待原作校准；测试选择一周期后首跳和半开寿命区间",
+        "空间暂用脚底点球形查询、当前not_allied关系和无额外视线筛选；关系参照移除后结束区域，不代表原作离线/死亡/跨维度政策",
+        "按实际目标类型选择层数、按发射时活动模式选择周期、重叠场共享Slow及当前Durance取样为明确Chorus政策，仍需原作实测",
+        "Slow跳跃和Freeze战员阈值/碎冰数值仍使用独立校准输入；Touch of Winter、Renewal Grasps及全部金装/碎片/Champion互动未完成",
+        "技能定义仍在测试资源中；正式子职业目录、技能按键/动画/HUD、物体视觉、状态持久化、完整属性/职业模组路由与NeoForge真实客户端未验收"
       ]
     }
   ]
