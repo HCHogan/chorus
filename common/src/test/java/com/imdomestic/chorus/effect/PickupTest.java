@@ -20,13 +20,13 @@ class PickupTest {
         final EffectSession session;
         final List<WorldPickup.Spawn> spawns = new ArrayList<>();
         final List<HealingCommand> heals = new ArrayList<>(); final List<Action.CueCommand> cues = new ArrayList<>();
-        Harness() throws Exception {
-            var p = load("pickup");
+        Harness() throws Exception { this(load("pickup"), WorldPickup.Outcome.SPAWNED); }
+        Harness(CompiledEffects p, WorldPickup.Outcome outcome) {
             var collector = new EffectSource("collector", "test:collector", "target", SOURCE.origin(), Set.of());
             var producer = new EffectSource("producer-listener", "test:collector", "player", SOURCE.origin(), Set.of());
             session = new EffectSession(engine(p), EffectState.empty().withSource(SOURCE).withSource(collector).withSource(producer), request -> switch (request.command()) {
                 case PositionQuery q -> new PositionQuery.Result(q, Optional.of(POINT));
-                case WorldPickup.Spawn spawn -> { spawns.add(spawn); yield new WorldPickup.Receipt(spawn, WorldPickup.Outcome.SPAWNED, Optional.of("entity" + spawns.size())); }
+                case WorldPickup.Spawn spawn -> { spawns.add(spawn); yield new WorldPickup.Receipt(spawn, outcome, outcome == WorldPickup.Outcome.SPAWNED ? Optional.of("entity" + spawns.size()) : Optional.empty()); }
                 case HealingCommand heal -> { heals.add(heal); yield HealingReceipt.unapplied(request.id().toString(), heal, HealingReceipt.Outcome.MISSING); }
                 case Action.CueCommand cue -> { cues.add(cue); yield RuleEngine.Empty.INSTANCE; }
                 default -> throw new AssertionError(request.command());
@@ -97,5 +97,30 @@ class PickupTest {
         assertTrue(invalid.state().engine().failure().isPresent()); assertTrue(invalid.actions().isEmpty());
         var rejected = complete(engine, waiting, new WorldPickup.Receipt(spawn, WorldPickup.Outcome.REJECTED, Optional.empty()));
         assertTrue(rejected.state().idle()); assertTrue(rejected.actions().isEmpty());
+    }
+    @Test void explicitSpawnBindingAllowsKnownFailurePolicyBeforeAnyCollection() throws Exception {
+        var data = json("pickup"); var steps = actions(data); steps.get(2).getAsJsonObject().addProperty("spawn_as", "created");
+        steps.add(JsonParser.parseString("""
+                {"if":{"type":"chorus:result_flag","binding":"created","field":"spawned"},
+                 "then":[{"type":"chorus:play_cue","cue":"test:spawned"}],
+                 "else":[{"type":"chorus:play_cue","cue":"test:rejected"}]}
+                """));
+        var p = compile(data);
+        assertEquals(p.program(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, p.program()).getOrThrow()).getOrThrow());
+        for (var outcome : WorldPickup.Outcome.values()) {
+            var h = new Harness(p, outcome); h.spawn();
+            assertEquals(List.of(outcome == WorldPickup.Outcome.SPAWNED ? "test:spawned" : "test:rejected"), h.cues.stream().map(Action.CueCommand::cue).toList());
+            assertTrue(h.heals.isEmpty());
+            if (outcome == WorldPickup.Outcome.SPAWNED) { h.finish(0, collected("target", 50_000)); assertEquals(1, h.heals.size()); }
+        }
+    }
+    @Test void spawnReceiptCannotShadowBindingsPretendToBeATargetOrBeCapturedBeforeItExists() throws Exception {
+        for (String fault : List.of("existing", "contact", "body", "target")) {
+            var data = json("pickup"); var steps = actions(data); var pickup = steps.get(2).getAsJsonObject();
+            pickup.addProperty("spawn_as", fault.equals("existing") ? "place" : fault.equals("contact") ? "contact" : "created");
+            if (fault.equals("body")) pickup.getAsJsonArray("do").add(JsonParser.parseString("{\"if\":{\"type\":\"chorus:result_flag\",\"binding\":\"created\",\"field\":\"spawned\"},\"then\":[]}"));
+            if (fault.equals("target")) steps.add(JsonParser.parseString("{\"for_each\":\"created\",\"as\":\"who\",\"do\":[]}"));
+            assertThrows(RuntimeException.class, () -> compile(data), fault);
+        }
     }
 }

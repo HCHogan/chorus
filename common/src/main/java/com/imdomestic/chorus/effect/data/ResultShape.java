@@ -32,6 +32,14 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     }
     private static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result; }
     private static com.imdomestic.chorus.effect.object.WorldPickup.Contact pickup(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.object.WorldPickup.Contact) result; }
+    public static final ResultShape PICKUP_SPAWN;
+    static {
+        var flags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>();
+        for (var outcome : com.imdomestic.chorus.effect.object.WorldPickup.Outcome.values())
+            flags.put(outcome.name().toLowerCase(java.util.Locale.ROOT), r -> ((com.imdomestic.chorus.effect.object.WorldPickup.Receipt) r).outcome() == outcome);
+        PICKUP_SPAWN = new ResultShape(Map.of("count", new Field(Unit.COUNT,
+                r -> ((com.imdomestic.chorus.effect.object.WorldPickup.Receipt) r).entity().isPresent() ? 1 : 0)), flags);
+    }
     public static final ResultShape PICKUP_CONTACT = new ResultShape(Map.of(
             "count", new Field(Unit.COUNT, r -> pickup(r).targets().size()), "age", new Field(Unit.SECOND, r -> pickup(r).ageMicros() / 1_000_000.0)),
             Map.of("collected", r -> pickup(r).end() == com.imdomestic.chorus.effect.object.WorldPickup.End.COLLECTED,

@@ -753,6 +753,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     }, ""));
                     body.addAll(compileSteps(bundle, pickup.body(), nestedResults, nestedSlots, path + index + "/pickup/", ownerRule, continuations));
                     continuations.add(new RuleEngine.EventRule<>(definition, com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, (_, _) -> true, body));
+                    String spawnSlot = pickup.spawnBind().map(name -> {
+                        localId(name);
+                        if (name.equals(pickup.bind()) || results.putIfAbsent(name, ResultShape.PICKUP_SPAWN) != null) throw new IllegalArgumentException("Duplicate or shadowed pickup spawn binding: " + name);
+                        String slot = path + name; slots.put(name, slot); return slot;
+                    }).orElse("");
                     output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
                         @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
                             var e = scopedEvaluation(state, context, previous, previousSlots); var spec = pickup.spec();
@@ -768,7 +773,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                             if (!receipt.spawn().equals(context.command(com.imdomestic.chorus.effect.object.WorldPickup.Spawn.class))) throw new IllegalArgumentException("Pickup receipt does not match spawn");
                             return new RuleEngine.Local<>(state, receipt, List.of());
                         }
-                    }, ""));
+                    }, spawnSlot));
                 }
                 case EffectProgram.ForEach loop -> {
                     localId(loop.bind());

@@ -539,8 +539,8 @@ public final class EffectCodecs {
             ).apply(i, PickupSpec::new)), Set.of("position", "kind", "recipient", "lifetime", "radius", "attraction"));
             Codec<EffectProgram.Pickup> pickup = strict(RecordCodecBuilder.create(i -> i.group(
                     pickupSpec.fieldOf("pickup").forGetter(EffectProgram.Pickup::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Pickup::bind),
-                    self.listOf().fieldOf("do").forGetter(EffectProgram.Pickup::body)
-            ).apply(i, EffectProgram.Pickup::new)), Set.of("pickup", "as", "do"));
+                    self.listOf().fieldOf("do").forGetter(EffectProgram.Pickup::body), Codec.STRING.optionalFieldOf("spawn_as").forGetter(EffectProgram.Pickup::spawnBind)
+            ).apply(i, EffectProgram.Pickup::new)), Set.of("pickup", "as", "do", "spawn_as"));
             return Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
