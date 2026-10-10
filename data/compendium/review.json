@@ -5589,14 +5589,16 @@
           "text_sha256": "168797cc7db11235a4a09f963b0ba5b1f9bbfcb4f6d96a60cb1ce22c44b1dea4"
         }
       ],
-      "scope": "实际接收者与来源分级时长、原版行动和两轴运动控制、Boss例外、地面Super解冻；按当前冻结代次累计真实损失并触发碎冰；按命中分类应用主武器减伤、特殊/威能和光能技能增伤、Basic/Glaive近战增量，并与攻击者One-Two Punch同组取高",
+      "scope": "实际接收者与来源分级时长、原版行动和两轴运动控制、Boss例外、地面Super解冻；按当前冻结代次累计真实损失并触发碎冰；按命中分类应用主武器减伤、特殊/威能和光能技能增伤、Basic/Glaive近战增量，并与攻击者One-Two Punch同组取高；长冻结的职业技能替换、空中Breakout、按当前冻结代次计时与显式参数的非致死生命支付",
       "acceptance": [
         "普通战员六秒、Boss三秒；实际Guardian按Player非Super来源1.35秒、战斗人员或Super来源4.75秒、Roaming状态一秒",
         "Boss保留减益但不限制行动；其他目标禁止新攻击、技能和运动；地面Guardian的Super例外由服务端状态决定",
         "冻结结束一次性施放标签；缺失、死亡、未分类和授权拒绝不控制目标",
         "HP加Chorus护盾实际损失按damage_id及Buff generation累计，旧冻结命中不计入新实例；致死、达到阈值或显式请求碎冰",
         "冻结贡献在命中时加入攻击者同一Profile；发射后冻结/解冻生效，未知分类不猜测；实际增伤后的损失进入碎冰阈值",
-        "Slow达到百层经同一施加规则取得Freeze后清除Slow；拒绝不消费已累计状态"
+        "Slow达到百层经同一施加规则取得Freeze后清除Slow；拒绝不消费已累计状态",
+        "只有实际Guardian长冻结替换已选择的职业技能；空中可用，重复输入不重启，基本职业技能能量不消耗，解冻后恢复原选择",
+        "接受时固定Breakout费用/下限/时长，按本代Freeze计时；提前/自然解冻取消费用，新冻结不受旧计时影响；支付成功才解冻，未知回执保留扣血并停止"
       ],
       "evidence": [
         {
@@ -5666,14 +5668,45 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SlowGameTest.java",
           "symbol": "successfulHundredStackConversionRemovesSlowAndThawNeverRestoresConsumedStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BreakoutTest.java",
+          "symbol": "prolongedGuardianFreezeReplacesClassInAirAndPreservesBaseEnergyUntilAfterThaw"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BreakoutTest.java",
+          "symbol": "cleanseRefreezeOrGroundedSuperCancelsTheOldGenerationBeforeAnyPayment"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BreakoutTest.java",
+          "symbol": "naturalThawCancelsLongerBreakoutAndRoamingSuperFreezeNeverOffersIt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BreakoutGameTest.java",
+          "symbol": "airborneClassInputStartsOnceThenPaysHealthAndRestoresTheOriginalClassAbility"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BreakoutGameTest.java",
+          "symbol": "paymentReceiptFailureKeepsHealthWriteButDoesNotThawOrReplay"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/BreakoutClientGameTest.java",
+          "symbol": "runTest"
         }
       ],
       "gaps": [
         "基础承伤修饰和Basic/Glaive近战已实现；冻结近战与其他配装增伤的实际叠加有公开冲突，当前采用Compendium的同组取高/相加政策，未完成原作实测校准",
-        "Breakout技能替换与生命成本、实际Super状态生产者、Champion反应未完成",
+        "Breakout真实Health费用曲线、非致死下限与原作伤害层/动画/摄像机仍未校准；实际Super状态生产者与Champion反应未完成",
         "战斗人员阈值使用必填参数；100伤害仅为合成测试值；阈值排除原版Absorption、忽略重施加及禁止换弹政策待校准",
         "技能/武器/子职业生产装配、实体效果持久化、视觉/HUD与NeoForge真实客户端尚未验收",
-        "主武器减伤按全局活动模式选择PvE/PvP；生产攻击标签、混合Guardian上下文和所有实际近战资格待验收"
+        "主武器减伤按全局活动模式选择PvE/PvP；生产攻击标签、混合Guardian上下文和所有实际近战资格待验收",
+        "Breakout必须绑定接收者显式校准来源；5生命、1生命下限、0.5秒和客户端1.5秒为合成测试值；up_to非致死直扣政策不等于原作实测"
       ]
     },
     {

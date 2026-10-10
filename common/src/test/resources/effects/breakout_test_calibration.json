@@ -1,0 +1,15 @@
+{
+  "note": "Synthetic recipient calibration, not verified D2 health cost, nonlethal floor or animation duration.",
+  "health_cost": {
+    "value": 5,
+    "unit": "damage"
+  },
+  "health_floor": {
+    "value": 1,
+    "unit": "damage"
+  },
+  "breakout_time": {
+    "value": 0.5,
+    "unit": "second"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "compendium_source": "data/d2-research/2026-10-11/control-effects.json",
+  "original_cells": [
+    "Stasis B10",
+    "Stasis D10"
+  ],
+  "snapshot_cells": [
+    "Stasis B8",
+    "Stasis D8"
+  ],
+  "official_sources": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/49833",
+      "retrieved_at": "2026-10-10T20:44:45.084099+00:00",
+      "fact": "2020 introduction: class-slot Breakout trades health; Resilience reduced damage, but this is not a current formula.",
+      "published_at": "2020-11-12",
+      "evidence_kind": "short excerpt verified through web search/open of the official article",
+      "excerpt": "The damage this breakout does can be reduced by the Resilience stat.",
+      "excerpt_sha256": "e0ca2aaa1dfe5e378e29d9ccf304cc59130841fedc00c5cc05a479cccd0f84c5"
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/49861",
+      "retrieved_at": "2026-10-10T20:44:45.084323+00:00",
+      "fact": "2020 hotfix adjusted the Resilience curve; no exact current health cost is supplied.",
+      "published_at": "2020-11-19",
+      "evidence_kind": "short excerpt verified through web search/open of the official article",
+      "excerpt": "Adjusted the curve that reduces breakout damage using Resilience.",
+      "excerpt_sha256": "dcbf978ca0457925b86b5cbaf2cf9555a60e4ffcf949ae616d45fbd6387b64d9"
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/50599",
+      "retrieved_at": "2026-10-10T20:44:45.084390+00:00",
+      "fact": "2021 update explicitly allows starting Breakout while airborne and shortens animation/camera transition.",
+      "published_at": "2021-08-24",
+      "evidence_kind": "short excerpt verified through web search/open of the official article",
+      "excerpt": "Players can now initiate breakout while airborne",
+      "excerpt_sha256": "eef5acc0cdaa12306a20eb22ae6a42461e584ee6cee0d0071c6db8d61ddcc79e"
+    }
+  ],
+  "uncertainty": [
+    "Compendium health cost is explicitly unknown. Historic Resilience statements do not establish the 2026 Health stat curve.",
+    "Breakout duration, animation, nonlethal floor and spending policy require calibration; no universal default is inferred."
+  ],
+  "implementation_policy": "Explicit recipient calibration supplies cost, positive health floor and delay; up_to nonlethal direct-health payment is a Chorus policy, not a verified D2 damage-layer or immunity model.",
+  "archive_limit": "Direct HTML downloads returned the JavaScript shell without article content. Those bodies were discarded. This record preserves verified short excerpts and source URLs, not complete article archives."
+}

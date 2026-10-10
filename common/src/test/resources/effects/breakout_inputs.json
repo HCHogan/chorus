@@ -1,0 +1,5 @@
+{
+  "version":"compendium-2026-10-05",
+  "resources":[{"id":"test:class_energy","capacity":1,"initial":1,"base_rate":0}],
+  "abilities":[{"id":"test:class_cost","slot":"chorus_d2:class","cost":{"resource":"test:class_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"on_use":[{"type":"chorus:play_cue","cue":"test:paid_class"}]}]
+}

@@ -954,7 +954,7 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
 
-现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 已接通百层到 Freeze 的转换、区分目标的地面移动 / 武器惩罚及移动技能门禁；空中速度与跳跃高度仍需校准；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤分类修饰已接线，近战叠加实测、Breakout 与实际技能来源仍未完成；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 已接通百层到 Freeze 的转换、区分目标的地面移动 / 武器惩罚及移动技能门禁；空中速度与跳跃高度仍需校准；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤分类修饰已接线，近战叠加实测与实际技能来源仍未完成；Breakout 已按显式参数接线，原作费用和动画待校准；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
 
 已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Slow、Suspend、Freeze 和 Shatter 均保持 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
 
@@ -990,7 +990,7 @@ Slow 的实际投影与查询分别为：
 | 明确 Rank-and-File、Elite、Miniboss 或 Champion 标签的战斗人员 | 6 秒 | 禁止主动输入、跳跃、两轴运动、新技能、武器开火 / 换弹及原版射击 / 近战 |
 | Boss | 3 秒 | 保留可查询 Freeze，不限制上述行动；自然到期自动碎冰 |
 | Guardian，由 Player 的非 Super 来源施加 | 1.35 秒 | 完全冻结；受地面 Super 例外约束 |
-| Guardian，由战斗人员或带 Super 标签的来源施加 | 4.75 秒 | 同上；Breakout 替换与生命消耗尚未接入 |
+| Guardian，由战斗人员或带 Super 标签的来源施加 | 4.75 秒 | 同上；可将职业技能替换为显式参数的 Breakout |
 | Guardian，已有 Roaming Super 状态 | 1 秒 | 自动解冻，保留 Roaming 状态 |
 
 分类使用 inspect_entity 的实际 Player 标志、实体 / 类型等级标签及施加者身份；不把整个 PvE 世界中的玩家当成普通怪物。Boss 优先于低等级标签；未知、缺失、死亡目标和宿主拒绝不获得控制。Champion 标签在这里仅赋予六秒冻结模板，不代表已实现其眩晕 / 抗性。已有 Freeze 的再次施加当前直接忽略，保留原信用、generation、累计值与截止时间；这一重施加政策，以及冻结时拒绝换弹，仍待原作校准。
@@ -1003,7 +1003,7 @@ Slow 的实际投影与查询分别为：
 
 新的碎冰伤害可以累计邻近目标的冻结阈值并继续碎冰；没有全局事件次数、链深度或根事件截止。移除当前冻结只防止同代重复爆炸，不截断其他目标的有效反应。未知世界结果保留已经结束的 Freeze 与已扣除的生命，停止运行时且不重放。
 
-Guardian 处于冻结时，只有服务端确认 on_ground 且最终技能带 chorus:super_ability 的输入可以通过；接受后先清除 Freeze，再执行技能。带 chorus_d2:freeze_interruptible 的一次性施放状态在冻结进入时及冻结期间新建时被结束。当前 test:super、test:roaming 和 test:oneoff 是合成生产者，真实 Super / 子职业装配仍未完成。Breakout 生命消耗尚未验证，不能用经过护甲 / 护盾的普通自伤冒充准确生命成本。
+Guardian 处于冻结时，服务端确认 on_ground 且最终技能带 chorus:super_ability 的输入可以通过；接受后先清除 Freeze，再执行技能。长冻结另允许下述 Breakout，资格与付费流程独立。带 chorus_d2:freeze_interruptible 的一次性施放状态在冻结进入时及冻结期间新建时被结束。当前 test:super、test:roaming 和 test:oneoff 是合成生产者，真实 Super / 子职业装配仍未完成。Breakout 使用独立生命支付；它的具体费用和与原作伤害层的对应关系仍未校准。
 
 [freeze_test_calibration.json](../common/src/test/resources/effects/freeze_test_calibration.json) 明确提供合成阈值 100、半径 4 米和 Guardian 碎冰伤害 80；[freeze_test_falloff.json](../common/src/test/resources/effects/freeze_test_falloff.json) 提供从 0 米的 1 到 4 米的 0 的合成线性曲线。这些均非原作实测参数。12 项纯核心测试、8 项双端共享世界场景和 FreezeClientGameTest 分别覆盖数值 / 生命周期、真实扣血与行动、实际玩家和远端生物的冻结同步与解冻。
 
@@ -1023,6 +1023,18 @@ combat_damage.json 的有序阶段为 ability_stat → melee → perk → frozen
 6 项 FreezeDamageTest 与 3 项 FreezeDamageGameTest 验证分类、等级、与 Woven Mail 的顺序、捕获后状态变化和实际扣血；新增 OneTwoPunchGameTest 从真实霰弹命中进入冻结目标的两次近战：基础 10 的第一次按较高词条得到 25，词条消费后第二次仍由 Freeze 得到 22。这里验收的是上述可追踪内容政策，冻结近战实测冲突、原作完整近战分类及混合 PvE / Guardian 环境中的主武器政策仍待校准。
 
 [Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 的 Boss 冻结类型和 Celestial Nighthawk 对冻结 Boss 的异常增伤，不能将旧异常固化为通用规则。Stasis Crystal 碎裂、实际 Slow / Freeze 技能与武器生产者、Shatter 对势不可挡的眩晕、持久化和正式 HUD / 视觉仍未完成。
+
+#### Breakout：职业技能替换与延迟生命支付
+
+原表长冻结说明明确替换职业技能，但生命消耗写为未知值。[Bungie 3.3.0](https://www.bungie.net/7/en/News/article/50599) 允许空中启动挣脱；[2020 年初始说明](https://www.bungie.net/7/en/News/article/49833)与[3.0.0.3](https://www.bungie.net/7/en/News/article/49861)只证明历史上 Resilience 影响费用、曲线曾调整，不能据此断言当前 Health 属性公式。来源链接、核对短摘录与边界保存在 [Breakout 资料](../data/d2-research/2026-10-11/freeze-breakout.json)。
+
+接收者显式绑定带 `chorus_d2:breakout_calibrated` 标签的 `chorus_d2:breakout_calibration` 来源，必须提供 `health_cost: damage / health_floor: damage / breakout_time: second`。费用与时长非负，下限严格正数，非法范围由门禁在输入接受前拒绝。只有 Freeze tier 5（战员或 Super 造成的 Guardian 长冻结）将 `chorus_d2:class` 替换为 `chorus_d2:breakout`；短冻结、Roaming 的一秒冻结、战员自身冻结及未校准接收者都不提供这一替换。已有基础职业技能选择才有可替换槽位；没有替玩家补造已解锁技能。
+
+Breakout 不携带原职业技能的能量成本或 class_ability 标签。参数通过接收者的校准 Profile 在接受输入时固定，多个校准贡献当前取最大值；推荐每名角色绑定单一校准来源。技能条件复核长冻结资格和本代未开始挣脱，直接选择该定义不能绕过这些条件。Freeze 的 ability_started 反应将本代标记为正在挣脱，之后重复输入返回 CONDITION，不重启计时或再支付。校准来源在接受后卸下，也不会改写已固定的费用与时长。
+
+计时绑定 Freeze 的 generation。提前清除、自然到期、地面 Super 解冻都会取消待执行挣脱；同逻辑键重新冻结不受旧计时影响。计时结束时经 `spend_health mode: up_to` 支付，成功才移除当前 Freeze；缺失 / 死亡等未支付回执保留状态并解除“正在挣脱”标记，后续有效输入可重试。未知回执保留已扣生命、停止运行时，不解冻或重复扣款。支付来源是挣脱者，原冻结 / 碎冰归属仍保留原施加者。
+
+非致死下限、up_to 部分 / 零支付、绕过护盾与伤害链及延迟后扣费，均是明确的 Chorus 内容政策，并非现版本 D2 实测结论。原作可能需要不同生命层、伤害减免或动画阶段，这些仍须校准。独立 [breakout_test_calibration.json](../common/src/test/resources/effects/breakout_test_calibration.json) 使用费用 5、最低生命 1、延迟 0.5 秒；客户端验收改用 1.5 秒，均为合成参数。8 项 BreakoutTest 和 4 项共享世界场景覆盖空中施放、技能恢复、基础能量保留、重复输入、旧冻结代次、提前 / 自然解冻、低血量及未知回执；真实客户端命令、生命同步与移动恢复另由 BreakoutClientGameTest 验收。
 
 ## Suspend 的分级状态与脱离伤害
 

@@ -29,6 +29,14 @@
             "guardian_damage": {
               "initial": 0,
               "unit": "damage"
+            },
+            "breakout_available": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "breakout_started": {
+              "initial": 0,
+              "unit": "count"
             }
           },
           "sets": [
@@ -799,36 +807,75 @@
               {
                 "type": "chorus:not",
                 "of": {
-                  "type": "chorus:all",
+                  "type": "chorus:any",
                   "of": [
                     {
-                      "type": "chorus:compare",
-                      "left": {
-                        "type": "chorus:by_buff_tier",
-                        "values": [
-                          0,
-                          0,
-                          0,
-                          1,
-                          1,
-                          1
-                        ],
-                        "unit": "count"
-                      },
-                      "op": "eq",
-                      "right": {
-                        "type": "chorus:constant",
-                        "value": 1,
-                        "unit": "count"
-                      }
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:by_buff_tier",
+                            "values": [
+                              0,
+                              0,
+                              0,
+                              1,
+                              1,
+                              1
+                            ],
+                            "unit": "count"
+                          },
+                          "op": "eq",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_ability"
+                        },
+                        {
+                          "type": "chorus:event_flag",
+                          "name": "on_ground"
+                        }
+                      ]
                     },
                     {
-                      "type": "chorus:event_tag",
-                      "tag": "chorus:super_ability"
-                    },
-                    {
-                      "type": "chorus:event_flag",
-                      "name": "on_ground"
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:by_buff_tier",
+                            "values": [
+                              0,
+                              0,
+                              0,
+                              0,
+                              1,
+                              0
+                            ],
+                            "unit": "count"
+                          },
+                          "op": "eq",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus_d2:breakout"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:breakout_calibrated"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -1946,6 +1993,174 @@
               "tag": "chorus_d2:freeze_interruptible"
             }
           ]
+        },
+        {
+          "id": "breakout_eligibility",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:freeze",
+              "component": "breakout_available",
+              "op": "set",
+              "value": {
+                "type": "chorus:by_buff_tier",
+                "values": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                "unit": "count"
+              }
+            }
+          ]
+        },
+        {
+          "id": "start_breakout",
+          "on": "chorus:ability_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "event_actor",
+                "right": "self"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:breakout"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:freeze",
+                  "component": "breakout_started"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:freeze",
+              "component": "breakout_started",
+              "op": "set",
+              "value": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              }
+            },
+            {
+              "after": {
+                "type": "chorus:event_number",
+                "name": "param.breakout_time",
+                "unit": "second"
+              },
+              "lifetime": "source",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:has_buff",
+                    "buff": "chorus_d2:freeze",
+                    "match": "instance"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:spend_health",
+                        "amount": {
+                          "type": "chorus:event_number",
+                          "name": "param.health_cost",
+                          "unit": "damage"
+                        },
+                        "minimum": {
+                          "type": "chorus:event_number",
+                          "name": "param.health_floor",
+                          "unit": "damage"
+                        },
+                        "mode": "up_to",
+                        "origin": "event",
+                        "tags": [
+                          "chorus_d2:breakout"
+                        ]
+                      },
+                      "as": "payment"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "payment",
+                        "field": "paid"
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:has_buff",
+                            "buff": "chorus_d2:freeze",
+                            "match": "instance"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:remove_buff",
+                              "buff": "chorus_d2:freeze"
+                            }
+                          ]
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:freeze",
+                          "component": "breakout_started",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ],
       "modifiers": [
@@ -2209,6 +2424,298 @@
           },
           "reference": "Compendium 2026-10-05 CSV Stasis D8, Weapon Perks C154. Explicit impact tags and shared additive melee placement are Chorus policy; current-game stacking remains disputed.",
           "confidence": "assumed"
+        }
+      ],
+      "ability_overrides": [
+        {
+          "id": "breakout",
+          "slot": "chorus_d2:class",
+          "replace_with": "chorus_d2:breakout",
+          "priority": 1000,
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:breakout_calibrated"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:breakout_calibration",
+      "parameters": {
+        "health_cost": "damage",
+        "health_floor": "damage",
+        "breakout_time": "second"
+      },
+      "modifiers": [
+        {
+          "id": "health_cost",
+          "profile": "chorus_d2:breakout_health_cost",
+          "stage": "calibration",
+          "group": "calibration",
+          "op": "add",
+          "stacking_key": "chorus_d2:breakout_health_cost",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "health_cost"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus_d2:breakout"
+          },
+          "reference": "Explicit recipient calibration; Compendium Stasis D8 leaves health cost unknown. Delay, health floor and up_to policy are not verified D2 values.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "health_floor",
+          "profile": "chorus_d2:breakout_health_floor",
+          "stage": "calibration",
+          "group": "calibration",
+          "op": "add",
+          "stacking_key": "chorus_d2:breakout_health_floor",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "health_floor"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus_d2:breakout"
+          },
+          "reference": "Explicit recipient calibration; Compendium Stasis D8 leaves health cost unknown. Delay, health floor and up_to policy are not verified D2 values.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "breakout_time",
+          "profile": "chorus_d2:breakout_breakout_time",
+          "stage": "calibration",
+          "group": "calibration",
+          "op": "add",
+          "stacking_key": "chorus_d2:breakout_breakout_time",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "breakout_time"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus_d2:breakout"
+          },
+          "reference": "Explicit recipient calibration; Compendium Stasis D8 leaves health cost unknown. Delay, health floor and up_to policy are not verified D2 values.",
+          "confidence": "assumed"
+        }
+      ],
+      "action_gates": [
+        {
+          "id": "invalid_calibration",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:breakout"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:all",
+                  "of": [
+                    {
+                      "type": "chorus:compare",
+                      "left": {
+                        "type": "chorus:source_parameter",
+                        "name": "health_cost"
+                      },
+                      "op": "ge",
+                      "right": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "damage"
+                      }
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {
+                        "type": "chorus:source_parameter",
+                        "name": "health_floor"
+                      },
+                      "op": "gt",
+                      "right": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "damage"
+                      }
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {
+                        "type": "chorus:source_parameter",
+                        "name": "breakout_time"
+                      },
+                      "op": "ge",
+                      "right": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "second"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:breakout",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus_d2:breakout"
+      ],
+      "if": {
+        "type": "chorus:all",
+        "of": [
+          {
+            "type": "chorus:has_buff",
+            "buff": "chorus_d2:freeze",
+            "match": "any"
+          },
+          {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:component",
+              "buff": "chorus_d2:freeze",
+              "component": "breakout_available"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:component",
+              "buff": "chorus_d2:freeze",
+              "component": "breakout_started"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          },
+          {
+            "type": "chorus:has_source_tag",
+            "tag": "chorus_d2:breakout_calibrated"
+          }
+        ]
+      },
+      "parameters": {
+        "health_cost": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0,
+            "unit": "damage"
+          },
+          "profile": "chorus_d2:breakout_health_cost"
+        },
+        "health_floor": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0,
+            "unit": "damage"
+          },
+          "profile": "chorus_d2:breakout_health_floor"
+        },
+        "breakout_time": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0,
+            "unit": "second"
+          },
+          "profile": "chorus_d2:breakout_breakout_time"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:breakout_health_cost",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "calibration",
+          "operation": "add",
+          "group": {
+            "name": "calibration",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:breakout_health_floor",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "calibration",
+          "operation": "add",
+          "group": {
+            "name": "calibration",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:breakout_breakout_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "calibration",
+          "operation": "add",
+          "group": {
+            "name": "calibration",
+            "reduction": "max"
+          }
         }
       ]
     }
