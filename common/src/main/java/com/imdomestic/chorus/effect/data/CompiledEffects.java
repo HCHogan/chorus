@@ -86,7 +86,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         this.program = program;
         if (program.version().isBlank()) throw new IllegalArgumentException("Missing program version");
         this.buffs = index(program.buffs().stream().map(EffectProgram.Buff::definition).toList(), BuffDefinition::id);
-        this.bundles = index(program.bundles(), EffectProgram.Bundle::id);
+        this.bundles = index(BundleComposition.resolve(program.bundles()), EffectProgram.Bundle::id);
         this.equipment = new CompiledEquipment(program.equipment(), id -> {
             if (bundle(id).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipment requires a source-scoped bundle: " + id);
         }, id -> bundle(id).parameters());
@@ -142,7 +142,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var continuations = new ArrayList<RuleEngine.EventRule<EffectState>>();
         var compiled = new LinkedHashMap<String, List<RuleEngine.EventRule<EffectState>>>();
         var originRules = new HashSet<String>();
-        for (var bundle : program.bundles()) {
+        for (var declared : program.bundles()) {
+            var bundle = bundle(declared.id());
             var gateIds=new HashSet<String>();
             for(var gate:bundle.actionGates()){
                 actionKinds.add(gate.action());

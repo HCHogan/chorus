@@ -57,13 +57,16 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     }
     public record Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides,
             java.util.Map<String, com.imdomestic.chorus.stat.Unit> parameters, List<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGates,
-            List<com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration> horizontalSpeedLimits) {
+            List<com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration> horizontalSpeedLimits, List<String> includes) {
         public Bundle {
             abilityOverrides = List.copyOf(abilityOverrides); rules = List.copyOf(rules); modifiers = List.copyOf(modifiers); recovery = List.copyOf(recovery);
             parameters = com.imdomestic.chorus.effect.EffectParameters.copy(parameters);
-            actionGates = List.copyOf(actionGates); horizontalSpeedLimits = List.copyOf(horizontalSpeedLimits);
+            actionGates = List.copyOf(actionGates); horizontalSpeedLimits = List.copyOf(horizontalSpeedLimits); includes = List.copyOf(includes);
             if (scope != Scope.SOURCE && !parameters.isEmpty()) throw new IllegalArgumentException("Only source bundles declare parameters");
         }
+        public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides,
+                java.util.Map<String, com.imdomestic.chorus.stat.Unit> parameters, List<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGates,
+                List<com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration> horizontalSpeedLimits) { this(id, scope, rules, modifiers, recovery, abilityOverrides, parameters, actionGates, horizontalSpeedLimits, List.of()); }
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides,
                 java.util.Map<String, com.imdomestic.chorus.stat.Unit> parameters, List<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGates) { this(id, scope, rules, modifiers, recovery, abilityOverrides, parameters, actionGates, List.of()); }
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides,

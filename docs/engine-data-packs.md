@@ -64,6 +64,25 @@ chorus engine stop
 - `chorus:source_attached / source_detached` 事实携带 source_instance / bundle 引用及完整不可变来源快照。静态规则用 `chorus:own_source` 匹配本来源，包含原标签和归属，避免相同 bundle 或同键新词条处理旧词条的清理。被删除来源以旧快照执行自己的 detached 规则；其他活动来源仍可观察该事实。Java 负载为 `SourceChange.Fact`，通过 `EffectEvent.Carrier` 读取事件，不应强转为裸 `EffectEvent`。Buff 结束仍使用已有的 ended 快照协议。
 - `stop` 显式丢弃该维度运行时的暂态状态。已有运行时时，start 会拒绝覆盖；不会借重新启动偷偷清空来源、Buff、定时器或失败记录。
 
+## 效果包声明复用
+
+Bundle 可声明 `includes`，引用同一链接目录内、相同 scope 的其他 Bundle。例如 Slow 的施加来源复用 Freeze 的施加规则：
+
+```json
+{
+  "id": "chorus_d2:slow_application",
+  "includes": ["chorus_d2:freeze_application"],
+  "parameters": {"slow_duration": "second", "slow_jump_delta": "delta"},
+  "rules": []
+}
+```
+
+此片段需与被引用的 Bundle 一起链接。`imports` 负责加载程序模块，`includes` 负责复用 Bundle 的声明，二者的 id 空间和职责不同。编译器按 includes 顺序先展开依赖，再加入本地声明；菱形依赖按 Bundle id 只展开一次。包含规则、修饰、连续恢复、技能替换、动作门禁、水平速度上限及参数声明。参数同名同单位共享一个绑定值；单位冲突、各类别内局部声明 id 冲突、重复直接引用、缺失引用、跨 scope 引用与静态引用环均拒绝，不作隐式覆盖。
+
+展开后仍只有被实际绑定的来源 / Buff：`self`、组件、owner、origin、`own_source`、`own_buff` 和生命周期均绑定到这个组合实例，不额外创建父来源。继承参数也必须在实际来源上提供，装备与技能常驻来源使用同样的参数校验。引用的公开事件规则会同时成为组合包的能力；例如 Slow 来源也能处理显式 `apply_freeze` / `clear_freeze`。`origin_bundle` 捕获包含展开后的规则，解绑后按已捕获来源继续。`CompiledEffects.program()` 与 Codec 保留原始未展开目录，以便往返、重载和反应快照保持同一声明身份。
+
+静态引用环检查只解决声明无法有限展开的问题。事件执行中的循环、点燃传播和跨目标反馈不受它限制。可执行范例与边界见 [BundleCompositionTest](../common/src/test/java/com/imdomestic/chorus/effect/BundleCompositionTest.java)。
+
 ## 装备定义与原子装配投影
 
 程序可声明可选的 `equipment`，默认空目录。以下为合并到已有程序中的字段示例；`test:gear_perk` 必须在该程序或参与链接的片段中声明为 source bundle。完整可执行合成夹具见 [equipment.json](../common/src/test/resources/effects/equipment.json)，数值仅用于验证机制。

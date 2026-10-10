@@ -1,0 +1,241 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:original",
+      "slot": "test:slot",
+      "on_use": []
+    },
+    {
+      "id": "test:replacement",
+      "slot": "test:slot",
+      "on_use": []
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:buff",
+        "version": "test-1",
+        "attach": "target",
+        "duration": 3
+      },
+      "bundle": "test:buff_child"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:base",
+      "parameters": {
+        "bonus": "delta"
+      },
+      "rules": [
+        {
+          "id": "base",
+          "on": "test:start",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:base"
+            }
+          ]
+        },
+        {
+          "id": "hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:hit"
+            }
+          ],
+          "binding": "origin_bundle"
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:damage",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:bonus",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "bonus"
+          },
+          "reference": "Synthetic included declaration",
+          "confidence": "assumed"
+        }
+      ],
+      "action_gates": [
+        {
+          "id": "jump",
+          "action": "jump"
+        }
+      ],
+      "horizontal_speed_limits": [
+        {
+          "id": "speed",
+          "speed": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "meter_per_second"
+          }
+        }
+      ],
+      "health_recovery": [
+        {
+          "id": "heal",
+          "channel": "test:heal",
+          "rate": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage_per_second"
+          },
+          "tags": []
+        }
+      ],
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "test:slot",
+          "ability": "test:original",
+          "replace_with": "test:replacement"
+        }
+      ]
+    },
+    {
+      "id": "test:left",
+      "includes": [
+        "test:base"
+      ],
+      "rules": [
+        {
+          "id": "left",
+          "on": "test:start",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:left"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:right",
+      "includes": [
+        "test:base"
+      ],
+      "parameters": {
+        "bonus": "delta"
+      },
+      "rules": [
+        {
+          "id": "right",
+          "on": "test:start",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:right"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:child",
+      "includes": [
+        "test:left",
+        "test:right"
+      ],
+      "rules": [
+        {
+          "id": "child",
+          "on": "test:start",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:child"
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:buff",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:buff_base",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "gained",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:buff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:buff_child",
+      "scope": "buff",
+      "includes": [
+        "test:buff_base"
+      ]
+    }
+  ]
+}
