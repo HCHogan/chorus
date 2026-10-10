@@ -482,7 +482,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (instance.startsWith("equipment/")) throw new IllegalArgumentException("Equipment sources must change through EquipmentChange");
         if (instance.startsWith(com.imdomestic.chorus.effect.ability.AbilitySources.PREFIX)) throw new IllegalArgumentException("Ability sources must change through AbilityChange");
     }
-    /** Attack scaling uses only the attack owner's modifiers; target debuffs belong in the defense profile. */
+    /** Attack-owner modifiers and explicitly declared victim providers share the selected attack profile's groups. */
     public Optional<CalculationProfile.Result> outgoing(EffectState state, DamageCommand command, double input) {
         command.reactions().ifPresent(snapshot -> snapshot.requireCompatible(program));
         if (command.snapshot().isEmpty()) return damageCalculation(state, command, command.source().owner(), command.scalingProfile(), input);
@@ -994,6 +994,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
 
     private void validateModifier(EffectProgram.Bundle bundle, EffectProgram.Modifier modifier) {
+        if (modifier.provider() == EffectProgram.ModifierProvider.VICTIM && modifier.evaluate() != EffectProgram.Evaluate.ON_HIT)
+            throw new IllegalArgumentException("Victim-provided modifiers require on_hit evaluation");
         var profile = profiles.get(modifier.profile());
         if (profile == null) throw new IllegalArgumentException("Unknown modifier profile: " + modifier.profile());
         var validation = validation(bundle, Map.of()); modifier.condition().validate(validation);
@@ -1141,34 +1143,37 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         Optional<DamageGroups.Handle> handle = event.signal().payload() instanceof DamageGroups.Query q ? q.group()
                 : event.signal().payload() instanceof ShieldQuery q ? q.group() : Optional.empty();
         var group = handle.map(h -> DamageGroups.require(state, h));
-        for (var source : state.sources().values()) if (source.holder().equals(holder)) {
-            visitBundle(state, event, source, sourceId(source), source.instance(), bundle(source.bundle()), profile, null, visitor);
+        java.util.function.Predicate<String> participant = id -> id.equals(holder) || (!query.victim().isBlank() && id.equals(query.victim()));
+        for (var source : state.sources().values()) if (participant.test(source.holder())) {
+            visitBundle(state, event, source, sourceId(source), source.instance(), bundle(source.bundle()), profile, null, holder, query.victim(), visitor);
         }
         for (var instance : state.buffs().instances().values()) {
             if (group.filter(g -> g.grants().containsKey(instance.key())).isPresent()) continue;
-            if (!instance.key().holder().equals(holder) || instance.activeCount(state.buffs().timeMicros()) == 0 || !instance.affects(query.source().weapon(), query.source().ability())) continue;
-            visitBuffModifiers(state, event, profile, instance, false, visitor);
+            if (!participant.test(instance.key().holder()) || instance.activeCount(state.buffs().timeMicros()) == 0 || !instance.affects(query.source().weapon(), query.source().ability())) continue;
+            visitBuffModifiers(state, event, profile, instance, false, holder, query.victim(), visitor);
         }
         if (group.isPresent()) for (var instance : group.orElseThrow().grants().values()) {
-            if (!instance.key().holder().equals(holder) || !instance.affects(query.source().weapon(), query.source().ability())) continue;
+            if (!participant.test(instance.key().holder()) || !instance.affects(query.source().weapon(), query.source().ability())) continue;
             if (!instance.definition().equals(buffs.get(instance.definition().id()))) throw new IllegalArgumentException("Incompatible retained buff definition");
             var policy = consumptions.get(instance.definition().id());
             if (policy == null || policy.sharing() != BuffConsumption.Sharing.GROUP) throw new IllegalArgumentException("Incompatible retained consumption policy");
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false, true), Map.of());
-            if (policy.condition().test(evaluation(state, context, Map.of()))) visitBuffModifiers(state, event, profile, instance, true, visitor);
+            if (policy.condition().test(evaluation(state, context, Map.of()))) visitBuffModifiers(state, event, profile, instance, true, holder, query.victim(), visitor);
         }
     }
-    private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, java.util.function.Consumer<ModifierSite> visitor) {
+    private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, String holder, String victim, java.util.function.Consumer<ModifierSite> visitor) {
         String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) return;
         String id = "buff/" + instance.generation();
         visitBundle(state, event, new BuffRules.Scope(instance, false, retained), id, instance.origin().source().isEmpty() ? id : instance.origin().source(),
-                bundle(bundleId), profile, instance, visitor);
+                bundle(bundleId), profile, instance, holder, victim, visitor);
     }
     private void visitBundle(EffectState state, RuleEngine.Event event, RuleEngine.Payload scope, String instanceId, String sourceId,
-            EffectProgram.Bundle bundle, String profile, BuffInstance buff, java.util.function.Consumer<ModifierSite> visitor) {
+            EffectProgram.Bundle bundle, String profile, BuffInstance buff, String holder, String victim, java.util.function.Consumer<ModifierSite> visitor) {
         var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of());
         for (var modifier : bundle.modifiers()) {
             if (!modifier.profile().equals(profile)) continue;
+            String provider = modifier.provider() == EffectProgram.ModifierProvider.VICTIM ? victim : holder;
+            if (provider.isBlank() || !evaluation.self().equals(provider)) continue;
             if (modifier.multiplicity() == EffectProgram.Multiplicity.STACK) {
                 for (var stack : buff.stacks()) visitor.accept(new ModifierSite(evaluation, modifier, instanceId + "/stack/" + stack.id(),
                         stack.origin().source().isEmpty() ? sourceId : stack.origin().source(), bundle.id(), program.version()));

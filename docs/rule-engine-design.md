@@ -413,7 +413,7 @@ Attack
 
 具体的伤害 Profile（武器、近战、抓钩近战对 Boss 等）属于规则集，命运 2 的见 [d2-ruleset.md](d2-ruleset.md#武器伤害-profile)。引擎只规定：Profile 由有序步骤组成；每个因子只在指定阶段应用一次；基础值必须声明口径和已包含的因子，实测数字已含某个倍率时先归一化，不能重复应用。
 
-当前单分量世界接线已实现：`chorus:damage.scaling_profile` 显式选择攻击 Profile，外层原版 `hurtServer` 前仅计算一次；规则集顶层 `defense_profile` 选择目标全局承伤 Profile，在原版取消 / 免疫 / 格挡 / 无敌帧处理之后、Chorus 护盾之前计算。两者必须已定义且输入输出均为 damage。攻击端收集 source.owner 的修饰，防御端收集 target 的修饰；易伤在目标防御 Profile 中归组，不能把两个持有者的所有 Buff 混在一起。未指定 scaling_profile 时不猜测武器 / 技能缩放，但目标防御仍可生效。原版 `NativeSource` 适配器可显式声明攻击 Profile，默认保持缺省。
+当前单分量世界接线已实现：`chorus:damage.scaling_profile` 显式选择攻击 Profile，外层原版 `hurtServer` 前仅计算一次；规则集顶层 `defense_profile` 选择目标全局承伤 Profile，在原版取消 / 免疫 / 格挡 / 无敌帧处理之后、Chorus 护盾之前计算。两者必须已定义且输入输出均为 damage。攻击端默认收集 source.owner 的 holder 修饰，防御端默认收集 target 的 holder 修饰；普通易伤仍可在目标防御 Profile 中归组。必须与攻击者贡献互斥或相加的目标效果可显式声明 provider:victim、evaluate:on_hit，加入同一个攻击 Profile 的指定分组。只有声明的目标贡献进入查询，不能把两个持有者的所有 Buff 混在一起；目标贡献仍保持自身组件 / 来源作用域，不转移伤害信用。攻击捕获不保存目标贡献，未来每次命中独立读取当前目标。未指定 scaling_profile 时不猜测武器 / 技能缩放，但目标防御仍可生效。原版 `NativeSource` 适配器可显式声明攻击 Profile，默认保持缺省。
 
 回执保留两阶段完整计算轨迹，未到达的阶段保持缺席。无敌帧差额以已经缩放的攻击输入计算，父类委托不重复乘倍率；正输入经防御降为零时视为 blocked，不扣盾。完全格挡后的零输入不再进入防御 Profile，防止加值或替换步骤重新制造伤害。双加载器已验证此顺序及嵌套命中。攻击贡献快照已实现，物理 projectile 步骤已绑定伤害快照；来源反应规则选择已可在释放时固定，逻辑批次已有显式身份；完整攻击上下文、多分量完成聚合与共享资格仍待实现。
 

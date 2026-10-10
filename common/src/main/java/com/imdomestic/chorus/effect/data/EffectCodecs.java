@@ -624,8 +624,9 @@ public final class EffectCodecs {
                 Codec.INT.optionalFieldOf("priority", 0).forGetter(EffectProgram.Modifier::priority), conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.Modifier::condition),
                 Codec.STRING.fieldOf("reference").forGetter(EffectProgram.Modifier::reference), enumeration(NumericContribution.Confidence.class).fieldOf("confidence").forGetter(EffectProgram.Modifier::confidence),
                 enumeration(EffectProgram.Multiplicity.class).optionalFieldOf("multiplicity", EffectProgram.Multiplicity.INSTANCE).forGetter(EffectProgram.Modifier::multiplicity),
-                enumeration(EffectProgram.Evaluate.class).optionalFieldOf("evaluate", EffectProgram.Evaluate.ON_USE).forGetter(EffectProgram.Modifier::evaluate)
-        ).apply(i, EffectProgram.Modifier::new)), Set.of("id", "profile", "stage", "group", "op", "value", "percent_of", "stacking_key", "priority", "if", "reference", "confidence", "multiplicity", "evaluate"));
+                enumeration(EffectProgram.Evaluate.class).optionalFieldOf("evaluate", EffectProgram.Evaluate.ON_USE).forGetter(EffectProgram.Modifier::evaluate),
+                enumeration(EffectProgram.ModifierProvider.class).optionalFieldOf("provider", EffectProgram.ModifierProvider.HOLDER).forGetter(EffectProgram.Modifier::provider)
+        ).apply(i, EffectProgram.Modifier::new)), Set.of("id", "profile", "stage", "group", "op", "value", "percent_of", "stacking_key", "priority", "if", "reference", "confidence", "multiplicity", "evaluate", "provider"));
         Codec<EffectProgram.HealthRecovery> recovery = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.HealthRecovery::id), ID.fieldOf("channel").forGetter(EffectProgram.HealthRecovery::channel),
                 values.fieldOf("rate").forGetter(EffectProgram.HealthRecovery::rate), Codec.INT.optionalFieldOf("priority", 0).forGetter(EffectProgram.HealthRecovery::priority),

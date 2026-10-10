@@ -37,6 +37,8 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     public enum Scope { SOURCE, BUFF }
     public enum Multiplicity { INSTANCE, STACK }
     public enum Evaluate { ON_USE, ON_HIT }
+    /** Which query participant owns the source or Buff providing this contribution. */
+    public enum ModifierProvider { HOLDER, VICTIM }
     public enum ReactionBinding { CURRENT_OWNER_BUNDLE, ORIGIN_BUNDLE }
     public record Shield(String capacity, Value takenMultiplier, int priority, Optional<Value> maximum, Optional<ShieldRecovery> recovery, java.util.Set<String> excludedAttackFactors) {
         public Shield {
@@ -102,8 +104,13 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
     }
     public record Modifier(String id, String profile, String stage, String group, NumericContribution.Operation operation,
             Value value, String percentOf, String stackingKey, int priority, Condition condition,
-            String reference, NumericContribution.Confidence confidence, Multiplicity multiplicity, Evaluate evaluate) {
-        public Modifier { java.util.Objects.requireNonNull(evaluate); }
+            String reference, NumericContribution.Confidence confidence, Multiplicity multiplicity, Evaluate evaluate, ModifierProvider provider) {
+        public Modifier { java.util.Objects.requireNonNull(evaluate); java.util.Objects.requireNonNull(provider); }
+        public Modifier(String id, String profile, String stage, String group, NumericContribution.Operation operation,
+                Value value, String percentOf, String stackingKey, int priority, Condition condition,
+                String reference, NumericContribution.Confidence confidence, Multiplicity multiplicity, Evaluate evaluate) {
+            this(id, profile, stage, group, operation, value, percentOf, stackingKey, priority, condition, reference, confidence, multiplicity, evaluate, ModifierProvider.HOLDER);
+        }
         public Modifier(String id, String profile, String stage, String group, NumericContribution.Operation operation,
                 Value value, String percentOf, String stackingKey, int priority, Condition condition,
                 String reference, NumericContribution.Confidence confidence, Multiplicity multiplicity) {

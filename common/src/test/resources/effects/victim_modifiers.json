@@ -1,0 +1,121 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "sum",
+            "children": [
+              {
+                "name": "exclusive",
+                "reduction": "max"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:exposed",
+        "version": "test-1",
+        "duration": 3,
+        "attach": "target",
+        "components": {
+          "numbers": {
+            "bonus": {
+              "initial": 1.2,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "bundle": "test:exposed_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:attacker",
+      "modifiers": [
+        {
+          "id": "attacker",
+          "profile": "test:damage",
+          "stage": "bonus",
+          "group": "bonus/exclusive",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "stacking_key": "test:attacker",
+          "evaluate": "on_use",
+          "reference": "Synthetic provider and reduction fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:target_source",
+      "parameters": {
+        "bonus": "delta"
+      },
+      "modifiers": [
+        {
+          "id": "target",
+          "profile": "test:damage",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "bonus"
+          },
+          "stacking_key": "test:target",
+          "evaluate": "on_hit",
+          "reference": "Synthetic provider and reduction fixture",
+          "confidence": "assumed",
+          "provider": "victim"
+        }
+      ]
+    },
+    {
+      "id": "test:exposed_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "exposed",
+          "profile": "test:damage",
+          "stage": "bonus",
+          "group": "bonus/exclusive",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:component",
+            "buff": "test:exposed",
+            "component": "bonus"
+          },
+          "stacking_key": "test:exposed",
+          "evaluate": "on_hit",
+          "reference": "Synthetic provider and reduction fixture",
+          "confidence": "assumed",
+          "provider": "victim",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          }
+        }
+      ]
+    }
+  ]
+}

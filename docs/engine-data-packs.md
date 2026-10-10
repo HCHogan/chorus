@@ -1045,7 +1045,7 @@ read_position 在自身 ended 规则中读取旧 generation 的最终快照；�
 
 ## 攻击修饰的取值时机
 
-modifier 可声明 `"evaluate":"on_use"`（默认）或 `"evaluate":"on_hit"`。前者在宿主捕获攻击时绑定来源侧数值与条件；`victim` 的资源 / Buff 读数及条件仍留到实际命中时求值。后者在命中时从当前攻击者的来源 / Buff 中收集。两者保留原本的 stage / group / stacking_key，在同一 Profile 中一起归约。
+modifier 可声明 `"evaluate":"on_use"`（默认）或 `"evaluate":"on_hit"`。前者在宿主捕获攻击时绑定来源侧数值与条件；`victim` 的资源 / Buff 读数及条件仍留到实际命中时求值。后者在命中时读取当前贡献提供者的来源 / Buff。默认 provider:holder 仍从查询持有者（攻击缩放时为攻击者）收集；显式 provider:victim 才收集当前目标的对应声明。两者保留原本的 stage / group / stacking_key，在同一 Profile 中一起归约。
 
 例如 [damage_snapshot.json](../common/src/test/resources/effects/damage_snapshot.json) 的临时增益写作：
 
@@ -1059,6 +1059,12 @@ modifier 可声明 `"evaluate":"on_use"`（默认）或 `"evaluate":"on_hit"`。
   "confidence": "assumed"
 }
 ```
+
+`provider` 可选值为 `holder`（默认）和 `victim`。它选择拥有修饰的实体，不改变修饰作用域中的 self、组件或原施加者：目标冻结 Buff 仍读取该目标的冻结组件，伤害信用仍属于攻击来源。目标来源中的普通 holder 声明不会被带进攻击者查询；攻击者自己携带的 victim 声明也不会影响另一目标。两者是同一实体时，一条声明只访问一次。
+
+victim 声明必须显式使用 evaluate:on_hit，误用 on_use 在编译时拒绝。capture_damage 会清空目标并完全跳过这类声明；命中时读取当时目标的当前状态，与已捕获的攻击者贡献共同经过 SUM / MAX 等原分组。目标在发射后被冻结、解冻或变更为另一实体时都按各自命中状态计算；缺失 victim 引用不回退查询持有者。来源、组件、affects 绑定和数值轨迹保持原语义；旧快照仍拒绝不相容的实时 Profile 布局。
+
+例如 freeze.json 的 basic_or_glaive 使用 provider:victim，将目标冻结 +120% 放入 outgoing 的 melee/one_two_or_frozen；攻击者的 One-Two Punch 也进入同组，从而表达取高。没有把两侧所有 Buff 合并，也没有改写全局 defense_profile 的入口。独立 calculate / calculate_pipeline 同样依其显式查询中的 victim 选择提供者，始终为只读；ON_HIT 名称不使这些独立查询延期。默认原版来源不携带 D2 Profile / 分类，因此不会自动获得这些内容修饰。provider 本身不新增目标侧消费机制，consume_on_damage 的资格捕获仍遵循原有攻击者规则。
 
 时机字段本身不会生成投射物或定时任务。JSON 可用下节的 `capture_damage`、`after` 和 `damage_snapshot` 完成捕获及延迟伤害。Java 宿主也可在释放时调用 `runtime.captureDamage(attack)`，保存返回的 `DamageSnapshot`，命中时把 `snapshot.command(targetUuid)` 提供给原生伤害来源适配或世界命令执行器。捕获要求 attack 有明确 scaling_profile，使用当前已追赶的状态；原始 target 不参与捕获。每次命中可指定不同目标，其余攻击元数据固定。未携带快照的普通 damage 仍按即时查询计算；目标防御 Profile 总是使用命中时当前状态。
 
