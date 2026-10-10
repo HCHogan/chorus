@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
+import com.imdomestic.chorus.effect.input.ActionGate;
 import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.mojang.serialization.JsonOps;
@@ -31,7 +32,8 @@ class EmberOfCharTest {
     static class Harness extends SolarTest.Harness {
         DamageReceipt.Outcome outcome=DamageReceipt.Outcome.APPLIED;
         boolean zero, absorption, kill;
-        Harness(double windup) throws Exception { super(program(windup),EffectState.Mode.PVE); }
+        Harness(double windup) throws Exception { this(program(windup)); }
+        Harness(CompiledEffects program) { super(program,EffectState.Mode.PVE); }
         void fragment(EffectSource owner,String name) {
             session.start(state().buffs().timeMicros(),SourceChange.bind(new EffectSource(owner.holder()+"-"+name,"chorus_d2:ember_of_"+name,owner.holder(),owner.origin(),Set.of()))); healthy();
         }
@@ -102,6 +104,32 @@ class EmberOfCharTest {
             h.until(1_000_000); assertEquals(ashes?60:80,h.scorch("c").orElseThrow().count());
             h.until(2_000_000); assertEquals(ashes?1:2,h.queries.size());
         }
+    }
+    @Test void restrictingNewActionsAfterPrimingCannotCutTheExistingCharFeedbackChain() throws Exception {
+        var data=EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,program(1).program()).getOrThrow().getAsJsonObject();
+        data.getAsJsonArray("bundles").add(com.google.gson.JsonParser.parseString("""
+                {"id":"test:restricted_inputs","action_gates":[
+                  {"id":"ability","action":"ability_use"},
+                  {"id":"fire","action":"weapon_fire"},
+                  {"id":"reload","action":"weapon_reload"}
+                ]}
+                """));
+        var h=new Harness(compile(data));h.fragment(FIRST,"char");h.fragment(FIRST,"ashes");
+        var ids=List.of("a","b","c","d");h.targets=ids.stream().map(id->new TargetQuery.Target(id,2)).toList();ids.forEach(id->h.views.put(id,view(false,false)));
+        h.apply(0,FIRST,"a",100);h.apply(0,FIRST,"b",100);h.until(500_000);
+        var restriction=new EffectSource("disabled","test:restricted_inputs",FIRST.holder(),new BuffInstance.Origin(FIRST.holder(),"disabled","",""),Set.of());
+        h.session.start(500_000,SourceChange.bind(restriction));h.healthy();
+        var input=new EffectEvent(FIRST.holder(),"",FIRST.origin(),Set.of(),Map.of());
+        for(int wave=1;wave<=8;wave++){
+            h.until(wave*1_000_000L);
+            for(var action:ActionGate.Kind.values()){
+                var decision=h.program.checkAction(h.state(),action,ActionGate.Phase.START,input);
+                assertFalse(decision.allowed());assertEquals("disabled",decision.denials().getFirst().origin().source());
+            }
+            assertEquals(wave*8,h.damage.size(),"input restrictions cannot disable subsequent ignition generations");
+        }
+        assertTrue(h.damage.stream().allMatch(d->d.source().equals(FIRST.origin())&&d.proc().deny().isEmpty()));
+        assertEquals(4,h.damage.stream().map(DamageCommand::target).distinct().count());
     }
     @Test void fragmentSelectionUsesDetonationTimeAndNegativeCalibrationFails() throws Exception {
         var h=new Harness(1); h.apply(0,FIRST,100); h.until(500_000); h.fragment(FIRST,"char"); h.fragment(FIRST,"ashes");
