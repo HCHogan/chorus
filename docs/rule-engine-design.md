@@ -678,7 +678,8 @@ Minecraft 里玩家的移动以客户端为准，所以每种动作都要明确�
 | 默认 | 只在服务端 | 伤害、buff、能量、生成世界物体 |  |
 | 改属性 | 服务端归约 Chorus 贡献并写临时 modifier；可同步属性由原版发包 | 滑翔（降低 `gravity`、`air_drag_modifier`）、加速、取消摔落伤害（`fall_damage_multiplier = 0`） | 已有 native_attributes；具体技能仍需数据、校准与输入装配，不保证其他模组叠加后的最终值 |
 | 主动输入限制 | 服务端归约，Chorus 消息同步至客户端；两侧过滤 | 禁止主动方向输入、禁止跳跃 | 已有 movement_input / jump；保留速度、重力和外力，不等于完全定身；完整 Freeze / Suspend 还需运动约束及内容资格 |
-| 轴运动约束 | 服务端归约，锚点同步至客户端；两侧约束物理，服务端纠正玩家坐标 | 全坐标固定、当前高度固定 | 已有 horizontal_motion / vertical_motion；受限轴清零速度、拒绝累计力，允许明确宿主传送重定位；Suspend 抬升与 D2 状态内容仍待完成 |
+| 轴运动约束 | 服务端归约，锚点同步至客户端；两侧约束物理，服务端纠正玩家坐标 | 全坐标固定、当前高度固定 | 已有 horizontal_motion / vertical_motion；受限轴清零速度、拒绝累计力，允许明确宿主传送重定位；抬升可组合 displace_entity；D2 状态内容及运动参数仍待完成 |
+| 碰撞感知位移 | 服务端解析完整碰撞箱，再通过原版位置协议同步 | 逐步抬升、碰墙停止 | 已有 displace_entity / world_direction；回执区分请求、裁剪和实际距离，轴锚点随授权位置更新；不是预测运动，原作参数仍需校准 |
 | 一次性冲量 | 服务端发起 | 急切刀锋、闪避、Lightning Surge 的运动原语 | 已有 apply_impulse：捕获方向、米每秒与轴倍率；按原版 ApplyEntityImpulse 给玩家发速度包，并调用 applyPostImpulseGraceTime(10)；具体技能仍需数据与输入装配 |
 | 持续的自身移动 | 客户端预测 + 服务端同步模拟 | 钩爪、Strand 摆荡 | 同一个状态机两端运行，参数来自同步的定义；期间服务端放宽移动检查 |
 | 移动他人 | 服务端 | 吸怪、击退 | 同一冲量协议支持他人；direction_between 可由位置快照求向量。非玩家设置 syncVelocity，玩家直接发包；不调用 protected 的 markHurt，不伪造一次伤害 |

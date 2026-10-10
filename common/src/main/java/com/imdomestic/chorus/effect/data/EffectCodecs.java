@@ -471,6 +471,15 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CaptureDirection::target)).apply(i, Action.CaptureDirection::new)))
                 .register("chorus:direction_between", MotionActions.Between.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("from").forGetter(MotionActions.Between::from), Codec.STRING.fieldOf("to").forGetter(MotionActions.Between::to)).apply(i, MotionActions.Between::new)))
+                .register("chorus:world_direction", DisplacementActions.Direction.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("position").forGetter(DisplacementActions.Direction::position), values.fieldOf("x").forGetter(DisplacementActions.Direction::x),
+                        values.fieldOf("y").forGetter(DisplacementActions.Direction::y), values.fieldOf("z").forGetter(DisplacementActions.Direction::z)
+                ).apply(i, DisplacementActions.Direction::new)))
+                .register("chorus:displace_entity", DisplacementActions.Apply.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(DisplacementActions.Apply::target), Codec.STRING.fieldOf("direction").forGetter(DisplacementActions.Apply::direction),
+                        values.fieldOf("distance").forGetter(DisplacementActions.Apply::distance), enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(DisplacementActions.Apply::origin),
+                        ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(DisplacementActions.Apply::tags)
+                ).apply(i, DisplacementActions.Apply::new)))
                 .register("chorus:apply_impulse", MotionActions.Apply.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(MotionActions.Apply::target), Codec.STRING.fieldOf("direction").forGetter(MotionActions.Apply::direction),
                         values.fieldOf("speed").forGetter(MotionActions.Apply::speed), impulseScale(values).optionalFieldOf("axis_scale", MotionActions.AxisScale.ONE).forGetter(MotionActions.Apply::axisScale),

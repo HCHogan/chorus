@@ -101,7 +101,8 @@
       "com.imdomestic.chorus.NativeMotionGameTest",
       "com.imdomestic.chorus.BuffRemovalGameTest",
       "com.imdomestic.chorus.SuppressionGameTest",
-      "com.imdomestic.chorus.SuppressionNativeGameTest"
+      "com.imdomestic.chorus.SuppressionNativeGameTest",
+      "com.imdomestic.chorus.DisplacementGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -112,7 +113,8 @@
       "com.imdomestic.chorus.NativeAttributeClientGameTest",
       "com.imdomestic.chorus.AmplifiedClientGameTest",
       "com.imdomestic.chorus.NativeMovementClientGameTest",
-      "com.imdomestic.chorus.NativeMotionClientGameTest"
+      "com.imdomestic.chorus.NativeMotionClientGameTest",
+      "com.imdomestic.chorus.DisplacementClientGameTest"
     ]
   }
 }

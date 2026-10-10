@@ -1,0 +1,433 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:lift",
+        "version": "test-1",
+        "duration": 5,
+        "attach": "target",
+        "components": {
+          "numbers": {
+            "remaining": {
+              "initial": 1.05,
+              "unit": "meter"
+            }
+          }
+        }
+      },
+      "bundle": "test:lift"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:displacement",
+      "rules": [
+        {
+          "id": "move",
+          "on": "test:move",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "point"
+            },
+            {
+              "action": {
+                "type": "chorus:world_direction",
+                "position": "point",
+                "x": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "y": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "z": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                }
+              },
+              "as": "direction"
+            },
+            {
+              "action": {
+                "type": "chorus:displace_entity",
+                "target": "victim",
+                "direction": "direction",
+                "distance": {
+                  "type": "chorus:event_number",
+                  "name": "distance",
+                  "unit": "meter"
+                },
+                "origin": "event",
+                "tags": [
+                  "test:relocate"
+                ]
+              },
+              "as": "move"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "move",
+                "field": "observed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "move",
+                      "field": "delta_distance"
+                    },
+                    "factor": 1,
+                    "from": "meter",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "delayed",
+          "on": "test:delayed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "point"
+            },
+            {
+              "action": {
+                "type": "chorus:world_direction",
+                "position": "point",
+                "x": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "y": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "z": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                }
+              },
+              "as": "direction"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:displace_entity",
+                    "target": "victim",
+                    "direction": "direction",
+                    "distance": {
+                      "type": "chorus:event_number",
+                      "name": "distance",
+                      "unit": "meter"
+                    },
+                    "origin": "event",
+                    "tags": [
+                      "test:relocate"
+                    ]
+                  },
+                  "as": "move"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "move",
+                    "field": "observed"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:heal",
+                      "amount": {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "move",
+                          "field": "delta_distance"
+                        },
+                        "factor": 1,
+                        "from": "meter",
+                        "to": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "observe",
+          "on": "chorus:entity_displaced",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:relocate"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lift",
+          "on": "test:lift",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:lift",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "release",
+          "on": "test:release",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:lift",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:lift",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "horizontal",
+          "action": "horizontal_motion"
+        },
+        {
+          "id": "vertical",
+          "action": "vertical_motion"
+        }
+      ],
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "rise",
+              "event": "test:rise",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            }
+          ]
+        },
+        {
+          "id": "rise",
+          "on": "test:rise",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "rise"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position"
+              },
+              "as": "point"
+            },
+            {
+              "action": {
+                "type": "chorus:world_direction",
+                "position": "point",
+                "x": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "multiplier"
+                },
+                "y": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "z": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "multiplier"
+                }
+              },
+              "as": "up"
+            },
+            {
+              "action": {
+                "type": "chorus:displace_entity",
+                "direction": "up",
+                "distance": {
+                  "type": "chorus:arithmetic",
+                  "op": "min",
+                  "of": [
+                    {
+                      "type": "chorus:constant",
+                      "value": 0.25,
+                      "unit": "meter"
+                    },
+                    {
+                      "type": "chorus:component",
+                      "buff": "test:lift",
+                      "component": "remaining"
+                    }
+                  ]
+                },
+                "tags": [
+                  "test:lift"
+                ]
+              },
+              "as": "move"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "move",
+                "field": "observed"
+              },
+              "then": [
+                {
+                  "type": "chorus:update_component",
+                  "buff": "test:lift",
+                  "component": "remaining",
+                  "op": "add",
+                  "value": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "move",
+                      "field": "delta_y"
+                    },
+                    "factor": -1,
+                    "from": "meter",
+                    "to": "meter"
+                  }
+                },
+                {
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "move",
+                        "field": "clipped"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:result_flag",
+                          "binding": "move",
+                          "field": "changed"
+                        }
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "op": "le",
+                        "left": {
+                          "type": "chorus:component",
+                          "buff": "test:lift",
+                          "component": "remaining"
+                        },
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 1e-06,
+                          "unit": "meter"
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:cancel_timer",
+                      "name": "rise"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:cancel_timer",
+                  "name": "rise"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

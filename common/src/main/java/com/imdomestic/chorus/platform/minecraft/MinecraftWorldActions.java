@@ -67,6 +67,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             }
             case Action.CueCommand cue -> { cues.accept(cue); yield RuleEngine.Empty.INSTANCE; }
             case com.imdomestic.chorus.effect.motion.Impulse.Command impulse -> MinecraftImpulseExecutor.execute(level, entities.apply(impulse.target()), impulse);
+            case com.imdomestic.chorus.effect.motion.Displacement.Command displacement -> MinecraftDisplacementExecutor.execute(level, entities.apply(displacement.target()), displacement);
             case PositionQuery query -> {
                 var target = entities.apply(query.target());
                 yield new PositionQuery.Result(query, present(target) ? Optional.of(position(target, query.anchor())) : Optional.empty());

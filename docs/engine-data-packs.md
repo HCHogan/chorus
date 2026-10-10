@@ -1561,7 +1561,37 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 
 新施加轴约束时，宿主先让目标下坐骑，再固定当时位置；约束期间拒绝重新骑乘，解除后允许但不自动恢复旧骑乘关系。这是明确的 Chorus 宿主控制政策，不是 Compendium 的原作数值结论。受限实体本身作为坐骑、载具乘客的完整技能规则仍需内容装配。
 
-该接口可以固定当前高度，但不会自动抬升目标；Suspend 还需碰撞感知的升空 / 高度选择与有限水平速度，Freeze 还需目标等级、攻击 / 技能禁用、挣脱、碎冰和伤害规则。[native_motion.json](../common/src/test/resources/effects/native_motion.json) 为合成机制验收，不增加 Compendium 完成数。
+该接口本身只固定当前高度；规则可组合下节的碰撞位移逐步抬升并更新锚点。Suspend 还需原作高度 / 速度校准、目标等级与有限水平速度规则，Freeze 还需目标等级、攻击 / 技能禁用、挣脱、碎冰和伤害规则。[native_motion.json](../common/src/test/resources/effects/native_motion.json) 为合成机制验收，不增加 Compendium 完成数。
+
+## 碰撞感知位移与逐步抬升
+
+`chorus:displace_entity` 执行一次服务端位移，必填 `direction` 方向绑定与 `distance`（meter，有限非负），默认 `target=self`、`origin=bound`，可附加 `tags`。方向可来自 capture_direction、direction_between 或新增的 world_direction。它按目标完整碰撞箱解析请求位移，取得裁剪后的目的地，再调用原版授权传送；已有轴约束会在新位置继续保持。它不移除控制 Buff，也不积累受限轴的速度。
+
+`chorus:world_direction` 从必填 `position` 位置绑定继承维度，读取 x / y / z 三个 multiplier 表达式并归一化。位置缺失或三分量全零时返回缺失方向，不从当前施加者推测世界；(0, 1, 0) 因而明确表示该维度向上，与玩家视角无关。方向是不可变绑定，可以进入延迟动作；执行时目标已换维度则拒绝。下面是一次向上最多 0.25 米的合成示例，不是 Suspend 的校准参数：
+
+```json
+[
+  {"action":{"type":"chorus:capture_position","target":"victim"},"as":"feet"},
+  {"action":{"type":"chorus:world_direction","position":"feet",
+    "x":{"type":"chorus:constant","value":0,"unit":"multiplier"},
+    "y":{"type":"chorus:constant","value":1,"unit":"multiplier"},
+    "z":{"type":"chorus:constant","value":0,"unit":"multiplier"}},"as":"up"},
+  {"action":{"type":"chorus:displace_entity","target":"victim","direction":"up",
+    "distance":{"type":"chorus:constant","value":0.25,"unit":"meter"}},"as":"moved"}
+]
+```
+
+宿主使用原版 collideBoundingBox 的方块、实体和世界边界碰撞形状，禁用 step-up，不使用只检查中心射线的净空测试。查询前确认整个扫掠盒及一格边距内的 X/Z 区块均已加载，不主动加载区块。单次最多 64 米，带边距的离散查询包围盒最多 65,536 个格子；超出返回 query_too_large，不偷偷缩短请求。这是单次宿主查询成本边界，与事件链次数无关，多次定时位移和合法效果循环不受全局次数截断。
+
+缺失 / 移除 / 非本维度实体、死亡、旁观、乘客、载有乘客、睡眠、noPhysics、缺失方向、方向维度不匹配、未加载扫掠、过大查询和越界分别有明确拒绝回执。越界包括目的地非有限、超出原版坐标边界或起始碰撞箱不在世界边界内；正常从边界内向外的移动被边界碰撞裁剪。乘客与载具拒绝是当前宿主政策：尚未共同检查整组乘客的碰撞箱。
+
+回执只有实际位置变化才为 applied；完全被墙挡住或零距离请求为 unchanged，但仍有可观察的前后位置。数值字段 before_x/y/z、after_x/y/z、requested_x/y/z、resolved_x/y/z、delta_x/y/z 及 requested_distance、resolved_distance、delta_distance 都是 meter。requested 是归一化方向乘距离，resolved 是碰撞解析后的向量，delta 是世界执行后的实际坐标差。clipped 比较 requested 与 resolved，不把坐标浮点加减误差当碰撞；实际目的地还实现 PositionResult，可用于既有位置绑定消费者。所有数值都须先检查 observed / available；拒绝没有位置测量，不填零。各 outcome 有同名小写标志，另有 missing、changed、clipped。
+
+只有 applied 发布 `chorus:entity_displaced`，带上述数值、clipped 标志、dimension 引用、原施加者 / 武器 / 技能信用、命令 tags 和 chorus:displacement。后继规则在实际世界回执之后执行。回执不匹配或执行结果未知时停止运行时，不回滚已移动的位置，不重试命令，也不伪造成功事实。
+
+玩家使用原版位置同步与传送确认协议，轴锚点按已有协议随后同步；非玩家保留未受限的实体速度，玩家沿用原版 getKnownMovement（最近客户端移动包确认的速度）与相对速度协议，并保留视角。玩家的 getKnownMovement 与直接写入的 deltaMovement 并非同一值，后续原版移动、确认包和物理仍会更新速度。该操作不调用 Entity.move，不模拟一次完整原版自然移动的落地、摔落或沿途方块接触回调；不等于冲量，也不提供平滑预测轨迹。每 tick 传送在本地集成客户端已验收，高延迟下的观感、丢包与其他模组传送回调仍未专门验收。
+
+[displacement.json](../common/src/test/resources/effects/displacement.json) 演示组合：目标 Buff 固定两轴，剩余高度组件从 1.05 米开始，每 50 ms 请求 min(0.25 米, 剩余高度)，只减实际 delta_y；发生裁剪、零移动、拒绝或到达高度即取消抬升计时器，但保留悬停直到 Buff 到期 / 被清除。Buff 自有计时器随生命周期退出，原施加者信用始终保留。5 秒时长、距离与步长均为合成验收值；该例不增加 Compendium 完成数，也不宣称完整 Suspend。
 
 ## 按标签批量结束 Buff
 

@@ -952,4 +952,4 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 需要区分战斗人员的禁止移动和 Guardian 的有限水平移动 / 腰射，并保留 Boss 的短暂状态及后续伤害。
 
-已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。Suspend 的碰撞感知抬升 / 高度选择、有限水平运动曲线和完整 Freeze / Suspend 状态仍待实现，不能用这些通用约束或 NoAI 代替所有状态规则。当前接口及合成验收未给上述四个效果增加已实现覆盖声明，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)。
+已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线或完成目标等级、Boss、状态结束伤害等规则，不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。当前接口及合成验收未给上述四个效果增加已实现覆盖声明，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
