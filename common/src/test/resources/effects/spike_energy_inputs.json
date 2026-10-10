@@ -1,0 +1,117 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:spike_energy",
+      "rules": [
+        {
+          "id": "stat",
+          "on": "test:stat",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:melee_stat",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:melee_stat",
+              "target": "victim",
+              "component": "points",
+              "op": "set",
+              "value": {
+                "type": "chorus:event_number",
+                "name": "stat",
+                "unit": "stat_point"
+              }
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:base",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_energy",
+                "resource": "chorus_d2:threaded_spike_energy",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "base"
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:gain_done"
+            }
+          ]
+        },
+        {
+          "id": "reference",
+          "on": "test:reference",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_energy",
+                "resource": "chorus_d2:threaded_spike_energy",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "reference",
+                "reference_factors": {
+                  "chorus_d2:stat": {
+                    "type": "chorus:constant",
+                    "value": 2.25,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:recipient": {
+                    "type": "chorus:constant",
+                    "value": 0.8,
+                    "unit": "multiplier"
+                  }
+                }
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:gain_done"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "on": "test:fixed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_energy",
+                "resource": "chorus_d2:threaded_spike_energy",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "fixed"
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:gain_done"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

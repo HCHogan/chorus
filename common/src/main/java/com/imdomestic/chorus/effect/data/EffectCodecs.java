@@ -320,6 +320,7 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("component").forGetter(Action.UpdateComponent::component), enumeration(BuffComponents.Update.class).fieldOf("op").forGetter(Action.UpdateComponent::operation),
                         values.fieldOf("value").forGetter(Action.UpdateComponent::value), Codec.STRING.optionalFieldOf("once_set").forGetter(Action.UpdateComponent::onceSet),
                         Codec.STRING.optionalFieldOf("event_reference").forGetter(Action.UpdateComponent::eventReference)).apply(i, Action.UpdateComponent::new)))
+                .register("chorus:grant_energy", EnergyActions.Grant.class, energyGrant(values))
                 .register("chorus:grant_resource", Action.GrantResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.GrantResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.GrantResource::target),
                         values.fieldOf("requested").forGetter(Action.GrantResource::requested), values.optionalFieldOf("scaled").forGetter(Action.GrantResource::scaled)).apply(i, Action.GrantResource::new)))
@@ -397,14 +398,27 @@ public final class EffectCodecs {
                         ID.fieldOf("cue").forGetter(Action.Cue::cue), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Cue::target)).apply(i, Action.Cue::new)));
     }
     public static final Codec<Action> ACTION = actionTypes(VALUE).build();
-    private record ResourceData(String id, double capacity, double initial, double baseRate, List<Double> thresholds, java.util.Optional<String> rateProfile) {}
+    private record EnergyGrantData(String resource, Evaluation.Target target, Value amount, com.imdomestic.chorus.effect.resource.EnergyGains.Basis basis,
+            Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers) {}
+    private static MapCodec<EnergyActions.Grant> energyGrant(Codec<Value> values) {
+        return RecordCodecBuilder.<EnergyGrantData>mapCodec(i -> i.group(
+                ID.fieldOf("resource").forGetter(EnergyGrantData::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EnergyGrantData::target),
+                values.fieldOf("amount").forGetter(EnergyGrantData::amount), enumeration(com.imdomestic.chorus.effect.resource.EnergyGains.Basis.class).fieldOf("value_basis").forGetter(EnergyGrantData::basis),
+                Codec.unboundedMap(ID, values).optionalFieldOf("reference_factors", Map.of()).forGetter(EnergyGrantData::referenceFactors),
+                ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(EnergyGrantData::tags),
+                Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(EnergyGrantData::numbers)
+        ).apply(i, EnergyGrantData::new)).flatXmap(d -> safe(() -> new EnergyActions.Grant(d.resource(), d.target(), d.amount(), d.basis(), d.referenceFactors(), d.tags(), d.numbers())),
+                g -> DataResult.success(new EnergyGrantData(g.resource(), g.target(), g.amount(), g.basis(), g.referenceFactors(), g.tags(), g.numbers())));
+    }
+    private record ResourceData(String id, double capacity, double initial, double baseRate, List<Double> thresholds, java.util.Optional<String> rateProfile, java.util.Optional<String> gainProfile) {}
     public static final Codec<ResourceDefinition> RESOURCE = strict(RecordCodecBuilder.<ResourceData>create(i -> i.group(
             ID.fieldOf("id").forGetter(ResourceData::id), FINITE.fieldOf("capacity").forGetter(ResourceData::capacity),
             FINITE.fieldOf("initial").forGetter(ResourceData::initial), FINITE.optionalFieldOf("base_rate", 0.0).forGetter(ResourceData::baseRate),
-            FINITE.listOf().optionalFieldOf("thresholds", List.of()).forGetter(ResourceData::thresholds), ID.optionalFieldOf("rate_profile").forGetter(ResourceData::rateProfile)
-    ).apply(i, ResourceData::new)), Set.of("id", "capacity", "initial", "base_rate", "thresholds", "rate_profile")).flatXmap(
-            data -> safe(() -> new ResourceDefinition(data.id(), data.capacity(), data.initial(), data.baseRate(), data.thresholds(), data.rateProfile())),
-            value -> DataResult.success(new ResourceData(value.id(), value.capacity(), value.initial(), value.baseRate(), value.thresholds(), value.rateProfile())));
+            FINITE.listOf().optionalFieldOf("thresholds", List.of()).forGetter(ResourceData::thresholds), ID.optionalFieldOf("rate_profile").forGetter(ResourceData::rateProfile),
+            ID.optionalFieldOf("gain_profile").forGetter(ResourceData::gainProfile)
+    ).apply(i, ResourceData::new)), Set.of("id", "capacity", "initial", "base_rate", "thresholds", "rate_profile", "gain_profile")).flatXmap(
+            data -> safe(() -> new ResourceDefinition(data.id(), data.capacity(), data.initial(), data.baseRate(), data.thresholds(), data.rateProfile(), data.gainProfile())),
+            value -> DataResult.success(new ResourceData(value.id(), value.capacity(), value.initial(), value.baseRate(), value.thresholds(), value.rateProfile(), value.gainProfile())));
 
     public static Codec<EffectProgram> program(Codec<Value> values, Codec<Condition> conditions, Codec<Action> actions, Codec<CalculationProfile> profiles) {
         Codec<EffectProgram.Instruction> bound = strict(RecordCodecBuilder.create(i -> i.group(

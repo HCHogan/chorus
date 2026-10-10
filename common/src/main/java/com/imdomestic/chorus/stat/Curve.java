@@ -39,6 +39,19 @@ public interface Curve {
         }
     }
 
+    /** Cosine of an angle in radians. Domain and out-of-range behavior are explicit. */
+    record Cosine(double minimum, double maximum, Boundary boundary) implements Curve {
+        public Cosine {
+            Numbers.finite(minimum, "minimum"); Numbers.finite(maximum, "maximum"); Objects.requireNonNull(boundary);
+            if (minimum > maximum) throw new IllegalArgumentException("Inverted cosine domain");
+        }
+        @Override public double evaluate(double input) {
+            Numbers.finite(input, "curve input");
+            if (boundary == Boundary.ERROR && (input < minimum || input > maximum)) throw new IllegalArgumentException("Input outside cosine domain: " + input);
+            return StrictMath.cos(Math.clamp(input, minimum, maximum));
+        }
+    }
+
     /** Positive-base exponential, base^input. Domain and out-of-range behavior are explicit. */
     record Exponential(double base, double minimum, double maximum, Boundary boundary) implements Curve {
         public Exponential {

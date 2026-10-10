@@ -2137,13 +2137,14 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail、145.2 秒基础恢复；7 项纯核心和 3 项共享世界场景，物理/持续时间测试值不作为 D2 数值",
+      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表固定回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail；145.2 秒基础恢复、0.8 CES、近战属性主动/被动曲线与一次参考基准归一化，物理/持续时间测试值不作为 D2 数值",
       "acceptance": [
         "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
         "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
         "施加Sever，持续时间在快照中为未知；返回施加者与近战输入接回",
         "0/1/2/3/4/5+次命中对应普通回能5/10/20/30/35/40%，接回20/30/50/70/85/100%",
-        "Strand职业接回时每次击杀给予2秒Woven Mail、上限10秒；145.2秒基础冷却与0.8x chunk scalar"
+        "Strand职业接回时每次击杀给予2秒Woven Mail、上限10秒；145.2秒基础冷却与0.8x chunk scalar",
+        "外部收益使用接收者当前近战属性与0.8 CES；参考值只归一化一次，自身返回/接回表固定豁免；属性变更先结算旧恢复速率"
       ],
       "evidence": [
         {
@@ -2288,13 +2289,57 @@
         {
           "kind": "definition",
           "path": "common/src/test/resources/effects/strand_defense.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/threaded_spike_energy.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EnergyGainTest.java",
+          "symbol": "currentRecipientStatAndCesApplyOnceAfterReferenceNormalization"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EnergyGainTest.java",
+          "symbol": "fixedGainsBypassBothProfilesAndRetainOverflowAccounting"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EnergyGainTest.java",
+          "symbol": "explicitTriggerFactorsDoNotInheritTriggerEventTagsAndErrorsDoNotWrite"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EnergyGainTest.java",
+          "symbol": "passiveRateUsesCurrentStatWithoutChangingIndependentRecipientScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EnergyGainTest.java",
+          "symbol": "currentPublishedNumericCellsMatchWithoutUsingRoundedDisplayText"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EnergyGainGameTest.java",
+          "symbol": "baseReferenceAndFixedGainsCreditTheActualAbilityAccountExactlyOnce"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EnergyGainGameTest.java",
+          "symbol": "realTickStatChangesSettleTheOldPassiveRateBeforeUsingTheNewCurve"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EnergyGainGameTest.java",
+          "symbol": "unknownLaterWorldResultKeepsTheAlreadyCreditedGain"
         }
       ],
       "gaps": [
         "模板必须先提供 calibration 参数；未知半径、Sever/Continuity 时间与速度/转向/寿命/窗口没有 D2 默认值，独立测试校准文件不代表原作测量",
         "墙面与实体前序计数、免疫/格挡计 hits 而取消/失败不计、仅 APPLIED 非死亡目标尝试 Sever、当前子职业及输出修饰取样均为显式内容政策，仍需原作边界校准",
         "去程第九次接触或终止后新建回程，仍需实际早返时机、同实体阶段切换、近战输入/grapple 优先级和 Phalanx 盾穿透；图形接回按键验收尚未通过",
-        "145.2 秒基础恢复已接入；0.8 chunk scalar、完整属性/目标/等级缩放、混合交战分类、自动子职业/装备装配、表现与状态持久化仍未完成",
+        "0.8 CES 与近战主动/被动属性曲线已接入并用原表数字对照；其他技能账户路由、真实回能 perk/模组生产者、完整伤害/目标/等级缩放、混合交战分类、属性/子职业/装备装配、表现与状态持久化仍未完成",
         "原表回能按完整一格充能授予，不是实付成本退款；来源变更、死亡或模式切换的原作具体资格仍需测量"
       ]
     },

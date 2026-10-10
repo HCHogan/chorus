@@ -384,11 +384,36 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 - 一份充能固定为 1；capacity = 2 不会把 `charge_fraction = 0.1` 翻倍。当前只实现共享能量的顺序回充。capacity / initial 必填，base_rate 默认 0，允许负速率表示持续消耗。capacity 必须为正，initial 和 thresholds 必须在容量内；阈值不允许重复。
 - `rate_profile` 可引用本程序中的 Profile，其输入、输出均须为 `charge_fraction_per_second`。base_rate 是输入，输出是本段积分速率，静态来源与 Buff 的 modifiers 按同一数值管线归约。速率查询携带 resource 引用、resource_value / capacity 测量和 `chorus:resource_rate_query` 标签；归属为账户持有者，不把多来源回能任意算给一把武器。完整示例见 [resource_regeneration.json](../common/src/test/resources/effects/resource_regeneration.json)。
+- 独立的 `gain_profile` 用于 `grant_energy`，输入、输出均须为 `charge_fraction`；资源只声明 rate_profile 不会自动获得一次性收益的缩放。已声明的两个 Profile 都在编译时验证引用和单位。
 - 0、capacity 以及 thresholds 是精确逻辑时间边界；需要监听的中间整格必须声明。`resource_crossed` 默认匹配 self 的账户，支持 up / down；达到后停留在阈值上不会重复触发。一次性入账或消费跨越阈值同样生效。初始化只发 initialized，初值不冒充恢复过程。
 - 初始化返回 value / created；消费返回 paid / after / succeeded，并保留实际成本回执。余额不足时不部分扣款；零成本可以成功但 paid = 0。payment 是规则内唯一的本地标识，完整回执身份另含事件、规则实例及动作 OperationId；同一指令在循环中每次执行也是独立付款，不在不同激活或迭代间复用。
 - `chorus:resource_changed` 只在值变化时发布；`resource_granted` 另带请求 / 入账测量，`resource_spent` 在实际扣费后发布。统一测量为 before / after / delta / capacity，单位 charge_fraction；引用为 resource / reason，布尔值为 changed。恢复、普通入账、完整充能、消费、返还的 reason 分别为 regeneration / grant / full_charge / spend / refund。通用规则通常监听 changed，避免同时监听专项事实而重复发放同一收益。
 - 定义只描述账户，不自动创建所有玩家的资源。DSL 读取、入账或消费未初始化账户会报错；缺失定义、错误 Profile 单位、未声明的反应阈值在加载时拒绝。
 - 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。持久化、动态容量、parallel / linked、多份充能分配策略和持久成本账本尚未实现。
+
+### 归一化后授予能量
+
+`chorus:grant_energy` 使用 resource、target（默认 self）、amount（charge_fraction）和必填的 value_basis。base 直接将 amount 送入资源的 gain_profile；reference 先除以 reference_factors 中所有正倍率的乘积；fixed 直接入账，不执行 Profile。base / fixed 禁止 reference_factors，reference 要求非空，fixed 还禁止查询 tags / numbers。base / reference 缺少 gain_profile 在编译时拒绝，非有限 / 非正参考因子在求值时拒绝；均不会先写账户再报错。
+
+例如资源声明 `"gain_profile":"chorus_d2:threaded_spike_gain"` 后，以下动作将已包含 100 属性倍率 2.25 与接收系数 0.8 的 7.2% 还原为 4% 基础值，再按当前接收者计算。它需要链接 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json) 及 Threaded Spike 的资源定义：
+
+```json
+{
+  "type": "chorus:grant_energy",
+  "resource": "chorus_d2:threaded_spike_energy",
+  "target": "victim",
+  "amount": {"type": "chorus:constant", "value": 0.072, "unit": "charge_fraction"},
+  "value_basis": "reference",
+  "reference_factors": {
+    "example:stat": {"type": "chorus:constant", "value": 2.25, "unit": "multiplier"},
+    "example:recipient": {"type": "chorus:constant", "value": 0.8, "unit": "multiplier"}
+  }
+}
+```
+
+查询使用目标账户持有者的来源 / Buff 修饰；动作来源与触发事件的 actor / victim 保留，resource 引用设置为接收资源。tags 默认为空，不继承触发事件标签；numbers 继承事件测量后接受显式覆盖。因此 CMS 等来源特例必须明确传入查询标签与测量，不能因为触发事件恰好同名便额外缩放。核心不内置任何 D2 系数。
+
+绑定结果可读 requested / normalized / scaled / credited / overflow / after，单位均为 charge_fraction；Java 结果另外保留参考因子与完整 Profile 轨迹。满容量仍发布 resource_granted，只有余额变化才发布 resource_changed。参考属性与版本放在内容出处中，reference_factors 只表达确实包含的倍率，不是自动跨版本转换。旧 grant_resource 仍用于内容已经完成缩放的 requested / scaled；固定能量比例也可显式使用 grant_energy 的 fixed，不依赖实付成本。完整合成触发例见 [spike_energy_inputs.json](../common/src/test/resources/effects/spike_energy_inputs.json)，不代表某个回能 perk 已完成装配。
 
 ### 按已付成本返还与完整充能
 
@@ -839,7 +864,7 @@ read_position 在自身 ended 规则中读取旧 generation 的最终快照；�
 }
 ```
 
-这里 3 米内保持全量，3–7 米线性下降至零。table 也可选 exact（只接受列出的点）或 floor（取前一档）；polynomial 用从常数项起的 coefficients、minimum / maximum 定义域。exponential 使用正数 base，计算 base^input，同样要求 minimum / maximum 与 boundary。指数曲线可表达连续弹跳衰减，避免有限表格在末项停止衰减；溢出拒绝，浮点下溢到 0 允许。boundary = error 拒绝超出定义域，clamp 使用最近端点；所有结果仍须满足 damage、radius 等消费方约束，不自动把非法负伤害改成零。
+这里 3 米内保持全量，3–7 米线性下降至零。table 也可选 exact（只接受列出的点）或 floor（取前一档）；polynomial 用从常数项起的 coefficients、minimum / maximum 定义域。exponential 使用正数 base，计算 base^input，同样要求 minimum / maximum 与 boundary。指数曲线可表达连续弹跳衰减，避免有限表格在末项停止衰减；溢出拒绝，浮点下溢到 0 允许。cosine 按弧度计算 cos(input)，要求 minimum / maximum 与 boundary；度数或属性值需先显式换算输入。boundary = error 拒绝超出定义域，clamp 使用最近端点；所有结果仍须满足 damage、radius 等消费方约束，不自动把非法负伤害改成零。
 
 完整 [radial_falloff.json](../common/src/test/resources/effects/radial_falloff.json) 展示从事件读取目标上限、排除施加者、以事件受害者为中心、按距离决定伤害。双加载器测试验证目标在查询后移动时仍使用捕获距离。演示的基础伤害和线性曲线是合成机制验证，不代表任何具体 Compendium perk 的全部数值已校准。
 

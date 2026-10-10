@@ -1,0 +1,268 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:threaded_spike_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "recipient_scalar",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.8
+            ],
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        },
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "trigger",
+          "operation": "multiply",
+          "group": {
+            "name": "trigger",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:threaded_spike_regeneration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:melee_stat",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "components": {
+          "numbers": {
+            "points": {
+              "initial": 0,
+              "unit": "stat_point"
+            }
+          }
+        }
+      },
+      "bundle": "chorus_d2:melee_stat"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:melee_stat",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "passive",
+          "profile": "chorus_d2:threaded_spike_regeneration",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:melee_stat",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:melee_stat",
+                "component": "points"
+              },
+              "op": "ge",
+              "right": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "stat_point"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 1.75,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:melee_stat",
+                  "component": "points"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 70,
+                  "unit": "stat_point"
+                }
+              },
+              "then": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:melee_stat",
+                  "component": "points"
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    1.10898698,
+                    0.00639461
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              },
+              "else": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:melee_stat",
+                  "component": "points"
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    0,
+                    0.004273626,
+                    0.000300195,
+                    -6.37618e-07
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              }
+            }
+          },
+          "reference": "Engineeeer Armor Stat Info, checked 2026-10-10. Passive coefficients Z12:AC12 and Z16:AA16; energy curve D9:N9. Community fit, not official precision. Compendium CSV Strand N38 supplies the independent 0.8 recipient scalar.",
+          "confidence": "fitted"
+        },
+        {
+          "id": "energy_gained",
+          "profile": "chorus_d2:threaded_spike_gain",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:melee_stat",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:constant",
+                "value": 0.625,
+                "unit": "delta"
+              },
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:melee_stat",
+                      "component": "points"
+                    },
+                    "factor": 0.031415926535897934,
+                    "from": "stat_point",
+                    "to": "radian"
+                  },
+                  "from": "radian",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:cosine",
+                    "minimum": 0,
+                    "maximum": 3.141592653589793,
+                    "boundary": "clamp"
+                  }
+                },
+                "factor": -0.625,
+                "from": "multiplier",
+                "to": "delta"
+              }
+            ]
+          },
+          "reference": "Engineeeer Armor Stat Info, checked 2026-10-10. Passive coefficients Z12:AC12 and Z16:AA16; energy curve D9:N9. Community fit, not official precision. Compendium CSV Strand N38 supplies the independent 0.8 recipient scalar.",
+          "confidence": "fitted"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:class_mod_energy",
+      "modifiers": [
+        {
+          "id": "trigger",
+          "profile": "chorus_d2:threaded_spike_gain",
+          "stage": "trigger",
+          "group": "trigger",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:class_mod_energy",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:constant",
+                "value": -1,
+                "unit": "delta"
+              },
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "trigger_multiplier",
+                  "unit": "multiplier"
+                },
+                "factor": 1,
+                "from": "multiplier",
+                "to": "delta"
+              }
+            ]
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus_d2:class_mod_energy"
+          },
+          "reference": "Explicit producer input; no default CMS is inferred from ability names.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

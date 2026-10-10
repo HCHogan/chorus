@@ -168,7 +168,9 @@ F(0)=1；F(70)≈1.992365783；F(100)=2.25
 
 q0 是当前版本在 0 属性下、以一份充能为单位的基础值。CES 是接收技能的 chunk scalar，CMS 是某些职业技能触发模组额外使用的系数；未参与的因子为 1。以 q0=0.04、其余系数为 1 为例，100 属性收益为 0.09。不要把已经在参考属性下测得的 9% 再乘 2.25。
 
-Clarity 2024 文章只用于理解 CES / CMS 与例外结构，旧数值不直接当当前值。
+Clarity 2024 文章只用于理解 CES / CMS 与例外结构，旧数值不直接当当前值；[当前页面](https://www.d2clarity.com/blog/destiny-science-6/chunk-energy-scalars-breakdown-12) 也标注部分过时。当前基准来自 [Engineeeer 的 2026 研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/) 及其原始计算表。
+
+2026-10-10 复核 [Armor Stat Info](https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/edit) 的 D2:N2 属性表头、D8:N8 被动倍率、D9:N9 主动收益增量、Z12:AC12 / Z16:AA16 近战与手雷拟合系数，并保存 [原始数值及显示文本摘录](../data/d2-research/2026-10-10/armor-energy.json)。坐标来自 headers=0 的 GViz 响应，不包含原公式。测试使用未四舍五入的 v，而不是显示文本 f。C37 仍称 70 属性等同旧版收益，与当前数值不符：F(70)≈1.992，按研究给出的旧值 ×0.4 转为当前 0 属性后，70 属性约为旧值的 79.7%。保留冲突，不据此旧注释再次修改公式。
 
 Engineeeer 原始计算表中的被动曲线如下。它们是社区拟合，不是官方精确函数，记录为 fitted；端点按分支选取，不擅自消除拟合产生的细小跳变：
 
@@ -189,6 +191,8 @@ Class:
 ```
 
 Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害、受到伤害、击杀、拾球分别按已提交的事实计算主动收益。具体收益系数、漫游超能系数和目标修正必须逐条校准，不能拿上述 chunk 公式代替完整 Super 生成机制。
+
+当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。手雷 / 职业技能 / Super 的全部资源、真实回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
 
 ## Cure 恢复与冷却
 
@@ -585,19 +589,19 @@ transcendence（20 秒）
 
 Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。前两者仍为 unimplemented；Threaded Spike 已有下节的 partial 模板。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
 
-Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_resource 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
+Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_energy 的 fixed 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
 
 ## Threaded Spike 技能模板
 
-[threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 与 strand_defense.json、continuity.json 同版本链接。依据固定 CSV Strand D38 / N38，声明 427 / PvP 82 基础伤害、最多九个不同敌人、首次弹跳乘 0.82、之后每次乘 0.575，以及 145.2 秒基础冷却。已发生的墙面反弹也计入衰减：当前实体命中的前序弹跳数为 `bounces + entity_contacts - 1`；这是需要原作校准的计数政策，不能将命中回能的 hits 数直接当作弹跳数。
+[threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 与 strand_defense.json、continuity.json、threaded_spike_energy.json 同版本链接。依据固定 CSV Strand D38 / N38，声明 427 / PvP 82 基础伤害、最多九个不同敌人、首次弹跳乘 0.82、之后每次乘 0.575，以及 145.2 秒基础冷却。已发生的墙面反弹也计入衰减：当前实体命中的前序弹跳数为 `bounces + entity_contacts - 1`；这是需要原作校准的计数政策，不能将命中回能的 hits 数直接当作弹跳数。
 
 | 确认命中数 | 0 | 1 | 2 | 3 | 4 | 5+ |
 | --- | --- | --- | --- | --- | --- | --- |
 | 自动返回 | 5% | 10% | 20% | 30% | 35% | 40% |
 | 主动接回 | 20% | 30% | 50% | 70% | 85% | 100% |
 
-两种收益均按完整一格近战充能授予，另有持续基础恢复。接回时若持有者当前绑定带 `chorus_d2:strand_subclass` 标签的来源，每次确认击杀给予 2 秒 Woven Mail，最多 10 秒；零击杀不授予。它复用共享 max_remaining 定义，短奖励不会缩短已有长状态。只检查攻击的 Strand 标签会错误地把 Prismatic 的缚丝攻击算成缚丝子职业。[Bungie 9.7.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0) 在 Threadrunner 的 Rope Dart 条目中确认“接回按击杀授予 Woven Mail”；具体 2 秒 / 10 秒和回能数字来自固定 Compendium，不从该补丁推算。
+两种收益均按完整一格近战充能授予，显式绕过收益 Profile；另有按当前近战属性缩放的持续恢复。接回时若持有者当前绑定带 `chorus_d2:strand_subclass` 标签的来源，每次确认击杀给予 2 秒 Woven Mail，最多 10 秒；零击杀不授予。它复用共享 max_remaining 定义，短奖励不会缩短已有长状态。只检查攻击的 Strand 标签会错误地把 Prismatic 的缚丝攻击算成缚丝子职业。[Bungie 9.7.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0) 在 Threadrunner 的 Rope Dart 条目中确认“接回按击杀授予 Woven Mail”；具体 2 秒 / 10 秒和回能数字来自固定 Compendium，不从该补丁推算。
 
 未知参数没有默认 D2 值。模板的 `calibration.*` 测量包括追踪半径、速度 / 转向 / 寿命、墙面预算、接回窗口与 Sever 基础 / Continuity 扩展时间；缺少测量会在参数求值阶段、扣费前失败。宿主应先装配经过验证的参数定义。独立的 threaded_spike_test_calibration.json 只供测试，0.4+0.2 秒 Sever、15 米追踪等值不是原作测量。数值查询后显式四舍五入到整数微秒，随后 apply_status；没有削弱引擎的精确微秒契约。
 
-当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。0.8 chunk scalar 尚未装配到外部能量生产者，不能擅自乘到本技能自己的回能表。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。
+当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。外部收益路径现已装配 0.8 chunk scalar 与属性曲线，本技能自己的回能表显式豁免；实际回能 perk 生产者和技能切换账户路由仍待完成。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。

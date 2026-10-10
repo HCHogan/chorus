@@ -193,7 +193,7 @@ death / kill 来自同一次已确认死亡，共享 death id。Fabric 的 `ALLO
 | `diminishing` | 递减：base × factor^层数。例：超凡期间每次击杀延长的时间按 0.9 递减 |  |
 | `by_tier` | 按目标档次（Tier 1–6）查表，和 by\_rank 分开。例：吞食按档次返还手雷能量 |  |
 | `by_target_class` | 按目标类别：玩家 / 战斗人员 / 构造物。例：快照中的 Ignition 分别有 120 / 676 / 250 三种基础值；与活动规则分开 |  |
-| `by_ruleset` / `curve` | 按活动规则查分支，或引用带版本的曲线；已实现 table / polynomial / exponential（正底数 base^input、显式定义域与边界策略） |  |
+| `by_ruleset` / `curve` | 按活动规则查分支，或引用带版本的曲线；已实现 table / polynomial / exponential（正底数 base^input）/ cosine（弧度），均有显式定义域与边界策略 |  |
 | `result` | 读同一动作序列里前面动作的结果。例：按实际消耗的层数返还能量 |  |
 
 ```json
@@ -458,7 +458,9 @@ m_i > 0:
 
 一次性收益的通用形式：`基础值 × 属性曲线 × 接收方系数 × 触发方系数 × 其他`，未参与的因子为 1。具体曲线和系数属于规则集，命运 2 的见 [d2-ruleset.md](d2-ruleset.md#资源回能)。
 
-每条资源收益必须声明 `value_basis=stat_zero / reference_stat / fixed`；reference_stat 还要带属性值及已包含因子，归一化只做一次。特定技能返还、满充返还等是否豁免 CES，由收益定义记录，不能由名称猜测。
+`grant_energy` 必须声明 `value_basis=base / reference / fixed`。base 表示内容定义的基础基准，在当前 D2 规则集中为 0 属性；reference 用 `reference_factors` 显式列出原值已包含的正倍率，只除去这些因子一次，再进入接收资源的 gain_profile。参考属性、版本和出处保存在内容来源记录中，引擎不从属性值猜测因子，也不自动换算跨版本基准。fixed 不执行收益 Profile；特定技能返还、满充返还等是否豁免 CES，由收益定义记录，不能由名称猜测。
+
+收益查询收集接收账户持有者的修饰，来源归属仍为本次动作来源。查询 tags 必须显式提供，不继承触发事件标签；测量可继承并由 numbers 覆盖。结果保留原始 requested、归一化 normalized、Profile 轨迹、scaled、credited、overflow 与 after。所有表达式与缩放验证成功后才入账，后续世界动作失败不会回滚已确认收益。
 
 连续恢复的一般形式：
 
@@ -470,7 +472,7 @@ T0 为 **0 属性下**的一份充能基础冷却，P 为被动倍率，A0_i 为
 
 多充能声明 `recharge_policy=sequential / parallel / linked`，以及收益分配策略；parallel 需要每格独立进度，linked 需要明确哪些格一起恢复。总能量相同不代表充能状态相同。Ophidia Spathe 等具体行为要用时间线校准，不能默认所有技能串行回充。
 
-实现进度：资源定义已支持 capacity / initial / base_rate / thresholds / rate_profile，当前仅有共享顺序能量。恢复 Profile 输入 / 输出为 `charge_fraction_per_second`；一次性收益仍由 `grant_resource` 接收已求值的 requested / scaled，不隐式套 CES。`spend_resource` 返回 paid / after / succeeded，余额不足不部分扣款，后续效果可按实际支付结果分支；免费施放的 paid 为 0。`refund_cost` 引用此前的成本或退款结果，按 paid × fraction 申请，同笔成本累计认领最多为 paid，溢出也占用额度。`grant_full_charge` 直接增加整数份数，保留部分进度并按容量裁剪。
+实现进度：资源定义已支持 capacity / initial / base_rate / thresholds，以及独立的 rate_profile / gain_profile，当前仅有共享顺序能量。恢复 Profile 输入 / 输出为 `charge_fraction_per_second`，收益 Profile 为 `charge_fraction`；`grant_energy` 按上述基准归一化后查询收益 Profile。旧 `grant_resource` 仍接收已求值的 requested / scaled，不隐式套 CES。Threaded Spike 已以数据装配 0.8 接收系数、当前近战属性收益与被动恢复拟合曲线；完整能力 / 生产者装配尚未完成。`spend_resource` 返回 paid / after / succeeded，余额不足不部分扣款，后续效果可按实际支付结果分支；免费施放的 paid 为 0。`refund_cost` 引用此前的成本或退款结果，按 paid × fraction 申请，同笔成本累计认领最多为 paid，溢出也占用额度。`grant_full_charge` 直接增加整数份数，保留部分进度并按容量裁剪。
 
 普通 refund_cost 引用只在同一动作序列内有效，成本结果与累计认领跨条件分支和世界等待保留；未使用 `as` 的返还也按实际付款身份记录到 Frame.retainedResults，循环清理局部槽位不清除已认领额度，原始 cost 引用不能重复拿回已认领量。返还账户固定取自实际支付回执，免费 / 失败支付返还为 0。Frame 完成后释放记录；显式 retain_cost 已支持将剩余额度转交为有限期句柄，在 after / projectile 中共享 EffectState 账本；转交封存原回执，到期或 close 后撤销所有副本的退款资格。跨独立事件 / Buff 的引用与跨重启账本仍未实现，完整技能回能曲线及 parallel / linked 仍待实现。世界动作失败或取消不会隐式退款，退款资格由内容的结果条件决定。
 
@@ -1259,7 +1261,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | Outlaw | 武器词条 | 精准击杀、武器属性修饰、切枪移除 | 未写 |
 | Kill Clip | 武器词条 | 用隐藏 buff 实现时间窗口 | JSON / 时间线 / 数值查询通过；双加载器通过预置 Buff 的实际伤害修饰；实际容器开火 → 物理击杀 → 手动换弹 → 下一发真实增伤及收枪后快照已验；窗口收枪保留待校准 |
 | Under-Over | 武器词条 | 攻击者按当前护盾层增伤、普通 / 强化与 Woven Mail 躯干分支 | 部分 JSON / 9 项纯核心 / 3 项共享世界场景；快照保留来源、层条件延后、原版溢出；跨层叠加、完整盾 / Woven Mail 内容和来源分类仍待完成 |
-| Threaded Spike | 技能 | 九目标连锁、指数衰减、全程命中/击杀统计、返回/接回回能与 Woven Mail | 部分 JSON / 7 项纯核心 / 3 项共享世界场景；未知物理和 Sever 时间必须显式校准，0.8 chunk scalar、完整属性缩放与近战/子职业装配尚未完成 |
+| Threaded Spike | 技能 | 九目标连锁、指数衰减、全程命中/击杀统计、返回/接回回能与 Woven Mail | 部分 JSON / 7 项技能纯核心 / 3 项技能世界场景；另有 9 项能量纯核心 / 3 项能量世界场景，接入 0.8 CES 与近战主动/被动曲线；未知物理与 Sever 时间、完整伤害缩放及近战/子职业装配仍待校准和实现 |
 | Voltshot | 武器词条 | 下一次命中消耗 + 施加元素状态 | partial；5.3 秒完成窗口、7 / 8 秒下一击、收枪与武器隔离；真实玩家容器 / 换弹 / 物理开火到共享 Jolt 非武器击杀已验；完整武器原型、多弹丸事务与清理策略待完成 |
 | Kinetic Tremors | 武器词条 | 按目标计数、固定激活位置的延迟多次范围伤害、按目标冷却 | 部分 JSON / 时间线 / 双加载器真实命中已验：12 类武器普通/强化门槛、直击去重、收枪、三波、冷却、初始类别及攻击快照；完整缩放 / 衰减、触发细节校准与装备来源仍缺失 |
 | Incandescent | 武器词条 | 范围施加状态层数、按敌人等级取值 | 未写 |

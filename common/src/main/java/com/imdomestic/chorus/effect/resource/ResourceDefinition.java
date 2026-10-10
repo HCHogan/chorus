@@ -5,11 +5,15 @@ import java.util.*;
 
 /** One charge is always 1. These definitions currently describe sequential, shared energy accounts. */
 public record ResourceDefinition(String id, double capacity, double initial, double baseRate,
-        List<Double> thresholds, Optional<String> rateProfile) {
+        List<Double> thresholds, Optional<String> rateProfile, Optional<String> gainProfile) {
+    public ResourceDefinition(String id, double capacity, double initial, double baseRate,
+            List<Double> thresholds, Optional<String> rateProfile) {
+        this(id, capacity, initial, baseRate, thresholds, rateProfile, Optional.empty());
+    }
     public ResourceDefinition {
         if (!id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid resource id");
         Numbers.nonnegative(capacity, "resource capacity"); Numbers.nonnegative(initial, "initial resource");
-        Numbers.finite(baseRate, "resource base rate"); Objects.requireNonNull(rateProfile);
+        Numbers.finite(baseRate, "resource base rate"); Objects.requireNonNull(rateProfile); Objects.requireNonNull(gainProfile);
         if (capacity == 0 || initial > capacity) throw new IllegalArgumentException("Invalid resource capacity or initial value");
         var ordered = new TreeSet<Double>();
         for (double threshold : thresholds) {

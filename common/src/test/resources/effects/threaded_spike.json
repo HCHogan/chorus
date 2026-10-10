@@ -5,7 +5,9 @@
       "id": "chorus_d2:threaded_spike_energy",
       "capacity": 1,
       "initial": 1,
-      "base_rate": 0.006887052341597796
+      "base_rate": 0.006887052341597796,
+      "rate_profile": "chorus_d2:threaded_spike_regeneration",
+      "gain_profile": "chorus_d2:threaded_spike_gain"
     }
   ],
   "abilities": [
@@ -580,9 +582,9 @@
                               },
                               "then": [
                                 {
-                                  "type": "chorus:grant_resource",
+                                  "type": "chorus:grant_energy",
                                   "resource": "chorus_d2:threaded_spike_energy",
-                                  "requested": {
+                                  "amount": {
                                     "type": "chorus:curve",
                                     "of": {
                                       "type": "chorus:result",
@@ -622,7 +624,8 @@
                                         }
                                       ]
                                     }
-                                  }
+                                  },
+                                  "value_basis": "fixed"
                                 }
                               ]
                             },
@@ -634,9 +637,9 @@
                               },
                               "then": [
                                 {
-                                  "type": "chorus:grant_resource",
+                                  "type": "chorus:grant_energy",
                                   "resource": "chorus_d2:threaded_spike_energy",
-                                  "requested": {
+                                  "amount": {
                                     "type": "chorus:curve",
                                     "of": {
                                       "type": "chorus:result",
@@ -676,7 +679,8 @@
                                         }
                                       ]
                                     }
-                                  }
+                                  },
+                                  "value_basis": "fixed"
                                 },
                                 {
                                   "if": {

@@ -90,10 +90,18 @@ public final class StatCodecs {
     ).apply(i, ExponentialData::new)).flatXmap(data -> safe(() -> new Curve.Exponential(data.base(), data.minimum(), data.maximum(), data.boundary())),
             curve -> DataResult.success(new ExponentialData(curve.base(), curve.minimum(), curve.maximum(), curve.boundary())));
 
+    private record CosineData(double minimum, double maximum, Curve.Boundary boundary) {}
+    private static final MapCodec<Curve.Cosine> COSINE = RecordCodecBuilder.<CosineData>mapCodec(i -> i.group(
+            FINITE.fieldOf("minimum").forGetter(CosineData::minimum), FINITE.fieldOf("maximum").forGetter(CosineData::maximum),
+            enumeration(Curve.Boundary.class).fieldOf("boundary").forGetter(CosineData::boundary)
+    ).apply(i, CosineData::new)).flatXmap(data -> safe(() -> new Curve.Cosine(data.minimum(), data.maximum(), data.boundary())),
+            curve -> DataResult.success(new CosineData(curve.minimum(), curve.maximum(), curve.boundary())));
+
     public static TypeRegistry<Curve> curveTypes() {
         return new TypeRegistry<Curve>().register("chorus:table", Curve.Table.class, TABLE)
                 .register("chorus:polynomial", Curve.Polynomial.class, POLYNOMIAL)
-                .register("chorus:exponential", Curve.Exponential.class, EXPONENTIAL);
+                .register("chorus:exponential", Curve.Exponential.class, EXPONENTIAL)
+                .register("chorus:cosine", Curve.Cosine.class, COSINE);
     }
     public static final Codec<Curve> CURVE = curveTypes().build();
 
