@@ -1,0 +1,45 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_char",
+      "modifiers": [
+        {
+          "id": "char",
+          "profile": "chorus_d2:char_stacks",
+          "stage": "char",
+          "group": "char",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 40,
+            "unit": "count"
+          },
+          "stacking_key": "chorus_d2:ember_of_char",
+          "confidence": "measured",
+          "reference": "Compendium Solar D19 (Char 40, with Ashes 60). Ashes contribution here applies only to Char."
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:ember_of_ashes",
+      "modifiers": [
+        {
+          "id": "ashes",
+          "profile": "chorus_d2:char_stacks",
+          "stage": "ashes",
+          "group": "ashes",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:ember_of_ashes",
+          "confidence": "measured",
+          "reference": "Compendium Solar D19 (Char 40, with Ashes 60). Ashes contribution here applies only to Char."
+        }
+      ]
+    }
+  ]
+}

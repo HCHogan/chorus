@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effects": [
+    "Ember of Char",
+    "Ember of Ashes",
+    "Ignition"
+  ],
+  "implementation_status": "partial; declarative Char and its Ashes mapping, explicit ignition delay calibration, multi-wave core and native-world acceptance",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B16",
+        "Solar D16",
+        "Solar N16",
+        "Solar B12",
+        "Solar D12"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-10/solar-source.html.gz",
+      "html_sha256": "11d446a972cda0b96ecdde55813a929b493139cefc3088f59ce83af5b92d00e7",
+      "coordinate_system": "original_google_sheet",
+      "entries": {
+        "Char": {
+          "label": "B19",
+          "description": "D19",
+          "stat": "N19",
+          "snapshot_description": "D16",
+          "normalized_text_matches_snapshot": true
+        },
+        "Ashes": {
+          "label": "B15",
+          "description": "D15",
+          "snapshot_description": "D12",
+          "normalized_text_matches_snapshot": true
+        }
+      }
+    },
+    {
+      "kind": "bungie_official_build_spotlight",
+      "url": "https://www.bungie.net/7/en/News/article/twid-07-25-2024",
+      "published": "2024-07-25",
+      "support": "Historical Infinite Ignitions v2 build using Char, Ashes and Solar Fulmination to chain ignitions among groups of powerful enemies. Not a current numerical specification.",
+      "access": "Official-domain search result supplied the relevant text; direct full-page fetch timed out."
+    }
+  ],
+  "confirmed_from_compendium": {
+    "char_base_stacks": 40,
+    "char_with_ashes_stacks": 60,
+    "excludes_ignited_enemy": true,
+    "char_grenade_stat_bonus": 10,
+    "ashes_exceptions": "Other sources have explicit exceptions; this fragment implements only Char."
+  },
+  "current_content_policies": {
+    "positive_actual_loss": "Health, custom shield or absorption loss; world status eligibility rechecked after damage.",
+    "fragment_sampling": "Original Scorch source owner at explosion impact, not last contributor or fragment source.",
+    "lockout_anchor": "At threshold, before delayed explosion.",
+    "explosion_center": "Position captured at threshold; current sphere members queried when explosion executes.",
+    "damage_inheritance": "Each new Scorch generation captures modifiers anew from preserved original attribution; exact D2 inter-generation numerical snapshot inheritance unverified.",
+    "continuation": "Detached from removed Scorch and source equipment; no global chain depth, count or visited-target suppression."
+  },
+  "synthetic_acceptance": {
+    "ignition_delay_seconds": [
+      0,
+      1,
+      2
+    ],
+    "cluster": "Four targets; two seeded at 100 stacks, Char + Ashes adds 60 per explosion; two explosions per wave prime the other pair. Eight unit-test waves without additional input. Five native damage waves, removal of Char, queued sixth wave completes, then stops.",
+    "world_damage_conversion": 0.1,
+    "unit_world": "Alive observations do not simulate HP depletion. Native tests use real 1000 HP entities, losing 811.2 HP after six waves.",
+    "not_claimed": "Exact timing or universal infinite ignitions in current Destiny 2."
+  },
+  "remaining": [
+    "Calibrate actual ignition delay and lockout anchor",
+    "Moving/dead center and pre-explosion reapplication policy",
+    "Char +10 Grenade stat and production subclass assembly",
+    "Ashes across all other sources and exceptions",
+    "Solar Fulmination and direct ignition sources",
+    "Original-source modifier sampling and inheritance across generations",
+    "Persistence and activity migration"
+  ]
+}

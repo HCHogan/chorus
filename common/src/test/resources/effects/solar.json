@@ -610,171 +610,160 @@
                   "buff": "chorus_d2:scorch"
                 },
                 {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:ignition_delay",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "second"
+                    },
+                    "target": "self"
+                  },
+                  "as": "windup"
+                },
+                {
                   "if": {
-                    "type": "chorus:result_flag",
-                    "binding": "place",
-                    "field": "available"
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "windup",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "second"
+                    }
                   },
                   "then": [
                     {
-                      "action": {
-                        "type": "chorus:select_targets",
-                        "center": {
-                          "position": "place"
-                        },
-                        "radius": {
-                          "type": "chorus:constant",
-                          "value": 8,
-                          "unit": "meter"
-                        },
-                        "relation": "not_allied",
-                        "relative_to": "source_owner",
-                        "exclude": [
-                          "source_owner"
-                        ]
-                      },
-                      "as": "neighbors"
-                    },
-                    {
                       "if": {
                         "type": "chorus:result_flag",
-                        "binding": "neighbors",
+                        "binding": "place",
                         "field": "available"
                       },
                       "then": [
                         {
-                          "for_each": "neighbors",
-                          "as": "neighbor",
-                          "do": [
-                            {
-                              "action": {
-                                "type": "chorus:inspect_entity",
-                                "target": {
-                                  "binding": "neighbor"
-                                }
-                              },
-                              "as": "observed"
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": {
+                              "position": "place"
                             },
+                            "radius": {
+                              "type": "chorus:constant",
+                              "value": 8,
+                              "unit": "meter"
+                            },
+                            "relation": "not_allied",
+                            "relative_to": "source_owner",
+                            "exclude": [
+                              "source_owner"
+                            ]
+                          },
+                          "as": "neighbors"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "neighbors",
+                            "field": "available"
+                          },
+                          "then": [
                             {
-                              "if": {
-                                "type": "chorus:all",
-                                "of": [
-                                  {
+                              "for_each": "neighbors",
+                              "as": "neighbor",
+                              "do": [
+                                {
+                                  "action": {
+                                    "type": "chorus:inspect_entity",
+                                    "target": {
+                                      "binding": "neighbor"
+                                    }
+                                  },
+                                  "as": "observed"
+                                },
+                                {
+                                  "if": {
                                     "type": "chorus:all",
                                     "of": [
                                       {
-                                        "type": "chorus:result_flag",
-                                        "binding": "observed",
-                                        "field": "available"
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:result_flag",
+                                            "binding": "observed",
+                                            "field": "available"
+                                          },
+                                          {
+                                            "type": "chorus:result_flag",
+                                            "binding": "observed",
+                                            "field": "alive"
+                                          }
+                                        ]
                                       },
                                       {
-                                        "type": "chorus:result_flag",
-                                        "binding": "observed",
-                                        "field": "alive"
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "type": "chorus:compare",
-                                    "left": {
-                                      "type": "chorus:pvp",
-                                      "pve": {
-                                        "type": "chorus:constant",
-                                        "value": 1,
-                                        "unit": "count"
-                                      },
-                                      "pvp": {
-                                        "type": "chorus:choose",
-                                        "if": {
-                                          "type": "chorus:any",
-                                          "of": [
-                                            {
-                                              "type": "chorus:result_flag",
-                                              "binding": "observed",
-                                              "field": "player"
-                                            },
-                                            {
-                                              "type": "chorus:observed_entity_tag",
-                                              "binding": "observed",
-                                              "tag": "chorus_d2:construct",
-                                              "source": "entity"
-                                            }
-                                          ]
-                                        },
-                                        "then": {
-                                          "type": "chorus:constant",
-                                          "value": 1,
-                                          "unit": "count"
-                                        },
-                                        "else": {
-                                          "type": "chorus:constant",
-                                          "value": 0,
-                                          "unit": "count"
-                                        }
-                                      }
-                                    },
-                                    "op": "eq",
-                                    "right": {
-                                      "type": "chorus:constant",
-                                      "value": 1,
-                                      "unit": "count"
-                                    }
-                                  }
-                                ]
-                              },
-                              "then": [
-                                {
-                                  "action": {
-                                    "type": "chorus:calculate",
-                                    "profile": "chorus_d2:ignition_falloff",
-                                    "input": {
-                                      "type": "chorus:result",
-                                      "binding": "neighbor",
-                                      "field": "distance"
-                                    },
-                                    "target": "self",
-                                    "numbers": {
-                                      "guardian": {
-                                        "type": "chorus:choose",
-                                        "if": {
-                                          "type": "chorus:result_flag",
-                                          "binding": "observed",
-                                          "field": "player"
-                                        },
-                                        "then": {
-                                          "type": "chorus:constant",
-                                          "value": 1,
-                                          "unit": "count"
-                                        },
-                                        "else": {
-                                          "type": "chorus:constant",
-                                          "value": 0,
-                                          "unit": "count"
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "as": "falloff"
-                                },
-                                {
-                                  "type": "chorus:damage_snapshot",
-                                  "snapshot": "ignition",
-                                  "target": {
-                                    "binding": "neighbor"
-                                  },
-                                  "impact": {
-                                    "solar_payload": {
-                                      "type": "chorus:arithmetic",
-                                      "op": "mul",
-                                      "of": [
-                                        {
+                                        "type": "chorus:compare",
+                                        "left": {
                                           "type": "chorus:pvp",
                                           "pve": {
                                             "type": "chorus:constant",
-                                            "value": 676,
-                                            "unit": "damage"
+                                            "value": 1,
+                                            "unit": "count"
                                           },
                                           "pvp": {
+                                            "type": "chorus:choose",
+                                            "if": {
+                                              "type": "chorus:any",
+                                              "of": [
+                                                {
+                                                  "type": "chorus:result_flag",
+                                                  "binding": "observed",
+                                                  "field": "player"
+                                                },
+                                                {
+                                                  "type": "chorus:observed_entity_tag",
+                                                  "binding": "observed",
+                                                  "tag": "chorus_d2:construct",
+                                                  "source": "entity"
+                                                }
+                                              ]
+                                            },
+                                            "then": {
+                                              "type": "chorus:constant",
+                                              "value": 1,
+                                              "unit": "count"
+                                            },
+                                            "else": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        },
+                                        "op": "eq",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:calculate",
+                                        "profile": "chorus_d2:ignition_falloff",
+                                        "input": {
+                                          "type": "chorus:result",
+                                          "binding": "neighbor",
+                                          "field": "distance"
+                                        },
+                                        "target": "self",
+                                        "numbers": {
+                                          "guardian": {
                                             "type": "chorus:choose",
                                             "if": {
                                               "type": "chorus:result_flag",
@@ -783,32 +772,473 @@
                                             },
                                             "then": {
                                               "type": "chorus:constant",
-                                              "value": 120,
-                                              "unit": "damage"
+                                              "value": 1,
+                                              "unit": "count"
                                             },
                                             "else": {
                                               "type": "chorus:constant",
-                                              "value": 250,
-                                              "unit": "damage"
+                                              "value": 0,
+                                              "unit": "count"
                                             }
                                           }
+                                        }
+                                      },
+                                      "as": "falloff"
+                                    },
+                                    {
+                                      "action": {
+                                        "type": "chorus:damage_snapshot",
+                                        "snapshot": "ignition",
+                                        "target": {
+                                          "binding": "neighbor"
+                                        },
+                                        "impact": {
+                                          "solar_payload": {
+                                            "type": "chorus:arithmetic",
+                                            "op": "mul",
+                                            "of": [
+                                              {
+                                                "type": "chorus:pvp",
+                                                "pve": {
+                                                  "type": "chorus:constant",
+                                                  "value": 676,
+                                                  "unit": "damage"
+                                                },
+                                                "pvp": {
+                                                  "type": "chorus:choose",
+                                                  "if": {
+                                                    "type": "chorus:result_flag",
+                                                    "binding": "observed",
+                                                    "field": "player"
+                                                  },
+                                                  "then": {
+                                                    "type": "chorus:constant",
+                                                    "value": 120,
+                                                    "unit": "damage"
+                                                  },
+                                                  "else": {
+                                                    "type": "chorus:constant",
+                                                    "value": 250,
+                                                    "unit": "damage"
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "type": "chorus:pvp",
+                                                "pve": {
+                                                  "type": "chorus:constant",
+                                                  "value": 1,
+                                                  "unit": "multiplier"
+                                                },
+                                                "pvp": {
+                                                  "type": "chorus:result",
+                                                  "binding": "falloff",
+                                                  "field": "value"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "as": "hit"
+                                    },
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:result",
+                                              "binding": "hit",
+                                              "field": "effective_with_absorption"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "damage"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:target_is",
+                                              "left": {
+                                                "binding": "neighbor"
+                                              },
+                                              "right": "self"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "neighbor"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:calculate",
+                                            "profile": "chorus_d2:char_stacks",
+                                            "input": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            },
+                                            "target": "source_owner"
+                                          },
+                                          "as": "char"
                                         },
                                         {
-                                          "type": "chorus:pvp",
-                                          "pve": {
-                                            "type": "chorus:constant",
-                                            "value": 1,
-                                            "unit": "multiplier"
+                                          "if": {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:result",
+                                              "binding": "char",
+                                              "field": "value"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
                                           },
-                                          "pvp": {
-                                            "type": "chorus:result",
-                                            "binding": "falloff",
-                                            "field": "value"
-                                          }
+                                          "then": [
+                                            {
+                                              "type": "chorus:apply_status",
+                                              "buff": "chorus_d2:scorch",
+                                              "target": {
+                                                "binding": "neighbor"
+                                              },
+                                              "stacks": {
+                                                "type": "chorus:result",
+                                                "binding": "char",
+                                                "field": "value"
+                                              }
+                                            }
+                                          ]
                                         }
                                       ]
                                     }
-                                  }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "after": {
+                        "type": "chorus:result",
+                        "binding": "windup",
+                        "field": "value"
+                      },
+                      "lifetime": "detached",
+                      "do": [
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "place",
+                            "field": "available"
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:select_targets",
+                                "center": {
+                                  "position": "place"
+                                },
+                                "radius": {
+                                  "type": "chorus:constant",
+                                  "value": 8,
+                                  "unit": "meter"
+                                },
+                                "relation": "not_allied",
+                                "relative_to": "source_owner",
+                                "exclude": [
+                                  "source_owner"
+                                ]
+                              },
+                              "as": "neighbors"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "neighbors",
+                                "field": "available"
+                              },
+                              "then": [
+                                {
+                                  "for_each": "neighbors",
+                                  "as": "neighbor",
+                                  "do": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:inspect_entity",
+                                        "target": {
+                                          "binding": "neighbor"
+                                        }
+                                      },
+                                      "as": "observed"
+                                    },
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:all",
+                                            "of": [
+                                              {
+                                                "type": "chorus:result_flag",
+                                                "binding": "observed",
+                                                "field": "available"
+                                              },
+                                              {
+                                                "type": "chorus:result_flag",
+                                                "binding": "observed",
+                                                "field": "alive"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:pvp",
+                                              "pve": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "pvp": {
+                                                "type": "chorus:choose",
+                                                "if": {
+                                                  "type": "chorus:any",
+                                                  "of": [
+                                                    {
+                                                      "type": "chorus:result_flag",
+                                                      "binding": "observed",
+                                                      "field": "player"
+                                                    },
+                                                    {
+                                                      "type": "chorus:observed_entity_tag",
+                                                      "binding": "observed",
+                                                      "tag": "chorus_d2:construct",
+                                                      "source": "entity"
+                                                    }
+                                                  ]
+                                                },
+                                                "then": {
+                                                  "type": "chorus:constant",
+                                                  "value": 1,
+                                                  "unit": "count"
+                                                },
+                                                "else": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "count"
+                                                }
+                                              }
+                                            },
+                                            "op": "eq",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 1,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:calculate",
+                                            "profile": "chorus_d2:ignition_falloff",
+                                            "input": {
+                                              "type": "chorus:result",
+                                              "binding": "neighbor",
+                                              "field": "distance"
+                                            },
+                                            "target": "self",
+                                            "numbers": {
+                                              "guardian": {
+                                                "type": "chorus:choose",
+                                                "if": {
+                                                  "type": "chorus:result_flag",
+                                                  "binding": "observed",
+                                                  "field": "player"
+                                                },
+                                                "then": {
+                                                  "type": "chorus:constant",
+                                                  "value": 1,
+                                                  "unit": "count"
+                                                },
+                                                "else": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "count"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "as": "falloff"
+                                        },
+                                        {
+                                          "action": {
+                                            "type": "chorus:damage_snapshot",
+                                            "snapshot": "ignition",
+                                            "target": {
+                                              "binding": "neighbor"
+                                            },
+                                            "impact": {
+                                              "solar_payload": {
+                                                "type": "chorus:arithmetic",
+                                                "op": "mul",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:pvp",
+                                                    "pve": {
+                                                      "type": "chorus:constant",
+                                                      "value": 676,
+                                                      "unit": "damage"
+                                                    },
+                                                    "pvp": {
+                                                      "type": "chorus:choose",
+                                                      "if": {
+                                                        "type": "chorus:result_flag",
+                                                        "binding": "observed",
+                                                        "field": "player"
+                                                      },
+                                                      "then": {
+                                                        "type": "chorus:constant",
+                                                        "value": 120,
+                                                        "unit": "damage"
+                                                      },
+                                                      "else": {
+                                                        "type": "chorus:constant",
+                                                        "value": 250,
+                                                        "unit": "damage"
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "type": "chorus:pvp",
+                                                    "pve": {
+                                                      "type": "chorus:constant",
+                                                      "value": 1,
+                                                      "unit": "multiplier"
+                                                    },
+                                                    "pvp": {
+                                                      "type": "chorus:result",
+                                                      "binding": "falloff",
+                                                      "field": "value"
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "as": "hit"
+                                        },
+                                        {
+                                          "if": {
+                                            "type": "chorus:all",
+                                            "of": [
+                                              {
+                                                "type": "chorus:compare",
+                                                "left": {
+                                                  "type": "chorus:result",
+                                                  "binding": "hit",
+                                                  "field": "effective_with_absorption"
+                                                },
+                                                "op": "gt",
+                                                "right": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "damage"
+                                                }
+                                              },
+                                              {
+                                                "type": "chorus:not",
+                                                "of": {
+                                                  "type": "chorus:target_is",
+                                                  "left": {
+                                                    "binding": "neighbor"
+                                                  },
+                                                  "right": "self"
+                                                }
+                                              },
+                                              {
+                                                "type": "chorus:not",
+                                                "of": {
+                                                  "type": "chorus:has_buff",
+                                                  "buff": "chorus_d2:scorch_lockout",
+                                                  "target": {
+                                                    "binding": "neighbor"
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          "then": [
+                                            {
+                                              "action": {
+                                                "type": "chorus:calculate",
+                                                "profile": "chorus_d2:char_stacks",
+                                                "input": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "count"
+                                                },
+                                                "target": "source_owner"
+                                              },
+                                              "as": "char"
+                                            },
+                                            {
+                                              "if": {
+                                                "type": "chorus:compare",
+                                                "left": {
+                                                  "type": "chorus:result",
+                                                  "binding": "char",
+                                                  "field": "value"
+                                                },
+                                                "op": "gt",
+                                                "right": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "count"
+                                                }
+                                              },
+                                              "then": [
+                                                {
+                                                  "type": "chorus:apply_status",
+                                                  "buff": "chorus_d2:scorch",
+                                                  "target": {
+                                                    "binding": "neighbor"
+                                                  },
+                                                  "stacks": {
+                                                    "type": "chorus:result",
+                                                    "binding": "char",
+                                                    "field": "value"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
                             }
@@ -1215,6 +1645,33 @@
           },
           "confidence": "assumed",
           "reference": "Explicit measured Solar payload; Profile and source-specific scaling must be supplied by the host."
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:char_stacks",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "char",
+          "operation": "add",
+          "group": {
+            "name": "char",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "ashes",
+          "operation": "multiply",
+          "group": {
+            "name": "ashes",
+            "reduction": "max"
+          }
         }
       ]
     }

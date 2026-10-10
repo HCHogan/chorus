@@ -67,7 +67,9 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 
 伤害 tick、叠层衰减和点燃禁用窗口各自计时。当前时序政策：首 tick 在 0.5 秒，第二 tick 在 1.43 秒，之后间隔 0.56 秒；重复施加刷新衰减计时，保留伤害 tick 时序；到衰减等待时间的边界即首次减一层。第二 tick 和首次衰减的边界解释仍须原作校准。每次 tick 显式观测目标，按当前层数及 Boss 标签计算 PvE 原始伤害，再使用首次保存的攻击；目标死亡 / 缺失或层数耗尽会移除状态并取消自有定时器。
 
-达到 100 层后，保存当前位置和点燃攻击，先授予原目标 1.6 秒禁用状态并移除 Scorch，再选择 8 米内非盟友。每个目标独立观测、独立结算伤害及实际回执。PvE 使用 676 原始伤害且无距离衰减；PvP 对原版玩家采用 Guardian 分支，对显式 `chorus_d2:construct` 实体标签采用构造体分支，未分类非玩家不猜为构造体。阵营参照缺失时没有可授权目标。`chorus_d2:boss` 也是明确宿主标签，尚非完整 D2 敌人目录。
+达到 100 层后，保存当前位置和点燃攻击，先授予原目标 1.6 秒禁用状态并移除 Scorch，再按显式 `ignition_delay` 执行点燃。零表示立即爆炸，正值使用 detached 延迟动作；负值失败，不静默当作立即爆炸。爆炸查询保存位置 8 米内的当前非盟友，每个目标独立观测、独立结算伤害及实际回执。PvE 使用 676 原始伤害且无距离衰减；PvP 对原版玩家采用 Guardian 分支，对显式 `chorus_d2:construct` 实体标签采用构造体分支，未分类非玩家不猜为构造体。阵营参照缺失时没有可授权目标。`chorus_d2:boss` 也是明确宿主标签，尚非完整 D2 敌人目录。
+
+**待校准的时序政策：** 当前禁用窗口从达到阈值开始，爆炸中心固定于该时刻的位置；延迟值、原作禁用窗口的起算点、移动 / 死亡后爆炸位置和待爆期间再次施加的准确行为尚未确认。不得用合成延迟声称已经复现当前原作的无限点燃条件。
 
 外部程序必须提供以下校准 Profile；缺少任一项会在链接时失败：
 
@@ -78,17 +80,30 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 | scorch_pvp_tick | count → damage | 当前层数 → 完整 PvP 原始 tick 伤害，已包含相应的 60 层增幅，内容不再重复乘入 |
 | scorch_nonlethal | count → count | 输入为 PvP Guardian 1、其他 0；正结果选择非致命攻击，目标范围须显式校准 |
 | ignition_falloff | meter → multiplier | 当前被选目标的已测距离 → PvP 距离倍率；另提供 guardian 测量，PvE 不使用该倍率 |
+| ignition_delay | second → second | 以 0 请求校准的阈值至爆炸时长；结果为 0 或正微秒可表示时长，不提供隐式默认值 |
 | solar_outgoing | damage → damage | 必须包含 payload / payload 的 ADD 阶段，接收 `solar_payload` 命中测量；之后声明来源允许的缩放与世界伤害单位换算 |
 
 宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；武器属性、武器 New Gear Bonus 的 5%、战斗单位等级倍率、Radiant、Surge、Verity 等具体资格及特殊来源仍需装配，当前没有声明这些 perk 全部生效。
 
 **施加入口契约：** 所有生产者在 apply_status 前检查目标没有 `chorus_d2:scorch_lockout`。共享 Buff 生命周期不提供隐式的状态授予否决；直接 grant_buff 绕过该契约属于错误装配。[solar_test_source.json](../common/src/test/resources/effects/solar_test_source.json) 只是合成输入及反应探针，未连接生产武器 / 技能。未来 Incandescent 需遵守同一入口契约，不能把测试事件当作实际装备流程。
 
-[solar_test_calibration.json](../common/src/test/resources/effects/solar_test_calibration.json) 中 PvE 等待 3 秒 / 衰减 0.1 秒、PvP tick `1 + 0.1 × 层数`、点燃距离倍率 `1 − 0.1 × 米数` 和世界伤害乘 0.1 都是**合成验收参数**。非致命示例只对 PvP Guardian 启用，用于验证健康下限机制，不替代原作范围证据。正式难度表、完整 PvP 曲线及来源修饰取样未校准前，不把这些文件作为完整游戏数值发布。
+[solar_test_calibration.json](../common/src/test/resources/effects/solar_test_calibration.json) 中 PvE 等待 3 秒 / 衰减 0.1 秒、PvP tick `1 + 0.1 × 层数`、点燃距离倍率 `1 − 0.1 × 米数`、点燃延迟 0 秒和世界伤害乘 0.1 都是**合成验收参数**。Char 测试另外将延迟显式替换为 1 / 2 秒，分别验证持续反馈和中心排除；这些也不是原作实测值。非致命示例只对 PvP Guardian 启用，用于验证健康下限机制，不替代原作范围证据。正式难度表、完整 PvP 曲线及来源修饰取样未校准前，不把这些文件作为完整游戏数值发布。
 
 12 项 SolarTest 覆盖来源与信用、当前层数 / 分类、独立计时、刷新 / 衰减、同帧多次授予、100 层点燃、禁用到期、源增益到期后的冻结值、缺失 / 死亡、校准依赖与未知结果。5 项共享 SolarGameTest 覆盖真实 tick、原版伤害 / 击杀归属、实际玩家非致命伤害后被点燃击杀、允许的连续点燃，以及已扣血后的未知回执不重放。连续点燃测试用合成反应在点燃命中后再施加 100 层，验证事件队列不全局禁用链式效果；这不是 Ember of Char 的数值实现。
 
 仍未实现：Unstoppable 眩晕、非叠层直接点燃来源、全部片段与等级 / 来源特例、Incandescent、生产装配及效果状态持久化。Scorch 和 Ignition 均保持 partial。
+
+### Char / Ashes 与持续互相点燃
+
+[ember_of_char.json](../common/src/test/resources/effects/ember_of_char.json) 为原施加者提供 `ember_of_char` / `ember_of_ashes` 来源 Bundle，修改 Solar 自带的 `char_stacks` Profile。依据[原表 Solar D19](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D19)，Char 向被点燃爆炸伤害到的其他敌人施加 40 层 Scorch；有 Ashes 时为 60 层。不向这次点燃的中心目标施加，即使中心的禁用窗口已经结束。固定 CSV 的对应位置为 D16，不将两套坐标混用。Ashes 的通用说明在原表 D15 / 快照 D12，本文件只实现其对 Char 的明确 40 → 60 映射，不对其他 Scorch 来源一律乘 1.5。
+
+爆炸实际回执中的有效损失为正才进入 Char（包括 Absorption），并再次检查目标禁用状态及世界状态施加资格。取消 / 免疫 / 零损失、已经死亡的目标不获得 Scorch。Char 查询初始施加者在本次爆炸命中时装备的片段；后续灼烧保留该施加者完整来源和武器 / 技能信用，不改成片段自己的来源。片段取样时机是当前明确政策，仍需原作校准。
+
+这条反馈链属于合法玩法：点燃 → 周围目标叠灼烧 → 达到阈值 → 后续点燃 → 原目标再次获得灼烧。引擎不按 root、递归深度、访问过的目标或总触发次数截断；仍遵守每个目标自己的层数、禁用窗口、伤害资格和空间条件。[Bungie 2024-07-25 官方配装介绍](https://www.bungie.net/7/en/News/article/twid-07-25-2024)也展示过 Char / Ashes 与 Solar Fulmination 在强敌群间持续传播点燃的组合；该历史介绍不是当前所有配装和时序参数的数值证据。
+
+6 项 EmberOfCharTest 包括真实 40 / 60 层、其他施加者片段隔离、中心排除、正损失 / 死亡资格、解绑后延迟攻击与信用、爆炸期选择片段，以及四目标交替八轮点燃。该连锁输入为两目标初始各 100 层、另外两目标初始零层，Ashes 使每轮两个爆炸分别施加 60 层，后续无需额外输入。没有 Ashes 的 80 层、只有一次种子爆炸的 60 层均不会凭空点燃。卸下 Char 后已排队的一轮完成，后续自然停止。3 项共享 EmberOfCharGameTest 验证实际四目标五轮扣血、第六轮完成后停止、中心排除和真实死亡。验证的是引擎可表达持续反馈，不是靠提高 Char 层数来制造连锁。
+
+Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配，Ashes 其他来源及特例尚未实现；原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
 
 ## 武器输入与 Kill Clip 集成边界
 

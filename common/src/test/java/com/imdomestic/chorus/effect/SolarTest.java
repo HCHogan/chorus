@@ -20,12 +20,15 @@ class SolarTest {
     static final EffectSource FIRST = source("first", "weapon"), SECOND = source("second", "grenade");
     static CompiledEffects program() throws Exception { return link("solar", "solar_test_calibration", "solar_test_source"); }
     static class Harness {
-        final CompiledEffects program = program(); final EffectSession session;
+        final CompiledEffects program; final EffectSession session;
         final Map<String, EntityQuery.View> views = new HashMap<>();
         final List<DamageCommand> damage = new ArrayList<>(); final List<Double> amounts = new ArrayList<>(); final List<Long> times = new ArrayList<>();
         final List<TargetQuery> queries = new ArrayList<>();
+        List<TargetQuery.Target> targets = List.of(new TargetQuery.Target("neighbor", 2), new TargetQuery.Target("target", 0));
         StatusResult.Decision decision = StatusResult.Decision.ALLOWED; boolean fail;
-        Harness(EffectState.Mode mode) throws Exception {
+        Harness(EffectState.Mode mode) throws Exception { this(program(), mode); }
+        Harness(CompiledEffects program, EffectState.Mode mode) {
+            this.program = program;
             views.put("target", view(false, false)); views.put("neighbor", view(false, false));
             var state = EffectState.empty().withMode(mode);
             for (var s : List.of(FIRST, SECOND)) state = state.withSource(s).withSource(new EffectSource(s.instance()+"-solar", "chorus_d2:solar_scaling", s.holder(), s.origin(), Set.of()));
@@ -37,7 +40,7 @@ class SolarTest {
                 case EntityQuery q -> new EntityQuery.Result(q, Optional.ofNullable(views.get(q.target())));
                 case PositionQuery q -> new PositionQuery.Result(q, Optional.of(new WorldPosition("test:world", 0, 0, 0)));
                 case TargetQuery q -> { queries.add(q); yield new TargetQuery.Result(q, TargetQuery.Outcome.AVAILABLE,
-                        List.of(new TargetQuery.Target("neighbor", 2), new TargetQuery.Target("target", 0))); }
+                        targets); }
                 case DamageCommand cmd -> {
                     damage.add(cmd); times.add(state().buffs().timeMicros());
                     double value = program.outgoing(state(), cmd, cmd.amount()).orElseThrow().output().value(); amounts.add(value);
@@ -49,8 +52,9 @@ class SolarTest {
         }
         EffectState state() { return session.state().engine().domain(); }
         void healthy() { assertTrue(session.state().engine().failure().isEmpty(), session.state().engine().failure().toString()); assertTrue(session.state().idle()); }
-        void apply(long at, EffectSource source, int stacks) { session.start(at, new RuleEngine.Signal("test:scorch_apply",
-                new EffectEvent(source.holder(), "target", source.origin(), Set.of(), Map.of("stacks", new Measure(stacks, Unit.COUNT))))); healthy(); }
+        void apply(long at, EffectSource source, int stacks) { apply(at, source, "target", stacks); }
+        void apply(long at, EffectSource source, String target, int stacks) { session.start(at, new RuleEngine.Signal("test:scorch_apply",
+                new EffectEvent(source.holder(), target, source.origin(), Set.of(), Map.of("stacks", new Measure(stacks, Unit.COUNT))))); healthy(); }
         void until(long at) { session.observe(at, List.of()); healthy(); }
         Optional<BuffInstance> buff(String id) { return state().buffs().instances().values().stream().filter(b -> b.definition().id().equals(id)).findFirst(); }
         BuffInstance scorch() { return buff(SCORCH).orElseThrow(); }

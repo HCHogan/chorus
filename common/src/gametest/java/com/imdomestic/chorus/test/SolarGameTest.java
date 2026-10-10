@@ -29,7 +29,8 @@ public class SolarGameTest {
         final EffectSource a,b; final MinecraftEffectRuntime runtime;
         final List<DamageCommand> damage=new ArrayList<>(); final List<DamageReceipt> receipts=new ArrayList<>(); final List<Long> times=new ArrayList<>();
         boolean fail;
-        Harness(GameTestHelper h,boolean pvp) throws Exception {
+        Harness(GameTestHelper h,boolean pvp) throws Exception { this(h,pvp,0,false); }
+        Harness(GameTestHelper h,boolean pvp,double windup,boolean charFragments) throws Exception {
             this.h=h; first=h.spawnWithNoFreeWill(EntityTypes.COW,2,40,2); second=h.spawnWithNoFreeWill(EntityTypes.COW,3,40,2);
             if(pvp) { var player=h.makeMockServerPlayerInLevel(); player.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket()); player.getAbilities().invulnerable=false; player.setInvulnerableTime(0); target=player; }
             else target=h.spawnWithNoFreeWill(EntityTypes.COW,4,40,2);
@@ -40,7 +41,18 @@ public class SolarGameTest {
             target.setHealth(100); neighbor.setHealth(100); if(pvp) neighbor.addTag("chorus_d2:construct");
             a=source(first,"weapon"); b=source(second,"grenade");
             var fragments=new ArrayList<EffectProgram>();
-            for(String name:List.of("solar","solar_test_calibration","solar_test_source")) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow());
+            for(String name:List.of("solar","solar_test_calibration","solar_test_source")) {
+                var json=ThreadedSpikeGameTest.json(name);
+                if(name.equals("solar_test_calibration")) for(var entry:json.getAsJsonObject().getAsJsonArray("profiles")) {
+                    var p=entry.getAsJsonObject();
+                    if(p.get("id").getAsString().equals("chorus_d2:ignition_delay")) {
+                        var coefficients=new com.google.gson.JsonArray(); coefficients.add(windup);
+                        p.getAsJsonArray("steps").get(0).getAsJsonObject().getAsJsonObject("curve").add("coefficients",coefficients);
+                    }
+                }
+                fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json).getOrThrow());
+            }
+            if(charFragments) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("ember_of_char")).getOrThrow());
             var program=CompiledEffects.link(fragments); var state=EffectState.empty().withMode(pvp?EffectState.Mode.PVP:EffectState.Mode.PVE);
             for(var s:List.of(a,b)) state=state.withSource(s).withSource(new EffectSource(s.instance()+"-solar","chorus_d2:solar_scaling",s.holder(),s.origin(),Set.of()));
             var type=h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE,Identifier.parse("chorus_gametest:delayed")));
@@ -58,7 +70,8 @@ public class SolarGameTest {
         LivingEntity resolve(String value) { return h.getLevel().getEntity(UUID.fromString(value)) instanceof LivingEntity e?e:null; }
         EffectState state() { return runtime.state().engine().domain(); }
         Optional<BuffInstance> buff(String name,LivingEntity target) { return state().buffs().instances().values().stream().filter(v->v.definition().id().equals(name)&&v.key().holder().equals(id(target))).findFirst(); }
-        void apply(EffectSource source,int stacks) { runtime.start(new RuleEngine.Signal("test:scorch_apply",new EffectEvent(source.holder(),id(target),source.origin(),Set.of(),Map.of("stacks",new Measure(stacks,Unit.COUNT))))); h.assertTrue(runtime.failure().isEmpty(),"Solar runtime failed: "+runtime.failure()); }
+        void apply(EffectSource source,int stacks) { apply(source,target,stacks); }
+        void apply(EffectSource source,LivingEntity victim,int stacks) { runtime.start(new RuleEngine.Signal("test:scorch_apply",new EffectEvent(source.holder(),id(victim),source.origin(),Set.of(),Map.of("stacks",new Measure(stacks,Unit.COUNT))))); h.assertTrue(runtime.failure().isEmpty(),"Solar runtime failed: "+runtime.failure()); }
         void detach() { runtime.unbind(a.instance()); runtime.unbind(a.instance()+"-solar"); }
         @Override public void close() { runtime.close(); for(var e:List.of(first,second,target,neighbor)) e.discard(); }
     }

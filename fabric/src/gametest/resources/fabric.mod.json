@@ -76,7 +76,8 @@
       "com.imdomestic.chorus.RampageGameTest",
       "com.imdomestic.chorus.FrenzyGameTest",
       "com.imdomestic.chorus.DamageSnapshotComponentGameTest",
-      "com.imdomestic.chorus.SolarGameTest"
+      "com.imdomestic.chorus.SolarGameTest",
+      "com.imdomestic.chorus.EmberOfCharGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

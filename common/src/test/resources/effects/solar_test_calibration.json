@@ -160,6 +160,27 @@
           "output_unit": "damage"
         }
       ]
+    },
+    {
+      "id": "chorus_d2:ignition_delay",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0
+            ],
+            "minimum": 0,
+            "maximum": 10000,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
     }
   ]
 }
