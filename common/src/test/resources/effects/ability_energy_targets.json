@@ -1,0 +1,87 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:alternate_energy",
+      "capacity": 2,
+      "initial": 0,
+      "gain_profile": "test:alternate_gain"
+    },
+    {
+      "id": "test:missing_gain",
+      "capacity": 1,
+      "initial": 0
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:alternate_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_scalar",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.5
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:alternate",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:alternate_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:no_resource",
+      "slot": "chorus_d2:melee",
+      "on_use": []
+    },
+    {
+      "id": "test:missing_gain",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:missing_gain",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:gain_replacement",
+      "ability_overrides": [
+        {
+          "id": "other",
+          "slot": "chorus_d2:melee",
+          "ability": "chorus_d2:threaded_spike",
+          "replace_with": "test:alternate",
+          "priority": 1
+        }
+      ]
+    }
+  ]
+}

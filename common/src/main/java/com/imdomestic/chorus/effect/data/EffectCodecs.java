@@ -321,6 +321,7 @@ public final class EffectCodecs {
                         values.fieldOf("value").forGetter(Action.UpdateComponent::value), Codec.STRING.optionalFieldOf("once_set").forGetter(Action.UpdateComponent::onceSet),
                         Codec.STRING.optionalFieldOf("event_reference").forGetter(Action.UpdateComponent::eventReference)).apply(i, Action.UpdateComponent::new)))
                 .register("chorus:grant_energy", EnergyActions.Grant.class, energyGrant(values))
+                .register("chorus:grant_ability_energy", EnergyActions.GrantAbility.class, abilityEnergyGrant(values))
                 .register("chorus:grant_resource", Action.GrantResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.GrantResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.GrantResource::target),
                         values.fieldOf("requested").forGetter(Action.GrantResource::requested), values.optionalFieldOf("scaled").forGetter(Action.GrantResource::scaled)).apply(i, Action.GrantResource::new)))
@@ -401,14 +402,21 @@ public final class EffectCodecs {
     private record EnergyGrantData(String resource, Evaluation.Target target, Value amount, com.imdomestic.chorus.effect.resource.EnergyGains.Basis basis,
             Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers) {}
     private static MapCodec<EnergyActions.Grant> energyGrant(Codec<Value> values) {
+        return energyGrantData(values, "resource").flatXmap(d -> safe(() -> new EnergyActions.Grant(d.resource(), d.target(), d.amount(), d.basis(), d.referenceFactors(), d.tags(), d.numbers())),
+                g -> DataResult.success(new EnergyGrantData(g.resource(), g.target(), g.amount(), g.basis(), g.referenceFactors(), g.tags(), g.numbers())));
+    }
+    private static MapCodec<EnergyActions.GrantAbility> abilityEnergyGrant(Codec<Value> values) {
+        return energyGrantData(values, "slot").flatXmap(d -> safe(() -> new EnergyActions.GrantAbility(d.resource(), d.target(), d.amount(), d.basis(), d.referenceFactors(), d.tags(), d.numbers())),
+                g -> DataResult.success(new EnergyGrantData(g.slot(), g.target(), g.amount(), g.basis(), g.referenceFactors(), g.tags(), g.numbers())));
+    }
+    private static MapCodec<EnergyGrantData> energyGrantData(Codec<Value> values, String selector) {
         return RecordCodecBuilder.<EnergyGrantData>mapCodec(i -> i.group(
-                ID.fieldOf("resource").forGetter(EnergyGrantData::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EnergyGrantData::target),
+                ID.fieldOf(selector).forGetter(EnergyGrantData::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EnergyGrantData::target),
                 values.fieldOf("amount").forGetter(EnergyGrantData::amount), enumeration(com.imdomestic.chorus.effect.resource.EnergyGains.Basis.class).fieldOf("value_basis").forGetter(EnergyGrantData::basis),
                 Codec.unboundedMap(ID, values).optionalFieldOf("reference_factors", Map.of()).forGetter(EnergyGrantData::referenceFactors),
                 ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(EnergyGrantData::tags),
                 Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(EnergyGrantData::numbers)
-        ).apply(i, EnergyGrantData::new)).flatXmap(d -> safe(() -> new EnergyActions.Grant(d.resource(), d.target(), d.amount(), d.basis(), d.referenceFactors(), d.tags(), d.numbers())),
-                g -> DataResult.success(new EnergyGrantData(g.resource(), g.target(), g.amount(), g.basis(), g.referenceFactors(), g.tags(), g.numbers())));
+        ).apply(i, EnergyGrantData::new));
     }
     private record ResourceData(String id, double capacity, double initial, double baseRate, List<Double> thresholds, java.util.Optional<String> rateProfile, java.util.Optional<String> gainProfile) {}
     public static final Codec<ResourceDefinition> RESOURCE = strict(RecordCodecBuilder.<ResourceData>create(i -> i.group(

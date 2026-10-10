@@ -415,6 +415,23 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 绑定结果可读 requested / normalized / scaled / credited / overflow / after，单位均为 charge_fraction；Java 结果另外保留参考因子与完整 Profile 轨迹。满容量仍发布 resource_granted，只有余额变化才发布 resource_changed。参考属性与版本放在内容出处中，reference_factors 只表达确实包含的倍率，不是自动跨版本转换。旧 grant_resource 仍用于内容已经完成缩放的 requested / scaled；固定能量比例也可显式使用 grant_energy 的 fixed，不依赖实付成本。完整合成触发例见 [spike_energy_inputs.json](../common/src/test/resources/effects/spike_energy_inputs.json)，不代表某个回能 perk 已完成装配。
 
+### 按当前技能槽授予能量
+
+`chorus:grant_ability_energy` 接受 slot（命名空间 ID）以及与 grant_energy 相同的 target / amount / value_basis / reference_factors / tags / numbers。它在执行时读取目标的基础技能选择，通过该技能 cost.resource 找到接收账户，再复用账户 gain_profile 和完整收益轨迹。它不重新解析施放时的临时 ability_overrides；外部回能属于已选基础技能，不能因为临时免费替换而流向另一个池。未来内容需要别的路由时应显式扩展政策。
+
+未选择该槽时返回 no_selection，已选技能未声明 cost 时返回 no_resource，两者均不求值 amount、不写状态、不发资源事实。声明 cost 且 amount 为零仍有资源账户，不等同于未声明 cost。缺失已选定义、未初始化账户、无 gain_profile 的普通收益等属于配置错误，求值失败，不能伪装成不符合资格。
+
+绑定结果提供 granted / no_selection / no_resource 布尔值；仅 granted 时允许读取 requested / normalized / scaled / credited / overflow / after，缺失收益读取数值会报错，不能用零掩盖缺失。granted 表示完成收益结算，满账户也可能 credited = 0。Java 结果保留 holder / slot / ability 和嵌套收益轨迹。slot 只校验 ID 格式，候选账户及收益 Profile 在实际选择后检查；显式 resource 版本继续提供固定引用的加载期检查。
+
+例如 [pugilist.json](../common/src/test/resources/effects/pugilist.json) 的击杀分支使用如下动作，数值依据和换算边界见 [Pugilist](d2-ruleset.md#pugilist)：
+
+```json
+{"type":"chorus:grant_ability_energy","slot":"chorus_d2:melee","value_basis":"base",
+ "amount":{"type":"chorus:constant","value":0.04,"unit":"charge_fraction"}}
+```
+
+发射后换技能时，以击杀收益执行时的选择为准。选择变化不会把旧池能量转移到新池，也不会自动重配共享池的容量 / CES；这延续现有技能资源目录的边界。无选中技能时的跳过、基础技能归属和当前时点路由都是显式宿主政策，不能据此宣称已校准全部原作换装行为。完整合成候选池见 [ability_energy_targets.json](../common/src/test/resources/effects/ability_energy_targets.json)。
+
 ### 按已付成本返还与完整充能
 
 `refund_cost` 引用当前动作序列中已有的成本结果，fraction 的单位为 multiplier、取值范围为 0–1。返还账户直接取自成本回执，不接受另一个 target / resource，避免把别人的支付返到自身账户。如下步骤可放进已有资源来源的规则中：

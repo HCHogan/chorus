@@ -1,0 +1,213 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_handling",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "handling",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:pugilist_handling",
+        "version": "compendium-2026-10-05",
+        "duration": 3,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "chorus_d2:pugilist_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:pugilist",
+      "rules": [
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "amount": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:fusion_rifle"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:glaive"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:shotgun"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:sniper_rifle"
+                      }
+                    ]
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0.08,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0.04,
+                    "unit": "charge_fraction"
+                  }
+                },
+                "enhanced": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:fusion_rifle"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:glaive"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:shotgun"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:sniper_rifle"
+                      }
+                    ]
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0.088,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0.044,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "melee_damage",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_damage"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "gt",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "effective_with_absorption",
+                  "unit": "damage"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:pugilist_handling"
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:pugilist_handling"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:pugilist_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "handling",
+          "profile": "chorus_d2:weapon_handling",
+          "stage": "perks",
+          "group": "handling",
+          "op": "add",
+          "stacking_key": "chorus_d2:pugilist",
+          "value": {
+            "type": "chorus:constant",
+            "value": 35,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium 2026-10-05 CSV Weapon Perks C169 (original HTML C170): +35 handling for 3 seconds after melee damage. Stow, refresh, attribution policies require calibration.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "retrieved": "2026-10-10",
+  "compendium": {
+    "snapshot": "2026-10-05",
+    "sheet": "Weapon Perks",
+    "csv_cells": [
+      "A169",
+      "C169"
+    ],
+    "original_html_cells": [
+      "A170",
+      "C170"
+    ],
+    "html_snapshot": "data/compendium/assets/2026-10-10/sheets/1662574278.html.gz",
+    "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=C170"
+  },
+  "baseline_conversion": {
+    "source_url": "https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/",
+    "legacy_to_stat_zero_multiplier": 0.4,
+    "confidence": "inferred",
+    "notes": "Research explicitly illustrates Demolitionist and describes flat gains generally. Applying the same baseline conversion to Pugilist and its enhanced / doubled families is inferred, not a separate in-game Pugilist measurement. Never multiply the legacy 10/11/20/22 percent by the current stat factor directly."
+  },
+  "stat_zero_values": {
+    "normal": 0.04,
+    "enhanced": 0.044,
+    "fusion_glaive_shotgun_sniper": 0.08,
+    "enhanced_fusion_glaive_shotgun_sniper": 0.088
+  }
+}

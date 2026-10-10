@@ -357,6 +357,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new RuleEngine.Local<>(updated, receipt, facts);
     }
     public EffectProgram program() { return program; }
+    /** The base selection owns external energy gains; cast-time replacements do not change this selection. */
+    public Optional<AbilityDefinition> selectedAbility(EffectState state, String holder, String slot) {
+        AbilityDefinition.id(slot);
+        return Optional.ofNullable(state.abilities().getOrDefault(holder, AbilityLoadout.EMPTY).slots().get(slot))
+                .map(id -> validateSelection(slot, id));
+    }
     public CompiledEquipment equipment() { return equipment; }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
     public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }

@@ -192,7 +192,19 @@ Class:
 
 Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害、受到伤害、击杀、拾球分别按已提交的事实计算主动收益。具体收益系数、漫游超能系数和目标修正必须逐条校准，不能拿上述 chunk 公式代替完整 Super 生成机制。
 
-当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。手雷 / 职业技能 / Super 的全部资源、真实回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。手雷 / 职业技能 / Super 的全部资源、其余回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+
+## Pugilist
+
+固定 CSV `Weapon Perks!A169/C169` 与 2026-10-10 保存的原表 HTML `A170/C170` 一致：武器击杀给予 10% / 强化 11% 近战能量，Fusion Rifle、Glaive、Shotgun、Sniper Rifle 为 20% / 强化 22%；造成近战伤害后 +35 操控，持续 3 秒。两种坐标体系分开记录，不能用 CSV 行号直接定位原表。
+
+上述回能条目没有自行标明当前属性基准。[Engineeeer 当前研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/) 用 Demolitionist 的旧 10% → 当前 0 属性 4% 说明通用回能变化。当前 Pugilist 定义据此显式采用旧值 ×0.4：普通 / 强化为 0.04 / 0.044，四类双倍武器为 0.08 / 0.088。**应用到 Pugilist 是推断，尚不是逐类实测结论**；转换记录见 [pugilist-energy.json](../data/d2-research/2026-10-10/pugilist-energy.json)。内容先完成这个跨版本转换，随后以 base 交给收益管线，不把旧 10% 直接再乘当前 F(s)。例如 100 近战属性、Threaded Spike CES=0.8，普通武器一次击杀入账 `0.04×2.25×0.8=0.072`；满账户按实际空余量裁剪。
+
+[pugilist.json](../common/src/test/resources/effects/pugilist.json) 按持有者、同武器实例与 weapon_kill 信用共同筛选。grant_ability_energy 在击杀收益执行时读取当前基础近战槽，不把 perk 固定绑定某个技能 ID。临时施放替换不改变基础资源归属；空槽或无成本声明跳过，缺失账户 / 缺失 gain_profile 则报配置错误。弹丸飞行期间换技能的双端测试确认能量进入新选择的池；替代技能采用合成 0.5 系数，不能当作另一真实 D2 技能。
+
+操控分支要求持有者的 melee_damage 且实际 HP / Shield / Absorption 正损失；武器击杀本身不授予操控。各已装备实例获得自己的 35 点增益，同实例重施加刷新 3 秒，收枪保留、卸装清除。以上资格、换装 / 刷新政策需原作边界校准，尤其 glaive / 持续伤害的信用分类；不把免疫 / 取消接触当作造成伤害。操控目前只进入 weapon_handling 数值 Profile，尚未映射到真实举枪 / 收枪 / 瞄准动画时长。
+
+[pugilist_weapon.json](../common/src/test/resources/effects/pugilist_weapon.json) 通过真实玩家容器、普通开火命令、扣弹与物理投射物死亡驱动内容；弹量、射速、飞行及测试伤害均为合成参数。覆盖仍为 partial，尚需完整物品 / 属性 / 子职业装配、操控表现、逐类回能实测和状态持久化。
 
 ## Cure 恢复与冷却
 
@@ -604,4 +616,4 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 
 未知参数没有默认 D2 值。模板的 `calibration.*` 测量包括追踪半径、速度 / 转向 / 寿命、墙面预算、接回窗口与 Sever 基础 / Continuity 扩展时间；缺少测量会在参数求值阶段、扣费前失败。宿主应先装配经过验证的参数定义。独立的 threaded_spike_test_calibration.json 只供测试，0.4+0.2 秒 Sever、15 米追踪等值不是原作测量。数值查询后显式四舍五入到整数微秒，随后 apply_status；没有削弱引擎的精确微秒契约。
 
-当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。外部收益路径现已装配 0.8 chunk scalar 与属性曲线，本技能自己的回能表显式豁免；实际回能 perk 生产者和技能切换账户路由仍待完成。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。
+当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。外部收益路径现已装配 0.8 chunk scalar 与属性曲线，本技能自己的回能表显式豁免；Pugilist 及基础技能槽路由已接入，其他回能生产者和共享池的动态变更仍待完成。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。
