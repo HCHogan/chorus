@@ -1,0 +1,160 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:scorch_source",
+      "rules": [
+        {
+          "id": "apply",
+          "on": "test:scorch_apply",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:scorch_lockout",
+                  "target": "victim"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:scorch",
+              "stacks": {
+                "type": "chorus:event_number",
+                "name": "stacks",
+                "unit": "count"
+              }
+            }
+          ]
+        },
+        {
+          "id": "empower",
+          "on": "test:solar_empower",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:solar_bonus"
+            }
+          ]
+        },
+        {
+          "id": "double",
+          "on": "test:scorch_double",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:scorch",
+              "stacks": {
+                "type": "chorus:constant",
+                "value": 60,
+                "unit": "count"
+              }
+            },
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:scorch",
+              "stacks": {
+                "type": "chorus:constant",
+                "value": 60,
+                "unit": "count"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:solar_bonus",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "chorus_d2:solar_outgoing",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "stacking_key": "test:solar_bonus",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          },
+          "confidence": "assumed",
+          "reference": "Synthetic source bonus for sampling verification."
+        }
+      ]
+    },
+    {
+      "id": "test:solar_chain",
+      "rules": [
+        {
+          "id": "chain",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:ignition_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:scorch_lockout",
+                  "target": "victim"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:scorch",
+              "stacks": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "count"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:solar_bonus",
+        "version": "compendium-2026-10-05",
+        "duration": 0.2
+      },
+      "bundle": "test:solar_bonus"
+    }
+  ]
+}

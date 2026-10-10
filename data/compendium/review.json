@@ -3850,6 +3850,177 @@
         "Solar原表颜色区分PvE与PvP；2.3秒/.04秒衰减只在PvP红色段落，PvE须按难度校准",
         "伤害衰减曲线、非致命作用范围、首来源数值取样及特殊来源继承需进一步校准"
       ]
+    },
+    {
+      "id": "solar/scorch",
+      "name": "Scorch",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B9",
+          "text_sha256": "0b83ab087e27f9dc5d9f96187b5f25dfd234050c2c110cf9ed22e1de76c965ac"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D9",
+          "text_sha256": "020f6b1ec075fed9a8ab1036e93a45802f6aee78c83a58090822ce1f0d61b7f1"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D10",
+          "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
+        }
+      ],
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项",
+      "acceptance": [
+        "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
+        "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
+        "PvE 每 tick 2.7 + 0.175 × 层数，非 Boss 额外 20%，至少 60 层额外 2.5%",
+        "PvP 2.3 秒后每 0.04 秒减一层；PvE 难度参数及 PvP 原始伤害曲线要求外部校准",
+        "100 层清空并点燃、死亡 / 消失及叠层耗尽停止周期；未知世界回执不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "reapplicationSharesStacksAndFirstSourceWithoutRestartingIndependentTickCadence"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "bossAndSixtyStackScalingUseCurrentObservedTargetAndCurrentStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "pvpAndPveDecayAreSeparateAndRefreshChangesOnlyDecayDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "capturedSolarModifierOutlivesSourceBonusWhileOriginalWeaponCreditSelectsItsEligibility"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "abilitySourceKindsKeepSpecificAndGenericCreditWithoutInventingWeaponCreditFromIdentity"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGameTest.java",
+          "symbol": "actualTicksKeepFirstSourceAfterReapplicationAndUnbindingWithoutRestartingCadence"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGameTest.java",
+          "symbol": "explicitPvpNonlethalPolicyPreservesGuardianBeforeLethalIgnition"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "PvE 难度持续 / 衰减表、PvP 完整伤害投影尚无实测校准；测试文件值为合成参数",
+        "非致命目标范围、第二 tick 时间解释、首次衰减边界与全部 modifier 取样时机待原作校准",
+        "共享来源缩放目录、来源特例和状态持久化 / 跨维度迁移未完成",
+        "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配"
+      ]
+    },
+    {
+      "id": "solar/ignition",
+      "name": "Ignition",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B8",
+          "text_sha256": "ae1c32802c317848e255a2aaab2253a3ce709012976d1016129249ad47696c7a"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D8",
+          "text_sha256": "3320a5dfb738f39312409fa1ed369f4fc093e7389b095b743df969b6f768e487"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D10",
+          "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
+        }
+      ],
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃",
+      "acceptance": [
+        "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
+        "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
+        "保留初始来源的武器 / 技能信用与快照，不继承最后补层者",
+        "允许合格后续点燃链，冷却只属于被点燃的目标",
+        "命中 Unstoppable 后眩晕；尚未接入"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "thresholdClearsStacksCancelsTicksAndIgnitesWithOriginalCreditThenAllowsNewGeneration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "pvpUsesExplicitInclusiveTickCalibrationNonlethalPolicyAndPerVictimIgnitionFalloff"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "legitimateIgnitionChainsRemainEnabledAndEachTargetsLocalLockoutStopsOnlyItsReapplication"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "severalApplicationsInOneActionFrameProduceOneIgnitionWithoutReinitializingEndedState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarTest.java",
+          "symbol": "unknownDamageResultNeverRepeatsTickOrIgnitionAndPreservesCommittedState"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGameTest.java",
+          "symbol": "mixedSourcesIgniteOnceWithActualNativeKillAndSharedTargetLockout"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGameTest.java",
+          "symbol": "allowedIgnitionChainDamagesBothTargetsTwiceWithoutGlobalSuppression"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGameTest.java",
+          "symbol": "unknownIgnitionReceiptKeepsWorldDamageAndDoesNotRepeatExplosion"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "PvP 距离衰减、全部来源缩放与取样时机仍需校准；未知非 Guardian / construct 的 PvP 目标不猜为构造体",
+        "Unstoppable 眩晕、非叠层直接点燃来源、范围扩展片段、全部特殊交互未接入",
+        "当前 on_use 攻击冻结与实时目标分类为明确内容政策；近战倍率需继续与 Solar 专属 Profile 隔离",
+        "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 仍未实现"
+      ]
     }
   ]
 }

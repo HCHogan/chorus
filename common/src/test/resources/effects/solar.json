@@ -1,0 +1,1222 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:scorch",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "max_stacks": 100,
+        "attach": "target",
+        "components": {
+          "damage_snapshots": [
+            "dot",
+            "dot_safe",
+            "ignition"
+          ],
+          "numbers": {
+            "ticks": {
+              "initial": 0,
+              "unit": "count"
+            }
+          }
+        },
+        "tags": [
+          "chorus:solar",
+          "chorus:debuff"
+        ]
+      },
+      "bundle": "chorus_d2:scorch_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:scorch_lockout",
+        "version": "compendium-2026-10-05",
+        "duration": 1.6,
+        "attach": "target",
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:scorch_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "applied",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_buff"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:scorch",
+                "target": "self"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "chorus_d2:scorch",
+                "component": "dot"
+              },
+              "as": "existing"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "existing",
+                "field": "missing"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:source_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_damage",
+                        "amount": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "damage"
+                        },
+                        "damage_type": "chorus_d2:scorch",
+                        "scaling_profile": "chorus_d2:solar_outgoing",
+                        "tags": [
+                          "chorus:solar_damage",
+                          "chorus:status_damage",
+                          "chorus_d2:scorch_damage",
+                          "chorus:weapon_damage"
+                        ],
+                        "kill_tags": [
+                          "chorus:weapon_kill"
+                        ],
+                        "non_lethal": false
+                      },
+                      "as": "dot_capture"
+                    },
+                    {
+                      "type": "chorus:write_damage_snapshot",
+                      "buff": "chorus_d2:scorch",
+                      "component": "dot",
+                      "snapshot": "dot_capture"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:capture_damage",
+                        "amount": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "damage"
+                        },
+                        "damage_type": "chorus_d2:scorch",
+                        "scaling_profile": "chorus_d2:solar_outgoing",
+                        "tags": [
+                          "chorus:solar_damage",
+                          "chorus:status_damage",
+                          "chorus_d2:scorch_damage",
+                          "chorus:weapon_damage"
+                        ],
+                        "kill_tags": [
+                          "chorus:weapon_kill"
+                        ],
+                        "non_lethal": true
+                      },
+                      "as": "dot_safe_capture"
+                    },
+                    {
+                      "type": "chorus:write_damage_snapshot",
+                      "buff": "chorus_d2:scorch",
+                      "component": "dot_safe",
+                      "snapshot": "dot_safe_capture"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:capture_damage",
+                        "amount": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "damage"
+                        },
+                        "damage_type": "chorus_d2:ignition",
+                        "scaling_profile": "chorus_d2:solar_outgoing",
+                        "tags": [
+                          "chorus:solar_damage",
+                          "chorus:status_damage",
+                          "chorus_d2:ignition_damage",
+                          "chorus:weapon_damage"
+                        ],
+                        "kill_tags": [
+                          "chorus:weapon_kill"
+                        ],
+                        "non_lethal": false
+                      },
+                      "as": "ignition_capture"
+                    },
+                    {
+                      "type": "chorus:write_damage_snapshot",
+                      "buff": "chorus_d2:scorch",
+                      "component": "ignition",
+                      "snapshot": "ignition_capture"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "if": {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus:grenade_damage"
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "damage"
+                            },
+                            "damage_type": "chorus_d2:scorch",
+                            "scaling_profile": "chorus_d2:solar_outgoing",
+                            "tags": [
+                              "chorus:solar_damage",
+                              "chorus:status_damage",
+                              "chorus_d2:scorch_damage",
+                              "chorus:grenade_damage",
+                              "chorus:ability_damage"
+                            ],
+                            "kill_tags": [
+                              "chorus:grenade_kill",
+                              "chorus:ability_kill"
+                            ],
+                            "non_lethal": false
+                          },
+                          "as": "dot_capture"
+                        },
+                        {
+                          "type": "chorus:write_damage_snapshot",
+                          "buff": "chorus_d2:scorch",
+                          "component": "dot",
+                          "snapshot": "dot_capture"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "damage"
+                            },
+                            "damage_type": "chorus_d2:scorch",
+                            "scaling_profile": "chorus_d2:solar_outgoing",
+                            "tags": [
+                              "chorus:solar_damage",
+                              "chorus:status_damage",
+                              "chorus_d2:scorch_damage",
+                              "chorus:grenade_damage",
+                              "chorus:ability_damage"
+                            ],
+                            "kill_tags": [
+                              "chorus:grenade_kill",
+                              "chorus:ability_kill"
+                            ],
+                            "non_lethal": true
+                          },
+                          "as": "dot_safe_capture"
+                        },
+                        {
+                          "type": "chorus:write_damage_snapshot",
+                          "buff": "chorus_d2:scorch",
+                          "component": "dot_safe",
+                          "snapshot": "dot_safe_capture"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "damage"
+                            },
+                            "damage_type": "chorus_d2:ignition",
+                            "scaling_profile": "chorus_d2:solar_outgoing",
+                            "tags": [
+                              "chorus:solar_damage",
+                              "chorus:status_damage",
+                              "chorus_d2:ignition_damage",
+                              "chorus:grenade_damage",
+                              "chorus:ability_damage"
+                            ],
+                            "kill_tags": [
+                              "chorus:grenade_kill",
+                              "chorus:ability_kill"
+                            ],
+                            "non_lethal": false
+                          },
+                          "as": "ignition_capture"
+                        },
+                        {
+                          "type": "chorus:write_damage_snapshot",
+                          "buff": "chorus_d2:scorch",
+                          "component": "ignition",
+                          "snapshot": "ignition_capture"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "if": {
+                            "type": "chorus:source_tag",
+                            "tag": "chorus:melee_damage"
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_damage",
+                                "amount": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "damage"
+                                },
+                                "damage_type": "chorus_d2:scorch",
+                                "scaling_profile": "chorus_d2:solar_outgoing",
+                                "tags": [
+                                  "chorus:solar_damage",
+                                  "chorus:status_damage",
+                                  "chorus_d2:scorch_damage",
+                                  "chorus:melee_damage",
+                                  "chorus:ability_damage"
+                                ],
+                                "kill_tags": [
+                                  "chorus:melee_kill",
+                                  "chorus:ability_kill"
+                                ],
+                                "non_lethal": false
+                              },
+                              "as": "dot_capture"
+                            },
+                            {
+                              "type": "chorus:write_damage_snapshot",
+                              "buff": "chorus_d2:scorch",
+                              "component": "dot",
+                              "snapshot": "dot_capture"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:capture_damage",
+                                "amount": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "damage"
+                                },
+                                "damage_type": "chorus_d2:scorch",
+                                "scaling_profile": "chorus_d2:solar_outgoing",
+                                "tags": [
+                                  "chorus:solar_damage",
+                                  "chorus:status_damage",
+                                  "chorus_d2:scorch_damage",
+                                  "chorus:melee_damage",
+                                  "chorus:ability_damage"
+                                ],
+                                "kill_tags": [
+                                  "chorus:melee_kill",
+                                  "chorus:ability_kill"
+                                ],
+                                "non_lethal": true
+                              },
+                              "as": "dot_safe_capture"
+                            },
+                            {
+                              "type": "chorus:write_damage_snapshot",
+                              "buff": "chorus_d2:scorch",
+                              "component": "dot_safe",
+                              "snapshot": "dot_safe_capture"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:capture_damage",
+                                "amount": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "damage"
+                                },
+                                "damage_type": "chorus_d2:ignition",
+                                "scaling_profile": "chorus_d2:solar_outgoing",
+                                "tags": [
+                                  "chorus:solar_damage",
+                                  "chorus:status_damage",
+                                  "chorus_d2:ignition_damage",
+                                  "chorus:melee_damage",
+                                  "chorus:ability_damage"
+                                ],
+                                "kill_tags": [
+                                  "chorus:melee_kill",
+                                  "chorus:ability_kill"
+                                ],
+                                "non_lethal": false
+                              },
+                              "as": "ignition_capture"
+                            },
+                            {
+                              "type": "chorus:write_damage_snapshot",
+                              "buff": "chorus_d2:scorch",
+                              "component": "ignition",
+                              "snapshot": "ignition_capture"
+                            }
+                          ],
+                          "else": [
+                            {
+                              "if": {
+                                "type": "chorus:source_tag",
+                                "tag": "chorus:super_damage"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:scorch",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:scorch_damage",
+                                      "chorus:super_damage",
+                                      "chorus:ability_damage"
+                                    ],
+                                    "kill_tags": [
+                                      "chorus:super_kill",
+                                      "chorus:ability_kill"
+                                    ],
+                                    "non_lethal": false
+                                  },
+                                  "as": "dot_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "dot",
+                                  "snapshot": "dot_capture"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:scorch",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:scorch_damage",
+                                      "chorus:super_damage",
+                                      "chorus:ability_damage"
+                                    ],
+                                    "kill_tags": [
+                                      "chorus:super_kill",
+                                      "chorus:ability_kill"
+                                    ],
+                                    "non_lethal": true
+                                  },
+                                  "as": "dot_safe_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "dot_safe",
+                                  "snapshot": "dot_safe_capture"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:ignition",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:ignition_damage",
+                                      "chorus:super_damage",
+                                      "chorus:ability_damage"
+                                    ],
+                                    "kill_tags": [
+                                      "chorus:super_kill",
+                                      "chorus:ability_kill"
+                                    ],
+                                    "non_lethal": false
+                                  },
+                                  "as": "ignition_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "ignition",
+                                  "snapshot": "ignition_capture"
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:scorch",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:scorch_damage"
+                                    ],
+                                    "kill_tags": [],
+                                    "non_lethal": false
+                                  },
+                                  "as": "dot_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "dot",
+                                  "snapshot": "dot_capture"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:scorch",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:scorch_damage"
+                                    ],
+                                    "kill_tags": [],
+                                    "non_lethal": true
+                                  },
+                                  "as": "dot_safe_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "dot_safe",
+                                  "snapshot": "dot_safe_capture"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_damage",
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "damage"
+                                    },
+                                    "damage_type": "chorus_d2:ignition",
+                                    "scaling_profile": "chorus_d2:solar_outgoing",
+                                    "tags": [
+                                      "chorus:solar_damage",
+                                      "chorus:status_damage",
+                                      "chorus_d2:ignition_damage"
+                                    ],
+                                    "kill_tags": [],
+                                    "non_lethal": false
+                                  },
+                                  "as": "ignition_capture"
+                                },
+                                {
+                                  "type": "chorus:write_damage_snapshot",
+                                  "buff": "chorus_d2:scorch",
+                                  "component": "ignition",
+                                  "snapshot": "ignition_capture"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:schedule",
+                  "name": "tick",
+                  "event": "chorus_d2:scorch_tick",
+                  "delay": {
+                    "type": "chorus:constant",
+                    "value": 0.5,
+                    "unit": "second"
+                  }
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:buff_count",
+                  "buff": "chorus_d2:scorch"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "count"
+                }
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_damage_snapshot",
+                    "buff": "chorus_d2:scorch",
+                    "component": "ignition"
+                  },
+                  "as": "ignition"
+                },
+                {
+                  "action": {
+                    "type": "chorus:capture_position",
+                    "target": "self"
+                  },
+                  "as": "place"
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:scorch_lockout"
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:scorch"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "place",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "place"
+                        },
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 8,
+                          "unit": "meter"
+                        },
+                        "relation": "not_allied",
+                        "relative_to": "source_owner",
+                        "exclude": [
+                          "source_owner"
+                        ]
+                      },
+                      "as": "neighbors"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "neighbors",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "for_each": "neighbors",
+                          "as": "neighbor",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:inspect_entity",
+                                "target": {
+                                  "binding": "neighbor"
+                                }
+                              },
+                              "as": "observed"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "observed",
+                                        "field": "available"
+                                      },
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "observed",
+                                        "field": "alive"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {
+                                      "type": "chorus:pvp",
+                                      "pve": {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "count"
+                                      },
+                                      "pvp": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result_flag",
+                                              "binding": "observed",
+                                              "field": "player"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "tag": "chorus_d2:construct",
+                                              "source": "entity"
+                                            }
+                                          ]
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    },
+                                    "op": "eq",
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:calculate",
+                                    "profile": "chorus_d2:ignition_falloff",
+                                    "input": {
+                                      "type": "chorus:result",
+                                      "binding": "neighbor",
+                                      "field": "distance"
+                                    },
+                                    "target": "self",
+                                    "numbers": {
+                                      "guardian": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "observed",
+                                          "field": "player"
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "as": "falloff"
+                                },
+                                {
+                                  "type": "chorus:damage_snapshot",
+                                  "snapshot": "ignition",
+                                  "target": {
+                                    "binding": "neighbor"
+                                  },
+                                  "impact": {
+                                    "solar_payload": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "mul",
+                                      "of": [
+                                        {
+                                          "type": "chorus:pvp",
+                                          "pve": {
+                                            "type": "chorus:constant",
+                                            "value": 676,
+                                            "unit": "damage"
+                                          },
+                                          "pvp": {
+                                            "type": "chorus:choose",
+                                            "if": {
+                                              "type": "chorus:result_flag",
+                                              "binding": "observed",
+                                              "field": "player"
+                                            },
+                                            "then": {
+                                              "type": "chorus:constant",
+                                              "value": 120,
+                                              "unit": "damage"
+                                            },
+                                            "else": {
+                                              "type": "chorus:constant",
+                                              "value": 250,
+                                              "unit": "damage"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "chorus:pvp",
+                                          "pve": {
+                                            "type": "chorus:constant",
+                                            "value": 1,
+                                            "unit": "multiplier"
+                                          },
+                                          "pvp": {
+                                            "type": "chorus:result",
+                                            "binding": "falloff",
+                                            "field": "value"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:scorch_decay_delay",
+                    "input": {
+                      "type": "chorus:pvp",
+                      "pve": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "second"
+                      },
+                      "pvp": {
+                        "type": "chorus:constant",
+                        "value": 2.3,
+                        "unit": "second"
+                      }
+                    },
+                    "target": "self"
+                  },
+                  "as": "hold"
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:scorch_decay_interval",
+                    "input": {
+                      "type": "chorus:pvp",
+                      "pve": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "second"
+                      },
+                      "pvp": {
+                        "type": "chorus:constant",
+                        "value": 0.04,
+                        "unit": "second"
+                      }
+                    },
+                    "target": "self"
+                  },
+                  "as": "decay"
+                },
+                {
+                  "type": "chorus:schedule",
+                  "name": "decay",
+                  "event": "chorus_d2:scorch_decay",
+                  "delay": {
+                    "type": "chorus:result",
+                    "binding": "hold",
+                    "field": "value"
+                  },
+                  "interval": {
+                    "type": "chorus:result",
+                    "binding": "decay",
+                    "field": "value"
+                  },
+                  "repeat": -1,
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tick",
+          "on": "chorus_d2:scorch_tick",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "tick"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "self"
+              },
+              "as": "observed"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "observed",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "observed",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:update_component",
+                    "buff": "chorus_d2:scorch",
+                    "component": "ticks",
+                    "op": "add",
+                    "value": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "tick_count"
+                },
+                {
+                  "type": "chorus:schedule",
+                  "name": "tick",
+                  "event": "chorus_d2:scorch_tick",
+                  "delay": {
+                    "type": "chorus:choose",
+                    "if": {
+                      "type": "chorus:compare",
+                      "left": {
+                        "type": "chorus:result",
+                        "binding": "tick_count",
+                        "field": "before"
+                      },
+                      "op": "eq",
+                      "right": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    },
+                    "then": {
+                      "type": "chorus:constant",
+                      "value": 0.93,
+                      "unit": "second"
+                    },
+                    "else": {
+                      "type": "chorus:constant",
+                      "value": 0.56,
+                      "unit": "second"
+                    }
+                  }
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:scorch_pvp_tick",
+                    "input": {
+                      "type": "chorus:buff_count",
+                      "buff": "chorus_d2:scorch"
+                    },
+                    "target": "self"
+                  },
+                  "as": "pvp_tick"
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:scorch_nonlethal",
+                    "input": {
+                      "type": "chorus:pvp",
+                      "pve": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      },
+                      "pvp": {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:result_flag",
+                          "binding": "observed",
+                          "field": "player"
+                        },
+                        "then": {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "count"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    },
+                    "target": "self"
+                  },
+                  "as": "nonlethal"
+                },
+                {
+                  "action": {
+                    "type": "chorus:capture_value",
+                    "value": {
+                      "type": "chorus:pvp",
+                      "pve": {
+                        "type": "chorus:arithmetic",
+                        "op": "mul",
+                        "of": [
+                          {
+                            "type": "chorus:arithmetic",
+                            "op": "add",
+                            "of": [
+                              {
+                                "type": "chorus:constant",
+                                "value": 2.7,
+                                "unit": "damage"
+                              },
+                              {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:scorch"
+                                },
+                                "factor": 0.175,
+                                "from": "count",
+                                "to": "damage"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:observed_entity_tag",
+                              "binding": "observed",
+                              "tag": "chorus_d2:boss",
+                              "source": "entity"
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "multiplier"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 1.2,
+                              "unit": "multiplier"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:buff_count",
+                                "buff": "chorus_d2:scorch"
+                              },
+                              "op": "ge",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 60,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1.025,
+                              "unit": "multiplier"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "multiplier"
+                            }
+                          }
+                        ]
+                      },
+                      "pvp": {
+                        "type": "chorus:result",
+                        "binding": "pvp_tick",
+                        "field": "value"
+                      }
+                    }
+                  },
+                  "as": "raw"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "nonlethal",
+                      "field": "value"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:read_damage_snapshot",
+                        "buff": "chorus_d2:scorch",
+                        "component": "dot_safe"
+                      },
+                      "as": "dot"
+                    },
+                    {
+                      "type": "chorus:damage_snapshot",
+                      "snapshot": "dot",
+                      "target": "self",
+                      "impact": {
+                        "solar_payload": {
+                          "type": "chorus:result",
+                          "binding": "raw",
+                          "field": "value"
+                        }
+                      }
+                    }
+                  ],
+                  "else": [
+                    {
+                      "action": {
+                        "type": "chorus:read_damage_snapshot",
+                        "buff": "chorus_d2:scorch",
+                        "component": "dot"
+                      },
+                      "as": "dot"
+                    },
+                    {
+                      "type": "chorus:damage_snapshot",
+                      "snapshot": "dot",
+                      "target": "self",
+                      "impact": {
+                        "solar_payload": {
+                          "type": "chorus:result",
+                          "binding": "raw",
+                          "field": "value"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:scorch"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "decay",
+          "on": "chorus_d2:scorch_decay",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "decay"
+          },
+          "do": [
+            {
+              "type": "chorus:consume_buff",
+              "buff": "chorus_d2:scorch"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:scorch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_scaling",
+      "modifiers": [
+        {
+          "id": "payload",
+          "profile": "chorus_d2:solar_outgoing",
+          "stage": "payload",
+          "group": "payload",
+          "op": "add",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "solar_payload",
+            "unit": "damage"
+          },
+          "stacking_key": "chorus_d2:solar_payload",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:status_damage"
+          },
+          "confidence": "assumed",
+          "reference": "Explicit measured Solar payload; Profile and source-specific scaling must be supplied by the host."
+        }
+      ]
+    }
+  ]
+}

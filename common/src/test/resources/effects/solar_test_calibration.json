@@ -1,0 +1,165 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:scorch_decay_delay",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 3
+              },
+              {
+                "input": 2.3,
+                "output": 2.3
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:scorch_decay_interval",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0.1
+              },
+              {
+                "input": 0.04,
+                "output": 0.04
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:scorch_pvp_tick",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              0.1
+            ],
+            "minimum": 0,
+            "maximum": 10000,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:scorch_nonlethal",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 10000,
+            "boundary": "error"
+          },
+          "output_unit": "count"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:ignition_falloff",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              -0.1
+            ],
+            "minimum": 0,
+            "maximum": 8,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_outgoing",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "payload",
+          "operation": "add",
+          "group": {
+            "name": "payload",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "world_units",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.1
+            ],
+            "minimum": 0,
+            "maximum": 100000,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    }
+  ]
+}

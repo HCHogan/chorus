@@ -44,7 +44,7 @@
 
 ## Incandescent 与共享 Solar 状态的接入依据
 
-该词条及共享 Scorch / Ignition 尚未实现。2026-10-10 抓取的原表 Weapon Perks A125 / C125 与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸最多 30 Solar 伤害。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：
+共享 Scorch / Ignition 的叠层、周期和点燃流程已通过下述测试，覆盖保持 partial；Incandescent 尚未实现。2026-10-10 抓取的原表 Weapon Perks A125 / C125 与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸最多 30 Solar 伤害。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：
 
 | 击杀目标 | 普通 | 普通 + Ashes | 强化 | 强化 + Ashes |
 | --- | ---: | ---: | ---: | ---: |
@@ -53,13 +53,42 @@
 
 已实现的 observed_entity_tag 提供死亡实体分类读取，通用场景验证分类冻结后的 4 / 8 米选择；尚未把这些分支接到实际武器击杀、范围伤害和共享 Solar 状态。正式敌人分类、友军筛选及衰减曲线仍需声明，不能把通用测试的 1 点伤害 / 0.1 秒延迟当成该词条数值。
 
-Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害快照) 已能将完整攻击保存到后续独立事件，保留来源、信用和所捕获的数值贡献。这提供了首次施加者攻击数据的载体；Scorch 何时捕获、后续施加是否覆盖、各修饰在哪个阶段取值，仍须由共享 Solar 内容声明并校准。
+Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害快照) 已能将完整攻击保存到后续独立事件，保留来源、信用和所捕获的数值贡献。共享 Solar 现在用它保存首次施加的攻击；后续施加保留该值。具体修饰取样时机仍须按来源逐项校准。
 
 **Scorch 不能直接套用纯文本导出的统一衰减参数。** 原表 Landing F22 的红色 #ea9999 表示 PvP，M22 的蓝色 #a4c2f4 表示 PvE。Solar D11 的蓝色段落给出 `2.7 + 0.175 × 层数`、非 Boss 额外 20%，并说明持续时间和衰减率受难度影响；红色段落才给出 2.3 秒后每 0.04 秒减一层和另一组伤害样例。固定 CSV 对应 Solar D9，颜色已经丢失，不能把两个模式的数据拼成一条公式。非致命文字的目标范围、第二次 tick 的 0.93 秒延迟含义及具体难度表还需校准。
 
 共享状态还要表达 100 层清除并触发 Ignition、1.6 秒禁止重新施加 Scorch、首次来源决定武器 / 技能信用，以及各来源独立的缩放资格。[官方系统说明](https://www.bungie.net/7/en/News/Article/twid_06_19_2025) 已明确近战增伤不再增加近战产生的 Scorch / Ignition；不能直接继承整条近战倍率。原表 Incandescent 的等级倍率排除也须与一般 Solar 缩放分开核对。允许的后续链式触发仍按正常事件队列执行。
 
 原始 Solar / Landing HTML、颜色图例、各模式参数、未知值和下一步验收要求保存在 [研究记录](../data/d2-research/2026-10-10/incandescent-solar.json)。Incandescent 图标已按原表 B125 原样导入，尚未绑定 HUD。
+
+### 共享 Scorch / Ignition 的当前实现
+
+[solar.json](../common/src/test/resources/effects/solar.json) 仅组合现有 Buff、定时器、类型化快照、世界观测与范围动作，没有专用 Java 状态机。Scorch 按受击目标共享，上限 100 层；首次授予保存普通 / 非致命 Scorch 及 Ignition 三份攻击描述，后续授予保留来源及来源侧 on_use 贡献。伤害信用由最初来源的互斥 weapon / grenade / melee / super 标签声明；技能同时保留通用 ability 信用，武器身份本身不推导武器信用。
+
+伤害 tick、叠层衰减和点燃禁用窗口各自计时。当前时序政策：首 tick 在 0.5 秒，第二 tick 在 1.43 秒，之后间隔 0.56 秒；重复施加刷新衰减计时，保留伤害 tick 时序；到衰减等待时间的边界即首次减一层。第二 tick 和首次衰减的边界解释仍须原作校准。每次 tick 显式观测目标，按当前层数及 Boss 标签计算 PvE 原始伤害，再使用首次保存的攻击；目标死亡 / 缺失或层数耗尽会移除状态并取消自有定时器。
+
+达到 100 层后，保存当前位置和点燃攻击，先授予原目标 1.6 秒禁用状态并移除 Scorch，再选择 8 米内非盟友。每个目标独立观测、独立结算伤害及实际回执。PvE 使用 676 原始伤害且无距离衰减；PvP 对原版玩家采用 Guardian 分支，对显式 `chorus_d2:construct` 实体标签采用构造体分支，未分类非玩家不猜为构造体。阵营参照缺失时没有可授权目标。`chorus_d2:boss` 也是明确宿主标签，尚非完整 D2 敌人目录。
+
+外部程序必须提供以下校准 Profile；缺少任一项会在链接时失败：
+
+| Profile（chorus_d2 命名空间） | 输入 → 输出 | 契约 |
+| --- | --- | --- |
+| scorch_decay_delay | second → second | PvE 以 0 请求显式难度值，PvP 基值为 2.3；结果必须为正微秒可表示时长 |
+| scorch_decay_interval | second → second | PvE 以 0 请求显式难度值，PvP 基值为 0.04；结果必须为正微秒可表示时长 |
+| scorch_pvp_tick | count → damage | 当前层数 → 完整 PvP 原始 tick 伤害，已包含相应的 60 层增幅，内容不再重复乘入 |
+| scorch_nonlethal | count → count | 输入为 PvP Guardian 1、其他 0；正结果选择非致命攻击，目标范围须显式校准 |
+| ignition_falloff | meter → multiplier | 当前被选目标的已测距离 → PvP 距离倍率；另提供 guardian 测量，PvE 不使用该倍率 |
+| solar_outgoing | damage → damage | 必须包含 payload / payload 的 ADD 阶段，接收 `solar_payload` 命中测量；之后声明来源允许的缩放与世界伤害单位换算 |
+
+宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；武器属性、武器 New Gear Bonus 的 5%、战斗单位等级倍率、Radiant、Surge、Verity 等具体资格及特殊来源仍需装配，当前没有声明这些 perk 全部生效。
+
+**施加入口契约：** 所有生产者在 apply_status 前检查目标没有 `chorus_d2:scorch_lockout`。共享 Buff 生命周期不提供隐式的状态授予否决；直接 grant_buff 绕过该契约属于错误装配。[solar_test_source.json](../common/src/test/resources/effects/solar_test_source.json) 只是合成输入及反应探针，未连接生产武器 / 技能。未来 Incandescent 需遵守同一入口契约，不能把测试事件当作实际装备流程。
+
+[solar_test_calibration.json](../common/src/test/resources/effects/solar_test_calibration.json) 中 PvE 等待 3 秒 / 衰减 0.1 秒、PvP tick `1 + 0.1 × 层数`、点燃距离倍率 `1 − 0.1 × 米数` 和世界伤害乘 0.1 都是**合成验收参数**。非致命示例只对 PvP Guardian 启用，用于验证健康下限机制，不替代原作范围证据。正式难度表、完整 PvP 曲线及来源修饰取样未校准前，不把这些文件作为完整游戏数值发布。
+
+12 项 SolarTest 覆盖来源与信用、当前层数 / 分类、独立计时、刷新 / 衰减、同帧多次授予、100 层点燃、禁用到期、源增益到期后的冻结值、缺失 / 死亡、校准依赖与未知结果。5 项共享 SolarGameTest 覆盖真实 tick、原版伤害 / 击杀归属、实际玩家非致命伤害后被点燃击杀、允许的连续点燃，以及已扣血后的未知回执不重放。连续点燃测试用合成反应在点燃命中后再施加 100 层，验证事件队列不全局禁用链式效果；这不是 Ember of Char 的数值实现。
+
+仍未实现：Unstoppable 眩晕、非叠层直接点燃来源、全部片段与等级 / 来源特例、Incandescent、生产装配及效果状态持久化。Scorch 和 Ignition 均保持 partial。
 
 ## 武器输入与 Kill Clip 集成边界
 

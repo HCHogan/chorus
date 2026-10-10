@@ -6,7 +6,7 @@
     "Scorch",
     "Ignition"
   ],
-  "implementation_status": "Incandescent and shared Solar states are not implemented; generic observed classification and Buff-stored damage snapshots are tested",
+  "implementation_status": "Shared Scorch and Ignition state transitions are partial, with explicit calibration dependencies and synthetic test profiles; Incandescent is not implemented.",
   "sources": [
     {
       "kind": "compendium_snapshot",
@@ -203,11 +203,40 @@
     }
   },
   "next_requirements": [
-    "Define shared target Scorch accumulation, refresh/decay and 100-stack ignition with source provenance retained across later applications.",
-    "Provide explicit PvE difficulty duration/decay calibration and PvP tick damage projection; do not invent universal defaults.",
-    "Separate periodic tick schedule from stack decay and ignition lockout; test boundary refresh and multiple sources.",
-    "Resolve nonlethal target scope and preserve native damage outcomes, defenses, shield/absorption and actual-loss facts.",
-    "Connect Incandescent weapon instance kills to corpse position and observed target classification, Ashes/enhanced amount table, radial damage and shared Scorch.",
-    "Validate first-source damage credit and modifier sampling without globally suppressing allowed Solar chains."
-  ]
+    "Calibrate the explicit first-source sampling and boundary policies in the shared Scorch/Ignition implementation against Destiny gameplay.",
+    "Provide actual PvE difficulty duration/decay calibration, PvP tick damage and ignition falloff; keep synthetic values separate.",
+    "Confirm nonlethal target scope and source-specific exceptions, including Incandescent rank-scalar eligibility.",
+    "Assemble weapon/ability modifiers, New Gear Bonus, activity scaling and source credit with the Solar profile and required scaling source.",
+    "Connect Incandescent weapon instance kills to corpse position and observed classification, Ashes/enhanced stacks, radial damage and shared Scorch, checking target lockout.",
+    "Implement Unstoppable stun, non-stack ignition sources, fragments and remaining Solar interactions without global cycle suppression.",
+    "Add production equipment/subclass assembly and persistent runtime state."
+  ],
+  "shared_solar": {
+    "definition": "common/src/test/resources/effects/solar.json",
+    "test_calibration": "common/src/test/resources/effects/solar_test_calibration.json",
+    "test_input": "common/src/test/resources/effects/solar_test_source.json",
+    "unit_test": "SolarTest",
+    "world_test": "SolarGameTest",
+    "sampling_policy": "First application captures dot, nonlethal dot and ignition attacks; source-side on_use values and credit remain frozen; tick stacks, observed target classification and defenses remain live. Not all Destiny sampling rules are calibrated.",
+    "timing_policy": "First tick at 0.5s, second at 1.43s, subsequent intervals 0.56s. Reapplication refreshes decay but not tick cadence; first stack decays at the hold deadline. These boundary interpretations require in-game calibration.",
+    "calibration_dependencies": [
+      "scorch_decay_delay",
+      "scorch_decay_interval",
+      "scorch_pvp_tick",
+      "scorch_nonlethal",
+      "ignition_falloff",
+      "solar_outgoing"
+    ],
+    "host_contract": "Bind solar_scaling once per source owner before capture; declare mutually exclusive source damage credit tags; producers check target scorch_lockout before applying status. The test producer is not production equipment assembly.",
+    "remaining": [
+      "Difficulty calibration",
+      "PvP raw tick and falloff calibration",
+      "Nonlethal scope and exact sampling",
+      "Source-specific perk/scalar assembly",
+      "Unstoppable stun",
+      "Direct ignition sources and fragments",
+      "Incandescent",
+      "Runtime persistence"
+    ]
+  }
 }
