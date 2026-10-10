@@ -2,7 +2,7 @@
   "version":"test-event-buffs",
   "buffs":[{"definition":{"id":"test:marked","version":"test-event-buffs","duration":2,"max_stacks":5,"instanced_by":"source","tags":["test:debuff"]},"bundle":"test:mark"}],
   "bundles":[
-    {"id":"test:mark","scope":"buff","rules":[{"id":"cleanup","on":"chorus:death","if":{"type":"chorus:target_is","left":"self","right":"victim"},"do":[{"type":"chorus:remove_buff","buff":"test:marked"}]}]},
+    {"id":"test:mark","scope":"buff","rules":[{"id":"instance_probe","on":"test:probe","if":{"type":"chorus:event_has_buff","buff":"test:marked","target":"self","match":"instance"},"do":[{"type":"chorus:play_cue","cue":"test:instance"}]},{"id":"cleanup","on":"chorus:death","if":{"type":"chorus:target_is","left":"self","right":"victim"},"do":[{"type":"chorus:remove_buff","buff":"test:marked"}]}]},
     {"id":"test:driver","rules":[
       {"id":"attack","on":"test:attack","do":[{"type":"chorus:damage","target":"victim","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"damage_type":"minecraft:generic"}]},
       {"id":"history","on":"chorus:kill","if":{"type":"chorus:event_has_buff","buff":"test:marked","minimum":2},"do":[

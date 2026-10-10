@@ -149,6 +149,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 
 伤害事实可携带 BuffObservation：回执确认时记录攻击者与受击者的 Buff 存在性，再执行本次消费和排队反应。这样 death 反应移除灼烧后，kill 仍可用 event_has_buff 判断回执时确实带有灼烧；同次 hit 反应后来新增的状态不会倒灌。观察时护盾损耗等物理写入已完成，不将其宣称为攻击前全部状态。event_buffs_available 区分未采样与确认空集合，has_buff 仍查询实时状态。接口与边界见 [数据包文档](engine-data-packs.md#事实携带的-buff-观察值)。
 
+Buff 逻辑键与单次生命周期的 generation 分开。BUFF 规则可用 `event_has_buff match: instance` 确认历史命中属于自己这一代，避免旧冻结结束、同键重新冻结后把旧伤害算进新阈值；`has_buff match: instance` 则确认这一代现在仍存活。刷新不会改变 generation，结束后重新授予会改变。默认 bound / any 查询保持原有语义；此选择由效果声明，不对合法的新命中或跨目标反馈链增加全局限制。generation 只承诺当前状态历史内的身份，不替代跨运行时 / 持久化的身份协议。
+
 伤害事实也可携带 EntityObservation：同一回执边界保存受击者及可解析攻击者的生命、存活、MC 玩家类别、实体标签与类型标签。原版入口保留实际受击对象，因此死亡钩子已经移除尸体也能记录；后续反应删实体或改标签不改变该记录。`event_entity_observed` 检查是否有观察，`read_event_entity` 读取类型化结果，明确区分未观察、观察到不可用、观察到死亡实体。纯核心不从当前世界补造缺失历史，`inspect_entity` 仍明确查询执行时世界。取样时机和字段见 [事实携带的实体观察值](engine-data-packs.md#事实携带的实体观察值)。
 
 EntityObservation.positions 另按目标身份与 feet / body / eyes 锚点保存带维度的位置，同一伤害确认边界采样；元数据已观察不代表位置也已观察。`event_position_observed` 区分未观察与已记录的不可用，`read_event_position` 纯读取 POSITION 结果；不重查当前位置、不猜原点。死亡反应之后的移动或移除不改写记录，detached 范围效果可使用历史中心查询届时成员；后续世界操作仍校验维度和区块，不自动保证生成成功。见 [实体位置事实](engine-data-packs.md#事实携带的实体位置)。

@@ -81,4 +81,24 @@ class EventBuffObservationTest {
         var observation=BuffObservation.capture(marked(p,"other",2).buffs(),"target");var e=evaluation(p,EffectState.empty(),event(SOURCE).withObservedBuffs(Optional.of(observation)));
         assertEquals(new Condition.Constant(true),new Condition.EventHasBuff("test:marked",Evaluation.Target.VICTIM,2,Condition.BuffMatch.ANY).snapshot(e));
     }
+    static Evaluation scoped(CompiledEffects p,EffectState state,EffectEvent event,BuffInstance instance,boolean ended){
+        return new Evaluation(state,new RuleEngine.Context(new RuleEngine.Event(1,1,Optional.empty(),state.buffs().timeMicros(),new RuleEngine.Signal("test:probe",event)),"test",new BuffRules.Scope(instance,ended),Map.of()),Map.of("test:marked",p.buff("test:marked")),Map.of(),Map.of(),Map.of(),Optional.of(p));
+    }
+    @Test void instanceMatchingRejectsOldDamageAfterRemoveAndRegrantButRefreshRetainsIdentity()throws Exception{
+        var p=load("event_buffs");var initial=marked(p,"other",2);var old=initial.buffs().instances().values().iterator().next();var event=event(SOURCE).withObservedBuffs(Optional.of(BuffObservation.capture(initial.buffs(),"target")));
+        var exact=new Condition.EventHasBuff("test:marked",Evaluation.Target.SELF,2,Condition.BuffMatch.INSTANCE);
+        assertTrue(exact.test(scoped(p,initial,event,old,false)));
+        var refreshed=Buffs.grant(initial.buffs(),p.buff("test:marked"),"target","target",old.origin(),1,1,2_000_000).store();var same=refreshed.instances().get(old.key());assertEquals(old.generation(),same.generation());assertTrue(exact.test(scoped(p,initial.withBuffs(refreshed),event,same,false)));
+        var removed=Buffs.remove(refreshed,old.key(),Buffs.Reason.REMOVED).store();var replacement=Buffs.grant(removed,p.buff("test:marked"),"target","target",old.origin(),2,1,2_000_000).store();var fresh=replacement.instances().get(old.key());assertNotEquals(old.generation(),fresh.generation());var state=initial.withBuffs(replacement);
+        var current=scoped(p,state,event,fresh,false);assertTrue(new Condition.EventHasBuff("test:marked",Evaluation.Target.SELF,2,Condition.BuffMatch.BOUND).test(current));assertFalse(exact.test(current));
+        var newEvent=event.withObservedBuffs(Optional.empty()).withObservedBuffs(Optional.of(BuffObservation.capture(replacement,"target")));assertTrue(exact.test(scoped(p,state,newEvent,fresh,false)));
+        var ended=scoped(p,state,event,old,true);assertTrue(exact.test(ended),"ended rule keeps its original historical identity");assertTrue(new Condition.HasBuff("test:marked",Evaluation.Target.SELF,2,Condition.BuffMatch.BOUND).test(ended));assertFalse(new Condition.HasBuff("test:marked",Evaluation.Target.SELF,2,Condition.BuffMatch.INSTANCE).test(ended),"new live generation must not stand in for the ended one");
+    }
+    @Test void instanceIdentityIsBuffScopedAndRemainsStrictThroughCodecRoundtrip()throws Exception{
+        var p=load("event_buffs");assertEquals(p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,p.program()).getOrThrow()).getOrThrow());
+        for(String type:List.of("chorus:has_buff","chorus:event_has_buff")){
+            var data=json("event_buffs");var rule=data.getAsJsonArray("bundles").get(1).getAsJsonObject().getAsJsonArray("rules").get(0).getAsJsonObject();var condition=new com.google.gson.JsonObject();condition.addProperty("type",type);condition.addProperty("buff","test:marked");condition.addProperty("match","instance");rule.add("if",condition);assertThrows(RuntimeException.class,()->compile(data));
+        }
+    }
+
 }

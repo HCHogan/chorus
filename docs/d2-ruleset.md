@@ -950,10 +950,18 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
 
-现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 的有限水平移动 / 腰射限制与镜头仍需进一步实现，见下节。
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 需要伤害资格、碎冰阈值、Boss 例外、Guardian 的时长与挣脱 / 地面 Super 例外；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
 
 已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Suspend 新增 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
 
+
+### Freeze / Shatter 的后续装配边界
+
+目前仍未交付共享 Freeze / Shatter 数据定义。下一步需要把原表的分级时长、行动约束、伤害阈值与范围伤害组合起来，而不能以“设置 NoAI”代替冻结。普通战斗人员六秒、Boss 三秒后自动碎冰，Guardian 按施加来源区分短冻结与长冻结；Roaming Super、地面 Super 与 Breakout 另有状态边界。已有可信技能输入包含服务端 on_ground，已有技能替换可以表达 Breakout，但生命消耗的实际结算与完整 Super 状态生产者仍须验证。
+
+受伤阈值应明确使用哪一种真实损失，并以 damage_id 处理同一命中的重复交付；历史观察必须属于当前冻结实例。现在可用 event_has_buff match:instance 比较逻辑键和 generation，刷新保留身份，结束后重施加不借用旧命中。这不会禁止一个新碎冰伤害使另一个冻结目标达到阈值。碎冰中心须优先读取命中回执保存的位置，以免尸体移除后丢失爆炸；实际范围成员仍按执行时世界查询。
+
+本次核对的 Freeze / Shatter 条目未给出完整的 PvE 碎冰阈值、PvP 碎冰伤害、半径 / 衰减与 Breakout 生命消耗，后续应显式分离校准参数和合成验收数据。原表的冻结承伤修饰与 One-Two Punch 等近战组合也需要独立数值验收，不能把控制动作通过当作伤害算法已经通过。[Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 对 Boss 使用错误冻结类型，以及 Celestial Nighthawk 对冻结 Boss 的异常增伤；不能把这些旧异常固化为通用规则。Shatter 的 Champion 反应仍以实际碎冰伤害为入口，按前述 9.7.0 的势不可挡映射实现。
 
 ## Suspend 的分级状态与脱离伤害
 

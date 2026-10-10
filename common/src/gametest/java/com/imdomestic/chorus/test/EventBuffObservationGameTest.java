@@ -18,6 +18,9 @@ public class EventBuffObservationGameTest {
             {"id":"mark","on":"test:mark","do":[{"type":"chorus:grant_buff","buff":"test:marked","target":"victim","stacks":{"type":"chorus:constant","value":2,"unit":"count"}}]}
             """));
         if(lateMark){var late=rules.get(rules.size()-1).deepCopy().getAsJsonObject();late.addProperty("id","late_mark");late.addProperty("on","chorus:hit");rules.add(late);}
+        rules.add(JsonParser.parseString("""
+            {"id":"replace","on":"test:replace","do":[{"type":"chorus:remove_buff","buff":"test:marked","target":"victim"},{"type":"chorus:grant_buff","buff":"test:marked","target":"victim","stacks":{"type":"chorus:constant","value":2,"unit":"count"}}]}
+            """));
     }
     static ProjectileGameTest.Harness harness(GameTestHelper h,boolean lateMark)throws Exception{
         var t=new ProjectileGameTest.Harness(h,"event_buffs",data->prepare(data,lateMark),true);
@@ -48,4 +51,16 @@ public class EventBuffObservationGameTest {
             h.assertTrue(t.runtime.failure().isEmpty(),"observation runtime failed");
         }h.succeed();
     }
+    @GameCase public void oldNativeHitDoesNotBelongToARecreatedBuffWithTheSameLogicalKey(GameTestHelper h)throws Exception{
+        try(var t=harness(h,false)){
+            var victim=t.cow(2.5,46,3.5);victim.setHealth(20);event(t,victim,"mark");var old=t.runtime.state().engine().domain().buffs().instances().values().iterator().next();
+            var before=MinecraftDamageExecutor.execute("generation/old",victim,h.getLevel().damageSources().playerAttack(t.owner),1,false);var observed=before.observedBuffs().orElseThrow().require(victim.getUUID().toString()).getFirst();h.assertValueEqual(observed.generation(),old.generation(),"actual native hit captured wrong generation");
+            event(t,victim,"replace");var fresh=t.runtime.state().engine().domain().buffs().instances().get(old.key());h.assertTrue(fresh!=null&&fresh.generation()!=old.generation(),"fixture failed to replace the generation");
+            var command=new com.imdomestic.chorus.effect.combat.DamageCommand(victim.getUUID().toString(),new BuffInstance.Origin(t.owner.getUUID().toString(),"native","",""),1,"minecraft:generic",Set.of(),Set.of(),false);
+            var oldFact=com.imdomestic.chorus.effect.combat.DamageFacts.from(command,before).getFirst();t.runtime.start(new RuleEngine.Signal("test:probe",oldFact.payload()));h.assertTrue(t.cues.isEmpty(),"old hit counted against new buff instance");
+            var after=MinecraftDamageExecutor.execute("generation/new",victim,h.getLevel().damageSources().playerAttack(t.owner),2,false);h.assertValueEqual(after.outcome(),com.imdomestic.chorus.effect.combat.DamageReceipt.Outcome.APPLIED,"larger hit during native cooldown must produce a receipt");var newFact=com.imdomestic.chorus.effect.combat.DamageFacts.from(command,after).getFirst();t.runtime.start(new RuleEngine.Signal("test:probe",newFact.payload()));h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),List.of("test:instance"),"fresh native hit did not match current instance");
+            h.assertTrue(t.runtime.failure().isEmpty(),"instance matching runtime failed");
+        }h.succeed();
+    }
+
 }

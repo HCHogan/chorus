@@ -319,6 +319,7 @@ effective > 0 时产生 `chorus:shield_restored`，携带恢复来源、受益�
 | 条件 | 含义 |
 | --- | --- |
 | has_buff 的 match:bound | 默认行为，按当前来源和 Buff 的实例键匹配 |
+| has_buff 的 match:instance | 仅 BUFF 作用域可用，实例键和 generation 必须与当前规则所绑定的 Buff 一致；同键重新授予不算原实例仍存活 |
 | has_buff 的 match:any | 此目标任意来源中，至少一个该定义的实例单独达到 minimum；不跨实例相加 |
 | has_buff_tag | 此目标至少一个现存 Buff 的定义含 tag；不限施加来源 |
 | has_source_tag | 此目标当前绑定的至少一个 EffectSource 的 tags 或 origin.tags 含 tag；不读取动作保留的旧来源或触发事件标签 |
@@ -2009,6 +2010,8 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 
 
 ## 事实携带的 Buff 观察值
+
+需要确认历史事件确实属于当前规则绑定的那一代 Buff 时，使用 `event_has_buff` 的 `match: instance`。它只允许在 BUFF 作用域中声明，同时比较逻辑实例键和 generation；刷新 / 加层保留代次，结束后同键重新授予会产生新代次。旧事件因此不会被新冻结等状态计入受伤阈值。对应的 `has_buff match: instance` 检查该代次现在是否仍存活；结束回调仍能匹配自己的历史观察，但不会把新代次当作旧状态复活。原有 bound / any 的含义保持不变；这是逐事件的状态资格条件，不是跨目标连锁的次数或深度限制。
 
 `event_has_buff`（buff、target 默认 victim、minimum 默认 1、match 默认 any）与 `event_has_buff_tag`（tag、target 默认 victim）读取事实的不可变观察值。它们不会重新查询当前 BuffStore。`event_buffs_available` 可先判断指定 target 是否确实被观察；未观察会报错，确认观察为空才表示没有 Buff，not 也不能把缺数据转成“不存在”的证据。match:bound 按当前绑定来源计算实例键；any 要求某一个实例独立达到 minimum，不跨来源相加。暂停实例保留存在性，已到期层不进入观察。
 

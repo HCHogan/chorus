@@ -164,7 +164,8 @@ public interface Condition {
         @Override public boolean test(Evaluation e) {
             var entries = eventBuffs(e, target);
             return entries.stream().anyMatch(b -> b.key().definition().equals(buff) && b.stacks() >= minimum
-                    && (match == BuffMatch.ANY || b.key().equals(e.key(buff, target))));
+                    && (match == BuffMatch.ANY || b.key().equals(e.key(buff, target)))
+                    && (match != BuffMatch.INSTANCE || b.generation() == e.ownBuff().generation()));
         }
     }
     record EventHasBuffTag(String tag, Evaluation.Target target) implements Condition {
@@ -174,13 +175,14 @@ public interface Condition {
     private static List<com.imdomestic.chorus.effect.buff.BuffObservation.Entry> eventBuffs(Evaluation e, Evaluation.Target target) {
         return e.event().observedBuffs().orElseThrow(() -> new IllegalArgumentException("Event has no buff observation")).require(e.target(target));
     }
-    enum BuffMatch { BOUND, ANY }
+    enum BuffMatch { BOUND, ANY, INSTANCE }
     record HasBuff(String buff, Evaluation.Target target, int minimum, BuffMatch match) implements Condition {
         public HasBuff { java.util.Objects.requireNonNull(match); }
         public HasBuff(String buff, Evaluation.Target target, int minimum) { this(buff, target, minimum, BuffMatch.BOUND); }
-        @Override public void validate(Validation v) { v.target(target); v.buff(buff); if (minimum < 1) throw new IllegalArgumentException("Invalid minimum stacks"); }
+        @Override public void validate(Validation v) { v.target(target); v.buff(buff); if (match == BuffMatch.INSTANCE) v.requireBuffSource(); if (minimum < 1) throw new IllegalArgumentException("Invalid minimum stacks"); }
         @Override public boolean test(Evaluation e) {
-            if (match == BuffMatch.BOUND) return e.state().buffs().active(e.key(buff, target)).filter(value -> value.count() >= minimum).isPresent();
+            if (match != BuffMatch.ANY) return e.state().buffs().active(e.key(buff, target))
+                    .filter(value -> value.count() >= minimum && (match != BuffMatch.INSTANCE || value.generation() == e.ownBuff().generation())).isPresent();
             String holder = e.target(target);
             return e.state().buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder) && value.definition().id().equals(buff)
                     && value.activeCount(e.state().buffs().timeMicros()) >= minimum);
