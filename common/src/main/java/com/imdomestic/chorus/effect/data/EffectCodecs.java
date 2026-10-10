@@ -613,11 +613,17 @@ public final class EffectCodecs {
         Codec<AbilityDefinition.Parameter> parameter = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("value").forGetter(AbilityDefinition.Parameter::value), ID.optionalFieldOf("profile").forGetter(AbilityDefinition.Parameter::profile)
         ).apply(i, AbilityDefinition.Parameter::new)), Set.of("value", "profile"));
+        Codec<AbilityDefinition.Effect> abilityEffect = strict(RecordCodecBuilder.create(i -> i.group(
+                ID.fieldOf("bundle").forGetter(AbilityDefinition.Effect::bundle),
+                ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AbilityDefinition.Effect::tags),
+                Codec.unboundedMap(Codec.STRING, StatCodecs.MEASURE).optionalFieldOf("parameters", Map.of()).forGetter(AbilityDefinition.Effect::parameters)
+        ).apply(i, AbilityDefinition.Effect::new)), Set.of("bundle", "tags", "parameters"));
         Codec<AbilityDefinition> ability = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("id").forGetter(AbilityDefinition::id), ID.fieldOf("slot").forGetter(AbilityDefinition::slot), cost.optionalFieldOf("cost").forGetter(AbilityDefinition::cost),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(AbilityDefinition::condition), ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AbilityDefinition::tags),
-                Codec.unboundedMap(Codec.STRING, parameter).optionalFieldOf("parameters", Map.of()).forGetter(AbilityDefinition::parameters), step.listOf().fieldOf("on_use").forGetter(AbilityDefinition::onUse)
-        ).apply(i, AbilityDefinition::new)), Set.of("id", "slot", "cost", "if", "tags", "parameters", "on_use"));
+                Codec.unboundedMap(Codec.STRING, parameter).optionalFieldOf("parameters", Map.of()).forGetter(AbilityDefinition::parameters), step.listOf().fieldOf("on_use").forGetter(AbilityDefinition::onUse),
+                Codec.unboundedMap(Codec.STRING, abilityEffect).optionalFieldOf("effects", Map.of()).forGetter(AbilityDefinition::effects)
+        ).apply(i, AbilityDefinition::new)), Set.of("id", "slot", "cost", "if", "tags", "parameters", "on_use", "effects"));
         Codec<AmmoState.Reserve> weaponReserve = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.INT.fieldOf("rounds").forGetter(AmmoState.Reserve::rounds), Codec.INT.fieldOf("capacity").forGetter(AmmoState.Reserve::capacity)
         ).apply(i, AmmoState.Reserve::new)), Set.of("rounds", "capacity"));

@@ -1,0 +1,387 @@
+{
+  "version": "ability-effects-test",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 100,
+      "initial": 0,
+      "base_rate": 1,
+      "rate_profile": "test:rate"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:rate",
+      "version": "ability-effects-test",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:damage",
+      "version": "ability-effects-test",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:a",
+      "slot": "test:grenade",
+      "tags": [
+        "test:ability_tag"
+      ],
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "passive": {
+          "bundle": "test:passive",
+          "tags": [
+            "test:effect_tag"
+          ],
+          "parameters": {
+            "power": {
+              "value": 1,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:b",
+      "slot": "test:grenade",
+      "tags": [
+        "test:ability_tag"
+      ],
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "passive": {
+          "bundle": "test:passive",
+          "tags": [
+            "test:effect_tag"
+          ],
+          "parameters": {
+            "power": {
+              "value": 3,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:replacement",
+      "slot": "test:grenade",
+      "tags": [
+        "test:ability_tag"
+      ],
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "passive": {
+          "bundle": "test:passive",
+          "tags": [
+            "test:effect_tag"
+          ],
+          "parameters": {
+            "power": {
+              "value": 9,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:c",
+      "slot": "test:melee",
+      "tags": [
+        "test:ability_tag"
+      ],
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "passive": {
+          "bundle": "test:passive",
+          "tags": [
+            "test:effect_tag"
+          ],
+          "parameters": {
+            "power": {
+              "value": 2,
+              "unit": "delta"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:passive",
+      "parameters": {
+        "power": "delta"
+      },
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:rate",
+          "stage": "power",
+          "group": "power",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "power"
+          },
+          "stacking_key": "test:passive_power",
+          "reference": "Synthetic selected-ability source acceptance",
+          "confidence": "assumed",
+          "evaluate": "on_use"
+        },
+        {
+          "id": "damage",
+          "profile": "test:damage",
+          "stage": "power",
+          "group": "power",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "power"
+          },
+          "stacking_key": "test:passive_power",
+          "reference": "Synthetic selected-ability source acceptance",
+          "confidence": "assumed",
+          "evaluate": "on_use"
+        }
+      ],
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:source_parameter",
+                  "name": "power"
+                },
+                "factor": 1,
+                "from": "delta",
+                "to": "damage"
+              }
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "pulse",
+              "event": "test:pulse",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:source_parameter",
+                  "name": "power"
+                },
+                "factor": 1,
+                "from": "delta",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "pulse",
+          "on": "test:pulse",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "pulse"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:source_parameter",
+                  "name": "power"
+                },
+                "factor": 10,
+                "from": "delta",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "delayed",
+          "on": "test:delay",
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:source_parameter",
+                      "name": "power"
+                    },
+                    "factor": 20,
+                    "from": "delta",
+                    "to": "damage"
+                  }
+                }
+              ]
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "source",
+              "do": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:source_parameter",
+                      "name": "power"
+                    },
+                    "factor": 30,
+                    "from": "delta",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:override",
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:replacement",
+          "priority": 1
+        }
+      ]
+    }
+  ]
+}

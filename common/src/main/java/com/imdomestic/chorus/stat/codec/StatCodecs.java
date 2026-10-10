@@ -20,6 +20,9 @@ public final class StatCodecs {
     public static final Codec<Unit> UNIT = Codec.STRING.comapFlatMap(id -> safe(() -> new Unit(id.contains(":") ? id : "chorus:" + id)), Unit::id);
     private static final Codec<Double> FINITE = Codec.DOUBLE.validate(value ->
             Double.isFinite(value) ? DataResult.success(value) : DataResult.error(() -> "Number must be finite"));
+    public static final Codec<Measure> MEASURE = com.imdomestic.chorus.core.codec.DataCodecs.strict(RecordCodecBuilder.create(i -> i.group(
+            FINITE.fieldOf("value").forGetter(Measure::value), UNIT.fieldOf("unit").forGetter(Measure::unit)
+    ).apply(i, Measure::new)), java.util.Set.of("value", "unit"));
 
     private static <T> DataResult<T> safe(Supplier<T> create) {
         try { return DataResult.success(create.get()); }

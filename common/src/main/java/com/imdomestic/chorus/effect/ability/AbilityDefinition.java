@@ -5,12 +5,24 @@ import java.util.*;
 
 /** Instant action kind. The chosen definition and numeric parameters are pinned at acceptance. */
 public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
-        Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse) {
+        Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects) {
     public AbilityDefinition {
         id(id); id(slot); Objects.requireNonNull(cost); Objects.requireNonNull(condition);
         tags = Set.copyOf(tags); tags.forEach(AbilityDefinition::id);
         parameters = Collections.unmodifiableMap(new TreeMap<>(parameters)); parameters.keySet().forEach(com.imdomestic.chorus.effect.EffectTimers::localName);
         onUse = List.copyOf(onUse);
+        effects = com.imdomestic.chorus.effect.EffectParameters.copy(effects);
+    }
+    public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
+            Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse) {
+        this(id, slot, cost, condition, tags, parameters, onUse, Map.of());
+    }
+    /** Static selection configuration, independent of the parameters evaluated for each accepted cast. */
+    public record Effect(String bundle, Set<String> tags, Map<String, com.imdomestic.chorus.stat.Measure> parameters) {
+        public Effect {
+            id(bundle); tags = Set.copyOf(tags); tags.forEach(AbilityDefinition::id);
+            parameters = com.imdomestic.chorus.effect.EffectParameters.copy(parameters);
+        }
     }
     public record Cost(String resource, Value amount, Optional<String> profile) {
         public Cost { id(resource); Objects.requireNonNull(amount); Objects.requireNonNull(profile); profile.ifPresent(AbilityDefinition::id); }

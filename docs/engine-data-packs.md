@@ -1356,7 +1356,7 @@ Fabric / NeoForge 客户端默认按 K 打开独立配装页，可以在控制�
 
 ## 技能选择与施放入口
 
-完整程序的 `abilities` 声明当前支持的即时动作技能。每个定义指定 id、槽位、可选成本、施放条件、标签、数值参数与 on_use 动作。它复用已有 DSL，可授予 Buff、查询目标、治疗 / 伤害及启动 detached 延迟动作；通用物理飞行已由文末 projectile 步骤接入；D2 专用投掷物、移动技能和持续引导等种类尚未实现。下面是结构完整的合成例子，数值不是命运 2 校准结果：
+完整程序的 `abilities` 声明当前支持的即时动作技能。每个定义指定 id、槽位、可选成本、施放条件、标签、施放数值参数、on_use 动作，以及可选的选择期 effects。它复用已有 DSL，可授予 Buff、查询目标、治疗 / 伤害及启动 detached 延迟动作；通用物理飞行已由文末 projectile 步骤接入；D2 专用投掷物、移动技能和持续引导等种类尚未实现。下面是结构完整的合成例子，数值不是命运 2 校准结果：
 
 ```json
 {
@@ -1373,6 +1373,32 @@ Fabric / NeoForge 客户端默认按 K 打开独立配装页，可以在控制�
 ```
 
 cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 profile，输入 / 输出单位必须保持不变。参数与成本在接受施放前统一查询当前持有者的来源 / Buff 修饰，固定为本次施放的数据。参数之间没有隐式求值依赖；param.<name> 是给后续动作读取的已解析测量。省略 cost 表示无账户成本；amount = 0 表示使用已声明账户的免费施放，仍有 paid = 0 的成本回执。
+
+### 选中技能的常驻效果
+
+`abilities[].effects` 是按本地键索引的来源声明。基础技能选中后自动挂载，清除或换成另一基础技能时卸载；不需要测试事件创建一个永不结束的 Buff 才能启用回能 / 属性修饰。下面片段给已声明的技能增加来源，目标 Bundle 也须在同一程序或 imports 中定义：
+
+```json
+"effects": {
+  "regeneration": {
+    "bundle": "example:selected_regeneration",
+    "tags": ["example:grenade_selection"],
+    "parameters": {"power":{"value":1,"unit":"delta"}}
+  }
+}
+```
+
+`example:selected_regeneration` 是 SOURCE Bundle，声明 `"parameters":{"power":"delta"}`，可用 `chorus:source_parameter` 驱动修饰、规则或连续恢复。effects.parameters 是定义里的固定 Measure；技能顶层 parameters 是每次接受施放时计算的 Value，两者的求值时间和作用域不同，不隐式互通。效果标签与所属技能的标签合并；origin.owner 是选择者、origin.ability 是基础技能 id、origin.weapon 为空，origin.source 为这项常驻来源的身份。
+
+选择变更先验证旧装配及来源投影、初始化缺失的资源池，然后原子提交新技能选择、资源与整组来源。队列顺序是新资源的 initialized 事实、全部旧 source_detached、全部新 source_attached、abilities_changed；这些规则执行时都能看到最终的完整选择和来源。相同选择重提不会重新初始化或刷新计时器。以 holder / slot / ability / effect 键构成的 `ability/` 身份由选择事务独占，bind / unbind / replaceSources 不允许直接修改；损坏或多余的初始投影会被拒绝。
+
+普通的 `source_attached / source_detached` 和 `own_source` 可表达初始化 / 清理。命名计时器与 source 生命周期 after 在选择卸载时取消，detached 动作、已捕获的伤害修饰和 origin_bundle 反应继续保留原来源。清理使用旧参数，但全局状态已经是新选择；世界动作未知失败保留已提交选择和待确认回执，不重放 attach。
+
+这组效果由基础 AbilityLoadout 决定：ability_overrides 临时解析出另一个施放定义，不挂载替代定义的 effects，也不卸载原选择。技能的施放 if 仅约束施放；常驻效果若有自己的生效条件，应写在 Bundle 的条件里。多个玩家和多个技能槽使用独立来源身份，数值是否叠加仍由 Profile 的 family / group 决定。
+
+资源账户与选择期效果的生命周期分开：移除选择不会删除 / 补满账户，卸载的来源不再贡献恢复倍率，账户仍按剩余来源和资源基础恢复率推进。角色暂停 / 死亡 / 离线政策、技能选择跨维度与 NBT 持久化未由本字段补齐，仍由后续宿主装配定义。合成 `ability_effects.json` 只验证这条通用链路；现有 D2 回能夹具的 Buff 输入尚待迁移。
+
+### 施放时的条件替换与入口
 
 效果包可声明条件替换，source 与 buff 作用域都支持：
 
@@ -1393,7 +1419,7 @@ runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(Map.of("e
 AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 ```
 
-选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before，预检定义 / 槽位后提交。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
+选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
 
 use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 
@@ -1401,7 +1427,7 @@ ability_started 与 ability_used 携带同一份已接受的定义、参数和�
 
 两者的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
 
-有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时技能没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
+有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时 on_use 动作体没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在该动作体内编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
 
 最小命令：
 

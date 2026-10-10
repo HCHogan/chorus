@@ -33,6 +33,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final CompiledEquipment equipment;
     private final CompiledWeapons weapons;
     private final Map<String, AbilityDefinition> abilities;
+    private final com.imdomestic.chorus.effect.ability.AbilitySources abilitySources;
     private final Map<String, RuleEngine.EventRule<EffectState>> abilityRules;
     private final Map<String, RuleEngine.EventRule<EffectState>> fireRules;
     private final Map<String, List<RuleEngine.EventRule<EffectState>>> sourceRules;
@@ -83,6 +84,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         this.profiles = index(program.profiles(), CalculationProfile::id);
         this.resources = index(program.resources(), ResourceDefinition::id);
         this.abilities = index(program.abilities(), AbilityDefinition::id);
+        this.abilitySources = new com.imdomestic.chorus.effect.ability.AbilitySources(abilities, this::validateSource);
         for (var resource : resources.values()) resource.rateProfile().ifPresent(id -> {
             var profile = profiles.get(id); if (profile == null) throw new IllegalArgumentException("Unknown resource rate profile: " + id);
             Validation.same(profile.inputUnit(), Unit.CHARGE_PER_SECOND); Validation.same(profile.outputUnit(), Unit.CHARGE_PER_SECOND);
@@ -280,6 +282,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public RuleEngine.Local<EffectState> changeAbilities(EffectState state, AbilityChange change) {
         if (!state.abilities().getOrDefault(change.holder(), AbilityLoadout.EMPTY).equals(change.before())) throw new IllegalStateException("Stale ability selection");
         change.before().slots().forEach(this::validateSelection); change.after().slots().forEach(this::validateSelection);
+        abilitySources.validate(state);
+        var batch = SourceBatch.between(abilitySources.sources(change.holder(), change.before()), abilitySources.sources(change.holder(), change.after()));
+        batch.validateCurrent(state);
         if (change.before().equals(change.after())) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         var updated = state.withAbilities(change.holder(), change.after()); var facts = new ArrayList<RuleEngine.Signal>();
         var origin = new BuffInstance.Origin(change.holder(), "chorus:abilities", "", "");
@@ -292,6 +297,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var account = definition.initialize(change.holder(), state.buffs().timeMicros()); updated = updated.withResource(account);
             facts.add(new RuleEngine.Signal("chorus:resource_initialized", ResourceFacts.change(new ResourceState(key, 0, account.capacity(), account.timeMicros()), account, origin, "initialize")));
         }
+        var sources = batch.apply(updated); updated = sources.state(); facts.addAll(sources.emitted());
         facts.add(new RuleEngine.Signal("chorus:abilities_changed", new EffectEvent(change.holder(), change.holder(), origin, java.util.Set.of(), Map.of())));
         return new RuleEngine.Local<>(updated, RuleEngine.Empty.INSTANCE, facts);
     }
@@ -380,7 +386,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     public void validateSources(SourceBatch batch) { batch.edits().forEach(edit -> { unmanagedSource(edit.instance()); edit.after().ifPresent(this::validateSource); }); }
     public void validateSourceChange(SourceChange change) { unmanagedSource(change.instance()); change.replacement().ifPresent(this::validateSource); }
-    private static void unmanagedSource(String instance) { if (instance.startsWith("equipment/")) throw new IllegalArgumentException("Equipment sources must change through EquipmentChange"); }
+    private static void unmanagedSource(String instance) {
+        if (instance.startsWith("equipment/")) throw new IllegalArgumentException("Equipment sources must change through EquipmentChange");
+        if (instance.startsWith(com.imdomestic.chorus.effect.ability.AbilitySources.PREFIX)) throw new IllegalArgumentException("Ability sources must change through AbilityChange");
+    }
     /** Attack scaling uses only the attack owner's modifiers; target debuffs belong in the defense profile. */
     public Optional<CalculationProfile.Result> outgoing(EffectState state, DamageCommand command, double input) {
         command.reactions().ifPresent(snapshot -> snapshot.requireCompatible(program));
@@ -866,6 +875,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         weapons.validate(state);
         state.sources().values().forEach(this::validateSource);
         state.abilities().values().forEach(loadout -> loadout.slots().forEach(this::validateSelection));
+        abilitySources.validate(state);
         state.equipment().forEach((holder, loadout) -> equipment.sources(holder, loadout).forEach((id, source) -> {
             if (!source.equals(state.sources().get(id))) throw new IllegalArgumentException("Equipment source projection is inconsistent: " + id);
         }));

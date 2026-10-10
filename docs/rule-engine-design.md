@@ -551,6 +551,12 @@ known_conflicts / selected_resolution
 
 当前已有 `EffectProgram.abilities` 的即时动作入口：基础槽位选择、来源 / Buff 的分级条件替换、参数和成本 Profile、实际支付后依次派发 ability_started / ability_used，以及共用 DSL 的 on_use。服务端命令可选择 / 施放，世界效果已通过双加载器验证；按键 / 网络、D2 专用投掷物或移动种类、子职业 / 解锁、持久化与 parent 继承仍未实现。下面的完整种类示例描述目标结构，当前可解析字段和命令以 [技能入口](engine-data-packs.md#技能选择与施放入口) 为准。
 
+### 基础选择的常驻来源
+
+技能定义已支持 effects 字典，基础 AbilityLoadout 自动投影为常驻 EffectSource。选择、首次资源账户与全组来源一次提交后才执行初始化 / 清理事实；同选项重提不刷新来源，变化时旧作用域完成清理，新选择重新挂载。来源身份包含 holder / slot / ability / effect 键，ability/ 前缀由选择事务独占。固定数值参数须满足目标 SOURCE Bundle 的单位声明，标签合并基础技能和该项效果的标签。
+
+施放时的条件替换仍只改变本次调用，不改变基础来源。常驻效果可以提供恢复 Profile 修饰、监听事件和拥有 source 寿命的定时器；on_use 仍是独立即时帧。卸载取消来源计时器与绑定延迟，已接受的 detached 动作和攻击快照保留原参数。资源账户不随选择卸载清空，继续采用剩余来源与基础恢复率。具体 JSON 和生命周期见 [选中技能的常驻效果](engine-data-packs.md#选中技能的常驻效果)。这使属性曲线可以随实际技能选择装配；D2 回能夹具迁移、角色暂停 / 死亡策略、技能持久化与子职业装配仍待完成。
+
 ### 已接受施放的开始阶段
 
 `chorus:ability_started` 与 `chorus:ability_used` 保留相同的已解析定义、成本回执及参数，不再次求值或扣费。资源事实在前，started 的即时动作随后，used 才执行技能动作体；派生事件仍按广度优先顺序排队，不把 started 解释为全局抢占或可取消的前置钩子。免费施放同样有这两个成功事件，资格或支付拒绝两者都不发。队友授予的 Woven Mail 以 Buff 持有者匹配施放者，在 started 移除旧状态；超能动作体可以重新授予 Woven Mail，新的效果不会被这次清理误删。这是通用阶段契约，核心不识别 Sever、Woven Mail 或 Super 的游戏含义。

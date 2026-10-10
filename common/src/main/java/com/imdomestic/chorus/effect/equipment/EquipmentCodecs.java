@@ -10,9 +10,7 @@ import com.imdomestic.chorus.stat.codec.StatCodecs;
 public final class EquipmentCodecs {
     private EquipmentCodecs() {}
     private static final Codec<Set<String>> IDS = ID.listOf().xmap(Set::copyOf, set -> set.stream().sorted().toList());
-    public static final Codec<Measure> MEASURE = strict(RecordCodecBuilder.create(i -> i.group(
-            FINITE.fieldOf("value").forGetter(Measure::value), StatCodecs.UNIT.fieldOf("unit").forGetter(Measure::unit)
-    ).apply(i, Measure::new)), Set.of("value", "unit"));
+    public static final Codec<Measure> MEASURE = StatCodecs.MEASURE;
     private static final Codec<EquipmentSchema.Parameter> PARAMETER = strict(RecordCodecBuilder.create(i -> i.group(
             StatCodecs.UNIT.fieldOf("unit").forGetter(EquipmentSchema.Parameter::unit), FINITE.fieldOf("minimum").forGetter(EquipmentSchema.Parameter::minimum),
             FINITE.fieldOf("maximum").forGetter(EquipmentSchema.Parameter::maximum), Codec.BOOL.optionalFieldOf("integral", false).forGetter(EquipmentSchema.Parameter::integral)
