@@ -110,9 +110,16 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "health_fraction", new Field(Unit.MULTIPLIER, result -> entity(result).available().health() / entity(result).available().maximumHealth())),
             Map.of("available", result -> entity(result).view().isPresent(), "missing", result -> entity(result).view().isEmpty(),
                     "alive", result -> entity(result).available().alive(), "player", result -> entity(result).available().player()), false, Reference.ENTITY_OBSERVATION);
-    public DamageSnapshot snapshot(RuleEngine.ActionResult result) { requireSnapshot(); return (DamageSnapshot) result; }
+    public java.util.Optional<DamageSnapshot> optionalSnapshot(RuleEngine.ActionResult result) {
+        requireSnapshot(); return result instanceof DamageSnapshot.Stored stored ? stored.snapshot() : java.util.Optional.of((DamageSnapshot) result);
+    }
+    public DamageSnapshot snapshot(RuleEngine.ActionResult result) { return optionalSnapshot(result).orElseThrow(() -> new IllegalStateException("Stored damage snapshot is unavailable")); }
     public static final ResultShape DAMAGE_SNAPSHOT = new ResultShape(Map.of("base_damage", new Field(Unit.DAMAGE,
             result -> ((DamageSnapshot) result).attack().amount())), Map.of(), false, Reference.DAMAGE_SNAPSHOT);
+    public static final ResultShape STORED_DAMAGE_SNAPSHOT = new ResultShape(Map.of("base_damage", new Field(Unit.DAMAGE,
+            result -> DAMAGE_SNAPSHOT.snapshot(result).attack().amount())), Map.of(
+            "available", result -> ((DamageSnapshot.Stored) result).snapshot().isPresent(),
+            "missing", result -> ((DamageSnapshot.Stored) result).snapshot().isEmpty()), false, Reference.DAMAGE_SNAPSHOT);
     public String target(RuleEngine.ActionResult result) { requireTarget(); return ((com.imdomestic.chorus.effect.target.Targets.Reference) result).entity(); }
     public java.util.List<? extends com.imdomestic.chorus.effect.target.Targets.Reference> targets(RuleEngine.ActionResult result) {
         requireTargets(); return ((com.imdomestic.chorus.effect.target.Targets.Collection) result).targets();

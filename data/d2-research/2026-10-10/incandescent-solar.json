@@ -6,7 +6,7 @@
     "Scorch",
     "Ignition"
   ],
-  "implementation_status": "Incandescent and shared Solar states are not implemented; generic observed classification path is tested",
+  "implementation_status": "Incandescent and shared Solar states are not implemented; generic observed classification and Buff-stored damage snapshots are tested",
   "sources": [
     {
       "kind": "compendium_snapshot",
@@ -188,7 +188,19 @@
       "Scorch application",
       "Scorch periodic damage/decay",
       "Ignition"
-    ]
+    ],
+    "stored_damage_snapshots": {
+      "schema": "components.damage_snapshots",
+      "actions": [
+        "chorus:read_damage_snapshot",
+        "chorus:write_damage_snapshot"
+      ],
+      "unit_test": "DamageSnapshotComponentTest",
+      "world_test": "DamageSnapshotComponentGameTest",
+      "fixture": "common/src/test/resources/effects/stored_damage_snapshot.json",
+      "semantics": "Immutable full attacks survive independent Buff events, refresh, source expiry/detach and ended-generation reads; explicit overwrite/clear is content-controlled.",
+      "limitation": "This carrier does not decide Scorch modifier sampling, first-source write policy, tick/decay behavior or restart persistence."
+    }
   },
   "next_requirements": [
     "Define shared target Scorch accumulation, refresh/decay and 100-stack ignition with source provenance retained across later applications.",

@@ -6,14 +6,14 @@
 
 ## 当前证据
 
-2026-10-10：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 290 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。完整程序已通过数据包注册表加载、覆盖和重载，管理命令可以启动运行时并绑定来源；已有运行时保留旧定义。装备槽位与词条元数据已能原子投影为来源；真实玩家物品容器、玩家 NBT 读写及死亡 / respawn 已接线。独立装备展示协议与最小配装页已接入两端；技能定义、基础选择、条件替换、成本 / 参数快照和服务端施放命令也已接入。武器原型已能为实际容器实例初始化弹药，并通过普通玩家命令接受整弹匣手动换弹；真实 tick 到期复核持握 / 存活资格并结算当前容量与储备，服务端单次开火、扣弹 / 射速与实际投射物击杀到 Kill Clip 下一发伤害、Voltshot 就绪与共享 Jolt 链伤已验。真实散布 / 精准射击、逐发 / 技能换弹、实体效果持久化、活动状态迁移、技能按键及子职业自动装配尚未完成，不能当成完整模组行为。
+2026-10-10：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 293 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。完整程序已通过数据包注册表加载、覆盖和重载，管理命令可以启动运行时并绑定来源；已有运行时保留旧定义。装备槽位与词条元数据已能原子投影为来源；真实玩家物品容器、玩家 NBT 读写及死亡 / respawn 已接线。独立装备展示协议与最小配装页已接入两端；技能定义、基础选择、条件替换、成本 / 参数快照和服务端施放命令也已接入。武器原型已能为实际容器实例初始化弹药，并通过普通玩家命令接受整弹匣手动换弹；真实 tick 到期复核持握 / 存活资格并结算当前容量与储备，服务端单次开火、扣弹 / 射速与实际投射物击杀到 Kill Clip 下一发伤害、Voltshot 就绪与共享 Jolt 链伤已验。真实散布 / 精准射击、逐发 / 技能换弹、实体效果持久化、活动状态迁移、技能按键及子职业自动装配尚未完成，不能当成完整模组行为。
 
 | 能力 | 状态 | 代码与验证 |
 | --- | --- | --- |
 | 单位、百分比基准、有序 Profile、计算轨迹 | 已有纯核心测试 | `stat/CalculationProfile`，`CalculationProfileTest` |
 | SUM / MAX / PRODUCT / RESIST、嵌套分组 | 已有纯核心测试 | `stat/NumericGroup`、`Reduction` |
 | 独立实例、唯一家族、按来源取高、优先级、按份数表 | 已有纯核心测试 | `stat/FamilyPolicy`；优先级与独立实例、抗性模组份数测试 |
-| 释放时数值快照、目标条件延后与 on_hit 贡献合并 | 纯核心及双加载器 GameTest 通过 | `DamageSnapshot`、`captureDamage`；来源操作数冻结、逐层贡献保留、旧 Profile 固定，实际延迟扣血；已可跨物理投射物保存；来源反应选择见 ReactionSnapshot，多版本与派生继承仍待实现 |
+| 释放时数值快照、目标条件延后与 on_hit 贡献合并 | 纯核心及双加载器 GameTest 通过 | `DamageSnapshot`、`captureDamage`；来源操作数冻结、逐层贡献保留、旧 Profile 固定，实际延迟扣血；已可跨物理投射物及 Buff 独立事件保存；来源反应选择见 ReactionSnapshot，多版本与派生继承仍待实现 |
 | 命中期测量进入冻结攻击的有序阶段 | 纯核心及双加载器 GameTest 通过 | `ImpactData`、`impact_number`；逐目标距离、冻结加伤、实时 MAX / 防御 / 盾层查询及实际事实隔离；字段由内容 / 宿主提供，具体 D2 曲线仍待校准 |
 | 派生伤害 / 治疗选择绑定或事件来源 | 纯核心及双加载器 GameTest 通过 | `ActionOrigin`；状态施加者与触发者分开，完整来源、数值查询、快照、击杀 / 治疗事实和信用标签独立；尚非完整 Jolt 内容 |
 | JSON 数值捕获、伤害快照与延迟动作体 | 纯核心及双加载器 GameTest 通过 | `capture_value / capture_damage / damage_snapshot / after`；类型化绑定、来源生命周期、脱离来源、嵌套延迟、未来查询与实际伤害后回血；成本账本不能跨帧复制 |
@@ -258,7 +258,7 @@ modifier 新增 `evaluate`，当前支持 `on_use`（默认）与 `on_hit`。未
 
 [damage_snapshot.json](../common/src/test/resources/effects/damage_snapshot.json) 以合成参数验证：来源 20%、冻结资源 30% + 目标标记 5%、命中期 40% 在同一 MAX 中选择；基础 10 得 14，而不是把三项相乘。10 项纯核心测试覆盖不同目标重放、条件冻结、逐层贡献、模式 / 元数据错误及目录版本边界；3 项共享 GameTest 验证来源到期后延迟扣血、命中期新增增益及替换运行时后的旧攻击 / 新防御。延迟用例使用独立 test_environment 批次，避免跨 tick 的运行时与同维度其他用例争用。
 
-DSL 已支持 `capture_damage` 绑定类型化快照，再通过 `damage_snapshot` 应用到指定目标；`after` 和显式物理 projectile 可以保存此绑定。Java 宿主也可显式保存并传回快照。原版箭或其他技能实体不会自动附加释放时快照。来源规则的 origin_bundle / current_owner_bundle 已接入下述反应选择；派生物筛选继承、Threadling 丢失继承、on_release / on_tick / on_proc 和持久化仍待实现；proc 排除已独立接入。Compendium `Artifact Perks!E15` 的 Singularity Blade 描述的是命中期施加状态的资格，不是数值修饰；本测试不能冒充该 perk 的完整实现。
+DSL 已支持 `capture_damage` 绑定类型化快照，再通过 `damage_snapshot` 应用到指定目标；`after` 和显式物理 projectile 可以保存此绑定，Buff 的 damage_snapshots 组件可将其保留给后续独立事件。Java 宿主也可显式保存并传回快照。原版箭或其他技能实体不会自动附加释放时快照。来源规则的 origin_bundle / current_owner_bundle 已接入下述反应选择；派生物筛选继承、Threadling 丢失继承、on_release / on_tick / on_proc 和持久化仍待实现；proc 排除已独立接入。Compendium `Artifact Perks!E15` 的 Singularity Blade 描述的是命中期施加状态的资格，不是数值修饰；本测试不能冒充该 perk 的完整实现。
 
 ### 释放时的来源反应绑定
 
@@ -676,7 +676,7 @@ DSL 的 ammo.capacity / missing、observe_ammo 和所有弹药动作统一使用
 | --- | --- |
 | Value | constant、result、resource、ammo、round、event_number、impact_number、buff_count、component、by_stacks、by_buff_tier、by_source_tag、choose、arithmetic（add / mul / min / max）、scale、curve、enhanced、pvp |
 | Condition | constant、all、any、not、source_is、own_source、source_tag、event_tag、layer_tag、event_reference、event_flag、result_flag、observed_entity_tag、resource_crossed、target_is、target_ref_present、has_buff、has_buff_tag、has_shield、compare、own_buff、own_shield、own_timer |
-| Action | grant_buff、consume_buff、remove_buff、extend_buff、refresh_buff、apply_status、check_status、select_targets、read_targets、sync_targets、difference_targets、inspect_entity、capture_position、read_position、write_position、capture_value、capture_damage、damage_snapshot、damage、heal、restore_shield、update_component、initialize_resource、grant_resource、spend_resource、refund_cost、grant_full_charge、initialize_ammo、observe_ammo、spend_ammo、refill_magazine、grant_ammo、schedule、cancel_timer、emit、play_cue |
+| Action | grant_buff、consume_buff、remove_buff、extend_buff、refresh_buff、apply_status、check_status、select_targets、read_targets、sync_targets、difference_targets、inspect_entity、capture_position、read_position、write_position、capture_value、capture_damage、read_damage_snapshot、write_damage_snapshot、damage_snapshot、damage、heal、restore_shield、update_component、initialize_resource、grant_resource、spend_resource、refund_cost、grant_full_charge、initialize_ammo、observe_ammo、spend_ammo、refill_magazine、grant_ammo、schedule、cancel_timer、emit、play_cue |
 | 控制结构 | if / then / else、for_each、after（嵌套步骤，不是世界动作） |
 
 - 普通动作为 `{ "type": "chorus:grant_buff", ... }`。需要绑定结果时使用 `{ "action": { ... }, "as": "gain" }`；后续 Value 通过 `{ "type": "chorus:result", "binding": "gain", "field": "credited" }` 读取。布尔结果条件为 `{ "type": "chorus:result_flag", "binding": "status", "field": "applied" }`，`is` 默认 true。每一步只看得到此前已声明且处于当前作用域内的结果，绑定跨世界动作等待保留；通用可选 / 引用结果投影仍待扩展。
@@ -700,6 +700,7 @@ DSL 的 ammo.capacity / missing、observe_ammo 和所有弹药动作统一使用
 | `disruption_break.json` | 两次错开施加、每层分别相乘 / 到期、动能资格、排除冰影 / 缚丝、PvE / PvP 时间分支 | 基础词条；强化持续时间在 C71 未知，未声称支持该变体；实际破盾已输出层标签，但此词条的武器来源与防御 Profile 尚未自动装配 |
 | `combat_profiles.json` | Kill Clip 与 Disruption Break 的修饰接入真实伤害，再经过测试减伤、盾、护甲、吸收；两端验证玩家只计算一次、门槛、完全减伤、嵌套和缺失运行时拒绝 | Buff 预置；50% 减伤和 5 点盾是测试参数；完整触发来源、真实武器与数据包自动装配未完成 |
 | `damage_snapshot.json` | 来源值和条件冻结、目标读数延后、on_hit 实时贡献、逐层身份与完整分组、旧 Profile 保留；两端实际延迟伤害与替换运行时后的旧攻击 / 新防御 | 合成参数；本夹具由宿主保存快照；后续 projectile.json 已验证物理投射物携带，完整反应规则和派生继承、更多取值时机及持久化尚未接入 |
+| `stored_damage_snapshot.json` | Buff 完整快照的缺失、复制、清空、刷新 / 覆盖、独立事件、旧实例结束和 detached 使用；两端真实扣血及未知回执不重放 | 与 damage_snapshot.json 链接的合成验收，不代表 Scorch / Ignition 已实现；运行时状态尚无跨重启序列化 |
 | `impact_snapshot.json` | 来源加伤冻结，逐目标距离进入独立 falloff 阶段；实际扣血、查询后移动、on_hit MAX / 当前防御 / 盾层读取和事实中的输入结果隔离 | 曲线与数值是合成验收参数；字段由内容 / 宿主明确提供，不代表任何 D2 perk 已校准 |
 | `action_origin.json` | 绑定 / 事件来源独立选择；甲施加乙触发，乙的数值贡献及原版 DamageSource、实际击杀 / 治疗归属、非武器信用、延迟快照与状态到期 | 合成反应及数值，非 Jolt / Voltshot 的完整状态、触发和缩放定义；origin_bundle 另由 reaction_binding.json 验证 |
 | `entity_observation.json` | 显式观测原版生命 / 吸收 / 玩家类别，缺失与死亡区分，延迟及世界变化后仍使用观测值 | 合成低血量回血；不隐式决定 PvE / PvP，不含 D2 等级 / 勇士分类或 Chorus 护盾总量 |
@@ -966,6 +967,14 @@ EntityQuery.View 新增不可变 entityTags / typeTags，MinecraftWorldActions �
 
 Incandescent 新增一项 unimplemented 审阅，累计 45 项；通用分类场景没有冒充完整词条。原表图标累计 11 个，均有来源记录。另核对 Solar 原表颜色与 Landing 图例：Scorch 的 2.3 秒 / 0.04 秒衰减属于 PvP，PvE 只给出难度依赖；原始 HTML 和未完成协议见 [研究记录](../data/d2-research/2026-10-10/incandescent-solar.json)。
 
+### Buff 中的完整伤害快照
+
+BuffSchema / BuffComponents 新增 damage_snapshots 类型化组件，由 read_damage_snapshot / write_damage_snapshot 在组件与动作绑定之间复制完整 DamageSnapshot。初始缺失、显式清空、刷新保留、新 generation 重置及自身 ended 读取遵守既有组件生命周期；读出的值不会被之后的覆盖、移除或 detached 延迟改写。写入不重新采样来源、不改变原 Profile、信用或取样时机，目标条件及当前防御仍在每次命中时求值。每次使用产生独立世界动作，未知回执不重放。
+
+7 项 DamageSnapshotComponentTest 验证不可变性、其他组件更新、缺失守卫 / 清空、刷新 / 复制 / 覆盖、独立事件、来源到期与卸下、结束后同键重建、模式限制、延迟及严格类型 / Codec。3 项共享 DamageSnapshotComponentGameTest 验证真实 tick 后的来源冻结与当前目标防御、ended 读取旧实例及空的新实例、实际伤害已提交后的未知结果。合成测试中初始基础伤害 10，在来源到期后保留原攻击贡献并使用当前目标标记及防御，实际扣血 20.25。
+
+完整 JUnit 713 项、Fabric 294 项、NeoForge 304 项通过，两端发布 jar 包含新动作且不含测试夹具。日志为 `/tmp/chorus-stored-snapshot-gate.log`（JUnit）、`/tmp/chorus-stored-snapshot-world-fixed.log`（两端世界回归及发布包）。45 项 Compendium 审阅及 10 项来源审计测试通过，原表图标仍为 11 个。本次补齐跨独立事件保存攻击数据的通用机制；Scorch / Ignition / Incandescent 内容规则、具体取样时机校准与运行时状态持久化仍未完成。
+
 ## 后续覆盖工作
 
 1. 在已固定并逐格核对的全 Compendium 来源上，继续人工区分效果、说明、表头和公式，扩展 `data/compendium/review.json`。当前只审阅了首批 45 个条目，不把导入完成当成逐条分析完成。
@@ -1009,7 +1018,7 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 
 若终端仍使用 Java 21，先进入仓库配置的开发环境，或用 `-Dorg.gradle.java.home=/absolute/path/to/jdk25` 指定已安装 JDK 25。NeoForge 的资源下载辅助任务另需 Java 21 工具链；仓库已配置从 `JDK21` 环境变量发现它，macOS 指向相应 JDK 的 `Contents/Home`。这不改变 Gradle、编译和游戏使用 Java 25 的要求。不要降级 Minecraft、Java 或 Loom 来绕过配置。
 
-当前 706 项 JUnit 和 10 项 Compendium 数值 / 素材来源审计测试通过，两端发布 jar 构建成功。Fabric 26.3 服务端的 290 项 Chorus 测试通过，连同原版 `minecraft:always_pass` 共 291 项；NeoForge 26.3.0.45-beta 服务端运行相同 290 项及 10 项专属阶段 / 掉落测试，连同原版共 301 项。日志分别位于 `fabric/build/run/gameTest/logs/latest.log` 与 `neoforge/build/runs/gametest/logs/latest.log`。此前提交拆分曾按暂存树在隔离检出中验证中间阶段；这些日志路径相对于实际运行的检出目录。
+当前 713 项 JUnit 和 10 项 Compendium 数值 / 素材来源审计测试通过，两端发布 jar 构建成功。Fabric 26.3 服务端的 293 项 Chorus 测试通过，连同原版 `minecraft:always_pass` 共 294 项；NeoForge 26.3.0.45-beta 服务端运行相同 293 项及 10 项专属阶段 / 掉落测试，连同原版共 304 项。日志分别位于 `fabric/build/run/gameTest/logs/latest.log` 与 `neoforge/build/runs/gametest/logs/latest.log`。此前提交拆分曾按暂存树在隔离检出中验证中间阶段；这些日志路径相对于实际运行的检出目录。
 
 共享场景覆盖原版伤害与状态、普通命中观察和时钟、分层盾、盾后护甲 / 吸收、取消 / 免疫 / 格挡 / 冷却不扣盾、同帧读取已提交盾量、扣盾后的原版重入、玩家盾与异常写集保留，以及攻击 / 防御 Profile 的 8 项、显式治疗的 6 项、JSON 调度的 3 项和连续恢复的 3 项实际运行场景；调度中的真实 tick 测试同时覆盖 Cure、连续恢复到期残段与资源恢复 Profile / 阈值 / 成本分支。NeoForge 专项包括伤害阶段的 3 项与治疗回调的 6 项。另有 3 项数据包 / 管理命令场景覆盖实际加载、覆盖重载、坏包失败保留、固定旧定义与资源解绑重挂不重置；3 项资源返还 / 完整充能场景验证实际额度驱动世界治疗、满容量溢出不能补领、免费和失败成本为零。另有 3 项弹药场景验证两把武器独立、有限转移 / 生成、真实延迟 / 来源解绑、合格换弹事实隔离，以及未知世界回执不重放。另有 4 项手动换弹场景验证实际容器、普通玩家命令、真实 tick 完成、Kill Clip、切枪 / 死亡 / 旁观者 / 移除和未知世界反应后的余额保留。另有 4 项单次开火场景验证真实容器 / 命令、投射物击杀到 Kill Clip 下一发伤害、收枪后快照、信用隔离、存活资格、换弹中断和未知发射不重放。另有 4 项整枪场景验证三颗物理弹丸实际回执 / 收枪归属、外部移除、不完整截止与寿命停止飞行，以及未知伤害结果不重放。另有 5 项 One-Two Punch 场景验证真实装备 / 开火 / 近战、强化第十颗即触发、PvP 手炮倍率、收枪 / 三秒到期和未知近战回执不重放。另有 3 项 Clown Cartridge 场景验证实际换弹 / 词条装配、随机普通 / 强化溢出、储备不足与未知结果不重抽。另有 2 项动态容量场景验证有效容量进入真实治疗、Buff 到期后的溢出保留，以及 detached 容量快照。另有 2 项 Adrenaline Junkie 场景以真实死亡触发 Buff，再验证下一次实际扣血；普通/强化双武器同时绑定，宿主显式提供武器/手雷信用。另有 6 项目标查询 / 迭代场景验证球形边界、队伍关系、实际范围伤害及逐目标回血、列表冻结后目标移动 / 移除 / 新增，以及排除后最近排序 / 截取和捕获距离决定真实衰减扣血。另有 5 项 Volatile 场景覆盖两种环境的真实爆炸、致死施加资格、已有状态单次引爆、相邻目标连锁及只读资格边界。另有 3 项 proc 策略场景验证真实伤害 / 击杀信用保留、当前 / 捕获 / Buff 反应筛选、物理投射物与原版入口。另有 4 项来源反应绑定场景验证真实投射物卸装后的治疗 / 击杀收益、改装前的强化标签、当前规则单次执行、原版即时入口和未知反应回执不重放。另有 3 项攻击快照场景验证来源到期后的延迟伤害、命中期新增贡献及替换运行时后的旧攻击 / 新防御。另有 4 项 JSON 延迟动作场景验证脱离来源后的实际伤害及回血、默认生命周期取消、未来范围查询与嵌套多次命中。另有 3 项固定位置场景验证死亡实体捕获 / 移除、零距离与半径边界 / 排除 / 关系 / 维度，以及固定激活位置的三次范围伤害和各波次成员变化。另有 2 项 Kinetic Tremors 场景以真实原版命中验证直击计数、收枪保留、卸下 / 原目标移除后的三波伤害、PvP 数值、普通 / 强化来源隔离和末次震波后的冷却。另有 2 项命中测量场景验证逐目标距离进入冻结攻击的有序阶段、查询后移动及增益到期、原版宿主测量、命中期 MAX / 当前防御和结果测量隔离。另有 2 项动作来源场景验证甲施加 / 乙触发后的原版攻击者、实际击杀与治疗归属、信用隔离，以及状态到期 / 来源解绑后的事件来源伤害快照。另有 2 项实体观测场景验证玩家 / 死亡 / 缺失 / 跨维度与观测值恢复；6 项 Jolt 场景验证实际阈值、两种模式、原版归属、玩家伤害取消 / 吸收资格、施加顺序、致死阈值、相邻连锁与冷却。另有 4 项 Voltshot 场景验证链接后的共享 Jolt、真实击杀 / 命中、明确换弹事件、武器隔离、取消 / 致死、收枪、Jolt 非武器击杀及 7 / 8 秒到期。另有 3 项成员差分场景验证目标 / 中心移动、快照后变动、重叠场、成员 / 中心移除、结束清理和真实持续恢复。另有 4 项固定场场景验证 Rift 的 15 秒两种模式、施放者移动 / 来源解绑、晚进入者、重叠场与分别到期、阵营参照缺失策略，以及 any 查询在施放实体移除后仍使用保存坐标。另有 4 项 Rift 补盾场景验证原版实际扣盾 / 生命溢出、伤后暂停与满血恢复、PvP 重叠池、Void 阻止 / 分层 FIFO / Absorption 独立、空容量时的交互资格和离场清理。另有 3 项连续护盾回充场景验证原版承伤后的延迟、微秒容量边界、到期残段、暂停与 Eternal Warrior 停伤回充 / 破盾终止。另有 3 项盾层攻击倍率场景验证多层增伤后的原版护甲 / Absorption、来源解绑后的冻结强化命中新盾，以及免疫 / 无敌帧拒绝与增量预算。另有 3 项精准因子抑制场景验证攻击 / 防御固定加值、普通盾及原版护甲 / Absorption、未来命中倍率 / 冻结来源和原版无敌帧增量。另有 3 项装配场景验证原子来源 / 装配可见性、实际伤害与回血、非法变更预检、切枪真实计时，以及清理世界动作异常后的已提交状态保留。另有 5 项实际玩家容器场景验证命令权限 / revision、单份物品与组件、玩家 NBT 往返、目录缺失取回、死亡 / respawn、反应内死亡和异常保留；NeoForge 另有 1 项死亡掉落收集 / 取消专项。另有 4 项装备协议测试覆盖组件编解码、真实连接身份语义、重放 / 过期请求、会话生命周期及失败后同步 / 取回。另有 4 项技能场景覆盖命令 / 权限、服务器条件替换、成本 / 实际世界动作顺序、真实 tick 的回能 / 延迟快照及世界异常。另有 4 项空间观察场景覆盖遮挡筛选 / limit、碰撞形状 / 流体 / 未加载地形、取样点 / 方向错误，以及真实延迟锥形动作。另有 4 项电弧箭场景覆盖真实扫描 / 锁定、1 秒后从移动 / 致死目标逐次连锁、4 目标上限、两种伤害、取消 / 移除与中途建墙策略。另有 5 项投射物场景覆盖技能支付 / 真实飞行、来源卸下 / 移动、扫掠命中 / 接触点、寿命 / 重力 / 阻力、缺失几何 / 未加载地形 / 停止和未知伤害结果不重放；另有 7 项碰撞场景覆盖次数预算、穿透、反弹、几何重入、取消与失败后的停止；另有 8 项追踪场景覆盖限速转向、锁定、过滤、接触重选及真实移动目标。故障注入及故意加载坏包会产生预期的 ERROR 日志，验收以 GameTest 最终结果为准。
 

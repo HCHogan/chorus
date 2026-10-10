@@ -13,6 +13,10 @@ import java.util.*;
 public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageCommand attack, CalculationProfile profile,
         Map<String, BuffDefinition> buffs, Map<String, ResourceDefinition> resources, List<Contribution> contributions,
         Optional<ShieldScaling> shieldScaling) implements RuleEngine.ActionResult {
+    /** A typed component read can be explicitly empty; it never synthesizes an attack. */
+    public record Stored(Optional<DamageSnapshot> snapshot) implements RuleEngine.ActionResult {
+        public Stored { Objects.requireNonNull(snapshot); }
+    }
     public DamageSnapshot {
         Objects.requireNonNull(mode); Objects.requireNonNull(attack); Objects.requireNonNull(profile);
         buffs = Map.copyOf(buffs); resources = Map.copyOf(resources); contributions = List.copyOf(contributions);

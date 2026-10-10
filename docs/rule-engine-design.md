@@ -1152,6 +1152,8 @@ buff 仍是统一的效果载体，但实例不再只有层数和剩余时间。
 | `affects` | 修饰作用于谁 | all / instance\_weapon / ability | Rampage 只给绑定的武器增伤 |
 | `on_stow` | 收起武器时 | keep / remove / pause | Frame of Reference 暂停 |
 
+伤害快照现在可声明为 `components.damage_snapshots`，通过 read_damage_snapshot / write_damage_snapshot 在 Buff 与动作绑定之间复制。初始化缺失，刷新保留，新 generation 重新初始化；ended 读取旧实例的最后值。组件保存完整不可变攻击描述，保留 Profile、来源侧取样、归属与信用，不把命中期目标条件提前求值。首次施加是否写入、再次施加是否覆盖由内容声明；这为 Scorch 初始来源等跨独立事件的攻击数据提供通用载体，不预设某个具体效果的取样规则。字段和缺失语义见 [伤害快照组件](engine-data-packs.md#在-buff-中保存伤害快照)。目前尚无跨重启序列化。
+
 ### 生命周期事件
 
 - 层数变化和实例结束是两种事件：`stacks_changed` 在实例仍存在时发出；`ended`（到期、被消耗、被移除）在实例消失时发出。两者都携带 before / after / reason。

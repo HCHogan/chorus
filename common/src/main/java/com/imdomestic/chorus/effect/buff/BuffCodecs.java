@@ -19,15 +19,16 @@ public final class BuffCodecs {
     private static final Codec<Measure> MEASURE = strict(RecordCodecBuilder.create(i -> i.group(
             FINITE.fieldOf("initial").forGetter(Measure::value), StatCodecs.UNIT.fieldOf("unit").forGetter(Measure::unit)
     ).apply(i, Measure::new)), Set.of("initial", "unit"));
-    private record SchemaData(Map<String, Measure> numbers, List<String> sets, List<String> references, List<String> targetSets, List<String> positions) {}
+    private record SchemaData(Map<String, Measure> numbers, List<String> sets, List<String> references, List<String> targetSets, List<String> positions, List<String> damageSnapshots) {}
     public static final Codec<BuffSchema> SCHEMA = strict(RecordCodecBuilder.<SchemaData>create(i -> i.group(
             Codec.unboundedMap(Codec.STRING, MEASURE).optionalFieldOf("numbers", Map.of()).forGetter(SchemaData::numbers),
             Codec.STRING.listOf().optionalFieldOf("sets", List.of()).forGetter(SchemaData::sets),
             Codec.STRING.listOf().optionalFieldOf("references", List.of()).forGetter(SchemaData::references),
             Codec.STRING.listOf().optionalFieldOf("target_sets", List.of()).forGetter(SchemaData::targetSets),
-            Codec.STRING.listOf().optionalFieldOf("positions", List.of()).forGetter(SchemaData::positions)
-    ).apply(i, SchemaData::new)), Set.of("numbers", "sets", "references", "target_sets", "positions")).flatXmap(data -> safe(() -> new BuffSchema(data.numbers(), Set.copyOf(data.sets()), Set.copyOf(data.references()), Set.copyOf(data.targetSets()), Set.copyOf(data.positions()))),
-            schema -> DataResult.success(new SchemaData(schema.numbers(), schema.sets().stream().sorted().toList(), schema.references().stream().sorted().toList(), schema.targetSets().stream().sorted().toList(), schema.positions().stream().sorted().toList())));
+            Codec.STRING.listOf().optionalFieldOf("positions", List.of()).forGetter(SchemaData::positions),
+            Codec.STRING.listOf().optionalFieldOf("damage_snapshots", List.of()).forGetter(SchemaData::damageSnapshots)
+    ).apply(i, SchemaData::new)), Set.of("numbers", "sets", "references", "target_sets", "positions", "damage_snapshots")).flatXmap(data -> safe(() -> new BuffSchema(data.numbers(), Set.copyOf(data.sets()), Set.copyOf(data.references()), Set.copyOf(data.targetSets()), Set.copyOf(data.positions()), Set.copyOf(data.damageSnapshots()))),
+            schema -> DataResult.success(new SchemaData(schema.numbers(), schema.sets().stream().sorted().toList(), schema.references().stream().sorted().toList(), schema.targetSets().stream().sorted().toList(), schema.positions().stream().sorted().toList(), schema.damageSnapshots().stream().sorted().toList())));
     private record TimerData(long duration, TimerMode mode, Decay decay, long interval, Refresh refresh, long cap, long rounding) {}
     private static final MapCodec<Timer> TIMER = RecordCodecBuilder.<TimerData>mapCodec(i -> i.group(
             DURATION.fieldOf("duration").forGetter(TimerData::duration),

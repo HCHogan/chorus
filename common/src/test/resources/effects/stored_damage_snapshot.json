@@ -1,0 +1,346 @@
+{
+  "version": "test-snapshot-v1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:stored_attack",
+        "version": "test-snapshot-v1",
+        "duration": 1,
+        "refresh": "reset",
+        "attach": "target",
+        "components": {
+          "damage_snapshots": [
+            "attack",
+            "copy",
+            "empty"
+          ],
+          "positions": [
+            "place"
+          ],
+          "target_sets": [
+            "members"
+          ],
+          "sets": [
+            "seen"
+          ],
+          "references": [
+            "ref"
+          ],
+          "numbers": {
+            "n": {
+              "initial": 0,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "bundle": "test:stored_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:storage",
+      "rules": [
+        {
+          "id": "init",
+          "on": "test:snapshot_init",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:stored_attack",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "save",
+          "on": "test:snapshot_save",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:attack_damage",
+                "tags": [
+                  "test:stored_damage"
+                ],
+                "kill_tags": [
+                  "test:weapon_kill"
+                ]
+              },
+              "as": "saved"
+            },
+            {
+              "type": "chorus:write_damage_snapshot",
+              "buff": "test:stored_attack",
+              "target": "victim",
+              "component": "attack",
+              "snapshot": "saved"
+            }
+          ]
+        },
+        {
+          "id": "copy",
+          "on": "test:snapshot_copy",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "victim",
+                "component": "attack"
+              },
+              "as": "saved"
+            },
+            {
+              "type": "chorus:write_damage_snapshot",
+              "buff": "test:stored_attack",
+              "target": "victim",
+              "component": "copy",
+              "snapshot": "saved"
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "test:snapshot_clear",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "victim",
+                "component": "empty"
+              },
+              "as": "saved"
+            },
+            {
+              "type": "chorus:write_damage_snapshot",
+              "buff": "test:stored_attack",
+              "target": "victim",
+              "component": "attack",
+              "snapshot": "saved"
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "test:snapshot_fire",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "victim",
+                "component": "attack"
+              },
+              "as": "saved"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "saved",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "saved",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fire_copy",
+          "on": "test:snapshot_fire_copy",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "victim",
+                "component": "copy"
+              },
+              "as": "saved"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "saved",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "saved",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "delay",
+          "on": "test:snapshot_delay",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "victim",
+                "component": "attack"
+              },
+              "as": "saved"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "saved",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:damage_snapshot",
+                      "snapshot": "saved",
+                      "target": "victim"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "replace",
+          "on": "test:snapshot_replace",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:stored_attack",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:stored_attack",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "remove",
+          "on": "test:snapshot_remove",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:stored_attack",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "mark",
+          "on": "test:snapshot_mark",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:marked",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:vulnerability",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:stored_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "ended",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "self",
+                "component": "attack"
+              },
+              "as": "saved"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "saved",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "saved",
+                  "target": "self"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "test:stored_fire",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "test:stored_attack",
+                "target": "self",
+                "component": "attack"
+              },
+              "as": "saved"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "saved",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "saved",
+                  "target": "self"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

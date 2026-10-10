@@ -413,6 +413,14 @@ public final class EffectCodecs {
                         ID.fieldOf("buff").forGetter(Action.WritePosition::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.WritePosition::target),
                         Codec.STRING.fieldOf("component").forGetter(Action.WritePosition::component), Codec.STRING.fieldOf("position").forGetter(Action.WritePosition::position)
                 ).apply(i, Action.WritePosition::new)))
+                .register("chorus:read_damage_snapshot", Action.ReadDamageSnapshot.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(Action.ReadDamageSnapshot::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.ReadDamageSnapshot::target),
+                        Codec.STRING.fieldOf("component").forGetter(Action.ReadDamageSnapshot::component)
+                ).apply(i, Action.ReadDamageSnapshot::new)))
+                .register("chorus:write_damage_snapshot", Action.WriteDamageSnapshot.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(Action.WriteDamageSnapshot::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.WriteDamageSnapshot::target),
+                        Codec.STRING.fieldOf("component").forGetter(Action.WriteDamageSnapshot::component), Codec.STRING.fieldOf("snapshot").forGetter(Action.WriteDamageSnapshot::snapshot)
+                ).apply(i, Action.WriteDamageSnapshot::new)))
                 .register("chorus:capture_position", Action.CapturePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CapturePosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.CapturePosition::anchor)

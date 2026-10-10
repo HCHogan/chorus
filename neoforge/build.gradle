@@ -127,6 +127,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/radial_falloff.json'
         include 'effects/volatile.json'
         include 'effects/damage_snapshot.json'
+        include 'effects/stored_damage_snapshot.json'
         include 'effects/delayed_snapshot.json'
         include 'effects/fixed_position.json'
         include 'effects/kinetic_tremors.json'

@@ -549,6 +549,26 @@ public interface Action {
             return new RuleEngine.Local<>(state, new com.imdomestic.chorus.effect.target.PositionResult.Stored(value), List.of());
         }
     }
+    record ReadDamageSnapshot(String buff, Evaluation.Target target, String component) implements Action {
+        @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff).components().requireDamageSnapshot(component); return ResultShape.STORED_DAMAGE_SNAPSHOT; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var snapshot = e.readBuff(buff, target).components().damageSnapshots().get(component);
+            if (snapshot == null) throw new IllegalArgumentException("Missing damage snapshot component: " + component);
+            return new RuleEngine.Local<>(e.state(), new DamageSnapshot.Stored(snapshot), List.of());
+        }
+    }
+    record WriteDamageSnapshot(String buff, Evaluation.Target target, String component, String snapshot) implements Action {
+        @Override public ResultShape validate(Validation v) {
+            v.target(target); v.buff(buff).components().requireDamageSnapshot(component); v.result(snapshot).requireSnapshot(); return ResultShape.STORED_DAMAGE_SNAPSHOT;
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var key = e.key(buff, target); var instance = e.state().buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Cannot update a missing buff"));
+            var value = e.results().get(snapshot).optionalSnapshot(e.context().bindings().get(snapshot));
+            var components = instance.components().damageSnapshot(component, value);
+            var state = components.equals(instance.components()) ? e.state() : e.state().withBuffs(Buffs.components(e.state().buffs(), key, components));
+            return new RuleEngine.Local<>(state, new DamageSnapshot.Stored(value), List.of());
+        }
+    }
     record CapturePosition(Evaluation.Target target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor anchor) implements Action {
         public CapturePosition(Evaluation.Target target) { this(target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET); }
         @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.POSITION; }

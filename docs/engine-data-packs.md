@@ -978,6 +978,38 @@ modifier 可声明 `"evaluate":"on_use"`（默认）或 `"evaluate":"on_hit"`。
 
 当前 capture 上下文只有 incoming_damage、damage_type、伤害标签和来源身份；尚未装配的事件测量不会默认为零。自定义 Value / Condition 参与 on_use 时须实现 `snapshot` 部分绑定，返回不可变数据表达式，不能保留 Evaluation 或可变世界状态。on_release / on_tick / on_proc、其他原版投射物自动适配、完整反应规则继承、派生筛选与持久化尚未完成；这些字段不能当作已支持的 JSON 使用。
 
+### 在 Buff 中保存伤害快照
+
+Buff 可声明 `"components":{"damage_snapshots":["attack"]}`。每个组件初始化为缺失值，和 numbers / positions / target_sets 等组件的名字不能重复。快照由动作创建，不能在数据定义里预填一份运行时快照。下列步骤要求程序已有 example:status Buff 与 example:outgoing 伤害 Profile：
+
+```json
+[
+  {"action":{"type":"chorus:capture_damage","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"example:outgoing"},"as":"captured"},
+  {"type":"chorus:write_damage_snapshot","buff":"example:status","target":"victim","component":"attack","snapshot":"captured"}
+]
+```
+
+write_damage_snapshot 要求目标 Buff 已存在，把原快照完整写入组件；不重新读取来源数值、不改变归属、信用、proc、Profile 或贡献取样时机。它接受 capture_damage 或 read_damage_snapshot 的类型化结果，不能接受伤害回执、数值或位置。显式写入可以覆盖，是否只在首次施加时保存由内容规则判断，不由通用组件强制。
+
+之后另一次 Buff 事件可读取同一组件：
+
+```json
+[
+  {"action":{"type":"chorus:read_damage_snapshot","buff":"example:status","component":"attack"},"as":"stored"},
+  {"if":{"type":"chorus:result_flag","binding":"stored","field":"available"},"then":[
+    {"type":"chorus:damage_snapshot","snapshot":"stored","target":"self"}
+  ]}
+]
+```
+
+read / write 的 target 默认 self；返回 stored_damage_snapshot 结果，提供 available / missing，以及仅在 available 时可读的 base_damage（damage）。未初始化组件不是零伤害；直接使用缺失快照报错。把缺失的 read 结果写入另一组件表示显式清空。Buff 不存在、未声明组件、错类型和未绑定结果也不会静默回退。
+
+刷新 Buff 保留组件，移除后同键的新 generation 初始化为空；自己的 ended 规则读取旧 generation 的最后状态。read 绑定是不可变值，之后覆盖 / 清空 / 移除组件不会改写已绑定的值，detached 延迟体可继续使用它。写入只针对当前存在的实例，不修改 ended 快照。
+
+储存不会把命中期条件提前结算：来源侧 on_use 操作数和原 Profile 保持冻结，目标条件、当前防御及允许的 on_hit 贡献仍在真正命中时查询。每次 damage_snapshot 都是一次新的世界动作，有各自回执；组件存储不提供一次性消费权或重放失败命令的权限。活动模式、时间与跨版本兼容检查继续沿用伤害快照契约。当前仅保存在运行时 EffectState，跨重启 / 跨维度持久化尚未实现。
+
+[stored_damage_snapshot.json](../common/src/test/resources/effects/stored_damage_snapshot.json) 与 damage_snapshot.json 链接，验证刷新、复制、清空、独立事件、结束后同键重建、来源卸下与未知世界结果。共享世界场景验证来源增益已过期后，Buff 中的攻击仍保留原来源并使用当前目标防御，最终实际扣血。
+
 ## 捕获结果并延迟执行
 
 以下是规则的 `do` 数组片段，需要所在程序定义 `test:attack_damage` Profile，并提供有 victim 的事件。基础值和延迟是演示参数。完整可编译程序见 [delayed_snapshot.json](../common/src/test/resources/effects/delayed_snapshot.json)。
