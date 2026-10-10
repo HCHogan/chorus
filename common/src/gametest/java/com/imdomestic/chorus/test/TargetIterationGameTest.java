@@ -40,7 +40,9 @@ public class TargetIterationGameTest {
         var dead = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 5); dead.setHealth(0);
         var removed = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 6); removed.discard();
         var executor = world(helper); var result = select(executor, center, 5, TargetQuery.Relation.ANY, id(center), false);
-        helper.assertValueEqual(ids(result), List.of(id(inside), id(boundary)).stream().sorted().toList(), "sphere selection by sorted identity");
+        helper.assertValueEqual(ids(result), List.of(id(inside), id(boundary)).stream().sorted().toList(),
+                "sphere selection by sorted identity; center=" + center.position() + "; boundary=" + boundary.position()
+                        + "; distance_squared=" + center.distanceToSqr(boundary) + "; loaded=" + (helper.getLevel().getEntity(boundary.getUUID()) == boundary));
         helper.assertTrue(!ids(result).contains(id(diagonal)) && !ids(result).contains(id(above)), "Box corners or vertical distance included");
         helper.assertValueEqual(ids(select(executor, center, 0, TargetQuery.Relation.ANY, id(center), true)), List.of(id(center)), "zero radius including center");
         helper.assertTrue(select(executor, center, 0, TargetQuery.Relation.ANY, id(center), false).targets().isEmpty(), "Excluded center selected");
