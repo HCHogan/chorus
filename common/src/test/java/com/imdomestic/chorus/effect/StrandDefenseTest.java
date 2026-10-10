@@ -70,7 +70,7 @@ class StrandDefenseTest {
     }
 
     @Test void sliceLinksTheSameSeverAndOnlyChangesTheDebuffedTargetsLaterOutput() throws Exception {
-        var p = link("slice", "strand_defense"); var source = source("chorus_d2:slice");
+        var p = link("slice", "strand_defense", "continuity"); var source = source("chorus_d2:slice");
         for (var mode : EffectState.Mode.values()) {
             var engine = engine(p); var state = send(engine, engine.initial(EffectState.empty().withSource(source).withMode(mode)), 0, "chorus:class_ability_used", event(source));
             var facts = DamageFacts.from(new DamageCommand("attacker", source.origin(), 1, "minecraft:generic", Set.of(), Set.of(), false),
@@ -167,7 +167,7 @@ class StrandDefenseTest {
     }
 
     @Test void linkedDefinitionsRoundTripAndSliceRequiresItsSharedDependency() throws Exception {
-        var p = link("strand_defense", "strand_inputs", "slice");
+        var p = link("strand_defense", "strand_inputs", "continuity", "slice");
         var encoded = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, p).getOrThrow();
         assertEquals(p.program(), EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, encoded).getOrThrow().program());
         assertThrows(RuntimeException.class, () -> load("slice"));

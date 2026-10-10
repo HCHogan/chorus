@@ -1,0 +1,22 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {"id": "chorus_d2:strand_debuff_duration", "version": "compendium-2026-10-05", "input_unit": "second", "steps": [
+      {"type": "chorus:apply", "id": "continuity", "operation": "add", "group": {"name": "continuity", "reduction": "max"}}
+    ]}
+  ],
+  "bundles": [
+    {"id": "chorus_d2:continuity", "modifiers": [
+      {"id": "extension", "profile": "chorus_d2:strand_debuff_duration", "stage": "continuity", "group": "continuity",
+        "op": "add", "stacking_key": "chorus_d2:continuity",
+        "value": {"type": "chorus:event_number", "name": "continuity_extension", "unit": "second"},
+        "if": {"type": "chorus:any", "of": [
+          {"type": "chorus:event_tag", "tag": "chorus_d2:sever"},
+          {"type": "chorus:event_tag", "tag": "chorus_d2:suspend"},
+          {"type": "chorus:event_tag", "tag": "chorus_d2:unravel"}
+        ]},
+        "reference": "Compendium 2026-10-05 CSV Strand D15: normally 50%, with source-specific exceptions. Caller supplies the known extension, e.g. D8 Sever +5/+2.5 or D9 Suspend +2/+1. Application-time sampling and duplicate-source MAX remain content policy.",
+        "confidence": "assumed"}
+    ]}
+  ]
+}

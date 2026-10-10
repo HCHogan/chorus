@@ -91,6 +91,8 @@ tasks.named('processGametestResources', ProcessResources) {
     from(project(':common').file('src/test/resources')) {
         include 'effects/slice.json'
         include 'effects/strand_defense.json'
+        include 'effects/continuity.json'
+        include 'effects/continuity_inputs.json'
         include 'effects/strand_inputs.json'
         include 'effects/shields.json'
         include 'effects/combat_profiles.json'

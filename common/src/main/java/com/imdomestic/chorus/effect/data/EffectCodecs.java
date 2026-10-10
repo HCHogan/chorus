@@ -34,6 +34,8 @@ public final class EffectCodecs {
             value -> value.map(left -> left, right -> right), value -> switch (value) {
                 case Evaluation.BuiltinTarget builtin -> Either.left(builtin); case Evaluation.BoundTarget bound -> Either.right(bound);
             });
+    private static final Codec<String> MEASUREMENT_NAME = Codec.STRING.validate(value -> value.isBlank()
+            ? DataResult.error(() -> "Blank calculation measurement name") : DataResult.success(value));
     private static final Codec<Evaluation.BoundPosition> BOUND_POSITION = strict(RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("position").forGetter(Evaluation.BoundPosition::binding)
     ).apply(i, Evaluation.BoundPosition::new)), Set.of("position"));
@@ -281,6 +283,15 @@ public final class EffectCodecs {
                         Codec.STRING.optionalFieldOf("batch").forGetter(Action.Damage::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.Damage::group)).apply(i, Action.Damage::new)))
                 .register("chorus:capture_value", Action.CaptureValue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("value").forGetter(Action.CaptureValue::value)).apply(i, Action.CaptureValue::new)))
+                .register("chorus:calculate", CalculationActions.Calculate.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("profile").forGetter(CalculationActions.Calculate::profile),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(CalculationActions.Calculate::target),
+                        values.fieldOf("input").forGetter(CalculationActions.Calculate::input),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(CalculationActions.Calculate::origin),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(CalculationActions.Calculate::tags),
+                        Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(CalculationActions.Calculate::numbers),
+                        TARGET.optionalFieldOf("victim").forGetter(CalculationActions.Calculate::victim)
+                ).apply(i, CalculationActions.Calculate::new)))
                 .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("amount").forGetter(Action.CaptureDamage::amount), ID.fieldOf("damage_type").forGetter(Action.CaptureDamage::damageType),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.CaptureDamage::tags),

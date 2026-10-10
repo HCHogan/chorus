@@ -141,10 +141,12 @@ public class DamageGameTest {
     @GameCase public void sliceAcceptsTheLivingTargetAfterAnActualTotemSave(GameTestHelper helper) throws Exception {
         var target = target(helper); target.setHealth(6); target.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.TOTEM_OF_UNDYING));
         try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/slice.json")), StandardCharsets.UTF_8);
-             var strand = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/strand_defense.json")), StandardCharsets.UTF_8)) {
+             var strand = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/strand_defense.json")), StandardCharsets.UTF_8);
+             var continuity = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/continuity.json")), StandardCharsets.UTF_8)) {
             var compiled = com.imdomestic.chorus.effect.data.CompiledEffects.link(List.of(
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow(),
-                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(strand)).getOrThrow()));
+                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(strand)).getOrThrow(),
+                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(continuity)).getOrThrow()));
             var origin = new BuffInstance.Origin("attacker", "perk", "weapon", "");
             var source = new EffectSource("perk", "chorus_d2:slice", "attacker", origin, Set.of());
             var world = new MinecraftWorldActions(helper.getLevel(), name -> name.equals("target") ? target : null,

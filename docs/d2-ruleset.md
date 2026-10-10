@@ -251,7 +251,25 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 覆盖仍为 partial。上述数值的 PvE / PvP 分支沿用 EffectState.mode；Guardian / 精准 / 近战标签和攻击 Profile 由可信宿主显式提供，尚未做真实玩家子职业装配或 Gambit 混合交战分类。Sever 采用 on_hit，使发射后新增或到期的状态影响延迟命中，这是显式内容政策，尚无原作快照时机验收。两个 Buff 均采用单实例、refresh:reset；短时重新授予可缩短旧时长，已测试该契约，但原作各授予来源之间的刷新优先级仍待校准。分组和组合也保留 assumed 贡献标记。
 
-Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%，D8 标为 10+5 / 5+2.5 秒；其资格、来源特例与装配还未实现。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 按击杀授予 Woven Mail 的收益规则也尚未接到该共享定义，不能由这里推断完整技能已经支持。
+Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%；当前 Slice 已按下节查询施加者配装，支持 D8 的 10+5 / 5+2.5 秒。完整子职业装配和全部来源特例尚未完成。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 按击杀授予 Woven Mail 的收益规则也尚未接到该共享定义，不能由这里推断完整技能已经支持。
+
+## Continuity 与来源指定的状态延长
+
+[continuity.json](../common/src/test/resources/effects/continuity.json) 提供共享持续时间 Profile 和可装备来源 Bundle。生产者使用 `calculate(target:source_owner)` 输入基础时长，并通过 `continuity_extension` 提供该来源已知的扩展；只有施加者身上存在合格 Continuity 修饰才加入扩展。它不读取受害者或附近队友的 fragment，也不延长 Slice 自身的 8 / 9 秒激活窗口。
+
+固定数值来源为 CSV Strand D8 / D9 / D15；2026-10-10 核对的[在线 Strand 原表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1870531554#gid=1870531554)对应第 10 / 11 / 18 行。不能把“通常 50%”改写成无条件乘 1.5：
+
+| 来源 | 基础 | Continuity 扩展 | 合计 | 当前证据范围 |
+| --- | --- | --- | --- | --- |
+| Sever PvE | 10 秒 | +5 秒 | 15 秒 | Slice 实际命中、状态授权、伤害输出与持续时间 |
+| Sever PvP | 5 秒 | +2.5 秒 | 7.5 秒 | 同上，真实 tick 验证过基础时长仍生效、延长后到期 |
+| Suspend 普通/精英战员 | 6 秒 | +2 秒 | 8 秒 | 只读数值查询；尚未装配控制动作 |
+| Suspend 小 Boss | 3 秒 | +1 秒 | 4 秒 | 只读数值查询 |
+| Suspend Guardian | 2 秒 | +1 秒 | 3 秒 | 只读数值查询 |
+
+Slice 当前按状态施加动作前的配装计算时间；装备 fragment 后才触发命中会使用新时间，卸下 fragment 只影响新施加，不回头改写已有状态的到期点。重复来源采用 MAX，状态授权拒绝仍不消费或刷新 Slice。这些是明确且已测试的 Chorus 政策，原作换装/快照边界仍待校准。通用查询还支持先保存结果跨回调使用，或回调内读取当前配装；内容必须显式选择。
+
+覆盖保持 partial：没有把 Suspend 的数字查询视作其控制、Boss 特例、勇士晕眩已实现；Unravel 的完整生产者、各技能的特定基数、真实子职业选择和 fragment 槽尚未装配。Threaded Spike 的 `?+?` 保留未知。[Bungie 9.1.0](https://origin-static01.bungie.net/7/en/News/Article/destiny_update_9_1_0)曾单独修正 Tear 的 Sever 未受 Continuity 延长的问题，说明生产者资格也需逐项验证；该历史补丁不能替代当前各来源时长。
 
 ## Eternal Warrior 护盾回充
 

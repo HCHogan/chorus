@@ -17,7 +17,7 @@
 | Solar | 否 | 210 | 4 | 206 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
-| Strand | 否 | 153 | 7 | 146 |
+| Strand | 否 | 153 | 10 | 143 |
 | Prismatic | 否 | 196 | 0 | 196 |
 | Exotic Class | 否 | 79 | 0 | 79 |
 | Class Abilities | 否 | 59 | 3 | 56 |
@@ -40,8 +40,9 @@
 | Adrenaline Junkie | partial | Weapon Perks A10; Weapon Perks C10 | 武器击杀逐层 / 手雷击杀五层、4.5 / 5 秒、刷新、收枪保留、伤害表与固定 +20 操控查询；真实死亡驱动下次伤害；缺口：实际武器/手雷归因仍由测试宿主提供；操控属性尚未连接持枪动画/切枪时间；特殊伤害资格需随武器内容逐条校准 |
 | Kill Clip | partial | Weapon Perks A132; Weapon Perks C132 | JSON 击杀/换弹窗口、来源隔离、普通/强化时间；实际独立容器开火、物理投射物击杀、服务器手动换弹与下一发真实增伤及收枪后攻击快照；缺口：窗口收枪保留仍为内容假设；完整 D2 武器原型与射击参数尚待校准；真实链路使用合成弹量、射速、换弹与基础伤害 |
 | Disruption Break | partial | Weapon Perks A71; Weapon Perks C71 | 独立层、来源、动能资格、环境持续时间；预置状态进入世界伤害；缺口：实际破盾到对应武器来源装配；强化变体数值待明确 |
-| Slice | partial | Weapon Perks A198; Weapon Perks C198 | 技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界；与共享 Sever 链接后减少受影响者后续输出；缺口：实际职业技能与武器来源装配；Sever 的 Continuity 延长资格与刷新/取样校准；拒绝施加时是否刷新待原作核对 |
-| Sever | partial | Strand B8; Strand D8 | 共享 Sever 定义修饰受影响者输出 40% / 15%；Slice 基础 10 / 5 秒、实际原版扣血、与目标 Woven Mail 组合及延迟命中的实时查询；缺口：Continuity 延长项 10+5 / 5+2.5 的资格、来源特例与装配尚未实现；具体技能和原版伤害的 Profile、真实来源标签尚未自动装配；混合交战分类仍待校准；on_hit 取样和单实例 reset 刷新为显式内容策略，原作对应边界仍待校准；不拿默认时长补齐 Threaded Spike 的未知值 |
+| Slice | partial | Weapon Perks A198; Weapon Perks C198 | 技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界；与共享 Sever 链接后减少受影响者后续输出，读取施加者的 Continuity 配置；缺口：实际职业技能与武器来源装配；Continuity 的真实子职业装配与刷新/取样校准；当前按状态施加前读取配装；拒绝施加时是否刷新待原作核对 |
+| Sever | partial | Strand B8; Strand D8 | 共享 Sever 定义修饰受影响者输出 40% / 15%；Slice 基础 10 / 5 秒、实际原版扣血、与目标 Woven Mail 组合及延迟命中的实时查询；Continuity 按施加者当前来源延长至 15 / 7.5 秒，卸下后已提交时长保留；缺口：Continuity 已接 Slice 的 10+5 / 5+2.5；全部技能来源特例及真实子职业/fragment 选择装配仍未完成；具体技能和原版伤害的 Profile、真实来源标签尚未自动装配；混合交战分类仍待校准；on_hit 取样和单实例 reset 刷新为显式内容策略，原作对应边界仍待校准；不拿默认时长补齐 Threaded Spike 的未知值 |
+| Thread of Continuity | partial | Strand B15; Strand D15; Strand D8; Strand D9 | 通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒、拒绝施加与到期；Suspend 的 6+2 / 3+1 / 2+1 仅作来源特定的数值查询验证；缺口：真实子职业与 fragment 选择槽尚未装配；世界测试由可信宿主绑定来源/武器归因；Suspend 数值例外只有查询验收，控制动作、Boss/勇士规则未装配；Unravel 及所有技能生产者尚未逐项完成；Threaded Spike ?+? 和其他未知来源时长不以全局默认值替代；施加时配装采样、重复来源 MAX 和跨来源状态刷新为明确政策，原作换装/快照/刷新交互尚待校准 |
 | Woven Mail | partial | Strand B7; Strand D7 | 共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予；缺口：Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配；单实例 refresh:reset、独立减伤组合及 Under-Over 分组为显式验证政策；跨来源短/长刷新优先级和盾层叠加仍待原作校准；Threaded Spike 按击杀时长、Warding、Into the Fray 等具体生产者还未装配；合成测试超能不代表真实技能实现 |
 | Cure | partial | Solar B4; Solar D4 | 两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；缺口：两次等量脉冲为Chorus选择，原作细分恢复曲线未知；实际技能/装备来源装配 |
 | Restoration | partial | Solar B7; Solar D7 | 连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick；缺口：与 Healing Rift 不叠加时的取高优先级未核对；Phoenix Dive 的4+2秒例外；实际技能来源和延长条件装配 |

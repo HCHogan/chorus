@@ -1465,8 +1465,44 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 ## 共享 Strand 防御示例
 
-[strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 声明 Sever、Woven Mail 和查询 Profile；[slice.json](../common/src/test/resources/effects/slice.json) 现在是引用 Sever 的片段，必须同版本链接后编译，数据包可用 imports / fragment 组织，不能单独启动 slice。strand_inputs.json 仅提供合成触发和超能测试，未装配真实 D2 技能。
+[strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 声明 Sever、Woven Mail 和查询 Profile；[slice.json](../common/src/test/resources/effects/slice.json) 现在是引用 Sever 的片段，必须与 continuity.json 一起同版本链接后编译，数据包可用 imports / fragment 组织，不能单独启动 slice。strand_inputs.json 仅提供合成触发和超能测试，未装配真实 D2 技能。
 
-Sever 通过受影响持有者的 outgoing Profile 修饰输出。伤害命令须显式选择 chorus_d2:outgoing；原版 nativeSource 默认不选此 Profile，生产宿主仍需装配。默认定义时长为 10 秒，PvP 的 5 秒由 apply_status.duration 明确覆盖；不能把任意来源的未知时间自动替换成默认值。
+Sever 通过受影响持有者的 outgoing Profile 修饰输出。伤害命令须显式选择 chorus_d2:outgoing；原版 nativeSource 默认不选此 Profile，生产宿主仍需装配。默认定义时长为 10 秒。Slice 先用 calculate 查询施加者的 strand_debuff_duration，再把 10 / 5 秒基础加上已装备 Continuity 的 5 / 2.5 秒扩展，作为 apply_status.duration；不能把任意来源的未知时间自动替换成默认值。
 
 Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 event_source_tag:chorus:guardian，精准 / 近战用 event_tag:chorus:precision / chorus:melee_damage，不能把原施加者的 source_tag 当成当前攻击者。移除规则监听 chorus:ability_started，并以 target_is(self, event_actor) 匹配受益者；source_is:owner 在 Buff 上匹配的是施加者，队友授予时会选错人。旧状态先移除，on_use 重新授予的同名状态可保留。数值基线、刷新策略及待校准项见 [D2 规则集](d2-ruleset.md#sever-与-woven-mail)。
+
+
+## 动作序列中的数值 Profile 查询
+
+`chorus:calculate` 在当前已提交状态上执行一次只读查询，返回带类型的 `input` / `value` 字段。它不消费资源、不修改 Buff、不产生事件或世界请求。Java 的 `CalculationActions.Result` 保留被查询持有者、最终查询上下文与完整 `CalculationProfile.Result`，可检查各阶段、贡献来源、版本和置信度。
+
+```json
+{"action": {
+  "type": "chorus:calculate",
+  "profile": "chorus_d2:strand_debuff_duration",
+  "target": "source_owner",
+  "input": {"type": "chorus:constant", "value": 10, "unit": "second"},
+  "tags": ["chorus_d2:sever"],
+  "numbers": {"continuity_extension": {"type": "chorus:constant", "value": 5, "unit": "second"}}
+}, "as": "duration"}
+```
+
+随后 `apply_status.duration` 可以使用 `{"type":"chorus:result","binding":"duration","field":"value"}`。完整 PvE / PvP 例子在 [slice.json](../common/src/test/resources/effects/slice.json)，需要同版本链接 strand_defense.json 和 [continuity.json](../common/src/test/resources/effects/continuity.json)。
+
+| 字段 | 语义 |
+| --- | --- |
+| profile | 必填，当前程序中的 Profile id；输入与输出单位分别由该 Profile 校验/推导 |
+| target | 查询谁身上的修饰，默认 self；可用 source_owner 或已有逐目标绑定。它不改变规则绑定来源 |
+| input | 必填，查询的基础数值表达式，必须符合 Profile 的输入单位 |
+| origin | 默认 bound，也可用 event；只选择查询 source，不改变 target、actor 或外层表达式读取的状态归属 |
+| victim | 可选，覆盖查询上下文的 victim，可指向当前逐目标绑定；省略时保留触发上下文 victim。它与“读取谁的修饰”的 target 是两件事 |
+| tags | 只用于这次查询的显式标签，默认空；不自动继承触发事件标签，以免命中/击杀标签误触发另一属性的修饰 |
+| numbers | 查询测量表达式；在外层上下文求值，然后覆盖同名触发测量，其余测量保留。单位随值保留，不静默转换 |
+
+actor、flags、references、impact 仍来自触发上下文；Buff 生命周期动作可使用已有 timerEvent 上下文回退。query 不修改原事件。`origin:event` 也不会使 `target:source_owner` 改指事件施加者：source_owner 和 input/numbers 仍按原规则绑定求值，若需查触发者应显式选择 event_actor。
+
+编译拒绝未知 Profile、错误输入单位、未绑定目标/结果及未知字段。value 使用 Profile 的输出单位，因此经过单位转换的 Profile 可产生与 input 不同单位的结果；消费动作再次校验自己的单位/范围。查询不自动修正负值、缺失测量或未定义档位，条件实际读取了缺失/错误单位的测量就失败，不猜测数值。
+
+结果是不可变快照，允许跨 `after` / projectile 捕获。先 calculate 再延迟会保留原结果；把 calculate 放进回调会重新读取届时的修饰。`evaluate:on_use/on_hit` 只控制伤害快照的采样方式，独立 calculate 按当前查询求值所有合格贡献，不自动延迟或构造伤害快照。需要影响状态时间时，应先明确原作究竟按发射、施加还是其他时机取样。
+
+Continuity 的 fragment Bundle 只贡献该次查询提供的 extension，生产者只声明已知基础时间与对应扩展，不直接检查 fragment。采用 MAX 避免重复装配同一 fragment 叠加。该入口可表达 Sever 10+5 / 5+2.5，也能表达 Suspend 6+2 / 3+1 / 2+1；后者目前只有数值查询验证，不代表 Suspend 的位移、控制、Boss 和勇士机制已经实现。
