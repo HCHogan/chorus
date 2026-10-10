@@ -37,13 +37,18 @@ public class VoltshotGameTest {
         EffectSource current;
         boolean denied;
         Harness(GameTestHelper h, EffectState.Mode mode) throws Exception {
-            this.h = h; owner = cow(1, 200); other = cow(2, 232); target = cow(4, 200); neighbor = cow(5, 200);
-            a = source("normal", owner, false); b = source("enhanced", owner, true); foreign = source("foreign", other, false); current = a;
+            this(h, mode, fixture());
+        }
+        private static CompiledEffects fixture() throws Exception {
             var parts = new ArrayList<EffectProgram>();
-            for (String name : List.of("voltshot", "jolt")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + name + ".json")), StandardCharsets.UTF_8)) {
+            for (String name : List.of("voltshot", "jolt")) try (var reader = new InputStreamReader(Objects.requireNonNull(VoltshotGameTest.class.getResourceAsStream("/effects/" + name + ".json")), StandardCharsets.UTF_8)) {
                 parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow());
             }
-            var program = CompiledEffects.link(parts);
+            return CompiledEffects.link(parts);
+        }
+        Harness(GameTestHelper h, EffectState.Mode mode, CompiledEffects program) {
+            this.h = h; owner = cow(1, 200); other = cow(2, 232); target = cow(4, 200); neighbor = cow(5, 200);
+            a = source("normal", owner, false); b = source("enhanced", owner, true); foreign = source("foreign", other, false); current = a;
             var damageType = h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse("chorus_gametest:delayed")));
             var world = new MinecraftWorldActions(h.getLevel(), this::resolve, command -> new DamageSource(damageType, null, resolve(command.source().owner())), (_, _) -> !denied, _ -> {});
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withMode(mode).withSource(a).withSource(b),
@@ -79,6 +84,19 @@ public class VoltshotGameTest {
                 .filter(v -> v.definition().id().equals(JOLT) && v.key().holder().equals(id(target))).findFirst(); }
         void settled() { h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "Voltshot runtime failed: " + runtime.failure()); }
         @Override public void close() { runtime.close(); entities.forEach(LivingEntity::discard); }
+    }
+    /** Reuse real native damage acceptance with the exact immutable program returned by the data-pack catalogue. */
+    static void verifyImportedCatalogue(GameTestHelper h, CompiledEffects program) {
+        for (var mode : EffectState.Mode.values()) try (var test = new Harness(h, mode, program)) {
+            h.assertTrue(test.runtime.program() == program, "import test must execute the loaded registry program");
+            test.arm(test.a); h.assertTrue(test.buff(READY, test.a).isPresent(), "imported weapon rules armed");
+            float threshold = mode == EffectState.Mode.PVP ? 4.5f : 11.5f; double chain = mode == EffectState.Mode.PVP ? 5.1 : 11.9;
+            test.hit(test.target, test.a, 1); test.hit(test.target, test.foreign, threshold - 1);
+            near(h, test.target.getHealth(), 100 - threshold - chain, "imported Jolt center damage");
+            near(h, test.neighbor.getHealth(), 100 - chain, "imported Jolt neighbor damage");
+            h.assertValueEqual(test.chains.size(), 2, "one imported shared definition produced two actual components");
+            h.assertTrue(test.buff(READY, test.a).isEmpty(), "imported ready state consumed"); test.settled();
+        }
     }
     @GameCase public void nativeKillReloadAndHitApplySharedJoltWhileKeepingAnotherWeaponsChargeAndTriggerOwnership(GameTestHelper h) throws Exception {
         for (var mode : EffectState.Mode.values()) try (var test = new Harness(h, mode)) {

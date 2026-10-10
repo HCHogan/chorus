@@ -22,7 +22,7 @@ public class Chorus implements ModInitializer {
         com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::stop);
         net.fabricmc.fabric.api.event.registry.DynamicRegistries.registerReloadable(
-                com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.effect.data.EffectCodecs.COMPILED);
+                com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.platform.minecraft.LoadedProgram.CODEC);
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) ->
                 com.imdomestic.chorus.platform.minecraft.EffectCommands.register(dispatcher));
         ServerTickEvents.END_LEVEL_TICK.register(MinecraftEffectRuntime::tick);

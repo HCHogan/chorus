@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "com.imdomestic.chorus.mixin",
   "compatibilityLevel": "JAVA_25",
-    "mixins": ["LivingDamageMixin", "PlayerDamageMixin", "ServerPlayerDeathMixin", "LivingHealingMixin", "PlayerEquipmentMixin", "ServerPlayerEquipmentMixin"],
+    "mixins": ["LivingDamageMixin", "PlayerDamageMixin", "ServerPlayerDeathMixin", "LivingHealingMixin", "PlayerEquipmentMixin", "ServerPlayerEquipmentMixin", "EffectProgramReloadMixin"],
   "client": [
     "MixinMinecraft"
   ],

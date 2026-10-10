@@ -93,7 +93,7 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 
 规则是用 JSON 编码的 ADT：事件、条件、动作、数值各有一个"类型注册表"，用 `Codec.dispatch` 按 `"type"` 字段解码。这和原版编码战利品条件、附魔效果的方式一致，解析、校验、引用检查、数据包覆盖、同步到客户端都是现成的。
 
-当前已实现 Value / Condition / Action 的开放类型分派和编译，程序根结构及完整 JSON / 需先链接的片段示例见 [engine-implementation.md](engine-implementation.md) 和 `common/src/test/resources/effects/`。完整 EffectProgram 已注册到服务端可重载的 `chorus:effect_program`，数据包覆盖、坏包拒绝、运行时保留旧定义和管理命令均通过两端 GameTest，具体使用见 [engine-data-packs.md](engine-data-packs.md)。同版本片段先用 PROGRAM 解码，再由 CompiledEffects.link 在完整目录上校验引用 / 单位；不覆盖重复定义，不混合版本，不自动解析数据包 imports。本节其他片段仍是目标 DSL 示意，客户端同步与细粒度内容注册表尚未接入。当前 `while` 行为可通过查询期 modifier 的 `if` 表达，顶层 `while` 语法糖尚未实现。
+当前已实现 Value / Condition / Action 的开放类型分派和编译，程序根结构及完整 JSON / 需先链接的片段示例见 [engine-implementation.md](engine-implementation.md) 和 `common/src/test/resources/effects/`。完整 EffectProgram 已注册到服务端可重载的 `chorus:effect_program`，数据包覆盖、坏包拒绝、运行时保留旧定义和管理命令均通过两端 GameTest，具体使用见 [engine-data-packs.md](engine-data-packs.md)。同版本片段先用 PROGRAM 解码，再由 CompiledEffects.link 在完整目录上校验引用 / 单位；不覆盖重复定义，不在导入依赖内混合版本。数据包可用 imports / fragment 在同一 effect_program 目录声明模块；所有文件解码后统一链接可执行根，整次重载成功才发布。菱形与互引按模块身份去重，运行时效果链不受导入图限制；已有运行时保留旧编译目录。本节其他片段仍是目标 DSL 示意，客户端同步与细粒度内容注册表尚未接入。当前 `while` 行为可通过查询期 modifier 的 `if` 表达，顶层 `while` 语法糖尚未实现。
 
 ### 两种规则
 

@@ -1,6 +1,6 @@
 # 加载和调试 Chorus 效果程序
 
-当前服务端已注册可重载的 `chorus:effect_program` 注册表。Fabric 与 NeoForge 均从 `data/<namespace>/chorus/effect_program/<path>.json` 加载完整 EffectProgram，条目 id 为 `<namespace>:<path>`。高优先级数据包覆盖同路径的完整程序，不合并内部 bundle / Buff / Profile。格式仍使用 [实现记录](engine-implementation.md) 中已经落地的 DSL。
+当前服务端已注册可重载的 `chorus:effect_program` 注册表。Fabric 与 NeoForge 均从 `data/<namespace>/chorus/effect_program/<path>.json` 加载程序模块，条目 id 为 `<namespace>:<path>`。完整程序保持原有格式，也可通过 imports 组合多个片段。高优先级数据包覆盖同路径的整个模块，不合并内部 bundle / Buff / Profile。格式仍使用 [实现记录](engine-implementation.md) 中已经落地的 DSL。
 
 这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页、最小技能命令、单次开火与整弹匣手动换弹命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
 
@@ -169,9 +169,40 @@ JsonElement flattened = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, prog
 
 `joltJson` / `voltshotJson` 是调用方已经读取的 JSON。链接会连接各片段的 Buff、bundle、Profile、资源与装备声明，再执行全部引用、作用域和单位检查；不会复制或改写版本，也不会按片段顺序覆盖同名定义。所有片段及内部带版本的定义须使用同一个 ruleset version；各目录中的重复 id 均拒绝，即使内容相同。装备槽位、物品原型和 limit 各自检查重复，装备效果可引用其他片段的 source bundle。最多一个片段声明全局 defense_profile，它可引用其他片段定义的 Profile。空目录、混合版本、重复防御选择及缺失依赖均报错。
 
-链接不修改输入片段，结果可直接安装到运行时，也可编码为上述 flattened 完整程序交给现有数据包入口。现有注册表仍逐条加载完整程序，**尚不自动搜索片段、解析 JSON imports 或跨注册表条目链接**。不要把有未解析依赖的片段单独放进 effect_program 目录。
+链接不修改输入片段，结果可直接安装到运行时，也可编码为 flattened 完整程序。数据包另支持模块级 `imports`（默认空数组）和 `fragment`（默认 false）；其余字段仍是现有 EffectProgram。下面三个文件均位于 `data/example/chorus/effect_program/`。
 
-[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。通用容器与手动换弹已经接线；该片段与实际换弹 / 单次开火流程的集成验收、多弹丸射击事务仍待完成。
+`shared.json`：
+
+```json
+{"version":"example-1","fragment":true,
+ "buffs":[{"definition":{"id":"example:mark","version":"example-1","duration":1}}]}
+```
+
+`perk.json`：
+
+```json
+{"version":"example-1","fragment":true,"imports":["example:shared"],
+ "bundles":[{"id":"example:marking","rules":[
+   {"id":"attach","on":"chorus:source_attached","if":{"type":"chorus:own_source"},
+    "do":[{"type":"chorus:grant_buff","buff":"example:mark"}]}
+ ]}]}
+```
+
+`main.json`：
+
+```json
+{"version":"example-1","imports":["example:perk"]}
+```
+
+重载后使用 `chorus engine start example:main`，再 `chorus engine attach @s example:marking demo`。`fragment:true` 只供其他模块引用，不出现在 engine list / start 中；未声明 fragment 的模块是可执行根，也允许被其他根导入。imports 使用完整条目 id，不是文件路径；只有显式依赖及其传递依赖参与链接，不扫描目录自动纳入效果。
+
+每个根按声明顺序展开 imports，再收录本文件定义；同一模块身份只纳入一次，因此菱形依赖和相互引用都可统一索引后校验。不同身份里的同名定义仍报错，不按顺序覆盖；重复书写同一个直接 import 也会报错。每条导入边的版本须一致，互不导入的独立程序可以使用不同版本。所有模块的 imports 必须存在；未被根引用的 fragment 只完成结构和导入身份 / 版本校验，其效果引用、作用域和单位在所属完整根中校验。
+
+模块全部解码后，服务端在发布新目录之前链接并编译每个可执行根。缺失导入、冲突定义、错版本、未解析效果引用、单位错误或未知字段都会拒绝整次重载，旧目录和已运行的程序继续有效。成功重载只影响之后启动的运行时；已有运行时保留旧依赖的完整编译结果，不迁移当前 Buff 或飞行物。覆盖共享模块会让新目录中所有依赖它的根重新链接，但不会改变旧运行时。
+
+Java 工具可用 `ProgramModule.CODEC` 解码模块，再把 id → 模块的 Map 传给 `ProgramCatalogue.compile`。`EffectCodecs.PROGRAM / COMPILED` 仍表示无 imports 的纯 AST / 完整程序；需要导出单文件时编码编译结果即可。数据包注册表的 Java 值为 LoadedProgram，宿主通常继续通过 EffectPrograms.find / ids 读取已完成校验的 CompiledEffects。
+
+[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。ProgramImportsGameTest 还将这两份原始夹具写为数据包模块，经真实 reload 后直接执行新目录中的两模式击杀、就绪、Jolt 中心与邻居伤害。通用容器与手动换弹已经接线；该片段与实际换弹 / 单次开火流程的集成验收、多弹丸射击事务仍待完成。
 
 ## 状态施加与只读资格
 

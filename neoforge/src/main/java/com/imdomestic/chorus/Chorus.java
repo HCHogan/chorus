@@ -36,7 +36,7 @@ public class Chorus {
             registrar.playToClient(com.imdomestic.chorus.network.EquipmentPayloads.View.TYPE, com.imdomestic.chorus.network.EquipmentPayloads.View.CODEC);
         });
         eventBus.addListener((net.neoforged.neoforge.registries.NewDatapackRegistryEvent event) -> event.reloadableRegistry(
-                com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.effect.data.EffectCodecs.COMPILED));
+                com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.platform.minecraft.LoadedProgram.CODEC));
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.RegisterCommandsEvent event) ->
                 com.imdomestic.chorus.platform.minecraft.EffectCommands.register(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
