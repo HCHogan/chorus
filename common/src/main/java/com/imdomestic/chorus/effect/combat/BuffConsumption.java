@@ -10,17 +10,28 @@ import java.util.*;
 public final class BuffConsumption {
     private BuffConsumption() {}
     public enum When { HIT, EFFECTIVE_DAMAGE }
-    public record Policy(When when, int stacks, Condition condition) {
-        public Policy { Objects.requireNonNull(when); Objects.requireNonNull(condition); if (stacks < 1) throw new IllegalArgumentException("Consumption requires positive stacks"); }
+    public enum Sharing { DAMAGE, GROUP }
+    public record Policy(When when, int stacks, Condition condition, Sharing sharing) {
+        public Policy { Objects.requireNonNull(when); Objects.requireNonNull(condition); Objects.requireNonNull(sharing); if (stacks < 1) throw new IllegalArgumentException("Consumption requires positive stacks"); }
+        public Policy(When when, int stacks, Condition condition) { this(when, stacks, condition, Sharing.DAMAGE); }
     }
-    public record Candidate(BuffInstance.Key key, long generation, When when, int stacks) {
-        public Candidate { Objects.requireNonNull(key); Objects.requireNonNull(when); if (generation < 1 || stacks < 1) throw new IllegalArgumentException("Invalid consumption candidate"); }
+    public record Candidate(BuffInstance.Key key, long generation, When when, int stacks, Optional<BuffInstance> shared) {
+        public Candidate {
+            Objects.requireNonNull(key); Objects.requireNonNull(when); Objects.requireNonNull(shared);
+            if (generation < 1 || stacks < 1 || shared.filter(b -> !b.key().equals(key) || b.generation() != generation).isPresent()) throw new IllegalArgumentException("Invalid consumption candidate");
+        }
+        public Candidate(BuffInstance.Key key, long generation, When when, int stacks) { this(key, generation, when, stacks, Optional.empty()); }
     }
     public static RuleEngine.Local<EffectState> finish(EffectState state, DamageCommand command, DamageReceipt receipt) {
         var signals = new ArrayList<RuleEngine.Signal>();
         for (var candidate : command.consumptions()) {
             boolean hit = receipt.outcome() != DamageReceipt.Outcome.CANCELLED && receipt.outcome() != DamageReceipt.Outcome.FAILED;
             if (!hit || candidate.when() == When.EFFECTIVE_DAMAGE && receipt.effective(true) <= 0) continue;
+            if (candidate.shared().isPresent()) {
+                var group = DamageGroups.require(state, command.group().orElseThrow());
+                if (group.grants().containsKey(candidate.key())) continue;
+                state = state.withDamageGroup(group.retain(candidate.shared().orElseThrow()));
+            }
             var current = state.buffs().active(candidate.key());
             // A new application after the attack was issued never pays for the old attack.
             if (current.isEmpty() || current.orElseThrow().generation() != candidate.generation() || current.orElseThrow().pausedAt().isPresent()) continue;

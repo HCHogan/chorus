@@ -10,10 +10,11 @@ import java.util.function.Function;
 
 /** Bound buff sources for the rule interpreter, including the removed source of an ended event. */
 public final class BuffRules<S> implements RuleEngine.RuleResolver<S> {
-    public record Scope(BuffInstance snapshot, boolean ended) implements RuleEngine.Payload {
-        /** Live components come from current state. Only the ended source reads its final snapshot. */
+    public record Scope(BuffInstance snapshot, boolean ended, boolean retained) implements RuleEngine.Payload {
+        public Scope(BuffInstance snapshot, boolean ended) { this(snapshot, ended, false); }
+        /** Retained scopes are modifier-only attack eligibility, never restored live buff listeners. */
         public Optional<BuffInstance> current(BuffStore store) {
-            if (ended) return Optional.of(snapshot);
+            if (ended || retained) return Optional.of(snapshot);
             return store.active(snapshot.key()).filter(instance -> instance.generation() == snapshot.generation());
         }
         public boolean owns(Buffs.Change event) { return snapshot.generation() == event.instance().generation(); }

@@ -261,6 +261,11 @@ public final class EffectCodecs {
                         values.optionalFieldOf("stacks", ONE).forGetter(Action.CheckStatus::stacks), values.optionalFieldOf("tier", ONE).forGetter(Action.CheckStatus::tier),
                         values.optionalFieldOf("duration").forGetter(Action.CheckStatus::duration), Codec.BOOL.optionalFieldOf("allow_dead", false).forGetter(Action.CheckStatus::allowDead)
                 ).apply(i, Action.CheckStatus::new)))
+                .register("chorus:begin_damage_group", GroupActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        values.fieldOf("lifetime").forGetter(GroupActions.Begin::lifetime), enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(GroupActions.Begin::origin)
+                ).apply(i, GroupActions.Begin::new)))
+                .register("chorus:end_damage_group", GroupActions.End.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("group").forGetter(GroupActions.End::group)).apply(i, GroupActions.End::new)))
                 .register("chorus:begin_damage_batch", BatchActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(BatchActions.Begin::origin)).apply(i, BatchActions.Begin::new)))
                 .register("chorus:damage", Action.Damage.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -273,7 +278,7 @@ public final class EffectCodecs {
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.Damage::origin),
                         ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.Damage::shieldScalingProfile),
                         PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.Damage::proc),
-                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.Damage::batch)).apply(i, Action.Damage::new)))
+                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.Damage::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.Damage::group)).apply(i, Action.Damage::new)))
                 .register("chorus:capture_value", Action.CaptureValue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("value").forGetter(Action.CaptureValue::value)).apply(i, Action.CaptureValue::new)))
                 .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -290,7 +295,7 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
                         Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
                         Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet),
-                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch)).apply(i, Action.DamageCaptured::new)))
+                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.DamageCaptured::group)).apply(i, Action.DamageCaptured::new)))
                 .register("chorus:heal", Action.Heal.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Heal::target), values.fieldOf("amount").forGetter(Action.Heal::amount),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Heal::tags),
@@ -516,8 +521,9 @@ public final class EffectCodecs {
         Codec<com.imdomestic.chorus.effect.combat.BuffConsumption.Policy> consumption = strict(RecordCodecBuilder.create(i -> i.group(
                 enumeration(com.imdomestic.chorus.effect.combat.BuffConsumption.When.class).fieldOf("when").forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::when),
                 Codec.INT.optionalFieldOf("stacks", 1).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::stacks),
-                conditions.optionalFieldOf("if", new Condition.Constant(true)).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::condition)
-        ).apply(i, com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::new)), Set.of("when", "stacks", "if"));
+                conditions.optionalFieldOf("if", new Condition.Constant(true)).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::condition),
+                enumeration(com.imdomestic.chorus.effect.combat.BuffConsumption.Sharing.class).optionalFieldOf("sharing", com.imdomestic.chorus.effect.combat.BuffConsumption.Sharing.DAMAGE).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::sharing)
+        ).apply(i, com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::new)), Set.of("when", "stacks", "if", "sharing"));
         Codec<EffectProgram.Buff> buff = strict(RecordCodecBuilder.create(i -> i.group(
                 BuffCodecs.DEFINITION.fieldOf("definition").forGetter(EffectProgram.Buff::definition), ID.optionalFieldOf("bundle", "").forGetter(EffectProgram.Buff::bundle),
                 shield.optionalFieldOf("shield").forGetter(EffectProgram.Buff::shield), consumption.optionalFieldOf("consume_on_damage").forGetter(EffectProgram.Buff::consumeOnDamage)

@@ -103,6 +103,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/weapon_fire.json'
         include 'effects/shot_weapon.json'
         include 'effects/damage_consumption.json'
+        include 'effects/damage_group.json'
         include 'effects/one_two_punch.json'
         include 'effects/reaction_binding.json'
         include 'effects/proc_policy.json'

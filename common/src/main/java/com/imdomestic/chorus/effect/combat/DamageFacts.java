@@ -20,6 +20,8 @@ public final class DamageFacts {
         if (receipt.outcome() == DamageReceipt.Outcome.CANCELLED || receipt.outcome() == DamageReceipt.Outcome.FAILED) return List.of();
         var references = new HashMap<String, String>(attribution); references.put("damage_id", receipt.damageId()); references.put("damage_type", command.damageType());
         references.put("batch_id", DamageBatch.reference(command, receipt));
+        references.remove("attack_group");
+        command.group().ifPresent(group -> references.put("attack_group", group.reference()));
         receipt.deathId().ifPresent(value -> references.put("death_id", value));
         receipt.protectionSource().ifPresent(value -> references.put("protection_source", value));
         var numbers = Map.of("effective_damage", new Measure(receipt.effective(false), Unit.DAMAGE),

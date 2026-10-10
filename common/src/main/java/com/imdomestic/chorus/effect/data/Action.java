@@ -168,15 +168,18 @@ public interface Action {
         var signals = new java.util.ArrayList<>(DamageFacts.from(command, receipt, attribution)); signals.addAll(consumed.emitted());
         return new RuleEngine.Local<>(consumed.state(), receipt, signals);
     }
-    record DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet, Optional<String> batch) implements Action {
-        public DamageCaptured { impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(pellet); java.util.Objects.requireNonNull(batch); }
+    record DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet, Optional<String> batch, Optional<String> group) implements Action {
+        public DamageCaptured { impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(pellet); java.util.Objects.requireNonNull(batch); java.util.Objects.requireNonNull(group); }
+        public DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet, Optional<String> batch) {
+            this(snapshot, target, impact, pellet, batch, Optional.empty());
+        }
         public DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet) { this(snapshot, target, impact, pellet, Optional.empty()); }
         public DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact) { this(snapshot, target, impact, Optional.empty()); }
         public DamageCaptured(String snapshot, Evaluation.Target target) { this(snapshot, target, java.util.Map.of()); }
         @Override public ResultShape validate(Validation v) {
-            v.result(snapshot).requireSnapshot(); BatchActions.validate(batch, v); v.target(target); validateImpact(impact, v); pellet.ifPresent(name -> v.result(name).requireShotImpact()); return ResultShape.DAMAGE;
+            v.result(snapshot).requireSnapshot(); BatchActions.validate(batch, v); GroupActions.validate(group, v); v.target(target); validateImpact(impact, v); pellet.ifPresent(name -> v.result(name).requireShotImpact()); return ResultShape.DAMAGE;
         }
-        private DamageCommand request(Evaluation e) { return prepareDamage(e, BatchActions.resolve(batch, e, e.snapshot(snapshot).command(e.target(target), Action.impact(impact, e)))); }
+        private DamageCommand request(Evaluation e) { return prepareDamage(e, GroupActions.resolve(group, e, BatchActions.resolve(batch, e, e.snapshot(snapshot).command(e.target(target), Action.impact(impact, e))))); }
         private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact contact(Evaluation e) {
             return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) e.context().bindings().get(pellet.orElseThrow());
         }
@@ -198,8 +201,12 @@ public interface Action {
         }
     }
     record Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
-            boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc, Optional<String> batch) implements Action {
-        public Damage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(scalingProfile); impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); java.util.Objects.requireNonNull(proc); java.util.Objects.requireNonNull(batch); }
+            boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc, Optional<String> batch, Optional<String> group) implements Action {
+        public Damage { tags = Set.copyOf(tags); killTags = Set.copyOf(killTags); java.util.Objects.requireNonNull(scalingProfile); impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(shieldScalingProfile); java.util.Objects.requireNonNull(proc); java.util.Objects.requireNonNull(batch); java.util.Objects.requireNonNull(group); }
+        public Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
+                boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc, Optional<String> batch) {
+            this(target, amount, damageType, tags, killTags, nonLethal, scalingProfile, impact, origin, shieldScalingProfile, proc, batch, Optional.empty());
+        }
         public Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
                 boolean nonLethal, Optional<String> scalingProfile, java.util.Map<String, Value> impact, ActionOrigin origin, Optional<String> shieldScalingProfile, ProcPolicy.Spec proc) {
             this(target, amount, damageType, tags, killTags, nonLethal, scalingProfile, impact, origin, shieldScalingProfile, proc, Optional.empty());
@@ -223,7 +230,7 @@ public interface Action {
         public Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags, boolean nonLethal) {
             this(target, amount, damageType, tags, killTags, nonLethal, Optional.empty());
         }
-        @Override public ResultShape validate(Validation v) { v.target(target); BatchActions.validate(batch, v);
+        @Override public ResultShape validate(Validation v) { v.target(target); BatchActions.validate(batch, v); GroupActions.validate(group, v);
             Validation.same(amount.unit(v), Unit.DAMAGE);
             if (amount instanceof Value.Constant c) com.imdomestic.chorus.stat.Numbers.nonnegative(c.value(), "damage");
             scalingProfile.ifPresent(v::damageProfile); validateImpact(impact, v);
@@ -232,8 +239,8 @@ public interface Action {
         }
         private DamageCommand request(Evaluation e) {
             var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
-            return prepareDamage(e, BatchActions.resolve(batch, e, new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile)
-                    .withProc(proc.resolve(e.context().event().signal().payload()))));
+            return prepareDamage(e, GroupActions.resolve(group, e, BatchActions.resolve(batch, e, new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile)
+                    .withProc(proc.resolve(e.context().event().signal().payload())))));
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(request(e)); }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {

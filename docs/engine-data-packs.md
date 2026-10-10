@@ -888,7 +888,7 @@ Buff 生命周期事实现提供通用 EffectEvent 投影。numbers 的 `request
 
 `capture_damage` 不接受 batch。可复用数值快照不会冻结“未来所有命中属于一批”；应在 `damage_snapshot` 上绑定批次。物理投射物可以在 impact body 内创建批次，再让直击 / 爆炸等多个分量引用；同一 shot 的多个接触是否共享批次须由内容决定。句柄可像其他不可变结果一样显式传入 after / projectile；这只表达内容声明的逻辑关系，不证明两个回执在现实时间同时发生。延迟脉冲若应分批，就在每次延迟体内创建新句柄。
 
-root、shot、服务器 tick 和批次之间不做自动映射；派生伤害默认创建自己的单例批次，正常循环与事件传播保持原行为。该机制仅提供身份及按批记账，不提供最终 batch_resolved 事件、全批原子结算或多分量共用一次性 Buff 资格。受管伤害仍逐分量完成现有消费流程。完整合成夹具见 [damage_batch.json](../common/src/test/resources/effects/damage_batch.json)，它不是完整 Bolt Charge。
+root、shot、服务器 tick 和批次之间不做自动映射；派生伤害默认创建自己的单例批次，正常循环与事件传播保持原行为。该机制仅提供身份及按批记账，不提供最终 batch_resolved 事件或全批原子结算。多分量共用一次性 Buff 资格由下述独立的 damage_group 显式声明，不由 batch 自动推导。完整合成夹具见 [damage_batch.json](../common/src/test/resources/effects/damage_batch.json)，它不是完整 Bolt Charge。
 
 ## 保留攻击释放时的反应规则
 
@@ -959,7 +959,30 @@ capture_damage 在捕获时固定已解析的 ProcPolicy，after / projectile / 
 
 声明该策略的 Buff，其数值 modifier 必须使用 `evaluate:"on_hit"`。查询与 capture_damage 不消费；实际发出的每条 damage_snapshot 重新捕获资格，以免一份快照永久复制已消费的增益。同一动作体的两个串行世界伤害会分别看到消费前与消费后的状态，示例见 [damage_consumption.json](../common/src/test/resources/effects/damage_consumption.json)。
 
-当前接线范围是上述受管伤害动作；宿主直接执行命令时应显式使用 prepareDamage / BuffConsumption.finish 配对。原版观察入口尚未自动消费，世界伤害回调中的原版嵌套命中、并行攻击与整批多分量共用一次资格也尚无统一预留事务。该字段不等于跨所有宿主入口的完整“下一击”系统；这些边界须在对应内容接入时继续实现。
+当前接线范围是上述受管伤害动作；宿主直接执行命令时应显式使用 prepareDamage / BuffConsumption.finish 配对。原版观察入口尚未自动消费，世界伤害回调中的原版嵌套命中与并行攻击也尚无统一预留事务。多分量共用资格可使用下节的显式攻击组，但该字段不等于跨所有宿主入口的完整“下一击”系统。
+
+## 一次攻击共享 Buff 资格
+
+Buff 的 `consume_on_damage.sharing` 默认为 `damage`，逐条伤害消费；显式设为 `group` 后，绑定同一个攻击组的合格分量可共享该次资格。未绑定组的伤害仍逐条消费。`begin_damage_group` 只建立有限寿命的身份，不冻结 Buff，也不预扣层数。
+
+```json
+[
+  {"action":{"type":"chorus:begin_damage_group","lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"attack"},
+  {"type":"chorus:damage","group":"attack","amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"example:melee","tags":["chorus:melee_damage"]},
+  {"type":"chorus:damage","group":"attack","amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"example:melee","tags":["chorus:melee_damage"]},
+  {"type":"chorus:end_damage_group","group":"attack"}
+]
+```
+
+此例需要已有 example:melee Profile 和 sharing=group 的 Buff。第一段请求捕获当时符合条件的 Buff 实例，满足 when 的回执确认后消费，并把该实例的资格保存到组中。后续同组分量读取保留的来源、层数、tier 和组件，仍按各自标签、目标及当前其他状态求值。已消费的 Buff 不会被重新放回 BuffStore，也不会重新注册其事件监听器；无关攻击和普通状态查询看到正常的当前状态。
+
+共享按 Buff key 记录：旧攻击组保留旧 generation，新施加的同 key Buff 不叠入该组，也不被后续成员继续消费。多层 Buff 仅在首个合格回执扣声明的 stacks；该组的后续成员仍使用消费前的层数。取消 / 失败不取得资格，effective_damage 策略下零损失也不取得；此时独立攻击仍可先消费 live Buff。未知回执保留 pending，之前已确认的消费和资格不回滚，不自动重放。
+
+`damage_snapshot` 也接受 group，但 capture_damage 不保存组；同一数值快照可用于多个独立攻击。group 与 batch 可分别绑定，前者决定共享资格，后者决定内容的按批计数。每段仍有独立 damage_id、伤害 / 死亡事实和 proc 策略；事实的 references.attack_group 仅为权威归属标识，不自动授予派生动作成员身份，正常效果链照常执行。
+
+组的 origin 默认为 bound，也可选 event；成员的伤害 owner 必须一致。lifetime 为正的 second，区间半开；end_damage_group 可提前关闭，截止时自动清理。关闭后再发出成员伤害会明确失败，因此内容应让有效期覆盖所有预期分量。句柄可随显式 after / projectile 绑定传递，已确认的资格独立于原 Buff 后续到期 / 收枪；完整攻击行为由内容决定，不能据此推断所有 D2 技能都应共用资格。
+
+[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。这里只管理受管伤害的已确认资格，不合并世界动作，也不提供第一段尚未返回期间的原版嵌套命中预留、全组原子事务或跨运行时恢复。
 
 ## 选择派生动作的来源
 

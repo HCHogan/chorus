@@ -69,6 +69,10 @@ class OneTwoPunchTest {
         }
         void contribution(String name) { session.start(now(), SourceChange.bind(new EffectSource(name, "test:" + name, "player", new BuffInstance.Origin("player", name, "", ""), Set.of()))); }
     }
+    @Test void explicitSplitMeleeSharesOneUseAcrossBothComponentsAndLeavesTheFollowingAttackUnboosted() throws Exception {
+        var h = new Harness(false); h.arm(); h.ability("split_melee"); h.ability("melee");
+        assertEquals(List.of(12.5, 12.5, 10.0), h.melee); assertTrue(h.active("a").isEmpty()); assertTrue(h.state().damageGroups().isEmpty());
+    }
     @Test void normalAndEnhancedArmAtTwelveOrTenConfirmedPelletsWithoutWaitingForOtherFlights() throws Exception {
         for (boolean enhanced : List.of(false, true)) {
             var h = new Harness(enhanced); h.fire(); int threshold = enhanced ? 10 : 12;

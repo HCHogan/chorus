@@ -144,7 +144,7 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 
 目标协议区分 event id、attack id、component id、batch id、cast id、root / parent。attack 表示一次攻击，batch 表示效果定义指定的同时发生批次，不能混为一谈。规则声明自己按分量、射击、批次还是目标计数。毒池、丝线、闪电可以保留背后的武器或技能来源；是否算武器伤害、能否触发词条仍由 credit 和 proc_policy 决定，不能仅凭 via 判断。
 
-当前已实现 event / root / parent、每个世界伤害回执的 damage_id、物理 shot / pellet / contact，以及显式 batch_id。`begin_damage_batch` 生成类型化句柄，由 `damage` / `damage_snapshot` 明确绑定，未绑定时每个回执各算一批。数值快照本身不冻结批次；派生伤害也不自动继承。同 root 或同 tick 不合并，规则可以分别按 damage_id 或 batch_id 更新自己的组件集合。句柄可跨延迟显式保留逻辑关系，但引擎不据此推断物理同时性。通用 attack / component / cast 关联、批次完成聚合和多分量共享一次性增益资格仍未完成，见 [数据包批次协议](engine-data-packs.md#显式伤害批次)。
+当前已实现 event / root / parent、每个世界伤害回执的 damage_id、物理 shot / pellet / contact，以及显式 batch_id。`begin_damage_batch` 生成类型化句柄，由 `damage` / `damage_snapshot` 明确绑定，未绑定时每个回执各算一批。数值快照本身不冻结批次；派生伤害也不自动继承。同 root 或同 tick 不合并，规则可以分别按 damage_id 或 batch_id 更新自己的组件集合。句柄可跨延迟显式保留逻辑关系，但引擎不据此推断物理同时性。显式 damage_group 已提供受管多分量共享一次性增益资格；它独立于 batch，事实携带 attack_group。通用 component / cast 关联与批次完成聚合仍未完成，见 [数据包批次协议](engine-data-packs.md#显式伤害批次)。
 
 death / kill 来自同一次已确认死亡，共享 death id。Fabric 的 `ALLOW_DEATH` 在图腾检查之前，不能作为死亡事实；`AFTER_DEATH` 才确认死亡。图腾成功救活时该击仍可有受伤事实，但 lethal=false，不发 death / kill；救命效果联动监听 death_prevented。不能仅凭伤害超过当前 HP 或扣血过程中曾经归零判定死亡。世界物体的销毁、卸载与生物死亡是不同事件。
 
@@ -1092,7 +1092,7 @@ record StatusResult(Optional<DamageId> cause,      // 触发它的那次伤害
 - 切割：hit 规则先读 `lethal`，不致死才施加 Sever；`StatusResult.applied` 为真才消耗层数；免疫目标照样施加（`Weapon Perks!C198`）。
 - 护盾是 Buff 带的血池层；虚空 overshield 的数值参考 `Void!D6`，层内减伤仅作用于该层。跨层预算算法和默认 FIFO 是 Chorus 约定，不能当作此单元格证明了原作所有跨层行为。
 - on_hit 获得的增伤默认只影响后续伤害，不回头改变已经提交的这一击。真正需要先行处理的动作显式声明 before_damage，在冻结该击查询视图之前执行。
-- “下一次命中消耗”的 buff 要写明消耗时机（施放、命中确认、造成伤害、状态施加成功），以及同一批次（多弹丸、范围命中）是只消耗一次，还是每个实例各消耗一次。 受管 damage / damage_snapshot 已支持 consume_on_damage：发出请求前保存符合条件的 Buff generation，回执完成时消费，下一条指令读取新状态；数值 modifier 必须 on_hit。仅在排队的 hit 反应中消费不足以保证同一动作体的下一次伤害已失去增益。原版嵌套命中与跨分量预留事务仍待实现，见 [实现边界](engine-implementation.md#受管伤害的回执消费)。
+- “下一次命中消耗”的 buff 要写明消耗时机（施放、命中确认、造成伤害、状态施加成功），以及同一批次（多弹丸、范围命中）是只消耗一次，还是每个实例各消耗一次。 受管 damage / damage_snapshot 已支持 consume_on_damage：发出请求前保存符合条件的 Buff generation，回执完成时消费，下一条指令读取新状态；数值 modifier 必须 on_hit。仅在排队的 hit 反应中消费不足以保证同一动作体的下一次伤害已失去增益。多分量共享通过 sharing=group 与显式 begin_damage_group 声明：首个合格回执消费，后续同组成员保留资格，其他独立攻击读取新状态；组有显式寿命和关闭边界。原版嵌套命中预留与全组原子事务仍待实现，见 [实现边界](engine-implementation.md#受管伤害的回执消费)。
 
 ### buff 实例
 

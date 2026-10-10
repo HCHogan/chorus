@@ -1,0 +1,680 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:melee",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:next_hit",
+        "version": "test-1",
+        "duration": 3
+      },
+      "bundle": "test:next_hit",
+      "consume_on_damage": {
+        "when": "hit",
+        "if": {
+          "type": "chorus:event_tag",
+          "tag": "test:melee"
+        },
+        "sharing": "group"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:control",
+      "rules": [
+        {
+          "id": "arm",
+          "on": "test:arm",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:next_hit"
+            }
+          ]
+        },
+        {
+          "id": "double",
+          "on": "test:double",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ]
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "snapshot",
+          "on": "test:snapshot",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "damage_type": "minecraft:generic",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "scaling_profile": "test:melee",
+                "tags": [
+                  "test:melee"
+                ]
+              },
+              "as": "attack"
+            },
+            {
+              "type": "chorus:damage_snapshot",
+              "snapshot": "attack"
+            },
+            {
+              "type": "chorus:damage_snapshot",
+              "snapshot": "attack"
+            }
+          ]
+        },
+        {
+          "id": "group",
+          "on": "test:group",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "group_snapshot",
+          "on": "test:group_snapshot",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "damage_type": "minecraft:generic",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "scaling_profile": "test:melee",
+                "tags": [
+                  "test:melee"
+                ]
+              },
+              "as": "attack"
+            },
+            {
+              "type": "chorus:damage_snapshot",
+              "snapshot": "attack",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage_snapshot",
+              "snapshot": "attack",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage_snapshot",
+              "snapshot": "attack"
+            }
+          ]
+        },
+        {
+          "id": "independent",
+          "on": "test:independent",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "other_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "other_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "other_group"
+            }
+          ]
+        },
+        {
+          "id": "reapply",
+          "on": "test:reapply",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:next_hit"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ]
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            }
+          ]
+        },
+        {
+          "id": "release",
+          "on": "test:release",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ]
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            }
+          ]
+        },
+        {
+          "id": "delayed",
+          "on": "test:delayed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:next_hit"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.2,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:damage",
+                  "damage_type": "minecraft:generic",
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  "scaling_profile": "test:melee",
+                  "tags": [
+                    "test:melee"
+                  ],
+                  "group": "attack_group"
+                },
+                {
+                  "type": "chorus:end_damage_group",
+                  "group": "attack_group"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "expiry",
+          "on": "test:expiry",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            }
+          ]
+        },
+        {
+          "id": "closed",
+          "on": "test:closed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            }
+          ]
+        },
+        {
+          "id": "nonmember",
+          "on": "test:nonmember",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_damage_group",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "as": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:melee",
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:damage",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "scaling_profile": "test:melee",
+              "tags": [
+                "test:melee"
+              ],
+              "group": "attack_group"
+            },
+            {
+              "type": "chorus:end_damage_group",
+              "group": "attack_group"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:next_hit",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "test:melee",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:next_hit",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1.5,
+            "unit": "delta"
+          },
+          "evaluate": "on_hit",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:melee"
+          },
+          "reference": "Synthetic one-use damage fixture",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

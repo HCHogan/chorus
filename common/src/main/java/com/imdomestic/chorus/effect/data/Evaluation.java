@@ -128,7 +128,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public BuffInstance readBuff(String id, Target target) {
         var key = key(id, target);
-        if (context.scope() instanceof BuffRules.Scope scope && scope.ended() && scope.snapshot().key().equals(key)) return scope.snapshot();
+        if (context.scope() instanceof BuffRules.Scope scope && (scope.ended() || scope.retained()) && scope.snapshot().key().equals(key)) return scope.snapshot();
         return state.buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Missing buff instance: " + key));
     }
     public boolean enhanced() {

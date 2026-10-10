@@ -93,6 +93,22 @@ public class OneTwoPunchGameTest {
         void settled() { runtime.prepare(); h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "One-Two Punch runtime failed: " + runtime.failure()); }
         @Override public void close() { runtime.close(); projectiles.forEach(Entity::discard); target.discard(); owner.discard(); }
     }
+    @GameCase(environment = "chorus_gametest:one_two_punch_split", maxTicks = 25)
+    public void declaredSingleMeleeAttackSharesTheBuffAcrossTwoActualComponents(GameTestHelper h) throws Exception {
+        var t = new Harness(h);
+        try {
+            t.command("chorus weapon fire");
+            h.runAfterDelay(10, () -> {
+                try (t) {
+                    t.settled(); h.assertTrue(t.ready("a").isPresent(), "real pellet hits must arm the perk");
+                    t.meleeRange(); t.ability("split_melee"); t.ability("melee");
+                    h.assertValueEqual(t.melee, List.of(12.5, 12.5, 10.0), "one split attack versus following independent attack");
+                    near(h, t.target.getHealth(), 941, "actual pellets plus shared melee components and independent melee");
+                    h.assertTrue(t.ready("a").isEmpty() && t.state().damageGroups().isEmpty(), "buff or group leaked"); h.succeed();
+                } catch (Exception e) { throw new RuntimeException(e); }
+            });
+        } catch (Exception | Error error) { t.close(); throw error; }
+    }
     @GameCase(environment = "chorus_gametest:one_two_punch_shotgun", maxTicks = 25)
     public void ownedShotgunPelletsArmOneActualMeleeWhileGrenadeAndSecondStrikeUseBaseDamage(GameTestHelper h) throws Exception {
         var t = new Harness(h);

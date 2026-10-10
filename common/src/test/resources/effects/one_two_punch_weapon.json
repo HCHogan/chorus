@@ -310,7 +310,8 @@
           ]
         }
       ]
-    }
+    },
+    {"id":"test:split_melee","slot":"test:melee","on_use":[{"action":{"type":"chorus:select_targets","center":"self","radius":{"type":"chorus:constant","value":3,"unit":"meter"},"relation":"any","include_center":false,"order":"nearest","limit":{"type":"chorus:constant","value":1,"unit":"count"}},"as":"victims"},{"action":{"type":"chorus:begin_damage_group","lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"attack"},{"for_each":"victims","as":"victim","do":[{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"test:melee_damage","tags":["chorus:melee_damage"],"group":"attack"},{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"test:melee_damage","tags":["chorus:melee_damage"],"group":"attack"}]},{"type":"chorus:end_damage_group","group":"attack"}]}
   ],
   "bundles": [
     {

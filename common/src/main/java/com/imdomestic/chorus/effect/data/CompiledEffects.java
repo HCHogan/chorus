@@ -176,6 +176,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         sourceRules.values().forEach(definitions::addAll); definitions.addAll(buffRules.definitions());
         definitions.add(weaponRule(true)); definitions.add(weaponRule(false));
         definitions.addAll(Recovery.definitions());
+        definitions.add(new RuleEngine.EventRule<>(DamageGroups.DUE, DamageGroups.DUE, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> DamageGroups.close(state, (DamageGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(ShotGroups.DUE, ShotGroups.DUE, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> ShotGroups.expire(state, (ShotGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceChange.EVENT, SourceChange.EVENT, (_, _) -> true,
@@ -366,7 +368,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (command.snapshot().isEmpty()) return damageCalculation(state, command, command.source().owner(), command.scalingProfile(), input);
         settled(state); Numbers.nonnegative(input, "damage profile input");
         var snapshot = command.snapshot().orElseThrow(); snapshot.validate(command);
-        var event = queryEvent(state, damageQuery(command, input));
+        var event = queryEvent(state, new DamageGroups.Query(damageQuery(command, input), command.group()));
         var result = calculateCaptured(state, command.source().owner(), event, snapshot.profile(), new Measure(input, Unit.DAMAGE), snapshot.resolve(state, event, this));
         Numbers.nonnegative(result.output().value(), "damage profile output");
         return Optional.of(result);
@@ -394,7 +396,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return profile.map(id -> {
             new Validation(buffs, Map.of(), false, profiles).damageProfile(id);
             var query = damageQuery(command, input);
-            var result = calculate(state, holder, query, id, new Measure(input, Unit.DAMAGE), List.of());
+            var result = calculateEvent(state, holder, queryEvent(state, new DamageGroups.Query(query, command.group())), id, new Measure(input, Unit.DAMAGE), List.of());
             Numbers.nonnegative(result.output().value(), "damage profile output");
             return result;
         });
@@ -470,7 +472,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var shield = shield(instance.definition().id());
             if (instance.components().numbers().get(shield.capacity()) <= 0) continue;
             var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(),
-                    new RuleEngine.Signal("chorus:internal/shield_query", new ShieldQuery(damageQuery(command, remaining), instance)));
+                    new RuleEngine.Signal("chorus:internal/shield_query", new ShieldQuery(damageQuery(command, remaining), instance, command.group())));
             var context = new RuleEngine.Context(event, "shield/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
             var multiplier = shield.takenMultiplier().evaluate(evaluation(state, context, Map.of()));
             Validation.same(multiplier.unit(), Unit.MULTIPLIER); Numbers.nonnegative(multiplier.value(), "shield multiplier");
@@ -742,7 +744,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
-        if (event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
+        if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));
@@ -798,6 +800,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         for (var instance : state.buffs().instances().values()) if (!instance.definition().equals(buffs.get(instance.definition().id()))) {
             throw new IllegalArgumentException("Unregistered or incompatible live buff: " + instance.definition().id());
         }
+        for (var group : state.damageGroups().values()) for (var instance : group.grants().values()) {
+            var policy = consumptions.get(instance.definition().id());
+            if (!instance.definition().equals(buffs.get(instance.definition().id())) || policy == null || policy.sharing() != BuffConsumption.Sharing.GROUP)
+                throw new IllegalArgumentException("Unregistered or incompatible retained buff: " + instance.definition().id());
+        }
     }
     private static RuleEngine.EventRule<EffectState> weaponRule(boolean stowed) {
         String type = stowed ? "weapon_stowed" : "weapon_drawn";
@@ -833,15 +840,17 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** Read-only eligibility capture. Receipt completion consumes only these existing generations. */
     public DamageCommand prepareDamage(EffectState state, DamageCommand command) {
         settled(state);
+        var group = DamageGroups.forCommand(state, command);
         var candidates = new ArrayList<BuffConsumption.Candidate>();
         var event = queryEvent(state, damageQuery(command, command.amount()));
         for (var instance : state.buffs().instances().values()) {
             var policy = consumptions.get(instance.definition().id());
+            if (group.filter(g -> g.grants().containsKey(instance.key())).isPresent()) continue;
             if (policy == null || !instance.key().holder().equals(command.source().owner())
                     || instance.pausedAt().isPresent() || instance.activeCount(state.buffs().timeMicros()) == 0
                     || !instance.affects(command.source().weapon(), command.source().ability())) continue;
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
-            if (policy.condition().test(evaluation(state, context, Map.of()))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks()));
+            if (policy.condition().test(evaluation(state, context, Map.of()))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks(), group.isPresent() && policy.sharing() == BuffConsumption.Sharing.GROUP ? Optional.of(instance) : Optional.empty()));
         }
         return prepareReactions(state, command).withConsumptions(candidates);
     }
@@ -889,6 +898,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public DamageSnapshot captureDamage(EffectState state, DamageCommand attack) {
         settled(state);
         if (attack.snapshot().isPresent()) throw new IllegalArgumentException("Cannot capture an already captured attack");
+        if (attack.group().isPresent()) throw new IllegalArgumentException("Assign an attack group at impact, not to a reusable snapshot");
         if (attack.batch().isPresent()) throw new IllegalArgumentException("Assign a damage batch at impact, not to a reusable snapshot");
         if (!attack.impact().numbers().isEmpty()) throw new IllegalArgumentException("Capture requires an attack without impact measurements");
         String profileId = attack.scalingProfile().orElseThrow(() -> new IllegalArgumentException("Snapshot requires an explicit damage profile"));
@@ -936,16 +946,31 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     private void visitModifiers(EffectState state, String holder, RuleEngine.Event event, String profile, java.util.function.Consumer<ModifierSite> visitor) {
         var query = EffectTimers.event(event.signal().payload()).orElseThrow(() -> new IllegalArgumentException("Missing modifier query"));
+        Optional<DamageGroups.Handle> handle = event.signal().payload() instanceof DamageGroups.Query q ? q.group()
+                : event.signal().payload() instanceof ShieldQuery q ? q.group() : Optional.empty();
+        var group = handle.map(h -> DamageGroups.require(state, h));
         for (var source : state.sources().values()) if (source.holder().equals(holder)) {
             visitBundle(state, event, source, sourceId(source), source.instance(), bundle(source.bundle()), profile, null, visitor);
         }
         for (var instance : state.buffs().instances().values()) {
+            if (group.filter(g -> g.grants().containsKey(instance.key())).isPresent()) continue;
             if (!instance.key().holder().equals(holder) || instance.activeCount(state.buffs().timeMicros()) == 0 || !instance.affects(query.source().weapon(), query.source().ability())) continue;
-            String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) continue;
-            String id = "buff/" + instance.generation();
-            visitBundle(state, event, new BuffRules.Scope(instance, false), id, instance.origin().source().isEmpty() ? id : instance.origin().source(),
-                    bundle(bundleId), profile, instance, visitor);
+            visitBuffModifiers(state, event, profile, instance, false, visitor);
         }
+        if (group.isPresent()) for (var instance : group.orElseThrow().grants().values()) {
+            if (!instance.key().holder().equals(holder) || !instance.affects(query.source().weapon(), query.source().ability())) continue;
+            if (!instance.definition().equals(buffs.get(instance.definition().id()))) throw new IllegalArgumentException("Incompatible retained buff definition");
+            var policy = consumptions.get(instance.definition().id());
+            if (policy == null || policy.sharing() != BuffConsumption.Sharing.GROUP) throw new IllegalArgumentException("Incompatible retained consumption policy");
+            var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false, true), Map.of());
+            if (policy.condition().test(evaluation(state, context, Map.of()))) visitBuffModifiers(state, event, profile, instance, true, visitor);
+        }
+    }
+    private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, java.util.function.Consumer<ModifierSite> visitor) {
+        String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) return;
+        String id = "buff/" + instance.generation();
+        visitBundle(state, event, new BuffRules.Scope(instance, false, retained), id, instance.origin().source().isEmpty() ? id : instance.origin().source(),
+                bundle(bundleId), profile, instance, visitor);
     }
     private void visitBundle(EffectState state, RuleEngine.Event event, RuleEngine.Payload scope, String instanceId, String sourceId,
             EffectProgram.Bundle bundle, String profile, BuffInstance buff, java.util.function.Consumer<ModifierSite> visitor) {

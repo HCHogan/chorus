@@ -21,6 +21,7 @@
       "com.imdomestic.chorus.WeaponFireGameTest",
       "com.imdomestic.chorus.ShotGroupGameTest",
       "com.imdomestic.chorus.DamageConsumptionGameTest",
+      "com.imdomestic.chorus.DamageGroupGameTest",
       "com.imdomestic.chorus.OneTwoPunchGameTest",
       "com.imdomestic.chorus.ReactionBindingGameTest",
       "com.imdomestic.chorus.ProcPolicyGameTest",

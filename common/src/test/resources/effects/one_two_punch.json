@@ -9,7 +9,7 @@
     "definition":{"id":"chorus_d2:one_two_punch","version":"test-1","duration":3,
       "attach":"holder","instanced_by":"weapon","refresh":"reset","on_stow":"remove"},
     "bundle":"chorus_d2:one_two_punch_active",
-    "consume_on_damage":{"when":"hit","if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"}}
+    "consume_on_damage":{"when":"hit","sharing":"group","if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"}}
   }],
   "bundles":[
     {"id":"chorus_d2:one_two_punch","rules":[
