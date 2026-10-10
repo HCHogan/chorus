@@ -93,7 +93,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/rolling_storm_weapon.json'
         include 'effects/proc_jolt_observer.json'
         include 'effects/one_two_punch_weapon.json'
-        include 'effects/suppression.json', 'effects/suppression_inputs.json', 'effects/buff_removal.json', 'effects/action_gates.json', 'effects/amplified.json', 'effects/amplified_movement.json', 'effects/amplified_inputs.json', 'effects/native_attributes.json', 'effects/impulse.json', 'effects/weapons.json', 'effects/instant_reload.json', 'effects/marksman_dodge.json', 'effects/marksman_dodge_test_calibration.json', 'effects/incremental_reload_settings.json', 'effects/dual_loader.json', 'effects/reload_insert_rounds.json', 'effects/dual_loader_options.json'
+        include 'effects/native_ranged.json', 'effects/suppression.json', 'effects/suppression_inputs.json', 'effects/buff_removal.json', 'effects/action_gates.json', 'effects/amplified.json', 'effects/amplified_movement.json', 'effects/amplified_inputs.json', 'effects/native_attributes.json', 'effects/impulse.json', 'effects/weapons.json', 'effects/instant_reload.json', 'effects/marksman_dodge.json', 'effects/marksman_dodge_test_calibration.json', 'effects/incremental_reload_settings.json', 'effects/dual_loader.json', 'effects/reload_insert_rounds.json', 'effects/dual_loader_options.json'
         include 'effects/clown_cartridge.json'
         include 'effects/clown_weapon.json'
         include 'effects/kill_clip.json'

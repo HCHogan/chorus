@@ -95,6 +95,7 @@
       "com.imdomestic.chorus.NativeAttributeGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",
+      "com.imdomestic.chorus.NativeRangedGameTest",
       "com.imdomestic.chorus.BuffRemovalGameTest",
       "com.imdomestic.chorus.SuppressionGameTest"
     ],

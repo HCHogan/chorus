@@ -1,0 +1,10 @@
+{
+  "version":"test-1",
+  "buffs":[{"definition":{"id":"test:ranged_lock","version":"test-1","duration":0.3,"attach":"target"},"bundle":"test:ranged_lock"}],
+  "bundles":[
+    {"id":"test:ranged_guard","action_gates":[{"id":"ranged","action":"ranged_attack"}]},
+    {"id":"test:ranged_lock","scope":"buff","action_gates":[{"id":"ranged","action":"ranged_attack"}]},
+    {"id":"test:ranged_inputs","rules":[{"id":"grant","on":"test:lock","if":{"type":"chorus:source_is","source":"owner"},"do":[{"type":"chorus:grant_buff","buff":"test:ranged_lock","target":"victim"}]}]},
+    {"id":"test:ranged_bad_query","action_gates":[{"id":"missing","action":"ranged_attack","if":{"type":"chorus:event_flag","name":"not_observed"}}]}
+  ]
+}

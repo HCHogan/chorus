@@ -55,6 +55,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final List<ShieldDamage.Write> shieldWrites = new ArrayList<>();
     private Optional<Failure> failure = Optional.empty();
     private boolean closed;
+    private Optional<MinecraftNativeActions.Report> nativeActionReport=Optional.empty();
     private boolean transferringEquipment, refreshingEquipment;
     private final Map<java.util.UUID, ServerPlayer> equipmentOwners = new java.util.LinkedHashMap<>();
 
@@ -100,6 +101,26 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public TimelineEngine.State<EffectState> state() { return session.state(); }
     public CompiledEffects program() { return program; }
+    public Optional<MinecraftNativeActions.Report> nativeActionReport(){return nativeActionReport;}
+    boolean authorizeNativeRanged(net.minecraft.world.entity.Mob actor,LivingEntity victim,String attack){
+        thread();
+        var kind=com.imdomestic.chorus.effect.input.ActionGate.Kind.RANGED_ATTACK;
+        if(!program.hasActionGates(kind))return true;
+        prepare();
+        var input=MinecraftNativeActions.input(actor,victim,attack);long now=view().buffs().timeMicros();
+        if(actor.level()!=level||actor.isRemoved()||!actor.isAlive()){
+            nativeActionReport=Optional.of(new MinecraftNativeActions.Report(now,input,MinecraftNativeActions.Outcome.INELIGIBLE,Optional.empty(),Optional.empty()));return false;
+        }
+        try{
+            // A stopped runtime retains its committed restrictions; only successful queries authorize new attacks.
+            var decision=program.checkAction(view(),kind,com.imdomestic.chorus.effect.input.ActionGate.Phase.START,input);
+            nativeActionReport=Optional.of(new MinecraftNativeActions.Report(now,input,decision.allowed()?MinecraftNativeActions.Outcome.ALLOWED:MinecraftNativeActions.Outcome.RESTRICTED,Optional.of(decision),Optional.empty()));
+            return decision.allowed();
+        }catch(RuntimeException error){
+            failed(error,List.of());
+            nativeActionReport=Optional.of(new MinecraftNativeActions.Report(now,input,MinecraftNativeActions.Outcome.QUERY_FAILED,Optional.empty(),Optional.of(error.getClass().getSimpleName()+": "+error.getMessage())));return false;
+        }
+    }
     public List<MinecraftAttributeProjection.Report> nativeAttributeReport() { return nativeAttributes.reports(); }
     private void refreshAttributes() { if(!closed&&failure.isEmpty())nativeAttributes.reconcile(view()); }
     /** Capture before a host launches its projectile or detached delayed attack. The host retains the returned immutable data. */

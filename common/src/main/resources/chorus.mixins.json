@@ -3,7 +3,24 @@
   "minVersion": "0.8",
   "package": "com.imdomestic.chorus.mixin",
   "compatibilityLevel": "JAVA_25",
-    "mixins": ["LivingDamageMixin", "PlayerDamageMixin", "ServerPlayerDeathMixin", "LivingHealingMixin", "PlayerEquipmentMixin", "ServerPlayerEquipmentMixin", "EffectProgramReloadMixin"],
+  "mixins": [
+    "LivingDamageMixin",
+    "PlayerDamageMixin",
+    "ServerPlayerDeathMixin",
+    "LivingHealingMixin",
+    "PlayerEquipmentMixin",
+    "ServerPlayerEquipmentMixin",
+    "EffectProgramReloadMixin",
+    "MobRangedAttackMixin",
+    "WitherRangedAttackMixin",
+    "BlazeRangedAttackMixin",
+    "GhastRangedAttackMixin",
+    "ShulkerRangedAttackMixin",
+    "GuardianRangedAttackMixin",
+    "BreezeRangedAttackMixin",
+    "WardenRangedAttackMixin",
+    "DragonRangedAttackMixin"
+  ],
   "client": [
     "MixinMinecraft"
   ],

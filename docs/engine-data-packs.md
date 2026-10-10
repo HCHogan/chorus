@@ -1501,15 +1501,27 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
-查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。只有技能施放输入带上述原版移动标志，不能假定武器查询也有。
+查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
 `CompiledEffects.checkAction` 是只读查询，不发布查询事件或执行规则动作。`Decision` 保留操作、阶段、查询快照和所有命中的拒绝声明（Bundle、实例、声明 id、原来源），按实例 / 声明排序。普通技能、开火和换弹 API 的 `RESTRICTED` 回执包含这个 Decision；拒绝不会支付成本、扣弹、建立射速间隔或覆盖已存在的换弹计划，也不发布 accepted 事实。基础装备 / 定义资格先检查，开火原有的射速检查也先执行。
 
 手动换弹额外在宿主确认后的 `complete`、每次装填反应结算后的下一次 `continue` 复核限制。完成前拒绝不转移弹药；下一步拒绝保留刚完成的弹药转移、回血和其他反应。取消会清除计划及计时器，发布 `reload_cancelled`，`reason=action_restricted`；其 `ActionGate.Cancelled` payload 同时实现常规 EffectEvent.Carrier 并保留拒绝 Decision。授予限制 Buff 本身不会立即取消已接受计划；若它在下个复核边界之前过期，计划仍可继续。
 
-该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。持续 Super 的终止、原版左键 / 物品使用、AI 射击 / 移动、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
+该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。活动技能 Buff 可通过下节的批量结束动作终止，原版远程攻击接线见下节；原版左键 / 物品使用、AI 移动、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
+
+## 原版生物的远程攻击资格
+
+`ranged_attack` 是原版 Mob 的远程攻击入口，独立于玩家 Chorus 武器的 `weapon_fire`。可由 SOURCE 或目标持有的 BUFF 声明禁止条件；核心不识别压制或敌人等级。运行时未安装或当前程序没有这种门槛时沿用原版路径。
+
+Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、溺尸、女巫、幻术师、掠夺者、猪灵、雪傀儡、羊驼和凋灵（含侧头及无目标坐标发射）；另覆盖烈焰人、恶魂、潜影贝、守卫者光束、旋风人 Shoot、监守者 SonicBoom 和末影龙扫射火球。判定在新弹体创建、发射音效、弩弹消耗或光束伤害之前进行。烈焰人近战和其他 AI 不被整体关闭。Goal / Brain 的持续检查会正常结束受限蓄力，保留原版停止时的姿态 / 冷却处理；拒绝的龙扫射转回盘旋。不会补发受限期间错过的攻击。
+
+查询的 actor 是攻击 Mob，victim 是入口提供的目标；凋灵坐标发射没有实体目标，victim 为空。来源 owner 为攻击者，source 为原版攻击标识，weapon / ability 为空；不凭手持物猜 Chorus 信用。来源标签包含当前实体类型标签、实体自身标签和宿主明确提供的 `chorus:combatant`，不自动猜 D2 等级。事件带 `chorus:native_ranged_attack`，references 提供 `native_attack / entity_type`，flags 提供当前 `on_ground / sprinting / crouching`。每次尝试重新读取当前标签和已结算 Buff。
+
+`MinecraftEffectRuntime.nativeActionReport()` 保留最近一次查询的不可变输入、逻辑时间、Decision 或查询失败原因；它只用于诊断，不发布新事件，也不无限积累实体引用。查询错误拒绝本次尝试并记录运行时失败。运行时失败后查询沿用最后已提交状态，其他没有命中限制的生物仍可射击；没有把查询错误伪装成有效拒绝声明。
+
+这个入口不检查既有弹体的飞行或命中，不撤销已结算伤害，也不限制 DOT / 点燃反馈。其他模组自定义发射入口、原版近战 / 法术召唤、移动失能、玩家左键及客户端禁用展示仍需各自接线。[native_ranged.json](../common/src/test/resources/effects/native_ranged.json) 是合成机制验收，不增加 Compendium 效果覆盖数。
 
 ## 按标签批量结束 Buff
 

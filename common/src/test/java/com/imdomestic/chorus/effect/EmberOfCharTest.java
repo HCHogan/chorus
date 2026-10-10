@@ -122,7 +122,7 @@ class EmberOfCharTest {
         var input=new EffectEvent(FIRST.holder(),"",FIRST.origin(),Set.of(),Map.of());
         for(int wave=1;wave<=8;wave++){
             h.until(wave*1_000_000L);
-            for(var action:ActionGate.Kind.values()){
+            for(var action:List.of(ActionGate.Kind.ABILITY_USE,ActionGate.Kind.WEAPON_FIRE,ActionGate.Kind.WEAPON_RELOAD)){
                 var decision=h.program.checkAction(h.state(),action,ActionGate.Phase.START,input);
                 assertFalse(decision.allowed());assertEquals("disabled",decision.denials().getFirst().origin().source());
             }

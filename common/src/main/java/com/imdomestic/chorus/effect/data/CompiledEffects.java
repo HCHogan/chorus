@@ -25,6 +25,8 @@ import java.util.function.Function;
 
 /** Pinned compiled catalogue. Engine code contains no Destiny identifiers or perk-specific branches. */
 public final class CompiledEffects implements RuleEngine.RuleResolver<EffectState> {
+    private final java.util.EnumSet<ActionGate.Kind> actionKinds=java.util.EnumSet.noneOf(ActionGate.Kind.class);
+    public boolean hasActionGates(ActionGate.Kind kind){return actionKinds.contains(kind);}
     private final EffectProgram program;
     private final Map<String, BuffDefinition> buffs;
     private final Map<String, EffectProgram.Bundle> bundles;
@@ -140,6 +142,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         for (var bundle : program.bundles()) {
             var gateIds=new HashSet<String>();
             for(var gate:bundle.actionGates()){
+                actionKinds.add(gate.action());
                 if(!gateIds.add(gate.id()))throw new IllegalArgumentException("Duplicate action gate: "+bundle.id()+"/"+gate.id());
                 gate.condition().validate(validation(bundle,Map.of()));
             }
