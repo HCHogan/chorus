@@ -93,7 +93,8 @@
       "com.imdomestic.chorus.EmberOfEmpyreanGameTest",
       "com.imdomestic.chorus.ImpulseGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
-      "com.imdomestic.chorus.AmplifiedGameTest"
+      "com.imdomestic.chorus.AmplifiedGameTest",
+      "com.imdomestic.chorus.ActionGateGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

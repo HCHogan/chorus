@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
+import com.imdomestic.chorus.effect.input.ActionGate;
 import com.imdomestic.chorus.effect.weapon.*;
 import com.imdomestic.chorus.effect.projectile.*;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -137,6 +138,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var compiled = new LinkedHashMap<String, List<RuleEngine.EventRule<EffectState>>>();
         var originRules = new HashSet<String>();
         for (var bundle : program.bundles()) {
+            var gateIds=new HashSet<String>();
+            for(var gate:bundle.actionGates()){
+                if(!gateIds.add(gate.id()))throw new IllegalArgumentException("Duplicate action gate: "+bundle.id()+"/"+gate.id());
+                gate.condition().validate(validation(bundle,Map.of()));
+            }
             var ids = new HashSet<String>();
             var rules = new ArrayList<RuleEngine.EventRule<EffectState>>();
             for (var rule : bundle.rules()) {
@@ -330,6 +336,28 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var refs = new HashMap<>(request.input().references()); refs.put("ability", definition.id()); refs.put("base_ability", base); refs.put("ability_slot", request.slot()); refs.put("cast", request.cast());
         return new EffectEvent(request.holder(), request.input().victim(), origin, tags, request.input().numbers(), request.input().flags(), refs, request.input().impact());
     }
+    private record GateSite(ActionGate.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
+    public ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input){
+        settled(state);Objects.requireNonNull(action);Objects.requireNonNull(phase);
+        if(input.actor().isBlank())throw new IllegalArgumentException("Action gate needs an actor");
+        var tags=new HashSet<>(input.tags());tags.add("chorus:action_gate_query");var refs=new HashMap<>(input.references());
+        refs.put("action",action.name().toLowerCase(java.util.Locale.ROOT));refs.put("action_phase",phase.name().toLowerCase(java.util.Locale.ROOT));
+        var query=new EffectEvent(input.actor(),input.victim(),input.source(),tags,input.numbers(),input.flags(),refs,input.impact(),input.reactions(),input.proc(),input.observedBuffs(),input.observedEntities());
+        var sites=new ArrayList<GateSite>();
+        for(var source:state.sources().values())if(source.holder().equals(input.actor()))for(var gate:bundle(source.bundle()).actionGates())
+            if(gate.action()==action)sites.add(new GateSite(gate,source.bundle(),source,sourceId(source)));
+        for(var buff:state.buffs().instances().values())if(buff.key().holder().equals(input.actor())&&buff.pausedAt().isEmpty()&&buff.activeCount(state.buffs().timeMicros())>0&&buff.affects(input.source().weapon(),input.source().ability())){
+            String id=buffBundles.get(buff.definition().id());if(id==null)continue;
+            for(var gate:bundle(id).actionGates())if(gate.action()==action)sites.add(new GateSite(gate,id,new BuffRules.Scope(buff,false),"buff/"+buff.generation()));
+        }
+        sites.sort(java.util.Comparator.comparing(GateSite::instance).thenComparing(s->s.declaration().id()));
+        var event=queryEvent(state,query);var denials=new ArrayList<ActionGate.Denial>();
+        for(var site:sites){
+            var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of());
+            if(site.declaration().condition().test(e))denials.add(new ActionGate.Denial(site.declaration().id(),site.bundle(),site.instance(),e.origin()));
+        }
+        return new ActionGate.Decision(action,phase,query,denials);
+    }
     private RuleEngine.Local<EffectState> rejectedAbility(EffectState state, AbilityUse.Request request, String base, String resolved, AbilityUse.Outcome outcome, Optional<Resources.SpendResult> cost) {
         return new RuleEngine.Local<>(state, new AbilityUse.Receipt(request.cast(), request.slot(), base, resolved, outcome, cost), List.of());
     }
@@ -351,6 +379,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             if (!matches.isEmpty()) selected = validateSelection(request.slot(), matches.iterator().next());
         }
         var query = abilityEvent(request, base, selected); var scope = new AbilityUse.Scope(query);
+        var restriction=checkAction(state,ActionGate.Kind.ABILITY_USE,ActionGate.Phase.START,query);
+        if(!restriction.allowed())return new RuleEngine.Local<>(state,new AbilityUse.Receipt(request.cast(),request.slot(),base,selected.id(),AbilityUse.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var evaluation = evaluation(state, new RuleEngine.Context(queryEvent(state, query), "cast/" + request.cast(), scope, Map.of()), Map.of());
         if (!selected.condition().test(evaluation)) return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.CONDITION, Optional.empty());
         var numbers = new HashMap<>(query.numbers());

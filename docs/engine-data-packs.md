@@ -1486,6 +1486,31 @@ chorus ability clear example:grenade
 
 choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。按键 / 网络展示、完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
 
+## 技能、开火与手动换弹的行动限制
+
+SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表示拒绝，不填写时始终拒绝；同一 Bundle 内 `id` 必须唯一，未知字段、无效条件和未绑定结果在编译时拒绝。例如这个 BUFF Bundle 禁止新技能与开火，但不禁止手动换弹：
+
+```json
+{
+  "id": "example:disabled_actions",
+  "scope": "buff",
+  "action_gates": [
+    {"id": "abilities", "action": "ability_use"},
+    {"id": "fire", "action": "weapon_fire"}
+  ]
+}
+```
+
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+
+查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。只有技能施放输入带上述原版移动标志，不能假定武器查询也有。
+
+`CompiledEffects.checkAction` 是只读查询，不发布查询事件或执行规则动作。`Decision` 保留操作、阶段、查询快照和所有命中的拒绝声明（Bundle、实例、声明 id、原来源），按实例 / 声明排序。普通技能、开火和换弹 API 的 `RESTRICTED` 回执包含这个 Decision；拒绝不会支付成本、扣弹、建立射速间隔或覆盖已存在的换弹计划，也不发布 accepted 事实。基础装备 / 定义资格先检查，开火原有的射速检查也先执行。
+
+手动换弹额外在宿主确认后的 `complete`、每次装填反应结算后的下一次 `continue` 复核限制。完成前拒绝不转移弹药；下一步拒绝保留刚完成的弹药转移、回血和其他反应。取消会清除计划及计时器，发布 `reload_cancelled`，`reason=action_restricted`；其 `ActionGate.Cancelled` payload 同时实现常规 EffectEvent.Carrier 并保留拒绝 Decision。授予限制 Buff 本身不会立即取消已接受计划；若它在下个复核边界之前过期，计划仍可继续。
+
+该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。持续 Super 的终止、原版左键 / 物品使用、AI 射击 / 移动、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
+
 ## 一次性物理冲量与派生方向
 
 `chorus:apply_impulse` 在一次明确的世界操作中向目标当前速度加上冲量；单位为 meter_per_second。它接受已捕获的方向，不在执行或回执阶段重读施放者朝向，也不直接移动位置：

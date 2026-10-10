@@ -1,0 +1,313 @@
+{
+  "version": "test-1",
+  "resources": [
+    {
+      "id": "test:gate_energy",
+      "capacity": 2,
+      "initial": 2
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:plain",
+      "slot": "test:slot",
+      "cost": {
+        "resource": "test:gate_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 5,
+            "unit": "damage"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:blocked",
+      "slot": "test:slot",
+      "cost": {
+        "resource": "test:gate_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "test:blocked_ability"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 5,
+            "unit": "damage"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:super",
+      "slot": "test:slot",
+      "cost": {
+        "resource": "test:gate_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "test:super"
+      ],
+      "parameters": {
+        "heal": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 5,
+            "unit": "damage"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.heal",
+            "unit": "damage"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:ability_lock",
+        "version": "test-1",
+        "duration": 0.2
+      },
+      "bundle": "test:ability_lock"
+    },
+    {
+      "definition": {
+        "id": "test:weapon_lock",
+        "version": "test-1",
+        "duration": 0.2,
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "pause"
+      },
+      "bundle": "test:weapon_lock"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:input_gate",
+      "scope": "source",
+      "action_gates": [
+        {
+          "id": "ability",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:blocked_ability"
+          }
+        },
+        {
+          "id": "fire",
+          "action": "weapon_fire"
+        },
+        {
+          "id": "reload",
+          "action": "weapon_reload"
+        }
+      ]
+    },
+    {
+      "id": "test:ability_lock",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "ability",
+          "action": "ability_use"
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_lock",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "fire",
+          "action": "weapon_fire"
+        },
+        {
+          "id": "reload",
+          "action": "weapon_reload"
+        }
+      ]
+    },
+    {
+      "id": "test:grounded_exception",
+      "scope": "source",
+      "action_gates": [
+        {
+          "id": "grounded",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:not",
+            "of": {
+              "type": "chorus:all",
+              "of": [
+                {
+                  "type": "chorus:event_tag",
+                  "tag": "test:super"
+                },
+                {
+                  "type": "chorus:event_flag",
+                  "name": "on_ground"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:parameter_gate",
+      "scope": "source",
+      "action_gates": [
+        {
+          "id": "parameter",
+          "action": "ability_use",
+          "if": {
+            "type": "chorus:compare",
+            "op": "gt",
+            "left": {
+              "type": "chorus:source_parameter",
+              "name": "enabled"
+            },
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          }
+        }
+      ],
+      "parameters": {
+        "enabled": "count"
+      }
+    },
+    {
+      "id": "test:reload_boundary",
+      "scope": "source",
+      "action_gates": [
+        {
+          "id": "boundary",
+          "action": "weapon_reload",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "action_phase",
+            "is": "complete"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:gate_replacement",
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "test:slot",
+          "ability": "test:plain",
+          "replace_with": "test:blocked"
+        }
+      ]
+    },
+    {
+      "id": "test:gate_inputs",
+      "rules": [
+        {
+          "id": "lock",
+          "on": "test:lock",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ability_lock",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "weapon_lock",
+          "on": "test:weapon_lock",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:weapon_lock"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:after_insert_lock",
+      "rules": [
+        {
+          "id": "interrupt",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:weapon_lock"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -34,7 +34,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
 public class WeaponReloadGameTest {
-    private static final class Harness implements AutoCloseable {
+    static final class Harness implements AutoCloseable {
         final GameTestHelper h; final List<ServerPlayer> players = new ArrayList<>();
         final MinecraftEffectRuntime runtime; final List<HealingCommand> heals = new ArrayList<>();
         final List<EffectState> beforeHeals = new ArrayList<>(); boolean failHeal;
@@ -83,7 +83,7 @@ public class WeaponReloadGameTest {
         void settled() { h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "reload runtime failed: " + runtime.failure()); }
         @Override public void close() { runtime.close(); players.forEach(ServerPlayer::discard); }
     }
-    private static void incremental(com.google.gson.JsonObject data) {
+    static void incremental(com.google.gson.JsonObject data) {
         var weapon = data.getAsJsonArray("weapons").get(0).getAsJsonObject(); var settings = ThreadedSpikeGameTest.json("incremental_reload_settings");
         weapon.getAsJsonObject("reload").add("insert", settings.get("insert")); weapon.add("fire", settings.get("fire"));
     }

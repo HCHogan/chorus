@@ -12,7 +12,7 @@ import java.util.*;
 public final class WeaponReload {
     private WeaponReload() {}
     public static final String REQUEST = "chorus:internal/reload_request", DUE = "chorus:internal/reload_due", NEXT = "chorus:internal/reload_next";
-    public enum Outcome { ACCEPTED, EMPTY_HANDS, NOT_CONFIGURED, BUSY, FULL, NO_RESERVES }
+    public enum Outcome { ACCEPTED, EMPTY_HANDS, NOT_CONFIGURED, BUSY, FULL, NO_RESERVES, RESTRICTED }
     public record Request(String holder, String token) implements RuleEngine.Payload {
         public Request { identity(holder); identity(token); }
         public RuleEngine.Signal signal() { return new RuleEngine.Signal(REQUEST, this); }
@@ -55,8 +55,9 @@ public final class WeaponReload {
             return new EffectState.Timer(timerId(), dueAt, 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
         }
     }
-    public record Receipt(Outcome outcome, Optional<Plan> plan) implements RuleEngine.ActionResult {
-        public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(plan); if ((outcome == Outcome.ACCEPTED) != plan.isPresent()) throw new IllegalArgumentException("Invalid reload receipt"); }
+    public record Receipt(Outcome outcome, Optional<Plan> plan,Optional<com.imdomestic.chorus.effect.input.ActionGate.Decision> restriction) implements RuleEngine.ActionResult {
+        public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(plan); if ((outcome == Outcome.ACCEPTED) != plan.isPresent()) throw new IllegalArgumentException("Invalid reload receipt");com.imdomestic.chorus.effect.input.ActionGate.receipt(com.imdomestic.chorus.effect.input.ActionGate.Kind.WEAPON_RELOAD,outcome==Outcome.RESTRICTED,restriction); }
+        public Receipt(Outcome outcome,Optional<Plan> plan){this(outcome,plan,Optional.empty());}
     }
     public record Scope(EffectEvent event) implements RuleEngine.Payload {}
     public record Verify(Plan plan) implements RuleEngine.WorldCommand { public Verify { Objects.requireNonNull(plan); } }

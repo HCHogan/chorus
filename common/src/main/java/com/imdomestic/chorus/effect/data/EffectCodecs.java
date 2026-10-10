@@ -688,13 +688,19 @@ public final class EffectCodecs {
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
                 weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire)
         ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire"));
+        Codec<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGate = strict(RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::id),
+                enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::condition)
+        ).apply(i, com.imdomestic.chorus.effect.input.ActionGate.Declaration::new)), Set.of("id", "action", "if"));
         Codec<EffectProgram.Bundle> bundle = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("id").forGetter(EffectProgram.Bundle::id), enumeration(EffectProgram.Scope.class).optionalFieldOf("scope", EffectProgram.Scope.SOURCE).forGetter(EffectProgram.Bundle::scope),
                 rule.listOf().optionalFieldOf("rules", List.of()).forGetter(EffectProgram.Bundle::rules), modifier.listOf().optionalFieldOf("modifiers", List.of()).forGetter(EffectProgram.Bundle::modifiers),
                 recovery.listOf().optionalFieldOf("health_recovery", List.of()).forGetter(EffectProgram.Bundle::recovery),
                 replacement.listOf().optionalFieldOf("ability_overrides", List.of()).forGetter(EffectProgram.Bundle::abilityOverrides),
-                Codec.unboundedMap(Codec.STRING, StatCodecs.UNIT).optionalFieldOf("parameters", Map.of()).forGetter(EffectProgram.Bundle::parameters)
-        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides", "parameters"));
+                Codec.unboundedMap(Codec.STRING, StatCodecs.UNIT).optionalFieldOf("parameters", Map.of()).forGetter(EffectProgram.Bundle::parameters),
+                actionGate.listOf().optionalFieldOf("action_gates", List.of()).forGetter(EffectProgram.Bundle::actionGates)
+        ).apply(i, EffectProgram.Bundle::new)), Set.of("id", "scope", "rules", "modifiers", "health_recovery", "ability_overrides", "parameters", "action_gates"));
         Codec<EffectProgram.ShieldRecovery> shieldRecovery = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("rate").forGetter(EffectProgram.ShieldRecovery::rate),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.ShieldRecovery::condition)
