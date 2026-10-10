@@ -137,7 +137,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     }
     private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire) {
         if (!candidate.isAlive() || candidate.isRemoved() || candidate.isSpectator() || candidate.level() != level
-                || candidate.getUUID().toString().equals(launch.owner()) || inside.contains(candidate.getUUID())
+                || candidate.getUUID().toString().equals(launch.owner()) || candidate.getUUID().toString().equals(launch.emitter()) || inside.contains(candidate.getUUID())
                 || !progress.canHit(candidate.getUUID().toString(), launch.parameters().collision())) return false;
         var offset = anchor(candidate, policy.anchor()).subtract(position());
         if (offset.lengthSqr() == 0 || offset.length() > policy.radius()) return false;
@@ -191,7 +191,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         EntityHitResult best = null; double distance = Double.POSITIVE_INFINITY;
         for (var entity : level.getEntities(this, getBoundingBox().expandTowards(movement).inflate(0.125),
                 e -> e instanceof LivingEntity living && living.isAlive() && !e.isSpectator()
-                        && !e.getUUID().toString().equals(launch.owner()) && !inside.contains(e.getUUID())
+                        && !e.getUUID().toString().equals(launch.owner()) && !e.getUUID().toString().equals(launch.emitter()) && !inside.contains(e.getUUID())
                         && (destination == null || !e.getUUID().toString().equals(destination.target()))
                         && progress.canHit(e.getUUID().toString(), launch.parameters().collision()))) {
             var box = entity.getBoundingBox().inflate(0.125);

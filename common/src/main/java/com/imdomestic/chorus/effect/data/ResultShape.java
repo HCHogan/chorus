@@ -33,7 +33,13 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     private static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result; }
     private static com.imdomestic.chorus.effect.object.WorldPickup.Contact pickup(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.object.WorldPickup.Contact) result; }
     public static final ResultShape PICKUP_SPAWN;
+    public static final ResultShape PROJECTILE_LAUNCH;
     static {
+        var launchFlags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>();
+        for (var outcome : com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.values())
+            launchFlags.put(outcome.name().toLowerCase(java.util.Locale.ROOT), r -> ((com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt) r).outcome() == outcome);
+        PROJECTILE_LAUNCH = new ResultShape(Map.of("count", new Field(Unit.COUNT,
+                r -> ((com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt) r).entity().isPresent() ? 1 : 0)), launchFlags);
         var flags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>();
         for (var outcome : com.imdomestic.chorus.effect.object.WorldPickup.Outcome.values())
             flags.put(outcome.name().toLowerCase(java.util.Locale.ROOT), r -> ((com.imdomestic.chorus.effect.object.WorldPickup.Receipt) r).outcome() == outcome);

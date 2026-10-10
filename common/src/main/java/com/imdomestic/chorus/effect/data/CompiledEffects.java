@@ -828,12 +828,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         var pending = new EffectContinuations.Pending(id, definition, program.version(), e.context().scope(), e.context().event(), captured, Optional.empty());
                         return new ProjectileFlight.Launch(previous.get(spec.position()).position(e.context().bindings().get(spec.position())),
                                 previous.get(spec.direction()).direction(e.context().bindings().get(spec.direction())), spec.resolve(e), e.origin().owner(), pending, impactSlot,
-                                projectile.shot().map(m -> m.resolve(e)));
+                                projectile.shot().map(m -> m.resolve(e)), e.target(spec.emitter()));
                     };
                     if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>((state, context) -> {
                         var launch = prepare.apply(state, context);
                         return new RuleEngine.Local<>(ShotGroups.reserve(state, launch.member().orElseThrow()), new ShotActions.Prepared(launch), List.of());
                     }, preparedSlot));
+                    String launchSlot = projectile.launchBind().map(name -> {
+                        localId(name);
+                        if (name.equals(projectile.bind()) || results.putIfAbsent(name, ResultShape.PROJECTILE_LAUNCH) != null)
+                            throw new IllegalArgumentException("Duplicate or shadowed projectile launch binding: " + name);
+                        String slot = path + name; slots.put(name, slot); return slot;
+                    }).orElse("");
                     output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
                         @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
                             return new RuleEngine.Await<>(projectile.shot().isPresent()
@@ -844,7 +850,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                             if (!receipt.launch().equals(context.command(ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
                             return projectile.shot().isPresent() ? ShotGroups.launched(state, receipt) : new RuleEngine.Local<>(state, receipt, List.of());
                         }
-                    }, ""));
+                    }, launchSlot));
                 }
                 case EffectProgram.Pickup pickup -> {
                     pickup.spec().validate(validation(bundle, previous)); localId(pickup.bind());

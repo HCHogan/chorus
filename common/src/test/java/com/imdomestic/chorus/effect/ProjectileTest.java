@@ -22,6 +22,8 @@ class ProjectileTest {
         final List<RuleEngine.WorldCommand> commands = new ArrayList<>();
         final List<ProjectileFlight.Launch> launches = new ArrayList<>();
         final List<Double> damage = new ArrayList<>();
+        ProjectileFlight.Outcome launchOutcome = ProjectileFlight.Outcome.LAUNCHED;
+        boolean failLaunch;
         Harness() throws Exception { this(load("projectile")); }
         Harness(CompiledEffects program) {
             this.program = program;
@@ -31,7 +33,10 @@ class ProjectileTest {
                 return switch (request.command()) {
                     case PositionQuery q -> new PositionQuery.Result(q, Optional.of(POINT));
                     case DirectionQuery q -> new DirectionQuery.Result(q, Optional.of(new WorldDirection("world", 1, 0, 0)));
-                    case ProjectileFlight.Launch launch -> { launches.add(launch); yield new ProjectileFlight.Receipt(launch, ProjectileFlight.Outcome.LAUNCHED, Optional.of("entity" + launches.size())); }
+                    case ProjectileFlight.Launch launch -> {
+                        launches.add(launch); if (failLaunch) throw new IllegalStateException("Unknown launch outcome");
+                        yield new ProjectileFlight.Receipt(launch, launchOutcome, launchOutcome == ProjectileFlight.Outcome.LAUNCHED ? Optional.of("entity" + launches.size()) : Optional.empty());
+                    }
                     case DamageCommand d -> {
                         double value = program.outgoing(state(), d, d.amount()).orElseThrow().output().value(); damage.add(value);
                         yield new DamageReceipt(request.id().toString(), DamageReceipt.Outcome.APPLIED, 0, 0, value, Optional.empty(), false);
@@ -111,5 +116,54 @@ class ProjectileTest {
         while (invalid.needsPump()) invalid = engine.transition(invalid.state(), RuleEngine.Pump.INSTANCE);
         assertTrue(invalid.state().engine().failure().isPresent()); assertTrue(invalid.actions().isEmpty());
         assertThrows(IllegalArgumentException.class, () -> new ProjectileFlight.Receipt(launch, ProjectileFlight.Outcome.LAUNCHED, Optional.empty()));
+    }
+    private static JsonObject withLaunchReceipt() throws Exception {
+        var data = json("projectile"); var steps = actions(data); steps.get(3).getAsJsonObject().addProperty("launch_as", "launch");
+        steps.add(JsonParser.parseString("""
+                {"if":{"type":"chorus:result_flag","binding":"launch","field":"launched"},
+                 "then":[{"type":"chorus:play_cue","cue":"test:fired"}],
+                 "else":[{"type":"chorus:play_cue","cue":"test:not_fired"}]}
+                """)); return data;
+    }
+    @Test void immediateLaunchReceiptDistinguishesEveryRejectionFromActualFiring() throws Exception {
+        for (var outcome : ProjectileFlight.Outcome.values()) {
+            var h = new Harness(compile(withLaunchReceipt())); h.launchOutcome = outcome; h.fire();
+            var cues = h.commands.stream().filter(Action.CueCommand.class::isInstance).map(Action.CueCommand.class::cast).toList();
+            assertEquals(1, cues.size()); assertEquals(outcome == ProjectileFlight.Outcome.LAUNCHED ? "test:fired" : "test:not_fired", cues.getFirst().cue());
+            var receipt = new ProjectileFlight.Receipt(h.launches.getFirst(), outcome, outcome == ProjectileFlight.Outcome.LAUNCHED ? Optional.of("entity") : Optional.empty());
+            assertEquals(outcome == ProjectileFlight.Outcome.LAUNCHED ? 1 : 0, ResultShape.PROJECTILE_LAUNCH.read("count", receipt).value());
+            assertTrue(ResultShape.PROJECTILE_LAUNCH.flag(outcome.name().toLowerCase(Locale.ROOT), receipt));
+        }
+    }
+    @Test void emitterIsCapturedSeparatelyWithoutReplacingOwnerOrContinuationCredit() throws Exception {
+        var original = new Harness(); original.fire(); assertEquals(SOURCE.origin().owner(), original.launches.getFirst().emitter());
+        var data = withLaunchReceipt(); actions(data).get(3).getAsJsonObject().getAsJsonObject("projectile").addProperty("emitter", "victim");
+        var h = new Harness(compile(data)); h.fire(); var launch = h.launches.getFirst();
+        assertEquals("target", launch.emitter()); assertEquals(SOURCE.origin().owner(), launch.owner());
+        h.session.start(0, SourceChange.remove(SOURCE.instance()));
+        h.finish(0, new ProjectileFlight.Impact(ProjectileFlight.End.ENTITY, POINT, Optional.of("enemy"), 0, 0, 0, 50_000));
+        var damage = h.commands.stream().filter(DamageCommand.class::isInstance).map(DamageCommand.class::cast).findFirst().orElseThrow();
+        assertEquals(SOURCE.origin(), damage.source()); assertEquals("enemy", damage.target());
+        assertEquals(h.program.program(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, h.program.program()).getOrThrow()).getOrThrow());
+    }
+    @Test void unknownLaunchCannotProduceFiringReceiptOrBeRetried() throws Exception {
+        var h = new Harness(compile(withLaunchReceipt())); h.failLaunch = true;
+        assertThrows(IllegalStateException.class, h::fire); assertEquals(1, h.launches.size());
+        assertTrue(h.commands.stream().noneMatch(Action.CueCommand.class::isInstance));
+        assertThrows(IllegalStateException.class, h::fire); assertEquals(1, h.launches.size());
+    }
+    @Test void launchReceiptCannotShadowInputsLeakIntoItsOwnImpactOrServeAsATarget() throws Exception {
+        for (String fault : List.of("shadow", "impact", "blank", "emitter", "own_body", "target")) {
+            var data = withLaunchReceipt(); var steps = actions(data); var launch = steps.get(3).getAsJsonObject();
+            switch (fault) {
+                case "shadow" -> launch.addProperty("launch_as", "shot");
+                case "impact" -> launch.addProperty("launch_as", "impact");
+                case "blank" -> launch.addProperty("launch_as", "");
+                case "emitter" -> launch.getAsJsonObject("projectile").add("emitter", JsonParser.parseString("{\"binding\":\"muzzle\"}"));
+                case "own_body" -> launch.getAsJsonArray("do").add(steps.get(4).deepCopy());
+                case "target" -> steps.add(JsonParser.parseString("{\"for_each\":\"launch\",\"as\":\"entity\",\"do\":[]}"));
+            }
+            assertThrows(RuntimeException.class, () -> compile(data), fault);
+        }
     }
 }

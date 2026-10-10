@@ -38,12 +38,14 @@ public final class ProjectileFlight {
         }
     }
     public record Launch(Optional<WorldPosition> position, Optional<WorldDirection> direction, Parameters parameters,
-            String owner, EffectContinuations.Pending continuation, String impactSlot, Optional<ShotGroups.Member> member) implements RuleEngine.WorldCommand {
+            String owner, EffectContinuations.Pending continuation, String impactSlot, Optional<ShotGroups.Member> member, String emitter) implements RuleEngine.WorldCommand {
         public Launch(Optional<WorldPosition> position, Optional<WorldDirection> direction, Parameters parameters,
                 String owner, EffectContinuations.Pending continuation, String impactSlot) { this(position, direction, parameters, owner, continuation, impactSlot, Optional.empty()); }
+        public Launch(Optional<WorldPosition> position, Optional<WorldDirection> direction, Parameters parameters,
+                String owner, EffectContinuations.Pending continuation, String impactSlot, Optional<ShotGroups.Member> member) { this(position, direction, parameters, owner, continuation, impactSlot, member, owner); }
         public Launch {
             Objects.requireNonNull(position); Objects.requireNonNull(direction); Objects.requireNonNull(parameters); Objects.requireNonNull(owner);
-            Objects.requireNonNull(continuation); Objects.requireNonNull(impactSlot); Objects.requireNonNull(member);
+            Objects.requireNonNull(continuation); Objects.requireNonNull(impactSlot); Objects.requireNonNull(member); Objects.requireNonNull(emitter);
             if (member.filter(m -> !m.shot().origin().owner().equals(owner)).isPresent()) throw new IllegalArgumentException("Pellet owner differs from shot");
             if (impactSlot.isBlank() || continuation.bindings().containsKey(impactSlot) || continuation.owner().isPresent()) throw new IllegalArgumentException("Projectile needs a fresh contact slot and detached continuation");
         }

@@ -9,7 +9,10 @@ import com.imdomestic.chorus.stat.Unit;
 import java.util.Optional;
 
 /** Values resolve once when launched. Drag is a multiplier applied every 50 ms physical tick. */
-public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination) {
+public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination, Evaluation.Target emitter) {
+    public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination) {
+        this(position, direction, speed, gravity, drag, lifetime, collision, tracking, destination, Evaluation.Target.SOURCE_OWNER);
+    }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime) { this(position, direction, speed, gravity, drag, lifetime, Collisions.STOP); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision) { this(position, direction, speed, gravity, drag, lifetime, collision, Optional.empty()); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking) { this(position, direction, speed, gravity, drag, lifetime, collision, tracking, Optional.empty()); }
@@ -71,6 +74,7 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
         ProjectileFlight.Collision resolve(Evaluation e) { return new ProjectileFlight.Collision(blockBounces.resolve(e), entityPierces.resolve(e), hitsPerTarget.resolve(e), measure(restitution, Unit.MULTIPLIER, e), totalContinuations.resolve(e)); }
     }
     public void validate(Validation v) {
+        v.target(emitter);
         collision.validate(v);
         tracking.ifPresent(t -> t.validate(v)); destination.ifPresent(d -> d.validate(v));
         if (tracking.isPresent() && destination.isPresent()) throw new IllegalArgumentException("Projectile tracking and destination are mutually exclusive");

@@ -601,15 +601,17 @@ public final class EffectCodecs {
                     values.fieldOf("drag").forGetter(ProjectileSpec::drag), values.fieldOf("lifetime").forGetter(ProjectileSpec::lifetime),
                     collisions.optionalFieldOf("collision", ProjectileSpec.Collisions.STOP).forGetter(ProjectileSpec::collision),
                     tracking.optionalFieldOf("tracking").forGetter(ProjectileSpec::tracking),
-                    destination.optionalFieldOf("destination").forGetter(ProjectileSpec::destination)
-            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking", "destination"));
+                    destination.optionalFieldOf("destination").forGetter(ProjectileSpec::destination),
+                    TARGET.optionalFieldOf("emitter", Evaluation.Target.SOURCE_OWNER).forGetter(ProjectileSpec::emitter)
+            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking", "destination", "emitter"));
             Codec<ShotActions.Membership> membership = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("binding").forGetter(ShotActions.Membership::binding), values.fieldOf("pellet").forGetter(ShotActions.Membership::pellet)
             ).apply(i, ShotActions.Membership::new)), Set.of("binding", "pellet"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
-                    self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot)
-            ).apply(i, EffectProgram.Projectile::new)), Set.of("projectile", "as", "do", "shot"));
+                    self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot),
+                    Codec.STRING.optionalFieldOf("launch_as").forGetter(EffectProgram.Projectile::launchBind)
+            ).apply(i, EffectProgram.Projectile::new)), Set.of("projectile", "as", "do", "shot", "launch_as"));
             Codec<PickupSpec.Attraction> attraction = strict(RecordCodecBuilder.create(i -> i.group(
                     ID.fieldOf("profile").forGetter(PickupSpec.Attraction::profile), values.fieldOf("radius").forGetter(PickupSpec.Attraction::radius),
                     values.fieldOf("speed").forGetter(PickupSpec.Attraction::speed)

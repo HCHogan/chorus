@@ -114,7 +114,8 @@
       "com.imdomestic.chorus.HealthPaymentGameTest",
       "com.imdomestic.chorus.BreakoutGameTest",
       "com.imdomestic.chorus.FreezeDamageGameTest",
-      "com.imdomestic.chorus.ConstructGameTest"
+      "com.imdomestic.chorus.ConstructGameTest",
+      "com.imdomestic.chorus.ProjectileEmitterGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

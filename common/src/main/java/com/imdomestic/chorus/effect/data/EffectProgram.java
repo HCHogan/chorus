@@ -91,9 +91,10 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Pickup(PickupSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty()); }
         public Pickup { java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); java.util.Objects.requireNonNull(spawnBind); }
     }
-    public record Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot) implements Step {
-        public Projectile(ProjectileSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty()); }
-        public Projectile { java.util.Objects.requireNonNull(shot); java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }
+    public record Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot, Optional<String> launchBind) implements Step {
+        public Projectile(ProjectileSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty(), Optional.empty()); }
+        public Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot) { this(spec, bind, body, shot, Optional.empty()); }
+        public Projectile { java.util.Objects.requireNonNull(shot); java.util.Objects.requireNonNull(launchBind); java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }
     }
     public record After(Value delay, com.imdomestic.chorus.effect.EffectContinuations.Lifetime lifetime, List<Step> body) implements Step {
         public After { java.util.Objects.requireNonNull(delay); java.util.Objects.requireNonNull(lifetime); body = List.copyOf(body); }

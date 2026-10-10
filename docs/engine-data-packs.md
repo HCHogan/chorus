@@ -1787,6 +1787,10 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 ## 物理投射物与碰撞动作
 
+`projectile.emitter` 可显式指定发射实体，默认 `source_owner`。它在发射时捕获为身份，与原始归属 owner 一起排除碰撞和追踪选敌；不替换原版 projectile owner、友敌参照或动作体的伤害信用。炮台可以使用 `emitter: "self"` 从自身内部发射，来源归属仍为施放者。发射实体后来被移除不会撤销已生成的弹体；从已捕获位置继续发射是否允许，由内容自己的存活条件控制。
+
+投射物步骤还可用 `launch_as: "launch"` 保存立即生成回执，再以 `chorus:result_flag` 读取 `launched / missing_position / missing_direction / wrong_dimension / unloaded / rejected / expired_shot`，或读取 count（0 / 1）。它与 `as` 绑定的未来接触结果分开，适合“首次成功开火后移除减伤”等反应；请求发射不等于成功生成。未知世界结果不会进入成功或失败分支，也不会自动重试。launch_as 不得覆盖已有绑定或接触绑定，自己的接触动作体不能读取尚未返回的这份生成回执；它也不是 LivingEntity 目标集合。整枪成员投射物保留同样的回执语义和原有成员预留 / 拒绝结算。
+
 `projectile` 是与 `after / for_each` 并列的控制步骤。先用 `capture_position`（通常 `anchor: eyes`）、`capture_direction` 和 `capture_damage` 保存 `muzzle / aim / shot`，再发射：
 
 ```json
