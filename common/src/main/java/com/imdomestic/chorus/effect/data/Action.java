@@ -14,6 +14,17 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface Action {
+    record InspectRelation(Evaluation.Target left, Evaluation.Target right) implements Action {
+        @Override public ResultShape validate(Validation v) { v.target(left); v.target(right); return ResultShape.RELATION; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.target.RelationQuery(e.target(left), e.target(right)));
+        }
+        @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult result) {
+            var receipt = (com.imdomestic.chorus.effect.target.RelationQuery.Result) result;
+            if (!receipt.query().equals(e.context().command(com.imdomestic.chorus.effect.target.RelationQuery.class))) throw new IllegalArgumentException("Relation observation differs from request");
+            return new RuleEngine.Local<>(e.state(), receipt, List.of());
+        }
+    }
     ResultShape validate(Validation validation);
     RuleEngine.Outcome<EffectState> execute(Evaluation evaluation);
     default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.ActionResult receipt) {

@@ -5964,10 +5964,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
           "symbol": "unequippedGrenadeKeepsNineSecondFieldButLaterSlowUsesCurrentDuranceAndFreezes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "twoPhysicalBurstsApplyTenStacksPerGuardianHitAndReachFreeze"
         }
       ],
       "gaps": [
-        "Withering Blade和Duskfield已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
+        "Withering Blade, Bleak Watcher和Duskfield已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
         "Guardian空中速度尚未适配；jump delta -0.3只是冲量校准输入，不能声称已复现跳高减半；NPC瞄准精度和Guardian Flinch未完成",
         "共享刷新、第一Slow施加者/最后Freeze施加者信用、冻结期间忽略Slow、失败保留及重试均为暂定内容政策，需原作实测",
         "四项武器数值已进入共享Profile，但稳定性、操控、后坐力的完整实际武器反馈与Champion过载反应未完成",
@@ -6076,10 +6081,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuskfieldGameTest.java",
           "symbol": "unequippedGrenadeKeepsNineSecondFieldButLaterSlowUsesCurrentDuranceAndFreezes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "alliedTurretsDoNotTargetEachOtherAndKeepIndependentDuranceLifetimes"
         }
       ],
       "gaps": [
-        "Withering Blade实际飞镖与Duskfield周期场已接入；Bleak Watcher构造物及其余生产者未装配，炮台目前只验证期限查询",
+        "Withering Blade, Duskfield and Bleak Watcher now invoke shared duration profiles; other producers, Aspect hold conversion and global grenade overrides remain incomplete.",
         "Winter’s Shroud战员时长有问号，未假定确定数值；其他来源需逐条核对",
         "施加时取样、重复MAX、共享刷新和来源信用仍是待原作实测的Chorus政策",
         "正式子职业/装备内容、HUD、状态持久化与NeoForge真实客户端仍未验收"
@@ -6212,6 +6222,162 @@
         "按实际目标类型选择层数、按发射时活动模式选择周期、重叠场共享Slow及当前Durance取样为明确Chorus政策，仍需原作实测",
         "Slow跳跃和Freeze战员阈值/碎冰数值仍使用独立校准输入；Touch of Winter、Renewal Grasps及全部金装/碎片/Champion互动未完成",
         "技能定义仍在测试资源中；正式子职业目录、技能按键/动画/HUD、物体视觉、状态持久化、完整属性/职业模组路由与NeoForge真实客户端未验收"
+      ]
+    },
+    {
+      "id": "ability/bleak_watcher",
+      "name": "Bleak Watcher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B62",
+          "text_sha256": "4828809b05f860881b4e1fd431514a9163bd26a9b74a697bc6308cffb5658f10"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D62",
+          "text_sha256": "984da7d247a4fe01802eab5809bb74a6cd7e34b3dc40177b3f5ef71084af8d70"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "B32",
+          "text_sha256": "5e6ef16f0949f589045231ea5c1d3ddcdec0ea0d0654778c3f2284c54f6ce3cd"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "N32",
+          "text_sha256": "c6e0ffd54a26669cf78919f62d26c3a83ff5832041bf7b158b3647f46e280778"
+        }
+      ],
+      "scope": "Thrown, damageable Stasis turret with five-projectile bursts, source ownership, current allegiance, initial resistance, Slow/Freeze and separately selected Glacier recharge; calibration required",
+      "acceptance": [
+        "Physical contact deploys an independent 150 HP construct for 25 seconds, or 30 seconds with Durance at deployment.",
+        "Five seeking shots over a calibrated 0.7-second burst every 2 seconds; each shot selects a current visible non-ally within 35 meters.",
+        "67% damage resistance ends on the first successful launch; failed selection or rejected launch retains it.",
+        "Each real combatant/Guardian hit applies 20/10 Slow for 4.5/2 seconds, extended by 4.5/1.75 with current Durance; 100 stacks invoke shared Freeze.",
+        "Destroyed/expired behavior cancels future shots, while already launched projectiles retain parameters and the original Stasis grenade damage credit.",
+        "Current construct allegiance follows original owner; same-owner identity survives absence, unrelated missing owners are unknown, and impact-time allies receive no damage or Slow.",
+        "Dedicated projectile damage bypasses only native hit cooldown so each rapid hit commits actual HP loss.",
+        "Selected template uses 175.6-second base recharge and 0.625 chunk scalar, current Grenade stats, and no energy reset on reselect.",
+        "Unknown world results preserve charge payment and committed damage without replaying or applying later Slow."
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bleak_watcher.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bleak_watcher_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/main/resources/data/chorus_d2/damage_type/ability_projectile.json"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-11/bleak-watcher.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "explicitCalibrationIsRequiredBeforeAbilityCostAndDefinitionsRoundTrip"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "independentConstructHasKnownHealthLifetimeAndFiveShotsPerTwoSecondCycle"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "rangeVisibilityAllianceAndFailedLaunchPreserveProtectionUntilActualFiring"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "eachActualVictimGetsItsSlowAmountAndHitTimeDuranceCanProduceFreeze"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "allianceAtImpactAndMissingOwnerSuppressDamageAndSlowAfterSuccessfulLaunch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "destructionCancelsUnfiredBurstMembersButAlreadyFlyingImpactsKeepTheirParameters"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "removalWithoutDeathObservationStopsAtNextShotAndDeniedSlowDoesNotUndoDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "twoCastersKeepIndependentTwentyFiveAndThirtySecondLifetimes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "rejectedDeploymentAndUnknownLaunchOrDamageKeepPriorCommitsWithoutReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherTest.java",
+          "symbol": "selectedTurretUsesGlacierRechargeAndChunkScalarWithoutResettingEnergyOnReselect"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "close"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "realFirstBurstRemovesInitialResistanceHitsFiveTimesAndFreezesACombatant"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "twoPhysicalBurstsApplyTenStacksPerGuardianHitAndReachFreeze"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "destroyingTheTurretStopsFutureShotsButItsFirstProjectileStillAppliesSlow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "alliedTurretsDoNotTargetEachOtherAndKeepIndependentDuranceLifetimes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "allianceChangesBeforeImpactPreventFriendlyDamageAndUnknownOwnersAreNotEnemies"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "unknownPhysicalHitKeepsDamageAndSpentEnergyWithoutReplayingOrApplyingSlow"
+        }
+      ],
+      "gaps": [
+        "This template is a separately selected grenade ability. Holding the current grenade to convert it through the Aspect, and overriding every equipped grenade cooldown/chunk scalar, are not implemented.",
+        "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
+        "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
+        "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",
+        "Durance is sampled at deployment for construct life and at impact for each Slow. Existing deadlines are preserved. Successful launch, not a damage receipt, ends the initial resistance.",
+        "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources."
       ]
     }
   ]

@@ -1,0 +1,125 @@
+{
+  "note": "Synthetic acceptance inputs, not measured Destiny flight, geometry, damage or burst phase. Four evenly spaced sub-delays assume first-to-fifth span of 0.7 seconds.",
+  "parameters": {
+    "deployment_speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "deployment_gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "deployment_drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "deployment_lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "width": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    },
+    "height": {
+      "type": "chorus:constant",
+      "value": 0.75,
+      "unit": "meter"
+    },
+    "first_burst_delay": {
+      "type": "chorus:constant",
+      "value": 0.25,
+      "unit": "second"
+    },
+    "shot_2_delay": {
+      "type": "chorus:constant",
+      "value": 0.175,
+      "unit": "second"
+    },
+    "shot_3_delay": {
+      "type": "chorus:constant",
+      "value": 0.35,
+      "unit": "second"
+    },
+    "shot_4_delay": {
+      "type": "chorus:constant",
+      "value": 0.525,
+      "unit": "second"
+    },
+    "shot_5_delay": {
+      "type": "chorus:constant",
+      "value": 0.7,
+      "unit": "second"
+    },
+    "shot_speed": {
+      "type": "chorus:constant",
+      "value": 40,
+      "unit": "meter_per_second"
+    },
+    "shot_gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "shot_drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "shot_lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "tracking_radius": {
+      "type": "chorus:constant",
+      "value": 35,
+      "unit": "meter"
+    },
+    "turn_rate": {
+      "type": "chorus:constant",
+      "value": 720,
+      "unit": "degree_per_second"
+    },
+    "acquisition_angle": {
+      "type": "chorus:constant",
+      "value": 180,
+      "unit": "degree"
+    },
+    "combatant_damage": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "damage"
+    },
+    "guardian_damage": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "damage"
+    },
+    "slow_jump_delta": {
+      "type": "chorus:constant",
+      "value": -0.3,
+      "unit": "delta"
+    },
+    "combatant_threshold": {
+      "type": "chorus:constant",
+      "value": 100,
+      "unit": "damage"
+    },
+    "shatter_radius": {
+      "type": "chorus:constant",
+      "value": 4,
+      "unit": "meter"
+    },
+    "guardian_shatter_damage": {
+      "type": "chorus:constant",
+      "value": 80,
+      "unit": "damage"
+    }
+  }
+}

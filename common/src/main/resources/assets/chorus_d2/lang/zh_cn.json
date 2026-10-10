@@ -9,5 +9,8 @@
   "equipment.slot.chorus_d2.class_item": "职业物品",
   "death.attack.chorus_d2.ability_dot": "%1$s 被持续技能击败了",
   "death.attack.chorus_d2.ability_dot.player": "%1$s 被 %2$s 的持续技能击败了",
-  "death.attack.chorus_d2.ability_dot.item": "%1$s 被 %2$s 的持续技能击败了"
+  "death.attack.chorus_d2.ability_dot.item": "%1$s 被 %2$s 的持续技能击败了",
+  "death.attack.chorus_d2.ability_projectile": "%1$s 被技能弹体击败了",
+  "death.attack.chorus_d2.ability_projectile.player": "%1$s 被 %2$s 的技能弹体击败了",
+  "death.attack.chorus_d2.ability_projectile.item": "%1$s 被 %2$s 的技能弹体击败了"
 }

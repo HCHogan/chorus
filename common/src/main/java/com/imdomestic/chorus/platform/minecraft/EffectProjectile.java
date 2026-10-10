@@ -143,7 +143,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         if (offset.lengthSqr() == 0 || offset.length() > policy.radius()) return false;
         if (policy.relation() != TargetQuery.Relation.ANY) {
             var owner = getOwner(); if (owner == null || owner.isRemoved() || owner.level() != level) return false;
-            boolean allied = owner.isAlliedTo(candidate);
+            var relation = MinecraftRelations.allied(owner, candidate); if (relation.isEmpty()) return false;
+            boolean allied = relation.orElseThrow();
             if (policy.relation() == TargetQuery.Relation.ALLIED ? !allied : allied) return false;
         }
         if (acquire && !ProjectileTracking.inCone(direction(getDeltaMovement()), direction(offset), policy.acquisitionAngle())) return false;

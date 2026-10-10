@@ -13,6 +13,7 @@ import com.imdomestic.chorus.effect.target.DirectionQuery;
 import com.imdomestic.chorus.effect.target.PositionQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.target.EntityQuery;
+import com.imdomestic.chorus.effect.target.RelationQuery;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.Objects;
 import java.util.Optional;
@@ -89,6 +90,10 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 yield new DirectionQuery.Result(query, direction);
             }
             case TargetQuery query -> select(query);
+            case RelationQuery query -> {
+                var left = entities.apply(query.left()); var right = entities.apply(query.right());
+                yield new RelationQuery.Result(query, present(left) && present(right) ? MinecraftRelations.allied(left, right) : Optional.empty());
+            }
             case com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch -> launch(launch);
             case com.imdomestic.chorus.effect.object.WorldPickup.Spawn spawn -> pickup(spawn);
             case com.imdomestic.chorus.effect.object.WorldConstruct.Spawn spawn -> MinecraftConstructExecutor.spawn(level, spawn);
@@ -179,7 +184,9 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             var offset = new TargetShape.Offset(targetPoint.x() - point.x(), targetPoint.y() - point.y(), targetPoint.z() - point.z());
             if (!query.shape().contains(offset)) continue;
             boolean matches = switch (query.relation()) {
-                case ANY -> true; case ALLIED -> relative.isAlliedTo(target); case NOT_ALLIED -> !relative.isAlliedTo(target);
+                case ANY -> true;
+                case ALLIED -> MinecraftRelations.allied(relative, target).orElse(false);
+                case NOT_ALLIED -> MinecraftRelations.allied(relative, target).map(allied -> !allied).orElse(false);
             };
             if (matches && (!query.lineOfSight() || MinecraftVisibility.visible(level, point, targetPoint)))
                 selected.add(query.shape() instanceof TargetShape.Sphere ? new TargetQuery.Target(id, offset.distance()) : new TargetQuery.Target(id, offset));

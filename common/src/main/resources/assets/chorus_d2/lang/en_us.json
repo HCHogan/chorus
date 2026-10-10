@@ -9,5 +9,8 @@
   "equipment.slot.chorus_d2.class_item": "Class item",
   "death.attack.chorus_d2.ability_dot": "%1$s was defeated by a lingering ability",
   "death.attack.chorus_d2.ability_dot.player": "%1$s was defeated by %2$s's lingering ability",
-  "death.attack.chorus_d2.ability_dot.item": "%1$s was defeated by %2$s's lingering ability"
+  "death.attack.chorus_d2.ability_dot.item": "%1$s was defeated by %2$s's lingering ability",
+  "death.attack.chorus_d2.ability_projectile": "%1$s was defeated by an ability projectile",
+  "death.attack.chorus_d2.ability_projectile.player": "%1$s was defeated by %2$s's ability projectile",
+  "death.attack.chorus_d2.ability_projectile.item": "%1$s was defeated by %2$s's ability projectile"
 }

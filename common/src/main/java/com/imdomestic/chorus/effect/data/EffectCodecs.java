@@ -508,6 +508,10 @@ public final class EffectCodecs {
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(ConstructActions.Spawn::origin),
                         ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(ConstructActions.Spawn::tags)
                 ).apply(i, ConstructActions.Spawn::new)))
+                .register("chorus:inspect_relation", Action.InspectRelation.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("left", Evaluation.Target.SOURCE_OWNER).forGetter(Action.InspectRelation::left),
+                        TARGET.optionalFieldOf("right", Evaluation.Target.VICTIM).forGetter(Action.InspectRelation::right)
+                ).apply(i, Action.InspectRelation::new)))
                 .register("chorus:select_targets", Action.SelectTargets.class, selection(values))
                 .register("chorus:play_cue", Action.Cue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("cue").forGetter(Action.Cue::cue), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Cue::target)).apply(i, Action.Cue::new)));

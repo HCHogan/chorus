@@ -1,0 +1,1772 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "chorus_d2:bleak_watcher_energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0.0056947608200455585,
+      "rate_profile": "chorus_d2:bleak_watcher_regeneration",
+      "gain_profile": "chorus_d2:bleak_watcher_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:bleak_watcher",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:stasis"
+      ],
+      "cost": {
+        "resource": "chorus_d2:bleak_watcher_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:bleak_watcher_energy_scaling"
+        }
+      },
+      "parameters": {
+        "deployment_speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.deployment_speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "deployment_gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.deployment_gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "deployment_drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.deployment_drag",
+            "unit": "multiplier"
+          }
+        },
+        "deployment_lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.deployment_lifetime",
+            "unit": "second"
+          }
+        },
+        "width": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.width",
+            "unit": "meter"
+          }
+        },
+        "height": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.height",
+            "unit": "meter"
+          }
+        },
+        "first_burst_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.first_burst_delay",
+            "unit": "second"
+          }
+        },
+        "shot_2_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_2_delay",
+            "unit": "second"
+          }
+        },
+        "shot_3_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_3_delay",
+            "unit": "second"
+          }
+        },
+        "shot_4_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_4_delay",
+            "unit": "second"
+          }
+        },
+        "shot_5_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_5_delay",
+            "unit": "second"
+          }
+        },
+        "shot_speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "shot_gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "shot_drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_drag",
+            "unit": "multiplier"
+          }
+        },
+        "shot_lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shot_lifetime",
+            "unit": "second"
+          }
+        },
+        "tracking_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.tracking_radius",
+            "unit": "meter"
+          }
+        },
+        "turn_rate": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.turn_rate",
+            "unit": "degree_per_second"
+          }
+        },
+        "acquisition_angle": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.acquisition_angle",
+            "unit": "degree"
+          }
+        },
+        "combatant_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.combatant_damage",
+            "unit": "damage"
+          }
+        },
+        "guardian_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_damage",
+            "unit": "damage"
+          }
+        },
+        "slow_jump_delta": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.slow_jump_delta",
+            "unit": "delta"
+          }
+        },
+        "combatant_threshold": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.combatant_threshold",
+            "unit": "damage"
+          }
+        },
+        "shatter_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shatter_radius",
+            "unit": "meter"
+          }
+        },
+        "guardian_shatter_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_shatter_damage",
+            "unit": "damage"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.deployment_speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.deployment_gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.deployment_drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.deployment_lifetime",
+              "unit": "second"
+            }
+          },
+          "as": "landing",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "landing",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "landing",
+                    "field": "entity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:stasis_duration",
+                    "target": "source_owner",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 25,
+                      "unit": "second"
+                    },
+                    "tags": [
+                      "chorus_d2:durance_lingering"
+                    ],
+                    "numbers": {
+                      "durance_extension": {
+                        "type": "chorus:constant",
+                        "value": 5,
+                        "unit": "second"
+                      }
+                    }
+                  },
+                  "as": "duration"
+                },
+                {
+                  "action": {
+                    "type": "chorus:spawn_construct",
+                    "position": "landing",
+                    "kind": "chorus_d2:bleak_watcher",
+                    "health": {
+                      "type": "chorus:constant",
+                      "value": 150,
+                      "unit": "damage"
+                    },
+                    "width": {
+                      "type": "chorus:event_number",
+                      "name": "param.width",
+                      "unit": "meter"
+                    },
+                    "height": {
+                      "type": "chorus:event_number",
+                      "name": "param.height",
+                      "unit": "meter"
+                    },
+                    "lifetime": {
+                      "type": "chorus:result",
+                      "binding": "duration",
+                      "field": "value"
+                    },
+                    "tags": [
+                      "chorus_d2:stasis_construct"
+                    ]
+                  },
+                  "as": "spawned"
+                },
+                {
+                  "for_each": "spawned",
+                  "as": "construct",
+                  "do": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "duration": {
+                        "type": "chorus:result",
+                        "binding": "duration",
+                        "field": "value"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "first_burst_delay",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.first_burst_delay",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_2_delay",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_2_delay",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_3_delay",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_3_delay",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_4_delay",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_4_delay",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_5_delay",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_5_delay",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_speed",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_speed",
+                        "unit": "meter_per_second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_gravity",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_gravity",
+                        "unit": "meter_per_second_squared"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_drag",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_drag",
+                        "unit": "multiplier"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shot_lifetime",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shot_lifetime",
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "tracking_radius",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.tracking_radius",
+                        "unit": "meter"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "turn_rate",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.turn_rate",
+                        "unit": "degree_per_second"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "acquisition_angle",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.acquisition_angle",
+                        "unit": "degree"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "combatant_damage",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.combatant_damage",
+                        "unit": "damage"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "guardian_damage",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.guardian_damage",
+                        "unit": "damage"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "slow_jump_delta",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.slow_jump_delta",
+                        "unit": "delta"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "combatant_threshold",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.combatant_threshold",
+                        "unit": "damage"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "shatter_radius",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.shatter_radius",
+                        "unit": "meter"
+                      }
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "target": {
+                        "binding": "construct"
+                      },
+                      "component": "guardian_shatter_damage",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:event_number",
+                        "name": "param.guardian_shatter_damage",
+                        "unit": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:bleak_watcher_behavior",
+        "version": "compendium-2026-10-05",
+        "duration": 25,
+        "attach": "target",
+        "instanced_by": "source",
+        "refresh": "none",
+        "tags": [
+          "chorus_d2:bleak_watcher_behavior"
+        ],
+        "components": {
+          "numbers": {
+            "fired": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "first_burst_delay": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "shot_2_delay": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "shot_3_delay": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "shot_4_delay": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "shot_5_delay": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "shot_speed": {
+              "initial": 0,
+              "unit": "meter_per_second"
+            },
+            "shot_gravity": {
+              "initial": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "shot_drag": {
+              "initial": 0,
+              "unit": "multiplier"
+            },
+            "shot_lifetime": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "tracking_radius": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "turn_rate": {
+              "initial": 0,
+              "unit": "degree_per_second"
+            },
+            "acquisition_angle": {
+              "initial": 0,
+              "unit": "degree"
+            },
+            "combatant_damage": {
+              "initial": 0,
+              "unit": "damage"
+            },
+            "guardian_damage": {
+              "initial": 0,
+              "unit": "damage"
+            },
+            "slow_jump_delta": {
+              "initial": 0,
+              "unit": "delta"
+            },
+            "combatant_threshold": {
+              "initial": 0,
+              "unit": "damage"
+            },
+            "shatter_radius": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "guardian_shatter_damage": {
+              "initial": 0,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "bundle": "chorus_d2:bleak_watcher_behavior"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:bleak_watcher_behavior",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "before_first_shot",
+          "profile": "chorus_d2:incoming",
+          "stage": "resistance",
+          "group": "resistance",
+          "op": "resist",
+          "stacking_key": "chorus_d2:bleak_watcher_unfired",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.67,
+            "unit": "resistance"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "op": "eq",
+            "left": {
+              "type": "chorus:component",
+              "buff": "chorus_d2:bleak_watcher_behavior",
+              "component": "fired"
+            },
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          },
+          "reference": "Compendium Stasis original D103 / CSV D62; actual successful launch is the Chorus firing boundary.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "burst",
+              "event": "chorus_d2:bleak_watcher_burst",
+              "delay": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:bleak_watcher_behavior",
+                "component": "first_burst_delay"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "second"
+              },
+              "repeat": -1
+            }
+          ]
+        },
+        {
+          "id": "burst",
+          "on": "chorus_d2:bleak_watcher_burst",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "burst"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity"
+              },
+              "as": "emitter_state"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "emitter_state",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "emitter_state",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:bleak_watcher_shot",
+                  "event": "chorus_d2:bleak_watcher_shoot",
+                  "holder": "self",
+                  "target": "self",
+                  "parameters": {
+                    "shot_speed": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "shot_speed"
+                    },
+                    "shot_gravity": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "shot_gravity"
+                    },
+                    "shot_drag": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "shot_drag"
+                    },
+                    "shot_lifetime": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "shot_lifetime"
+                    },
+                    "tracking_radius": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "tracking_radius"
+                    },
+                    "turn_rate": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "turn_rate"
+                    },
+                    "acquisition_angle": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "acquisition_angle"
+                    },
+                    "combatant_damage": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "combatant_damage"
+                    },
+                    "guardian_damage": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "guardian_damage"
+                    },
+                    "slow_jump_delta": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "slow_jump_delta"
+                    },
+                    "combatant_threshold": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "combatant_threshold"
+                    },
+                    "shatter_radius": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "shatter_radius"
+                    },
+                    "guardian_shatter_damage": {
+                      "type": "chorus:component",
+                      "buff": "chorus_d2:bleak_watcher_behavior",
+                      "component": "guardian_shatter_damage"
+                    }
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:bleak_watcher_behavior",
+                    "component": "shot_2_delay"
+                  },
+                  "lifetime": "source",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:bleak_watcher_shot",
+                      "event": "chorus_d2:bleak_watcher_shoot",
+                      "holder": "self",
+                      "target": "self",
+                      "parameters": {
+                        "shot_speed": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_speed"
+                        },
+                        "shot_gravity": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_gravity"
+                        },
+                        "shot_drag": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_drag"
+                        },
+                        "shot_lifetime": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_lifetime"
+                        },
+                        "tracking_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "tracking_radius"
+                        },
+                        "turn_rate": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "turn_rate"
+                        },
+                        "acquisition_angle": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "acquisition_angle"
+                        },
+                        "combatant_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_damage"
+                        },
+                        "guardian_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_damage"
+                        },
+                        "slow_jump_delta": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "slow_jump_delta"
+                        },
+                        "combatant_threshold": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_threshold"
+                        },
+                        "shatter_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shatter_radius"
+                        },
+                        "guardian_shatter_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_shatter_damage"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:bleak_watcher_behavior",
+                    "component": "shot_3_delay"
+                  },
+                  "lifetime": "source",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:bleak_watcher_shot",
+                      "event": "chorus_d2:bleak_watcher_shoot",
+                      "holder": "self",
+                      "target": "self",
+                      "parameters": {
+                        "shot_speed": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_speed"
+                        },
+                        "shot_gravity": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_gravity"
+                        },
+                        "shot_drag": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_drag"
+                        },
+                        "shot_lifetime": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_lifetime"
+                        },
+                        "tracking_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "tracking_radius"
+                        },
+                        "turn_rate": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "turn_rate"
+                        },
+                        "acquisition_angle": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "acquisition_angle"
+                        },
+                        "combatant_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_damage"
+                        },
+                        "guardian_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_damage"
+                        },
+                        "slow_jump_delta": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "slow_jump_delta"
+                        },
+                        "combatant_threshold": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_threshold"
+                        },
+                        "shatter_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shatter_radius"
+                        },
+                        "guardian_shatter_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_shatter_damage"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:bleak_watcher_behavior",
+                    "component": "shot_4_delay"
+                  },
+                  "lifetime": "source",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:bleak_watcher_shot",
+                      "event": "chorus_d2:bleak_watcher_shoot",
+                      "holder": "self",
+                      "target": "self",
+                      "parameters": {
+                        "shot_speed": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_speed"
+                        },
+                        "shot_gravity": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_gravity"
+                        },
+                        "shot_drag": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_drag"
+                        },
+                        "shot_lifetime": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_lifetime"
+                        },
+                        "tracking_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "tracking_radius"
+                        },
+                        "turn_rate": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "turn_rate"
+                        },
+                        "acquisition_angle": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "acquisition_angle"
+                        },
+                        "combatant_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_damage"
+                        },
+                        "guardian_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_damage"
+                        },
+                        "slow_jump_delta": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "slow_jump_delta"
+                        },
+                        "combatant_threshold": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_threshold"
+                        },
+                        "shatter_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shatter_radius"
+                        },
+                        "guardian_shatter_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_shatter_damage"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:bleak_watcher_behavior",
+                    "component": "shot_5_delay"
+                  },
+                  "lifetime": "source",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:bleak_watcher_shot",
+                      "event": "chorus_d2:bleak_watcher_shoot",
+                      "holder": "self",
+                      "target": "self",
+                      "parameters": {
+                        "shot_speed": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_speed"
+                        },
+                        "shot_gravity": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_gravity"
+                        },
+                        "shot_drag": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_drag"
+                        },
+                        "shot_lifetime": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shot_lifetime"
+                        },
+                        "tracking_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "tracking_radius"
+                        },
+                        "turn_rate": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "turn_rate"
+                        },
+                        "acquisition_angle": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "acquisition_angle"
+                        },
+                        "combatant_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_damage"
+                        },
+                        "guardian_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_damage"
+                        },
+                        "slow_jump_delta": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "slow_jump_delta"
+                        },
+                        "combatant_threshold": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "combatant_threshold"
+                        },
+                        "shatter_radius": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "shatter_radius"
+                        },
+                        "guardian_shatter_damage": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bleak_watcher_behavior",
+                          "component": "guardian_shatter_damage"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:bleak_watcher_behavior"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:bleak_watcher_behavior"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:bleak_watcher_shot",
+      "parameters": {
+        "shot_speed": "meter_per_second",
+        "shot_gravity": "meter_per_second_squared",
+        "shot_drag": "multiplier",
+        "shot_lifetime": "second",
+        "tracking_radius": "meter",
+        "turn_rate": "degree_per_second",
+        "acquisition_angle": "degree",
+        "combatant_damage": "damage",
+        "guardian_damage": "damage",
+        "slow_jump_delta": "delta",
+        "combatant_threshold": "damage",
+        "shatter_radius": "meter",
+        "guardian_shatter_damage": "damage"
+      },
+      "rules": [
+        {
+          "id": "shoot",
+          "on": "chorus_d2:bleak_watcher_shoot",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:bleak_watcher_behavior"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity"
+              },
+              "as": "emitter_state"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "emitter_state",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "emitter_state",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:capture_position",
+                    "target": "self",
+                    "anchor": "body"
+                  },
+                  "as": "muzzle"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "muzzle"
+                    },
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 35,
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "self",
+                      "source_owner"
+                    ],
+                    "order": "nearest",
+                    "limit": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    },
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "aim_target",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_position",
+                            "target": {
+                              "binding": "aim_target"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "target_point"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:direction_between",
+                            "from": "muzzle",
+                            "to": "target_point"
+                          },
+                          "as": "aim"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:source_parameter",
+                              "name": "combatant_damage"
+                            },
+                            "damage_type": "chorus_d2:ability_projectile",
+                            "scaling_profile": "chorus_d2:outgoing",
+                            "tags": [
+                              "chorus:ability_damage",
+                              "chorus:grenade_damage",
+                              "chorus_d2:stasis",
+                              "chorus_d2:bleak_watcher_bolt"
+                            ],
+                            "kill_tags": [
+                              "chorus:grenade_kill"
+                            ]
+                          },
+                          "as": "combatant_shot"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:capture_damage",
+                            "amount": {
+                              "type": "chorus:source_parameter",
+                              "name": "guardian_damage"
+                            },
+                            "damage_type": "chorus_d2:ability_projectile",
+                            "scaling_profile": "chorus_d2:outgoing",
+                            "tags": [
+                              "chorus:ability_damage",
+                              "chorus:grenade_damage",
+                              "chorus_d2:stasis",
+                              "chorus_d2:bleak_watcher_bolt"
+                            ],
+                            "kill_tags": [
+                              "chorus:grenade_kill"
+                            ]
+                          },
+                          "as": "guardian_shot"
+                        },
+                        {
+                          "projectile": {
+                            "position": "muzzle",
+                            "direction": "aim",
+                            "emitter": "self",
+                            "speed": {
+                              "type": "chorus:source_parameter",
+                              "name": "shot_speed"
+                            },
+                            "gravity": {
+                              "type": "chorus:source_parameter",
+                              "name": "shot_gravity"
+                            },
+                            "drag": {
+                              "type": "chorus:source_parameter",
+                              "name": "shot_drag"
+                            },
+                            "lifetime": {
+                              "type": "chorus:source_parameter",
+                              "name": "shot_lifetime"
+                            },
+                            "tracking": {
+                              "radius": {
+                                "type": "chorus:source_parameter",
+                                "name": "tracking_radius"
+                              },
+                              "turn_rate": {
+                                "type": "chorus:source_parameter",
+                                "name": "turn_rate"
+                              },
+                              "acquisition_angle": {
+                                "type": "chorus:source_parameter",
+                                "name": "acquisition_angle"
+                              },
+                              "target_anchor": "body",
+                              "relation": "not_allied",
+                              "line_of_sight": true
+                            }
+                          },
+                          "as": "impact",
+                          "launch_as": "launch",
+                          "do": [
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "impact",
+                                "field": "entity"
+                              },
+                              "then": [
+                                {
+                                  "for_each": "impact",
+                                  "as": "victim",
+                                  "do": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:inspect_entity",
+                                        "target": {
+                                          "binding": "victim"
+                                        }
+                                      },
+                                      "as": "victim_state"
+                                    },
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:result_flag",
+                                            "binding": "victim_state",
+                                            "field": "available"
+                                          },
+                                          {
+                                            "type": "chorus:result_flag",
+                                            "binding": "victim_state",
+                                            "field": "alive"
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:inspect_relation",
+                                            "right": {
+                                              "binding": "victim"
+                                            }
+                                          },
+                                          "as": "relation"
+                                        },
+                                        {
+                                          "if": {
+                                            "type": "chorus:result_flag",
+                                            "binding": "relation",
+                                            "field": "not_allied"
+                                          },
+                                          "then": [
+                                            {
+                                              "if": {
+                                                "type": "chorus:result_flag",
+                                                "binding": "victim_state",
+                                                "field": "player"
+                                              },
+                                              "then": [
+                                                {
+                                                  "action": {
+                                                    "type": "chorus:damage_snapshot",
+                                                    "snapshot": "guardian_shot",
+                                                    "target": {
+                                                      "binding": "victim"
+                                                    }
+                                                  },
+                                                  "as": "hit"
+                                                },
+                                                {
+                                                  "if": {
+                                                    "type": "chorus:all",
+                                                    "of": [
+                                                      {
+                                                        "type": "chorus:result_flag",
+                                                        "binding": "hit",
+                                                        "field": "applied"
+                                                      },
+                                                      {
+                                                        "type": "chorus:not",
+                                                        "of": {
+                                                          "type": "chorus:result_flag",
+                                                          "binding": "hit",
+                                                          "field": "lethal"
+                                                        }
+                                                      }
+                                                    ]
+                                                  },
+                                                  "then": [
+                                                    {
+                                                      "type": "chorus:invoke_bundle",
+                                                      "bundle": "chorus_d2:slow_application",
+                                                      "event": "chorus_d2:apply_slow",
+                                                      "target": {
+                                                        "binding": "victim"
+                                                      },
+                                                      "parameters": {
+                                                        "slow_duration": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 2,
+                                                            "unit": "second"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 4.5,
+                                                            "unit": "second"
+                                                          }
+                                                        },
+                                                        "slow_durance_extension": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 1.75,
+                                                            "unit": "second"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 4.5,
+                                                            "unit": "second"
+                                                          }
+                                                        },
+                                                        "slow_jump_delta": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "slow_jump_delta"
+                                                        },
+                                                        "combatant_threshold": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "combatant_threshold"
+                                                        },
+                                                        "shatter_radius": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "shatter_radius"
+                                                        },
+                                                        "guardian_shatter_damage": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "guardian_shatter_damage"
+                                                        }
+                                                      },
+                                                      "numbers": {
+                                                        "stacks": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 10,
+                                                            "unit": "count"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 20,
+                                                            "unit": "count"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "else": [
+                                                {
+                                                  "action": {
+                                                    "type": "chorus:damage_snapshot",
+                                                    "snapshot": "combatant_shot",
+                                                    "target": {
+                                                      "binding": "victim"
+                                                    }
+                                                  },
+                                                  "as": "hit"
+                                                },
+                                                {
+                                                  "if": {
+                                                    "type": "chorus:all",
+                                                    "of": [
+                                                      {
+                                                        "type": "chorus:result_flag",
+                                                        "binding": "hit",
+                                                        "field": "applied"
+                                                      },
+                                                      {
+                                                        "type": "chorus:not",
+                                                        "of": {
+                                                          "type": "chorus:result_flag",
+                                                          "binding": "hit",
+                                                          "field": "lethal"
+                                                        }
+                                                      }
+                                                    ]
+                                                  },
+                                                  "then": [
+                                                    {
+                                                      "type": "chorus:invoke_bundle",
+                                                      "bundle": "chorus_d2:slow_application",
+                                                      "event": "chorus_d2:apply_slow",
+                                                      "target": {
+                                                        "binding": "victim"
+                                                      },
+                                                      "parameters": {
+                                                        "slow_duration": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 2,
+                                                            "unit": "second"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 4.5,
+                                                            "unit": "second"
+                                                          }
+                                                        },
+                                                        "slow_durance_extension": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 1.75,
+                                                            "unit": "second"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 4.5,
+                                                            "unit": "second"
+                                                          }
+                                                        },
+                                                        "slow_jump_delta": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "slow_jump_delta"
+                                                        },
+                                                        "combatant_threshold": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "combatant_threshold"
+                                                        },
+                                                        "shatter_radius": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "shatter_radius"
+                                                        },
+                                                        "guardian_shatter_damage": {
+                                                          "type": "chorus:source_parameter",
+                                                          "name": "guardian_shatter_damage"
+                                                        }
+                                                      },
+                                                      "numbers": {
+                                                        "stacks": {
+                                                          "type": "chorus:choose",
+                                                          "if": {
+                                                            "type": "chorus:result_flag",
+                                                            "binding": "victim_state",
+                                                            "field": "player"
+                                                          },
+                                                          "then": {
+                                                            "type": "chorus:constant",
+                                                            "value": 10,
+                                                            "unit": "count"
+                                                          },
+                                                          "else": {
+                                                            "type": "chorus:constant",
+                                                            "value": 20,
+                                                            "unit": "count"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "launch",
+                                "field": "launched"
+                              },
+                              {
+                                "type": "chorus:has_buff",
+                                "buff": "chorus_d2:bleak_watcher_behavior"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:update_component",
+                              "buff": "chorus_d2:bleak_watcher_behavior",
+                              "component": "fired",
+                              "op": "set",
+                              "value": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:bleak_watcher_behavior"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

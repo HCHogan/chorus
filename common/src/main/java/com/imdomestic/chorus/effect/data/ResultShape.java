@@ -115,6 +115,11 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public static final ResultShape POSITION = new ResultShape(Map.of(), Map.of(
             "available", result -> ((com.imdomestic.chorus.effect.target.PositionResult) result).position().isPresent(),
             "missing", result -> ((com.imdomestic.chorus.effect.target.PositionResult) result).position().isEmpty()), false, Reference.POSITION);
+    public static final ResultShape RELATION = new ResultShape(Map.of(), Map.of(
+            "available", r -> ((com.imdomestic.chorus.effect.target.RelationQuery.Result) r).allied().isPresent(),
+            "missing", r -> ((com.imdomestic.chorus.effect.target.RelationQuery.Result) r).allied().isEmpty(),
+            "allied", r -> ((com.imdomestic.chorus.effect.target.RelationQuery.Result) r).allied().orElse(false),
+            "not_allied", r -> ((com.imdomestic.chorus.effect.target.RelationQuery.Result) r).allied().map(a -> !a).orElse(false)));
     private static com.imdomestic.chorus.effect.target.EntityQuery.Result entity(RuleEngine.ActionResult result) {
         return (com.imdomestic.chorus.effect.target.EntityQuery.Result) result;
     }

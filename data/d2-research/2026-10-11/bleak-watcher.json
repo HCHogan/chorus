@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Partial thrown turret producer; Aspect input conversion and global grenade override remain unimplemented",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+    "retrieved_at": "2026-10-10T22:03:30.794295+00:00",
+    "html_sha256": "02447d395f38d4437be4e594ab71d295dc279302f1a104a80aae429560eff615",
+    "path": "data/d2-research/2026-10-11/bleak-watcher-source.html.gz",
+    "gzip_sha256": "cf7fad785b3d8a265509930bde9a0442302c5753d3e6b9de5f21effe26df4d42"
+  },
+  "cells": [
+    {
+      "original_cell": "B103",
+      "snapshot_cell": "B62",
+      "snapshot_text_sha256": "4828809b05f860881b4e1fd431514a9163bd26a9b74a697bc6308cffb5658f10",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D103",
+      "snapshot_cell": "D62",
+      "snapshot_text_sha256": "984da7d247a4fe01802eab5809bb74a6cd7e34b3dc40177b3f5ef71084af8d70",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "B39",
+      "snapshot_cell": "B32",
+      "snapshot_text_sha256": "5e6ef16f0949f589045231ea5c1d3ddcdec0ea0d0654778c3f2284c54f6ce3cd",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N39",
+      "snapshot_cell": "N32",
+      "snapshot_text_sha256": "c6e0ffd54a26669cf78919f62d26c3a83ff5832041bf7b158b3647f46e280778",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "requirements": {
+    "burst_projectiles": 5,
+    "burst_span_seconds": 0.7,
+    "burst_period_seconds": 2,
+    "target_radius_meters": 35,
+    "construct_health": 150,
+    "initial_damage_resistance": 0.67,
+    "duration_seconds": 25,
+    "durance_extension_seconds": 5,
+    "slow_stacks_combatant_guardian": [
+      20,
+      10
+    ],
+    "slow_duration_seconds_combatant_guardian": [
+      4.5,
+      2
+    ],
+    "slow_durance_extension_seconds_combatant_guardian": [
+      4.5,
+      1.75
+    ],
+    "glacier_base_cooldown_seconds": 175.6,
+    "glacier_chunk_scalar": 0.625,
+    "damage_classification": "Stasis Grenade Ability Damage"
+  },
+  "unresolved": [
+    "This template is a separately selected grenade ability. Holding the current grenade to convert it through the Aspect, and overriding every equipped grenade cooldown/chunk scalar, are not implemented.",
+    "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
+    "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
+    "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",
+    "Durance is sampled at deployment for construct life and at impact for each Slow. Existing deadlines are preserved. Successful launch, not a damage receipt, ends the initial resistance.",
+    "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources."
+  ]
+}

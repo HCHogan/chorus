@@ -2108,9 +2108,25 @@ Minecraft 使用 `chorus:effect_construct`，具有独立 UUID、真实生命值
 
 生命周期为 `[creation, expiry)`。到期即不再被存活查询选中，随后实体 tick 清理；施放者卸下来源、死亡或被移除不自动结束构造物。程序运行时关闭立即清理自己生成的构造物；运行时失败时实体失活并在下一次 tick 清理。实体不写存档。
 
-行为 Buff 是内容声明，未由 spawn 隐式创建。推荐让它持有相同期限的自有定时器，在每次攻击前检查 self 的 available / alive；在 `chorus:death` 的 victim 等于 self 时移除该行为。这样摧毁只取消对应实例的未来行为，已脱离行为生命周期的投射物可以继续。删除实体也会由下一次查询观察为 missing，进而移除行为；这里没有新增专用 despawn / construct_destroyed 事实。内容仍须声明友敌参照、施放者失联策略、攻击规则和伤害归属，不能把保留 origin 当成已经实现阵营代理。
+行为 Buff 是内容声明，未由 spawn 隐式创建。推荐让它持有相同期限的自有定时器，在每次攻击前检查 self 的 available / alive；在 `chorus:death` 的 victim 等于 self 时移除该行为。这样摧毁只取消对应实例的未来行为，已脱离行为生命周期的投射物可以继续。删除实体也会由下一次查询观察为 missing，进而移除行为；这里没有新增专用 despawn / construct_destroyed 事实。内容仍须声明友敌参照、施放者失联策略、攻击规则和伤害归属。Minecraft 的目标查询与投射物追踪现按构造物的原始 owner 投影阵营；同 owner 可直接确认为 allied，其他关系须解析双方 owner 后读取当前原版队伍，解析失败为 unknown。该投影不递归遍历所有权链，不替换原版 AI 的队伍逻辑，也不隐式禁止伤害动作。
 
-验证：`ConstructTest` 的身份、归属、独立 Buff / 定时器、失败和单位检查；共享 `ConstructGameTest` 的真实生命损失 / 死亡、独立实例、到期、未知结果及不加载区块；`ConstructClientGameTest` 的同步尺寸、生命值、占位渲染和关闭移除。当前仅完成通用宿主，Bleak Watcher 的寻敌连发与首次开火前减伤仍需独立装配。
+验证：`ConstructTest` 的身份、归属、独立 Buff / 定时器、失败和单位检查；共享 `ConstructGameTest` 的真实生命损失 / 死亡、独立实例、到期、未知结果及不加载区块；`ConstructClientGameTest` 的同步尺寸、生命值、占位渲染和关闭移除。`BleakWatcherTest / BleakWatcherGameTest` 进一步验证内容驱动的寻敌连发、首次成功发射前减伤和在途弹体脱离已销毁炮台的生命周期。技能仍需原作参数校准及正式子职业装配。
+
+### 当前阵营观测
+
+`chorus:inspect_relation` 是只读世界动作，`left` 默认 `source_owner`，`right` 默认 `victim`，支持普通目标与词法目标绑定：
+
+```json
+[
+  {"action":{"type":"chorus:inspect_relation","left":"source_owner","right":"victim"},"as":"relation"},
+  {"if":{"type":"chorus:result_flag","binding":"relation","field":"not_allied"},
+   "then":[{"type":"chorus:play_cue","cue":"test:enemy_hit"}]}
+]
+```
+
+回执提供 `available / missing / allied / not_allied`。缺失实体、跨维度或无法解析构造物的 owner 时可能返回 unknown，此时 `missing=true`，其余三个标志均为 false；不要用 `not allied` 的布尔反转代替 `not_allied`。相同构造物 owner 身份不需要 owner 当前仍在世界中。关系有方向，查询沿用原版 `left.isAlliedTo(right)`，不推断对称性；回执校验左右双方身份，不能以其他请求的结果恢复执行。
+
+观测值不可变；需要命中时关系就应在命中 body 中再次查询。选择时的关系、追踪时的关系和命中时的关系是三个独立时点。`allied / not_allied` 目标筛选与追踪均排除 unknown 候选；物理弹体仍可能碰撞友方，是否伤害、继续或停止由内容及碰撞策略显式声明。Bleak Watcher 当前在实体命中时只对 `not_allied` 继续伤害与 Slow，友方碰撞仍消耗弹体。
 
 ## 物理拾取物的动作体
 

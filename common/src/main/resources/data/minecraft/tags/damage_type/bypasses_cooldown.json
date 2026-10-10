@@ -1,1 +1,7 @@
-{"replace":false,"values":["chorus_d2:ability_dot"]}
+{
+  "replace": false,
+  "values": [
+    "chorus_d2:ability_dot",
+    "chorus_d2:ability_projectile"
+  ]
+}
