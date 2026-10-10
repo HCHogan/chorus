@@ -57,6 +57,16 @@ fabricApi {
     }
 }
 
+// Seed the disposable client-test options before Minecraft's first frame.
+// On macOS, waiting for a display vblank can stall in SDL_GL_SwapWindow before tests start.
+tasks.named('runClientGameTest') {
+    doFirst {
+        def testDirectory = layout.buildDirectory.dir('run/clientGameTest').get().asFile
+        testDirectory.mkdirs()
+        new File(testDirectory, 'options.txt').text = 'enableVsync:false\n'
+    }
+}
+
 sourceSets.gametest {
     java.srcDir project(':common').file('src/gametest/java')
     resources.srcDir project(':common').file('src/gametest/resources')
