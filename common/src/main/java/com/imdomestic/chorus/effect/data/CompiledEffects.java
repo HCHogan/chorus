@@ -348,6 +348,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var flags = new HashMap<>(query.flags()); flags.put("free", paid == 0);
         var usedEvent = new EffectEvent(query.actor(), query.victim(), query.source(), query.tags(), numbers, flags, query.references(), query.impact());
         var receipt = new AbilityUse.Receipt(request.cast(), request.slot(), base, selected.id(), AbilityUse.Outcome.ACCEPTED, payment);
+        facts.add(new RuleEngine.Signal(AbilityUse.STARTED, new AbilityUse.Started(usedEvent, selected, receipt)));
         facts.add(new RuleEngine.Signal("chorus:ability_used", new AbilityUse.Used(usedEvent, selected, receipt)));
         return new RuleEngine.Local<>(updated, receipt, facts);
     }

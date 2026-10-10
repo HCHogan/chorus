@@ -25,6 +25,11 @@ final class EffectTestSupport {
         }
     }
     static CompiledEffects load(String fixture) throws Exception { return compile(json(fixture)); }
+    static CompiledEffects link(String... fixtures) throws Exception {
+        var fragments = new java.util.ArrayList<com.imdomestic.chorus.effect.data.EffectProgram>();
+        for (String fixture : fixtures) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json(fixture)).getOrThrow());
+        return CompiledEffects.link(fragments);
+    }
     static CompiledEffects compile(JsonObject json) { return EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, json).getOrThrow(); }
     static EffectSource source(String bundle) {
         return new EffectSource("perk", bundle, "player", new BuffInstance.Origin("player", "perk", "weapon", ""), Set.of());

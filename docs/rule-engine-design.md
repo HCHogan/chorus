@@ -130,7 +130,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:shot_resolved` | 所有成员终止或寿命截止；各目标的唯一命中 / 有效弹丸数与 complete；一组只结算一次 | 需要整枪最终结果的效果；不完整截止不能冒充全数命中 |
 | `chorus:damage_taken` | 攻击者、伤害类型、数值 | Feedback |
 | `chorus:heal` / `chorus:health_restored` / `chorus:overheal` | heal id、来源、目标、requested / offered / effective / overheal；分别代表接受的正治疗、实际回血、容量溢出 | 当前已接显式 heal 动作；满血不发 health_restored，取消不算 overheal；自然治疗观察尚未接入 |
-| `chorus:ability_used` | 槽位、技能 id | On Class Ability Usage（29 条）、On Super Cast |
+| `chorus:ability_started` | 已接受的技能、施放者、成本与参数快照 | 成本提交后、on_use 前的即时状态清理；拒绝请求不触发 |
+| `chorus:ability_used` | 槽位、技能 id、同一份接受回执 | 执行 on_use、On Class Ability Usage（29 条）、On Super Cast |
 | `chorus:reload_finished` | 哪个持有者的哪把武器完成合格换弹；不等同于开始换弹或弹药补充 | Kill Clip、Voltshot；已接实际容器的服务端整弹匣手动换弹，技能换弹 / 逐发装填 / 排热待扩展 |
 | `chorus:pickup` | 物体类型（能量球、弹药砖、离子痕迹……） | On Orb of Power Pickup（15 条） |
 | `chorus:finisher` | 目标 | On Finisher（15 条） |
@@ -524,7 +525,11 @@ known_conflicts / selected_resolution
 
 技能 = Java 写的"种类" + JSON 写的"定义"。参数暴露成可修饰的技能属性，运行时发出带技能 id 的事件，并且可以被整个替换。表里 77 个星象有 51 个、138 条金装护甲描述有 79 条会点名修改技能，所以技能从一开始就要设计成可被修改的。
 
-当前已有 `EffectProgram.abilities` 的即时动作入口：基础槽位选择、来源 / Buff 的分级条件替换、参数和成本 Profile、实际支付后派发 ability_used，以及共用 DSL 的 on_use。服务端命令可选择 / 施放，世界效果已通过双加载器验证；按键 / 网络、D2 专用投掷物或移动种类、子职业 / 解锁、持久化与 parent 继承仍未实现。下面的完整种类示例描述目标结构，当前可解析字段和命令以 [技能入口](engine-data-packs.md#技能选择与施放入口) 为准。
+当前已有 `EffectProgram.abilities` 的即时动作入口：基础槽位选择、来源 / Buff 的分级条件替换、参数和成本 Profile、实际支付后依次派发 ability_started / ability_used，以及共用 DSL 的 on_use。服务端命令可选择 / 施放，世界效果已通过双加载器验证；按键 / 网络、D2 专用投掷物或移动种类、子职业 / 解锁、持久化与 parent 继承仍未实现。下面的完整种类示例描述目标结构，当前可解析字段和命令以 [技能入口](engine-data-packs.md#技能选择与施放入口) 为准。
+
+### 已接受施放的开始阶段
+
+`chorus:ability_started` 与 `chorus:ability_used` 保留相同的已解析定义、成本回执及参数，不再次求值或扣费。资源事实在前，started 的即时动作随后，used 才执行技能动作体；派生事件仍按广度优先顺序排队，不把 started 解释为全局抢占或可取消的前置钩子。免费施放同样有这两个成功事件，资格或支付拒绝两者都不发。队友授予的 Woven Mail 以 Buff 持有者匹配施放者，在 started 移除旧状态；超能动作体可以重新授予 Woven Mail，新的效果不会被这次清理误删。这是通用阶段契约，核心不识别 Sever、Woven Mail 或 Super 的游戏含义。
 
 ### 种类与定义
 
@@ -871,7 +876,7 @@ UI 操作 → 类型化请求 → 服务端校验并更新装配 → 效果包�
 
 26.3 服务端每 tick 先处理排队的网络包，再 tick 各维度，再 tick 玩家连接（`MinecraftServer.processPacketsAndTick`、`tickChildren`）。下面描述完整装配后的目标顺序，引擎 tick 计划挂在整服 tick 末尾。当前实现是独立的维度运行时，在各维度 tick 末尾推进该维度的逻辑时间；尚未实现这里的整服输入装配、低频采样及技能 / HUD 同步；独立配装页订阅在维度 tick 后更新。每次外部伤害仍会先追赶到自身逻辑时刻，已开始的结算边界在同边界内处理完毕。
 
-1. 网络包：技能输入到达，解析技能槽、替换、资格和参数，确认并提交成本后 dispatch `ability_used`；拒绝请求不发成功事件。当前已通过服务端 use 命令和宿主 API 跑通，技能专用网络包仍待接入。
+1. 网络包：技能输入到达，解析技能槽、替换、资格和参数，确认并提交成本后依次 dispatch `ability_started`、`ability_used`，开始阶段的即时规则先于 on_use；拒绝请求不发成功事件。当前已通过服务端 use 命令和宿主 API 跑通，技能专用网络包仍待接入。
 2. 各维度 tick：怪物 AI、世界物体（毒池跳伤害、追踪弹）。伤害走查询，结果 dispatch `hit` / `kill`。
 3. 玩家连接 tick（`ServerPlayer.doTick`）。
 4. 引擎 tick（Fabric `END_SERVER_TICK`，NeoForge `ServerTickEvent.Post`）：

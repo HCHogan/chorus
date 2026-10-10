@@ -8,6 +8,7 @@ import java.util.*;
 public final class AbilityUse {
     private AbilityUse() {}
     public static final String EVENT = "chorus:internal/ability_use";
+    public static final String STARTED = "chorus:ability_started";
     public enum Outcome { ACCEPTED, EMPTY_SLOT, CONDITION, INSUFFICIENT_ENERGY, CONFLICT }
     /** Input facts come from a trusted host, never an arbitrary client event or ability definition. */
     public record Request(String holder, String slot, String cast, EffectEvent input) implements RuleEngine.Payload {
@@ -21,6 +22,8 @@ public final class AbilityUse {
     public record Receipt(String cast, String slot, String base, String resolved, Outcome outcome, Optional<Resources.SpendResult> cost) implements RuleEngine.ActionResult {
         public Receipt { Objects.requireNonNull(cost); }
     }
+    /** Accepted and paid; immediate start reactions run before the queued on_use body. */
+    public record Started(EffectEvent event, AbilityDefinition definition, Receipt receipt) implements EffectEvent.Carrier {}
     public record Used(EffectEvent event, AbilityDefinition definition, Receipt receipt) implements EffectEvent.Carrier {}
     public record Scope(EffectEvent event) implements RuleEngine.Payload {}
     /** The already-resolved pure write is committed before resource and ability facts can run. */

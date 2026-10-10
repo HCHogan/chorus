@@ -1,0 +1,28 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [{"id": "test:super_energy", "capacity": 1, "initial": 1}],
+  "abilities": [
+    {"id": "test:super", "slot": "test:super", "tags": ["chorus:super_ability"], "on_use": [],
+      "cost": {"resource": "test:super_energy", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}},
+    {"id": "test:ordinary", "slot": "test:ordinary", "on_use": []},
+    {"id": "test:renewing_super", "slot": "test:super", "tags": ["chorus:super_ability"],
+      "cost": {"resource": "test:super_energy", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}},
+      "on_use": [
+        {"type": "chorus:damage", "target": "self", "damage_type": "minecraft:generic_kill", "amount": {"type": "chorus:constant", "value": 10, "unit": "damage"}},
+        {"type": "chorus:grant_buff", "buff": "chorus_d2:woven_mail"}
+      ]}
+  ],
+  "bundles": [
+    {"id": "test:strand_inputs", "rules": [
+      {"id": "woven", "on": "test:woven", "if": {"type": "chorus:source_is", "source": "owner"},
+        "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:woven_mail", "target": "victim"}]},
+      {"id": "short", "on": "test:short", "if": {"type": "chorus:source_is", "source": "owner"},
+        "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:woven_mail", "target": "victim",
+          "duration": {"type": "chorus:constant", "value": 0.1, "unit": "second"}}]},
+      {"id": "sever", "on": "test:sever", "if": {"type": "chorus:source_is", "source": "owner"},
+        "do": [{"type": "chorus:apply_status", "buff": "chorus_d2:sever", "duration": {"type": "chorus:pvp",
+          "pve": {"type": "chorus:constant", "value": 10, "unit": "second"},
+          "pvp": {"type": "chorus:constant", "value": 5, "unit": "second"}}}]}
+    ]}
+  ]
+}

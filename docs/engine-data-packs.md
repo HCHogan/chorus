@@ -1209,9 +1209,11 @@ AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 
 选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before，预检定义 / 槽位后提交。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
 
-use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突和能量不足返回明确结果，不发 ability_used、不执行效果。成功时先提交实际资源扣除，再排入 resource_spent / resource_changed（仅有实际支付时）与 ability_used，世界操作随后执行。
+use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 
-ability_used 的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
+ability_started 与 ability_used 携带同一份已接受的定义、参数和成本回执。ability_started 的即时规则先于 on_use 动作体执行，适合移除“开始施放就结束”的状态；它不是取消或退款入口。资源已提交，规则若遇到未知世界结果仍遵守停机、不重放契约。它的后续派生事件按既有广度优先队列排序，并不保证先于 ability_used；需在动作体之前完成的清理应直接放在 started 的即时规则里，不能只再发一个清理事件或使用 after。
+
+两者的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
 
 有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时技能没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
 
@@ -1459,3 +1461,12 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 统计不授予退款权限，不自动返还资源或触发效果。固定充能收益使用 grant_resource；实际成本返还仍需成本回执 / retain_cost。世界结果未知时，未取得回执的动作不会被推测记入统计；已关闭统计、已授予资源及已发生的世界动作保持提交，不重放。
 
 可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计，不是 Threaded Spike 的完整九目标定义、命中档位或 Woven Mail 装配。句柄尚不支持从任意事件 / Buff 按字符串查找、跨运行时迁移或重启持久化。
+
+
+## 共享 Strand 防御示例
+
+[strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 声明 Sever、Woven Mail 和查询 Profile；[slice.json](../common/src/test/resources/effects/slice.json) 现在是引用 Sever 的片段，必须同版本链接后编译，数据包可用 imports / fragment 组织，不能单独启动 slice。strand_inputs.json 仅提供合成触发和超能测试，未装配真实 D2 技能。
+
+Sever 通过受影响持有者的 outgoing Profile 修饰输出。伤害命令须显式选择 chorus_d2:outgoing；原版 nativeSource 默认不选此 Profile，生产宿主仍需装配。默认定义时长为 10 秒，PvP 的 5 秒由 apply_status.duration 明确覆盖；不能把任意来源的未知时间自动替换成默认值。
+
+Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 event_source_tag:chorus:guardian，精准 / 近战用 event_tag:chorus:precision / chorus:melee_damage，不能把原施加者的 source_tag 当成当前攻击者。移除规则监听 chorus:ability_started，并以 target_is(self, event_actor) 匹配受益者；source_is:owner 在 Buff 上匹配的是施加者，队友授予时会选错人。旧状态先移除，on_use 重新授予的同名状态可保留。数值基线、刷新策略及待校准项见 [D2 规则集](d2-ruleset.md#sever-与-woven-mail)。

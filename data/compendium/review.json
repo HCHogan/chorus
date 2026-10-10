@@ -209,7 +209,7 @@
           "text_sha256": "2217bbdcd21db6f95d9afaa1e43c268295d33c864301fa5328c1d82fcf09bd71"
         }
       ],
-      "scope": "技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界",
+      "scope": "技能触发额度、非致死施加确认、成功后扣层、强化时间、免疫和图腾边界；与共享 Sever 链接后减少受影响者后续输出",
       "acceptance": [
         "技能激活后五次额度",
         "Sever成功才消费",
@@ -230,11 +230,20 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DamageGameTest.java",
           "symbol": "sliceAcceptsTheLivingTargetAfterAnActualTotemSave"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/strand_defense.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "sliceLinksTheSameSeverAndOnlyChangesTheDebuffedTargetsLaterOutput"
         }
       ],
       "gaps": [
         "实际职业技能与武器来源装配",
-        "完整 Sever 减伤/延长",
+        "Sever 的 Continuity 延长资格与刷新/取样校准",
         "拒绝施加时是否刷新待原作核对"
       ]
     },
@@ -256,7 +265,7 @@
           "text_sha256": "7dfca0aea64e9b30baf0a11e220eecda30e22cf91c7e9db0c5726292e50cf77d"
         }
       ],
-      "scope": "状态存在性和基础环境时间已作为 Slice 的子效果验证",
+      "scope": "共享 Sever 定义修饰受影响者输出 40% / 15%；Slice 基础 10 / 5 秒、实际原版扣血、与目标 Woven Mail 组合及延迟命中的实时查询",
       "acceptance": [
         "输出减伤",
         "环境持续时间及延长资格",
@@ -265,18 +274,131 @@
       "evidence": [
         {
           "kind": "definition",
-          "path": "common/src/test/resources/effects/slice.json"
+          "path": "common/src/test/resources/effects/strand_defense.json"
         },
         {
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/StatusComponentTest.java",
           "symbol": "enhancedSliceUsesNineSecondsAndPvpStatusUsesFiveButMismatchedAuthorizationFails"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "severFollowsTheAffectedAttackerRatherThanItsApplierOrVictim"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "liveSeverAndTargetDefenseComposeAtImpactEvenForAnEarlierAttackSnapshot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "sliceLinksTheSameSeverAndOnlyChangesTheDebuffedTargetsLaterOutput"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "actualNativeDamageComposesSeverOnTheAttackerAndMailOnTheVictim"
         }
       ],
       "gaps": [
-        "40%/15% 敌人输出减伤",
-        "延长项10+5/5+2.5的内容条件",
-        "对应技能归属和实际施加来源"
+        "Continuity 延长项 10+5 / 5+2.5 的资格、来源特例与装配尚未实现",
+        "具体技能和原版伤害的 Profile、真实来源标签尚未自动装配；混合交战分类仍待校准",
+        "on_hit 取样和单实例 reset 刷新为显式内容策略，原作对应边界仍待校准；不拿默认时长补齐 Threaded Spike 的未知值"
+      ]
+    },
+    {
+      "id": "strand/woven_mail",
+      "name": "Woven Mail",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Strand",
+          "cell": "B7",
+          "text_sha256": "d333877645b00983cf9633a81c5a2ef2da3db384e57422f462d1a7ed201ff9f4"
+        },
+        {
+          "sheet": "Strand",
+          "cell": "D7",
+          "text_sha256": "fe00d1538f22a402f42e59bc38448988ea8a1809125dc0de87b3a4b6b937dd97"
+        }
+      ],
+      "scope": "共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予",
+      "acceptance": [
+        "PvE 45% / PvP 25% 在受击者防御侧计算，与攻击者 Sever 分开",
+        "只由 Guardian 的精准或近战绕过这一项减伤，保留其他减伤",
+        "基础 10 秒及具体来源时间覆盖、精确到期与刷新政策",
+        "队友授予仍由受益者的成功超能移除，普通/拒绝/别人施放不移除",
+        "旧 Woven Mail 在超能动作体前移除，动作体新授予的同名状态保留",
+        "具体授予来源、混合模式分类及原作刷新关系校准"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/strand_defense.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "wovenBypassesOnlyItsOwnResistanceForGuardianPrecisionAndMelee"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "repeatedGrantsUseOneInstanceAndExplicitDurationOverridesExpireExactly"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "onlyTheRecipientsAcceptedSuperRemovesMailGrantedByAnotherPlayer"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "acceptedStartCommitsCostAndRemovesOldMailBeforeTheBodyCanGrantNewMail"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "underOverUsesActualWovenMailAndDoesNotCreateAHeadshotOrMeleeBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "actualNativeDamageComposesSeverOnTheAttackerAndMailOnTheVictim"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "guardianPrecisionAndMeleeBypassMailButCombatantAttacksDoNot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "actualAcceptedRecipientSuperClearsAllyMailButRejectedCastDoesNot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "superBodyTakesUnprotectedDamageThenKeepsItsNewMail"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "realTicksRemoveShortMailBeforeTheNextNativeHit"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配",
+        "单实例 refresh:reset、独立减伤组合及 Under-Over 分组为显式验证政策；跨来源短/长刷新优先级和盾层叠加仍待原作校准",
+        "Threaded Spike 按击杀时长、Warding、Into the Fray 等具体生产者还未装配；合成测试超能不代表真实技能实现"
       ]
     },
     {
@@ -1560,7 +1682,7 @@
           "text_sha256": "e4bf658cfcebf4b92c53d45c9041a76f59c876e5ce2ab80a099e22d0759ad864"
         }
       ],
-      "scope": "普通 / 强化四类盾的攻击倍率、武器直击资格与爆炸词条排除、Woven Mail Guardian 躯干分支、来源快照与层标签延后；9 项纯核心和 3 项共享世界场景通过",
+      "scope": "普通 / 强化四类盾的攻击倍率、武器直击资格与爆炸词条排除、Woven Mail Guardian 躯干分支、来源快照与层标签延后；9 项纯核心和 3 项共享世界场景通过；新增共享 Woven Mail 真实减伤组合的纯核心验证",
       "acceptance": [
         "元素盾与勇士屏障 50% / 55%，战员 overshield 125% / 140%，Guardian overshield 20% / 22%",
         "只对绑定武器的直接伤害生效，排除 Explosive Damage Perks；其他武器与所有者隔离",
@@ -1641,12 +1763,21 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/strand_defense.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
+          "symbol": "underOverUsesActualWovenMailAndDoesNotCreateAHeadshotOrMeleeBonus"
         }
       ],
       "gaps": [
         "真实装备、武器实例、直击 / 爆炸词条分量与 Guardian / bodyshot 分类仍由宿主明确提供",
         "实际元素盾 / 勇士屏障 / 战员与 Guardian overshield 内容和标签自动装配尚未完成",
-        "Woven Mail 测试 Buff 只验证资格，没有完整减伤、来源与生命周期",
+        "原 shield_scaling 的 Woven Mail 标记仅作隔离测试；共享减伤定义已有基本生命周期，具体来源/子职业与 Under-Over 的世界装备装配仍待完成",
         "跨层预算、MAX 分组及 Woven Mail / 护盾分支并存的叠加仍需原作校准；合成容量不代表原作投影",
         "固定快照的绝对数值和强化值未获官方独立验证；7.2.0.1 仅支持分支和类别变更"
       ]
@@ -1953,12 +2084,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DamageTallyGameTest.java",
           "symbol": "unknownDamageNeverBecomesConfirmedTallyAndUnknownPayoffCannotReopenIt"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/strand_defense.json"
         }
       ],
       "gaps": [
         "尚未提供此技能的数据定义；现有逐接触计数可驱动衰减，但通用夹具并非Threaded Spike的数值/时序",
         "未知半径和Sever持续时间保持未知；没有用合成扫描参数填入原作数据，转向率/轨迹与衰减计数仍待校准",
-        "通用 destination 返回与 ARRIVED / TARGET_LOST / CAUGHT 已验收；本技能的九目标连锁何时转入返回、近战输入映射/接回窗口校准、通用实际命中/击杀统计已完成，但原作命中档位、资格策略与 Woven Mail 尚未装配。retain_cost 支持共享实付成本退款，但原表 Melee % 不自动解释为实际成本百分比",
+        "通用 destination 返回与 ARRIVED / TARGET_LOST / CAUGHT 已验收；本技能的九目标连锁何时转入返回、近战输入映射/接回窗口校准、通用实际命中/击杀统计已完成，但原作命中档位、资格策略与按击杀授予共享 Woven Mail 的动作尚未装配。retain_cost 支持共享实付成本退款，但原表 Melee % 不自动解释为实际成本百分比",
         "完整技能资源、原作模式/属性缩放、动作归属交互和表现未装配",
         "返回夹具使用两个物理实体表示去程/回程，接回夹具参数为合成值；同一实体内阶段切换、完整轨迹/范围校准和原作接回增益仍待实现"
       ]

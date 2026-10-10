@@ -5,11 +5,7 @@
       "id": "chorus_d2:slice", "version": "compendium-2026-10-05", "duration": 8,
       "max_stacks": 5, "stack_mode": "replace", "refresh": "reset",
       "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep"
-    }, "bundle": "chorus_d2:slice_active"},
-    {"definition": {
-      "id": "chorus_d2:sever", "version": "compendium-2026-10-05", "duration": 10,
-      "attach": "target", "refresh": "reset"
-    }}
+    }, "bundle": "chorus_d2:slice_active"}
   ],
   "bundles": [
     {"id": "chorus_d2:slice", "rules": [{

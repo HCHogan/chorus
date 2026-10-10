@@ -1,0 +1,57 @@
+{
+  "version": "compendium-2026-10-05",
+  "defense_profile": "chorus_d2:incoming",
+  "profiles": [
+    {"id": "chorus_d2:outgoing", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": [
+      {"type": "chorus:apply", "id": "perk", "operation": "multiply", "group": {"name": "perk", "reduction": "max"}},
+      {"type": "chorus:apply", "id": "outgoing_debuff", "operation": "resist", "group": {"name": "outgoing_debuff", "reduction": "resist"}}
+    ]},
+    {"id": "chorus_d2:incoming", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": [
+      {"type": "chorus:apply", "id": "resistance", "operation": "resist", "group": {"name": "resistance", "reduction": "resist"}}
+    ]}
+  ],
+  "buffs": [
+    {"definition": {
+      "id": "chorus_d2:sever", "version": "compendium-2026-10-05", "duration": 10,
+      "attach": "target", "refresh": "reset", "tags": ["chorus_d2:sever", "chorus_d2:strand_debuff"]
+    }, "bundle": "chorus_d2:sever_active"},
+    {"definition": {
+      "id": "chorus_d2:woven_mail", "version": "compendium-2026-10-05", "duration": 10,
+      "attach": "target", "refresh": "reset", "tags": ["chorus_d2:woven_mail"]
+    }, "bundle": "chorus_d2:woven_mail_active"}
+  ],
+  "bundles": [
+    {"id": "chorus_d2:sever_active", "scope": "buff", "modifiers": [
+      {"id": "outgoing", "profile": "chorus_d2:outgoing", "stage": "outgoing_debuff", "group": "outgoing_debuff",
+        "op": "resist", "stacking_key": "chorus_d2:sever", "evaluate": "on_hit",
+        "value": {"type": "chorus:pvp",
+          "pve": {"type": "chorus:constant", "value": 0.4, "unit": "resistance"},
+          "pvp": {"type": "chorus:constant", "value": 0.15, "unit": "resistance"}},
+        "reference": "Compendium 2026-10-05 CSV Strand D8; live sheet row 10 checked 2026-10-10. Live impact sampling and grouping are Chorus content policy.",
+        "confidence": "assumed"}
+    ]},
+    {"id": "chorus_d2:woven_mail_active", "scope": "buff", "modifiers": [
+      {"id": "incoming", "profile": "chorus_d2:incoming", "stage": "resistance", "group": "resistance",
+        "op": "resist", "stacking_key": "chorus_d2:woven_mail",
+        "value": {"type": "chorus:pvp",
+          "pve": {"type": "chorus:constant", "value": 0.45, "unit": "resistance"},
+          "pvp": {"type": "chorus:constant", "value": 0.25, "unit": "resistance"}},
+        "if": {"type": "chorus:not", "of": {"type": "chorus:all", "of": [
+          {"type": "chorus:event_source_tag", "tag": "chorus:guardian"},
+          {"type": "chorus:any", "of": [
+            {"type": "chorus:event_tag", "tag": "chorus:precision"},
+            {"type": "chorus:event_tag", "tag": "chorus:melee_damage"}
+          ]}
+        ]}},
+        "reference": "Compendium 2026-10-05 CSV Strand D7; live sheet row 9 checked 2026-10-10. Guardian precision and melee bypass only this contribution; classification and mixed-mode policy require host calibration.",
+        "confidence": "assumed"}
+    ], "rules": [
+      {"id": "remove_on_super", "on": "chorus:ability_started",
+        "if": {"type": "chorus:all", "of": [
+          {"type": "chorus:target_is", "left": "self", "right": "event_actor"},
+          {"type": "chorus:event_tag", "tag": "chorus:super_ability"}
+        ]},
+        "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:woven_mail"}]}
+    ]}
+  ]
+}

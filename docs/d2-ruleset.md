@@ -235,7 +235,23 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 [shield_scaling.json](../common/src/test/resources/effects/shield_scaling.json) 使用合成容量和局部减伤验证引擎：20 点输入依次通过容量 3 / 本地倍率 1.5 的元素层、容量 4.5 / 减伤倍率 0.3 / 攻击倍率 2.25 的 overshield，剩余预算为 `20 − 3 / 1.5 − 4.5 / (0.3 × 2.25)`，再交给原版护甲、Absorption 与生命。9 项纯核心测试及 3 项共享世界场景通过；这证明 Chorus 契约的一致性，不能反推原作的全部跨层行为。
 
-覆盖保持 partial：全局 Woven Mail 分支与护盾分支并存时的叠加、MAX 分组、盾标签分类和跨层预算都是待校准的内容选择，计算贡献保留 assumed 标记。完整 Woven Mail 减伤、实际勇士屏障 / 弱点、武器弹丸 / 爆炸分量分类、真实装备和 Guardian 身份自动装配尚未实现。合成 Woven Mail Buff 仅用于资格查询，未实现其完整内容。
+覆盖保持 partial：全局 Woven Mail 分支与护盾分支并存时的叠加、MAX 分组、盾标签分类和跨层预算都是待校准的内容选择，计算贡献保留 assumed 标记。实际勇士屏障 / 弱点、武器弹丸 / 爆炸分量分类、真实装备和 Guardian 身份自动装配尚未实现。原 shield_scaling.json 的 Woven Mail 标记仍只作资格隔离测试；新增 StrandDefenseTest 将同一 Under-Over 词条接到下节的真实减伤定义，PvP 躯干 100 点分别得到 100 × 1.20 × 0.75 = 90、强化 91.5 点。这里只验证明确指定的组合政策，未据此完成跨层校准。
+
+## Sever 与 Woven Mail
+
+共享定义在 [strand_defense.json](../common/src/test/resources/effects/strand_defense.json)，Slice 通过链接引用同一 Sever。固定基线为 Compendium 2026-10-05 CSV Strand B/D7、B/D8；2026-10-10 也核对了[在线 Strand 原表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1870531554#gid=1870531554)第 9 / 10 行，数值与例外一致。CSV 行号和在线行号分开保存，不重写已有来源摘要。[Bungie 7.3.0](https://www.bungie.net/7/en/News/Article/update-7-3-0-patch-notes)曾明确把 Woven Mail 对战员减伤从 55% 调至 45%；历史更新仅作交叉依据，当前实现仍按固定快照验收。
+
+| 效果 | 已表达的规则 | 归属与边界 |
+| --- | --- | --- |
+| Sever | 输出减少 40% / PvP 15%；Slice 施加 10 / 5 秒 | 修饰受影响者发出的伤害，原施加者与受击目标不会因此获得该输出修饰 |
+| Woven Mail | 受到伤害减少 45% / PvP 25%；基础 10 秒，可按授予来源覆盖时间 | Guardian 的精准命中与近战绕过这一项减伤，其他独立减伤继续生效；战员同类攻击不因此绕过 |
+| 超能开始 | 受益者已接受的任何带 super_ability 标签的施放移除旧 Woven Mail | 队友施放、普通技能、条件或成本拒绝不移除；技能动作体新授予的 Woven Mail 保留 |
+
+100 点 PvE 输入在攻击者 Sever 和目标 Woven Mail 下为 100 × 0.6 × 0.55 = 33；PvP 为 100 × 0.85 × 0.75 = 63.75。原版实际扣血、来源解绑后的状态、精确到期、受益者 / 施加者隔离，以及超能清理先于动作体均有测试。
+
+覆盖仍为 partial。上述数值的 PvE / PvP 分支沿用 EffectState.mode；Guardian / 精准 / 近战标签和攻击 Profile 由可信宿主显式提供，尚未做真实玩家子职业装配或 Gambit 混合交战分类。Sever 采用 on_hit，使发射后新增或到期的状态影响延迟命中，这是显式内容政策，尚无原作快照时机验收。两个 Buff 均采用单实例、refresh:reset；短时重新授予可缩短旧时长，已测试该契约，但原作各授予来源之间的刷新优先级仍待校准。分组和组合也保留 assumed 贡献标记。
+
+Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%，D8 标为 10+5 / 5+2.5 秒；其资格、来源特例与装配还未实现。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 按击杀授予 Woven Mail 的收益规则也尚未接到该共享定义，不能由这里推断完整技能已经支持。
 
 ## Eternal Warrior 护盾回充
 

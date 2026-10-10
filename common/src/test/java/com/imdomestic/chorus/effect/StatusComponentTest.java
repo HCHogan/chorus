@@ -29,7 +29,7 @@ class StatusComponentTest {
     }
 
     @Test void sliceConsumesOnlyAfterStatusCommitAndDoesNotRecreateTheLastCharge() throws Exception {
-        var compiled = load("slice"); var engine = engine(compiled); var source = source(SLICE);
+        var compiled = link("strand_defense", "slice"); var engine = engine(compiled); var source = source(SLICE);
         var active = send(engine, engine.initial(EffectState.empty().withSource(source)), 0, "chorus:class_ability_used", event(source));
         assertEquals(5, buff(active.state(), SLICE, "player").count());
         var stowed = send(engine, active.state(), 0, "chorus:weapon_stowed", event(source));
@@ -59,7 +59,7 @@ class StatusComponentTest {
     }
 
     @Test void sliceRejectsLethalOrForeignWeaponHitsAndDeniedStatusesDoNotConsumeOrRefresh() throws Exception {
-        var compiled = load("slice"); var engine = engine(compiled); var source = source(SLICE);
+        var compiled = link("strand_defense", "slice"); var engine = engine(compiled); var source = source(SLICE);
         var active = send(engine, engine.initial(EffectState.empty().withSource(source)), 0, "chorus:class_ability_used", event(source));
         var lethal = send(engine, active.state(), 1_000_000, "chorus:hit", hit(source, "target", "fatal", 10, false, true, false));
         assertTrue(lethal.actions().isEmpty()); assertEquals(5, buff(lethal.state(), SLICE, "player").count());
@@ -75,7 +75,7 @@ class StatusComponentTest {
     }
 
     @Test void enhancedSliceUsesNineSecondsAndPvpStatusUsesFiveButMismatchedAuthorizationFails() throws Exception {
-        var compiled = load("slice"); var engine = engine(compiled); var base = source(SLICE);
+        var compiled = link("strand_defense", "slice"); var engine = engine(compiled); var base = source(SLICE);
         var source = new EffectSource(base.instance(), base.bundle(), base.holder(), base.origin(), Set.of("chorus:enhanced"));
         var active = send(engine, engine.initial(EffectState.empty().withSource(source).withMode(EffectState.Mode.PVP)), 0, "chorus:class_ability_used", event(source));
         assertEquals(9_000_000, buff(active.state(), SLICE, "player").stacks().getFirst().expiresAt());
@@ -135,7 +135,7 @@ class StatusComponentTest {
             assertTrue(EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).error().isPresent(), mutation);
         }
         for (String fixture : List.of("slice", "accumulator_initialization")) {
-            var compiled = load(fixture);
+            var compiled = fixture.equals("slice") ? link("strand_defense", "slice") : load(fixture);
             var encoded = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, compiled).getOrThrow();
             assertEquals(compiled.program(), EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, encoded).getOrThrow().program());
         }
