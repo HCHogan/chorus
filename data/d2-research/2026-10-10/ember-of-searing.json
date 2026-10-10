@@ -62,11 +62,13 @@
   "current_policy": {
     "qualification": "Confirmed kill actor owns fragment; Scorch was present on victim at damage receipt observation. Scorch may have been applied by someone else. Assists without kill actor credit do not qualify; current D2 assist semantics require verification.",
     "death_order": "Use immutable event_has_buff observation because live Scorch is removed by preceding death reaction. A later hit reaction does not retroactively qualify the same kill.",
-    "classification": "Actual player observation uses Guardian branch. Otherwise exactly one distinct combatant_tier_1..4 tag from entity or type observations is required. Enemy rank labels such as boss/elite are not implicitly mapped to tiers.",
+    "classification": "Receipt-time EntityObservation supplies player and entity/type tags through event_entity_observed + read_event_entity. Death reactions may remove the corpse or mutate tags without changing classification. Player selects Guardian; otherwise exactly one distinct combatant_tier_1..4 is required. Duplicate same-tier tags count once; rank labels are not tier mappings.",
     "unknown_classification": "Missing/ambiguous tier or missing entity emits chorus_d2:searing_unclassified and skips the uncomputable melee leg; still requests the independently known Firesprite leg. No invented base amount or retroactive repayment.",
     "energy": "Current base melee slot, recipient scalar and current Melee stat at kill processing. No melee gain cooldown is inferred from Firesprite cooldown.",
     "firesprite": "Requests the shared per-owner firesprite_system; existing generation cooldown only suppresses pickup creation.",
-    "class_stat": "Query-only +10, removed with fragment source."
+    "class_stat": "Query-only +10, removed with fragment source.",
+    "missing_entity_observation": "Unknown, observed unavailable, absent tier or conflicting tiers reports the existing unclassified event. Never re-query the live corpse to manufacture historical classification.",
+    "firesprite_position": "Classification survives corpse removal, but the shared Firesprite request still reads the current victim position. Missing position rejects the spawn without cooldown or rollback of credited melee energy."
   },
   "calibration": {
     "required": "chorus_d2:searing_base_energy, charge_fraction -> charge_fraction",
@@ -88,6 +90,7 @@
     "Complete combatant tier catalogue and actual kill/assist attribution policy",
     "Special same-hit Scorch/ignition ordering and effects removed during native combat",
     "Production subclass assembly and native Class-stat projection",
-    "Firesprite calibration, other pickup interactions, UI and persistence"
+    "Firesprite calibration, other pickup interactions, UI and persistence",
+    "Receipt-time death position for Firesprite creation after corpse removal"
   ]
 }

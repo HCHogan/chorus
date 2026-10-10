@@ -8,4 +8,6 @@ public class EmberOfEmpyreanGameTest extends com.imdomestic.chorus.test.EmberOfE
     public void longTimersAreCappedButUnknownRanksLeaveThemUnchangedAndReportClassificationGap(GameTestHelper h)throws Exception{super.longTimersAreCappedButUnknownRanksLeaveThemUnchangedAndReportClassificationGap(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:empyrean_dot",maxTicks=40) @Override
     public void actualScorchPeriodicDeathExtendsBothStatesForItsAttributedKiller(GameTestHelper h)throws Exception{super.actualScorchPeriodicDeathExtendsBothStatesForItsAttributedKiller(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void earlierDeathReactionCannotEraseOrChangeEmpyreansConfirmedTier(GameTestHelper h)throws Exception{super.earlierDeathReactionCannotEraseOrChangeEmpyreansConfirmedTier(h);}
 }

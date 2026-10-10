@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
-import com.imdomestic.chorus.effect.target.EntityQuery;
+import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
 import com.mojang.serialization.JsonOps;
@@ -17,11 +17,16 @@ class EmberOfEmpyreanTest {
     static CompiledEffects program()throws Exception{return link("radiant","empowering_damage","radiant_inputs","solar_effect_duration","ember_of_solace","restoration_effect","restoration_test_calibration","mercy_inputs","character_stats","ember_of_empyrean","empyrean_inputs");}
     static class Harness extends RadiantTest.Harness {
         final Map<String,EntityQuery.View> targets=new HashMap<>();final List<String> cues=new ArrayList<>();int queries;
-        DamageReceipt.Outcome outcome=DamageReceipt.Outcome.APPLIED;boolean prevented;
+        DamageReceipt.Outcome outcome=DamageReceipt.Outcome.APPLIED;boolean prevented, omitObservation;Runnable afterObservation=()->{};
         Harness()throws Exception{super(EmberOfEmpyreanTest.program(),EffectState.Mode.PVE);bind("player",FRAGMENT);bind("player","test:mercy_inputs");for(String h:List.of("player","ally"))bind(h,"test:empyrean_inputs");classify(false,Set.of("chorus_d2:combatant_tier_1"),Set.of());}
         @Override RuleEngine.ActionResult execute(RuleEngine.WorldRequest r){return switch(r.command()){
             case EntityQuery q -> {queries++;yield new EntityQuery.Result(q,Optional.ofNullable(targets.get(q.target())));}
-            case DamageCommand command -> {assertTrue(command.source().tags().contains("chorus_d2:solar"));yield new DamageReceipt(r.id().toString(),outcome,0,0,outcome==DamageReceipt.Outcome.APPLIED?10:0,outcome==DamageReceipt.Outcome.APPLIED&&!prevented?Optional.of("death/"+r.id()):Optional.empty(),outcome==DamageReceipt.Outcome.APPLIED&&prevented);}
+            case DamageCommand command -> {
+                assertTrue(command.source().tags().contains("chorus_d2:solar"));
+                var receipt=new DamageReceipt(r.id().toString(),outcome,0,0,outcome==DamageReceipt.Outcome.APPLIED?10:0,outcome==DamageReceipt.Outcome.APPLIED&&!prevented?Optional.of("death/"+r.id()):Optional.empty(),outcome==DamageReceipt.Outcome.APPLIED&&prevented);
+                if(!omitObservation)receipt=receipt.withObservedEntities(new EntityObservation(now(),Map.of(command.target(),Optional.ofNullable(targets.get(command.target())))));
+                afterObservation.run();yield receipt;
+            }
             case HealingCommand h -> new HealingReceipt(r.id().toString(),h,HealingReceipt.Outcome.APPLIED,h.amount(),h.amount(),0);
             case Action.CueCommand cue -> {cues.add(cue.cue());yield RuleEngine.Empty.INSTANCE;}
             default -> super.execute(r);
@@ -71,6 +76,17 @@ class EmberOfEmpyreanTest {
             h.kill("player",true);assertEquals(10_000_000,h.remaining(RAD));assertEquals(4_000_000,h.remaining(REST));assertEquals(List.of("test:empyrean_unclassified"),h.cues);
         }
         var h=new Harness();var tags=Set.of("chorus_d2:combatant_tier_2");h.classify(false,tags,tags);h.restore(1,4);h.kill("player",true);assertEquals(6_250_000,h.remaining(REST));assertTrue(h.cues.isEmpty());
+    }
+    @Test void receiptClassificationSurvivesRemovalOrChangedLiveTierWithoutWorldQueries()throws Exception{
+        for(boolean removed:List.of(false,true)){
+            var h=new Harness();h.grant("player","player","radiant",4);h.restore(2,4);
+            h.afterObservation=()->{if(removed)h.targets.clear();else h.classify(false,Set.of("chorus_d2:combatant_tier_4"),Set.of());};
+            h.kill("player",true);assertEquals(5_500_000,h.remaining(RAD));assertEquals(5_500_000,h.remaining(REST));assertTrue(h.cues.isEmpty());assertEquals(0,h.queries);
+        }
+    }
+    @Test void adapterWithoutEntityObservationReportsUnknownEvenIfCorpseCanStillBeQueried()throws Exception{
+        var h=new Harness();h.grant("player","player","radiant",4);h.restore(1,4);h.omitObservation=true;h.kill("player",true);
+        assertEquals(4_000_000,h.remaining(RAD));assertEquals(4_000_000,h.remaining(REST));assertEquals(List.of("test:empyrean_unclassified"),h.cues);assertEquals(0,h.queries);
     }
     @Test void healthPenaltyIsCurrentAndAllDeclarationsRoundTrip()throws Exception{
         var h=new Harness();var query=new EffectEvent("player","player",new BuffInstance.Origin("player","query","",""),Set.of(),Map.of());

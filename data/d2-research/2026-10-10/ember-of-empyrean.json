@@ -55,16 +55,16 @@
   },
   "current_policy": {
     "qualification": "Confirmed kill actor currently owns fragment, actual damage fact has chorus:solar_damage, and at least one effect remains active at reaction processing. Solar origin tags alone do not qualify non-Solar damage.",
-    "classification": "Player observation selects Guardian. Otherwise exactly one distinct combatant_tier_1..4 across entity/type tags is required. Same tier in both namespaces counts once; boss/champion rank is not a tier mapping.",
+    "classification": "Receipt-time EntityObservation supplies player and entity/type tags through event_entity_observed + read_event_entity. Death reactions may remove the corpse or mutate tags without changing classification. Player selects Guardian; otherwise exactly one distinct combatant_tier_1..4 is required. Duplicate same-tier tags count once; rank labels are not tier mappings.",
     "unknown": "Missing/ambiguous classification emits empyrean_unclassified and does not invent an extension amount or alter timers. No retroactive repayment.",
     "extension": "Independently extend existing Radiant and Restoration, no creation, no inferred cooldown. Cap remaining time at 15 even if currently longer, preserving source, tier and historic maximum. Exact expiry stays expired.",
     "solace": "Use the quoted tier table unchanged; Solace is queried by application sources and Mercy. Solar D18 has no base-plus-Solace notation; Empyrean interaction remains a documented interpretation pending direct timing measurement.",
     "status_kills": "Scorch periodic damage carries Solar damage identity and attributed killer; physical test validates it alongside actual Solar weapon kills.",
-    "health": "Current source modifier -10 query only."
+    "health": "Current source modifier -10 query only.",
+    "missing_entity_observation": "Unknown, observed unavailable, absent tier or conflicting tiers reports the existing unclassified event. Never re-query the live corpse to manufacture historical classification."
   },
   "remaining": [
     "Complete D2 tier catalogue and assist/kill attribution policy",
-    "Classification unavailable after corpse removal; receipt-time entity metadata could remove this dependency",
     "Current source-specific timing, Solace interaction and simultaneous-grant ordering calibration",
     "All Solar attack producers need canonical damage tags; source element alone is insufficient",
     "Full production subclass assembly, death/respawn policy, native Health stat, HUD and persistence"

@@ -76,7 +76,9 @@ Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个�
 
 资格按已确认 kill 的 actor 持有碎片，且 victim 的回执时 BuffObservation 中存在 Scorch；不要求灼烧也由击杀者施加。death 的清理已经移除实时 Scorch 后仍能判断。未确认死亡、无灼烧或观察时已过期不产生收益；本次 hit 反应后来添加的状态不改写历史。助攻是否应另行获得收益、同击施加 / 点燃的例外仍待校准。[2026-04-10 的一手问题报告](https://www.bungie.net/en/Forums/Post/265221874?page=0&path=1&sort=0)提到同击施加并击杀未回能；官方只要求进一步证据，不能据此当成已经确认的机制或修复。
 
-等级输入要求实际 player 观察，或在非玩家的 entity / type 标签中恰好出现一种 `chorus_d2:combatant_tier_1` 至 `_4`。同一种标签同时存在于两处仍只算一种；不同 tier 冲突则未分类。不得把 elite / boss 等敌人 Rank 标签自动当作这里的 Tier，完整目录需要另外装配。缺失实体、没有 tier 或 tier 冲突会发 `chorus_d2:searing_unclassified`，跳过无法计算的近战收益，但仍请求已知的 Firesprite 分支；这是显式不完整输入，不是零收益的游戏设定，也没有事后补领逻辑。
+等级输入从伤害回执的 EntityObservation 读取实际 player，或非玩家的 entity / type 标签中恰好出现一种 `chorus_d2:combatant_tier_1` 至 `_4`。同一种标签同时存在于两处仍只算一种；不同 tier 冲突则未分类。不得把 elite / boss 等敌人 Rank 标签自动当作这里的 Tier，完整目录需要另外装配。未提供事件实体观察、观察时实体不可用、没有 tier 或 tier 冲突会发 `chorus_d2:searing_unclassified`，跳过无法计算的近战收益，但仍请求已知的 Firesprite 分支；这是显式不完整输入，不是零收益的游戏设定，也没有事后补领逻辑。
+
+分类通过 `event_entity_observed` + `read_event_entity` 读取；death 反应删除尸体或把 T1 改成 T4 后，回能仍按回执中的 T1。没有事件观察时不会重新查询当前尸体来补造历史。Firesprite 的死亡位置仍由当前 capture_position 获得；尸体提前移除时生成回执为 missing_position，不生成拾取物、不消耗生成冷却，但不撤销已确认的近战回能。死亡位置的事件快照仍待接入。
 
 近战回能与 Firesprite 的持有者级生成冷却独立。多个有效击杀在同一生成冷却中仍各获得近战能量；没有近战选择仍可生成 Firesprite。Class +10 只影响现有属性查询，卸下来源后消失。本项仍为 partial：当前回能基准 / CES 资格、完整等级目录、特殊死亡顺序、助攻、子职业生产装配、Class 实际玩法、HUD 与持久化均未完成。
 
@@ -846,7 +848,7 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 资格读取确认 kill 的实际 actor、chorus:solar_damage 和当前碎片来源，并要求至少一个相关状态仍在。武器来源带 Solar 标签不足以把 Arc 派生伤害算成 Solar；伤害生产者须声明规范元素标签。没有推断击杀冷却，多个合格击杀各自延长。Scorch 周期伤害保留 Solar 身份和击杀归属，已进入同一规则。
 
-观察到玩家时使用 Guardian 分支；非玩家须在 entity / type 标签中恰有一个不同的 combatant_tier_1..4。两处出现同一个 Tier 不算冲突。缺失、冲突、仅有 boss 等 Rank 或尸体已不可查询时，发 empyrean_unclassified，保持现有计时；不猜延长量，不把 Rank 当 Tier，也不事后补发。
+从伤害回执的 EntityObservation 读取 player / entity / type：玩家使用 Guardian 分支，非玩家须恰有一个不同的 combatant_tier_1..4。两处出现同一个 Tier 不算冲突。death 反应删掉尸体或改写标签不影响已记录分类；不再实时查询尸体。未提供事件观察、观察到不可用、没有 Tier、冲突或仅有 boss 等 Rank 时，发 empyrean_unclassified，保持现有计时；不猜延长量，不把 Rank 当 Tier，也不事后补发。
 
 两种状态分别 extend_buff，缺失的一种保持缺失。现有 20/25 秒可以被压回剩余 15 秒，但历史最长值和恢复层级 / 来源保留；之后真正重新施加仍按 historic_max。精确到期后击杀不使状态重新出现。Solace 增加显式施加与 Mercy 的时长，此处按原表没有附加 Solace 数字的等级表执行，不再次乘 1.5；这个交互解释仍需直接计时校准。
 

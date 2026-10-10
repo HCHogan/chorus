@@ -25,8 +25,9 @@ public class EmberOfSearingGameTest {
             }
         }
     }
-    static ProjectileGameTest.Harness harness(GameTestHelper h)throws Exception{
-        var t=FirespriteGameTest.harness(h,EmberOfSearingGameTest::prepare);t.runtime.unbind("tempering");
+    static ProjectileGameTest.Harness harness(GameTestHelper h)throws Exception{return harness(h,_ -> {});}
+    static ProjectileGameTest.Harness harness(GameTestHelper h,java.util.function.Consumer<JsonObject> edit)throws Exception{
+        var t=FirespriteGameTest.harness(h,data->{prepare(data);edit.accept(data);});t.runtime.unbind("tempering");
         IncandescentGameTest.bind(t,"searing","chorus_d2:ember_of_searing","");IncandescentGameTest.bind(t,"searing-input","test:searing_inputs","");
         var owner=t.owner.getUUID().toString();var slots=new HashMap<>(t.runtime.state().engine().domain().abilities().get(owner).slots());slots.put("chorus_d2:melee","test:searing_melee");
         t.runtime.abilities(new AbilityChange(owner,t.runtime.state().engine().domain().abilities().get(owner),new AbilityLoadout(slots)));
@@ -60,6 +61,21 @@ public class EmberOfSearingGameTest {
             kill(t,target(t,"1"),"primary",false);near(h,energy(t),0,"unmarked kill");h.assertTrue(t.pickups.isEmpty(),"unmarked kill generated pickup");
             var unknown=target(t,null);unknown.addTag("chorus_d2:boss");scorch(t,t.owner,unknown);kill(t,unknown,"secondary",false);
             near(h,energy(t),0,"rank label is not a combatant tier");h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),List.of("test:unclassified"),"explicit missing-classification fact");h.assertValueEqual(t.pickups.size(),1,"known pickup leg still executes");
+        }h.succeed();
+    }
+    static void addCorpseCleanup(JsonObject data){
+        data.getAsJsonArray("bundles").add(JsonParser.parseString("""
+            {"id":"test:corpse_cleanup","rules":[{"id":"remove","on":"chorus:death","do":[{"type":"chorus:play_cue","cue":"test:remove_corpse"}]}]}
+            """));
+    }
+    @GameCase public void corpseCleanupPreservesSearingTierButMissingPositionCannotCreateAPickup(GameTestHelper h)throws Exception{
+        for(boolean nativeHit:List.of(false,true))for(boolean removed:List.of(false,true))try(var t=harness(h,EmberOfSearingGameTest::addCorpseCleanup)){
+            IncandescentGameTest.bind(t,"cleanup","test:corpse_cleanup","");var victim=target(t,"1");scorch(t,t.owner,victim);
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){victim.removeTag("chorus_d2:combatant_tier_1");victim.addTag("chorus_d2:combatant_tier_4");if(removed)victim.discard();}};
+            kill(t,victim,"primary",nativeHit);near(h,energy(t),.08*.8,"original tier one survives earlier corpse mutation or removal");
+            h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),List.of("test:remove_corpse"),"classification is present despite cleanup");
+            h.assertValueEqual(t.pickups.size(),removed?0:1,"pickup still requires current world position");
+            h.assertTrue(FirespriteGameTest.buff(t,t.owner,"chorus_d2:firesprite_cooldown").isPresent()!=removed,"missing-position spawn must not spend generation cooldown");
         }h.succeed();
     }
     @GameCase(environment="chorus_gametest:searing_dot",maxTicks=40)

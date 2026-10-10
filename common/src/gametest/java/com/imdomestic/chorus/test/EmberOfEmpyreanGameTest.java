@@ -7,8 +7,9 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 public class EmberOfEmpyreanGameTest {
     static final String RAD="chorus_d2:radiant", REST="chorus_d2:restoration";
-    static ProjectileGameTest.Harness harness(GameTestHelper h)throws Exception{
-        var t=RadiantGameTest.harness(h,data->RadiantGameTest.merge(data,"ember_of_empyrean","empyrean_inputs","restoration_effect","restoration_test_calibration","mercy_inputs","ember_of_mercy","solar","solar_test_calibration","solar_test_source"));
+    static ProjectileGameTest.Harness harness(GameTestHelper h)throws Exception{return harness(h,_ -> {});}
+    static ProjectileGameTest.Harness harness(GameTestHelper h,java.util.function.Consumer<com.google.gson.JsonObject> edit)throws Exception{
+        var t=RadiantGameTest.harness(h,data->{RadiantGameTest.merge(data,"ember_of_empyrean","empyrean_inputs","restoration_effect","restoration_test_calibration","mercy_inputs","ember_of_mercy","solar","solar_test_calibration","solar_test_source");edit.accept(data);});
         IncandescentGameTest.bind(t,"empyrean","chorus_d2:ember_of_empyrean","");IncandescentGameTest.bind(t,"empyrean-input","test:empyrean_inputs","");IncandescentGameTest.bind(t,"mercy-input","test:mercy_inputs","");return t;
     }
     static BuffInstance active(ProjectileGameTest.Harness t,String buff){return FirespriteGameTest.buff(t,t.owner,buff).orElseThrow();}
@@ -36,6 +37,16 @@ public class EmberOfEmpyreanGameTest {
             kill(t,"primary",null);h.assertValueEqual(remaining(t,RAD),25_000_000L,"unknown tier must not guess an extension or cap");h.assertValueEqual(t.cues.getLast().cue(),"test:empyrean_unclassified","explicit unknown classification");
             kill(t,"secondary","2");h.assertValueEqual(remaining(t,RAD),15_000_000L,"long Radiant reduced to cap");h.assertValueEqual(remaining(t,REST),15_000_000L,"long Restoration reduced to cap");
             h.assertValueEqual(active(t,RAD).longestDurationMicros(),25_000_000L,"Radiant history retained");h.assertValueEqual(active(t,REST).longestDurationMicros(),20_000_000L,"Restoration history retained");h.assertValueEqual(active(t,REST).origin(),origin,"restoration provenance retained");
+        }h.succeed();
+    }
+    @GameCase public void earlierDeathReactionCannotEraseOrChangeEmpyreansConfirmedTier(GameTestHelper h)throws Exception{
+        for(boolean removed:List.of(false,true))try(var t=harness(h,EmberOfSearingGameTest::addCorpseCleanup)){
+            IncandescentGameTest.bind(t,"cleanup","test:corpse_cleanup","");RadiantGameTest.grant(t,"radiant",4);EmberOfMercyGameTest.restore(t,t.owner,2,4,false);
+            var victim=FirespriteGameTest.cow(t,0,6);victim.setHealth(1);victim.addTag("chorus_d2:combatant_tier_1");
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){victim.removeTag("chorus_d2:combatant_tier_1");victim.addTag("chorus_d2:combatant_tier_4");if(removed)victim.discard();}};
+            PugilistGameTest.draw(t,"primary");PugilistGameTest.impact(t,PugilistGameTest.fire(t),victim);
+            h.assertValueEqual(remaining(t,RAD),5_500_000L,"original tier one Radiant extension after corpse mutation");h.assertValueEqual(remaining(t,REST),5_500_000L,"original tier one Restoration extension after corpse mutation");
+            h.assertValueEqual(t.cues.stream().map(com.imdomestic.chorus.effect.data.Action.CueCommand::cue).toList(),List.of("test:remove_corpse"),"no spurious unknown-tier diagnostic");
         }h.succeed();
     }
     @GameCase(environment="chorus_gametest:empyrean_dot",maxTicks=40)
