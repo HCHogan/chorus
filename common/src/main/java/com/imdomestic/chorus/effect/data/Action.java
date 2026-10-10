@@ -184,8 +184,12 @@ public interface Action {
             var damage = (DamageReceipt) receipt; var command = e.context().command(DamageCommand.class);
             if (pellet.isEmpty()) return finishDamage(e.state(), command, damage, java.util.Map.of());
             var contact = contact(e); var member = contact.member().orElseThrow();
-            return finishDamage(com.imdomestic.chorus.effect.projectile.ShotGroups.damage(e.state(), contact, command, damage), command, damage,
+            var counted = com.imdomestic.chorus.effect.projectile.ShotGroups.damage(e.state(), contact, command, damage);
+            var completed = finishDamage(counted, command, damage,
                     java.util.Map.of("shot", member.shot().id(), "pellet", Integer.toString(member.pellet()), "contact", Long.toString(contact.sequence())));
+            var signals = new java.util.ArrayList<>(completed.emitted());
+            signals.addAll(com.imdomestic.chorus.effect.projectile.ShotGroups.progress(e.state(), counted, member));
+            return new RuleEngine.Local<>(completed.state(), completed.result(), signals);
         }
     }
     record Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,

@@ -126,7 +126,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:death_prevented` | damage id、被救活者及真正生效的保护来源 | 图腾等不死保护实际成功；不算 death / kill。当前原版适配器记录实际消耗物品 ID；其他模组的保护来源仍待接入 |
 | `chorus:hit` | 同上，加 damage id、分量结果、命名伤害投影、immune / lethal；effective 明确指实际扣除的护盾与生命之和，不含溢出 | Upon dealing Melee Damage |
 | `chorus:fire_accepted` | 服务端接受的持有者 / 物品实例 / shot 标识、已提交成本及间隔；不等于实际发射或命中 | 已接实际容器的单次开火，执行 on_fire 并保留真实伤害来源 |
-| `chorus:shot_resolved` | 显式 begin_shot + 成员投射物已实现：各目标的唯一命中弹丸数、有效伤害数与完整性；一组只结算一次；内容需检查 complete 和目标计数 | One-Two Punch（12 颗弹丸全中） |
+| `chorus:shot_progress` | 显式组内实际回执使每目标唯一命中 / 有效弹丸计数增加；含前后计数，不必等待其余弹丸结束 | One-Two Punch：同一目标普通 12 / 强化 10 颗，从未达标跨至达标时触发 |
+| `chorus:shot_resolved` | 所有成员终止或寿命截止；各目标的唯一命中 / 有效弹丸数与 complete；一组只结算一次 | 需要整枪最终结果的效果；不完整截止不能冒充全数命中 |
 | `chorus:damage_taken` | 攻击者、伤害类型、数值 | Feedback |
 | `chorus:heal` / `chorus:health_restored` / `chorus:overheal` | heal id、来源、目标、requested / offered / effective / overheal；分别代表接受的正治疗、实际回血、容量溢出 | 当前已接显式 heal 动作；满血不发 health_restored，取消不算 overheal；自然治疗观察尚未接入 |
 | `chorus:ability_used` | 槽位、技能 id | On Class Ability Usage（29 条）、On Super Cast |

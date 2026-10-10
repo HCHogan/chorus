@@ -1,0 +1,47 @@
+{
+  "version":"test-1",
+  "profiles":[{"id":"test:melee_damage","version":"test-1","input_unit":"damage","steps":[
+    {"type":"chorus:apply","id":"melee","operation":"multiply","group":{
+      "name":"melee","reduction":"sum","children":[{"name":"one_two_or_frozen","reduction":"max"}]
+    }}
+  ]}],
+  "buffs":[{
+    "definition":{"id":"chorus_d2:one_two_punch","version":"test-1","duration":3,
+      "attach":"holder","instanced_by":"weapon","refresh":"reset","on_stow":"remove"},
+    "bundle":"chorus_d2:one_two_punch_active",
+    "consume_on_damage":{"when":"hit","if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"}}
+  }],
+  "bundles":[
+    {"id":"chorus_d2:one_two_punch","rules":[
+      {"id":"pellets_arm_melee","on":"chorus:shot_progress","if":{"type":"chorus:all","of":[
+        {"type":"chorus:source_is","source":"owner"},
+        {"type":"chorus:source_is","source":"this_weapon"},
+        {"type":"chorus:weapon_drawn"},
+        {"type":"chorus:event_tag","tag":"chorus:weapon_shot"},
+        {"type":"chorus:any","of":[
+          {"type":"chorus:source_tag","tag":"chorus_d2:shotgun"},
+          {"type":"chorus:source_tag","tag":"chorus_d2:hand_cannon"}
+        ]},
+        {"type":"chorus:compare","op":"lt",
+          "left":{"type":"chorus:event_number","name":"previous_max_pellets_on_target","unit":"count"},
+          "right":{"type":"chorus:enhanced","base":{"type":"chorus:constant","value":12,"unit":"count"},"enhanced":{"type":"chorus:constant","value":10,"unit":"count"}}},
+        {"type":"chorus:compare","op":"ge",
+          "left":{"type":"chorus:event_number","name":"max_pellets_on_target","unit":"count"},
+          "right":{"type":"chorus:enhanced","base":{"type":"chorus:constant","value":12,"unit":"count"},"enhanced":{"type":"chorus:constant","value":10,"unit":"count"}}}
+      ]},"do":[{"type":"chorus:grant_buff","buff":"chorus_d2:one_two_punch"}]},
+      {"id":"detach","on":"chorus:source_detached","if":{"type":"chorus:own_source"},"do":[
+        {"type":"chorus:remove_buff","buff":"chorus_d2:one_two_punch"}
+      ]}
+    ]},
+    {"id":"chorus_d2:one_two_punch_active","scope":"buff","modifiers":[{
+      "id":"melee_bonus","profile":"test:melee_damage","stage":"melee","group":"melee/one_two_or_frozen",
+      "op":"multiply","stacking_key":"chorus_d2:one_two_punch","evaluate":"on_hit",
+      "if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"},
+      "value":{"type":"chorus:choose","if":{"type":"chorus:source_tag","tag":"chorus_d2:hand_cannon"},
+        "then":{"type":"chorus:pvp","pve":{"type":"chorus:constant","value":0.75,"unit":"delta"},"pvp":{"type":"chorus:constant","value":0.5,"unit":"delta"}},
+        "else":{"type":"chorus:pvp","pve":{"type":"chorus:constant","value":1.5,"unit":"delta"},"pvp":{"type":"chorus:constant","value":1,"unit":"delta"}}},
+      "reference":"Compendium 2026-10-05 CSV snapshot Weapon Perks C154; Bungie Update 9.0.0.1 melee additive stacking",
+      "confidence":"measured"
+    }]}
+  ]
+}

@@ -2270,6 +2270,123 @@
         "超能结束输入、先扩容还是先补弹及到期弹数策略尚需内容 / 原作验收",
         "击杀回能问号保留未知；真实超能账户、Found Verdict逐发装填、Bolt Charge和物品装配未实现"
       ]
+    },
+    {
+      "id": "perk/one_two_punch",
+      "name": "One-Two Punch",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A154",
+          "text_sha256": "15c799fb843cf43317c0acc853801b4a8356da97f5897cf1a654cc4ac6954dd6"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C154",
+          "text_sha256": "a9e37fa6cc2248eb5469ad2e437a2b0392fab6417a23f06f08f5c693c48999ce"
+        }
+      ],
+      "scope": "独立 JSON；实际弹丸回执在普通12/强化10颗同目标命中时触发、三秒下一近战增伤、收枪/词条替换清除；四组武器/活动倍率和冰冻取高后相加；双加载器实际容器/命令/伤害验收",
+      "acceptance": [
+        "同一枪同一目标普通12/强化10颗唯一命中即触发；不等剩余飞行，不混合目标/枪次/重复接触",
+        "三秒内下一次合格近战命中后消费；新合格射击刷新但不叠层，同枪后续弹丸不刷新；收枪移除",
+        "霰弹枪PvE/PvP增加150%/100%，手炮增加75%/50%；与冰冻非Boss被动近战增量取高后再加算其他近战增量",
+        "实际玩家武器与技能命令驱动物理弹丸和扣血；原持有者弹丸不触发新持有者，未知结果不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/one_two_punch.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/one_two_punch_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "normalAndEnhancedArmAtTwelveOrTenConfirmedPelletsWithoutWaitingForOtherFlights"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "splitTargetsDifferentShotsAndRepeatedContactsCannotCombineIntoOneThreshold"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "shotgunAndHandCannonModeBonusesApplyOnlyToTheFirstEligibleMelee"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "frozenComparisonTakesMaximumInsideTheAdditiveMeleeGroup"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "aNewQualifyingShotRefreshesThreeSecondsWithoutStackingAndExpiryIsHalfOpen"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "stowBlocksLateArmingAndPerkReplacementRemovesAnAlreadyArmedBuff"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "oldOwnerPelletsCannotArmTheNewHolderOfTheSamePhysicalWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "confirmedEnhancedThresholdSurvivesMissingRemainingPelletsButCancelledHitsDoNotCount"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "failedMeleeKeepsTheChargeImmuneMeleeConsumesAndUnknownOutcomeDoesNotReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OneTwoPunchTest.java",
+          "symbol": "reusableDamageSnapshotsReadOnlyTheCurrentlyUnconsumedBuffAtEachImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "ownedShotgunPelletsArmOneActualMeleeWhileGrenadeAndSecondStrikeUseBaseDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "enhancedHandCannonArmsAtTenWhileTwoPelletsStillFlyAndUsesPvpMeleeBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "stowPreventsLateArmingAndRemovesAnAlreadyArmedOtherWeapon"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "realTicksExpireTheThreeSecondBuffBeforeTheNextMelee"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "unknownBoostedMeleeReceiptStopsBeforeSecondStrikeWithoutReplaying"
+        }
+      ],
+      "gaps": [
+        "枪械速度/散布、容量/间隔和基础伤害为合成夹具；完整D2原型、近战技能分类和客户端HUD尚未接入",
+        "冻结比较值50%/200%与其他40%只验证算法；冰冻非Boss的真实被动来源、数值和完整伤害Profile未装配",
+        "当前只接受管damage/damage_snapshot回执消费；原版观察入口自动消费、嵌套伤害预留和同一次多分量攻击共享资格仍未实现；double_melee为两次独立打击",
+        "免疫/格挡计作hit并消费、更高冰冻增益下仍消费、新枪刷新与词条替换清除均为明确内容策略，原表未说明的边界仍待校准"
+      ]
     }
   ]
 }

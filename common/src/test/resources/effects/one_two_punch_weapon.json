@@ -1,0 +1,395 @@
+{
+  "version": "test-1",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:pellet_weapon",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:shotgun"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "one_two_punch": {
+                "bundle": "chorus_d2:one_two_punch"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:one_two_punch",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:pellet_weapon",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 2,
+        "reserves": {
+          "rounds": 20,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "chorus:weapon_shot"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "action": {
+              "type": "chorus:begin_shot",
+              "pellets": {
+                "type": "chorus:constant",
+                "value": 12,
+                "unit": "count"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "second"
+              }
+            },
+            "as": "group"
+          },
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":0,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":1,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":2,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":3,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":4,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":5,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":6,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":7,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":8,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":9,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":10,"unit":"count"}}},
+          {"projectile":{"position":"muzzle","direction":"aim","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},"gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},"drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},"lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"impact","do":[{"for_each":"impact","as":"victim","do":[{"type":"chorus:damage_snapshot","snapshot":"shot","target":{"binding":"victim"},"pellet":"impact"}]}],"shot":{"binding":"group","pellet":{"type":"chorus:constant","value":11,"unit":"count"}}}
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "damage",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:melee",
+      "slot": "test:melee",
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:select_targets",
+            "center": "self",
+            "radius": {
+              "type": "chorus:constant",
+              "value": 3,
+              "unit": "meter"
+            },
+            "relation": "any",
+            "include_center": false,
+            "order": "nearest",
+            "limit": {"type":"chorus:constant","value":1,"unit":"count"}
+          },
+          "as": "victims"
+        },
+        {
+          "for_each": "victims",
+          "as": "victim",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": {
+                "binding": "victim"
+              },
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:melee_damage",
+              "tags": [
+                "chorus:melee_damage"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:double_melee",
+      "slot": "test:melee",
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:select_targets",
+            "center": "self",
+            "radius": {
+              "type": "chorus:constant",
+              "value": 3,
+              "unit": "meter"
+            },
+            "relation": "any",
+            "include_center": false,
+            "order": "nearest",
+            "limit": {"type":"chorus:constant","value":1,"unit":"count"}
+          },
+          "as": "victims"
+        },
+        {
+          "for_each": "victims",
+          "as": "victim",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": {
+                "binding": "victim"
+              },
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:melee_damage",
+              "tags": [
+                "chorus:melee_damage"
+              ]
+            },
+            {
+              "type": "chorus:damage",
+              "target": {
+                "binding": "victim"
+              },
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:melee_damage",
+              "tags": [
+                "chorus:melee_damage"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:blast",
+      "slot": "test:melee",
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:select_targets",
+            "center": "self",
+            "radius": {
+              "type": "chorus:constant",
+              "value": 3,
+              "unit": "meter"
+            },
+            "relation": "any",
+            "include_center": false,
+            "order": "nearest",
+            "limit": {"type":"chorus:constant","value":1,"unit":"count"}
+          },
+          "as": "victims"
+        },
+        {
+          "for_each": "victims",
+          "as": "victim",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": {
+                "binding": "victim"
+              },
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:melee_damage",
+              "tags": [
+                "chorus:grenade_damage"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:other_melee",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:melee_damage",
+          "stage": "melee",
+          "group": "melee",
+          "op": "multiply",
+          "stacking_key": "test:other_melee",
+          "evaluate": "on_hit",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.4,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:melee_damage"
+          },
+          "reference": "Synthetic additive or frozen comparison input; not a Destiny tuning claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:frozen_low",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:melee_damage",
+          "stage": "melee",
+          "group": "melee/one_two_or_frozen",
+          "op": "multiply",
+          "stacking_key": "test:frozen_low",
+          "evaluate": "on_hit",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:melee_damage"
+          },
+          "reference": "Synthetic additive or frozen comparison input; not a Destiny tuning claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:frozen_high",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:melee_damage",
+          "stage": "melee",
+          "group": "melee/one_two_or_frozen",
+          "op": "multiply",
+          "stacking_key": "test:frozen_high",
+          "evaluate": "on_hit",
+          "value": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:melee_damage"
+          },
+          "reference": "Synthetic additive or frozen comparison input; not a Destiny tuning claim",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

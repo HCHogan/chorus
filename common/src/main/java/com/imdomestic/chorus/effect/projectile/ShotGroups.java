@@ -8,9 +8,9 @@ import com.imdomestic.chorus.stat.Measure;
 import com.imdomestic.chorus.stat.Unit;
 import java.util.*;
 
-/** One declared shot, many physical contacts, one receipt-derived summary. No mutable world references. */
+/** One declared shot, receipt-derived progress, and one final summary. No mutable world references. */
 public final class ShotGroups {
-    public static final String DUE = "chorus:internal/shot_due", RESOLVED = "chorus:shot_resolved";
+    public static final String DUE = "chorus:internal/shot_due", RESOLVED = "chorus:shot_resolved", PROGRESS = "chorus:shot_progress";
     private ShotGroups() {}
     public record Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt)
             implements RuleEngine.ActionResult, RuleEngine.Payload {
@@ -47,6 +47,17 @@ public final class ShotGroups {
     public record Summary(EffectEvent event, Handle shot, boolean complete, Map<String, Integer> hits,
             Map<String, Integer> effective) implements EffectEvent.Carrier {
         public Summary { hits = Collections.unmodifiableMap(new TreeMap<>(hits)); effective = Collections.unmodifiableMap(new TreeMap<>(effective)); }
+    }
+    public record Progress(EffectEvent event, Summary before, Summary after) implements EffectEvent.Carrier {}
+    /** A threshold can be reached before every pellet has ended. Only newly confirmed counts publish progress. */
+    public static List<RuleEngine.Signal> progress(EffectState before, EffectState after, Member member) {
+        var previous = summarize(group(before, member).orElseThrow()); var current = summarize(group(after, member).orElseThrow());
+        if (previous.hits().equals(current.hits()) && previous.effective().equals(current.effective())) return List.of();
+        var event = current.event(); var numbers = new TreeMap<>(event.numbers());
+        for (String field : List.of("pellets_hit", "pellets_effective", "max_pellets_on_target", "max_effective_pellets_on_target"))
+            numbers.put("previous_" + field, previous.event().numbers().get(field));
+        var refs = new TreeMap<>(event.references()); refs.put("pellet", Integer.toString(member.pellet()));
+        return List.of(new RuleEngine.Signal(PROGRESS, new Progress(new EffectEvent(event.actor(), event.victim(), event.source(), event.tags(), numbers, event.flags(), refs), previous, current)));
     }
     public static RuleEngine.Local<EffectState> begin(EffectState state, Handle handle) {
         if (handle.startedAt() != state.buffs().timeMicros() || state.shotGroups().containsKey(handle.id())) throw new IllegalArgumentException("Shot already exists or starts at another time");
@@ -129,6 +140,10 @@ public final class ShotGroups {
     }
     private static RuleEngine.Local<EffectState> settle(EffectState state, Group group, RuleEngine.ActionResult result, boolean expired) {
         if (!expired && !group.complete()) return new RuleEngine.Local<>(state, result, List.of());
+        return new RuleEngine.Local<>(state.withoutShotGroup(group.handle().id()).cancel(group.handle().timerId()), result,
+                List.of(new RuleEngine.Signal(RESOLVED, summarize(group))));
+    }
+    private static Summary summarize(Group group) {
         var hits = new TreeMap<String, Integer>(); var effective = new TreeMap<String, Integer>();
         int hit = 0, dealt = 0, rejected = 0, missed = 0, closed = 0;
         for (var pellet : group.pellets().values()) {
@@ -149,8 +164,7 @@ public final class ShotGroups {
         for (var entry : hits.entrySet()) if (entry.getValue() > maximum) { maximum = entry.getValue(); victim = entry.getKey(); }
         var handle = group.handle(); var event = new EffectEvent(handle.origin().owner(), victim, handle.origin(), handle.origin().tags(), numbers,
                 Map.of("complete", group.complete(), "all_hit", group.complete() && hit == handle.pellets()), Map.of("shot", handle.id()));
-        return new RuleEngine.Local<>(state.withoutShotGroup(handle.id()).cancel(handle.timerId()), result,
-                List.of(new RuleEngine.Signal(RESOLVED, new Summary(event, handle, group.complete(), hits, effective))));
+        return new Summary(event, handle, group.complete(), hits, effective);
     }
     private static Measure count(int value) { return new Measure(value, Unit.COUNT); }
 }

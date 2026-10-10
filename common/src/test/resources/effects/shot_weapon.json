@@ -402,6 +402,20 @@
               "cue": "test:pellet_hit"
             }
           ]
+        },
+        {
+          "id": "progress",
+          "on": "chorus:shot_progress",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_progress"
+            }
+          ]
         }
       ]
     }

@@ -546,7 +546,7 @@ weapon_damage / weapon_kill 由伤害动作的 tags / kill_tags 明确声明；�
 
 这是片段：前文需要已捕获的 muzzle / aim / attack，并且还需要索引 1、2 的两个 projectile；完整可运行夹具是 [shot_weapon.json](../common/src/test/resources/effects/shot_weapon.json)。该夹具的三颗弹丸与数值是合成参数，不是 D2 霰弹枪原型。多个显式组可以属于同一次 fire_accepted，以表达未来连发控制的每个逻辑射击；触发身份 `origin.source=shot/<token>` 与整枪组身份 `references.shot=shot-group/...` 不同。
 
-| shot_resolved 字段 | 含义 |
+| shot_progress / shot_resolved 共有字段 | 含义 |
 | --- | --- |
 | pellets_total / pellets_hit / pellets_effective | 预期弹丸数 / 至少有一次合格 hit 回执的唯一弹丸数 / 至少有一次 HP、护盾或吸收损失的唯一弹丸数 |
 | pellets_missed / pellets_rejected / pellets_unresolved | 已结束且没有 hit 的弹丸 / 世界明确拒绝生成的弹丸 / 未发射、仍飞行或丢失结束观察的弹丸 |
@@ -555,13 +555,17 @@ weapon_damage / weapon_kill 由伤害动作的 tags / kill_tags 明确声明；�
 | flags.complete / flags.all_hit | 所有预期槽位都已有终态 / 完整且每颗弹丸都曾 hit；all_hit 允许分散目标，不等于集中全中 |
 | references.shot | 稳定的本次整枪组身份；成员伤害事实另外带 pellet 索引与 contact 序号 |
 
-计数值单位均为 COUNT。类型化 `ShotGroups.Summary` 额外保留两个每目标计数表；公共事件 victim 选择命中数最多的目标，同分按身份字符串排序，没有 hit 时为空。贯穿可计入多个目标；同一弹丸对同一目标的多次接触 / 多条伤害命令只计一次。免疫和格挡遵从现有 hit 契约，计入 hit 但不计入有效伤害；CANCELLED / FAILED 与纯几何接触不计入 hit。需要集中命中的内容应使用 `complete && max_pellets_on_target >= 阈值`，不要只检查 pellets_hit。
+计数值单位均为 COUNT。类型化 `ShotGroups.Summary` 额外保留两个每目标计数表；公共事件 victim 选择命中数最多的目标，同分按身份字符串排序，没有 hit 时为空。贯穿可计入多个目标；同一弹丸对同一目标的多次接触 / 多条伤害命令只计一次。免疫和格挡遵从现有 hit 契约，计入 hit 但不计入有效伤害；CANCELLED / FAILED 与纯几何接触不计入 hit。集中命中要检查 max_pellets_on_target，不能只检查 pellets_hit；需要最终完整结果时再要求 complete。
+
+`chorus:shot_progress` 在实际伤害回执增加任一目标的唯一 hit / 有效弹丸数时发布；重复命中未改变计数则不发布。另有 COUNT 字段 previous_pellets_hit / previous_pellets_effective / previous_max_pellets_on_target / previous_max_effective_pellets_on_target，references.pellet 指向本次成员。类型化 Progress 保留不可变的 before / after Summary。当前接触尚未关闭，complete 通常为 false；该事实不等待整枪结束，也不证明剩余弹丸已完成。
+
+One-Two Punch 使用 `previous_max_pellets_on_target < 门槛 && max_pellets_on_target >= 门槛`：普通 12 / 强化 10，达到时立即挂 Buff，同一枪的后续弹丸不重复刷新。只等 shot_resolved 会错误推迟强化版触发。hit 与消费生命周期事实仍先入既有队列，progress 随后入队，不抢跑当前动作体或改变广度优先执行顺序。
 
 局部状态先保留索引，再等待物理发射回执；终止接触的动作体与实际伤害回执完成后才封闭该弹丸。所有槽位结束时发布一次 summary 并取消截止计时器；明确发射拒绝仍是已知终态，不会自动退还已接受的弹药 / 间隔。重复接触、已结算后的回调均不重放动作体。未知世界结果保留已提交状态与待确认操作，停止运行，不推断为 miss / failure 或自动重试。
 
 攻击寿命为半开区间 `[startedAt, dueAt)`，精确到期的延迟发射也不能重新打开组。超时发布 complete=false 与未结算数量，清理组并停止仍存活的成员；这是一条内容声明的攻击寿命，不是事件循环限制。索引可以在寿命内通过 detached after 延迟发射，但 `damage_snapshot.pellet` 只能在对应接触的同步动作体中使用：编译器不向 after 或嵌套 projectile 传播当前接触的记账资格。延迟爆炸仍可沿用几何与伤害快照，需作为独立伤害或新组建模。
 
-目前只提供显式成员 projectile 与 damage_snapshot 记账。原版命中、hitscan、精准命中分类、自动连发控制、跨组 / 多弹丸“下一击”消费事务、完整 One-Two Punch / Rewind Rounds 内容、活跃组与飞行实体的存档 / 重载恢复尚未实现。
+目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。原版命中自动归组、hitscan、精准分类、自动连发、跨组 / 多分量共用一次“下一击”事务、Rewind Rounds 内容和活跃组 / 飞行实体的存档恢复尚未实现。
 
 ### 动态基础容量与数值快照
 

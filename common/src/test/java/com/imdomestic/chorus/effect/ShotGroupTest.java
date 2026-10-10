@@ -21,7 +21,7 @@ class ShotGroupTest {
     static JsonArray damage(JsonObject pellet) { return pellet.getAsJsonArray("do").get(0).getAsJsonObject().getAsJsonArray("do"); }
     static final class Harness {
         final EffectSession session; final List<ProjectileFlight.Launch> launches = new ArrayList<>();
-        final List<ShotGroups.Summary> summaries = new ArrayList<>(); final List<EffectEvent> hitFacts = new ArrayList<>();
+        final List<ShotGroups.Summary> summaries = new ArrayList<>(); final List<ShotGroups.Progress> progress = new ArrayList<>(); final List<EffectEvent> hitFacts = new ArrayList<>();
         final List<DamageCommand> hits = new ArrayList<>(); final List<Double> heals = new ArrayList<>();
         final Set<Integer> reject = new HashSet<>(); DamageReceipt.Outcome outcome = DamageReceipt.Outcome.APPLIED;
         boolean unknownLaunch, unknownDamage; int triggers;
@@ -48,6 +48,7 @@ class ShotGroupTest {
                     case Action.CueCommand cue -> {
                         var payload = payload();
                         if (payload instanceof ShotGroups.Summary summary) summaries.add(summary);
+                        if (payload instanceof ShotGroups.Progress update) progress.add(update);
                         if (payload instanceof EffectEvent fact) hitFacts.add(fact);
                         yield RuleEngine.Empty.INSTANCE;
                     }
@@ -109,6 +110,20 @@ class ShotGroupTest {
         var other = new Harness(data, 1); other.fire(); other.outcome = DamageReceipt.Outcome.FAILED;
         other.impact(0, "a", 1, true); other.impact(1, "a", 1, true); other.impact(2, "", 1, true);
         assertEquals(0, number(other.summary(), "pellets_hit")); assertTrue(other.hitFacts.isEmpty()); assertEquals(3, number(other.summary(), "pellets_missed"));
+    }
+    @Test void progressReportsOnlyNewUniqueHitsOrEffectiveReceiptsWithPreviousThresholdCounts() throws Exception {
+        var h = new Harness(); h.fire(); h.outcome = DamageReceipt.Outcome.IMMUNE; h.impact(0, "a", 1, false);
+        h.impact(0, "a", 1, false); assertEquals(1, h.progress.size());
+        var first = h.progress.getFirst(); assertEquals(0, first.event().numbers().get("previous_max_pellets_on_target").value());
+        assertEquals(1, first.event().numbers().get("max_pellets_on_target").value()); assertEquals(Map.of("a", 1), first.after().hits()); assertTrue(first.after().effective().isEmpty());
+        h.outcome = DamageReceipt.Outcome.APPLIED; h.impact(0, "a", 2, false); h.impact(0, "a", 3, false);
+        assertEquals(2, h.progress.size()); var effective = h.progress.getLast();
+        assertEquals(1, effective.event().numbers().get("previous_max_pellets_on_target").value());
+        assertEquals(0, effective.event().numbers().get("previous_pellets_effective").value()); assertEquals(1, effective.event().numbers().get("pellets_effective").value());
+        h.impact(1, "b", 1, true); h.outcome = DamageReceipt.Outcome.CANCELLED; h.impact(2, "b", 1, true); h.impact(0, "a", 4, true);
+        assertEquals(3, h.progress.size()); assertEquals(2, number(h.summary(), "pellets_hit"));
+        assertEquals(Map.of("a", 1), h.progress.getFirst().after().hits(), "later contacts cannot mutate earlier progress");
+        assertTrue(h.progress.getFirst().after().effective().isEmpty());
     }
     @Test void rejectedLaunchesResolveWithoutRefundAndNeverMasqueradeAsMisses() throws Exception {
         var h = new Harness(); h.reject.addAll(List.of(0, 1, 2)); h.fire();

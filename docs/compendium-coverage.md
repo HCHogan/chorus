@@ -9,7 +9,7 @@
 | 来源表 | 历史 | 文本单元格 | 已引用审阅 | 待审阅 |
 | --- | --- | ---: | ---: | ---: |
 | Landing | 否 | 37 | 0 | 37 |
-| Weapon Perks | 否 | 831 | 42 | 789 |
+| Weapon Perks | 否 | 831 | 44 | 787 |
 | Armor Perks | 否 | 171 | 0 | 171 |
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
@@ -71,6 +71,7 @@
 | Reload Perk Notes | not_applicable | Weapon Perks C250 | Generate 凭空生成至基础弹匣；Refill 从有限储备转移、不触发换弹词条；Reload 包含指定技能及手动排热完成 |
 | Fail-Deadly | unimplemented | Weapon Perks A364; Weapon Perks C364; Weapon Perks C250 | 已审阅需求；当前基础容量 Profile、按容量收益和溢出组合有机制验收，尚无该词条的数据定义；缺口：尚未提供独立内容定义；通用合成夹具不能证明该 perk 的触发、数值和实际玩法已实现；层数上限采用的容量阶段、火箭 / Bipod映射、中间层数曲线和强化未知属性须校准，不从最大值推导；实际伤害实例信用 / 去重、武器击杀清层、属性 / 逐发装填 / Bolt Charge内容和物品装配仍未实现 |
 | Timelost Magazine | unimplemented | Weapon Perks A409; Weapon Perks C409; Weapon Perks C250 | 已审阅需求；当前基础容量 Profile、按容量收益和溢出组合有机制验收，尚无该词条的数据定义；缺口：尚未提供独立内容定义；通用合成夹具不能证明该 perk 的触发、数值和实际玩法已实现；超能结束输入、先扩容还是先补弹及到期弹数策略尚需内容 / 原作验收；击杀回能问号保留未知；真实超能账户、Found Verdict逐发装填、Bolt Charge和物品装配未实现 |
+| One-Two Punch | partial | Weapon Perks A154; Weapon Perks C154 | 独立 JSON；实际弹丸回执在普通12/强化10颗同目标命中时触发、三秒下一近战增伤、收枪/词条替换清除；四组武器/活动倍率和冰冻取高后相加；双加载器实际容器/命令/伤害验收；缺口：枪械速度/散布、容量/间隔和基础伤害为合成夹具；完整D2原型、近战技能分类和客户端HUD尚未接入；冻结比较值50%/200%与其他40%只验证算法；冰冻非Boss的真实被动来源、数值和完整伤害Profile未装配；当前只接受管damage/damage_snapshot回执消费；原版观察入口自动消费、嵌套伤害预留和同一次多分量攻击共享资格仍未实现；double_melee为两次独立打击；免疫/格挡计作hit并消费、更高冰冻增益下仍消费、新枪刷新与词条替换清除均为明确内容策略，原表未说明的边界仍待校准 |
 
 ## 使用
 
