@@ -1,0 +1,173 @@
+{
+  "version": "test-event-position",
+  "bundles": [
+    {
+      "id": "test:position_driver",
+      "rules": [
+        {
+          "id": "attack",
+          "on": "test:attack",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic"
+            }
+          ]
+        },
+        {
+          "id": "cleanup",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:cleanup"
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:event_position_observed"
+              },
+              "then": [
+                {
+                  "type": "chorus:emit",
+                  "event": "test:copy"
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:read_event_position"
+                      },
+                      "as": "place"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "place"
+                        },
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 2,
+                          "unit": "meter"
+                        },
+                        "relation": "any",
+                        "exclude": [
+                          "self",
+                          "victim"
+                        ]
+                      },
+                      "as": "near"
+                    },
+                    {
+                      "for_each": "near",
+                      "as": "neighbor",
+                      "do": [
+                        {
+                          "type": "chorus:damage",
+                          "target": {
+                            "binding": "neighbor"
+                          },
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "damage"
+                          },
+                          "damage_type": "minecraft:generic",
+                          "tags": [
+                            "test:blast"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:unobserved"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "copied",
+          "on": "test:copy",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_event_position"
+              },
+              "as": "place"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "place"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "meter"
+                },
+                "relation": "any",
+                "exclude": [
+                  "self",
+                  "victim"
+                ]
+              },
+              "as": "near"
+            },
+            {
+              "for_each": "near",
+              "as": "neighbor",
+              "do": [
+                {
+                  "type": "chorus:damage",
+                  "target": {
+                    "binding": "neighbor"
+                  },
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "damage"
+                  },
+                  "damage_type": "minecraft:generic",
+                  "tags": [
+                    "test:blast"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    }
+  ]
+}

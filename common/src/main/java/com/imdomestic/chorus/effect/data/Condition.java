@@ -146,6 +146,11 @@ public interface Condition {
         @Override public void validate(Validation v) { v.target(target); EnergyActions.ABILITY_OBSERVATION.requireFlag(field); }
         @Override public boolean test(Evaluation e) { return EnergyActions.ABILITY_OBSERVATION.flag(field, EnergyActions.observeAbility(e, slot, target)) == expected; }
     }
+    record EventPositionObserved(Evaluation.Target target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor anchor) implements Condition {
+        public EventPositionObserved { java.util.Objects.requireNonNull(target); java.util.Objects.requireNonNull(anchor); }
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) { return e.event().observedEntities().filter(o -> o.positionObserved(e.target(target), anchor)).isPresent(); }
+    }
     record EventEntityObserved(Evaluation.Target target) implements Condition {
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) { return e.event().observedEntities().filter(o -> o.observed(e.target(target))).isPresent(); }

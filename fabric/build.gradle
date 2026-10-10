@@ -161,6 +161,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/firesprite.json'
         include 'effects/event_buffs.json'
         include 'effects/event_entities.json'
+        include 'effects/event_positions.json'
         include 'effects/ember_of_searing.json'
         include 'effects/restoration_effect.json'
         include 'effects/restoration_test_calibration.json'

@@ -179,8 +179,12 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     }
     private WorldPosition position(LivingEntity entity) { return position(entity, TargetQuery.Anchor.FEET); }
     private WorldPosition position(LivingEntity entity, TargetQuery.Anchor anchor) {
+        return observePosition(entity, anchor);
+    }
+    /** Retained native damage targets can supply their actual world even after removal or transfer. */
+    static WorldPosition observePosition(LivingEntity entity, TargetQuery.Anchor anchor) {
         double y = switch (anchor) { case FEET -> entity.getY(); case BODY -> entity.getBoundingBox().getCenter().y; case EYES -> entity.getEyeY(); };
-        return new WorldPosition(level.dimension().identifier().toString(), entity.getX(), y, entity.getZ());
+        return new WorldPosition(entity.level().dimension().identifier().toString(), entity.getX(), y, entity.getZ());
     }
     private boolean present(LivingEntity entity) { return entity != null && !entity.isRemoved() && entity.level() == level; }
 }

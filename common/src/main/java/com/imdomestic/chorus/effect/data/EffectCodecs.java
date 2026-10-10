@@ -157,6 +157,10 @@ public final class EffectCodecs {
                         ID.fieldOf("slot").forGetter(Condition.AbilityEnergyFlag::slot), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.AbilityEnergyFlag::target),
                         Codec.STRING.fieldOf("field").forGetter(Condition.AbilityEnergyFlag::field), Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.AbilityEnergyFlag::expected)
                 ).apply(i, Condition.AbilityEnergyFlag::new)))
+                .register("chorus:event_position_observed", Condition.EventPositionObserved.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventPositionObserved::target),
+                        enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Condition.EventPositionObserved::anchor)
+                ).apply(i, Condition.EventPositionObserved::new)))
                 .register("chorus:event_entity_observed", Condition.EventEntityObserved.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventEntityObserved::target)).apply(i, Condition.EventEntityObserved::new)))
                 .register("chorus:event_buffs_available", Condition.EventBuffsAvailable.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -435,6 +439,10 @@ public final class EffectCodecs {
                         ID.fieldOf("buff").forGetter(Action.WriteDamageSnapshot::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.WriteDamageSnapshot::target),
                         Codec.STRING.fieldOf("component").forGetter(Action.WriteDamageSnapshot::component), Codec.STRING.fieldOf("snapshot").forGetter(Action.WriteDamageSnapshot::snapshot)
                 ).apply(i, Action.WriteDamageSnapshot::new)))
+                .register("chorus:read_event_position", Action.ReadEventPosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventPosition::target),
+                        enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.ReadEventPosition::anchor)
+                ).apply(i, Action.ReadEventPosition::new)))
                 .register("chorus:capture_position", Action.CapturePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CapturePosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.CapturePosition::anchor)

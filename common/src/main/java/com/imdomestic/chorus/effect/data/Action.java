@@ -581,6 +581,16 @@ public interface Action {
             return new RuleEngine.Local<>(state, new DamageSnapshot.Stored(value), List.of());
         }
     }
+    /** Historical position value, with no new world read or entity availability claim. */
+    record ReadEventPosition(Evaluation.Target target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor anchor) implements Action {
+        public ReadEventPosition { java.util.Objects.requireNonNull(target); java.util.Objects.requireNonNull(anchor); }
+        @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.POSITION; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var observation = e.event().observedEntities().orElseThrow(() -> new IllegalArgumentException("Event has no position observation"));
+            return new RuleEngine.Local<>(e.state(), new com.imdomestic.chorus.effect.target.PositionResult.Stored(
+                    observation.requirePosition(e.target(target), anchor)), List.of());
+        }
+    }
     record CapturePosition(Evaluation.Target target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor anchor) implements Action {
         public CapturePosition(Evaluation.Target target) { this(target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET); }
         @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.POSITION; }

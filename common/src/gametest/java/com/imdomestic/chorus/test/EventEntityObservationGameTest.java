@@ -44,8 +44,15 @@ public class EventEntityObservationGameTest {
                 var command=new DamageCommand("logical-victim",new BuffInstance.Origin(owner,"test:source","",""),1,"minecraft:generic",Set.of(),Set.of(),false);
                 var observed=t.runtime.observeEntities(command,victim,nativeSource).orElseThrow();
                 h.assertTrue(observed.require("logical-victim").orElseThrow().entityTags().contains("test:tier"),"retained target survives removal and logical reference");
-                if(owner.equals("logical-owner"))h.assertTrue(!observed.observed(owner),"unresolved alias is unobserved, not an invented absence");
-                else if(!owner.equals("logical-victim"))h.assertTrue(observed.observed(owner)&&observed.require(owner).isEmpty(),"UUID lookup confirmed unavailable");
+                if(owner.equals("logical-owner")){
+                    h.assertTrue(!observed.observed(owner),"unresolved alias is unobserved, not an invented absence");
+                    h.assertTrue(!observed.positionObserved(owner,TargetQuery.Anchor.FEET),"unresolved alias has no historical position");
+                }
+                else if(!owner.equals("logical-victim")){
+                    h.assertTrue(observed.observed(owner)&&observed.require(owner).isEmpty(),"UUID lookup confirmed unavailable");
+                    for(var anchor:TargetQuery.Anchor.values())h.assertTrue(observed.positionObserved(owner,anchor)&&observed.requirePosition(owner,anchor).isEmpty(),"missing actor anchor remains unavailable");
+                }
+                for(var anchor:TargetQuery.Anchor.values())h.assertValueEqual(observed.requirePosition("logical-victim",anchor),Optional.of(EventPositionObservationGameTest.point(victim,anchor)),"retained removed victim position");
             }
             var self=new DamageCommand(t.owner.getUUID().toString(),new BuffInstance.Origin(t.owner.getUUID().toString(),"self","",""),1,"minecraft:generic",Set.of(),Set.of(),false);
             h.assertValueEqual(t.runtime.observeEntities(self,t.owner,nativeSource).orElseThrow().entities().size(),1,"self-hit has one consistent observation");

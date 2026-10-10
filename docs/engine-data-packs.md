@@ -1722,7 +1722,7 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 
 ## 事实携带的实体观察值
 
-DamageReceipt / EffectEvent 可带 `EntityObservation(timeMicros, entities)`。每个已观察身份映射为不可变的 EntityQuery.View 或显式 unavailable；未包含该身份则是 unknown。View 保存生命 / 最大生命 / Absorption、alive、原版 player、entityTags 与 typeTags，不包含位置或 D2 敌人目录。死亡实体仍可有完整 View；unknown 与 unavailable 都不能直接读取 health、player 或标签。
+DamageReceipt / EffectEvent 可带 `EntityObservation(timeMicros, entities, positions)`。每个已观察身份映射为不可变的 EntityQuery.View 或显式 unavailable；未包含该身份则是 unknown。View 保存生命 / 最大生命 / Absorption、alive、原版 player、entityTags 与 typeTags；positions 另存已采样的身份 / 锚点位置，不包含 D2 敌人目录。死亡实体仍可有完整 View；unknown 与 unavailable 都不能直接读取 health、player 或标签。
 
 ```json
 {"if":{"type":"chorus:event_entity_observed","target":"victim"},"then":[
@@ -1735,8 +1735,26 @@ DamageReceipt / EffectEvent 可带 `EntityObservation(timeMicros, entities)`。�
 ]}
 ```
 
-`event_entity_observed` 与 `read_event_entity` 的 target 默认 victim。前者对 unknown 返回 false，对已观察到 unavailable 返回 true；后者是纯动作，返回既有 ENTITY 类型结果，不发世界查询，unknown 会报错。后续继续使用 result / result_flag / observed_entity_tag，实体标签和注册表类型标签保持分开。位置和当前状态仍用 capture_position / inspect_entity 明确查询，不能由这份历史记录推测。
+`event_entity_observed` 与 `read_event_entity` 的 target 默认 victim。前者对 unknown 返回 false，对已观察到 unavailable 返回 true；后者是纯动作，返回既有 ENTITY 类型结果，不发世界查询，unknown 会报错。后续继续使用 result / result_flag / observed_entity_tag，实体标签和注册表类型标签保持分开。当前的位置和状态仍用 capture_position / inspect_entity 明确查询；历史位置只读取 positions 中实际存在的记录，不由生命等字段推测。
 
 原版适配器在 hurt 返回后、该次 Buff 消费及派生反应前采样；真实受击对象保留在伤害作用域，即使原版钩子已移除它也能提供字段。目标按 DamageCommand.target 保存；攻击者 UUID 能解析为当前维度 LivingEntity 时采样，确定不可用则记 empty；无法解析的逻辑攻击者别名保持 unknown，自伤只保存一份观察。任意 Java 宿主可通过 DamageReceipt.withObservedEntities 提供自己的观察，同份回执不可替换为矛盾值。纯核心不会从 EffectState 补造世界信息，旧适配器省略该字段仍为未知。
 
 hit / damage_taken / shield / death / kill 共享回执观察；emit、原上下文的 after / 物理续体与派生 calculate / calculate_pipeline / grant_energy 保留历史。改写查询 victim 不会增加新目标记录，独立资源等新事实不会自动携带旧观察。event_entity_observed 在 on_use 数值快照中按原事实冻结。观察失败保留已提交伤害、报告失败并清理原版作用域，不重放伤害。
+
+
+## 事实携带的实体位置
+
+EntityObservation 的 `positions` 按 `PositionQuery(target, anchor)` 保存不可变的 Optional<WorldPosition>；它是采样记录的键，不表示读取历史时发世界命令。target 身份与 feet / body / eyes 锚点均精确匹配。位置与原版类别的可观察性独立：元数据存在不证明位置已采样，脚底记录不证明眼睛记录；旧的二参数 EntityObservation 构造器不提供任何位置证据。
+
+```json
+{"if":{"type":"chorus:event_position_observed","target":"victim","anchor":"feet"},"then":[
+  {"action":{"type":"chorus:read_event_position","target":"victim","anchor":"feet"},"as":"at_hit"},
+  {"action":{"type":"chorus:select_targets","center":{"position":"at_hit"},"radius":{"type":"chorus:constant","value":2,"unit":"meter"},"relation":"any"},"as":"near"}
+]}
+```
+
+两种声明的 target 默认 victim、anchor 默认 feet。event_position_observed 对没有对应记录返回 false，对已观察到不可用返回 true。read_event_position 为纯动作，返回现有 POSITION 结果；未观察时报错，观察到不可用时 position 为空，可用 available / missing 检查。它不是 EntityQuery 结果，也不能直接作为实体 target。没有当前位置兜底，不默认原点。
+
+原版伤害在 hurt 返回后的同一次实体观察中采样受击者与可解析攻击者的三个锚点，WorldPosition 保留实际实体所属维度。保留的受击对象即使被原版死亡钩子移除也可记录；后续死亡反应的移动、传送或删除不改变历史。UUID 攻击者确认不可用时三个锚点均记 empty，无法解析的逻辑别名仍是 unknown。此时机是伤害确认后、消费和派生反应前，不宣称为伤害进入前坐标或每个碰撞点。
+
+位置与实体元数据共同随回执复制及 hit / death / kill、emit、after、派生查询传播。detached 动作可以在尸体和装备来源都不存在后用原位置发起新的范围查询，每次成员仍取当前世界。历史位置只决定坐标，不保证查询或生成成功：已有维度、区块加载、阵营等世界校验继续生效，不会跨维度生成或加载未知区块。没有位置的旧适配器须显式提供证据；新资源 / 拾取等独立事实不会自动借用旧位置。跨重启序列化仍待实现。

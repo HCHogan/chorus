@@ -62,6 +62,7 @@ public final class SnapshotExpressions {
             }
             case Condition.SourceIs c -> new Condition.Constant(c.test(e));
             case Condition.EventEntityObserved c -> new Condition.Constant(c.test(e));
+            case Condition.EventPositionObserved c -> new Condition.Constant(c.test(e));
             case Condition.EventBuffsAvailable c -> new Condition.Constant(c.test(e));
             case Condition.EventHasBuff c -> new Condition.Constant(c.test(e));
             case Condition.EventHasBuffTag c -> new Condition.Constant(c.test(e));

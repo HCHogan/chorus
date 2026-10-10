@@ -299,18 +299,27 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         thread();
         if (failure.isPresent()) return Optional.empty();
         var entities = new java.util.HashMap<String, Optional<com.imdomestic.chorus.effect.target.EntityQuery.View>>();
-        entities.put(command.target(), Optional.of(MinecraftWorldActions.observeEntity(target)));
+        var positions = new java.util.HashMap<com.imdomestic.chorus.effect.target.PositionQuery, Optional<com.imdomestic.chorus.effect.target.WorldPosition>>();
+        observeEntity(command.target(), Optional.of(target), entities, positions);
         String owner = command.source().owner();
         if (!owner.isBlank() && !entities.containsKey(owner)) {
             java.util.UUID ownerId = null;
             try { ownerId = java.util.UUID.fromString(owner); } catch (IllegalArgumentException ignored) { /* Logical aliases need their adapter's resolver. */ }
             if (ownerId != null) {
                 var actor = source.getEntity() != null && source.getEntity().getUUID().equals(ownerId) ? source.getEntity() : level.getEntity(ownerId);
-                entities.put(owner, actor instanceof LivingEntity living && living.level() == level && !living.isRemoved()
-                        ? Optional.of(MinecraftWorldActions.observeEntity(living)) : Optional.empty());
+                observeEntity(owner, actor instanceof LivingEntity living && living.level() == level && !living.isRemoved()
+                        ? Optional.of(living) : Optional.empty(), entities, positions);
             }
         }
-        return Optional.of(new com.imdomestic.chorus.effect.target.EntityObservation(view().buffs().timeMicros(), entities));
+        return Optional.of(new com.imdomestic.chorus.effect.target.EntityObservation(view().buffs().timeMicros(), entities, positions));
+    }
+    private static void observeEntity(String reference, Optional<LivingEntity> entity,
+            Map<String, Optional<com.imdomestic.chorus.effect.target.EntityQuery.View>> entities,
+            Map<com.imdomestic.chorus.effect.target.PositionQuery, Optional<com.imdomestic.chorus.effect.target.WorldPosition>> positions) {
+        entities.put(reference, entity.map(MinecraftWorldActions::observeEntity));
+        for (var anchor : com.imdomestic.chorus.effect.target.TargetQuery.Anchor.values()) {
+            positions.put(new com.imdomestic.chorus.effect.target.PositionQuery(reference, anchor), entity.map(e -> MinecraftWorldActions.observePosition(e, anchor)));
+        }
     }
     @Override public void abandoned(String id) {
         thread();
