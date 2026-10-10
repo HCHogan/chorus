@@ -2199,7 +2199,7 @@
       "name": "Withering Blade",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Stasis",
@@ -2217,32 +2217,112 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需求已审阅；通用物理追踪、接触转向和命中计数有机制验收，尚无此技能的完整内容定义",
+      "scope": "两充能技能模板与顺序回充、实际投射物四目标、296/72伤害、60/40 Slow及来源专属Durance时间、复用百层Freeze；0.8 CES与当前Melee回能曲线；飞行和混合接触政策仍需显式校准",
       "acceptance": [
         "初始2次近战充能，145.2秒基础冷却与0.8x chunk scalar",
         "最多3次表面反弹或最多4个敌人、12 [PvP 8]米追踪，并明确两种次数是否共享预算",
-        "296 [PvP 72]命中伤害，x60 [PvP x40] Slow，持续3.5+3.5 [PvP 1.5+0.5]秒的基准/延长条件"
+        "296 [PvP 72]命中伤害，x60 [PvP x40] Slow，持续3.5+3.5 [PvP 1.5+0.5]秒的基准/延长条件",
+        "两枚独立施放各支付一格，第三次因能量不足拒绝；清除/重新选择不回满，145.2秒基础时间只恢复一格",
+        "目标实际类型选择战员/Guardian伤害、层数与时间；追踪半径按发射时活动模式选择12/8米，混合目标策略仍待校准",
+        "卸下技能不取消旧飞行物或改变归属；每次命中以原施加者当前Durance查询，第二次战员命中转换Freeze而两次Guardian命中仅80层",
+        "取消/免疫/格挡/致死不施加Slow；状态拒绝不授予，未知伤害保留扣费及实际写入并停止，不重放",
+        "独立接触伤害校准Profile收到sequence/bounces/entity_contacts；合成半伤测试只改变伤害，不改变Slow层数",
+        "Melee 90加Durance 10使被动倍率2.75、外部基础4%经0.8 CES与2.25属性变为7.2%；可与Threaded Spike同时链接"
       ],
       "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/withering_blade.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/withering_blade_energy.json"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-11/withering-blade.json"
+        },
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileTrackingTest.java",
-          "symbol": "boundedShortestArcPreservesNormalizedDirectionsAndCanSnapOrRemainBallistic"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "calibrationIsRequiredBeforePaymentAndComposedDefinitionsRoundtrip"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "twoChargesRechargeSequentiallyAndSelectionCannotRefillTheAccount"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "actualTargetKindSelectsDamageStacksAndDurationWhileActivitySelectsTrackingRadius"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "secondBladeFreezesACombatantWithTheFinalCastCreditButTwoGuardianHitsOnlyReachEighty"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "unequippedFlightsKeepCreditButDuranceIsQueriedAtEachApplication"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "cancelledImmuneBlockedLethalAndDeniedHitsCannotInventSlow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "unknownDamageRetainsPaymentAndStopsBeforeSlowWithoutReplaying"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "explicitContactCalibrationReceivesWallAndEntityCountsWithoutChangingSlowStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WitheringBladeTest.java",
+          "symbol": "meleeStatsAndDuranceAffectOwnRecoveryAndChunkGainWithoutDuplicatingThreadedSpikeDefinitions"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileTrackingGameTest.java",
-          "symbol": "contactRedirectVisitsThreeDistinctEnemiesInOneTickAndHonorsPierceBudget"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "fourthPhysicalTargetReceivesDamageAndSlowBeforeFlightEnds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "twoUnequippedBladesApplyCurrentDuranceThenFreezeWithFinalCastCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "actualGuardianReceivesSeventyTwoDamageAndFortySlowEvenInPve"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "realTicksRechargeOneSharedAccountWhileEmptyFlightsExpire"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "unknownRealDamageKeepsChargeSpentAndCannotApplySlowOrRepeatHit"
         }
       ],
       "gaps": [
-        "尚未提供此技能的数据定义；通用追踪、按实体次数转向及独立资源充能机制不等于完整技能实现",
-        "轨迹、转向率/角度、反弹共享计数和有效命中资格尚未校准；12/8半径可由带单位的Value表达，但未装配PvE/PvP技能数据",
-        "Slow数值/持续时间修饰、碎片交互、两次充能、成本/冷却、技能缩放与表现未装配"
+        "速度/重力/阻力/寿命/转向率/角度、混合墙面与实体次数及同目标重访仍需原作校准；测试显式选择共享继续次数3、每目标1次",
+        "当前反弹后的伤害衰减未知，须外部链接接触伤害Profile；合成测试不衰减或减半均不作为原作结论",
+        "活动模式选择追踪半径、实际目标类型选择伤害与Slow及当前装备取样是明确Chorus政策；混合Guardian/战员空间下的原作语义待确认",
+        "Freeze的战员损失阈值、碎冰半径/Guardian伤害及Slow跳跃仍由独立合成校准输入；完整Champion、金装/碎片组合及职业模组回能未装配",
+        "正式子职业目录、技能按键/动画/图标/HUD、能力切换的原作能量策略、持久化及NeoForge真实客户端仍待完成"
       ]
     },
     {
@@ -5874,10 +5954,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuranceGameTest.java",
           "symbol": "removingFragmentKeepsCommittedDeadlineAndNativeSpeedRestoresAtExtendedExpiry"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "twoUnequippedBladesApplyCurrentDuranceThenFreezeWithFinalCastCredit"
         }
       ],
       "gaps": [
-        "Durance查询已接入，但实际Slow生产者与全部来源/目标时长仍未装配；原有2秒及客户端10秒只是合成验收输入",
+        "Withering Blade已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
         "Guardian空中速度尚未适配；jump delta -0.3只是冲量校准输入，不能声称已复现跳高减半；NPC瞄准精度和Guardian Flinch未完成",
         "共享刷新、第一Slow施加者/最后Freeze施加者信用、冻结期间忽略Slow、失败保留及重试均为暂定内容政策，需原作实测",
         "四项武器数值已进入共享Profile，但稳定性、操控、后坐力的完整实际武器反馈与Champion过载反应未完成",
@@ -5922,7 +6007,7 @@
           "text_sha256": "984da7d247a4fe01802eab5809bb74a6cd7e34b3dc40177b3f5ef71084af8d70"
         }
       ],
-      "scope": "来源专属Slow时长延长与持续技能期限查询；施加者当前装备取样、重复去重及+10 Melee；实际技能生产者仍待完成",
+      "scope": "来源专属Slow时长延长与持续技能期限查询；施加者当前装备取样、重复去重及+10 Melee；Withering Blade实际命中已接入，其他生产者待完成",
       "acceptance": [
         "飞镖、炮台和暮域Slow分别提供对应战员/Guardian基础时间与延长；只读取施加者，重复Durance不叠加",
         "卸下不修改已有截止时间，后续施加重新查询；短刷新保留最晚期限和首次信用",
@@ -5976,10 +6061,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DuranceGameTest.java",
           "symbol": "extendedSlowStillNeedsNativeAuthorizationAndItsFreezeConversionRetainsIndependentTiming"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WitheringBladeGameTest.java",
+          "symbol": "twoUnequippedBladesApplyCurrentDuranceThenFreezeWithFinalCastCredit"
         }
       ],
       "gaps": [
-        "实际飞镖、暮域周期场、炮台构造物与全部受影响生产者未装配；本阶段只接入Slow并验证持续技能期限查询",
+        "Withering Blade实际飞镖已接入；暮域周期场、炮台构造物及其余生产者未装配，持续技能目前只验证期限查询",
         "Winter’s Shroud战员时长有问号，未假定确定数值；其他来源需逐条核对",
         "施加时取样、重复MAX、共享刷新和来源信用仍是待原作实测的Chorus政策",
         "正式子职业/装备内容、HUD、状态持久化与NeoForge真实客户端仍未验收"

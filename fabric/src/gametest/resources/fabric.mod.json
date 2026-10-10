@@ -67,6 +67,7 @@
       "com.imdomestic.chorus.StrandDefenseGameTest",
       "com.imdomestic.chorus.ContinuityGameTest",
       "com.imdomestic.chorus.ThreadedSpikeGameTest",
+      "com.imdomestic.chorus.WitheringBladeGameTest",
       "com.imdomestic.chorus.EnergyGainGameTest",
       "com.imdomestic.chorus.PugilistGameTest",
       "com.imdomestic.chorus.DemolitionistGameTest",

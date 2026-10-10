@@ -851,9 +851,23 @@ transcendence（20 秒）
 墙面反弹、直线穿透、每目标命中上限与逐接触计数已接入通用 DSL。需求参考快照 `Weapon Perks!C20/C188`（穿甲弹一次穿透、Ricochet Rounds 反弹）、`Exotic Weapons!D27/D83`（Khvostov 同目标两次、Hard Light 墙面反弹）、`Void!D57`、`Stasis!D38`、`Strand!D38`（技能弹跳 / 追踪 / 回能）。通用限速追踪与接触后目标间转向也已接入；这些内容仍依赖各自数值、资格、计数语义及技能装配，合成夹具不将它们标为已实现。
 
 
-Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。前两者仍为 unimplemented；Threaded Spike 已有下节的 partial 模板。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
+Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。Shield Throw 仍为 unimplemented；后两者已有下节的 partial 模板。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
 
-Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_energy 的 fixed 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
+Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义。核心已有独立预算和可选 `total_continuations` 共享继续次数；具备表达能力不等于已确认原作混合接触顺序。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_energy 的 fixed 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
+
+## Withering Blade 两充能技能模板
+
+[withering_blade.json](../common/src/test/resources/effects/withering_blade.json) 与 withering_blade_energy、slow、stasis_duration、durance、freeze、character_stats、combat_damage、movement_attributes 和 weapon_stats 同版本链接；接触伤害及碎冰衰减另由校准 Profile 提供。[来源记录](../data/d2-research/2026-10-11/withering-blade.json) 保留原表 Stasis B51/D51/N51 与固定 CSV B38/D38/N38 的对应和校验和。此定义仍是需校准的测试技能模板，没有随发布 jar 提供正式子职业目录。
+
+资源上限和初值为两格，每次施放支付一格；基础恢复为每 145.2 秒一格，使用同一个连续账户顺序恢复，声明一格阈值。第三次无能量时拒绝；卸下 / 重新选择不会重置余额。选择技能挂载自己的 energy_scaling 来源，以当前 Melee 汇总属性查询被动恢复和块状回能曲线；独立 0.8 CES 只进入 gain_profile。沿用已记录的拟合曲线，100 Melee 时分别为 ×2.75 被动速率和 ×2.25 块状倍率；没有把两格容量乘入恢复速度或外部充能量。与 Threaded Spike 的 Profile / 资源身份分开，可同时链接；具体职业模组的回能贡献尚未装配。
+
+每次实体接触观察实际目标类型，战员 / Guardian 分别提供 296 / 72 基础伤害，再经过必填 `chorus_d2:withering_blade_contact_damage` 和共享 outgoing。接触校准查询携带 `sequence`、`bounces`、`entity_contacts` 和实际 victim，可表达原作后续确认的反弹衰减，不从旧版本的伤害数值推断当前行为。伤害保留 melee_damage / stasis 标签、melee_kill 信用及原施放身份；取消、免疫、格挡和已确认致死不施加 Slow。
+
+成功且非致死的命中使用 `invoke_bundle` 调用共享 slow_application：战员 60 层、3.5 秒、Durance 延长 3.5 秒；Guardian 40 层、1.5 秒、延长 0.5 秒。两枚飞镖对同一战员达到百层后复用 Freeze，最后一次施放拥有冻结信用；两次 Guardian 命中只有 80 层。卸下技能不取消已有弹体，命中时仍以原施放者的当前碎片查询时长。Durance 不延长转换后的 Freeze。目标分类、当前装备取样及共享归属是显式 Chorus 政策，混合玩家 / 战员环境和全部原作边界仍需实测。
+
+追踪半径按发射时活动模式选择 12 / 8 米。独立墙面反弹为 3 次、实体穿透为 3 次（第四次实体接触后结束）；共享继续次数和每目标次数是必填校准参数。速度、重力、阻力、寿命、转向率、获取角度以及 Slow 跳跃 / Freeze 数值也必须明确提供，缺少施放参数在扣费前失败。测试的共享继续次数 3、每目标 1 次、20 m/s、零重力、2 秒寿命和接触不衰减仅为合成配置，不是原作事实；目标重访、混合墙面 / 实体预算、原作飞行轨迹和当前反弹伤害仍未校准。
+
+9 项 WitheringBladeTest 覆盖校准依赖、两充能 / 时间积分、实际目标类型、百层转换与来源、卸下后的 Durance、拒绝 / 致死 / 未知回执、接触测量及近战属性回能。5 项共享 WitheringBladeGameTest 验证第四个真实目标仍受伤及叠层、第五个不受影响、卸下后两枚飞镖冻结战员、真实 Guardian 的 72 / 40、服务器 tick 顺序回能与未知实际伤害不重放。覆盖保持 **partial**：正式职业 / 技能装配、按键、动画 / 图标 / HUD、完整 Champion 和金装 / 碎片组合、技能切换的原作能量政策、持久化及 NeoForge 真实客户端仍待完成。
 
 ## Threaded Spike 技能模板
 
@@ -967,7 +981,7 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 施加前观察接收者的存活与实际玩家类别，已 Freeze 的目标不积累新 Slow；权限批准后才累计共享 Slow。达到 100 时保留本次施加来源并发出 `apply_freeze`，沿用既有目标等级、来源、Super、时长及状态授权。只有实际取得 Freeze 后才删除 Slow；直接 Freeze 同样清除它。冻结拒绝或缺少等级时保留 100 层与惩罚，之后合格施加可以重试；未知授权结果则停止运行时，保留已提交 Slow，不自动重放。解冻不还原已消费层数。
 
-实际生产者可通过 `invoke_bundle` 向 slow_application 投递 apply_slow，显式提供上述参数、接收者和 stacks，而不要求发射时的装备来源仍在常驻表中。真实投射物卸下后命中、命中时读取 Durance、以及从被调包继续发出 apply_freeze 的两端世界场景已验证。对应 [bundle_invocation_slow.json](../common/src/test/resources/effects/bundle_invocation_slow.json) 使用合成飞行与状态参数，只证明调用链，不能视为 Withering Blade 本体已实现。
+实际生产者可通过 `invoke_bundle` 向 slow_application 投递 apply_slow，显式提供上述参数、接收者和 stacks，而不要求发射时的装备来源仍在常驻表中。真实投射物卸下后命中、命中时读取 Durance、以及从被调包继续发出 apply_freeze 的两端世界场景已验证。[bundle_invocation_slow.json](../common/src/test/resources/effects/bundle_invocation_slow.json) 仍仅为合成调用链验收；上述 Withering Blade 模板另有实际技能支付、来源数值和两充能命中的独立验收。
 
 当前内容明确选择：不同来源共享层数，持续时间取现有截止时间与新截止时间较晚者；现有 Slow 保留最初施加者和跳跃参数，触发百层的来源拥有新 Freeze。以上归属、刷新、重复冻结排除与失败重试都是 Chorus 的暂定政策，原表未完整规定这些边界，尚需原作实测。首个来源卸下不会自动删已授予状态；运行时持久化和全体死亡清理仍未完成。
 
@@ -981,7 +995,7 @@ Slow 的实际投影与查询分别为：
 
 [slow_test_calibration.json](../common/src/test/resources/effects/slow_test_calibration.json) 的 2 秒和 jump delta -0.3 均是合成输入，客户端另用 10 秒以覆盖网络验收过程。真实原版跳跃冲量降到 70% **不等于跳跃高度降到 50%**；玩家空中 `getFlyingSpeed` 也不完全由 movement_speed 属性决定，因此这里仅证明地面减速与参数化跳跃，未宣称完成原作全方向移动。稳定性、操控与后坐力只在数值查询中验证，完整武器物理、动画和射击反馈还需接线。
 
-11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Durance 的来源专属延长已接入，见下节。Slow 保持 **partial**：实际技能 / 武器生产者及其完整 Durance 数据、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
+11 项 SlowTest 覆盖阈值、多人归属、玩家分类、属性顺序、技能资格、清除 / 到期、拒绝和未知结果。5 项共享世界测试覆盖真实属性与跳跃冲量、技能入口、百层控制切换、不同来源刷新、真实 tick 到期和 Amplified 合成。SlowClientGameTest 验证真实地面按键位移减速、本地与远端属性包、持续输入下冻结、解冻恢复及目标隔离。Durance 的来源专属延长与 Withering Blade 命中已接入。Slow 保持 **partial**：其余技能 / 武器生产者及其完整 Durance 数据、空中速度、50% 跳高校准、敌方精度、Flinch、Champion、存档及正式 HUD / 视觉仍待完成。
 
 ### Whisper of Durance：分别计算状态与技能存在时间
 

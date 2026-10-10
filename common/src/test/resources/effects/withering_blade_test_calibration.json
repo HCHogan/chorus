@@ -1,0 +1,65 @@
+{
+  "note": "Synthetic physical, mixed-contact and repeat-target policy; not measured Destiny 2 behavior. Source-backed damage and Slow timing remain in the producer. Contact damage needs a separately linked calibration profile.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "turn_rate": {
+      "type": "chorus:constant",
+      "value": 3600,
+      "unit": "degree_per_second"
+    },
+    "acquisition_angle": {
+      "type": "chorus:constant",
+      "value": 180,
+      "unit": "degree"
+    },
+    "total_continuations": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "count"
+    },
+    "max_hits_per_target": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "count"
+    },
+    "slow_jump_delta": {
+      "type": "chorus:constant",
+      "value": -0.3,
+      "unit": "delta"
+    },
+    "combatant_threshold": {
+      "type": "chorus:constant",
+      "value": 100,
+      "unit": "damage"
+    },
+    "shatter_radius": {
+      "type": "chorus:constant",
+      "value": 4,
+      "unit": "meter"
+    },
+    "guardian_shatter_damage": {
+      "type": "chorus:constant",
+      "value": 80,
+      "unit": "damage"
+    }
+  }
+}

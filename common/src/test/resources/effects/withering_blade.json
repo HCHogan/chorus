@@ -1,0 +1,447 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "chorus_d2:withering_blade_energy",
+      "capacity": 2,
+      "initial": 2,
+      "base_rate": 0.006887052341597796,
+      "thresholds": [
+        1
+      ],
+      "rate_profile": "chorus_d2:withering_blade_regeneration",
+      "gain_profile": "chorus_d2:withering_blade_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:withering_blade",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus_d2:stasis"
+      ],
+      "cost": {
+        "resource": "chorus_d2:withering_blade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "parameters": {
+        "speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.drag",
+            "unit": "multiplier"
+          }
+        },
+        "lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lifetime",
+            "unit": "second"
+          }
+        },
+        "turn_rate": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.turn_rate",
+            "unit": "degree_per_second"
+          }
+        },
+        "acquisition_angle": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.acquisition_angle",
+            "unit": "degree"
+          }
+        },
+        "total_continuations": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.total_continuations",
+            "unit": "count"
+          }
+        },
+        "max_hits_per_target": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.max_hits_per_target",
+            "unit": "count"
+          }
+        },
+        "slow_jump_delta": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.slow_jump_delta",
+            "unit": "delta"
+          }
+        },
+        "combatant_threshold": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.combatant_threshold",
+            "unit": "damage"
+          }
+        },
+        "shatter_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.shatter_radius",
+            "unit": "meter"
+          }
+        },
+        "guardian_shatter_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_shatter_damage",
+            "unit": "damage"
+          }
+        },
+        "tracking_radius": {
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 12,
+              "unit": "meter"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 8,
+              "unit": "meter"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "collision": {
+              "block_bounces": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "count"
+              },
+              "entity_pierces": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "count"
+              },
+              "total_continuations": {
+                "type": "chorus:event_number",
+                "name": "param.total_continuations",
+                "unit": "count"
+              },
+              "max_hits_per_target": {
+                "type": "chorus:event_number",
+                "name": "param.max_hits_per_target",
+                "unit": "count"
+              }
+            },
+            "tracking": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.tracking_radius",
+                "unit": "meter"
+              },
+              "turn_rate": {
+                "type": "chorus:event_number",
+                "name": "param.turn_rate",
+                "unit": "degree_per_second"
+              },
+              "acquisition_angle": {
+                "type": "chorus:event_number",
+                "name": "param.acquisition_angle",
+                "unit": "degree"
+              },
+              "relation": "not_allied",
+              "line_of_sight": true,
+              "redirect_on_contact": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "entity"
+              },
+              "then": [
+                {
+                  "for_each": "impact",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": {
+                          "binding": "victim"
+                        }
+                      },
+                      "as": "target"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "target",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "target",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:calculate",
+                            "profile": "chorus_d2:withering_blade_contact_damage",
+                            "target": "source_owner",
+                            "input": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "target",
+                                "field": "player"
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 72,
+                                "unit": "damage"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 296,
+                                "unit": "damage"
+                              }
+                            },
+                            "numbers": {
+                              "bounces": {
+                                "type": "chorus:result",
+                                "binding": "impact",
+                                "field": "bounces"
+                              },
+                              "entity_contacts": {
+                                "type": "chorus:result",
+                                "binding": "impact",
+                                "field": "entity_contacts"
+                              },
+                              "sequence": {
+                                "type": "chorus:result",
+                                "binding": "impact",
+                                "field": "sequence"
+                              }
+                            },
+                            "victim": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "contact_damage"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:damage",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "amount": {
+                              "type": "chorus:result",
+                              "binding": "contact_damage",
+                              "field": "value"
+                            },
+                            "damage_type": "minecraft:generic",
+                            "scaling_profile": "chorus_d2:outgoing",
+                            "tags": [
+                              "chorus:melee_damage",
+                              "chorus_d2:stasis"
+                            ],
+                            "kill_tags": [
+                              "chorus:melee_kill"
+                            ]
+                          },
+                          "as": "hit"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "hit",
+                                "field": "applied"
+                              },
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:result_flag",
+                                  "binding": "hit",
+                                  "field": "lethal"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:invoke_bundle",
+                              "bundle": "chorus_d2:slow_application",
+                              "event": "chorus_d2:apply_slow",
+                              "target": {
+                                "binding": "victim"
+                              },
+                              "parameters": {
+                                "slow_duration": {
+                                  "type": "chorus:choose",
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "target",
+                                    "field": "player"
+                                  },
+                                  "then": {
+                                    "type": "chorus:constant",
+                                    "value": 1.5,
+                                    "unit": "second"
+                                  },
+                                  "else": {
+                                    "type": "chorus:constant",
+                                    "value": 3.5,
+                                    "unit": "second"
+                                  }
+                                },
+                                "slow_durance_extension": {
+                                  "type": "chorus:choose",
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "target",
+                                    "field": "player"
+                                  },
+                                  "then": {
+                                    "type": "chorus:constant",
+                                    "value": 0.5,
+                                    "unit": "second"
+                                  },
+                                  "else": {
+                                    "type": "chorus:constant",
+                                    "value": 3.5,
+                                    "unit": "second"
+                                  }
+                                },
+                                "slow_jump_delta": {
+                                  "type": "chorus:event_number",
+                                  "name": "param.slow_jump_delta",
+                                  "unit": "delta"
+                                },
+                                "combatant_threshold": {
+                                  "type": "chorus:event_number",
+                                  "name": "param.combatant_threshold",
+                                  "unit": "damage"
+                                },
+                                "shatter_radius": {
+                                  "type": "chorus:event_number",
+                                  "name": "param.shatter_radius",
+                                  "unit": "meter"
+                                },
+                                "guardian_shatter_damage": {
+                                  "type": "chorus:event_number",
+                                  "name": "param.guardian_shatter_damage",
+                                  "unit": "damage"
+                                }
+                              },
+                              "numbers": {
+                                "stacks": {
+                                  "type": "chorus:choose",
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "target",
+                                    "field": "player"
+                                  },
+                                  "then": {
+                                    "type": "chorus:constant",
+                                    "value": 40,
+                                    "unit": "count"
+                                  },
+                                  "else": {
+                                    "type": "chorus:constant",
+                                    "value": 60,
+                                    "unit": "count"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:withering_blade_energy_scaling"
+        }
+      }
+    }
+  ]
+}

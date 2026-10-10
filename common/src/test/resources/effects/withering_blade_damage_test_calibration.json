@@ -1,0 +1,27 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:withering_blade_contact_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_identity",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    }
+  ]
+}

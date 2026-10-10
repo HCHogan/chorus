@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Requirements verified; Withering Blade producer not yet implemented",
+  "status": "Partial executable producer with explicit physical/contact calibration; production content assembly incomplete",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
     "path": "data/d2-research/2026-10-11/control-stasis-source.html.gz",
@@ -63,10 +63,10 @@
     "surface_ricochets": 3,
     "enemy_targets": 4
   },
-  "core_progress": "invoke_bundle now lets detached projectile impacts reuse Slow/Freeze with explicit target-specific parameters and original attribution after unequipping. Synthetic native projectile and conversion tests pass on both loaders.",
+  "core_progress": "Two-charge ability, sequential 145.2-second base recovery, independent .8 CES and current Melee energy curves; actual projectile damage invokes shared Slow/Freeze with original credit and current Durance. Optional core total_continuations can express a mixed contact budget; this does not establish the original mixed-contact rule.",
   "unresolved": [
     "Speed, gravity, drag, turn rate, acquisition angle and maximum lifetime need explicit physical calibration; historical percentage changes do not establish absolute values.",
-    "Official maximum bounce count and Compendium wall/enemy wording suggest shared continuation limits; mixed wall/entity contact order and current post-bounce damage still need verification. Existing collision policy has separate limits.",
-    "Target revisit rules, flight sampling versus application sampling, full energy stat integration and production subclass/UI assembly need acceptance evidence."
+    "Official maximum bounce count and Compendium wall/enemy wording do not independently establish mixed contact order or current post-bounce damage. The producer requires total_continuations and max_hits_per_target calibration plus an external contact-damage profile; tests choose three shared continuations, one hit per target and no decay.",
+    "Source-backed damage and Slow values are selected by observed target kind; tracking radius by activity mode at launch. Mixed-target behavior, sampling rules, all external energy producers, original ability-switch energy policy and production subclass/UI assembly still need acceptance evidence."
   ]
 }
