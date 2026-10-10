@@ -58,7 +58,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
             operationFacts = new ArrayList<>();
             try {
-                var actual = world.apply(request);
+                var actual = request.command() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query ? verifyReload(query) : world.apply(request);
                 if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
                 var writes = takeWrites();
                 return operationFacts.isEmpty() && writes.writes().isEmpty() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
@@ -124,15 +124,40 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             refreshEquipment(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
+    /** Self-owned input: the server derives the weapon, ammunition and duration from its real container. */
+    public com.imdomestic.chorus.effect.weapon.WeaponReload.Receipt reload(ServerPlayer player) {
+        thread(); prepare();
+        if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot reload here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Reload requires a healthy idle runtime");
+        String holder = player.getUUID().toString();
+        var physical = PlayerEquipment.get(player).projection(program.equipment());
+        if (!physical.equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY))) throw new IllegalStateException("Reload equipment differs from physical ownership");
+        trackEquipment(player);
+        var before = view(); var resolved = program.reload(before, new com.imdomestic.chorus.effect.weapon.WeaponReload.Request(holder, java.util.UUID.randomUUID().toString()));
+        var receipt = (com.imdomestic.chorus.effect.weapon.WeaponReload.Receipt) resolved.result();
+        if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponReload.Outcome.ACCEPTED) return receipt;
+        try {
+            session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponReload.Commit(before, resolved.state()));
+            refreshEquipment(); return receipt;
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private com.imdomestic.chorus.effect.weapon.WeaponReload.Verified verifyReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query) {
+        var plan = query.plan(); ServerPlayer player;
+        try { player = equipmentOwners.get(java.util.UUID.fromString(plan.holder())); }
+        catch (IllegalArgumentException invalid) { player = null; }
+        boolean allowed = player != null && !player.isRemoved() && player.level() == level && player.isAlive() && !player.isSpectator()
+                && com.imdomestic.chorus.effect.weapon.WeaponReload.drawn(PlayerEquipment.get(player).projection(program.equipment())).filter(plan.gear()::equals).isPresent();
+        return new com.imdomestic.chorus.effect.weapon.WeaponReload.Verified(query, allowed);
+    }
     /** Trusted host API: the caller must validate physical item ownership before submitting metadata. */
     public void equip(com.imdomestic.chorus.effect.equipment.EquipmentChange change) {
-        thread(); prepare(); change.validateCurrent(view(), program.equipment()); start(change.signal());
+        thread(); prepare(); program.changeEquipment(view(), change); start(change.signal());
     }
     /** Server container boundary: preflight all pure work, transfer ownership, then reconcile before any reaction. */
     public void commitEquipment(com.imdomestic.chorus.effect.equipment.EquipmentChange change, Runnable transferItems) {
         thread(); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Equipment requires a healthy idle runtime");
-        var transition = change.apply(view(), program.equipment());
+        var transition = program.changeEquipment(view(), change);
         transferringEquipment = true;
         try { transferItems.run(); }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }

@@ -5,6 +5,8 @@ import static com.imdomestic.chorus.core.codec.DataCodecs.*;
 import com.imdomestic.chorus.core.codec.TypeRegistry;
 import com.imdomestic.chorus.effect.buff.*;
 import com.imdomestic.chorus.effect.ability.AbilityDefinition;
+import com.imdomestic.chorus.effect.weapon.WeaponDefinition;
+import com.imdomestic.chorus.effect.ammo.AmmoState;
 import com.imdomestic.chorus.effect.resource.ResourceDefinition;
 import com.imdomestic.chorus.stat.*;
 import com.imdomestic.chorus.stat.codec.StatCodecs;
@@ -445,6 +447,24 @@ public final class EffectCodecs {
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(AbilityDefinition::condition), ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AbilityDefinition::tags),
                 Codec.unboundedMap(Codec.STRING, parameter).optionalFieldOf("parameters", Map.of()).forGetter(AbilityDefinition::parameters), step.listOf().fieldOf("on_use").forGetter(AbilityDefinition::onUse)
         ).apply(i, AbilityDefinition::new)), Set.of("id", "slot", "cost", "if", "tags", "parameters", "on_use"));
+        Codec<AmmoState.Reserve> weaponReserve = strict(RecordCodecBuilder.create(i -> i.group(
+                Codec.INT.fieldOf("rounds").forGetter(AmmoState.Reserve::rounds), Codec.INT.fieldOf("capacity").forGetter(AmmoState.Reserve::capacity)
+        ).apply(i, AmmoState.Reserve::new)), Set.of("rounds", "capacity"));
+        Codec<java.util.Optional<AmmoState.Reserve>> reserves = Codec.either(Codec.STRING, weaponReserve).flatXmap(
+                v -> v.map(s -> s.equals("unlimited") ? DataResult.success(java.util.Optional.empty()) : DataResult.error(() -> "Expected unlimited or finite reserves"),
+                        r -> DataResult.success(java.util.Optional.of(r))),
+                v -> DataResult.success(v.<Either<String, AmmoState.Reserve>>map(Either::right).orElseGet(() -> Either.left("unlimited"))));
+        Codec<WeaponDefinition.Ammunition> weaponAmmo = strict(RecordCodecBuilder.create(i -> i.group(
+                Codec.INT.fieldOf("capacity").forGetter(WeaponDefinition.Ammunition::capacity), Codec.INT.fieldOf("magazine").forGetter(WeaponDefinition.Ammunition::magazine),
+                reserves.fieldOf("reserves").forGetter(WeaponDefinition.Ammunition::reserves), ID.optionalFieldOf("capacity_profile").forGetter(WeaponDefinition.Ammunition::capacityProfile)
+        ).apply(i, WeaponDefinition.Ammunition::new)), Set.of("capacity", "magazine", "reserves", "capacity_profile"));
+        Codec<WeaponDefinition.Reload> weaponReload = strict(RecordCodecBuilder.create(i -> i.group(
+                values.fieldOf("value").forGetter(WeaponDefinition.Reload::value), ID.optionalFieldOf("profile").forGetter(WeaponDefinition.Reload::profile)
+        ).apply(i, WeaponDefinition.Reload::new)), Set.of("value", "profile"));
+        Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
+                ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
+                weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload)
+        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload"));
         Codec<EffectProgram.Bundle> bundle = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("id").forGetter(EffectProgram.Bundle::id), enumeration(EffectProgram.Scope.class).optionalFieldOf("scope", EffectProgram.Scope.SOURCE).forGetter(EffectProgram.Bundle::scope),
                 rule.listOf().optionalFieldOf("rules", List.of()).forGetter(EffectProgram.Bundle::rules), modifier.listOf().optionalFieldOf("modifiers", List.of()).forGetter(EffectProgram.Bundle::modifiers),
@@ -472,8 +492,9 @@ public final class EffectCodecs {
                 bundle.listOf().optionalFieldOf("bundles", List.of()).forGetter(EffectProgram::bundles), profiles.listOf().optionalFieldOf("profiles", List.of()).forGetter(EffectProgram::profiles),
                 ID.optionalFieldOf("defense_profile").forGetter(EffectProgram::defenseProfile), RESOURCE.listOf().optionalFieldOf("resources", List.of()).forGetter(EffectProgram::resources),
                 com.imdomestic.chorus.effect.equipment.EquipmentCodecs.SCHEMA.optionalFieldOf("equipment", com.imdomestic.chorus.effect.equipment.EquipmentSchema.EMPTY).forGetter(EffectProgram::equipment),
-                ability.listOf().optionalFieldOf("abilities", List.of()).forGetter(EffectProgram::abilities)
-        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities"));
+                ability.listOf().optionalFieldOf("abilities", List.of()).forGetter(EffectProgram::abilities),
+                weapon.listOf().optionalFieldOf("weapons", List.of()).forGetter(EffectProgram::weapons)
+        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities", "weapons"));
     }
     public static final Codec<EffectProgram> PROGRAM = program(VALUE, CONDITION, ACTION, StatCodecs.PROFILE);
     public static Codec<CompiledEffects> compiled(Codec<EffectProgram> program) {

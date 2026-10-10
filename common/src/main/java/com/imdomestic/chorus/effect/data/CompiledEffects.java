@@ -6,6 +6,7 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.ability.*;
+import com.imdomestic.chorus.effect.weapon.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.stat.*;
@@ -28,6 +29,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final Map<String, ResourceDefinition> resources;
     private final Map<String, EffectProgram.Shield> shields;
     private final CompiledEquipment equipment;
+    private final CompiledWeapons weapons;
     private final Map<String, AbilityDefinition> abilities;
     private final Map<String, RuleEngine.EventRule<EffectState>> abilityRules;
     private final Map<String, List<RuleEngine.EventRule<EffectState>>> sourceRules;
@@ -43,6 +45,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         String version = fragments.getFirst().version();
         var buffs = new ArrayList<EffectProgram.Buff>(); var bundles = new ArrayList<EffectProgram.Bundle>();
         var abilities = new ArrayList<AbilityDefinition>();
+        var weapons = new ArrayList<WeaponDefinition>();
         var profiles = new ArrayList<CalculationProfile>(); var resources = new ArrayList<ResourceDefinition>();
         var slots = new ArrayList<EquipmentSchema.Slot>(); var items = new ArrayList<EquipmentSchema.Item>(); var limits = new ArrayList<EquipmentSchema.Limit>();
         Optional<String> defense = Optional.empty(), presentation = Optional.empty();
@@ -54,6 +57,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             }
             buffs.addAll(fragment.buffs()); bundles.addAll(fragment.bundles());
             abilities.addAll(fragment.abilities());
+            weapons.addAll(fragment.weapons());
             profiles.addAll(fragment.profiles()); resources.addAll(fragment.resources());
             slots.addAll(fragment.equipment().slots()); items.addAll(fragment.equipment().items()); limits.addAll(fragment.equipment().limits());
             if (fragment.equipment().presentation().isPresent()) {
@@ -61,7 +65,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 presentation = fragment.equipment().presentation();
             }
         }
-        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities));
+        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons));
     }
 
     public CompiledEffects(EffectProgram program) {
@@ -83,6 +87,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var shieldDefinitions = new HashMap<String, EffectProgram.Shield>();
         program.buffs().forEach(buff -> buff.shield().ifPresent(shield -> shieldDefinitions.put(buff.definition().id(), shield)));
         this.shields = Map.copyOf(shieldDefinitions);
+        this.weapons = new CompiledWeapons(program.weapons(), equipment, new Validation(buffs, Map.of(), false, profiles, resources, shields), profiles);
         for (var buff : program.buffs()) buff.shield().ifPresent(shield -> {
             Validation.same(buff.definition().components().number(shield.capacity()).unit(), Unit.DAMAGE);
             Numbers.nonnegative(buff.definition().components().number(shield.capacity()).value(), "initial shield capacity");
@@ -159,7 +164,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     return change.apply(state);
                 }, ""))));
         definitions.add(new RuleEngine.EventRule<>(EquipmentChange.EVENT, EquipmentChange.EVENT, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> ((EquipmentChange) context.event().signal().payload()).apply(state, equipment), ""))));
+                List.of(new RuleEngine.Instruction<>((state, context) -> changeEquipment(state, (EquipmentChange) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponReload.REQUEST, WeaponReload.REQUEST, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> reload(state, (WeaponReload.Request) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponReload.DUE, WeaponReload.DUE, (state, context) -> {
+                    var plan = (WeaponReload.Plan) context.event().signal().payload(); return plan.equals(state.reloads().get(plan.holder()));
+                }, List.of(new RuleEngine.Instruction<>((_, context) -> new RuleEngine.Await<EffectState>(new WeaponReload.Verify((WeaponReload.Plan) context.event().signal().payload())), "reload_host"),
+                        new RuleEngine.Instruction<>((state, context) -> weapons.finish(state, (WeaponReload.Plan) context.event().signal().payload(),
+                                (WeaponReload.Verified) context.bindings().get("reload_host"), this), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceBatch.EVENT, SourceBatch.EVENT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> {
                     var batch = (SourceBatch) context.event().signal().payload();
@@ -306,6 +318,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     public EffectProgram program() { return program; }
     public CompiledEquipment equipment() { return equipment; }
+    public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
+    public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
     public void validateSource(EffectSource source) {
         if (bundle(source.bundle()).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipped source references a buff-only bundle");
     }
@@ -354,7 +368,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var configured = clock.withRates((state, account) -> resources.containsKey(account.key().resource())
                 ? resourceRate(state, account) : clock.resourceRate(state, account)).withRecovery(this::recoveryOffers).withShieldRecovery(this::shieldRecoveryOffers);
         return new TimelineEngine<>(program.version(), definitions, this, configured, budget, (state, committed) ->
-                committed instanceof EquipmentChange.Commit commit ? commit.change().apply(state, equipment).state()
+                committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
+                        : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
                         : committed instanceof AbilityUse.Commit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
     }
     public EffectClock.Rate resourceRate(EffectState state, ResourceState account) {
@@ -500,7 +515,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private Validation validation(EffectProgram.Bundle bundle, Map<String, ResultShape> results) {
         return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields);
     }
-    private Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
+    Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
         return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this));
     }
     private RuleEngine.EventRule<EffectState> compile(EffectProgram.Bundle bundle, EffectProgram.Rule rule, List<RuleEngine.EventRule<EffectState>> continuations) {
@@ -671,6 +686,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
+        if (event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
+            return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(EquipmentChange.EVENT)) return List.of(new RuleEngine.RuleBinding(EquipmentChange.EVENT, EquipmentChange.EVENT, RuleEngine.Empty.INSTANCE));
@@ -699,6 +716,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     private static String sourceId(EffectSource source) { return "source/" + source.instance().length() + ":" + source.instance(); }
     private void validateState(EffectState state) {
+        weapons.validate(state);
         state.sources().values().forEach(this::validateSource);
         state.abilities().values().forEach(loadout -> loadout.slots().forEach(this::validateSelection));
         state.equipment().forEach((holder, loadout) -> equipment.sources(holder, loadout).forEach((id, source) -> {

@@ -44,6 +44,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         };
     }
     public BuffInstance.Origin origin() {
+        if (context.scope() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Scope scope) return scope.event().source();
         if (context.scope() instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope scope) return scope.event().source();
         if (context.scope() instanceof EffectSource source) {
             var tags = new java.util.HashSet<>(source.origin().tags()); tags.addAll(source.tags());
@@ -53,6 +54,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         throw new IllegalStateException("Rule has no bound effect source");
     }
     public String self() {
+        if (context.scope() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Scope scope) return scope.event().actor();
         if (context.scope() instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope scope) return scope.event().actor();
         if (context.scope() instanceof EffectSource source) return source.holder();
         if (context.scope() instanceof BuffRules.Scope scope) return scope.snapshot().key().holder();

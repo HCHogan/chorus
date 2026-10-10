@@ -2,7 +2,7 @@
 
 当前服务端已注册可重载的 `chorus:effect_program` 注册表。Fabric 与 NeoForge 均从 `data/<namespace>/chorus/effect_program/<path>.json` 加载完整 EffectProgram，条目 id 为 `<namespace>:<path>`。高优先级数据包覆盖同路径的完整程序，不合并内部 bundle / Buff / Profile。格式仍使用 [实现记录](engine-implementation.md) 中已经落地的 DSL。
 
-这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页与最小技能命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
+这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页、最小技能命令与整弹匣手动换弹命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
 
 ## 最小可运行数据包
 
@@ -171,7 +171,7 @@ JsonElement flattened = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, prog
 
 链接不修改输入片段，结果可直接安装到运行时，也可编码为上述 flattened 完整程序交给现有数据包入口。现有注册表仍逐条加载完整程序，**尚不自动搜索片段、解析 JSON imports 或跨注册表条目链接**。不要把有未解析依赖的片段单独放进 effect_program 目录。
 
-[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。装备与合格的换弹完成事件仍需宿主接线。
+[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。通用容器与手动换弹已经接线；该片段与实际换弹流程的集成验收、完整射击输入仍待完成。
 
 ## 状态施加与只读资格
 
@@ -427,11 +427,53 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 applied > 0 时，按动作分别发布 `chorus:ammo_spent / chorus:ammo_refilled / chorus:ammo_generated`；账户改变时另发 `chorus:ammo_changed`。无限储备的显式消费可 applied > 0 且 changed = false。事实携带 requested / applied / unfulfilled / before_magazine / magazine / capacity / unmodified_capacity / magazine_delta；有限储备另有 reserves / reserve_capacity / reserve_delta。布尔值为 complete / changed / infinite_reserves，引用为 weapon / pool / reason，reason 是 spend / refill / generate。actor 为动作持有者，victim 和 weapon 引用指向实际受影响武器，source 保留动作发起来源；跨武器补给不能把收款武器冒充触发者。通用监听通常只监听 changed，避免同时监听专项事实重复发放收益。
 
-这些事实不自动发布 `reload_finished`、shot_fired 或“射空弹匣”。一次逻辑扣弹不能证明真实射击，一次 refill 也不能触发 Kill Clip / Voltshot。合格换弹由武器宿主在完成后确认。动作本身不设置循环次数限制，内容可以按实际量和状态继续连锁。
+这些事实不自动发布 `reload_finished`、shot_fired 或“射空弹匣”。一次逻辑扣弹不能证明真实射击，一次 refill 也不能触发 Kill Clip / Voltshot。下文的独立武器换弹流程在实际完成后发布合格换弹事实。动作本身不设置循环次数限制，内容可以按实际量和状态继续连锁。
 
 弹药写集在后续世界动作前提交；世界结果未知时保留已写弹数和待确认操作，不重新转移、自动退款或重放。显式快照中的来源 ammo 操作数冻结，victim 依赖保留到命中时读取；普通延迟动作内的 ammo 读取则按执行时账户求值。来源解绑和逻辑时钟不会丢失账户，detached 延迟动作可以继续，但默认绑定来源的生命周期规则不变。
 
-完整合成夹具见 [ammunition.json](../common/src/test/resources/effects/ammunition.json)，有两把武器隔离、整数取整和两端真实 tick / 治疗 / 异常验收。目前由可信服务端宿主提供武器身份；`initialize_ammo` 不是任意客户端可调用的装填接口。真实枪械输入、武器销毁 / 转移 / 跨维度时的账户迁移、未修饰容量输入随武器配置变更、玩家 NBT 弹药保存和弹药同步 / HUD 尚未接入。现有逻辑账户不等于库存物品已经具有这些弹数。
+完整合成夹具见 [ammunition.json](../common/src/test/resources/effects/ammunition.json)，有两把武器隔离、整数取整和两端真实 tick / 治疗 / 异常验收。`initialize_ammo` 不是任意客户端可调用的装填接口。独立容器已能按下文的 weapons 定义为实际物品实例初始化账户，同一运行时内卸下 / 重新装备不补弹，转给另一持有者时保留弹数并更新容量修饰归属。射击输入、武器销毁 / 跨维度的账户迁移、未修饰容量输入随武器配置变更、玩家 NBT 弹药保存和弹药同步 / HUD 尚未接入。现有逻辑账户不等于 ItemStack 已保存这些弹数。
+
+### 武器定义与服务端换弹
+
+程序顶层可选 `weapons`，每条绑定已有 equipment.items 的原型 id。示例中的弹数及时间是演示参数：
+
+```json
+{"weapons": [{
+  "item": "example:rifle",
+  "ammunition": {
+    "capacity": 30,
+    "magazine": 10,
+    "reserves": {"rounds": 90, "capacity": 180},
+    "capacity_profile": "example:magazine"
+  },
+  "reload": {
+    "value": {"type": "chorus:constant", "value": 2.4, "unit": "second"},
+    "profile": "example:reload_time"
+  }
+}]}
+```
+
+item / ammunition / reload 均必填；capacity_profile、reload.profile 可省略。reserves 必须显式给出 rounds / capacity，或字符串 `unlimited`。所有弹数都是 int；capacity 至少为 1，初始 magazine 可以高于 capacity。定义引用不存在的装备、重复绑定同一原型、Profile 单位错误或未知字段在加载时拒绝。有 weapons 定义的物品必须放在 weapon 槽。
+
+装备事务在发布装配 / 来源事实前初始化该实例的账户，只初始化一次。同一次装配的所有账户和来源先同时就绪，再解析有效容量；重复装备保留余额。已有账户的基础容量、容量 Profile 或储备类型 / 容量不兼容时，在转移真实 ItemStack 前拒绝。仍由另一持有者装备的实例不能重复装配；同一运行时内移交已卸下的实例保留弹数。
+
+reload.value 是接受请求时求值的 Value。不使用 Profile 时单位必须为 second；使用 Profile 时 value 匹配其输入单位，输出必须为 second，因此也可采用 `stat_point → 属性限幅 → 原型曲线 → 秒数修饰`。计算采用实际武器持有者和武器实例，保留输入、最终秒数及计算 Trace。最终秒数必须为正且可表示，调度向上取整到微秒；到期时间不能溢出。开始后新获得或失去的换弹速度修饰不改写已接受时长。
+
+普通玩家可执行 `/chorus weapon reload` 和 `/chorus weapon status`。reload 不接受客户端指定的武器实例、弹量或时间；服务端从独立真实容器取当前持握武器，并检查存活、维度、旁观者状态与运行时健康。空手、没有 weapons 定义、正在换弹、当前弹匣已满 / 溢出或有限储备为空时拒绝。BUSY 不重置原计时。status 展示当前持握武器的弹匣 / 有效容量、储备和换弹状态。
+
+接受时在 `EffectState.reloads` 保存 Plan 并设置一次到期计时器；此时不转移弹药。切枪、卸下或改变该实例的插槽选择会取消，拿回同一实例不会恢复旧请求。只是把仍持握的同一实例移到另一武器槽不重启。到期时通过显式只读世界操作，再次校验真实容器、持握实例及其选择、存活 / 维度 / 旁观者资格。死亡或离开还会在容器投影清理时取消；到期校验覆盖清理尚未发生的边界。
+
+同一时刻的 Buff 到期先结算，再按完成时有效容量、当前缺口和当前储备执行守恒 refill。至少实际装入一发才发出 `reload_finished`；储备不足但装入了部分弹药仍算完成。若中途已被其他效果补满或储备耗尽，则取消，不能凭空触发换弹词条。换弹状态清除和弹药余额写入先于后续规则 / 世界动作；后续世界结果未知时不重新补弹、退款或自动重放。
+
+| 事实 | 内容 |
+| --- | --- |
+| `chorus:reload_started` | 接受后的持有者 / 武器来源，reason=manual |
+| `chorus:reload_cancelled` | reason=equipment_changed、host_rejected 或 no_ammunition_transferred；不触发完成 |
+| `chorus:reload_finished` | reason=manual，实际 refill 的弹数测量；同次先发布 ammo_refilled / ammo_changed |
+
+三类事实的 actor 为持有者，victim 为武器实例，source 带物品标签和 `chorus:manual_reload`。引用包含 weapon / item / reload（请求标识）/ reason，manual 标志为 true，duration 是接受的秒数，scheduled_duration 是向上取整后的秒数。完成事实另带 requested / applied / unfulfilled、前后弹数、有效 / 未修饰容量及有限储备差值；不把它伪装成原版实体目标。
+
+[weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。当前实现整弹匣手动换弹，尚无射击 / 冲刺中断、逐发装填、排热、闪身 / Dragon's Shadow 自动换弹、按键 / 动画 / HUD、跨运行时保存恢复。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
 
 ### 动态基础容量与数值快照
 

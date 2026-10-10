@@ -83,7 +83,7 @@
           "text_sha256": "5ef3f3a9bc93997a0ca4fe066c645667029625d5c7806dfaef6b0d0055afa56d"
         }
       ],
-      "scope": "JSON 击杀/换弹窗口、来源隔离、普通/强化时间；预置 Buff 的实际伤害",
+      "scope": "JSON 击杀/换弹窗口、来源隔离、普通/强化时间；预置 Buff 的实际伤害；真实独立容器与服务端手动换弹完成后的词条激活",
       "acceptance": [
         "3.6 秒窗口与边界",
         "25% 伤害及5/5.5秒",
@@ -109,10 +109,25 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/CombatProfileGameTest.java",
           "symbol": "managedProfilesFlowThroughShieldArmorAndAbsorption"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponReloadTest.java",
+          "symbol": "acceptedReloadTransfersAtDeadlineAndQualifiesOnlyItsWeaponPerk"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponReloadTest.java",
+          "symbol": "anotherWeaponAndCompletionExactlyAtKillWindowExpiryCannotBorrowTheWindow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponReloadGameTest.java",
+          "symbol": "ordinaryPlayerCommandCompletesOwnedWeaponReloadAndActivatesItsPerk"
         }
       ],
       "gaps": [
-        "完整击杀/换弹来源装配",
+        "射击及真实武器击杀信用接线；换弹集成场景的击杀事实仍由测试宿主提供",
         "窗口收枪保留仍为内容假设"
       ]
     },
@@ -1257,7 +1272,7 @@
         }
       ],
       "gaps": [
-        "真实装备、武器身份和合格换弹仍由测试宿主提供；数据包片段 imports 与自动来源装配未接入",
+        "通用真实容器与手动换弹已接入，但此片段的世界夹具仍由测试宿主提供武器身份和完成事件；与通用输入的集成验收、数据包片段 imports 仍待完成",
         "窗口内重复换弹可重置就绪但不消耗击杀窗口、免疫/格挡命中及资格拒绝仍消费，就绪按同批首 hit 消费：均为待原作校准的内容策略",
         "射击/多弹丸事务、玩家死亡/卸下装备清理策略未完成",
         "共享 Jolt 的完整数值投影、等级/Guardian 分类、余量/冷却策略、离线阵营及 Overload 眩晕仍未完整验收"

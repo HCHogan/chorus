@@ -17,6 +17,7 @@
       "com.imdomestic.chorus.ResourceRefundGameTest",
       "com.imdomestic.chorus.AmmoGameTest",
       "com.imdomestic.chorus.AmmoCapacityGameTest",
+      "com.imdomestic.chorus.WeaponReloadGameTest",
       "com.imdomestic.chorus.AdrenalineJunkieGameTest",
       "com.imdomestic.chorus.TargetIterationGameTest",
       "com.imdomestic.chorus.TargetSelectionGameTest",

@@ -14,7 +14,7 @@ import java.util.TreeMap;
 
 /** Domain state for the effect timeline. World references are identifiers, never mutable entities. */
 public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers,
-        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition) {
+        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads) {
     public enum Mode { PVE, PVP }
     public record Lifetime(BuffInstance.Key key, long generation) {
         public Lifetime { Objects.requireNonNull(key); if (generation < 1) throw new IllegalArgumentException("Invalid buff generation"); }
@@ -38,6 +38,10 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                     || !pending.owner().flatMap(EffectTimers.Owner::buff).equals(lifetime) || remaining != 1 || intervalMicros != 0)) {
                 throw new IllegalArgumentException("Continuation differs from its one-shot timer identity/lifetime");
             }
+            if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Plan plan
+                    && (!signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponReload.DUE) || !plan.timerId().equals(id)
+                    || dueAt != plan.dueAt() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
+                throw new IllegalArgumentException("Reload differs from its one-shot timer");
         }
         public Timer(String id, long dueAt, long intervalMicros, int remaining, RuleEngine.Signal signal, Optional<Lifetime> lifetime) {
             this(id, dueAt, intervalMicros, remaining, signal, lifetime, OptionalLong.empty());
@@ -46,6 +50,8 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     public EffectState {
         Objects.requireNonNull(buffs);
         Objects.requireNonNull(mode);
+        reloads = Collections.unmodifiableMap(new TreeMap<>(reloads));
+        for (var entry : reloads.entrySet()) if (!entry.getKey().equals(entry.getValue().holder())) throw new IllegalArgumentException("Wrong reload holder identity");
         ammunition = Collections.unmodifiableMap(new TreeMap<>(ammunition));
         for (var entry : ammunition.entrySet()) if (!entry.getKey().equals(entry.getValue().weapon())) throw new IllegalArgumentException("Wrong ammunition weapon identity");
         abilities = Collections.unmodifiableMap(new TreeMap<>(abilities));
@@ -71,6 +77,9 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                 throw new IllegalArgumentException("Timer pause state differs from its bound buff");
             }
         }
+    }
+    public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers, Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition) {
+        this(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, Map.of());
     }
     public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers, Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities) {
         this(buffs, resources, timers, sources, mode, equipment, abilities, Map.of());
@@ -99,21 +108,29 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                         timer.intervalMicros(), timer.remaining(), timer.signal(), timer.lifetime()));
             }
         }
-        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition);
+        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition, reloads);
+    }
+    public EffectState withReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Plan value) {
+        var copy = new TreeMap<>(reloads); copy.put(value.holder(), value);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy);
+    }
+    public EffectState withoutReload(String holder) {
+        var copy = new TreeMap<>(reloads); copy.remove(holder);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy);
     }
     public EffectState withAmmo(com.imdomestic.chorus.effect.ammo.AmmoState value) {
         var copy = new TreeMap<>(ammunition); copy.put(value.weapon(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy, reloads);
     }
     public EffectState withResource(ResourceState value) {
-        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition);
+        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads);
     }
     public EffectState schedule(Timer timer) {
         var copy = new TreeMap<>(timers);
         if (copy.putIfAbsent(timer.id(), timer) != null) throw new IllegalArgumentException("Duplicate timer identity: " + timer.id());
-        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition);
+        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads);
     }
-    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition); }
+    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads); }
     public EffectState withSource(EffectSource source) {
         var copy = new TreeMap<>(sources); copy.put(source.instance(), source); return withSources(copy);
     }
@@ -122,17 +139,17 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     }
     public EffectState withSources(Map<String, EffectSource> value) {
         var updated = new TreeMap<>(timers); updated.values().removeIf(timer -> !EffectTimers.active(timer, value, buffs));
-        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition);
+        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition, reloads);
     }
     public EffectState withEquipment(String holder, com.imdomestic.chorus.effect.equipment.Loadout value) {
         var updated = new TreeMap<>(equipment);
         if (value.equals(com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition);
+        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition, reloads);
     }
     public EffectState withAbilities(String holder, com.imdomestic.chorus.effect.ability.AbilityLoadout value) {
         var updated = new TreeMap<>(abilities);
         if (value.equals(com.imdomestic.chorus.effect.ability.AbilityLoadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition, reloads);
     }
-    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition); }
+    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition, reloads); }
 }

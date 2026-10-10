@@ -27,6 +27,7 @@ public final class EffectCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         EquipmentCommands.register(dispatcher);
         AbilityCommands.register(dispatcher);
+        WeaponCommands.register(dispatcher);
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("engine")
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("list").executes(context -> {

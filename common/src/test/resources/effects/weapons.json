@@ -1,0 +1,49 @@
+{
+  "version": "test-1",
+  "equipment": {
+    "slots": [
+      {"id": "test:primary", "accepts": ["test:weapon"], "weapon": true},
+      {"id": "test:secondary", "accepts": ["test:weapon"], "weapon": true}
+    ],
+    "items": [
+      {"id": "test:rifle", "tags": ["test:weapon"], "effects": {"observe": {"bundle": "test:reload_observer"}},
+       "sockets": {"perk": {"required": true, "options": {"none": {"bundle": "test:empty"}, "kill_clip": {"bundle": "chorus_d2:kill_clip"}}}}},
+      {"id": "test:primary_ammo", "tags": ["test:weapon"], "effects": {"observe": {"bundle": "test:reload_observer"}}}
+    ]
+  },
+  "weapons": [
+    {"item": "test:rifle", "ammunition": {"capacity": 5, "magazine": 1, "reserves": {"rounds": 12, "capacity": 20}, "capacity_profile": "test:magazine"},
+     "reload": {"value": {"type": "chorus:constant", "value": 0.2, "unit": "second"}, "profile": "test:reload_time"}},
+    {"item": "test:primary_ammo", "ammunition": {"capacity": 5, "magazine": 0, "reserves": "unlimited"},
+     "reload": {"value": {"type": "chorus:constant", "value": 0.2, "unit": "second"}}}
+  ],
+  "profiles": [
+    {"id": "test:reload_time", "version": "test-1", "input_unit": "second", "steps": [
+      {"type": "chorus:apply", "id": "time", "operation": "multiply", "group": {"name": "time", "reduction": "product"}}
+    ]},
+    {"id": "test:magazine", "version": "test-1", "input_unit": "round", "steps": [
+      {"type": "chorus:apply", "id": "capacity", "operation": "multiply", "group": {"name": "capacity", "reduction": "product"}},
+      {"type": "chorus:round", "id": "integer", "rounding": "ceil"}
+    ]}
+  ],
+  "buffs": [{"definition": {"id": "test:expanded", "version": "test-1", "duration": 0.2, "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep"}, "bundle": "test:expanded"}],
+  "bundles": [
+    {"id": "test:empty"},
+    {"id": "test:reload_observer", "rules": [
+      {"id": "started", "on": "chorus:reload_started", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [{"type": "chorus:play_cue", "cue": "test:reload_started"}]},
+      {"id": "cancelled", "on": "chorus:reload_cancelled", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [{"type": "chorus:play_cue", "cue": "test:reload_cancelled"}]},
+      {"id": "finished", "on": "chorus:reload_finished", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [
+        {"type": "chorus:heal", "amount": {"type": "chorus:scale", "of": {"type": "chorus:event_number", "name": "applied", "unit": "round"}, "factor": 1, "from": "round", "to": "damage"}}
+      ]},
+      {"id": "expand", "on": "test:expand", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [{"type": "chorus:grant_buff", "buff": "test:expanded"}]},
+      {"id": "refill", "on": "test:refill", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [{"type": "chorus:refill_magazine"}]},
+      {"id": "spend", "on": "test:spend", "if": {"type": "chorus:source_is", "source": "this_weapon"}, "do": [{"type": "chorus:spend_ammo", "amount": {"type": "chorus:event_number", "name": "rounds", "unit": "round"}}]}
+    ]},
+    {"id": "test:fast", "modifiers": [
+      {"id": "time", "profile": "test:reload_time", "stage": "time", "group": "time", "op": "multiply", "stacking_key": "test:fast", "value": {"type": "chorus:constant", "value": -0.5, "unit": "delta"}, "reference": "Synthetic reload timing, not Destiny tuning", "confidence": "assumed"}
+    ]},
+    {"id": "test:expanded", "scope": "buff", "modifiers": [
+      {"id": "capacity", "profile": "test:magazine", "stage": "capacity", "group": "capacity", "op": "multiply", "stacking_key": "test:expanded", "value": {"type": "chorus:constant", "value": 1, "unit": "delta"}, "reference": "Synthetic reload capacity, not Destiny tuning", "confidence": "assumed"}
+    ]}
+  ]
+}

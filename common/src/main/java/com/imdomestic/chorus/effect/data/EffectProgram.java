@@ -7,12 +7,15 @@ import java.util.Optional;
 
 /** Immutable, decoded ruleset. CompiledEffects validates references and types before execution. */
 public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundles, List<CalculationProfile> profiles,
-        Optional<String> defenseProfile, List<com.imdomestic.chorus.effect.resource.ResourceDefinition> resources, com.imdomestic.chorus.effect.equipment.EquipmentSchema equipment, List<com.imdomestic.chorus.effect.ability.AbilityDefinition> abilities) {
+        Optional<String> defenseProfile, List<com.imdomestic.chorus.effect.resource.ResourceDefinition> resources, com.imdomestic.chorus.effect.equipment.EquipmentSchema equipment, List<com.imdomestic.chorus.effect.ability.AbilityDefinition> abilities, List<com.imdomestic.chorus.effect.weapon.WeaponDefinition> weapons) {
     public EffectProgram {
         buffs = List.copyOf(buffs); bundles = List.copyOf(bundles); profiles = List.copyOf(profiles);
         java.util.Objects.requireNonNull(defenseProfile);
-        abilities = List.copyOf(abilities);
+        abilities = List.copyOf(abilities); weapons = List.copyOf(weapons);
         resources = List.copyOf(resources); java.util.Objects.requireNonNull(equipment);
+    }
+    public EffectProgram(String version, List<Buff> buffs, List<Bundle> bundles, List<CalculationProfile> profiles, Optional<String> defenseProfile, List<com.imdomestic.chorus.effect.resource.ResourceDefinition> resources, com.imdomestic.chorus.effect.equipment.EquipmentSchema equipment, List<com.imdomestic.chorus.effect.ability.AbilityDefinition> abilities) {
+        this(version, buffs, bundles, profiles, defenseProfile, resources, equipment, abilities, List.of());
     }
     public EffectProgram(String version, List<Buff> buffs, List<Bundle> bundles, List<CalculationProfile> profiles, Optional<String> defenseProfile, List<com.imdomestic.chorus.effect.resource.ResourceDefinition> resources, com.imdomestic.chorus.effect.equipment.EquipmentSchema equipment) {
         this(version, buffs, bundles, profiles, defenseProfile, resources, equipment, List.of());
