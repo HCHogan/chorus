@@ -6252,7 +6252,7 @@
           "text_sha256": "c6e0ffd54a26669cf78919f62d26c3a83ff5832041bf7b158b3647f46e280778"
         }
       ],
-      "scope": "Thrown, damageable Stasis turret with five-projectile bursts, source ownership, current allegiance, initial resistance and Slow/Freeze; conversions consume selected grenade cost without changing the base loadout; explicit calibration required",
+      "scope": "Thrown, damageable Stasis turret with five-projectile bursts, source ownership, current allegiance, initial resistance and Slow/Freeze; server-measured held-input conversion consumes selected grenade cost without changing the base loadout; explicit calibration required",
       "acceptance": [
         "Physical contact deploys an independent 150 HP construct for 25 seconds, or 30 seconds with Durance at deployment.",
         "Five seeking shots over a calibrated 0.7-second burst every 2 seconds; each shot selects a current visible non-ally within 35 meters.",
@@ -6263,7 +6263,8 @@
         "Dedicated projectile damage bypasses only native hit cooldown so each rapid hit commits actual HP loss.",
         "Selected template uses 175.6-second base recharge and 0.625 chunk scalar, current Grenade stats, and no energy reset on reselect.",
         "Unknown world results preserve charge payment and committed damage without replaying or applying later Slow.",
-        "Base-selection cost conversion consumes the selected Duskfield pool while leaving the turret pool and base selection/passives unchanged; native projectile damage keeps Bleak Watcher credit."
+        "Base-selection cost conversion consumes the selected Duskfield pool while leaving the turret pool and base selection/passives unchanged; native projectile damage keeps Bleak Watcher credit.",
+        "An explicitly bound source converts only on release after the server-measured hold reaches its positive calibrated threshold; native deployment consumes selected Duskfield energy once, and a repeated release cannot cast again."
       ],
       "evidence": [
         {
@@ -6380,10 +6381,29 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
           "symbol": "convertedDuskfieldPaysItsSelectedEnergyAndDeploysARealTurretWithBleakCredit"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bleak_watcher_conversion.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityInputTest.java",
+          "symbol": "bleakConversionRequiresAnEquippedSourceAndExplicitPositiveThreshold"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/AbilityInputClientGameTest.java",
+          "symbol": "runTest"
         }
       ],
       "gaps": [
-        "Direct selection and base-selection cost conversion are implemented. Aspect hold-input recognition, equipment constraints and overriding every equipped grenade cooldown/chunk scalar remain unimplemented; the conversion test source is synthetic.",
+        "Server-measured paired input and an explicitly bound conversion source are implemented. The original hold threshold is not provided by the verified Compendium source; .3 seconds is synthetic test calibration. Formal Aspect equipment constraints and overriding every equipped grenade cooldown/chunk scalar remain unimplemented.",
         "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
         "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
         "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",

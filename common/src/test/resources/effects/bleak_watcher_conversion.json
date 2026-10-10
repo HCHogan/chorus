@@ -1,0 +1,15 @@
+{
+  "version":"compendium-2026-10-05",
+  "bundles":[{
+    "id":"chorus_d2:bleak_watcher_conversion",
+    "parameters":{"hold_time":"second"},
+    "ability_overrides":[{
+      "id":"held_grenade","slot":"chorus_d2:grenade","replace_with":"chorus_d2:bleak_watcher","priority":10,
+      "if":{"type":"chorus:all","of":[
+        {"type":"chorus:event_tag","tag":"chorus:ability_input_release"},
+        {"type":"chorus:compare","op":"gt","left":{"type":"chorus:source_parameter","name":"hold_time"},"right":{"type":"chorus:constant","value":0,"unit":"second"}},
+        {"type":"chorus:compare","op":"ge","left":{"type":"chorus:event_number","name":"input_hold_time","unit":"second"},"right":{"type":"chorus:source_parameter","name":"hold_time"}}
+      ]}
+    }]
+  }]
+}

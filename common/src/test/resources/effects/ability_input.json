@@ -1,0 +1,23 @@
+{
+  "version":"test-ability-input",
+  "resources":[{"id":"test:energy","capacity":10,"initial":10}],
+  "abilities":[
+    {"id":"test:tap","slot":"chorus_d2:grenade","tags":["chorus:grenade_ability"],"cost":{"resource":"test:energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+     "on_use":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}]},
+    {"id":"test:other","slot":"chorus_d2:grenade","cost":{"resource":"test:energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"on_use":[]},
+    {"id":"test:hold","slot":"chorus_d2:grenade","cost_from":"base_selection",
+     "on_use":[{"type":"chorus:heal","amount":{"type":"chorus:scale","of":{"type":"chorus:event_number","name":"input_hold_time","unit":"second"},"factor":10,"from":"second","to":"damage"}}]}
+  ],
+  "buffs":[{"definition":{"id":"test:blocked","version":"test-ability-input","duration":0.2},"bundle":"test:block_gate"}],
+  "bundles":[
+    {"id":"test:base_gate","action_gates":[{"id":"base_only","action":"ability_use","if":{"type":"chorus:event_tag","tag":"chorus:grenade_ability"}}]},
+    {"id":"test:unconditional_conversion","ability_overrides":[{"id":"allowed_variant","slot":"chorus_d2:grenade","replace_with":"test:hold","priority":5}]},
+    {"id":"test:conversion","ability_overrides":[{"id":"hold","slot":"chorus_d2:grenade","replace_with":"test:hold","priority":10,
+      "if":{"type":"chorus:all","of":[
+        {"type":"chorus:event_tag","tag":"chorus:ability_input_release"},
+        {"type":"chorus:compare","op":"ge","left":{"type":"chorus:event_number","name":"input_hold_time","unit":"second"},"right":{"type":"chorus:constant","value":0.3,"unit":"second"}}
+      ]}}]},
+    {"id":"test:block_gate","scope":"buff","action_gates":[{"id":"block","action":"ability_use"}]},
+    {"id":"test:control","rules":[{"id":"block","on":"test:block","do":[{"type":"chorus:grant_buff","buff":"test:blocked"}]}]}
+  ]
+}

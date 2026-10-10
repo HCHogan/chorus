@@ -43,7 +43,7 @@ public class BleakWatcherGameTest {
         ThreadedSpikeGameTest.json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
                 duskfield.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
         var parts = new ArrayList<EffectProgram>(); parts.add(program().program()); parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, duskfield).getOrThrow());
-        for (String name : List.of("duskfield_energy", "duskfield_damage_test_calibration", "bleak_watcher_conversion_inputs"))
+        for (String name : List.of("duskfield_energy", "duskfield_damage_test_calibration", "bleak_watcher_conversion_inputs", "bleak_watcher_conversion"))
             parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
         return CompiledEffects.link(parts);
     }
@@ -114,6 +114,29 @@ public class BleakWatcherGameTest {
                 h.assertValueEqual(t.state().abilities().get(id(t.owner)).slots().get(SLOT), base, "base selection replaced");
                 h.assertTrue(t.damage.stream().allMatch(d -> d.source().ability().equals(ABILITY) && d.tags().contains("chorus:grenade_damage")), "converted damage credit changed to base grenade");
                 h.assertTrue(t.state().sources().values().stream().noneMatch(s -> s.bundle().equals(ABILITY + "_energy_scaling")), "replacement mounted its own recharge source");
+            });
+        } catch (RuntimeException | Error e) { t.close(); throw e; }
+    }
+    @GameCase(environment="chorus_gametest:bleak_held_input", maxTicks=55)
+    public void serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource(GameTestHelper h) {
+        var t = new Harness(h, conversionProgram());
+        try {
+            var target = t.mob(6.5); String base = "chorus_d2:duskfield";
+            t.runtime.abilities(new AbilityChange(id(t.owner), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of(SLOT, base))));
+            t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_conversion", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
+                    Map.of("hold_time", new com.imdomestic.chorus.stat.Measure(.3, com.imdomestic.chorus.stat.Unit.SECOND))));
+            h.assertValueEqual(t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.PRESS, 1).outcome(), AbilityInput.Outcome.PRESSED, "held grenade press");
+            t.at(8, () -> {
+                h.assertTrue(t.launches.isEmpty(), "holding grenade fired before release");
+                var r = t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.RELEASE, 1);
+                h.assertTrue(r.heldMicros() >= 300_000, "server hold duration below synthetic threshold"); h.assertValueEqual(r.cast().orElseThrow().resolved(), ABILITY, "held conversion missing");
+                h.assertValueEqual(r.cast().orElseThrow().cost().orElseThrow().after().key().resource(), base + "_energy", "hold used wrong energy");
+                t.owner.setPos(t.owner.getX(), t.owner.getY(), h.absoluteVec(new Vec3(0, 0, 6)).z);
+            });
+            t.finish(42, () -> {
+                h.assertValueEqual(t.turrets.size(), 1, "held conversion deployment"); h.assertValueEqual(t.damage.size(), 5, "held conversion burst"); near(h, target.getHealth(), 995, "held conversion physical hits");
+                h.assertTrue(t.buff("chorus_d2:freeze", target).isPresent(), "held conversion failed to freeze");
+                h.assertValueEqual(t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.RELEASE, 1).outcome(), AbilityInput.Outcome.NO_PRESS, "held conversion replayed");
             });
         } catch (RuntimeException | Error e) { t.close(); throw e; }
     }

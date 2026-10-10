@@ -396,10 +396,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private RuleEngine.Local<EffectState> rejectedAbility(EffectState state, AbilityUse.Request request, String base, String resolved, AbilityUse.Outcome outcome, Optional<Resources.SpendResult> cost) {
         return new RuleEngine.Local<>(state, new AbilityUse.Receipt(request.cast(), request.slot(), base, resolved, outcome, cost), List.of());
     }
-    public RuleEngine.Local<EffectState> useAbility(EffectState state, AbilityUse.Request request) {
+    private record AbilityResolution(String base, Optional<AbilityDefinition> selected, Optional<AbilityUse.Outcome> rejection) {}
+    private AbilityResolution resolveAbility(EffectState state, AbilityUse.Request request) {
         settled(state);
         String base = state.abilities().getOrDefault(request.holder(), AbilityLoadout.EMPTY).slots().get(request.slot());
-        if (base == null) return rejectedAbility(state, request, "", "", AbilityUse.Outcome.EMPTY_SLOT, Optional.empty());
+        if (base == null) return new AbilityResolution("", Optional.empty(), Optional.of(AbilityUse.Outcome.EMPTY_SLOT));
         var selected = validateSelection(request.slot(), base); var sites = abilityReplacements(state, request.holder());
         for (int i = 0; i < sites.size();) {
             int priority = sites.get(i).replacement().priority(); var matches = new HashSet<String>();
@@ -410,9 +411,21 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 if (site.scope() instanceof BuffRules.Scope scope && !scope.snapshot().affects("", selected.id())) continue;
                 if (replacement.condition().test(evaluation(state, new RuleEngine.Context(query, site.instance(), site.scope(), Map.of()), Map.of()))) matches.add(replacement.replaceWith());
             }
-            if (matches.size() > 1) return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.CONFLICT, Optional.empty());
+            if (matches.size() > 1) return new AbilityResolution(base, Optional.of(selected), Optional.of(AbilityUse.Outcome.CONFLICT));
             if (!matches.isEmpty()) selected = validateSelection(request.slot(), matches.iterator().next());
         }
+        return new AbilityResolution(base, Optional.of(selected), Optional.empty());
+    }
+    /** Preliminary held-input gate: resolve replacements first, without querying parameters, cost, or committing a cast. */
+    public boolean abilityInputAllowed(EffectState state, AbilityUse.Request request) {
+        var resolved = resolveAbility(state, request);
+        return resolved.rejection().isEmpty() && checkAction(state, ActionGate.Kind.ABILITY_USE, ActionGate.Phase.START,
+                abilityEvent(request, resolved.base(), resolved.selected().orElseThrow())).allowed();
+    }
+    public RuleEngine.Local<EffectState> useAbility(EffectState state, AbilityUse.Request request) {
+        var resolved = resolveAbility(state, request);
+        if (resolved.rejection().isPresent()) return rejectedAbility(state, request, resolved.base(), resolved.selected().map(AbilityDefinition::id).orElse(""), resolved.rejection().orElseThrow(), Optional.empty());
+        String base = resolved.base(); var selected = resolved.selected().orElseThrow();
         var query = abilityEvent(request, base, selected); var scope = new AbilityUse.Scope(query);
         var restriction=checkAction(state,ActionGate.Kind.ABILITY_USE,ActionGate.Phase.START,query);
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new AbilityUse.Receipt(request.cast(),request.slot(),base,selected.id(),AbilityUse.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());

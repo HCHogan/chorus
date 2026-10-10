@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class BleakWatcherGameTest extends com.imdomestic.chorus.test.BleakWatcherGameTest {
+    @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_held_input", maxTicks=55) @Override
+    public void serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource(GameTestHelper h) { super.serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_conversion", maxTicks=45) @Override
     public void convertedDuskfieldPaysItsSelectedEnergyAndDeploysARealTurretWithBleakCredit(GameTestHelper h) { super.convertedDuskfieldPaysItsSelectedEnergyAndDeploysARealTurretWithBleakCredit(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_burst", maxTicks=50) @Override

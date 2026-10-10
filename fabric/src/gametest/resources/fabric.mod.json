@@ -116,7 +116,8 @@
       "com.imdomestic.chorus.FreezeDamageGameTest",
       "com.imdomestic.chorus.ConstructGameTest",
       "com.imdomestic.chorus.ProjectileEmitterGameTest",
-      "com.imdomestic.chorus.BleakWatcherGameTest"
+      "com.imdomestic.chorus.BleakWatcherGameTest",
+      "com.imdomestic.chorus.AbilityInputGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -134,7 +135,8 @@
       "com.imdomestic.chorus.FreezeClientGameTest",
       "com.imdomestic.chorus.SlowClientGameTest",
       "com.imdomestic.chorus.BreakoutClientGameTest",
-      "com.imdomestic.chorus.ConstructClientGameTest"
+      "com.imdomestic.chorus.ConstructClientGameTest",
+      "com.imdomestic.chorus.AbilityInputClientGameTest"
     ]
   }
 }

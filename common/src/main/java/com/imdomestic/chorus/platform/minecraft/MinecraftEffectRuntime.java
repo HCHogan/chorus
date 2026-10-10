@@ -5,6 +5,7 @@ import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.effect.combat.DamageBasis;
 import com.imdomestic.chorus.effect.combat.DamageFacts;
@@ -60,6 +61,9 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private Optional<MinecraftNativeActions.Report> nativeActionReport=Optional.empty();
     private boolean transferringEquipment, refreshingEquipment;
     private final Map<java.util.UUID, ServerPlayer> equipmentOwners = new java.util.LinkedHashMap<>();
+    private record InputKey(java.util.UUID holder, String slot) {}
+    private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
+    private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
 
     private MinecraftEffectRuntime(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
@@ -150,6 +154,62 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void abilities(com.imdomestic.chorus.effect.ability.AbilityChange change) {
         thread(); prepare(); change.apply(view(), program); start(change.signal());
     }
+    private boolean inputEligible(ServerPlayer player) {
+        return player.level() == level && !player.isRemoved() && player.isAlive() && !player.isSpectator();
+    }
+    private com.imdomestic.chorus.effect.EffectEvent abilityInputEvent(ServerPlayer player, long heldMicros, boolean released) {
+        String holder = player.getUUID().toString();
+        return new com.imdomestic.chorus.effect.EffectEvent(holder, holder, new BuffInstance.Origin(holder, "", "", ""),
+                released ? Set.of("chorus:ability_input_release") : Set.of(),
+                Map.of("input_hold_time", new com.imdomestic.chorus.stat.Measure(heldMicros / 1_000_000.0, com.imdomestic.chorus.stat.Unit.SECOND)),
+                Map.of("on_ground", player.onGround(), "sprinting", player.isSprinting(), "crouching", player.isCrouching()), Map.of());
+    }
+    private boolean mayHold(ServerPlayer player, String slot, long gesture, long heldMicros) {
+        var input = abilityInputEvent(player, heldMicros, false);
+        var query = new com.imdomestic.chorus.effect.EffectEvent(input.actor(), input.victim(), input.source(), Set.of("chorus:ability_input_hold"), input.numbers(), input.flags(), input.references());
+        return program.abilityInputAllowed(view(), new AbilityUse.Request(player.getUUID().toString(), slot, "input/" + gesture, query));
+    }
+    private void reconcileAbilityInputs() {
+        if (failure.isPresent()) { abilityInputs.clear(); return; }
+        if (session.running()) return;
+        abilityInputs.entrySet().removeIf(entry -> {
+            var held = entry.getValue(); var player = held.player();
+            if (!inputEligible(player)) return true;
+            var selected = program.selectedAbility(view(), entry.getKey().holder().toString(), entry.getKey().slot());
+            return selected.isEmpty() || !selected.orElseThrow().id().equals(held.base()) || !mayHold(player, entry.getKey().slot(), held.gesture(), nowMicros() - held.startedMicros());
+        });
+    }
+    /** Read-only server observation for input feedback. Preparing also discards invalid holds. */
+    public java.util.OptionalLong heldAbilityInput(ServerPlayer player, String slot) {
+        thread(); prepare(); var held = abilityInputs.get(new InputKey(player.getUUID(), slot));
+        return held == null || held.player() != player ? java.util.OptionalLong.empty() : java.util.OptionalLong.of(nowMicros() - held.startedMicros());
+    }
+    /** Release consumes the matching gesture before resolving, paying for, or executing its cast. */
+    public AbilityInput.Receipt abilityInput(ServerPlayer player, String slot, AbilityInput.Edge edge, long gesture) {
+        thread(); prepare(); AbilityDefinition.id(slot); Objects.requireNonNull(edge);
+        if (gesture <= 0) throw new IllegalArgumentException("Missing ability gesture");
+        if (!inputEligible(player)) throw new IllegalArgumentException("Player cannot use abilities here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Ability input requires a healthy idle runtime");
+        var key = new InputKey(player.getUUID(), slot); var held = abilityInputs.get(key);
+        if (edge == AbilityInput.Edge.PRESS) {
+            if (held != null) return AbilityInput.Receipt.input(AbilityInput.Outcome.ALREADY_HELD, nowMicros() - held.startedMicros());
+            var base = program.selectedAbility(view(), player.getUUID().toString(), slot);
+            if (base.isEmpty()) return AbilityInput.Receipt.input(AbilityInput.Outcome.EMPTY_SLOT, 0);
+            if (!mayHold(player, slot, gesture, 0)) return AbilityInput.Receipt.input(AbilityInput.Outcome.RESTRICTED, 0);
+            abilityInputs.put(key, new HeldInput(player, gesture, base.orElseThrow().id(), nowMicros()));
+            return AbilityInput.Receipt.input(AbilityInput.Outcome.PRESSED, 0);
+        }
+        if (held == null) return AbilityInput.Receipt.input(AbilityInput.Outcome.NO_PRESS, 0);
+        if (held.player() != player || held.gesture() != gesture) return AbilityInput.Receipt.input(AbilityInput.Outcome.STALE, 0);
+        abilityInputs.remove(key); long elapsed = Math.subtractExact(nowMicros(), held.startedMicros());
+        if (edge == AbilityInput.Edge.CANCEL) return AbilityInput.Receipt.input(AbilityInput.Outcome.CANCELLED, elapsed);
+        return new AbilityInput.Receipt(AbilityInput.Outcome.RELEASED, elapsed, Optional.of(useAbility(player, slot, elapsed, true)));
+    }
+    public static void cancelAbilityInputs(net.minecraft.server.network.ServerGamePacketListenerImpl connection) {
+        for (var runtime : LIVE.values()) if (runtime.level.getServer() == connection.player.level().getServer()) {
+            runtime.thread(); runtime.abilityInputs.entrySet().removeIf(e -> e.getValue().player().connection == connection);
+        }
+    }
     /** One input consumes at most one eligible loaded flight, nearest first with UUID tie-breaking. */
     public Optional<java.util.UUID> catchProjectile(ServerPlayer player) {
         thread(); prepare();
@@ -166,12 +226,15 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     /** Self-owned command/input entry. No client-supplied facts, definition, cost or target. */
     public com.imdomestic.chorus.effect.ability.AbilityUse.Receipt useAbility(ServerPlayer player, String slot) {
+        thread(); abilityInputs.remove(new InputKey(player.getUUID(), slot));
+        return useAbility(player, slot, 0, false);
+    }
+    private com.imdomestic.chorus.effect.ability.AbilityUse.Receipt useAbility(ServerPlayer player, String slot, long heldMicros, boolean released) {
         thread(); prepare();
         if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot use abilities here");
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Ability use requires a healthy idle runtime");
         String holder = player.getUUID().toString();
-        var input = new com.imdomestic.chorus.effect.EffectEvent(holder, holder, new BuffInstance.Origin(holder, "", "", ""), java.util.Set.of(), java.util.Map.of(),
-                java.util.Map.of("on_ground", player.onGround(), "sprinting", player.isSprinting(), "crouching", player.isCrouching()), java.util.Map.of());
+        var input = abilityInputEvent(player, heldMicros, released);
         var request = new com.imdomestic.chorus.effect.ability.AbilityUse.Request(holder, slot, java.util.UUID.randomUUID().toString(), input);
         var before = view(); var resolved = program.useAbility(before, request);
         var receipt = (com.imdomestic.chorus.effect.ability.AbilityUse.Receipt) resolved.result();
@@ -280,13 +343,18 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void start(RuleEngine.Signal signal) {
         thread();
         if (failure.isPresent()) throw new IllegalStateException("Failed runtime requires explicit recovery");
-        try { session.start(nowMicros(), signal); refreshEquipment(); refreshProjections(); }
+        if (signal.payload() instanceof AbilityChange change) {
+            change.apply(view(), program); // Invalid/stale requests do not erase a valid held input.
+            abilityInputs.keySet().removeIf(key -> key.holder().toString().equals(change.holder())
+                    && !Objects.equals(change.before().slots().get(key.slot()), change.after().slots().get(key.slot())));
+        }
+        try { session.start(nowMicros(), signal); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshProjections(); }
+        try { if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); }
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
@@ -428,6 +496,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         }
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
                 committedShields, committedCombat, List.copyOf(reservations.values()), facts));
+        abilityInputs.clear();
         Constants.LOG.error("Chorus rule runtime stopped for {}. Committed world changes are retained; no automatic replay.", level.dimension().identifier(), error);
     }
     private void countUnprocessed(long amount) {
@@ -450,7 +519,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        closed = true; equipmentOwners.clear(); abilityInputs.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
         var constructs = new ArrayList<EffectConstruct>();
         for (var entity : level.getAllEntities()) if (entity instanceof EffectConstruct construct && construct.ownedBy(this)) constructs.add(construct);
         constructs.forEach(EffectConstruct::discard);

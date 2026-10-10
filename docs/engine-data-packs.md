@@ -1587,7 +1587,33 @@ chorus ability use example:grenade
 chorus ability clear example:grenade
 ```
 
-choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。按键 / 网络展示、完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
+choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。手雷按键与输入网络见下节；完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
+
+### 按下、长按与松开
+
+两加载器均注册可重绑定的「手雷技能」键，默认 V，发送 `chorus_d2:grenade` 槽位操作。`AbilityInputClient` 只传按下 / 松开 / 取消；持续时间由服务器运行时的逻辑时钟计算，客户端不能提供时长、施法者、最终技能、费用或目标。服务器未安装相应程序或尚未选择技能时，按键不创建默认技能。
+
+```java
+runtime.abilityInput(player, "chorus_d2:grenade", AbilityInput.Edge.PRESS, gesture);
+// 后续服务器 tick 推进时钟；同一 gesture 配对松开。
+AbilityInput.Receipt input = runtime.abilityInput(player, "chorus_d2:grenade", AbilityInput.Edge.RELEASE, gesture);
+```
+
+按下不支付或执行 on_use。每个玩家 / 槽位最多保留一个待松开的输入，重复按下返回 ALREADY_HELD，不重置起点；不同 gesture 的松开返回 STALE，不清掉当前输入。匹配的松开先消费记录，再进行完整替换、条件、参数和付款检查，故失败或重复松开不能再次尝试原输入。`RELEASED` 只表示已消费松开，实际施放结果在嵌套的 `AbilityUse.Receipt`；CANCEL 只清理，不施放。直接 use 命令也清理该槽待松开的输入，避免随后再施放一次。
+
+| 查询上下文 | 标签与数值 |
+| --- | --- |
+| 按下及保持资格复核 | `chorus:ability_input_hold`；`input_hold_time: second` 是服务端已记录时长 |
+| 匹配松开的最终施放 | `chorus:ability_input_release`；同一数值用于条件替换与施放动作 |
+| 直接 use | 无上述标签；`input_hold_time = 0 second` |
+
+保持资格先解析当时适用的替换，再检查最终技能的 action_gates；不求施放参数 / 成本、不支付，也不提前判定技能自身 if。松开重新按当前来源和 Buff 解析，按下不会冻结装备效果。按下 / 保持 / 取消目前不是规则事实；尚无按住期间的逐 tick 动作、达到阈值自动施放、引导动画或服务器回执 HUD。
+
+基础选择切换（包括同一 tick 切走再切回）、行动限制、死亡、旁观、玩家实体 / 维度失效、断线、运行时关闭或故障会清理待松开的输入。保持相同选择不会取消。客户端打开界面或失去窗口焦点会发取消，并等待观察到按键松开后再接受新按下。清理只影响尚未施放的输入，已经生成的世界效果按自身生命周期继续。
+
+`chorus:ability_input` 网络包包含正递增 sequence、原按下的 gesture、维度、槽位及 edge；PRESS 要求 gesture 等于 sequence。服务器按实际连接记录最新序号，在资格检查和世界操作之前消费序号；重复包不重试，过时维度不施放。服务端 tick 粒度及到包时点决定时长；尚未实现延迟补偿或客户端成功确认。未知世界结果保留已提交支付与副作用，停止运行时且不重放。
+
+`bleak_watcher_conversion.json` 的 SOURCE Bundle 要求显式 `hold_time: second` 参数，仅在松开且正阈值达到时替换为冰炮台。缺少参数拒绝绑定，非正阈值不转换；没有该来源、短按或直接 use 均保留原选择。0.3 秒仅是测试校准，原表没有提供可确认的长按阈值。此来源仍需正式 Aspect 装配挂载；它不覆盖全局手雷冷却或 CES。
 
 ## 技能、开火与手动换弹的行动限制
 

@@ -22,6 +22,9 @@ public class Chorus implements ModInitializer {
         net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_CONSTRUCT.get(), com.imdomestic.chorus.platform.minecraft.EffectConstruct.attributes());
         com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
         com.imdomestic.chorus.network.FabricProjectileCatchNetworking.init();
+        com.imdomestic.chorus.network.FabricAbilityInputNetworking.init();
+        ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE::stop);
+        ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.disconnected(listener));
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::stop);
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE::stop);
         ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.disconnected(listener));
