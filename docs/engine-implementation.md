@@ -6,6 +6,8 @@
 
 ## 当前证据
 
+资源收益现支持独立 gain_scalar / gain_scalar_profile，在参考值归一化之后、收益 Profile 之前查询接收者当前系数；保留两段轨迹，固定回能完全跳过。新增 5 项 ResourceGainScalarTest 后，1087 项 JUnit 通过（`/tmp/chorus-resource-scalar-test.log`，6 秒）；双端和客户端最近完整门禁仍为下文长按输入阶段。本通用能力尚未据此宣称 Aspect 全局覆盖完成。
+
 手雷输入：两端已有可重绑定的 V 键与按下 / 松开 / 取消协议，服务端计量持续时间，匹配松开先消费输入再解析技能与付款。Bleak Watcher 可由显式来源在长按后转换所选暮域，消费暮域能量并部署真实炮台；实际五连发、Slow / Freeze、Durance 和构造物阵营继续复用现有机制。原作长按阈值、正式 Aspect 装备约束、全局手雷回充覆盖、其余未公开参数及正式技能目录仍待完成。
 
 2026-10-11：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 506 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。

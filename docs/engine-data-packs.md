@@ -519,7 +519,7 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 - 一份充能固定为 1；capacity = 2 不会把 `charge_fraction = 0.1` 翻倍。当前只实现共享能量的顺序回充。capacity / initial 必填，base_rate 默认 0，允许负速率表示持续消耗。capacity 必须为正，initial 和 thresholds 必须在容量内；阈值不允许重复。
 - `rate_profile` 可引用本程序中的 Profile，其输入、输出均须为 `charge_fraction_per_second`。base_rate 是输入，输出是本段积分速率，静态来源与 Buff 的 modifiers 按同一数值管线归约。速率查询携带 resource 引用、resource_value / capacity 测量和 `chorus:resource_rate_query` 标签；归属为账户持有者，不把多来源回能任意算给一把武器。完整示例见 [resource_regeneration.json](../common/src/test/resources/effects/resource_regeneration.json)。
-- 独立的 `gain_profile` 用于 `grant_energy`，输入、输出均须为 `charge_fraction`；资源只声明 rate_profile 不会自动获得一次性收益的缩放。已声明的两个 Profile 都在编译时验证引用和单位。
+- 独立的 `gain_profile` 用于 `grant_energy`，输入、输出均须为 `charge_fraction`；资源只声明 rate_profile 不会自动获得一次性收益的缩放。可另声明非负 `gain_scalar`（默认 1）和 `gain_scalar_profile`（输入、输出均为 multiplier），在收益 Profile 前计算当前接收系数。所有已声明的 Profile 均在编译时验证引用和单位。
 - 0、capacity 以及 thresholds 是精确逻辑时间边界；需要监听的中间整格必须声明。`resource_crossed` 默认匹配 self 的账户，支持 up / down；达到后停留在阈值上不会重复触发。一次性入账或消费跨越阈值同样生效。初始化只发 initialized，初值不冒充恢复过程。
 - 初始化返回 value / created；消费返回 paid / after / succeeded，并保留实际成本回执。余额不足时不部分扣款；零成本可以成功但 paid = 0。payment 是规则内唯一的本地标识，完整回执身份另含事件、规则实例及动作 OperationId；同一指令在循环中每次执行也是独立付款，不在不同激活或迭代间复用。
 - `chorus:resource_changed` 只在值变化时发布；`resource_granted` 另带请求 / 入账测量，`resource_spent` 在实际扣费后发布。统一测量为 before / after / delta / capacity，单位 charge_fraction；引用为 resource / reason，布尔值为 changed。恢复、普通入账、完整充能、消费、返还的 reason 分别为 regeneration / grant / full_charge / spend / refund。通用规则通常监听 changed，避免同时监听专项事实而重复发放同一收益。
@@ -528,7 +528,9 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 ### 归一化后授予能量
 
-`chorus:grant_energy` 使用 resource、target（默认 self）、amount（charge_fraction）和必填的 value_basis。base 直接将 amount 送入资源的 gain_profile；reference 先除以 reference_factors 中所有正倍率的乘积；fixed 直接入账，不执行 Profile。base / fixed 禁止 reference_factors，reference 要求非空，fixed 还禁止查询 tags / numbers。base / reference 缺少 gain_profile 在编译时拒绝，非有限 / 非正参考因子在求值时拒绝；均不会先写账户再报错。
+`chorus:grant_energy` 使用 resource、target（默认 self）、amount（charge_fraction）和必填的 value_basis。base 以 amount 为基础值；reference 先除以 reference_factors 中所有正倍率的乘积。两者先将基础值乘当前接收系数，再送入资源的 gain_profile；fixed 直接入账，跳过接收系数及全部 Profile。base / fixed 禁止 reference_factors，reference 要求非空，fixed 还禁止查询 tags / numbers。base / reference 缺少 gain_profile 在编译时拒绝，非有限 / 非正参考因子在求值时拒绝；均不会先写账户再报错。
+
+`gain_scalar` 是资源固有倍率，`gain_scalar_profile` 以它为输入，通过当前接收者的来源 / Buff 计算实际倍率。零是有效的零收益；负数或非有限结果在账户写入前报错。接收系数查询与 gain_profile 使用同一账户、来源和查询上下文，各自保留轨迹。卸下覆盖来源只改变未来收益，不改写声明或已有余额；fixed、refund_cost、grant_full_charge 与被动恢复均不走此步骤。旧内容默认倍率为 1，已在 gain_profile 中包含 CES 的内容不能再重复声明同一系数。
 
 例如资源声明 `"gain_profile":"chorus_d2:threaded_spike_gain"` 后，以下动作将已包含 100 属性倍率 2.25 与接收系数 0.8 的 7.2% 还原为 4% 基础值，再按当前接收者计算。它需要链接 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json) 及 Threaded Spike 的资源定义：
 
@@ -548,7 +550,7 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 查询使用目标账户持有者的来源 / Buff 修饰；动作来源与触发事件的 actor / victim 保留，resource 引用设置为接收资源。tags 默认为空，不继承触发事件标签；numbers 继承事件测量后接受显式覆盖。因此 CMS 等来源特例必须明确传入查询标签与测量，不能因为触发事件恰好同名便额外缩放。核心不内置任何 D2 系数。
 
-绑定结果可读 requested / normalized / scaled / credited / overflow / after，单位均为 charge_fraction；Java 结果另外保留参考因子与完整 Profile 轨迹。满容量仍发布 resource_granted，只有余额变化才发布 resource_changed。参考属性与版本放在内容出处中，reference_factors 只表达确实包含的倍率，不是自动跨版本转换。旧 grant_resource 仍用于内容已经完成缩放的 requested / scaled；固定能量比例也可显式使用 grant_energy 的 fixed，不依赖实付成本。完整合成触发例见 [spike_energy_inputs.json](../common/src/test/resources/effects/spike_energy_inputs.json)，不代表某个回能 perk 已完成装配。
+绑定结果可读 requested / normalized / scaled / credited / overflow / after，单位均为 charge_fraction；另有 `recipient_scalar: multiplier`，只可读取 base / reference 的有效系数，fixed 的该字段缺席且读取报错。Java 结果保留参考因子、接收系数的固有值 / 实际值 / 可选查询轨迹，以及最终 gain_profile 轨迹。满容量仍发布 resource_granted，只有余额变化才发布 resource_changed。参考属性与版本放在内容出处中，reference_factors 只表达确实包含的倍率，不是自动跨版本转换。旧 grant_resource 仍用于内容已经完成缩放的 requested / scaled；固定能量比例也可显式使用 grant_energy 的 fixed，不依赖实付成本。完整合成触发例见 [spike_energy_inputs.json](../common/src/test/resources/effects/spike_energy_inputs.json)，不代表某个回能 perk 已完成装配。
 
 ### 按当前技能槽授予能量
 

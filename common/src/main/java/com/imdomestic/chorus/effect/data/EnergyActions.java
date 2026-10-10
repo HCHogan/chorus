@@ -8,7 +8,10 @@ import java.util.*;
 
 public final class EnergyActions {
     private EnergyActions() {}
-    public record Result(EnergyGains.Normalized normalized, Optional<CalculationProfile.Result> calculation,
+    public record RecipientScaling(double base, double value, Optional<CalculationProfile.Result> calculation) {
+        public RecipientScaling { Numbers.nonnegative(base, "base gain scalar"); Numbers.nonnegative(value, "effective gain scalar"); Objects.requireNonNull(calculation); }
+    }
+    public record Result(EnergyGains.Normalized normalized, Optional<RecipientScaling> recipient, Optional<CalculationProfile.Result> calculation,
             ResourceResult grant) implements RuleEngine.ActionResult {}
     public enum AbilityOutcome { GRANTED, NO_SELECTION, NO_RESOURCE }
     public record AbilityResult(String holder, String slot, Optional<String> ability, AbilityOutcome outcome,
@@ -65,6 +68,7 @@ public final class EnergyActions {
     private static final ResultShape GAIN = new ResultShape(Map.of(
             "requested", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().requested()),
             "normalized", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).normalized().base()),
+            "recipient_scalar", new ResultShape.Field(Unit.MULTIPLIER, r -> ((Result) r).recipient().orElseThrow(() -> new IllegalArgumentException("Fixed gains have no recipient scaling")).value()),
             "scaled", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().scaled()),
             "credited", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().credited()),
             "overflow", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().overflow()),
@@ -126,15 +130,22 @@ public final class EnergyActions {
             });
             var normalized = EnergyGains.normalize(basis, requested.value(), factors);
             Optional<CalculationProfile.Result> calculation = Optional.empty();
+            Optional<RecipientScaling> recipient = Optional.empty();
             double scaled = normalized.base();
             if (basis != EnergyGains.Basis.FIXED) {
-                var profile = e.resourceDefinition(resource).gainProfile().orElseThrow(() -> new IllegalArgumentException("Energy gain requires resource gain_profile: " + resource));
+                var definition = e.resourceDefinition(resource);
+                var profile = definition.gainProfile().orElseThrow(() -> new IllegalArgumentException("Energy gain requires resource gain_profile: " + resource));
                 var context = e.timerEvent(); var measurements = new HashMap<>(context.numbers());
                 numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
                 var refs = new HashMap<>(context.references()); refs.put("resource", resource);
                 var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
+                var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, id,
+                        new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of()));
+                scalarCalculation.ifPresent(result -> Validation.same(result.output().unit(), Unit.MULTIPLIER));
+                var scalar = new RecipientScaling(definition.gainScalar(), scalarCalculation.map(result -> result.output().value()).orElse(definition.gainScalar()), scalarCalculation);
+                recipient = Optional.of(scalar);
                 var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
-                        new Measure(normalized.base(), Unit.CHARGE), List.of());
+                        new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of());
                 Validation.same(result.output().unit(), Unit.CHARGE);
                 calculation = Optional.of(result); scaled = result.output().value();
             }
@@ -142,7 +153,7 @@ public final class EnergyActions {
             var payload = new Action.ResourceGranted(grant, e.origin());
             var signals = new ArrayList<RuleEngine.Signal>(); signals.add(new RuleEngine.Signal("chorus:resource_granted", payload));
             if (grant.after().value() != account.value()) signals.add(new RuleEngine.Signal("chorus:resource_changed", payload));
-            return new RuleEngine.Local<>(e.state().withResource(grant.after()), new Result(normalized, calculation, grant), signals);
+            return new RuleEngine.Local<>(e.state().withResource(grant.after()), new Result(normalized, recipient, calculation, grant), signals);
         }
     }
 }

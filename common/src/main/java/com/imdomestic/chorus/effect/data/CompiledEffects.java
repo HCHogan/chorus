@@ -109,6 +109,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var profile = profiles.get(id); if (profile == null) throw new IllegalArgumentException("Unknown resource gain profile: " + id);
             Validation.same(profile.inputUnit(), Unit.CHARGE); Validation.same(profile.outputUnit(), Unit.CHARGE);
         });
+        for (var resource : resources.values()) resource.gainScalarProfile().ifPresent(id -> {
+            var profile = profiles.get(id); if (profile == null) throw new IllegalArgumentException("Unknown resource gain scalar profile: " + id);
+            Validation.same(profile.inputUnit(), Unit.MULTIPLIER); Validation.same(profile.outputUnit(), Unit.MULTIPLIER);
+        });
         program.defenseProfile().ifPresent(id -> new Validation(buffs, Map.of(), false, profiles).damageProfile(id));
         var shieldDefinitions = new HashMap<String, EffectProgram.Shield>();
         program.buffs().forEach(buff -> buff.shield().ifPresent(shield -> shieldDefinitions.put(buff.definition().id(), shield)));

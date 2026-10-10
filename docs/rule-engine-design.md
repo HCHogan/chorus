@@ -506,6 +506,8 @@ T0 为 **0 属性下**的一份充能基础冷却，P 为被动倍率，A0_i 为
 
 0 / capacity 和显式 thresholds 是时间轴边界，`resource_crossed` 对自然恢复、入账与消费统一判断，初始化另发独立事实。中间整格必须声明；依赖能量值的速率条件也需声明断点，不从任意表达式自动推导。每段采用段起点速率，不声称支持任意连续状态相关的精确积分。测试已验证倍率到期分段、双向跨阈值、满值不储存与真实服务器 tick 驱动。
 
+资源另可声明 `gain_scalar`（默认 1）及 `gain_scalar_profile`（multiplier → multiplier），在归一化后、gain_profile 前单独求接收系数。查询使用接收者当前来源 / Buff，保留固有系数、覆盖后的系数和完整轨迹；卸下覆盖不改余额。fixed 回能、实付退款、完整充能与被动恢复不经过该阶段。旧内容若已在收益 Profile 内乘 CES，应保留默认 1 或把该步骤迁出，避免双乘。
+
 ### 治疗、取整与输出统计
 
 治疗结果分别保留 requested、offered、effective、overheal：requested 为请求值，offered 为经过加载器改量后进入生命写入的量，effective 为实际正生命增量，overheal 只记录超过当时生命容量的部分。取消和减量不能伪装成过量治疗；回调内发生的伤害不能从治疗量中倒扣。原版 float 精度及其他模组进一步改变写入时，不强求 requested = effective + overheal。
