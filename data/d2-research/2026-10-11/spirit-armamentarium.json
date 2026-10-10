@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Partial Spirit of the Armamentarium with physical class-item capacity source and shared grenade account",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=20898389",
+    "retrieved_at": "2026-10-10T23:41:49.850293+00:00",
+    "html_sha256": "7ffd2a266f26fc2c8aab57eabcf49f870061b6a15f6d4fadb60ffbaa7fec3e4e",
+    "path": "data/d2-research/2026-10-11/spirit-armamentarium-source.html.gz",
+    "gzip_sha256": "36a728f1eb558eefba0e5ff9d7e271a418953c9022629661ecd0c566b0e08685"
+  },
+  "cells": [
+    {
+      "original_cell": "D17",
+      "snapshot_cell": "D17",
+      "snapshot_text_sha256": "bace2def28a9556cafb3c0a5eea45200f46e74983520c16daa0c5c7220288413",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "F17",
+      "snapshot_cell": "F17",
+      "snapshot_text_sha256": "8d90e44a293239a33f3d0255f9461c9aeb63bab751b326c94db11207e081e4c5",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "requirements": {
+    "extra_grenade_charges": 1
+  },
+  "policies": {
+    "capacity_basis": "one charge plus folded active extra sources",
+    "armamentarium_family": "max",
+    "source_reactions": "after complete source transaction",
+    "resize": "preserve absolute energy and discard excess",
+    "inactive_grenade_slot": "keep balance but do not regenerate"
+  },
+  "unresolved": [
+    "Definitions are test resources. The physical class-item test uses a synthetic item prototype; production perk selection, Prismatic/class/unlock restrictions, legal exotic limits, visuals, HUD and energy persistence remain incomplete.",
+    "Initial account creation gives the base resource initial value only. Equipping preserves absolute energy, shrinking clips excess, and empty-slot source removal still reconciles capacity. These are explicit Chorus policies; original-game equip/swap/death energy penalties have not been calibrated.",
+    "Duplicate Armamentarium-family sources use MAX. A distinct synthetic capacity source verifies three charges; it is not a full Touch of Thunder implementation.",
+    "SOURCE attach/detach and ability selection reconcile against the complete committed source set. Capacity-changing Buff lifecycles and arbitrary condition changes require their own reconciliation rules; generic automatic projection is not implemented.",
+    "Sequential shared regeneration is retained without multiplying rate or grants by capacity. Ophidia Spathe linked recovery and parallel charge timelines are not implemented."
+  ]
+}

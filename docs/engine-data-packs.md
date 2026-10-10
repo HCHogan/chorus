@@ -542,7 +542,9 @@ target 默认 self；capacity 必须为有限正数，单位 charge_fraction。�
 
 时间轴在外部 resize 前先按旧上限结算；后续恢复使用新上限。thresholds 中超出当前上限的值暂不进入下一截止点计算，扩容后恢复生效，0 / 当前上限始终参与时间边界。需要精确监听的中间整格仍应显式声明。缩容后的延迟退款按当时容量裁剪，溢出消耗原退款额度；重新扩容不能取回已经丢弃的余额、满槽期间的恢复时间或退款溢出。
 
-这是显式动作，不会自动监听任意属性变化。多个来源决定容量时，先用 calculate 按接收者查询完整 Profile，再把结果交给 resize；应在来源或选择事务已提交后按内容规则重算，不能各自卸下时盲目设回基础容量。示例 [resource_capacity.json](../common/src/test/resources/effects/resource_capacity.json) 验证两个 +1 来源合成三格、接收者隔离和移除一个来源后保留另一个；真实装备／Aspect 自动协调尚待接入。缩容裁剪是该指令的明确语义，是否适用于某项 D2 换装效果仍需原作校准。
+这是显式动作，不会自动监听任意属性变化。多个来源决定容量时，先用 calculate 按接收者查询完整 Profile，再把结果交给 resize；应在来源或选择事务已提交后按内容规则重算，不能各自卸下时盲目设回基础容量。示例 [resource_capacity.json](../common/src/test/resources/effects/resource_capacity.json) 验证两个 +1 来源合成三格、接收者隔离和移除一个来源后保留另一个。缩容裁剪是该指令的明确语义，是否适用于某项 D2 换装效果仍需原作校准。
+
+D2 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 已用 grenade_capacity_binding 组合自身 source_attached / source_detached 与持有者 abilities_changed，在完整来源提交后重算容量。手雷选择期来源及 [Spirit](../common/src/test/resources/effects/spirit_armamentarium.json) 共同复用；同一容量多次计算返回未变化结果，不重复发布容量事实。实际装备替换读取最终来源集合，避免等效替换先缩容再扩容；空槽卸装仍由旧来源的卸下反应完成协调。账户声明整格阈值 1 / 2，当前上限由时钟自动纳入。该内容绑定不覆盖任意 Buff / 条件变化，新增容量政策仍需声明对应重算入口；完整限制见 [D2 规则集](d2-ruleset.md#spirit-of-the-armamentarium-额外手雷充能)。
 
 ### 归一化后授予能量
 
@@ -1588,7 +1590,7 @@ runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(Map.of("e
 AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 ```
 
-选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。资源基础声明仍属于固定目录，切换不会隐式重设它们；resizable 账户可通过 resize_resource 显式变更容量，有效恢复率及 CES 可通过 rate_profile / gain_scalar_profile 查询选择期来源。D2 手雷示例用零基础值、选择期基准来源和 Aspect 条件实现共用余额及空槽暂停；固定回能和已付款退款仍可显式作用于保留账户，未实现原作换装额外扣减或容量来源自动协调。
+选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。资源基础声明仍属于固定目录，切换不会隐式重设它们；resizable 账户可通过 resize_resource 显式变更容量，有效恢复率及 CES 可通过 rate_profile / gain_scalar_profile 查询选择期来源。D2 手雷示例用零基础值、选择期基准来源和 Aspect 条件实现共用余额及空槽暂停，并用明确 SOURCE / 选择反应协调额外容量；固定回能和已付款退款仍可显式作用于保留账户。原作换装额外扣减、任意 Buff / 条件变化的自动容量投影尚未实现。
 
 use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突、所需基础成本缺失和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 

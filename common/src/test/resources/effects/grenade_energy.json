@@ -76,6 +76,27 @@
           }
         }
       ]
+    },
+    {
+      "id": "chorus_d2:grenade_capacity",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "extra",
+          "operation": "add",
+          "group": {
+            "name": "extra",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:armamentarium_charge": {
+                "kind": "max"
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "bundles": [
@@ -253,6 +274,120 @@
             "is": "chorus_d2:grenade_energy"
           }
         }
+      ],
+      "includes": [
+        "chorus_d2:grenade_capacity_binding"
+      ]
+    },
+    {
+      "id": "chorus_d2:grenade_capacity_binding",
+      "rules": [
+        {
+          "id": "grenade_capacity_attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:grenade_energy"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:grenade_capacity",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "grenade_capacity"
+            },
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:grenade_energy",
+              "capacity": {
+                "type": "chorus:result",
+                "binding": "grenade_capacity",
+                "field": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grenade_capacity_detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:grenade_energy"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:grenade_capacity",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "grenade_capacity"
+            },
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:grenade_energy",
+              "capacity": {
+                "type": "chorus:result",
+                "binding": "grenade_capacity",
+                "field": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grenade_capacity_selection",
+          "on": "chorus:abilities_changed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:grenade_energy"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:grenade_capacity",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "grenade_capacity"
+            },
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:grenade_energy",
+              "capacity": {
+                "type": "chorus:result",
+                "binding": "grenade_capacity",
+                "field": "value"
+              }
+            }
+          ]
+        }
       ]
     }
   ],
@@ -265,7 +400,12 @@
       "rate_profile": "chorus_d2:grenade_regeneration",
       "gain_profile": "chorus_d2:grenade_gain",
       "gain_scalar": 0,
-      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
+      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar",
+      "resizable": true,
+      "thresholds": [
+        1,
+        2
+      ]
     }
   ]
 }

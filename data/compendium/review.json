@@ -6476,6 +6476,107 @@
         "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources.",
         "Arcbolt, Duskfield and Bleak Watcher now pay one shared grenade account. Selection sources provide baseline cooldown/CES; clearing pauses recovery and ordinary scaled grants without erasing balance. This is an explicit Chorus policy, not evidence of original-game swap penalties. Dynamic multi-charge capacity, original subclass/grenade swap reductions and persistence migration remain incomplete."
       ]
+    },
+    {
+      "id": "exotic_class/spirit_armamentarium",
+      "name": "Spirit of the Armamentarium",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Exotic Class",
+          "cell": "D17",
+          "text_sha256": "bace2def28a9556cafb3c0a5eea45200f46e74983520c16daa0c5c7220288413"
+        },
+        {
+          "sheet": "Exotic Class",
+          "cell": "F17",
+          "text_sha256": "8d90e44a293239a33f3d0255f9461c9aeb63bab751b326c94db11207e081e4c5"
+        }
+      ],
+      "scope": "One additional shared grenade charge from a SOURCE bundle, projected from a physical class-item instance; complete-set capacity recomputation on source and selection lifecycle",
+      "acceptance": [
+        "Equipping before or after selecting a grenade creates or resizes one common account without granting the added charge for free.",
+        "Two full units permit two actual grenade throws; the third request fails without launching another projectile.",
+        "Identical Armamentarium-family sources do not stack; an independent synthetic source composes to three charges and survives removal of the Spirit source.",
+        "Atomic replacement sees the final source set, preserving energy above one charge without transient clipping or refill.",
+        "Clearing selection pauses recovery. Unequipping while empty still removes excess capacity and energy; reselecting or re-equipping does not restore clipped energy.",
+        "Selected grenade cooldown/CES and external grants are not multiplied by the number of charges; source changes remain recipient-local.",
+        "Unknown world observation preserves physical equipment, source projection, resized capacity and actual healing without replay."
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/spirit_armamentarium.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/grenade_energy.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "equipBeforeSelectionCreatesOneSharedAccountWithoutGrantingTheAddedCharge"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "twoFullChargesPayIndividuallyAndThirdUseIsRejectedWithoutAnExtraBody"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "samePerkCopiesDoNotStackButIndependentSourceCanCreateThreeCharges"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "atomicItemReplacementUsesTheFinalSourceSetWithoutTemporaryClippingOrRefill"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "unequippingWhileTheSlotIsEmptyStillRemovesExcessCapacityAndEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "selectionChangesSplitRechargeWithoutMultiplyingRateOrGrantByCapacity"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "unknownWorldObservationRetainsTheEquippedSourceAndNewCapacityWithoutReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SpiritArmamentariumTest.java",
+          "symbol": "composedContentRoundTripsAndRequiresTheExplicitResizableAccount"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SpiritArmamentariumGameTest.java",
+          "symbol": "physicalClassItemBeforeSelectionAllowsTwoActualGrenadeThrowsAfterCharging"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SpiritArmamentariumGameTest.java",
+          "symbol": "physicalReplacementKeepsEnergyAndUnequippingRetainsOnlyIndependentCapacity"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SpiritArmamentariumGameTest.java",
+          "symbol": "unknownCapacityObserverKeepsActualEquipmentAndHealingWithoutReplay"
+        }
+      ],
+      "gaps": [
+        "Definitions are test resources. The physical class-item test uses a synthetic item prototype; production perk selection, Prismatic/class/unlock restrictions, legal exotic limits, visuals, HUD and energy persistence remain incomplete.",
+        "Initial account creation gives the base resource initial value only. Equipping preserves absolute energy, shrinking clips excess, and empty-slot source removal still reconciles capacity. These are explicit Chorus policies; original-game equip/swap/death energy penalties have not been calibrated.",
+        "Duplicate Armamentarium-family sources use MAX. A distinct synthetic capacity source verifies three charges; it is not a full Touch of Thunder implementation.",
+        "SOURCE attach/detach and ability selection reconcile against the complete committed source set. Capacity-changing Buff lifecycles and arbitrary condition changes require their own reconciliation rules; generic automatic projection is not implemented.",
+        "Sequential shared regeneration is retained without multiplying rate or grants by capacity. Ophidia Spathe linked recovery and parallel charge timelines are not implemented."
+      ]
     }
   ]
 }

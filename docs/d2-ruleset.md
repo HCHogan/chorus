@@ -1134,19 +1134,19 @@ Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害�
 | 来源分类 | 原施放者的 Stasis Grenade Ability Damage；实体发射位置属于炮台 |
 | 直接选择本模板时回充 | 单格，基础 175.6 秒、CES 0.625，接入当前 Grenade 属性曲线 |
 
-当前定义可独立选择，也已通过 `cost_from: base_selection` 支持转换时消费原手雷账户。[转换来源](../common/src/test/resources/effects/bleak_watcher_conversion.json) 在松开时读取服务端计量的 `input_hold_time`，达到显式正数 `hold_time: second` 才把所选手雷转换成炮台；无来源、短按或直接 use 不转换。长按本身不扣费或提前投掷。双端场景已验证从真实长按转换暮域，实际扣掉暮域的一份能量、保持暮域基础选择和常驻来源、保留冰炮台的攻击信用；独立炮台账户不被扣除。
+当前定义可独立选择，也已通过 `cost_from: base_selection` 支持转换时消费基础选择声明的手雷账户。[转换来源](../common/src/test/resources/effects/bleak_watcher_conversion.json) 在松开时读取服务端计量的 `input_hold_time`，达到显式正数 `hold_time: second` 才把所选手雷转换成炮台；无来源、短按或直接 use 不转换。长按本身不扣费或提前投掷。双端场景已验证从真实长按转换暮域，实际扣掉共用账户的一份能量、保持暮域基础选择和常驻来源、保留冰炮台的攻击信用；转换不产生另一份独立账户。
 
 默认 V 的可重绑定手雷键和按下 / 松开协议已接入两加载器，具体取消与重复包语义见 [输入协议](engine-data-packs.md#按下长按与松开)。原表只说明 hold，并未给出阈值；测试的 0.3 秒是合成校准。正式 Aspect / 子职业装备约束仍未实现；下面的组合来源当前显式绑定，来源按松开时的当前装配读取，不在按下时冻结。
 
 [bleak_watcher_aspect.json](../common/src/test/resources/effects/bleak_watcher_aspect.json) includes 长按转换来源，并给共用手雷 Profile 提供两个独立覆盖。`grenade_regeneration` 首先将固有 base_rate 替换为 `1 / 175.6 charge_fraction_per_second`，再应用当前 Grenade 属性恢复倍率；`grenade_recipient_scalar` 将资源固有 gain_scalar 替换为 0.625，之后才由 `grenade_gain` 计算属性和触发来源倍率。它们使用同一优先级家族，重复来源不会累乘；不同覆盖的优先级属于内容政策。短按普通手雷同样受回充覆盖，不要求本次已经转换成炮台。
 
-Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 声明的 `chorus_d2:grenade_energy`，每位持有者只有一个容量为 1 的手雷账户。资源自身的 base_rate / gain_scalar 均为 0；所选技能的 energy_scaling 来源在优先级 0 提供原始冷却和 CES，并 includes 共用属性曲线。Aspect 在同一家族的优先级 10 覆盖基准，因此更换手雷不能找回另一份独立储存的能量，也不会移除仍装备的 Aspect 覆盖。新手雷声明共用成本及自己的基准来源即可加入，不需要引擎维护技能 ID 列表。
+Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 声明的 `chorus_d2:grenade_energy`，每位持有者只有一个基础容量为 1、允许显式扩容的手雷账户。资源自身的 base_rate / gain_scalar 均为 0；所选技能的 energy_scaling 来源在优先级 0 提供原始冷却和 CES，并 includes 共用属性曲线及容量协调规则。Aspect 在同一家族的优先级 10 覆盖基准，因此更换手雷不能找回另一份独立储存的能量，也不会移除仍装备的 Aspect 覆盖。新手雷声明共用成本及自己的基准来源即可加入，不需要引擎维护技能 ID 列表。
 
 选择事务先结算旧时间段，再原子替换常驻来源；余额不重置，后续恢复及外部 BASE / REFERENCE 回能使用新选择的基准。清空槽位保留余额，移除选择期来源，并令 Aspect 的 available 条件不成立：被动恢复和直接 BASE / REFERENCE 收益均为 0。重新选择不重新初始化账户。FIXED 回能、实付退款及完整充能沿用显式账户路径；延迟退款仍退入已支付的同一资源，不乘新 CES。参考数值先去除旧因子，再应用当前 CES；属性与触发收益保留第二段独立轨迹。此政策不改变仅有一个候选的 Threaded Spike 资源配置。
 
-原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。**共用余额和空槽暂停是当前 Chorus 装配政策；原作换手雷 / 子职业的额外扣减尚未校准。** 这次取消三个示例的独立账户，并不表示已完成动态多充能容量、跨规则集存档迁移或正式子职业装配。旧运行时仍固定旧目录；测试资源改名不会自动迁移旧存档。
+原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。**共用余额和空槽暂停是当前 Chorus 装配政策；原作换手雷 / 子职业的额外扣减尚未校准。** 装备来源的额外容量已由下面的 Spirit of the Armamentarium 示例接入，任意 Buff / 条件变化的自动容量投影、跨规则集存档迁移和正式子职业装配仍未完成。旧运行时仍固定旧目录；测试资源改名不会自动迁移旧存档。
 
-额外充能的核心基础现有 `resizable` / `resize_resource`，可在同一账户扩容或缩容，不生成备用独立冷却。[官方 9.5.0 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)明确修复 Lightning Grenade 在 Touch of Thunder 与 Armamentarium 组合下被限制为两格的问题，因此引擎不设“两格”的硬上限。Compendium 当前 Exotic Armors F16、Exotic Class F17 声明额外手雷充能，而 Ophidia Spathe 的 C62 另有同时回充及未知秒数限制；它们需要不同的内容策略。当前指令的保留绝对余额／缩容裁剪不等于这些金装的完整原作换装规则，正式容量来源协调、联动回充和各项金装内容尚未装配，未增加效果覆盖声明。
+额外充能的核心基础现有 `resizable` / `resize_resource`，可在同一账户扩容或缩容，不生成备用独立冷却。[官方 9.5.0 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)明确修复 Lightning Grenade 在 Touch of Thunder 与 Armamentarium 组合下被限制为两格的问题，因此引擎不设“两格”的硬上限。Compendium 当前 Exotic Armors F16、Exotic Class F17 声明额外手雷充能，而 Ophidia Spathe 的 C62 另有同时回充及未知秒数限制；它们需要不同的内容策略。Spirit 的装备来源协调已验证，完整 Armamentarium、Touch of Thunder 和联动回充仍未装配。保留绝对余额／缩容裁剪不等于这些金装的完整原作换装规则。
 
 部署弹体在实体或方块接触点尝试生成构造物；无有效接触不生成。当前位置用接触点作为脚底，生成遭遇阻挡时保留已支付能量；落点偏移、弹跳和退款政策未作原作校准。构造物与行为期限同时捕获，Durance 后续卸下不缩短已有期限。每组第一枚直接调用发射 bundle，其余四枚由行为拥有的延迟回调触发；每枚发射前再次观察炮台存活并重新选目标。目标不合格或实际发射被拒绝时保持 67% 减伤，首个 `launch_as.launched` 回执才写入 fired 状态。该开火边界是明确的 Chorus 政策。
 
@@ -1157,3 +1157,15 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 单发伤害、部署和射击的速度 / 重力 / 阻力 / 寿命、实体尺寸、第一组相位、四枚延迟及追踪转向参数都是必填校准输入；缺少参数在支付前报错。[独立测试校准](../common/src/test/resources/effects/bleak_watcher_test_calibration.json) 使用每发 1 伤害、0.25 秒首组延迟，以及 0.175 / 0.35 / 0.525 / 0.7 秒组内延迟，均为合成验收值。不要据此宣称复现了原作精确连发节奏或伤害。
 
 10 项 BleakWatcherTest、9 项 BleakWatcherAspectTest 与 13 项双加载器共享场景覆盖真实投掷落地、150 HP / 减伤、连续实际扣血、战员五发和 Guardian 十发冻结、阵营变化、两个炮台的 25 / 30 秒独立寿命、摧毁后的在途弹体、消费共用手雷能量的转换、服务器计时的长按投掷、回充切段与 CES 恢复，以及未知世界结果保留且不重放。Aspect 单元测试还包含合成新手雷、不同接收者、重复来源、固定与参考收益、两段计算轨迹、切换及空槽无额外储能、旧成本延迟退款；共享世界场景验证真实投掷后切换仍因余额不足拒绝，以及 tick 在换技能、空槽和重新选择间分段积分。它不声称已装配 Compendium 的全部手雷。另有 AbilityInputTest 验证来源和阈值资格。定义仍放在测试资源；正式子职业目录、完整金装互动、原作参数校准、技能 HUD、美术和持久化仍待完成，覆盖保持 **partial**。
+
+## Spirit of the Armamentarium 额外手雷充能
+
+[spirit_armamentarium.json](../common/src/test/resources/effects/spirit_armamentarium.json) 通过普通 SOURCE 修饰为共用手雷账户增加一份容量。在线 Compendium Exotic Class D17 / F17 已与快照同坐标核对；[来源记录](../data/d2-research/2026-10-11/spirit-armamentarium.json) 保存原始 HTML、哈希、查询时间及政策边界。此处只验证 Spirit 条目的额外充能，不代表完整 Armamentarium 已完成。
+
+`grenade_capacity` 以一份基础容量为输入，归约当前持有者的全部额外容量来源；同一 Armamentarium 家族取 MAX，其他家族再相加。重复来源取高是明确的 Chorus 政策，不能代替合法金装数量或职业限制。`grenade_capacity_binding` 在自身 source_attached / source_detached 和持有者 abilities_changed 后初始化账户、计算完整容量并 resize。选择期手雷来源与 Spirit 均 includes 此绑定，不增加专用 Java 执行器。来源批次先完整提交，旧来源的卸下反应也读取最终来源集合，因此等效装备替换不会先缩到一格而丢失余额。
+
+装备可以先于技能选择：首次账户仍只给基础 initial=1，增加上限本身不赠送第二份能量。清空技能槽暂停回充，装备仍可保留两格容量；空槽时卸下 Spirit 也会重算并裁剪超额余额。已声明 1 / 2 阈值，上限始终由实际容量参与时钟调度。两格充满后可分别支付两次一格成本，第三次拒绝；容量不乘被动恢复率、CES 或一次性回能。独立合成来源可叠到三格，用于证明无两格硬上限，不作为 Touch of Thunder 的内容验收。
+
+8 项 SpiritArmamentariumTest 和 3 项双加载器共享 SpiritArmamentariumGameTest 覆盖上述组合、选择切换分段回充、Codec 与声明校验。世界场景通过实际物品容器交换到独立 class_item 槽，并验证两枚暮域真实投掷、等效物品替换、保留其他容量来源和空槽卸装；容量观察触发实际治疗后故障时，已转移的物品、容量及生命保留，恢复不会重放。
+
+定义仍位于测试资源，测试物品原型为合成输入。正式 perk 选择、棱镜 / 职业 / 解锁和金装数量限制、美术、HUD、能量持久化、原作装卸 / 死亡能量政策尚未完成。此绑定仅协调 SOURCE 与选择事务；容量受 Buff 生命周期或任意条件变化影响时，内容还需相应重算规则。通用自动投影、parallel / linked 充能时间线仍未实现，审阅保持 **partial**。

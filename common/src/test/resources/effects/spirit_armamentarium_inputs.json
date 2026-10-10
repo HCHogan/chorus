@@ -1,0 +1,157 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "chorus_d2:class_item",
+        "accepts": [
+          "chorus_d2:class_item"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:spirit_class_item",
+        "tags": [
+          "chorus_d2:class_item"
+        ],
+        "effects": {
+          "perk": {
+            "bundle": "chorus_d2:spirit_armamentarium"
+          }
+        }
+      }
+    ]
+  },
+  "abilities": [
+    {
+      "id": "test:grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:arcbolt_energy_scaling"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:second_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:duskfield_energy_scaling"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:additional_charge",
+      "includes": [
+        "chorus_d2:grenade_capacity_binding"
+      ],
+      "modifiers": [
+        {
+          "id": "extra_charge",
+          "profile": "chorus_d2:grenade_capacity",
+          "stage": "extra",
+          "group": "extra",
+          "op": "add",
+          "stacking_key": "test:additional_charge",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "reference": "Synthetic independent capacity source, not a complete Touch of Thunder implementation",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:spirit_inputs",
+      "rules": [
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "chorus_d2:grenade_energy",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "resize_observation",
+          "on": "chorus:resource_capacity_changed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "capacity",
+                  "unit": "charge_fraction"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

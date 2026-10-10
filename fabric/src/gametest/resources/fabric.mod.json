@@ -118,7 +118,8 @@
       "com.imdomestic.chorus.ProjectileEmitterGameTest",
       "com.imdomestic.chorus.BleakWatcherGameTest",
       "com.imdomestic.chorus.AbilityInputGameTest",
-      "com.imdomestic.chorus.ResourceCapacityGameTest"
+      "com.imdomestic.chorus.ResourceCapacityGameTest",
+      "com.imdomestic.chorus.SpiritArmamentariumGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

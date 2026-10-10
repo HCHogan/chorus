@@ -1,0 +1,28 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:spirit_armamentarium",
+      "includes": [
+        "chorus_d2:grenade_capacity_binding"
+      ],
+      "modifiers": [
+        {
+          "id": "extra_charge",
+          "profile": "chorus_d2:grenade_capacity",
+          "stage": "extra",
+          "group": "extra",
+          "op": "add",
+          "stacking_key": "chorus_d2:armamentarium_charge",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "reference": "Compendium original Exotic Class D17/F17; retrieved 2026-10-11, archived in data/d2-research/2026-10-11/spirit-armamentarium.json. Duplicate copies use MAX as an explicit Chorus policy; legal exotic equipment restrictions are separate.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}
