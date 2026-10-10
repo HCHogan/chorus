@@ -238,6 +238,27 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 8 项纯核心测试覆盖全部单充能组合、普通 / 强化、独立接收 Profile、多充能阈值、固定分母、缺失槽、归属与换技能、后续未知世界结果及编解码。3 项双端共享场景使用真实装备 / 开火 / 投射物击杀，其中一项由服务器 tick 自动确认击杀。接收器 [wellspring_targets.json](../common/src/test/resources/effects/wellspring_targets.json) 是合成技能账户，0.75 / 0.8 / 0.5 只是验证独立缩放的输入，尤其 0.5 不是某个职业技能的 D2 校准。武器复用 Pugilist 测试原型并替换词条；当前完整子职业 / 属性 / UI / 存档装配仍未完成，覆盖为 partial。
 
+## Surplus
+
+固定 CSV `Weapon Perks!A214/C214`，对应保存原表 HTML `A215/C215`，给出下列普通版加值，单位为 stat_point：
+
+| 完整充能总数 | 稳定性 | 操控 | 装填属性 |
+| --- | --- | --- | --- |
+| 0 | 0 | 0 | 0 |
+| 1 | 5 | 5 | 10 |
+| 2 | 15 | 25 | 25 |
+| 3 及以上 | 25 | 60 | 60 |
+
+[surplus.json](../common/src/test/resources/effects/surplus.json) 在属性查询时读取当前基础 grenade / melee / class 的 full_charges，分别 floor 后求和并限制为 3。额外充能按份计数，部分能量不算完整充能；例如只有两个近战充能而另外两槽为空时是二档，不是一档。Super 不计入；无选择 / 无 cost 的槽由明确 available 分支计零，损坏账户仍失败。[2020 年第一手测试及其修正](https://www.reddit.com/r/DestinyTheGame/comments/knzf4b/)支持额外充能逐份计数和三档上限；这只作为历史机制证据，不能覆盖当前所有异域装备、共享池与临时替换边界。来源与未知项见 [surplus-stats.json](../data/d2-research/2026-10-10/surplus-stats.json)。
+
+每个 modifier 限定本武器查询，收枪后仍可查询该实例的当前数值，另一把武器不继承它的词条；移除来源后不再贡献。收益、消耗或技能选择改变后，下一次查询直接看到新状态，无需收到额外事件来更新缓存 Buff。模板声明三个目标 Profile：weapon_stability / weapon_handling / weapon_reload；装配者提供包含 perks 加值阶段和相应 group 的完整管线。词条本身不内置武器动画曲线。
+
+**强化版没有已确认的数值表。** 原表只写效果更强，模板在正档位时要求查询输入 `surplus_enhanced_{stability|handling|reload}_{1|2|3}`，单位 stat_point，表示该档完整加值；不默认复用普通版，也不猜 +5。零档不读取校准值。测试的普通值 +2 是合成输入。当前自动换弹宿主未提供这些校准测量，因此强化版 Surplus 的自动换弹尚不支持：缺失输入会在调度和转移弹药前失败，不能把纯查询可传参当成完整强化玩法。
+
+[surplus_weapon.json](../common/src/test/resources/effects/surplus_weapon.json) 提供合成属性消费者：基础 10 点先叠加词条，再限制 0–100，换弹使用 `2−0.01×属性` 秒。因此三档换弹为 1.3 秒，两档为 1.65 秒。真实服务端手动换弹已使用这一管线并保存计算轨迹。换弹开始后消费技能只改变下一次请求，当前 Plan 保留原时长；这是既有 Chorus 接受时采样政策，原作是否中途重新取值仍需校准。上述秒数、武器弹数与射速都不是某个 D2 原型的测量结果。
+
+8 项 SurplusTest 与 3 项共享世界场景覆盖档位 / 额外充能、武器隔离、空槽 / 换选择、缺失强化输入、加值→限幅→曲线，以及实际扣费和两次服务器 tick 换弹。真实 Wellspring 击杀填满技能后，同武器的 Surplus 装填属性立即提高。稳定性与操控目前只有数值输出，尚未连接后坐力、举枪 / 开镜动画；全部武器曲线、强化版装配与原作边界仍未完成，覆盖保持 partial。
+
 ## Cure 恢复与冷却
 
 本地 2026-10-05 Compendium 快照 `Solar!D4` 记录：Cure 每级恢复 60 HP（PvP 为 30），恢复过程为 0.1 秒，激活冷却为 1 秒；冷却期间再次激活不恢复生命。

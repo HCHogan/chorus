@@ -1,0 +1,73 @@
+{
+  "retrieved": "2026-10-10",
+  "compendium": {
+    "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278",
+    "sheet": "Weapon Perks",
+    "snapshot_cells": [
+      "A214",
+      "C214"
+    ],
+    "original_html_cells": [
+      "A215",
+      "C215"
+    ],
+    "saved_html": "data/compendium/assets/2026-10-10-energy-perks/sheets/1662574278.html.gz"
+  },
+  "normal": {
+    "charges": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "stability": [
+      0,
+      5,
+      15,
+      25
+    ],
+    "handling": [
+      0,
+      5,
+      25,
+      60
+    ],
+    "reload": [
+      0,
+      10,
+      25,
+      60
+    ],
+    "unit": "stat_point",
+    "confidence": "reported_in_compendium"
+  },
+  "enhanced": {
+    "source_text": "Stronger Effect.",
+    "values": null,
+    "policy": "Positive tier requires query number surplus_enhanced_{stability|handling|reload}_{1|2|3}, in stat_point, giving the complete bonus for that tier. No normal fallback and no invented +5. Tier zero returns zero.",
+    "automatic_reload": "The current reload host supplies no enhanced calibration numbers. Enhanced Surplus reloads therefore remain unsupported and fail before scheduling or transferring ammunition."
+  },
+  "charge_count": {
+    "policy": "Sum full_charges from selected base grenade/melee/class accounts; floor each account separately; cap sum at 3; absent selection/cost explicitly contributes zero; exclude super.",
+    "historical_primary_research": "https://www.reddit.com/r/DestinyTheGame/comments/knzf4b/",
+    "scope": "2020 firsthand testing with correction reports extra charges count separately up to 3. Historical support, not current verification of every exotic/subclass/shared-pool case.",
+    "additional_firsthand_report": "https://www.reddit.com/r/DestinyTheGame/comments/llhkbm/",
+    "unresolved": [
+      "Shared or linked pools across slots",
+      "Temporary ability overrides and all current subclasses",
+      "Enhanced numerical benefits",
+      "Whether an in-progress D2 reload resamples Surplus after an ability use"
+    ]
+  },
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/surplus_weapon.json",
+    "stat_cap": [
+      0,
+      100
+    ],
+    "reload_seconds": "2 - 0.01 * capped_stat",
+    "confidence": "synthetic_test_archetype_not_a_measured_D2_weapon",
+    "timing_policy": "Existing Chorus contract samples duration at acceptance; later changes affect the next request.",
+    "handling_stability": "Numeric outputs only; draw/ADS/recoil presentation and timing are not implemented."
+  }
+}

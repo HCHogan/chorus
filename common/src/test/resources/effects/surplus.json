@@ -1,0 +1,1165 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:surplus",
+      "modifiers": [
+        {
+          "id": "stability",
+          "profile": "chorus_d2:weapon_stability",
+          "stage": "perks",
+          "group": "stability",
+          "op": "add",
+          "stacking_key": "chorus_d2:surplus_stability",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "min",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "count"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:grenade",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:grenade",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:melee",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:melee",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:class",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:class",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "from": "count",
+              "to": "stat_point",
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 5
+                  },
+                  {
+                    "input": 2,
+                    "output": 15
+                  },
+                  {
+                    "input": 3,
+                    "output": 25
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              }
+            },
+            "enhanced": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:arithmetic",
+                  "op": "min",
+                  "of": [
+                    {
+                      "type": "chorus:constant",
+                      "value": 3,
+                      "unit": "count"
+                    },
+                    {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:grenade",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:grenade",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:melee",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:melee",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:class",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:class",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:event_number",
+                "name": "surplus_enhanced_stability_3",
+                "unit": "stat_point"
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:compare",
+                  "op": "eq",
+                  "left": {
+                    "type": "chorus:arithmetic",
+                    "op": "min",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      },
+                      {
+                        "type": "chorus:arithmetic",
+                        "op": "add",
+                        "of": [
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:grenade",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:grenade",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:melee",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:melee",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:class",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:class",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "count"
+                  }
+                },
+                "then": {
+                  "type": "chorus:event_number",
+                  "name": "surplus_enhanced_stability_2",
+                  "unit": "stat_point"
+                },
+                "else": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:compare",
+                    "op": "eq",
+                    "left": {
+                      "type": "chorus:arithmetic",
+                      "op": "min",
+                      "of": [
+                        {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "count"
+                        },
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:grenade",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:grenade",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:melee",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:melee",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:class",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:class",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": {
+                    "type": "chorus:event_number",
+                    "name": "surplus_enhanced_stability_1",
+                    "unit": "stat_point"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                }
+              }
+            }
+          },
+          "reference": "Compendium CSV Weapon Perks C214 / original C215: normal tiers. Enhanced totals require explicit tier-specific calibration; no numerical improvement is given. Extra charges count separately and cap at 3 (historical firsthand research), current edge policies require calibration.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "handling",
+          "profile": "chorus_d2:weapon_handling",
+          "stage": "perks",
+          "group": "handling",
+          "op": "add",
+          "stacking_key": "chorus_d2:surplus_handling",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "min",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "count"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:grenade",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:grenade",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:melee",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:melee",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:class",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:class",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "from": "count",
+              "to": "stat_point",
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 5
+                  },
+                  {
+                    "input": 2,
+                    "output": 25
+                  },
+                  {
+                    "input": 3,
+                    "output": 60
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              }
+            },
+            "enhanced": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:arithmetic",
+                  "op": "min",
+                  "of": [
+                    {
+                      "type": "chorus:constant",
+                      "value": 3,
+                      "unit": "count"
+                    },
+                    {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:grenade",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:grenade",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:melee",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:melee",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:class",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:class",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:event_number",
+                "name": "surplus_enhanced_handling_3",
+                "unit": "stat_point"
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:compare",
+                  "op": "eq",
+                  "left": {
+                    "type": "chorus:arithmetic",
+                    "op": "min",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      },
+                      {
+                        "type": "chorus:arithmetic",
+                        "op": "add",
+                        "of": [
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:grenade",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:grenade",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:melee",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:melee",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:class",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:class",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "count"
+                  }
+                },
+                "then": {
+                  "type": "chorus:event_number",
+                  "name": "surplus_enhanced_handling_2",
+                  "unit": "stat_point"
+                },
+                "else": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:compare",
+                    "op": "eq",
+                    "left": {
+                      "type": "chorus:arithmetic",
+                      "op": "min",
+                      "of": [
+                        {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "count"
+                        },
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:grenade",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:grenade",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:melee",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:melee",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:class",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:class",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": {
+                    "type": "chorus:event_number",
+                    "name": "surplus_enhanced_handling_1",
+                    "unit": "stat_point"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                }
+              }
+            }
+          },
+          "reference": "Compendium CSV Weapon Perks C214 / original C215: normal tiers. Enhanced totals require explicit tier-specific calibration; no numerical improvement is given. Extra charges count separately and cap at 3 (historical firsthand research), current edge policies require calibration.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "reload",
+          "profile": "chorus_d2:weapon_reload",
+          "stage": "perks",
+          "group": "reload",
+          "op": "add",
+          "stacking_key": "chorus_d2:surplus_reload",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:arithmetic",
+                "op": "min",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "count"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:grenade",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:grenade",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:melee",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:melee",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:ability_energy_flag",
+                          "slot": "chorus_d2:class",
+                          "field": "available"
+                        },
+                        "then": {
+                          "type": "chorus:ability_energy",
+                          "slot": "chorus_d2:class",
+                          "field": "full_charges"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "from": "count",
+              "to": "stat_point",
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 10
+                  },
+                  {
+                    "input": 2,
+                    "output": 25
+                  },
+                  {
+                    "input": 3,
+                    "output": 60
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              }
+            },
+            "enhanced": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:arithmetic",
+                  "op": "min",
+                  "of": [
+                    {
+                      "type": "chorus:constant",
+                      "value": 3,
+                      "unit": "count"
+                    },
+                    {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:grenade",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:grenade",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:melee",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:melee",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:class",
+                            "field": "available"
+                          },
+                          "then": {
+                            "type": "chorus:ability_energy",
+                            "slot": "chorus_d2:class",
+                            "field": "full_charges"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:event_number",
+                "name": "surplus_enhanced_reload_3",
+                "unit": "stat_point"
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:compare",
+                  "op": "eq",
+                  "left": {
+                    "type": "chorus:arithmetic",
+                    "op": "min",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "count"
+                      },
+                      {
+                        "type": "chorus:arithmetic",
+                        "op": "add",
+                        "of": [
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:grenade",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:grenade",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:melee",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:melee",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:class",
+                              "field": "available"
+                            },
+                            "then": {
+                              "type": "chorus:ability_energy",
+                              "slot": "chorus_d2:class",
+                              "field": "full_charges"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "right": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "count"
+                  }
+                },
+                "then": {
+                  "type": "chorus:event_number",
+                  "name": "surplus_enhanced_reload_2",
+                  "unit": "stat_point"
+                },
+                "else": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:compare",
+                    "op": "eq",
+                    "left": {
+                      "type": "chorus:arithmetic",
+                      "op": "min",
+                      "of": [
+                        {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "count"
+                        },
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:grenade",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:grenade",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:melee",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:melee",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:ability_energy_flag",
+                                "slot": "chorus_d2:class",
+                                "field": "available"
+                              },
+                              "then": {
+                                "type": "chorus:ability_energy",
+                                "slot": "chorus_d2:class",
+                                "field": "full_charges"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": {
+                    "type": "chorus:event_number",
+                    "name": "surplus_enhanced_reload_1",
+                    "unit": "stat_point"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                }
+              }
+            }
+          },
+          "reference": "Compendium CSV Weapon Perks C214 / original C215: normal tiers. Enhanced totals require explicit tier-specific calibration; no numerical improvement is given. Extra charges count separately and cap at 3 (historical firsthand research), current edge policies require calibration.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

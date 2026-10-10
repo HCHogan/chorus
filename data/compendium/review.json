@@ -3471,6 +3471,110 @@
         "不再分配溢出、空槽排除、击杀执行时选择和来源卸下后资格为当前内容政策，待原作校准",
         "测试接收技能与.75/.8/.5 Profile为合成账户，职业技能.5不是D2校准；完整子职业、当前属性、共享池/并行充能、HUD和存档仍未装配"
       ]
+    },
+    {
+      "id": "weapon/surplus",
+      "name": "Surplus",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A214",
+          "text_sha256": "93be4077241a5703e81f17530d8f87e7937000fa405c5d18a312c190d33d723b"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C214",
+          "text_sha256": "3c8dbd6005f504936b52ae9d66ec02e53d43b2f4cf55c0fbfd2ec97ba9a255f3"
+        }
+      ],
+      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度",
+      "acceptance": [
+        "普通稳定性5/15/25、操控5/25/60、装填10/25/60；零档无加值",
+        "各槽完整份数相加并封顶3，额外充能独立计数，Super和缺失槽不计入",
+        "属性随消费/回能/选择实时变化，未装备词条的另一武器不受益",
+        "强化正档必须提供明确的分档完整加值，缺失或错误单位拒绝",
+        "加值先于属性限幅与曲线，实际两次服务端换弹核对时间和储备转移",
+        "校准强化数值、全部武器曲线与操控/稳定性的实际表现"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/surplus.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/surplus_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "countsWholeChargesAcrossSlotsAndCapsAtThreeWithoutSuper"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "eachWeaponGetsOnlyItsOwnPerkAndStowedQueriesRemainCurrent"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "missingAndNoCostSlotsAreExplicitlyExcludedAndSelectionsUpdateImmediately"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "enhancedTotalsAreExplicitTierInputsAndMissingCalibrationIsNotNormalFallback"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "bonusesEnterBeforeStatClampAndReloadArchetypeCurve"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "acceptedReloadKeepsItsDurationAndNextReloadUsesSpentAbilityState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "missingEnhancedReloadCalibrationFailsBeforeSchedulingOrMovingAmmo"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SurplusTest.java",
+          "symbol": "combinedDefinitionsRoundTripWithTypedLiveEnergyReads"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SurplusGameTest.java",
+          "symbol": "extraChargesCountSeparatelyAndSpendingUpdatesOnlyThePerkWeapon"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SurplusGameTest.java",
+          "symbol": "actualWellspringKillCompletesAChargeAndImmediatelyRaisesSurplusReloadSpeed"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SurplusGameTest.java",
+          "symbol": "acceptedReloadDeadlineStaysFixedWhileTheNextReloadUsesNewCharges"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "强化版只有Stronger Effect描述，没有数值；模板要求显式测量，自动换弹宿主尚不提供，因此强化自动换弹未完成",
+        "额外份数和3档上限有历史第一手研究支持，当前全部异域/替换能力/共享池/并行充能仍需校准",
+        "2−0.01×属性的秒数曲线、弹数和射速均为合成测试原型；实际D2各武器曲线未实现",
+        "已接受换弹保持时长是Chorus政策，原作中途技能变化是否重新采样待校准",
+        "稳定性/操控目前只有数值结果，后坐力、举枪/开镜、HUD与完整子职业/存档仍未装配"
+      ]
     }
   ]
 }

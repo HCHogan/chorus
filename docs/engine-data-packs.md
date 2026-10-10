@@ -459,6 +459,8 @@ Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceSt
 
 [wellspring.json](../common/src/test/resources/effects/wellspring.json) 展示多个观察的组合：先绑定三个槽，再用 available / full 守卫数值读取，capture_value 保存未充能槽数量与分配系数，最后分别 grant_ability_energy。整个分配无需新增专用 Java 动作。一次收益填满某池不会改变本次的分母；溢出、额外充能份额和未选槽政策由 JSON 明确给出，原作校准边界见 [Wellspring](d2-ruleset.md#wellspring)。
 
+[surplus.json](../common/src/test/resources/effects/surplus.json) 展示查询期消费者：按 available 守卫各槽的 full_charges，再以总份数选择属性加值。独立武器 Profile 决定后续限幅与原型曲线，现有 reload.profile 直接消费这条属性管线。强化版缺少原表数值，要求显式的分档测量；完整约定与测试曲线边界见 [Surplus](d2-ruleset.md#surplus)。
+
 ### 按已付成本返还与完整充能
 
 `refund_cost` 引用当前动作序列中已有的成本结果，fraction 的单位为 multiplier、取值范围为 0–1。返还账户直接取自成本回执，不接受另一个 target / resource，避免把别人的支付返到自身账户。如下步骤可放进已有资源来源的规则中：
