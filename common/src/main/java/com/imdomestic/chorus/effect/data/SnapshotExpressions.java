@@ -16,6 +16,7 @@ public final class SnapshotExpressions {
         return switch (value) {
             case Value.Constant ignored -> value;
             case Value.Resource v -> target(v.target()) ? v : literal(v, e);
+            case Value.AbilityEnergy v -> target(v.target()) ? v : literal(v, e);
             case Value.Ammo v -> target(v.weapon()) ? v : literal(v, e);
             case Value.Round v -> new Value.Round(v.input().snapshot(e), v.mode());
             case Value.BuffCount v -> target(v.target()) ? v : literal(v, e);
@@ -48,6 +49,7 @@ public final class SnapshotExpressions {
                 yield bound instanceof Condition.Constant constant ? new Condition.Constant(!constant.value()) : new Condition.Not(bound);
             }
             case Condition.HasBuff c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.AbilityEnergyFlag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasBuffTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasSourceTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasShield c -> target(c.target()) ? c : new Condition.Constant(c.test(e));

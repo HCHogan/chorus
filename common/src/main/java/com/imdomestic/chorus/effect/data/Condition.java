@@ -121,6 +121,14 @@ public interface Condition {
             return e.results().get(binding).flag(field, result) == expected;
         }
     }
+    record AbilityEnergyFlag(String slot, Evaluation.Target target, String field, boolean expected) implements Condition {
+        public AbilityEnergyFlag {
+            com.imdomestic.chorus.effect.ability.AbilityDefinition.id(slot);
+            java.util.Objects.requireNonNull(target); java.util.Objects.requireNonNull(field);
+        }
+        @Override public void validate(Validation v) { v.target(target); EnergyActions.ABILITY_OBSERVATION.requireFlag(field); }
+        @Override public boolean test(Evaluation e) { return EnergyActions.ABILITY_OBSERVATION.flag(field, EnergyActions.observeAbility(e, slot, target)) == expected; }
+    }
     enum BuffMatch { BOUND, ANY }
     record HasBuff(String buff, Evaluation.Target target, int minimum, BuffMatch match) implements Condition {
         public HasBuff { java.util.Objects.requireNonNull(match); }

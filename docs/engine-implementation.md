@@ -894,6 +894,12 @@ Demolitionist 复用现有 grant_ability_energy、ability_started、refill_magaz
 
 8 项 DemolitionistTest 覆盖击杀归属、普通 / 强化、实际储备转移、满弹 / 缺弹 / 部分补弹、三秒端点、切枪 / 重装备、免费 / 拒绝 / 非手雷使用、待完成的手动换弹以及未知世界结果。3 项共享 DemolitionistGameTest 用真实装备、扣弹、物理击杀、技能接受与 tick 验证回能、Kill Clip / Clown 不误触发、补满后的手动换弹不伪造完成和世界异常保留。完整门禁通过：JUnit 642、Fabric 272、NeoForge 282，两端发布包成功；日志 `/tmp/chorus-demolitionist-gate.log`。
 
+### 查询期技能能量表达式
+
+ability_energy / ability_energy_flag 共用 ObserveAbility 的只读账户视图，编译检查字段名与单位；不需要动作绑定或维护能量镜像 Buff。普通查询读取当前基础选择，缺失账户必须明确守卫；攻击 on_use 快照冻结来源读数，victim 读数与资格留到命中。配置损坏不能表现为“不可用”。
+
+6 项 AbilityEnergyExpressionTest 验证类型与缺失、实时变化、来源 / 目标采样时机、损坏配置、编解码，以及真实 captureDamage → outgoing 路径在目标换技能后解析当前账户。与既有 9 项技能能量测试一起通过定向验证，日志 `/tmp/chorus-ability-expression-test.log`；具体属性消费者由下一阶段 Surplus 验收。
+
 ### Wellspring 多技能分配
 
 新增 wellspring.json，三个 observe_ability_energy 先捕获基础槽账户，再捕获未充能数量 / 基础收益 / 分配系数，最后按接收 Profile 逐池入账。没有加入专用分配 Java 动作。满池、空槽、无成本、Super 排除以及额外充能分支均由内容声明。当前0属性3.2/3.6%来自通用换算推断，混合多充能按额外q/3处理的解释仍待原作校准，详见 [Wellspring](d2-ruleset.md#wellspring)。

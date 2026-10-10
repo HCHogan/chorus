@@ -26,7 +26,7 @@ public final class EnergyActions {
         }
         public ResourceState observed() { return account.orElseThrow(() -> new IllegalArgumentException("No ability energy account to observe")); }
     }
-    private static final ResultShape ABILITY_OBSERVATION = new ResultShape(Map.of(
+    static final ResultShape ABILITY_OBSERVATION = new ResultShape(Map.of(
             "value", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).observed().value()),
             "capacity", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).observed().capacity()),
             "missing", new ResultShape.Field(Unit.CHARGE, r -> { var a = ((AbilityObservation) r).observed(); return a.capacity() - a.value(); }),
@@ -35,16 +35,19 @@ public final class EnergyActions {
             "no_selection", r -> ((AbilityObservation) r).ability().isEmpty(),
             "no_resource", r -> { var a = (AbilityObservation) r; return a.ability().isPresent() && a.account().isEmpty(); },
             "full", r -> ((AbilityObservation) r).account().filter(a -> a.value() == a.capacity()).isPresent()));
+    static AbilityObservation observeAbility(Evaluation e, String slot, Evaluation.Target target) {
+        String holder = e.target(target);
+        var ability = e.program().orElseThrow().selectedAbility(e.state(), holder, slot);
+        var account = ability.flatMap(a -> a.cost()).map(cost -> e.resource(cost.resource(), target));
+        return new AbilityObservation(holder, slot, ability.map(a -> a.id()), account);
+    }
     public record ObserveAbility(String slot, Evaluation.Target target) implements Action {
         public ObserveAbility {
             com.imdomestic.chorus.effect.ability.AbilityDefinition.id(slot); Objects.requireNonNull(target);
         }
         @Override public ResultShape validate(Validation v) { v.target(target); return ABILITY_OBSERVATION; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            String holder = e.target(target);
-            var ability = e.program().orElseThrow().selectedAbility(e.state(), holder, slot);
-            var account = ability.flatMap(a -> a.cost()).map(cost -> e.resource(cost.resource(), target));
-            return new RuleEngine.Local<>(e.state(), new AbilityObservation(holder, slot, ability.map(a -> a.id()), account), List.of());
+            return new RuleEngine.Local<>(e.state(), observeAbility(e, slot, target), List.of());
         }
     }
     private static void validateBasis(EnergyGains.Basis basis, Map<String, Value> factors, Set<String> tags, Map<String, Value> numbers) {

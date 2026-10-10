@@ -446,6 +446,17 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceState。它是观察证据，不是冻结路由的支付凭证；之后的 grant_ability_energy 仍解析执行时选择。跨延迟或世界调用的分配需要另外明确路由政策。当前依然只支持顺序充能账户，不能把 full_charges 当作并行充能槽位模型。
 
+属性查询也能使用只读 `chorus:ability_energy` Value（slot / target / field）及 `chorus:ability_energy_flag` Condition（同字段，is 默认 true）。字段和缺失语义与观察动作一致；数值字段与布尔字段不可混用，字段名在编译时检查。每次普通查询重新读取当前基础选择，不需要先发布事件或建立 Buff 缓存。以 available 守卫后，内容可以显式选择把未选槽计为零份；原始读数仍没有零默认值。
+
+```json
+{"type":"chorus:choose",
+ "if":{"type":"chorus:ability_energy_flag","slot":"chorus_d2:melee","field":"available"},
+ "then":{"type":"chorus:ability_energy","slot":"chorus_d2:melee","field":"full_charges"},
+ "else":{"type":"chorus:constant","value":0,"unit":"count"}}
+```
+
+用于 on_use 攻击快照时，self / 来源目标的数值与条件冻结为常量；victim 读数与资格保持符号，在每次命中时读取目标的当前选择。循环绑定目标仍不能捕获进快照。查询不支付 cost、不应用 gain_profile，也不代替宿主推进逻辑时间。
+
 [wellspring.json](../common/src/test/resources/effects/wellspring.json) 展示多个观察的组合：先绑定三个槽，再用 available / full 守卫数值读取，capture_value 保存未充能槽数量与分配系数，最后分别 grant_ability_energy。整个分配无需新增专用 Java 动作。一次收益填满某池不会改变本次的分母；溢出、额外充能份额和未选槽政策由 JSON 明确给出，原作校准边界见 [Wellspring](d2-ruleset.md#wellspring)。
 
 ### 按已付成本返还与完整充能

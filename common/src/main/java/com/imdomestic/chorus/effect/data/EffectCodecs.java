@@ -62,6 +62,9 @@ public final class EffectCodecs {
                 .register("chorus:resource", Value.Resource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Value.Resource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.Resource::target)
                 ).apply(i, Value.Resource::new)))
+                .register("chorus:ability_energy", Value.AbilityEnergy.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(Value.AbilityEnergy::slot), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.AbilityEnergy::target),
+                        Codec.STRING.fieldOf("field").forGetter(Value.AbilityEnergy::field)).apply(i, Value.AbilityEnergy::new)))
                 .register("chorus:event_number", Value.EventNumber.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("name").forGetter(Value.EventNumber::name), StatCodecs.UNIT.fieldOf("unit").forGetter(Value.EventNumber::quantity)
                 ).apply(i, Value.EventNumber::new)))
@@ -144,6 +147,10 @@ public final class EffectCodecs {
                 .register("chorus:result_flag", Condition.ResultFlag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("binding").forGetter(Condition.ResultFlag::binding), Codec.STRING.fieldOf("field").forGetter(Condition.ResultFlag::field),
                         Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.ResultFlag::expected)).apply(i, Condition.ResultFlag::new)))
+                .register("chorus:ability_energy_flag", Condition.AbilityEnergyFlag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(Condition.AbilityEnergyFlag::slot), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.AbilityEnergyFlag::target),
+                        Codec.STRING.fieldOf("field").forGetter(Condition.AbilityEnergyFlag::field), Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.AbilityEnergyFlag::expected)
+                ).apply(i, Condition.AbilityEnergyFlag::new)))
                 .register("chorus:has_buff", Condition.HasBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Condition.HasBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasBuff::target),
                         Codec.INT.optionalFieldOf("minimum", 1).forGetter(Condition.HasBuff::minimum),

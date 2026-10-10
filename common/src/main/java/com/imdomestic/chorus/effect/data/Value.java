@@ -30,6 +30,15 @@ public interface Value {
             return new Measure(e.resource(resource, target).value(), Unit.CHARGE);
         }
     }
+    /** Live query of the selected base ability account; absent accounts have no numeric default. */
+    record AbilityEnergy(String slot, Evaluation.Target target, String field) implements Value {
+        public AbilityEnergy {
+            com.imdomestic.chorus.effect.ability.AbilityDefinition.id(slot);
+            java.util.Objects.requireNonNull(target); java.util.Objects.requireNonNull(field);
+        }
+        @Override public Unit unit(Validation v) { v.target(target); return EnergyActions.ABILITY_OBSERVATION.unit(field); }
+        @Override public Measure evaluate(Evaluation e) { return EnergyActions.ABILITY_OBSERVATION.read(field, EnergyActions.observeAbility(e, slot, target)); }
+    }
     record Ammo(Evaluation.Target weapon, com.imdomestic.chorus.effect.ammo.AmmoState.Field field) implements Value {
         @Override public Unit unit(Validation v) { v.target(weapon); return Unit.ROUND; }
         @Override public Measure evaluate(Evaluation e) {
