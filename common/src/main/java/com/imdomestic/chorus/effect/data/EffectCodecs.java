@@ -580,8 +580,9 @@ public final class EffectCodecs {
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.HealthRecovery::id), ID.fieldOf("channel").forGetter(EffectProgram.HealthRecovery::channel),
                 values.fieldOf("rate").forGetter(EffectProgram.HealthRecovery::rate), Codec.INT.optionalFieldOf("priority", 0).forGetter(EffectProgram.HealthRecovery::priority),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.HealthRecovery::condition),
-                ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(EffectProgram.HealthRecovery::tags)
-        ).apply(i, EffectProgram.HealthRecovery::new)), Set.of("id", "channel", "rate", "priority", "if", "tags"));
+                ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(EffectProgram.HealthRecovery::tags),
+                ID.optionalFieldOf("profile").forGetter(EffectProgram.HealthRecovery::profile)
+        ).apply(i, EffectProgram.HealthRecovery::new)), Set.of("id", "channel", "rate", "priority", "if", "tags", "profile"));
         Codec<AbilityDefinition.Replacement> replacement = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(AbilityDefinition.Replacement::id), ID.fieldOf("slot").forGetter(AbilityDefinition.Replacement::slot),
                 ID.optionalFieldOf("ability").forGetter(AbilityDefinition.Replacement::ability), ID.fieldOf("replace_with").forGetter(AbilityDefinition.Replacement::replaceWith),

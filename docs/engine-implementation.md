@@ -1115,3 +1115,10 @@ ember_of_searing.json 使用 event_has_buff 判断回执时带 Scorch 的已确�
 5 项 EmberOfSearingTest 覆盖全部四级与 Guardian、两种标签来源、当前近战属性、他人灼烧、冷却独立、无近战选择、无灼烧 / 到期 / 他人击杀 / 未确认死亡、未分类 / 冲突以及 Class 卸装与校准往返。3 项共享 EmberOfSearingGameTest 从实际玩家武器开火、物理子弹、普通原版伤害和 Scorch 周期死亡验证同一链路。首轮周期测试漏绑 solar_scaling，导致合成 payload 为零；修正测试装配后通过，未通过改变规则或缩短时序绕过验证。
 
 最终完整门禁 `/tmp/chorus-searing-gate-final.log`：770 项 JUnit、Fabric 323 项、NeoForge 333 项通过；10 项 Compendium 数值 / 素材来源审计通过。两端发布 jar 包含 BuffObservation 正式实现，不包含 effects/ 测试夹具、GameTest 类或测试伤害类型。此次只修改核心事实与内容，没有新增图形界面验收。Searing 增加为第 52 项审阅，状态 partial；完整数值、敌人目录、生产装配、特殊资格、HUD 与持久化仍未完成。
+
+
+## 连续生命恢复 Profile
+
+health_recovery 新增可选 profile，在恢复来源求原始 rate 后，以受益者当前修饰计算速率，再参与通道选择与旧状态区间积分。声明引用与输入 / 输出 damage_per_second 单位在编译时检查；负输出在生成恢复 Offer 时拒绝。查询保留治疗来源，提供原始速率与通道；不重放施加事件，也不引入恢复特例。
+
+RecoveryTest 新增两项验证：来源在 25 ms 加入、70.001 ms 卸下时分段积分，受益者与其他实体修饰隔离、原始归因、Codec 往返、缺失 Profile / 错误单位 / 负输出拒绝。全量 772 项 JUnit 通过，日志 /tmp/chorus-recovery-profile-gate.log。该通用能力不增加 Compendium 条目，双加载器内容验收随后随 Mercy / Solace 联动运行。

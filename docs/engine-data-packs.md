@@ -1711,3 +1711,10 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 ```
 
 观察记录保留 holder、采样时刻、实例键 / generation、施加来源、定义 tags、层数、tier 与暂停标记；不复制组件、资源或完整世界。emit、原上下文的 after / 物理续体及派生 calculate / grant_energy 查询保留已有记录；改写查询 victim 不会自动获得该新目标的历史观察。新生成的资源 / 拾取等独立事实没有被自动赋予旧伤害观察。普通 has_buff / has_buff_tag 继续读当前状态。事件观察条件用于 on_use 数值快照时按已有事件值冻结，不推测将来命中的目标状态。
+
+
+## 连续生命恢复的数值 Profile
+
+`bundle.health_recovery[]` 可选 `profile`。未声明时沿用 rate 的直接值；声明后必须引用输入、输出均为 damage_per_second 的 Profile，缺失或单位不符在链接时拒绝。先在恢复来源作用域求 rate，再用受益者当前的来源 / Buff 修饰计算最终速率，之后才参与 channel 的优先级与速率选择、区间积分；负数或非有限结果不能成为治疗额度。
+
+查询的 actor / victim 均为受益者，source 保留恢复来源，tags 为声明的 tags，numbers.recovery_rate 为原始速率，references.recovery_channel 为通道。查询不继承历史施加事件，不伪造事件 Buff 观察。来源变化前先积分旧区间，下一段使用新修饰；Profile 不改写治疗归因，不存储被取消或溢出的治疗。该入口可把 D2 HP/s 与 Minecraft HP/s 的校准从效果定义中分离，也能表达当前受益者的恢复倍率。护盾回充与离散 heal 仍使用各自既有入口。

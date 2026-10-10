@@ -155,4 +155,51 @@ class RecoveryTest {
         assertThrows(IllegalStateException.class, () -> compile(duplicate));
         var typo = json("restoration"); declaration(typo).addProperty("prority", 2); assertThrows(IllegalStateException.class, () -> compile(typo));
     }
+    private static JsonObject profiled() throws Exception {
+        var data = json("restoration"); var recovery = declaration(data);
+        recovery.add("rate", recovery.getAsJsonObject("rate").get("of"));
+        recovery.addProperty("profile", "test:recovery_rate");
+        data.add("profiles", JsonParser.parseString("""
+            [{"id":"test:recovery_rate","version":"test-1","input_unit":"damage_per_second","steps":[
+              {"type":"chorus:curve","id":"scale","curve":{"type":"chorus:polynomial","coefficients":[0,0.1],"minimum":0,"maximum":100,"boundary":"error"},"output_unit":"damage_per_second"},
+              {"type":"chorus:apply","id":"bonuses","operation":"multiply","group":{"name":"bonuses","reduction":"sum"}}]}]
+            """));
+        data.getAsJsonArray("bundles").add(JsonParser.parseString("""
+            {"id":"test:boost","modifiers":[{"id":"double","profile":"test:recovery_rate","stage":"bonuses","group":"bonuses","op":"multiply",
+              "value":{"type":"chorus:constant","value":1,"unit":"delta"},"stacking_key":"test:boost",
+              "if":{"type":"chorus:event_tag","tag":"chorus_d2:restoration"},
+              "reference":"Synthetic recipient modifier","confidence":"assumed"}]}
+            """));
+        return data;
+    }
+    @Test void recoveryProfileUsesCurrentRecipientModifiersAndSplitsIntervalsBeforeSourceChanges() throws Exception {
+        var program = compile(profiled()); var test = new Harness(program, EffectState.Mode.PVE);
+        test.send(0, "test:restoration", 1, .2);
+        var boost = new EffectSource("boost", "test:boost", "player", new BuffInstance.Origin("other", "boost", "", ""), Set.of());
+        test.session.start(25_000, SourceChange.bind(boost));
+        test.session.start(70_001, SourceChange.remove(boost.instance()));
+        test.send(200_000, "test:noop", 1, 1);
+        assertEquals(.154999 * 3.5 + .045001 * 7, test.sum(), 1e-12);
+        assertTrue(test.heals.stream().allMatch(h -> h.command().source().equals(test.source.origin())), "rate query must retain healing origin");
+        var encoded = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, program).getOrThrow();
+        assertEquals(program.program(), EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, encoded).getOrThrow().program());
+        var foreign = new Harness(program, EffectState.Mode.PVE);
+        foreign.session.start(0, SourceChange.bind(new EffectSource("foreign", "test:boost", "ally", boost.origin(), Set.of())));
+        foreign.send(0, "test:restoration", 1, .1); foreign.send(100_000, "test:noop", 1, 1);
+        assertEquals(.35, foreign.sum(), 1e-12);
+    }
+    @Test void recoveryProfileMustExistAndPreserveRateUnitsAndRejectsNegativeOutput() throws Exception {
+        var missing = profiled(); missing.remove("profiles"); assertThrows(RuntimeException.class, () -> compile(missing));
+        for (String field : List.of("input_unit", "output_unit")) {
+            var wrong = profiled(); var profile = wrong.getAsJsonArray("profiles").get(0).getAsJsonObject();
+            (field.equals("input_unit") ? profile : profile.getAsJsonArray("steps").get(0).getAsJsonObject()).addProperty(field, "damage");
+            assertThrows(RuntimeException.class, () -> compile(wrong));
+        }
+        var negative = profiled(); negative.getAsJsonArray("profiles").get(0).getAsJsonObject().getAsJsonArray("steps").get(0).getAsJsonObject()
+                .getAsJsonObject("curve").add("coefficients", JsonParser.parseString("[-1]"));
+        var program = compile(negative); var test = new Harness(program, EffectState.Mode.PVE);
+        test.send(0, "test:restoration", 1, 1);
+        assertThrows(RuntimeException.class, () -> program.recoveryOffers(test.state()));
+        assertTrue(test.heals.isEmpty());
+    }
 }
