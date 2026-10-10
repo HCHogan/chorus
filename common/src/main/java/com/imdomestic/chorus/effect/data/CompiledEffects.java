@@ -259,6 +259,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             case EffectProgram.Branch branch -> { validateInstantSteps(branch.then()); validateInstantSteps(branch.otherwise()); }
             case EffectProgram.ForEach loop -> validateInstantSteps(loop.body());
             case EffectProgram.Projectile projectile -> validateInstantSteps(projectile.body());
+            case EffectProgram.Pickup pickup -> validateInstantSteps(pickup.body());
             case EffectProgram.After after -> {
                 if (after.lifetime() != EffectContinuations.Lifetime.DETACHED) throw new IllegalArgumentException("Instant invocation continuation must explicitly be detached");
                 validateInstantSteps(after.body());
@@ -729,6 +730,46 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         }
                     }, ""));
                 }
+                case EffectProgram.Pickup pickup -> {
+                    pickup.spec().validate(validation(bundle, previous)); localId(pickup.bind());
+                    if (previous.containsKey(pickup.bind())) throw new IllegalArgumentException("Shadowed pickup contact binding");
+                    var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
+                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); } });
+                    String definition = ownerRule + "/pickup/" + path + index, contactSlot = path + index + "/contact/" + pickup.bind();
+                    var nestedResults = new LinkedHashMap<>(capturedResults); var nestedSlots = new java.util.TreeMap<>(capturedSlots);
+                    nestedResults.put(pickup.bind(), ResultShape.PICKUP_CONTACT); nestedSlots.put(pickup.bind(), contactSlot);
+                    var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
+                    nestedSlots.forEach((name, slot) -> body.add(new RuleEngine.Instruction<>((state, context) -> {
+                        var value = ((EffectContinuations.Pending) context.scope()).bindings().get(slot);
+                        if (value == null) throw new IllegalArgumentException("Pickup is missing captured binding: " + name);
+                        return new RuleEngine.Local<>(state, value, List.of());
+                    }, slot)));
+                    body.add(new RuleEngine.Instruction<>((state, context) -> {
+                        var contact = (com.imdomestic.chorus.effect.object.WorldPickup.Contact) context.bindings().get(contactSlot);
+                        var e = scopedEvaluation(state, context, nestedResults, nestedSlots);
+                        var pending = (EffectContinuations.Pending) context.scope();
+                        return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, contact.end() == com.imdomestic.chorus.effect.object.WorldPickup.End.COLLECTED
+                                ? List.of(contact.fact(pending.id(), pickup.spec().kind(), e.origin())) : List.of());
+                    }, ""));
+                    body.addAll(compileSteps(bundle, pickup.body(), nestedResults, nestedSlots, path + index + "/pickup/", ownerRule, continuations));
+                    continuations.add(new RuleEngine.EventRule<>(definition, com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, (_, _) -> true, body));
+                    output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
+                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                            var e = scopedEvaluation(state, context, previous, previousSlots); var spec = pickup.spec();
+                            var captured = new LinkedHashMap<String, RuleEngine.ActionResult>();
+                            capturedSlots.forEach((name, slot) -> captured.put(slot, e.context().bindings().get(name)));
+                            var op = context.operation(); String id = "pickup/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
+                            var pending = new EffectContinuations.Pending(id, definition, program.version(), e.context().scope(), e.context().event(), captured, Optional.empty());
+                            return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.object.WorldPickup.Spawn(
+                                    previous.get(spec.position()).position(e.context().bindings().get(spec.position())), spec.kind(), e.target(spec.recipient()), e.origin(), spec.resolve(e), pending, contactSlot));
+                        }
+                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                            var receipt = (com.imdomestic.chorus.effect.object.WorldPickup.Receipt) result;
+                            if (!receipt.spawn().equals(context.command(com.imdomestic.chorus.effect.object.WorldPickup.Spawn.class))) throw new IllegalArgumentException("Pickup receipt does not match spawn");
+                            return new RuleEngine.Local<>(state, receipt, List.of());
+                        }
+                    }, ""));
+                }
                 case EffectProgram.ForEach loop -> {
                     localId(loop.bind());
                     var shape = validation(bundle, previous).result(loop.collection()); shape.requireTargets();
@@ -751,7 +792,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
 
     @Override public List<RuleEngine.RuleBinding> resolve(EffectState state, RuleEngine.Event event) {
         validateState(state);
-        if (event.signal().type().equals(EffectContinuations.EVENT) || event.signal().type().equals(com.imdomestic.chorus.effect.projectile.ProjectileFlight.EVENT)) {
+        if (event.signal().type().equals(EffectContinuations.EVENT) || event.signal().type().equals(com.imdomestic.chorus.effect.projectile.ProjectileFlight.EVENT)
+                || event.signal().type().equals(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT)) {
             if (!(event.signal().payload() instanceof EffectContinuations.Pending pending) || !program.version().equals(pending.version())
                     || !continuationIds.contains(pending.definition()) || pending.cause().timeMicros() > event.timeMicros()
                     || event.signal().type().equals(EffectContinuations.EVENT) && pending.cause().timeMicros() == event.timeMicros()) {

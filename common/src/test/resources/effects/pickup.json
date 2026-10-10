@@ -1,0 +1,164 @@
+{
+  "version": "test-pickup-v1",
+  "profiles": [
+    {
+      "id": "test:amount",
+      "version": "test-pickup-v1",
+      "input_unit": "damage",
+      "steps": []
+    },
+    {
+      "id": "chorus:pickup_attraction_radius",
+      "version": "test-pickup-v1",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "radius",
+          "operation": "add",
+          "group": {
+            "name": "radius",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:pickup",
+      "rules": [
+        {
+          "id": "spawn",
+          "on": "test:spawn",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self"
+              },
+              "as": "place"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "test:amount",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 7,
+                  "unit": "damage"
+                }
+              },
+              "as": "captured"
+            },
+            {
+              "pickup": {
+                "position": "place",
+                "kind": "test:pickup",
+                "recipient": "victim",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 0.5,
+                  "unit": "meter"
+                },
+                "attraction": {
+                  "profile": "chorus:pickup_attraction_radius",
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "meter"
+                  },
+                  "speed": {
+                    "type": "chorus:constant",
+                    "value": 6,
+                    "unit": "meter_per_second"
+                  }
+                }
+              },
+              "as": "contact",
+              "do": [
+                {
+                  "for_each": "contact",
+                  "as": "collector",
+                  "do": [
+                    {
+                      "type": "chorus:heal",
+                      "target": {
+                        "binding": "collector"
+                      },
+                      "amount": {
+                        "type": "chorus:result",
+                        "binding": "captured",
+                        "field": "value"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "contact",
+                    "field": "expired"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:expired",
+                      "target": "self"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:collector",
+      "rules": [
+        {
+          "id": "observe",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:collected",
+              "target": "self"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:magnet",
+      "modifiers": [
+        {
+          "id": "radius",
+          "profile": "chorus:pickup_attraction_radius",
+          "stage": "radius",
+          "group": "radius",
+          "op": "add",
+          "stacking_key": "test:magnet",
+          "value": {
+            "type": "chorus:constant",
+            "value": 8,
+            "unit": "meter"
+          },
+          "reference": "Synthetic pickup acceptance radius",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

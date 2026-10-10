@@ -528,10 +528,24 @@ public final class EffectCodecs {
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot)
             ).apply(i, EffectProgram.Projectile::new)), Set.of("projectile", "as", "do", "shot"));
-            return Codec.either(projectile, Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
-                    value -> value.map(p -> p, nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
+            Codec<PickupSpec.Attraction> attraction = strict(RecordCodecBuilder.create(i -> i.group(
+                    ID.fieldOf("profile").forGetter(PickupSpec.Attraction::profile), values.fieldOf("radius").forGetter(PickupSpec.Attraction::radius),
+                    values.fieldOf("speed").forGetter(PickupSpec.Attraction::speed)
+            ).apply(i, PickupSpec.Attraction::new)), Set.of("profile", "radius", "speed"));
+            Codec<PickupSpec> pickupSpec = strict(RecordCodecBuilder.create(i -> i.group(
+                    Codec.STRING.fieldOf("position").forGetter(PickupSpec::position), ID.fieldOf("kind").forGetter(PickupSpec::kind),
+                    TARGET.fieldOf("recipient").forGetter(PickupSpec::recipient), values.fieldOf("lifetime").forGetter(PickupSpec::lifetime),
+                    values.fieldOf("radius").forGetter(PickupSpec::radius), attraction.optionalFieldOf("attraction").forGetter(PickupSpec::attraction)
+            ).apply(i, PickupSpec::new)), Set.of("position", "kind", "recipient", "lifetime", "radius", "attraction"));
+            Codec<EffectProgram.Pickup> pickup = strict(RecordCodecBuilder.create(i -> i.group(
+                    pickupSpec.fieldOf("pickup").forGetter(EffectProgram.Pickup::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Pickup::bind),
+                    self.listOf().fieldOf("do").forGetter(EffectProgram.Pickup::body)
+            ).apply(i, EffectProgram.Pickup::new)), Set.of("pickup", "as", "do"));
+            return Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
+                    value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
-                        case EffectProgram.Projectile launch -> Either.left(launch);
+                        case EffectProgram.Pickup spawn -> Either.left(Either.left(spawn));
+                        case EffectProgram.Projectile launch -> Either.left(Either.right(launch));
                         case EffectProgram.Instruction execute -> Either.right(Either.left(execute)); case EffectProgram.Branch choose -> Either.right(Either.right(Either.left(choose)));
                         case EffectProgram.ForEach each -> Either.right(Either.right(Either.right(Either.left(each))));
                         case EffectProgram.After later -> Either.right(Either.right(Either.right(Either.right(later))));

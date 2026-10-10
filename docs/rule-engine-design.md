@@ -605,6 +605,8 @@ known_conflicts / selected_resolution
 
 能量球、冰影碎片、离子痕迹、涡流、虚空锚点、缠结、屏障、静止水晶，都是一个通用实体 `chorus:effect_entity` 加上 JSON 里的组件。组件用 Java 实现、数量少；组件要执行的动作用同一套 DSL。
 
+拾取物的首批接口使用 `pickup: {position, kind, recipient, lifetime, radius, attraction?}, as, do`：先捕获位置，再向世界请求生成一个逻辑单位。`recipient` 明确指定收集者；共享物品、给队友的副本和私有物品由内容层分别生成，不能自动把它交给最近玩家。动作体捕获生成时的来源及词法结果，卸下来源后仍可执行。收集结果为单元素目标集合，过期结果为空集合；两者都保留终点位置。`chorus:pickup` 的 actor / victim 为实际收集者，source 为生成者；拾取者装备应按 event_actor 判断资格。当前接口及纯核心测试已实现，物理宿主、合并及具体 D2 内容的进度见 [实现记录](engine-implementation.md#拾取物的逻辑协议)。
+
 | 组件 | 作用 | 表里的例子 |
 | --- | --- | --- |
 | `lifetime` | 存在多久，到期时触发动作 | Deadfall 锚点 12 秒，拴住的敌人每死一个 +0.5 秒，最多 25 秒 |

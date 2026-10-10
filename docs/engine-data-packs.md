@@ -1669,3 +1669,23 @@ Continuity 的 fragment Bundle 只贡献该次查询提供的 extension，生产
 结果 input / value 分别采用首段输入和末段输出单位，可像普通 calculate 结果一样跨延迟 / 投射物保留。Java 的 CalculationPipeline.Result.steps 按发生顺序保留每段完整 Result，包括 Profile / 版本、输入、贡献归约、置信度、命名因子与阶段轨迹。同名阶段或重复 Profile 不合并；明确列两次就执行两次。未知 Profile、空列表、单位断裂在编译时拒绝。
 
 withBase / withoutFactors 只重算已保存的数学输入，不重新读取状态、表达式或调用原收集器。上游变化会逐段重新送入下游曲线 / 限幅；移除因子按命名匹配各段，使用重算而非除法，所以零倍率也能处理。已选贡献的置信度跨段汇总。这里是有限顺序查询；没有改变事件队列、合法效果循环或单个攻击快照的结算协议。
+
+## 物理拾取物的动作体
+
+```json
+{"pickup": {
+  "position": "place", "kind": "example:energy_pickup", "recipient": "source_owner",
+  "lifetime": {"type": "chorus:constant", "value": 25, "unit": "second"},
+  "radius": {"type": "chorus:constant", "value": 0.5, "unit": "meter"}
+}, "as": "contact", "do": [
+  {"for_each": "contact", "as": "collector", "do": [
+    {"type": "chorus:play_cue", "cue": "example:collected", "target": {"binding": "collector"}}
+  ]}
+]}
+```
+
+先用 capture_position 绑定 place。寿命为正秒数，radius 为非负米数；kind 是命名空间标识。可选 `attraction: {profile, radius, speed}` 分别指定米 → 米的收集者属性 Profile、基础米数及 meter_per_second 速度。Profile 必须在当前程序中存在；生成时不把生成者的吸附属性冻结给收集者。以上是合成语法示例，不是某个 D2 拾取物的完整定义。
+
+`contact` 支持 collected / expired 标志、count（拾取为 1，过期为 0）、age 秒数，以及位置和目标集合引用。生命周期区间为 [生成, 过期)，到期时不能同时拾取。每个逻辑单位单独持有版本、来源、词法结果和收集者；动作体为 detached，普通成本回执不能跨帧，显式 retain_cost 句柄继续共享原账本限额。
+
+成功收集会排入一次 chorus:pickup：actor / victim 是收集者，source 是生成者，tags 含 kind，numbers 含 count=1 / age，references 含 pickup_id / pickup_kind / collector。拾取者词条使用 target_is(self,event_actor)，不能用 source_is(owner) 代替。事实按既有队列在当前动作体后执行；生成和过期不会产生拾取事实。世界执行结果未知时停止后续推导，不重放奖励。接口与宿主进度见 [实现记录](engine-implementation.md#拾取物的逻辑协议)。

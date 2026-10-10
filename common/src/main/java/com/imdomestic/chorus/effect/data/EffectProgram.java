@@ -61,7 +61,10 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding) { this(id, on, condition, actions, binding, Optional.empty()); }
         public Rule(String id, String on, Condition condition, List<Step> actions) { this(id, on, condition, actions, ReactionBinding.CURRENT_OWNER_BUNDLE); }
     }
-    public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile {}
+    public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile, Pickup {}
+    public record Pickup(PickupSpec spec, String bind, List<Step> body) implements Step {
+        public Pickup { java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }
+    }
     public record Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot) implements Step {
         public Projectile(ProjectileSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty()); }
         public Projectile { java.util.Objects.requireNonNull(shot); java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }

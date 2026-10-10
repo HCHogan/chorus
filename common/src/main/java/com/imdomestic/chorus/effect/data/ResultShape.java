@@ -15,14 +15,14 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT, ENTITY_OBSERVATION }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, PICKUP_CONTACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT, ENTITY_OBSERVATION }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags) { this(fields, flags, false); }
     public ResultShape(Map<String, Field> fields) { this(fields, Map.of()); }
     public void requireTarget() { if (reference != Reference.TARGET) throw new IllegalArgumentException("Result is not an entity target"); }
-    public void requireTargets() { if (reference != Reference.TARGETS && reference != Reference.TARGET_IDENTITIES && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a target collection"); }
+    public void requireTargets() { if (reference != Reference.TARGETS && reference != Reference.TARGET_IDENTITIES && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT && reference != Reference.PICKUP_CONTACT) throw new IllegalArgumentException("Result is not a target collection"); }
     public void requireTargetDifference() { if (reference != Reference.TARGET_DIFFERENCE) throw new IllegalArgumentException("Result is not a target membership difference"); }
     public ResultShape targetElement() { requireTargets(); return reference == Reference.TARGETS ? TARGET : TARGET_IDENTITY; }
     public void requireSnapshot() { if (reference != Reference.DAMAGE_SNAPSHOT) throw new IllegalArgumentException("Result is not a damage snapshot"); }
@@ -31,6 +31,11 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
         requireDirection(); return ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction();
     }
     private static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result; }
+    private static com.imdomestic.chorus.effect.object.WorldPickup.Contact pickup(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.object.WorldPickup.Contact) result; }
+    public static final ResultShape PICKUP_CONTACT = new ResultShape(Map.of(
+            "count", new Field(Unit.COUNT, r -> pickup(r).targets().size()), "age", new Field(Unit.SECOND, r -> pickup(r).ageMicros() / 1_000_000.0)),
+            Map.of("collected", r -> pickup(r).end() == com.imdomestic.chorus.effect.object.WorldPickup.End.COLLECTED,
+                    "expired", r -> pickup(r).end() == com.imdomestic.chorus.effect.object.WorldPickup.End.EXPIRED), false, Reference.PICKUP_CONTACT);
     public static final ResultShape PROJECTILE_IMPACT = new ResultShape(Map.of(
             "count", new Field(Unit.COUNT, r -> impact(r).targets().size()),
             "age", new Field(Unit.SECOND, r -> impact(r).ageMicros() / 1_000_000.0),
@@ -83,7 +88,7 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public static final ResultShape DIRECTION = new ResultShape(Map.of(), Map.of(
             "available", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isPresent(),
             "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isEmpty()), false, Reference.DIRECTION);
-    public void requirePosition() { if (reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a position capture"); }
+    public void requirePosition() { if (reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT && reference != Reference.PICKUP_CONTACT) throw new IllegalArgumentException("Result is not a position capture"); }
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldPosition> position(RuleEngine.ActionResult result) {
         requirePosition(); return ((com.imdomestic.chorus.effect.target.PositionResult) result).position();
     }
