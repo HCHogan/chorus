@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /** Real engine equipment/fire/impact receipts; numerical world conversion and falloff are synthetic. */
 class IncandescentTest {
-    static final List<String> FRAGMENTS=List.of("incandescent","solar","solar_test_calibration","incandescent_test_calibration","ember_of_char");
+    static final List<String> FRAGMENTS=List.of("incandescent","solar","solar_test_calibration","incandescent_test_calibration","ember_of_char","character_stats");
     static final String SCORCH="chorus_d2:scorch";
     static CompiledEffects program(boolean credit) throws Exception { return program(credit,1); }
     static CompiledEffects program(boolean credit,double exemptNonbossFactor) throws Exception {

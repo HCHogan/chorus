@@ -18,6 +18,21 @@
           "stacking_key": "chorus_d2:ember_of_char",
           "confidence": "measured",
           "reference": "Compendium Solar D19 (Char 40, with Ashes 60). Ashes contribution here applies only to Char."
+        },
+        {
+          "id": "grenade_stat",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "stacking_key": "chorus_d2:ember_of_char",
+          "confidence": "measured",
+          "reference": "Compendium original Solar N19: +10 Grenade. Shared character_stats profile applies bonuses before clamping."
         }
       ]
     },

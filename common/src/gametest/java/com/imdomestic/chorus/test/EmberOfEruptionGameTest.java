@@ -15,6 +15,8 @@ public class EmberOfEruptionGameTest {
         final List<LivingEntity> extra=new ArrayList<>();
         Harness(GameTestHelper h,double delay) throws Exception {
             super(h,false,delay,true,"ember_of_eruption");
+            // Keep the ten-meter boundary fixtures in the known loaded chunk, independent of test placement.
+            target.setPos(target.getX()-4,target.getY(),target.getZ());neighbor.setPos(target.getX()+2,target.getY(),target.getZ());
             fragment(a,"char","char");fragment(a,"ashes","ashes");
         }
         void fragment(EffectSource owner,String name,String instance) {

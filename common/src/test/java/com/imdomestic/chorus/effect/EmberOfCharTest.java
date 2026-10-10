@@ -24,7 +24,7 @@ class EmberOfCharTest {
             }
         }
         var fragments=new ArrayList<EffectProgram>();
-        for(String name:List.of("solar","solar_test_source","ember_of_char")) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json(name)).getOrThrow());
+        for(String name:List.of("solar","solar_test_source","ember_of_char","character_stats")) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json(name)).getOrThrow());
         fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,calibration).getOrThrow());
         return CompiledEffects.link(fragments);
     }

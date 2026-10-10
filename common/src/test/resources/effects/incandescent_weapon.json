@@ -247,6 +247,7 @@
     "chorus_d2:solar",
     "chorus_d2:solar_test_calibration",
     "chorus_d2:incandescent_test_calibration",
-    "chorus_d2:ember_of_char"
+    "chorus_d2:ember_of_char",
+    "chorus_d2:character_stats"
   ]
 }

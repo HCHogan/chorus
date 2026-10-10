@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "effects": [
+    "Ember of Char stat bonus",
+    "Ember of Eruption stat bonus"
+  ],
+  "sources": [
+    {
+      "kind": "original_google_sheet_capture",
+      "file": "data/d2-research/2026-10-11/eruption-solar-source.html.gz",
+      "retrieval_metadata": "data/d2-research/2026-10-11/ember-of-eruption.json",
+      "html_sha256": "c94103aea6db6a9fc30a74829703b87cf66e339696cfcf1184f27dcbec6c63e4",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "B19": "Char",
+        "N19": "+10 Grenade",
+        "B22": "Eruption",
+        "N22": "+10 Melee"
+      }
+    },
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B16",
+        "Solar N16",
+        "Solar B19",
+        "Solar N19"
+      ]
+    }
+  ],
+  "implementation": {
+    "base": "grenade_stat/melee_stat Buff points remains the explicit host input; initialized even at zero before modifiers are expected to work.",
+    "profiles": "character_stats adds grenade_stat/melee_stat, sums bonuses then clamps 0..200. Same fragment family uses MAX.",
+    "curves": "arcbolt_energy and threaded_spike_energy now query derived attributes before existing passive and chunk curves. Curve saturation at 100 and independent .75/.8 CES are unchanged.",
+    "sampling": "Current recipient at gain; settled old rate then new rate at source changes. Fixed energy returns bypass the gain profile as before.",
+    "tests": [
+      "SolarFragmentStatsTest (4)",
+      "SolarFragmentStatsGameTest (2)"
+    ],
+    "world_evidence": "Physical Firesprite collection changes grenade payout according to Char at collection time; real tick Eruption removal splits melee passive rates and current fragment selection changes chunk grants."
+  },
+  "limits": [
+    "Cross-subclass Arcbolt/Threaded Spike accounts are synthetic consumers, not a claim of legal D2 Solar loadouts.",
+    "Host base-stat initialization and real armor point aggregation remain unassembled.",
+    "The inherited passive/energy formulas are community fits, not remeasured by this change.",
+    "Solar ability catalog, production subclass restrictions, HUD and persistence remain incomplete."
+  ]
+}

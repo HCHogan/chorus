@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 /** Actual player containers, command-fired projectiles, native deaths and source-owned Solar effects. */
 public class IncandescentGameTest {
     static void prepare(JsonObject data,boolean credit) {
-        for(String name:List.of("solar","solar_test_calibration","incandescent_test_calibration","ember_of_char","incandescent_weapon")) {
+        for(String name:List.of("solar","solar_test_calibration","incandescent_test_calibration","ember_of_char","character_stats","incandescent_weapon")) {
             var fragment=ThreadedSpikeGameTest.json(name);
             for(var entry:fragment.entrySet()) {
                 if(Set.of("version","imports").contains(entry.getKey()))continue;

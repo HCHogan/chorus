@@ -4133,12 +4133,13 @@
           "text_sha256": "d8d69930e739a480060260150b225cbf0747df06d25ce276ef525fa36a6e0ca7"
         }
       ],
-      "scope": "点燃实际伤害后对非中心目标施加 40 / Ashes 60 层；保留原施加者信用，跨目标本地禁用窗口持续反馈",
+      "scope": "点燃实际伤害后对非中心目标施加 40 / Ashes 60 层；保留原施加者信用，跨目标本地禁用窗口持续反馈；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点",
       "acceptance": [
         "Char 40 / Ashes 60，排除点燃中心且不受其他施加者片段影响",
         "正实际损失触发；免疫 / 取消 / 零损失或死亡目标无灼烧",
         "四目标无需后续外部输入即可多轮互相点燃；不设置全局连锁上限",
-        "移除 Char 后已排队爆炸完成，但不再产生下一轮"
+        "移除 Char 后已排队爆炸完成，但不再产生下一轮",
+        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证"
       ],
       "evidence": [
         {
@@ -4182,13 +4183,42 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/character_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "distinctFragmentStatsDoNotMixRecipientsAndDuplicateBindingsDoNotDoublePoints"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "actualRecipientPointsEnterChunkCurvesBeforeIndependentCesAndFixedGainsStayFixed"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "equipmentChangesSplitPassiveIntegrationAndNeverRewriteStoredBasePoints"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "zeroHundredAndTwoHundredBoundariesApplyBonusesBeforeStatAndCurveCaps"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "physicalFirespriteUsesCollectorsCurrentCharBonusAndKeepsBasePoints"
         }
       ],
       "gaps": [
-        "+10 Grenade 属性未装配",
         "点燃真实延迟、禁用窗口起点、移动中心与片段取样时机未校准",
         "Solar Fulmination、直接点燃来源及代际数值快照继承未覆盖",
-        "无生产子职业装配或状态持久化"
+        "无生产子职业装配或状态持久化",
+        "宿主基础属性初始化、护甲属性汇总及生产子职业装配未完成；跨子职业技能账户组合仅为机制验收"
       ]
     },
     {
@@ -4763,12 +4793,13 @@
           "text_sha256": "2e2ae90e0cac8aab675913a0db26693af1f6cb528c12f3835ecf37dfc10be0a3"
         }
       ],
-      "scope": "共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围",
+      "scope": "共享点燃半径增加 25%，8 → 10 米；原始灼烧施加者在阈值时取样，延迟爆炸保留半径，扩大实际伤害及 Char 传播范围；碎片 +10 属性已进入当前接收者的主动回能与被动恢复，保留基础组件，重复绑定不重复加点",
       "acceptance": [
         "PvE / PvP 的 8 / 10 米与重复来源 MAX；卸下后下一次阈值重新取样",
         "最后补层者或受击目标的碎片不能替代第一施加者的配装",
         "已排队爆炸保留阈值半径，来源卸下后仍执行；执行时查询当前范围成员",
-        "实际 8 / 10 米边界及范围外目标；扩大 Char 命中范围但不增加伤害、灼烧层数或限制连锁"
+        "实际 8 / 10 米边界及范围外目标；扩大 Char 命中范围但不增加伤害、灼烧层数或限制连锁",
+        "Char +10 Grenade / Eruption +10 Melee 在属性加值与限幅后进入曲线；接收者隔离、换装分段、实际拾取 / 回能、CES 和 fixed 收益分别验证"
       ],
       "evidence": [
         {
@@ -4817,13 +4848,42 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/character_stats.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "distinctFragmentStatsDoNotMixRecipientsAndDuplicateBindingsDoNotDoublePoints"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "actualRecipientPointsEnterChunkCurvesBeforeIndependentCesAndFixedGainsStayFixed"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "equipmentChangesSplitPassiveIntegrationAndNeverRewriteStoredBasePoints"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarFragmentStatsTest.java",
+          "symbol": "zeroHundredAndTwoHundredBoundariesApplyBonusesBeforeStatAndCurveCaps"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarFragmentStatsGameTest.java",
+          "symbol": "realTickEruptionChangesPassiveAndChunkReturnsAtCurrentMeleeStat"
         }
       ],
       "gaps": [
-        "+10 Melee 属性尚未装配",
         "原作碎片取样时机、伤害曲线与点燃时序尚待校准",
         "未覆盖所有直接点燃生产者及特殊来源",
-        "没有完整生产子职业装配、HUD 或状态持久化"
+        "没有完整生产子职业装配、HUD 或状态持久化",
+        "宿主基础属性初始化、护甲属性汇总及生产子职业装配未完成；跨子职业技能账户组合仅为机制验收"
       ]
     }
   ]

@@ -21,7 +21,7 @@ class DemolitionistTest {
     static final String ENERGY = "chorus_d2:arcbolt_energy", SLOT = "chorus_d2:grenade", COOLDOWN = "chorus_d2:demolitionist_cooldown";
     static CompiledEffects program() throws Exception {
         var parts = new ArrayList<EffectProgram>();
-        for (String fixture : List.of("demolitionist", "arcbolt_energy", "demolitionist_weapon", "kill_clip", "clown_cartridge")) {
+        for (String fixture : List.of("demolitionist", "character_stats", "arcbolt_energy", "demolitionist_weapon", "kill_clip", "clown_cartridge")) {
             var data = JsonParser.parseString(json(fixture).toString().replace("\"test-1\"", "\"compendium-2026-10-05\""));
             parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow());
         }

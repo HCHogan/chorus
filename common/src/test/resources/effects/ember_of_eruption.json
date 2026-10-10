@@ -18,6 +18,21 @@
           "stacking_key": "chorus_d2:ember_of_eruption",
           "confidence": "measured",
           "reference": "Compendium Solar D22 (original), D19 (CSV snapshot): +25% Ignition radius, 8 -> 10 meters."
+        },
+        {
+          "id": "melee_stat",
+          "profile": "chorus_d2:melee_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "stacking_key": "chorus_d2:ember_of_eruption",
+          "confidence": "measured",
+          "reference": "Compendium original Solar N22: +10 Melee. Shared character_stats profile applies bonuses before clamping."
         }
       ]
     }

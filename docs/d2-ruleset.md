@@ -155,7 +155,7 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 
 6 项 EmberOfCharTest 包括真实 40 / 60 层、其他施加者片段隔离、中心排除、正损失 / 死亡资格、解绑后延迟攻击与信用、爆炸期选择片段，以及四目标交替八轮点燃。该连锁输入为两目标初始各 100 层、另外两目标初始零层，Ashes 使每轮两个爆炸分别施加 60 层，后续无需额外输入。没有 Ashes 的 80 层、只有一次种子爆炸的 60 层均不会凭空点燃。卸下 Char 后已排队的一轮完成，后续自然停止。3 项共享 EmberOfCharGameTest 验证实际四目标五轮扣血、第六轮完成后停止、中心排除和真实死亡。验证的是引擎可表达持续反馈，不是靠提高 Char 层数来制造连锁。
 
-Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配；Ashes 已有 Char 和 Incandescent 的专属层数映射，其他来源及特例尚未实现。原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
+Char / Ashes 均为 partial：Char 的 +10 Grenade 已接入下述共享属性与回能曲线；Ashes 已有 Char 和 Incandescent 的专属层数映射，其他来源及特例尚未实现。原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
 
 ### Eruption 的点燃范围
 
@@ -165,7 +165,15 @@ Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配；Ashes 已有 C
 
 5 项 EmberOfEruptionTest 验证模式、重复装配、来源隔离、待爆期间换装、解绑、下一代重采样、边界和 Char 联动。2 项共享 EmberOfEruptionGameTest 验证真实 8 / 10 米边界、范围外目标不受伤、原施加者信用，以及待爆期间进入范围的敌人被命中。测试用 ignition_falloff 的合成曲线定义域从 8 扩展至 10 米；当前流程两种模式均查询距离曲线，只有 PvP 使用其倍率，所以宿主校准必须覆盖整个可选范围。测试曲线在 10 米为零，PvP 的该边界虽被选择但不因零损失获得 Char；PvE 仍按自己的伤害计算。
 
-Eruption 保持 partial：原表的 +10 Melee 属性尚未装配，其他直接点燃生产者、特殊来源、准确时序 / 衰减、完整子职业装配、HUD 和状态持久化仍待完成。
+Eruption 的 +10 Melee 已接入下述共享属性与回能曲线。覆盖保持 partial：其他直接点燃生产者、特殊来源、准确时序 / 衰减、完整子职业装配、HUD 和状态持久化仍待完成。
+
+### 碎片属性进入技能回能与冷却
+
+[character_stats.json](../common/src/test/resources/effects/character_stats.json) 增加 grenade_stat / melee_stat Profile，按“基础点数 → 来源加值 SUM → 0–200 限幅”计算；Char / Eruption 各自的家族用 MAX，避免同一碎片重复绑定多次加 10。原表 Char N19 / 快照 N16 为 +10 Grenade，Eruption N22 / 快照 N19 为 +10 Melee，见[核对与验收记录](../data/d2-research/2026-10-11/solar-fragment-stats.json)。基础 Buff 的 points 只保存宿主输入，不因换装增减或限幅而改写。
+
+threaded_spike_energy / arcbolt_energy 的主动收益及被动恢复修饰现在使用 `attribute` 读取最终点数，再进入原有曲线。属性 Profile 的 200 上限与现有回能曲线的 100 饱和点各自保留；0.8 / 0.75 CES 不并入属性，自身 fixed 返能继续绕过收益 Profile。拾取或外部收益使用接收者当前属性；换装前先结算旧速率，之后用新属性积分。使用这些片段的程序须链接 character_stats，宿主须初始化相应基础属性组件，包括明确的零属性；片段不推断护甲总属性或替宿主创建基础输入。
+
+4 项 SolarFragmentStatsTest 验证玩家隔离、重复 / 卸下、基础值不变、0 / 100 / 200 边界、CES / fixed 分离及换装时的分段积分。2 项共享 SolarFragmentStatsGameTest 验证物理 Firesprite 拾取时的当前 Char 属性，以及实际服务器 tick 上 Eruption 换装对近战恢复和外部收益的影响。这里用已有 Arcbolt / Threaded Spike 账户作为属性消费者验收，跨子职业组合是合成装配，不表示这些碎片可在原作中与这两项技能同时装备；生产子职业约束及 Solar 技能目录仍未接入。
 
 ## 武器输入与 Kill Clip 集成边界
 
@@ -341,7 +349,7 @@ Class:
 
 Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害、受到伤害、击杀、拾球分别按已提交的事实计算主动收益。具体收益系数、漫游超能系数和目标修正必须逐条校准，不能拿上述 chunk 公式代替完整 Super 生成机制。
 
-当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。Arcbolt 手雷资源与 Demolitionist 已另行接入；其余手雷 / 职业技能 / Super 的资源、其他回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。melee_stat 数值组件保存接收者的基础点数，经 character_stats 的属性 Profile 取得加值 / 限幅后结果再进入曲线；属性变化前的时间先按旧速率结算。未初始化基础组件时没有对应 Buff 修饰，只留下资源基准，不可据此认为碎片加值已经生效。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。Arcbolt 手雷资源与 Demolitionist 已另行接入；其余手雷 / 职业技能 / Super 的资源、其他回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
 
 ## Pugilist
 
@@ -361,7 +369,7 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 [demolitionist.json](../common/src/test/resources/effects/demolitionist.json) 的击杀分支匹配持有者、武器实例和 weapon_kill 信用，使用 grant_ability_energy 读取当前基础手雷槽。[Bungie 6.3.0.1](https://www.bungie.net/7/en/News/article/hotfix_6_3_0_1) 确认 Pugilist、Demolitionist、Wellspring 在能力输入被替换时仍应给予能量，例子包括持剑 / 偃月时的近战；这支持保留基础账户，但并未定义所有临时能力或共享池的切换政策。
 
-资源侧新增 [arcbolt_energy.json](../common/src/test/resources/effects/arcbolt_energy.json)：固定 CSV Arc N28 的 151.5 秒与 CES=0.75，手雷属性组件 grenade_stat 与近战组件分开，复用相同的主动函数和被动拟合数值。例如 100 手雷属性时普通武器一次击杀为 `0.04×2.25×0.75=0.0675`，强化 Shotgun 为 `0.088×2.25×0.75=0.1485`。资源定义可以独立验证，不代表 Arcbolt 已有完整投掷 / 落地技能；当前 Arcbolt 连锁内容仍由宿主提供 impact 事件。
+资源侧新增 [arcbolt_energy.json](../common/src/test/resources/effects/arcbolt_energy.json)：固定 CSV Arc N28 的 151.5 秒与 CES=0.75，手雷基础组件 grenade_stat 与近战组件分开，经 character_stats 属性 Profile 加值 / 限幅后，复用相同的主动函数和被动拟合数值。例如 100 手雷属性时普通武器一次击杀为 `0.04×2.25×0.75=0.0675`，强化 Shotgun 为 `0.088×2.25×0.75=0.1485`。资源定义可以独立验证，不代表 Arcbolt 已有完整投掷 / 落地技能；当前 Arcbolt 连锁内容仍由宿主提供 impact 事件。
 
 补弹监听已接受、已付费后的 ability_started，并要求 grenade_ability 标签和本武器当前手持。refill_magazine 从储备转移至当前有效容量，保留已有溢出；实际转移大于零后才授予按武器实例保存的 3 秒冷却。满弹匣、已有溢出或空储备不启动冷却；部分储备可以部分补充并启动冷却。收枪 / 卸装不清除未到期冷却；另一把武器有自己的冷却。免费但已接受的手雷也触发，条件失败 / 能量不足 / 非手雷使用不触发。**手持要求、正转移计时、每武器独立及免费施放等边界是当前明确的内容策略，原表没有逐项说明，仍需原作校准。**
 
@@ -811,7 +819,7 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 
 ## Threaded Spike 技能模板
 
-[threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 与 strand_defense.json、continuity.json、threaded_spike_energy.json 同版本链接。依据固定 CSV Strand D38 / N38，声明 427 / PvP 82 基础伤害、最多九个不同敌人、首次弹跳乘 0.82、之后每次乘 0.575，以及 145.2 秒基础冷却。已发生的墙面反弹也计入衰减：当前实体命中的前序弹跳数为 `bounces + entity_contacts - 1`；这是需要原作校准的计数政策，不能将命中回能的 hits 数直接当作弹跳数。
+[threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 与 strand_defense.json、continuity.json、threaded_spike_energy.json、character_stats.json 同版本链接。依据固定 CSV Strand D38 / N38，声明 427 / PvP 82 基础伤害、最多九个不同敌人、首次弹跳乘 0.82、之后每次乘 0.575，以及 145.2 秒基础冷却。已发生的墙面反弹也计入衰减：当前实体命中的前序弹跳数为 `bounces + entity_contacts - 1`；这是需要原作校准的计数政策，不能将命中回能的 hits 数直接当作弹跳数。
 
 | 确认命中数 | 0 | 1 | 2 | 3 | 4 | 5+ |
 | --- | --- | --- | --- | --- | --- | --- |

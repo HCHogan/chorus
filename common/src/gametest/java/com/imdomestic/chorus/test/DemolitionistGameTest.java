@@ -20,7 +20,7 @@ import net.minecraft.world.level.GameType;
 public class DemolitionistGameTest {
     static final String ENERGY = "chorus_d2:arcbolt_energy", COOLDOWN = "chorus_d2:demolitionist_cooldown";
     static void prepare(JsonObject data) {
-        for (String fixture : List.of("arcbolt_energy", "demolitionist_weapon", "kill_clip", "clown_cartridge")) {
+        for (String fixture : List.of("character_stats", "arcbolt_energy", "demolitionist_weapon", "kill_clip", "clown_cartridge")) {
             var fragment = JsonParser.parseString(ThreadedSpikeGameTest.json(fixture).toString().replace("\"test-1\"", "\"compendium-2026-10-05\"")).getAsJsonObject();
             for (var entry : fragment.entrySet()) {
                 if (entry.getKey().equals("version")) continue;

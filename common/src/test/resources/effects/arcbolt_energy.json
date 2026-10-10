@@ -93,9 +93,13 @@
             "if": {
               "type": "chorus:compare",
               "left": {
-                "type": "chorus:component",
-                "buff": "chorus_d2:grenade_stat",
-                "component": "points"
+                "type": "chorus:attribute",
+                "profile": "chorus_d2:grenade_stat",
+                "input": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:grenade_stat",
+                  "component": "points"
+                }
               },
               "op": "ge",
               "right": {
@@ -114,9 +118,13 @@
               "if": {
                 "type": "chorus:compare",
                 "left": {
-                  "type": "chorus:component",
-                  "buff": "chorus_d2:grenade_stat",
-                  "component": "points"
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:grenade_stat",
+                    "component": "points"
+                  }
                 },
                 "op": "ge",
                 "right": {
@@ -128,9 +136,13 @@
               "then": {
                 "type": "chorus:curve",
                 "of": {
-                  "type": "chorus:component",
-                  "buff": "chorus_d2:grenade_stat",
-                  "component": "points"
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:grenade_stat",
+                    "component": "points"
+                  }
                 },
                 "curve": {
                   "type": "chorus:polynomial",
@@ -148,9 +160,13 @@
               "else": {
                 "type": "chorus:curve",
                 "of": {
-                  "type": "chorus:component",
-                  "buff": "chorus_d2:grenade_stat",
-                  "component": "points"
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:grenade_stat",
+                    "component": "points"
+                  }
                 },
                 "curve": {
                   "type": "chorus:polynomial",
@@ -195,9 +211,13 @@
                   "of": {
                     "type": "chorus:scale",
                     "of": {
-                      "type": "chorus:component",
-                      "buff": "chorus_d2:grenade_stat",
-                      "component": "points"
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:grenade_stat",
+                      "input": {
+                        "type": "chorus:component",
+                        "buff": "chorus_d2:grenade_stat",
+                        "component": "points"
+                      }
                     },
                     "factor": 0.031415926535897934,
                     "from": "stat_point",

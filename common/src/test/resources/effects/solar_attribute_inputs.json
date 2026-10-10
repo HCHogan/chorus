@@ -1,0 +1,51 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:solar_attribute_inputs",
+      "rules": [
+        {
+          "id": "stat",
+          "on": "test:stat",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:grenade_stat"
+            },
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:grenade_stat",
+              "component": "points",
+              "op": "set",
+              "value": {
+                "type": "chorus:event_number",
+                "name": "grenade",
+                "unit": "stat_point"
+              }
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:melee_stat"
+            },
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:melee_stat",
+              "component": "points",
+              "op": "set",
+              "value": {
+                "type": "chorus:event_number",
+                "name": "melee",
+                "unit": "stat_point"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

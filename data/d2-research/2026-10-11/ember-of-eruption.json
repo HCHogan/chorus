@@ -61,10 +61,14 @@
     "falloff": "Test polynomial 1 - 0.1 * meters now covers [0,10]. Both modes query it; only PvP multiplies damage by its value. At 10m, synthetic PvP damage is zero, so Char does not apply."
   },
   "remaining": [
-    "+10 Melee stat integration",
     "Direct ignition producers and all source exceptions",
     "Original fragment sampling time and inter-generation snapshot inheritance",
     "Accurate damage/falloff and time calibration",
     "Production subclass assembly, HUD and persistence"
-  ]
+  ],
+  "attribute_update": {
+    "date": "2026-10-11",
+    "record": "data/d2-research/2026-10-11/solar-fragment-stats.json",
+    "status": "Stat bonus feeds current recipient passive/energy curves; production subclass assembly and armor input remain incomplete."
+  }
 }

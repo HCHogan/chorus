@@ -79,10 +79,15 @@
   "remaining": [
     "Calibrate actual ignition delay and lockout anchor",
     "Moving/dead center and pre-explosion reapplication policy",
-    "Char +10 Grenade stat and production subclass assembly",
     "Ashes across all other sources and exceptions",
     "Solar Fulmination and direct ignition sources",
     "Original-source modifier sampling and inheritance across generations",
-    "Persistence and activity migration"
-  ]
+    "Persistence and activity migration",
+    "Host armor/base-stat inputs and production subclass assembly"
+  ],
+  "attribute_update": {
+    "date": "2026-10-11",
+    "record": "data/d2-research/2026-10-11/solar-fragment-stats.json",
+    "status": "Stat bonus feeds current recipient passive/energy curves; production subclass assembly and armor input remain incomplete."
+  }
 }

@@ -55,7 +55,7 @@ public class SolarGameTest {
                 }
                 fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json).getOrThrow());
             }
-            if(charFragments) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("ember_of_char")).getOrThrow());
+            if(charFragments) for(String name:List.of("ember_of_char","character_stats")) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow());
             for(String name:extraFragments) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow());
             var program=CompiledEffects.link(fragments); var state=EffectState.empty().withMode(pvp?EffectState.Mode.PVP:EffectState.Mode.PVE);
             for(var s:List.of(a,b)) state=state.withSource(s).withSource(new EffectSource(s.instance()+"-solar","chorus_d2:solar_scaling",s.holder(),s.origin(),Set.of()));

@@ -44,6 +44,60 @@
           "maximum": 200
         }
       ]
+    },
+    {
+      "id": "chorus_d2:grenade_stat",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:ember_of_char": {
+                "kind": "max"
+              }
+            }
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:melee_stat",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:ember_of_eruption": {
+                "kind": "max"
+              }
+            }
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 200
+        }
+      ]
     }
   ]
 }
