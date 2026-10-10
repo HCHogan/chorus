@@ -267,9 +267,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             ability.parameters().values().forEach(parameter -> validateAbilityProfile(parameter.profile(), parameter.value().unit(validation)));
             validateInstantSteps(ability.onUse()); validatePayments(ability.onUse(), new HashSet<>());
             var actions = new ArrayList<RuleEngine.Instruction<EffectState>>();
-            var resultShapes = ability.cost().isPresent() ? Map.of("cast_cost", ResultShape.RESOURCE_SPEND) : Map.<String, ResultShape>of();
-            var resultSlots = ability.cost().isPresent() ? Map.of("cast_cost", "cast_cost") : Map.<String, String>of();
-            if (ability.cost().isPresent()) actions.add(new RuleEngine.Instruction<>((state, context) ->
+            var resultShapes = ability.hasPayment() ? Map.of("cast_cost", ResultShape.RESOURCE_SPEND) : Map.<String, ResultShape>of();
+            var resultSlots = ability.hasPayment() ? Map.of("cast_cost", "cast_cost") : Map.<String, String>of();
+            if (ability.hasPayment()) actions.add(new RuleEngine.Instruction<>((state, context) ->
                     new RuleEngine.Local<>(state, ((AbilityUse.Used) context.event().signal().payload()).receipt().cost().orElseThrow(), List.of()), "cast_cost"));
             String id = "chorus:internal/ability/" + ability.id();
             actions.addAll(compileSteps(scope, ability.onUse(), resultShapes, resultSlots, "", id, continuations));
@@ -418,6 +418,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new AbilityUse.Receipt(request.cast(),request.slot(),base,selected.id(),AbilityUse.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var evaluation = evaluation(state, new RuleEngine.Context(queryEvent(state, query), "cast/" + request.cast(), scope, Map.of()), Map.of());
         if (!selected.condition().test(evaluation)) return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.CONDITION, Optional.empty());
+        // Read the original selection's declaration, never an intermediate replacement or a recursively resolved policy.
+        var paymentCost = selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION ? abilities.get(base).cost() : selected.cost();
+        if (selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION && paymentCost.isEmpty())
+            return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.NO_BASE_COST, Optional.empty());
         var numbers = new HashMap<>(query.numbers());
         for (var entry : selected.parameters().entrySet()) {
             var parameter = entry.getValue(); var value = parameter.value().evaluate(evaluation);
@@ -425,8 +429,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             numbers.put("param." + entry.getKey(), value);
         }
         var updated = state; Optional<Resources.SpendResult> payment = Optional.empty(); var facts = new ArrayList<RuleEngine.Signal>();
-        if (selected.cost().isPresent()) {
-            var cost = selected.cost().orElseThrow(); var account = evaluation.resource(cost.resource(), Evaluation.Target.SELF);
+        if (paymentCost.isPresent()) {
+            var cost = paymentCost.orElseThrow(); var account = evaluation.resource(cost.resource(), Evaluation.Target.SELF);
             var amount = cost.amount().evaluate(evaluation);
             if (cost.profile().isPresent()) amount = calculate(state, request.holder(), query, cost.profile().orElseThrow(), amount, List.of()).output();
             Validation.same(amount.unit(), Unit.CHARGE); Numbers.nonnegative(amount.value(), "ability cost");

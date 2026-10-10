@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Partial thrown turret producer; Aspect input conversion and global grenade override remain unimplemented",
+  "status": "Partial thrown turret producer with base-selection cost conversion; Aspect hold recognition and global grenade override remain unimplemented",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
     "retrieved_at": "2026-10-10T22:03:30.794295+00:00",
@@ -61,7 +61,7 @@
     "damage_classification": "Stasis Grenade Ability Damage"
   },
   "unresolved": [
-    "This template is a separately selected grenade ability. Holding the current grenade to convert it through the Aspect, and overriding every equipped grenade cooldown/chunk scalar, are not implemented.",
+    "Direct selection and base-selection cost conversion are implemented. Aspect hold-input recognition, equipment constraints and overriding every equipped grenade cooldown/chunk scalar remain unimplemented; the conversion test source is synthetic.",
     "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
     "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
     "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",

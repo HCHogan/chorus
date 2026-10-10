@@ -1,0 +1,6 @@
+{
+  "version":"compendium-2026-10-05",
+  "bundles":[{"id":"test:bleak_conversion","ability_overrides":[
+    {"id":"convert","slot":"chorus_d2:grenade","replace_with":"chorus_d2:bleak_watcher","priority":10}
+  ]}]
+}

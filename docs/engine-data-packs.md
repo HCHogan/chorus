@@ -1508,7 +1508,7 @@ Fabric / NeoForge 客户端默认按 K 打开独立配装页，可以在控制�
 }
 ```
 
-cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 profile，输入 / 输出单位必须保持不变。参数与成本在接受施放前统一查询当前持有者的来源 / Buff 修饰，固定为本次施放的数据。参数之间没有隐式求值依赖；param.<name> 是给后续动作读取的已解析测量。省略 cost 表示无账户成本；amount = 0 表示使用已声明账户的免费施放，仍有 paid = 0 的成本回执。
+cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 profile，输入 / 输出单位必须保持不变。参数与成本在接受施放前统一查询当前持有者的来源 / Buff 修饰，固定为本次施放的数据。参数之间没有隐式求值依赖；param.<name> 是给后续动作读取的已解析测量。默认 `cost_from: definition` 时，省略 cost 表示无账户成本；amount = 0 表示使用已声明账户的免费施放，仍有 paid = 0 的成本回执。转换技能可以显式选择下述基础选择成本。
 
 ### 选中技能的常驻效果
 
@@ -1548,6 +1548,19 @@ cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 pr
 
 replace_with 必须在链接后的程序中存在且属于同槽；可选 ability 匹配本级开始时的当前定义，不填写则匹配该槽。按优先级从低到高解析，每级先收集全部符合条件的候选：不同目标冲突则整次施放拒绝，同一目标允许多个来源共同声明；本级替换完成后再解析下一级。只读取施放者的来源与仍有效、未暂停且适用的 Buff。基础 AbilityLoadout 不被替换结果覆盖。
 
+最终技能定义的 `cost_from` 决定支付来源：
+
+| 值 | 成本声明 |
+| --- | --- |
+| `definition`（默认） | 使用最终技能自己的 `cost`；省略表示无账户成本，保持原有语义 |
+| `base_selection` | 使用本次请求开始时基础选择的 `cost`，包括 resource、amount 和可选 profile |
+
+例如给转换后的技能加入 `"cost_from":"base_selection"`，暮域被转换为冰炮台时消费暮域账户；直接选择冰炮台时，基础选择就是冰炮台，使用其自身声明的 cost。可以省略转换定义自身的 cost，但它被直接选中且无可继承成本时不能施放。多级替换始终读取最初选择的声明，不递归解析中间技能的成本策略；只有最终定义决定策略。
+
+`base_selection` 不表示免费兜底。基础选择没有 cost 时返回 `NO_BASE_COST`，在行动门槛和技能条件之后、参数求值和支付之前拒绝；即使转换定义有自己的 cost，也不改扣另一个池。基础 cost.amount 为零则是有账户的免费支付，仍产生零支付回执。费用表达式和 Profile 使用最终施放的上下文：伤害 / 技能信用和标签属于转换后技能，references.base_ability 保留原选择；不会在算费用时偷偷切回基础技能信用。
+
+声明 cost 或 `cost_from: base_selection` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选技能、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。
+
 服务端 API：
 
 ```java
@@ -1557,13 +1570,13 @@ AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 
 选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
 
-use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
+use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突、所需基础成本缺失和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 
 ability_started 与 ability_used 携带同一份已接受的定义、参数和成本回执。ability_started 的即时规则先于 on_use 动作体执行，适合移除“开始施放就结束”的状态；它不是取消或退款入口。资源已提交，规则若遇到未知世界结果仍遵守停机、不重放契约。它的后续派生事件按既有广度优先队列排序，并不保证先于 ability_used；需在动作体之前完成的清理应直接放在 started 的即时规则里，不能只再发一个清理事件或使用 after。
 
 两者的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
 
-有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时 on_use 动作体没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在该动作体内编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
+有声明成本或继承基础成本的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时 on_use 动作体没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在该动作体内编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
 
 最小命令：
 

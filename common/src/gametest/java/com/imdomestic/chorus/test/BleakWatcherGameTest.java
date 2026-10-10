@@ -38,16 +38,26 @@ public class BleakWatcherGameTest {
         return CompiledEffects.link(parts);
     }
     static String id(Entity e) { return e.getUUID().toString(); }
+    static CompiledEffects conversionProgram() {
+        var duskfield = ThreadedSpikeGameTest.json("duskfield");
+        ThreadedSpikeGameTest.json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
+                duskfield.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
+        var parts = new ArrayList<EffectProgram>(); parts.add(program().program()); parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, duskfield).getOrThrow());
+        for (String name : List.of("duskfield_energy", "duskfield_damage_test_calibration", "bleak_watcher_conversion_inputs"))
+            parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
+        return CompiledEffects.link(parts);
+    }
     static final class Harness implements AutoCloseable {
         final GameTestHelper h; final MinecraftWorldActions world; final MinecraftEffectRuntime runtime; final ServerPlayer owner;
         final List<LivingEntity> entities = new ArrayList<>(); final List<EffectConstruct> turrets = new ArrayList<>(); final List<EffectProjectile> flights = new ArrayList<>();
         final List<ProjectileFlight.Launch> launches = new ArrayList<>(); final List<DamageCommand> damage = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<StatusResult.Check> checks = new ArrayList<>();
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failDamage;
-        Harness(GameTestHelper h) {
+        Harness(GameTestHelper h) { this(h, program()); }
+        Harness(GameTestHelper h, CompiledEffects program) {
             this.h = h; owner = player(2.5); floor(2);
             world = new MinecraftWorldActions(h.getLevel(), this::resolve, d -> new DamageSource(h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)
                     .getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse(d.damageType()))), null, resolve(d.source().owner())), (_, _) -> true, _ -> {});
-            runtime = MinecraftEffectRuntime.install(h.getLevel(), program(), EffectState.empty(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
+            runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 if (request.command() instanceof StatusResult.Check check) checks.add(check);
                 var result = world.apply(request);
                 if (result instanceof WorldConstruct.Receipt r && r.entity().isPresent()) turrets.add((EffectConstruct) h.getLevel().getEntity(UUID.fromString(r.entity().orElseThrow())));
@@ -65,8 +75,12 @@ public class BleakWatcherGameTest {
         void floor(int x) { var p = h.absolutePos(new BlockPos(x, 39, 2)); blocks.putIfAbsent(p, h.getLevel().getBlockState(p)); h.getLevel().setBlockAndUpdate(p, Blocks.STONE.defaultBlockState()); }
         void cast(ServerPlayer player) {
             runtime.abilities(new AbilityChange(id(player), state().abilities().getOrDefault(id(player), AbilityLoadout.EMPTY), new AbilityLoadout(Map.of(SLOT, ABILITY))));
-            h.assertValueEqual(runtime.useAbility(player, SLOT).outcome(), AbilityUse.Outcome.ACCEPTED, "turret cast accepted");
+            use(player);
+        }
+        AbilityUse.Receipt use(ServerPlayer player) {
+            var result = runtime.useAbility(player, SLOT); h.assertValueEqual(result.outcome(), AbilityUse.Outcome.ACCEPTED, "turret cast accepted");
             player.setPos(player.getX(), player.getY(), h.absoluteVec(new Vec3(0, 0, 6)).z); // Leave the captured deployment column.
+            return result;
         }
         Optional<BuffInstance> buff(String name, Entity entity) { return state().buffs().instances().values().stream().filter(b -> b.definition().id().equals(name) && b.key().holder().equals(id(entity))).findFirst(); }
         List<ProjectileFlight.Launch> bolts() { return launches.stream().filter(l -> !l.owner().equals(l.emitter())).toList(); }
@@ -80,6 +94,28 @@ public class BleakWatcherGameTest {
         void at(int ticks, Runnable check) { h.runAfterDelay(ticks, () -> { try { healthy(); check.run(); } catch (RuntimeException | Error e) { close(); throw e; } }); }
         void finish(int ticks, Runnable check) { at(ticks, () -> { check.run(); close(); h.succeed(); }); }
         @Override public void close() { runtime.close(); flights.forEach(Entity::discard); entities.forEach(Entity::discard); blocks.forEach((p, s) -> h.getLevel().setBlockAndUpdate(p, s)); }
+    }
+    @GameCase(environment="chorus_gametest:bleak_conversion", maxTicks=45)
+    public void convertedDuskfieldPaysItsSelectedEnergyAndDeploysARealTurretWithBleakCredit(GameTestHelper h) {
+        var t = new Harness(h, conversionProgram());
+        try {
+            var target = t.mob(6.5); String base = "chorus_d2:duskfield";
+            t.runtime.abilities(new AbilityChange(id(t.owner), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of(SLOT, base))));
+            t.runtime.bind(new EffectSource("conversion", "test:bleak_conversion", id(t.owner), new BuffInstance.Origin(id(t.owner), "conversion", "", ""), Set.of()));
+            var receipt = t.use(t.owner); h.assertValueEqual(receipt.base(), base, "conversion base"); h.assertValueEqual(receipt.resolved(), ABILITY, "conversion result");
+            h.assertValueEqual(receipt.cost().orElseThrow().after().key().resource(), base + "_energy", "wrong pool paid");
+            near(h, receipt.cost().orElseThrow().receipt().paid(), 1, "selected grenade payment");
+            t.finish(35, () -> {
+                h.assertValueEqual(t.turrets.size(), 1, "conversion did not deploy"); h.assertValueEqual(t.damage.size(), 5, "conversion burst"); near(h, target.getHealth(), 995, "conversion native damage");
+                h.assertTrue(t.buff("chorus_d2:freeze", target).isPresent(), "conversion did not apply Slow and Freeze");
+                var key = new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), base + "_energy");
+                h.assertTrue(t.state().resources().get(key).value() < .05, "selected energy was not consumed");
+                near(h, t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), ENERGY)).value(), 1, "nominal turret energy consumed");
+                h.assertValueEqual(t.state().abilities().get(id(t.owner)).slots().get(SLOT), base, "base selection replaced");
+                h.assertTrue(t.damage.stream().allMatch(d -> d.source().ability().equals(ABILITY) && d.tags().contains("chorus:grenade_damage")), "converted damage credit changed to base grenade");
+                h.assertTrue(t.state().sources().values().stream().noneMatch(s -> s.bundle().equals(ABILITY + "_energy_scaling")), "replacement mounted its own recharge source");
+            });
+        } catch (RuntimeException | Error e) { t.close(); throw e; }
     }
     @GameCase(environment="chorus_gametest:bleak_burst", maxTicks=50)
     public void realFirstBurstRemovesInitialResistanceHitsFiveTimesAndFreezesACombatant(GameTestHelper h) {

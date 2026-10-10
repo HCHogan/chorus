@@ -9,7 +9,7 @@ public final class AbilityUse {
     private AbilityUse() {}
     public static final String EVENT = "chorus:internal/ability_use";
     public static final String STARTED = "chorus:ability_started";
-    public enum Outcome { ACCEPTED, EMPTY_SLOT, CONDITION, INSUFFICIENT_ENERGY, CONFLICT, RESTRICTED }
+    public enum Outcome { ACCEPTED, EMPTY_SLOT, CONDITION, INSUFFICIENT_ENERGY, CONFLICT, RESTRICTED, NO_BASE_COST }
     /** Input facts come from a trusted host, never an arbitrary client event or ability definition. */
     public record Request(String holder, String slot, String cast, EffectEvent input) implements RuleEngine.Payload {
         public Request {

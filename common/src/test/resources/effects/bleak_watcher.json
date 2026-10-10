@@ -13,6 +13,7 @@
   "abilities": [
     {
       "id": "chorus_d2:bleak_watcher",
+      "cost_from": "base_selection",
       "slot": "chorus_d2:grenade",
       "tags": [
         "chorus:grenade_ability",

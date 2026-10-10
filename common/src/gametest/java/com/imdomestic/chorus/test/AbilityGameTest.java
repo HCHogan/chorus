@@ -21,6 +21,49 @@ import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public class AbilityGameTest {
+    @GameCase public void conversionCommandsSpendTheSelectedPoolWhileCreditUsesTheResolvedAbility(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, "ability_cost_selection")) {
+            t.choose("a"); t.bind("convert", "test:convert");
+            t.command("chorus ability use test:grenade", PermissionSet.NO_PERMISSIONS);
+            near(h, t.player.getHealth(), 14, "conversion healing"); near(h, t.energy(), 1, "selected cost");
+            near(h, t.state().resources().get(new ResourceState.Key(t.holder, "test:converted_energy")).value(), 2, "conversion used its nominal pool");
+            t.choose("b"); t.command("chorus ability use test:grenade", PermissionSet.NO_PERMISSIONS);
+            near(h, t.player.getHealth(), 18, "second conversion healing");
+            near(h, t.state().resources().get(new ResourceState.Key(t.holder, "test:other")).value(), 1.5, "second selected cost");
+            h.assertTrue(t.heals.stream().allMatch(c -> c.source().ability().equals("test:converted")), "conversion lost resolved credit");
+            h.assertValueEqual(t.state().abilities().get(t.holder).slots().get("test:grenade"), "test:b", "conversion rewrote base selection");
+        }
+        h.succeed();
+    }
+    @GameCase(environment="chorus_gametest:ability_selected_refund", maxTicks=15)
+    public void conversionRefundAcrossRealTicksRetainsOriginalAccountAfterSelectionChanges(GameTestHelper h) throws Exception {
+        var t = new Harness(h, "ability_cost_selection");
+        try {
+            t.choose("a"); t.bind("convert", "test:refund_override"); t.runtime.useAbility(t.player, "test:grenade");
+            near(h, t.energy(), 1, "initial inherited payment"); t.choose("b"); t.runtime.unbind("convert");
+            h.runAfterDelay(5, () -> { try (t) {
+                t.runtime.prepare(); near(h, t.energy(), 2, "retained refund did not restore original account");
+                near(h, t.state().resources().get(new ResourceState.Key(t.holder, "test:other")).value(), 2, "refund leaked into new selection");
+                near(h, t.player.getHealth(), 14, "accepted conversion repeated");
+                h.assertTrue(t.runtime.failure().isEmpty() && t.state().timers().isEmpty(), "refund failed or retained timer"); h.succeed();
+            }});
+        } catch (Exception | Error e) { t.close(); throw e; }
+    }
+    @GameCase public void conversionMissingCostAndUnknownWorldOutcomeNeverFallBackToAnotherPool(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, "ability_cost_selection")) {
+            t.choose("free"); t.bind("convert", "test:missing_override"); var before = t.state();
+            h.assertValueEqual(t.runtime.useAbility(t.player, "test:grenade").outcome(), AbilityUse.Outcome.NO_BASE_COST, "missing base cost should reject before missing parameter");
+            h.assertValueEqual(t.state(), before, "missing cost changed state");
+            t.runtime.unbind("convert"); t.choose("a"); t.bind("convert", "test:convert"); t.failWorld = true;
+            boolean failed = false; try { t.runtime.useAbility(t.player, "test:grenade"); } catch (IllegalStateException expected) { failed = true; }
+            h.assertTrue(failed && t.runtime.failure().isPresent(), "unknown conversion outcome did not stop runtime");
+            near(h, t.player.getHealth(), 14, "actual healing rolled back"); near(h, t.energy(), 1, "inherited cost refunded");
+            near(h, t.state().resources().get(new ResourceState.Key(t.holder, "test:converted_energy")).value(), 2, "fallback cost charged");
+            failed = false; try { t.runtime.useAbility(t.player, "test:grenade"); } catch (IllegalStateException expected) { failed = true; }
+            h.assertTrue(failed && t.heals.size() == 1, "unknown conversion replayed");
+        }
+        h.succeed();
+    }
     private static final class Harness implements AutoCloseable {
         final GameTestHelper h; final ServerPlayer player; final String holder; final MinecraftEffectRuntime runtime;
         final List<HealingCommand> heals = new ArrayList<>(); final List<Double> balances = new ArrayList<>(); boolean failWorld;
