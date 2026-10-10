@@ -1486,6 +1486,41 @@ chorus ability clear example:grenade
 
 choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。按键 / 网络展示、完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
 
+## 一次性物理冲量与派生方向
+
+`chorus:apply_impulse` 在一次明确的世界操作中向目标当前速度加上冲量；单位为 meter_per_second。它接受已捕获的方向，不在执行或回执阶段重读施放者朝向，也不直接移动位置：
+
+```json
+[
+  {"action":{"type":"chorus:capture_direction","target":"self"},"as":"heading"},
+  {"action":{"type":"chorus:apply_impulse","target":"self","direction":"heading",
+    "speed":{"type":"chorus:constant","value":12,"unit":"meter_per_second"},
+    "axis_scale":{
+      "x":{"type":"chorus:constant","value":1,"unit":"multiplier"},
+      "y":{"type":"chorus:constant","value":0,"unit":"multiplier"},
+      "z":{"type":"chorus:constant","value":1,"unit":"multiplier"}
+    },"tags":["example:dash"]},"as":"motion"}
+]
+```
+
+target 默认 self，origin 默认 bound（可选 event），tags 默认空。speed 必须非负有限数；axis_scale 可省略，默认三轴均 1，指定时须提供三个 multiplier 表达式，可以为负以反转对应轴。先对捕获方向归一化，再依次乘 speed 和世界坐标轴倍率，不再次归一化。因此 y=0 会保留目标原来的垂直速度，但俯仰会影响水平增量，直向上时投影为零。这不是“固定水平速度”或替换当前速度；需要其他方向政策时另行构造方向。
+
+Minecraft 宿主确认目标存在且处于当前维度，拒绝死亡、旁观者、骑乘、睡眠和未加载位置；没有方向或方向维度不符也不执行。完整新速度和测量必须有效后才写入原版实体，米 / 秒按 20 tick/s 换算为 blocks/tick。玩家沿用 26.3 ApplyEntityImpulse 的直接 ClientboundSetEntityMotionPacket 协议，随后清除 syncVelocity 以免同次 tracker 再发；非玩家设置 syncVelocity。成功改变速度后调用 applyPostImpulseGraceTime(10)，沿用原版十 tick 的移动检查上下文宽限。零增量 / 浮点相加后未变化时不发包、不加宽限。移动继续服从原版地形碰撞、摩擦和重力；该动作不自动减免摔落伤害，也不自动套用击退抗性、Boss 免疫或特定技能移动状态。
+
+结果可绑定 before_x/y/z、after_x/y/z、delta_x/y/z，单位均 meter_per_second，delta 为观测的前后差值。applied / unchanged 分别表示实际速度改变 / 已观察但不变；其余结果为 missing_target / dead / spectator / passenger / sleeping / missing_direction / wrong_dimension / unloaded。observed 表示存在速度测量，changed 等同 applied。拒绝分支读取数值字段会报错，内容必须先判断 observed，不能将“未观察”当作零速度。
+
+只有 applied 发布 `chorus:impulse_applied`：actor 为原始来源 owner，victim 为目标，source 为本动作发出时固定的 Origin；标签包含来源标签、配置 tags 和 chorus:impulse，numbers 与回执的九个速度字段对应。完整命令及前后测量保存在 Impulse.Applied.receipt。它证明速度写入，不证明移动了多少距离、抵达目的地、完成闪身或命中了敌人。世界结果未知时维持既有待决操作，已发生的原版速度改变和已支付成本不会回滚或自动补发；回执必须对应原请求。
+
+`chorus:direction_between` 是纯动作，from / to 引用先前的 POSITION 结果，计算从前者指向后者的单位方向：
+
+```json
+{"action":{"type":"chorus:direction_between","from":"caster_position","to":"target_position"},"as":"away"}
+```
+
+它不读取世界，也不伪装成方向查询回执。任一位置不可用、维度不同或两点重合时返回 missing，不选择任意替代方向；available 时可交给冲量、圆锥和投射物。位置和方向都能被 after 捕获，后续目标移动不改写已捕获值；冲量执行时仍检查目标及维度。反向交换 from / to 可表达朝中心拉动，配合已有目标列表可逐目标推开。
+
+[impulse.json](../common/src/test/resources/effects/impulse.json) 是合成夹具，含已付款延迟冲量和两点推开示例；20 / 10 米每秒、延迟和治疗观察器不是 D2 数值。持续钩爪 / 摆荡的预测状态机、移动属性、按键与输入方向、移动 / 落地事实、闪身 / 急切刀锋的正式触发与距离时间曲线仍需实现。
+
 ## 区域形状、方向快照与视线
 
 `select_targets` 接受传统 radius（等同 sphere），或新的 area，必须二选一。area 的类型：

@@ -90,13 +90,15 @@
       "com.imdomestic.chorus.EmberOfSearingGameTest",
       "com.imdomestic.chorus.EmberOfMercyGameTest",
       "com.imdomestic.chorus.RadiantGameTest",
-      "com.imdomestic.chorus.EmberOfEmpyreanGameTest"
+      "com.imdomestic.chorus.EmberOfEmpyreanGameTest",
+      "com.imdomestic.chorus.ImpulseGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
       "com.imdomestic.chorus.ProjectileClientGameTest",
       "com.imdomestic.chorus.ProjectileCatchClientGameTest",
-      "com.imdomestic.chorus.PickupClientGameTest"
+      "com.imdomestic.chorus.PickupClientGameTest",
+      "com.imdomestic.chorus.ImpulseClientGameTest"
     ]
   }
 }

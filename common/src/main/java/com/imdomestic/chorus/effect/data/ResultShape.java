@@ -28,7 +28,7 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public void requireSnapshot() { if (reference != Reference.DAMAGE_SNAPSHOT) throw new IllegalArgumentException("Result is not a damage snapshot"); }
     public void requireDirection() { if (reference != Reference.DIRECTION) throw new IllegalArgumentException("Result is not a direction capture"); }
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldDirection> direction(RuleEngine.ActionResult result) {
-        requireDirection(); return ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction();
+        requireDirection(); return ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction();
     }
     private static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result; }
     private static com.imdomestic.chorus.effect.object.WorldPickup.Contact pickup(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.object.WorldPickup.Contact) result; }
@@ -94,8 +94,8 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public void requireShot() { if (reference != Reference.SHOT) throw new IllegalArgumentException("Result is not a shot handle"); }
     public void requireShotImpact() { if (reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a grouped pellet impact"); }
     public static final ResultShape DIRECTION = new ResultShape(Map.of(), Map.of(
-            "available", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isPresent(),
-            "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isEmpty()), false, Reference.DIRECTION);
+            "available", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isPresent(),
+            "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isEmpty()), false, Reference.DIRECTION);
     public void requirePosition() { if (reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT && reference != Reference.PICKUP_CONTACT) throw new IllegalArgumentException("Result is not a position capture"); }
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldPosition> position(RuleEngine.ActionResult result) {
         requirePosition(); return ((com.imdomestic.chorus.effect.target.PositionResult) result).position();

@@ -665,11 +665,13 @@ Minecraft 里玩家的移动以客户端为准，所以每种动作都要明确�
 | --- | --- | --- | --- |
 | 默认 | 只在服务端 | 伤害、buff、能量、生成世界物体 |  |
 | 改属性 | 服务端修改，自动同步，客户端物理直接生效 | 滑翔（降低 `gravity`、`air_drag_modifier`）、加速、取消摔落伤害（`fall_damage_multiplier = 0`） | 都是 26.3 的原版属性 |
-| 一次性冲量 | 服务端发起 | 急切刀锋、闪避、Lightning Surge | 照抄原版 `ApplyEntityImpulse`：直接给玩家发速度包，并调用 `applyPostImpulseGraceTime(10)` |
+| 一次性冲量 | 服务端发起 | 急切刀锋、闪避、Lightning Surge 的运动原语 | 已有 apply_impulse：捕获方向、米每秒与轴倍率；按原版 ApplyEntityImpulse 给玩家发速度包，并调用 applyPostImpulseGraceTime(10)；具体技能仍需数据与输入装配 |
 | 持续的自身移动 | 客户端预测 + 服务端同步模拟 | 钩爪、Strand 摆荡 | 同一个状态机两端运行，参数来自同步的定义；期间服务端放宽移动检查 |
-| 移动他人 | 服务端 | 吸怪、击退 | 目标是玩家时调用 `markHurt()`，26.3 里它设置 `syncVelocity` 并发送速度包 |
+| 移动他人 | 服务端 | 吸怪、击退 | 同一冲量协议支持他人；direction_between 可由位置快照求向量。非玩家设置 syncVelocity，玩家直接发包；不调用 protected 的 markHurt，不伪造一次伤害 |
 
 原版已经有急切刀锋的等价物：1.21.11 长矛的 Lunge 附魔（`lunge.json`），在 `post_piercing_attack` 时执行 `minecraft:apply_impulse`。它的宽限期可以让服务端的 "moved wrongly" 检查跳过，玩家不会被拉回原位。
+
+一次冲量的成功回执只证明原版速度已写入，不代表位移距离或动作完成。核心保留实际前后速度、方向维度及原始来源；零投影不发成功事实，不扩大移动检查宽限。未知世界结果不重放。完整字段、资格与边界见 [一次性物理冲量](engine-data-packs.md#一次性物理冲量与派生方向)。
 
 ### 钩爪拆解
 

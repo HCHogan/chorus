@@ -1,0 +1,28 @@
+{
+  "version":"test-1",
+  "resources":[{"id":"test:dash_energy","capacity":1,"initial":1,"base_rate":0}],
+  "abilities":[{
+    "id":"test:dash","slot":"test:movement","tags":["test:dash"],
+    "cost":{"resource":"test:dash_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+    "effects":{"observer":{"bundle":"test:motion_observer"}},
+    "on_use":[
+      {"action":{"type":"chorus:capture_direction"},"as":"heading"},
+      {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+        {"action":{"type":"chorus:apply_impulse","direction":"heading","speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},
+          "axis_scale":{"x":{"type":"chorus:constant","value":1,"unit":"multiplier"},"y":{"type":"chorus:constant","value":0,"unit":"multiplier"},"z":{"type":"chorus:constant","value":1,"unit":"multiplier"}},"tags":["test:dash_impulse"]},"as":"motion"},
+        {"if":{"type":"chorus:result_flag","binding":"motion","field":"applied"},"then":[
+          {"type":"chorus:heal","amount":{"type":"chorus:scale","of":{"type":"chorus:result","binding":"motion","field":"delta_z"},"factor":1,"from":"meter_per_second","to":"damage"}}
+        ]}
+      ]}
+    ]
+  }],
+  "bundles":[
+    {"id":"test:motion_observer","rules":[{"id":"applied","on":"chorus:impulse_applied","do":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}]}]},
+    {"id":"test:push","rules":[{"id":"push","on":"test:push","do":[
+      {"action":{"type":"chorus:capture_position","target":"self"},"as":"from"},
+      {"action":{"type":"chorus:capture_position","target":"victim"},"as":"to"},
+      {"action":{"type":"chorus:direction_between","from":"from","to":"to"},"as":"away"},
+      {"type":"chorus:apply_impulse","target":"victim","direction":"away","speed":{"type":"chorus:constant","value":10,"unit":"meter_per_second"},"origin":"event"}
+    ]}]}
+  ]
+}

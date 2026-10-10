@@ -203,6 +203,12 @@ public final class EffectCodecs {
     }
     public static final Codec<Condition> CONDITION = conditions(VALUE);
 
+    private static Codec<MotionActions.AxisScale> impulseScale(Codec<Value> values) {
+        return strict(RecordCodecBuilder.create(i -> i.group(
+                values.fieldOf("x").forGetter(MotionActions.AxisScale::x), values.fieldOf("y").forGetter(MotionActions.AxisScale::y),
+                values.fieldOf("z").forGetter(MotionActions.AxisScale::z)).apply(i, MotionActions.AxisScale::new)), Set.of("x", "y", "z"));
+    }
+
     private static Codec<TargetArea> areas(Codec<Value> values) {
         return new TypeRegistry<TargetArea>()
                 .register("chorus:sphere", TargetArea.Sphere.class, RecordCodecBuilder.mapCodec(i -> i.group(values.fieldOf("radius").forGetter(TargetArea.Sphere::radius)).apply(i, TargetArea.Sphere::new)))
@@ -460,6 +466,14 @@ public final class EffectCodecs {
                 ).apply(i, Action.CapturePosition::new)))
                 .register("chorus:capture_direction", Action.CaptureDirection.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CaptureDirection::target)).apply(i, Action.CaptureDirection::new)))
+                .register("chorus:direction_between", MotionActions.Between.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("from").forGetter(MotionActions.Between::from), Codec.STRING.fieldOf("to").forGetter(MotionActions.Between::to)).apply(i, MotionActions.Between::new)))
+                .register("chorus:apply_impulse", MotionActions.Apply.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(MotionActions.Apply::target), Codec.STRING.fieldOf("direction").forGetter(MotionActions.Apply::direction),
+                        values.fieldOf("speed").forGetter(MotionActions.Apply::speed), impulseScale(values).optionalFieldOf("axis_scale", MotionActions.AxisScale.ONE).forGetter(MotionActions.Apply::axisScale),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(MotionActions.Apply::origin),
+                        ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(MotionActions.Apply::tags)
+                ).apply(i, MotionActions.Apply::new)))
                 .register("chorus:select_targets", Action.SelectTargets.class, selection(values))
                 .register("chorus:play_cue", Action.Cue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("cue").forGetter(Action.Cue::cue), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Cue::target)).apply(i, Action.Cue::new)));
