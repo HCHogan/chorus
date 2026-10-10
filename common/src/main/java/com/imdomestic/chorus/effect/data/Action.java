@@ -165,7 +165,7 @@ public interface Action {
     }
     private static RuleEngine.Local<EffectState> finishDamage(EffectState state, DamageCommand command, DamageReceipt receipt, java.util.Map<String, String> attribution) {
         var consumed = BuffConsumption.finish(state, command, receipt);
-        var signals = new java.util.ArrayList<>(DamageFacts.from(command, receipt, attribution)); signals.addAll(consumed.emitted());
+        var signals = new java.util.ArrayList<>(DamageFacts.from(command, receipt, attribution)); signals.addAll(consumed.emitted()); receipt.consumptionFacts().ifPresent(signals::addAll);
         return new RuleEngine.Local<>(consumed.state(), receipt, signals);
     }
     record DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet, Optional<String> batch, Optional<String> group) implements Action {

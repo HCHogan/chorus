@@ -9,6 +9,10 @@ import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.effect.combat.DamageBasis;
 import com.imdomestic.chorus.effect.combat.DamageFacts;
 import com.imdomestic.chorus.effect.combat.ShieldDamage;
+import com.imdomestic.chorus.effect.combat.CombatCommit;
+import com.imdomestic.chorus.effect.combat.ConsumptionReservations;
+import com.imdomestic.chorus.effect.combat.BuffConsumption;
+import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.rule.TimelineEngine;
@@ -32,8 +36,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     @FunctionalInterface public interface NativeSource {
         DamageCommand describe(LivingEntity target, DamageSource source, float amount);
     }
-    public record Failure(String message, List<DamageCapture.Observed> committedBeforeFailure, long unprocessedFacts, ShieldDamage.Commit committedShields) {
-        public Failure { committedBeforeFailure = List.copyOf(committedBeforeFailure); Objects.requireNonNull(committedShields); }
+    public record Failure(String message, List<DamageCapture.Observed> committedBeforeFailure, long unprocessedFacts, ShieldDamage.Commit committedShields, CombatCommit committedCombat, List<ConsumptionReservations.Claim> pendingConsumptions, List<RuleEngine.Signal> committedCombatFacts) {
+        public Failure { committedBeforeFailure = List.copyOf(committedBeforeFailure); Objects.requireNonNull(committedShields); Objects.requireNonNull(committedCombat); pendingConsumptions = List.copyOf(pendingConsumptions); committedCombatFacts = List.copyOf(committedCombatFacts); }
     }
     private static final Map<ServerLevel, MinecraftEffectRuntime> LIVE = new ConcurrentHashMap<>();
     private final ServerLevel level;
@@ -42,7 +46,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final CompiledEffects program;
     private final long originTick, originMicros;
     private List<RuleEngine.Signal> operationFacts;
-    private EffectState shieldView;
+    private EffectState combatView;
+    private final List<RuleEngine.Signal> combatFacts = new ArrayList<>();
+    private final Map<String, ConsumptionReservations.Claim> reservations = new java.util.LinkedHashMap<>();
+    private final java.util.ArrayDeque<String> activeDamage = new java.util.ArrayDeque<>();
+    private final Map<String, DamageCapture.Observed> completedDamage = new java.util.LinkedHashMap<>();
     private final List<ShieldDamage.Write> shieldWrites = new ArrayList<>();
     private Optional<Failure> failure = Optional.empty();
     private boolean closed;
@@ -61,7 +69,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 var actual = request.command() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query ? verifyReload(query) : world.apply(request);
                 if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
                 var writes = takeWrites();
-                return operationFacts.isEmpty() && writes.writes().isEmpty() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
+                return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
             } finally { operationFacts = null; }
         });
     }
@@ -232,21 +240,62 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         }
         catch (RuntimeException error) { failed(error, List.of()); return nativeSource(target, source, amount); }
     }
+    private EffectState attackView(DamageCommand command, String ownId) {
+        return ConsumptionReservations.view(view(), command, ownId, List.copyOf(reservations.values()));
+    }
+    private EffectState attackView(DamageCommand command) { return attackView(command, activeDamage.isEmpty() ? "" : activeDamage.peek()); }
+    @Override public DamageCommand begin(String id, DamageCommand command) {
+        thread();
+        if (failure.isPresent()) return command;
+        try {
+            if (reservations.containsKey(id)) throw new IllegalStateException("Duplicate active native damage identity");
+            var prepared = program.prepareDamage(attackView(command, id), command);
+            reservations.put(id, new ConsumptionReservations.Claim(id, prepared)); activeDamage.push(id); return prepared;
+        } catch (RuntimeException error) { failed(error, List.of()); return command; }
+    }
+    @Override public DamageCommand revise(String id, DamageCommand command) {
+        thread();
+        if (failure.isPresent()) return command;
+        try {
+            if (!id.equals(activeDamage.peek())) throw new IllegalStateException("Native damage source revision is not current");
+            var prepared = program.prepareDamage(attackView(command, id), command);
+            reservations.put(id, new ConsumptionReservations.Claim(id, prepared)); return prepared;
+        } catch (RuntimeException error) { failed(error, List.of()); return command; }
+    }
+    @Override public Optional<List<RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) {
+        thread();
+        if (failure.isPresent()) { if (id.equals(activeDamage.peek())) activeDamage.pop(); return Optional.empty(); }
+        try {
+            if (!id.equals(activeDamage.peek())) throw new IllegalStateException("Native damage receipts completed out of order");
+            var consumed = BuffConsumption.finish(view(), command, receipt);
+            combatView = consumed.state();
+            completedDamage.put(id, new DamageCapture.Observed(command, receipt.withConsumptionFacts(consumed.emitted())));
+            // Preserve the same damage-facts-before-lifecycle order as managed Action.complete.
+            if (!managed) combatFacts.addAll(DamageFacts.from(command, receipt));
+            if (!managed) combatFacts.addAll(consumed.emitted());
+            reservations.remove(id); activeDamage.pop(); return Optional.of(consumed.emitted());
+        } catch (RuntimeException error) { failed(error, List.of()); if (id.equals(activeDamage.peek())) activeDamage.pop(); return Optional.empty(); }
+    }
+    @Override public void abandoned(String id) {
+        thread();
+        if (id.equals(activeDamage.peek())) activeDamage.pop();
+        // Keep uncertain claims reserved until the enclosing boundary reports failure.
+    }
     @Override public ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis) {
         thread();
         if (failure.isPresent()) return ShieldDamage.plan(amount, List.of());
         try {
-            var view = shieldView == null ? state().engine().domain() : shieldView;
-            var plan = program.shields(view, command, amount, basis);
+            var view = combatView == null ? state().engine().domain() : combatView;
+            var plan = program.shields(view, command, amount, basis, attackView(command));
             // The immutable shadow is visible to nested native hits before the outer receipt reaches the interpreter.
-            shieldView = plan.commit().apply(view); shieldWrites.addAll(plan.commit().writes()); return plan;
+            combatView = plan.commit().apply(view); shieldWrites.addAll(plan.commit().writes()); return plan;
         } catch (RuntimeException error) { failed(error, List.of()); return ShieldDamage.plan(amount, List.of()); }
     }
-    private EffectState view() { return shieldView == null ? state().engine().domain() : shieldView; }
+    private EffectState view() { return combatView == null ? state().engine().domain() : combatView; }
     @Override public Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount) {
         thread();
         if (failure.isPresent()) return Optional.empty();
-        try { return program.outgoing(view(), command, amount); }
+        try { return program.outgoing(attackView(command), command, amount); }
         catch (RuntimeException error) { failed(error, List.of()); return Optional.empty(); }
     }
     @Override public Optional<CalculationProfile.Result> defense(DamageCommand command, double amount) {
@@ -255,33 +304,48 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         try { return program.defense(view(), command, amount); }
         catch (RuntimeException error) { failed(error, List.of()); return Optional.empty(); }
     }
-    private ShieldDamage.Commit takeWrites() {
-        var result = new ShieldDamage.Commit(shieldWrites); shieldWrites.clear(); shieldView = null; return result;
+    private CombatCommit combatCommit() { return new CombatCommit(state().engine().domain(), view()); }
+    private CombatCommit takeWrites() {
+        var result = combatCommit(); shieldWrites.clear(); combatView = null; completedDamage.clear(); return result;
     }
     @Override public void committed(List<DamageCapture.Observed> observations) {
         thread();
-        var signals = observations.stream().flatMap(value -> DamageFacts.from(value.command(), value.receipt()).stream()).toList();
-        if (failure.isPresent()) { countUnprocessed(signals.size()); return; }
+        var signals = List.copyOf(combatFacts); combatFacts.clear();
+        if (failure.isPresent()) { countUnprocessed(observations.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum()); return; }
         if (operationFacts != null) { operationFacts.addAll(signals); return; }
-        if (signals.isEmpty()) return;
-        var writes = takeWrites();
+        var shieldCommit = new ShieldDamage.Commit(shieldWrites); var writes = takeWrites();
+        if (signals.isEmpty() && !writes.changed()) return;
         try { session.observe(nowMicros(), signals, writes); refreshEquipment(); }
-        catch (RuntimeException error) { failed(error, observations, writes); }
+        catch (RuntimeException error) { failed(error, observations, shieldCommit, writes, signals); }
     }
     @Override public void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure) {
-        failed(error, committedBeforeFailure, new ShieldDamage.Commit(shieldWrites));
-    }
-    private void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure, ShieldDamage.Commit committedShields) {
         if (failure.isPresent()) {
             countUnprocessed(committedBeforeFailure.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum());
             return;
         }
-        failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0, committedShields));
+        var known = new java.util.LinkedHashMap<>(completedDamage);
+        for (var observation : committedBeforeFailure) known.putIfAbsent(observation.receipt().damageId(), observation);
+        var facts = new ArrayList<RuleEngine.Signal>();
+        for (var observation : known.values()) {
+            facts.addAll(DamageFacts.from(observation.command(), observation.receipt()));
+            observation.receipt().consumptionFacts().ifPresent(facts::addAll);
+        }
+        failed(error, List.copyOf(known.values()), new ShieldDamage.Commit(shieldWrites), combatCommit(), facts);
+    }
+    private void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure, ShieldDamage.Commit committedShields,
+            CombatCommit committedCombat, List<RuleEngine.Signal> facts) {
+        if (failure.isPresent()) {
+            countUnprocessed(committedBeforeFailure.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum());
+            return;
+        }
+        failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
+                committedShields, committedCombat, List.copyOf(reservations.values()), facts));
         Constants.LOG.error("Chorus rule runtime stopped for {}. Committed world changes are retained; no automatic replay.", level.dimension().identifier(), error);
     }
     private void countUnprocessed(long amount) {
         var previous = failure.orElseThrow();
-        failure = Optional.of(new Failure(previous.message(), previous.committedBeforeFailure(), Math.addExact(previous.unprocessedFacts(), amount), previous.committedShields()));
+        failure = Optional.of(new Failure(previous.message(), previous.committedBeforeFailure(), Math.addExact(previous.unprocessedFacts(), amount), previous.committedShields(),
+                previous.committedCombat(), previous.pendingConsumptions(), previous.committedCombatFacts()));
     }
     public static void tick(ServerLevel level) {
         var runtime = LIVE.get(level);

@@ -11,13 +11,14 @@ import java.util.List;
 public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
         double absorptionLoss, double healthLoss, Optional<String> deathId, boolean deathPrevented,
         Optional<String> protectionSource, List<ShieldDamage.LayerHit> shields,
-        Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense)
+        Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense, Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts)
         implements com.imdomestic.chorus.rule.RuleEngine.ActionResult {
     public enum Outcome { APPLIED, IMMUNE, BLOCKED, CANCELLED, FAILED }
 
     public DamageReceipt {
         Objects.requireNonNull(damageId);
         Objects.requireNonNull(outcome);
+        consumptionFacts = Objects.requireNonNull(consumptionFacts).map(List::copyOf);
         deathId = Objects.requireNonNull(deathId);
         protectionSource = Objects.requireNonNull(protectionSource);
         shields = List.copyOf(shields);
@@ -46,6 +47,12 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
 
     public DamageReceipt(String damageId, Outcome outcome, double shieldLoss, double absorptionLoss,
             double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
+            List<ShieldDamage.LayerHit> shields, Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense) {
+        this(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented, protectionSource, shields, outgoing, defense, Optional.empty());
+    }
+
+    public DamageReceipt(String damageId, Outcome outcome, double shieldLoss, double absorptionLoss,
+            double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
             List<ShieldDamage.LayerHit> shields) {
         this(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented, protectionSource, shields, Optional.empty(), Optional.empty());
     }
@@ -59,6 +66,12 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
         this(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented, Optional.empty());
     }
 
+    /** Present only when the native boundary has settled consumption, including an empty result. */
+    public boolean consumptionSettled() { return consumptionFacts.isPresent(); }
+    public DamageReceipt withConsumptionFacts(List<com.imdomestic.chorus.rule.RuleEngine.Signal> facts) {
+        return new DamageReceipt(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented,
+                protectionSource, shields, outgoing, defense, Optional.of(facts));
+    }
     public boolean lethal() { return deathId.isPresent(); }
     public double effective(boolean includeAbsorption) {
         return shieldLoss + healthLoss + (includeAbsorption ? absorptionLoss : 0);

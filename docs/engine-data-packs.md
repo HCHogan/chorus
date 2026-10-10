@@ -959,7 +959,13 @@ capture_damage 在捕获时固定已解析的 ProcPolicy，after / projectile / 
 
 声明该策略的 Buff，其数值 modifier 必须使用 `evaluate:"on_hit"`。查询与 capture_damage 不消费；实际发出的每条 damage_snapshot 重新捕获资格，以免一份快照永久复制已消费的增益。同一动作体的两个串行世界伤害会分别看到消费前与消费后的状态，示例见 [damage_consumption.json](../common/src/test/resources/effects/damage_consumption.json)。
 
-当前接线范围是上述受管伤害动作；宿主直接执行命令时应显式使用 prepareDamage / BuffConsumption.finish 配对。原版观察入口尚未自动消费，世界伤害回调中的原版嵌套命中与并行攻击也尚无统一预留事务。多分量共用资格可使用下节的显式攻击组，但该字段不等于跨所有宿主入口的完整“下一击”系统。
+安装 MinecraftEffectRuntime 后，普通原版 hurt 也自动捕获资格并按真实回执消费；默认 NativeSource 只提供原版伤害归属，不从手持物品猜测 D2 近战、技能或武器信用。宿主须明确提供正确标签与 Profile，才能匹配相应内容。独立纯引擎宿主仍须配对调用 prepareDamage / BuffConsumption.finish。
+
+原版回调里的嵌套攻击采用进入顺序预留：外层尚未返回时，独立子攻击只能读取扣除待定消费额度后的攻击侧 Buff；三层、每击消费一层时，父攻击按三层计算，子攻击按两层计算。预留本身不改动 BuffStore、不发生命周期信号，也不隐藏接收方的防御盾层。取消 / 失败释放额度；effective_damage 的零损失同样不消费。父攻击后来取消，不追溯增强已经执行的子攻击；释放的额度供后续攻击使用。这是本引擎的宿主执行顺序策略，未声称原作对所有嵌套回调采用同一策略。
+
+每个成功返回的原版调用先把确认的 Buff / 护盾 / 攻击组变动提交到边界内的临时状态，再供后续调用读取；纯反应等待最外层 hurt 返回。CombatCommit 在纯引擎继续前一次性核对并合入这些变动；DamageReceipt.consumptionFacts 标记已经处理的消费，避免受管 Action.complete 再扣一次。命中事实仍先于对应消费生命周期事实，预留不限制合法连锁。
+
+异常会保留已知的原版回执、确认状态、生命周期事实及尚未返回的预留，停止派生而不重放。世界适配器在原版伤害返回后抛错时，纯操作仍 pending；Failure.committedCombat 可证明原版入口已经确认的消费，不能把它混同于正常完成了纯操作。并行宿主、跨运行时恢复与全组原子世界事务尚未实现。
 
 ## 一次攻击共享 Buff 资格
 
@@ -982,7 +988,7 @@ Buff 的 `consume_on_damage.sharing` 默认为 `damage`，逐条伤害消费；�
 
 组的 origin 默认为 bound，也可选 event；成员的伤害 owner 必须一致。lifetime 为正的 second，区间半开；end_damage_group 可提前关闭，截止时自动清理。关闭后再发出成员伤害会明确失败，因此内容应让有效期覆盖所有预期分量。句柄可随显式 after / projectile 绑定传递，已确认的资格独立于原 Buff 后续到期 / 收枪；完整攻击行为由内容决定，不能据此推断所有 D2 技能都应共用资格。
 
-[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。这里只管理受管伤害的已确认资格，不合并世界动作，也不提供第一段尚未返回期间的原版嵌套命中预留、全组原子事务或跨运行时恢复。
+[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。该机制不合并世界动作，全组原子事务和跨运行时恢复尚未实现。
 
 ## 选择派生动作的来源
 

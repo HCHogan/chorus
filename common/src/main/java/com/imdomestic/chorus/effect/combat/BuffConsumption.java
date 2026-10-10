@@ -23,6 +23,8 @@ public final class BuffConsumption {
         public Candidate(BuffInstance.Key key, long generation, When when, int stacks) { this(key, generation, when, stacks, Optional.empty()); }
     }
     public static RuleEngine.Local<EffectState> finish(EffectState state, DamageCommand command, DamageReceipt receipt) {
+        // A native adapter may already have reconciled this receipt's consumption through CombatCommit.
+        if (receipt.consumptionSettled()) return new RuleEngine.Local<>(state, receipt, List.of());
         var signals = new ArrayList<RuleEngine.Signal>();
         for (var candidate : command.consumptions()) {
             boolean hit = receipt.outcome() != DamageReceipt.Outcome.CANCELLED && receipt.outcome() != DamageReceipt.Outcome.FAILED;

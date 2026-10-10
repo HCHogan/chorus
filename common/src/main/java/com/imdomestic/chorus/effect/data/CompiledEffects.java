@@ -408,7 +408,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
                         : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
-                        : committed instanceof AbilityUse.Commit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
+                        : committed instanceof AbilityUse.Commit commit ? commit.apply(state)
+                        : committed instanceof CombatCommit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
     }
     public EffectClock.Rate resourceRate(EffectState state, ResourceState account) {
         var definition = resources.get(account.key().resource());
@@ -456,6 +457,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return shields(state, command, input, DamageBasis.EMPTY);
     }
     public ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis) {
+        return shields(state, command, input, basis, state);
+    }
+    /** Native reservations affect the attacker's modifiers, never the target's available shield layers. */
+    public ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis, EffectState attackState) {
         settled(state); Numbers.nonnegative(input, "shield input");
         Objects.requireNonNull(basis);
         if (basis.outgoing().isPresent() && !command.scalingProfile().equals(Optional.of(basis.outgoing().orElseThrow().trace().profile()))) {
@@ -476,7 +481,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var context = new RuleEngine.Context(event, "shield/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
             var multiplier = shield.takenMultiplier().evaluate(evaluation(state, context, Map.of()));
             Validation.same(multiplier.unit(), Unit.MULTIPLIER); Numbers.nonnegative(multiplier.value(), "shield multiplier");
-            var attackScaling = shieldAttackScaling(state, command, event);
+            var attackScaling = shieldAttackScaling(attackState, command, event);
             Optional<DamageBasis.Suppression> suppression = Optional.empty();
             if (!shield.excludedAttackFactors().isEmpty()) {
                 if (command.scalingProfile().isPresent() && basis.outgoing().isEmpty()) throw new IllegalArgumentException("Shield factor suppression requires the hit's resolved outgoing profile");

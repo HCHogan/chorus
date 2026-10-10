@@ -29,6 +29,10 @@ public final class DamageCapture {
     public interface Observer {
         void prepare();
         DamageCommand describe(LivingEntity target, DamageSource source, float amount);
+        default DamageCommand begin(String id, DamageCommand command) { return command; }
+        default DamageCommand revise(String id, DamageCommand command) { return command; }
+        default Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) { return Optional.empty(); }
+        default void abandoned(String id) {}
         Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount);
         Optional<CalculationProfile.Result> defense(DamageCommand command, double amount);
         ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis);
@@ -79,7 +83,7 @@ public final class DamageCapture {
             for (var observer : observers) {
                 var facts = committed.stream().filter(delivery -> delivery.observer() == observer).map(Delivery::fact).toList();
                 if (failure != null) observer.failed(failure, facts);
-                else if (!facts.isEmpty()) observer.committed(facts);
+                else observer.committed(facts);
             }
         }
     }
@@ -100,6 +104,7 @@ public final class DamageCapture {
         DamageCommand command;
         boolean publish;
         boolean managedOrigin;
+        Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts = Optional.empty();
         Call(String id, LivingEntity target, DamageSource source, boolean nonLethal) {
             this.id = id; this.target = target; this.source = source; this.nonLethal = nonLethal;
         }
@@ -110,7 +115,7 @@ public final class DamageCapture {
                     ? DamageReceipt.Outcome.APPLIED : immune ? DamageReceipt.Outcome.IMMUNE
                     : blocked || shieldBlocked ? DamageReceipt.Outcome.BLOCKED : DamageReceipt.Outcome.CANCELLED;
             return new DamageReceipt(id, outcome, shieldLoss, absorptionLoss, healthLoss,
-                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense);
+                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts);
         }
     }
     public static final class Scope implements AutoCloseable {
@@ -124,6 +129,10 @@ public final class DamageCapture {
         @Override public void close() {
             if (!owner) { call.layer = previousLayer; return; }
             if (CALLS.get().peek() != call) throw new IllegalStateException("Damage calls closed out of order");
+            if (call.observer != null) {
+                if (completed) call.consumptionFacts = call.observer.finished(call.id, call.command, call.receipt(accepted), call.managedOrigin);
+                else call.observer.abandoned(call.id);
+            }
             CALLS.get().pop();
             boolean outermost = CALLS.get().isEmpty();
             if (outermost) CALLS.remove();
@@ -140,7 +149,7 @@ public final class DamageCapture {
             int previous = current.layer; current.layer = layer;
             if (current.source != source) {
                 current.source = source;
-                if (current.observer != null && !current.managedOrigin) current.command = current.observer.describe(target, source, amount);
+                if (current.observer != null && !current.managedOrigin) current.command = current.observer.revise(current.id, current.observer.describe(target, source, amount));
             }
             return new Scope(current, false, previous);
         }
@@ -156,7 +165,7 @@ public final class DamageCapture {
         call.publish = observer != null && !(ownedRequest && request.managed);
         call.managedOrigin = ownedRequest && request.managed;
         if (observer != null) {
-            call.command = call.managedOrigin ? request.description : observer.describe(target, source, amount);
+            call.command = observer.begin(call.id, call.managedOrigin ? request.description : observer.describe(target, source, amount));
             call.boundary.observers.add(observer);
         }
         CALLS.get().push(call); return new Scope(call, true, 0);
