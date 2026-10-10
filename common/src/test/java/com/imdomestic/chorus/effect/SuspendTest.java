@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Test;
 
 class SuspendTest {
     static final String SUSPEND="chorus_d2:suspend";
-    static EffectSource source(String id,String holder,double height,double step){return new EffectSource(id,"chorus_d2:suspend_application",holder,new BuffInstance.Origin(holder,id,"weapon-"+holder,"ability-"+holder,Set.of("test:caster")),Set.of(),Map.of("lift_height",new Measure(height,Unit.METER),"lift_step",new Measure(step,Unit.METER)));}
+    static EffectSource source(String id,String holder,double height,double step){return source(id,holder,height,step,2);}
+    static EffectSource source(String id,String holder,double height,double step,double hover){return new EffectSource(id,"chorus_d2:suspend_application",holder,new BuffInstance.Origin(holder,id,"weapon-"+holder,"ability-"+holder,Set.of("test:caster")),Set.of(),Map.of("lift_height",new Measure(height,Unit.METER),"lift_step",new Measure(step,Unit.METER),"hover_speed",new Measure(hover,Unit.METER_PER_SECOND)));}
     static EntityQuery.View view(boolean player,String...tags){return new EntityQuery.View(true,player,1000,1000,0,Set.of(tags),Set.of());}
     static class Harness {
         final CompiledEffects p;final EffectSession session;final EffectSource source=source("apply","caster",1.05,.25);
@@ -42,6 +43,7 @@ class SuspendTest {
         void until(long time){session.observe(time,List.of());}
         void fragment(String id,String holder){send(SourceChange.bind(new EffectSource(id,"chorus_d2:continuity",holder,new BuffInstance.Origin(holder,id,"",""),Set.of())));}
         Optional<BuffInstance> status(){return state().buffs().instances().values().stream().filter(b->b.definition().id().equals(SUSPEND)).findFirst();}
+        com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Decision speed(){return p.horizontalSpeedLimit(state(),new EffectEvent("target","",new BuffInstance.Origin("target","native","",""),Set.of(),Map.of()));}
         boolean allowed(ActionGate.Kind kind){return p.checkAction(state(),kind,ActionGate.Phase.START,new EffectEvent("target","",new BuffInstance.Origin("target","native","",""),Set.of(),Map.of())).allowed();}
     }
     @Test void actualRecipientClassificationSelectsDurationsIndependentlyOfGlobalPvpMode()throws Exception{
@@ -53,12 +55,19 @@ class SuspendTest {
     }
     @Test void combatantsLoseNewActionsAndMotionWhileGuardiansKeepHorizontalMovementAndWeapons()throws Exception{
         for(String kind:List.of("rank_and_file","miniboss","boss","guardian")){
-            var h=new Harness(view(kind.equals("guardian"),"chorus_d2:"+kind));h.apply();
+            var h=new Harness(view(kind.equals("guardian"),"chorus_d2:"+kind));h.apply();assertEquals(kind.equals("guardian")?OptionalDouble.of(2):OptionalDouble.empty(),h.speed().maximum());
             for(var gate:ActionGate.Kind.values()){
                 boolean denies= switch(kind){case "boss"->false;case "guardian"->gate==ActionGate.Kind.VERTICAL_MOTION||gate==ActionGate.Kind.JUMP;default->Set.of(ActionGate.Kind.ABILITY_USE,ActionGate.Kind.WEAPON_FIRE,ActionGate.Kind.RANGED_ATTACK,ActionGate.Kind.MELEE_ATTACK,ActionGate.Kind.HORIZONTAL_MOTION,ActionGate.Kind.VERTICAL_MOTION,ActionGate.Kind.JUMP).contains(gate);};
                 assertEquals(!denies,h.allowed(gate),kind+" "+gate);
             }
         }
+    }
+    @Test void guardianCeilingIsAnExplicitFirstApplicationSnapshotAndEndsWithItsBuff()throws Exception{
+        var h=new Harness(view(true));h.apply();assertEquals(2,h.speed().maximum().orElseThrow());assertEquals(h.source.origin(),h.speed().contributions().getFirst().origin());
+        h.until(500_000);var other=source("other","second-caster",1.05,.25,.5);h.send(SourceChange.bind(other));h.event(other,"apply_suspend");h.send(SourceChange.remove(h.source.instance()));assertEquals(2,h.speed().maximum().orElseThrow());
+        h.until(2_499_999);assertEquals(2,h.speed().maximum().orElseThrow());h.until(2_500_000);assertTrue(h.speed().maximum().isEmpty());
+        h.event(other,"apply_suspend");assertEquals(.5,h.speed().maximum().orElseThrow());h.event(other,"clear_suspend");assertTrue(h.speed().maximum().isEmpty());
+        for(double invalid:new double[]{0,-1}){var bad=new Harness(view(true));var source=source("bad","caster",1.05,.25,invalid);bad.send(SourceChange.bind(source));bad.event(source,"apply_suspend");assertTrue(bad.status().isEmpty());assertTrue(bad.checks.isEmpty());}
     }
     @Test void firstApplicationInitializesLiftBeforeGainReactionAndRefreshDoesNotStackHeight()throws Exception{
         var h=new Harness(view(false,"chorus_d2:elite"));h.apply();h.until(250_000);assertEquals(5,h.moves.size());assertEquals(1.05,h.position.y(),1e-9);assertEquals(.05,h.moves.getLast().command().distance(),1e-9);
@@ -90,6 +99,6 @@ class SuspendTest {
     }
     @Test void suspendContentRoundtripsWithoutNativeHostOrCalibrationDefaults()throws Exception{
         var p=link("suspend","continuity","combat_damage");assertEquals(p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,p.program()).getOrThrow()).getOrThrow());
-        var definition=p.program().bundles().stream().filter(b->b.id().equals("chorus_d2:suspend_application")).findFirst().orElseThrow();assertEquals(Set.of("lift_height","lift_step"),definition.parameters().keySet());
+        var definition=p.program().bundles().stream().filter(b->b.id().equals("chorus_d2:suspend_application")).findFirst().orElseThrow();assertEquals(Set.of("lift_height","lift_step","hover_speed"),definition.parameters().keySet());
     }
 }

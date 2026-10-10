@@ -964,18 +964,18 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 | Rank-and-File / Elite | 6 秒 | 8 秒 | 固定两轴并逐步抬升；拒绝新技能、武器开火、原版射击、近战和跳跃 |
 | Miniboss | 3 秒 | 4 秒 | 同上 |
 | Boss | 1 秒 | 1 秒 | 保留可查询的 Suspend / Strand debuff，不限制行动、不抬升；自然到期后向自身执行基础 300 Strand 伤害 |
-| Guardian（实际 Player） | 2 秒 | 3 秒 | 逐步抬升并固定 Y，禁止跳跃，允许横向运动和武器；完整有限横移、ADS / 其他操作限制及第三人称镜头尚未接入 |
+| Guardian（实际 Player） | 2 秒 | 3 秒 | 逐步抬升并固定 Y，禁止跳跃，允许按校准上限横移和使用武器；原作速度、ADS / 其他操作限制及第三人称镜头尚未完成 |
 
 这些是原表所列的最大默认时间，不替代各手雷 / 技能可能更短的来源时长。分类读取 inspect_entity 的实际接收者，不以世界全局 PvE / PvP 模式代替。实际 Player 优先，其后依次为明确 boss、miniboss、rank_and_file / elite 实体或类型标签；Boss 因此胜过同时存在的低等级标签。没有可用观察、死亡或没有等级的非玩家跳过，不把所有原版怪猜作普通战员。Champion 标签本身不是等级；势不可挡眩晕及其他勇士机制未实现。
 
-通用施加模板为 chorus_d2:suspend_application，声明必填的 lift_height / lift_step（meter）来源参数。可信宿主向 chorus_d2:apply_suspend 发送 actor=施加者、victim=接收者，并以 references.source_instance / bundle 指明该模板实例；同持有者的另一施加模板不会重复响应。请求先检查高度非负、步长在 (0,64]，再观察分类、查询施加者当前 Continuity，最后经 apply_status 的宿主授权。受害者或队友的 fragment 不参与，重复 Continuity 按已有 MAX 规则归约，Boss 扩展量为零。该模板是可验证的公共施加入口，真实手雷、技能与子职业尚未自动装配；不应绕过模板用 Buff 的六秒默认值代替所有分类。
+通用施加模板为 chorus_d2:suspend_application，声明必填的 lift_height / lift_step（meter）和 hover_speed（meter_per_second）来源参数。可信宿主向 chorus_d2:apply_suspend 发送 actor=施加者、victim=接收者，并以 references.source_instance / bundle 指明该模板实例；同持有者的另一施加模板不会重复响应。请求先检查高度非负、步长在 (0,64]、横移上限大于零，再观察分类、查询施加者当前 Continuity，最后经 apply_status 的宿主授权。受害者或队友的 fragment 不参与，重复 Continuity 按已有 MAX 规则归约，Boss 扩展量为零。该模板是可验证的公共施加入口，真实手雷、技能与子职业尚未自动装配；不应绕过模板用 Buff 的六秒默认值代替所有分类。
 
-内部 tier 1/2/3/4 分别表示普通或精英、小 Boss、Boss、Guardian，是此定义的控制模式枚举，不是通用抗性等级。首次授权成功后将几何参数写入该状态的组件，随后 gained 反应启动每 50 ms 的附着抬升计时器；执行 min(step, remaining)，仅扣实际 delta_y。触顶、零位移、拒绝或耗尽高度会将 remaining 归零并停止抬升，状态继续保持已达高度。合成测试的 1.05 米 / 0.25 米在 [独立校准夹具](../common/src/test/resources/effects/suspend_test_calibration.json) 中，不是 D2 测量；生产模板没有猜测高度和速度。
+内部 tier 1/2/3/4 分别表示普通或精英、小 Boss、Boss、Guardian，是此定义的控制模式枚举，不是通用抗性等级。首次授权成功后将几何与横移上限参数写入该状态的组件，随后 gained 反应启动每 50 ms 的附着抬升计时器；执行 min(step, remaining)，仅扣实际 delta_y。触顶、零位移、拒绝或耗尽高度会将 remaining 归零并停止抬升，状态继续保持已达高度。合成测试的 1.05 米高度 / 0.25 米步长 / 2 米每秒横移上限在 [独立校准夹具](../common/src/test/resources/effects/suspend_test_calibration.json) 中，不是 D2 测量；生产模板没有猜测高度和速度。
 
 当前刷新明确采用 reset：重新从本次查得的时长计时，不把多个命中的持续时间相加；同一接收者使用同一状态实例并保留最早施加者信用和原组件。再施加不会从已抬高的位置再累加高度，也不会在移走天花板后重新启动已经归零的升空。等级在每次请求观察、控制模式随成功重施加更新；不存在自动全局敌人分类。刷新、跨来源信用、动态变级和升空恢复规则均是待原作实测的内容政策，未列为已校准结论。
 
 Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害，原施加来源卸下不会抹掉已授予状态或脱离时的原始信用。命令使用 chorus_d2:suspend_snap 逻辑伤害类型、chorus:strand / chorus:suspend_boss_snap / chorus:derived 标签和共享 outgoing Profile；保持与 Bolt Charge 的派生触发分类一致。测试宿主将逻辑类型映射为原版 generic 并验证真实 300 HP 损失，正式伤害类型、抗性与技能来源装配仍须由 chorus-d2 提供。世界伤害结果未知时保留已结束状态与实际扣血，运行时停止，不重复 snap。
 
-9 项单元测试及 6 项共享世界场景覆盖分级时间、来源隔离、拒绝施加、真实原版射击 / 近战与运动、抬升参数、世界三 / 四 / 六 / 八秒边界、实际 Guardian 两秒到期、Boss 脱离伤害和未知结果不重放。Guardian 的原版空中移动使用 getFlyingSpeed 常量，普通 movement_speed 属性并不直接提供所需横移控制；不能把修改地面速度当成这一要求已经完成。有限横移曲线、腰射 / ADS、Guardian 其他操作资格、第三人称、Champion 晕眩、HUD、生产技能与敌人目录、持久化仍为缺口，审阅保持 partial。
+10 项单元测试及 6 项共享世界场景覆盖分级时间、来源隔离、拒绝施加、真实原版射击 / 近战与运动、抬升参数、世界三 / 四 / 六 / 八秒边界、实际 Guardian 两秒到期、Boss 脱离伤害和未知结果不重放。Guardian 的原版空中移动使用 getFlyingSpeed 常量，因此这里通过通用 horizontal_speed_limits 约束 X/Z 合成速度与逐 tick 位移，数值取首次施加写入的 hover_speed 组件；其他 tier 不贡献此上限。来源退出或另一来源刷新不会改写该实例已捕获的速度，到期 / 清除移除其贡献。该首位来源快照政策待原作实测；实际横移速度与加速度曲线、腰射 / ADS、Guardian 其他操作资格、第三人称、Champion 晕眩、HUD、生产技能与敌人目录、持久化仍为缺口，审阅保持 partial。
 
-真实 Fabric 客户端另验收了同一施加者对玩家 / 远端骷髅的不同轴约束、玩家横移期间保持高度、两秒玩家状态先结束而六秒战斗人员状态仍存在，以及清除战斗人员状态后恢复下落。该验收沿用现有位置与锚点同步，不证明高延迟观感、限速、第三人称或 NeoForge 客户端已经完成。
+真实 Fabric 客户端另验收了同一施加者对玩家 / 远端骷髅的不同轴约束、玩家横移期间保持高度、两秒玩家状态先结束而六秒战斗人员状态仍存在，以及清除战斗人员状态后恢复下落。该验收同时检查 2 米每秒合成速度上限的客户端与服务端投影，及到期清理。使用显式测试参数，尚未证明原作移动曲线、高延迟观感、第三人称或 NeoForge 客户端已经完成。

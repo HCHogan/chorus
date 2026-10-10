@@ -5485,7 +5485,7 @@
           "text_sha256": "ab23e489bb74ede0fd413233bbe2d3d6ac2dc587ea20701554166cb7b2625313"
         }
       ],
-      "scope": "实际接收者分级施加与 Continuity，普通/精英和小Boss的逐步抬升、运动与新攻击限制；Boss可查询减益及一秒后300 Strand伤害；Guardian垂直抬升、两秒基础时长和保留横移/武器的部分状态",
+      "scope": "实际接收者分级施加与 Continuity，普通/精英和小Boss的逐步抬升、运动与新攻击限制；Boss可查询减益及一秒后300 Strand伤害；Guardian垂直抬升、两秒基础时长和保留横移/武器的部分状态；Guardian以显式hover_speed快照限制合成水平速度与每tick位移",
       "acceptance": [
         "按实际Player或明确敌人等级选择6+2/3+1/1/2+1秒，施加者Continuity独立查询，Boss不延长",
         "宿主授权前不授予控制；未分类、死亡、缺失和明确拒绝不改变状态",
@@ -5542,13 +5542,23 @@
           "kind": "client_test",
           "path": "fabric/src/gametest/java/com/imdomestic/chorus/SuspendClientGameTest.java",
           "symbol": "runTest"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuspendTest.java",
+          "symbol": "guardianCeilingIsAnExplicitFirstApplicationSnapshotAndEndsWithItsBuff"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuspendGameTest.java",
+          "symbol": "realGuardianUsesTwoSecondsKeepsHorizontalMovementAndLosesOnlyVerticalMotion"
         }
       ],
       "gaps": [
-        "Guardian有限横移速度、完整操作/ADS与腰射限制、第三人称镜头未实现；当前只保证高度约束、横移和武器保持可用",
+        "Guardian水平限速已接入显式校准参数，原作速度/加速度曲线未知；完整操作/ADS与腰射限制、第三人称镜头未实现",
         "势不可挡及全部Champion状态/冷却/抗性规则未实现；Champion标签不代替目标等级",
-        "原表没有抬升高度/速度数值；必填校准参数与合成测试值分离，未完成原作运动校准",
-        "reset刷新、单实例首位施加者信用、重施加不再次抬升和动态分类政策尚待原作实测",
+        "原表没有抬升高度/速度和Guardian横移上限数值；必填校准参数与合成测试值分离，未完成原作运动校准",
+        "reset刷新、单实例首位施加者信用和横移参数快照、重施加不再次抬升和动态分类政策尚待原作实测",
         "原版敌人仅使用明确实体或类型标签；真实D2敌人目录、全部技能生产者与更短来源时长尚未装配",
         "逻辑伤害类型到正式chorus-d2伤害目录、HUD、子职业/fragment选择与持久化仍未完成",
         "Fabric 已验收玩家/战斗人员分离同步与到期/清除释放；NeoForge 真实客户端和高延迟观感尚未验收"

@@ -682,7 +682,7 @@ Minecraft 里玩家的移动以客户端为准，所以每种动作都要明确�
 | 水平速度上限 | 服务端归约与位移校验；本地玩家预测 | 允许缓慢横移的悬浮状态 | 已有 horizontal_speed_limits；各来源取最小上限，X/Z 合成速度与每 tick 实际路程均受限，可组合固定 Y；具体 D2 参数和高延迟容差待校准 |
 | 碰撞感知位移 | 服务端解析完整碰撞箱，再通过原版位置协议同步 | 逐步抬升、碰墙停止 | 已有 displace_entity / world_direction；回执区分请求、裁剪和实际距离，轴锚点随授权位置更新；不是预测运动，原作参数仍需校准 |
 | 一次性冲量 | 服务端发起 | 急切刀锋、闪避、Lightning Surge 的运动原语 | 已有 apply_impulse：捕获方向、米每秒与轴倍率；按原版 ApplyEntityImpulse 给玩家发速度包，并调用 applyPostImpulseGraceTime(10)；具体技能仍需数据与输入装配 |
-| 分级控制内容 | 服务端状态与共享运动投影 | Suspend 的普通战员 / 小 Boss / Boss / Guardian | suspend.json 已组合分级时长、Continuity、抬升与 Boss 脱离伤害；Guardian 有限横移、腰射限制、镜头与 Champion 行为仍待实现 |
+| 分级控制内容 | 服务端状态与共享运动投影 | Suspend 的普通战员 / 小 Boss / Boss / Guardian | suspend.json 已组合分级时长、Continuity、抬升与 Boss 脱离伤害；Guardian 已接入显式参数的水平限速；原作速度、腰射限制、镜头与 Champion 行为仍待完成 |
 | 持续的自身移动 | 客户端预测 + 服务端同步模拟 | 钩爪、Strand 摆荡 | 同一个状态机两端运行，参数来自同步的定义；期间服务端放宽移动检查 |
 | 移动他人 | 服务端 | 吸怪、击退 | 同一冲量协议支持他人；direction_between 可由位置快照求向量。非玩家设置 syncVelocity，玩家直接发包；不调用 protected 的 markHurt，不伪造一次伤害 |
 

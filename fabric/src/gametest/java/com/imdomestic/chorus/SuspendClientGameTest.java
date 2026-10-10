@@ -13,7 +13,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
-/** Same data program on a real Guardian and remote combatant. Does not claim calibrated hover speed or camera. */
+/** Same data program on a real Guardian and remote combatant. Uses explicit synthetic hover calibration; does not claim D2 speed or camera fidelity. */
 public final class SuspendClientGameTest implements FabricClientGameTest {
     @Override public void runTest(ClientGameTestContext context){
         try(var game=context.worldBuilder().create()){
@@ -32,13 +32,13 @@ public final class SuspendClientGameTest implements FabricClientGameTest {
                     SuspendGameTest.event(runtime.get(),source.get(),player,"apply_suspend");SuspendGameTest.event(runtime.get(),source.get(),npc,"apply_suspend");
                 });
                 context.getInput().holdKey(o->o.keyUp);context.getInput().holdKey(o->o.keyJump);
-                context.waitFor(client->NativeMovementGameTest.mask(client.player)==10&&Math.abs(client.player.getY()-start.get().y-1.05)<1e-5);
+                context.waitFor(client->NativeMovementGameTest.mask(client.player)==10&&MinecraftHorizontalSpeed.speed(client.player).equals(OptionalDouble.of(2))&&Math.abs(client.player.getY()-start.get().y-1.05)<1e-5);
                 context.waitFor(client->client.level.getEntity(combatant.get().getId()) instanceof LivingEntity e&&NativeMovementGameTest.mask(e)==14&&Math.abs(e.getY()-start.get().y-1.05)<1e-5);
                 context.waitTicks(8);connection.waitForServerboundPackets();
-                context.runOnClient(client->{if(NativeMovementGameTest.mask(client.player)!=10||client.player.getZ()<=start.get().z+.1||Math.abs(client.player.getY()-start.get().y-1.05)>1e-5)throw new AssertionError("Guardian horizontal travel or vertical hold differed from the status rules");});
-                game.getServer().runOnServer(server->{var player=connection.getServerPlayer();if(player.getZ()<=start.get().z+.1||Math.abs(player.getY()-start.get().y-1.05)>1e-5)throw new AssertionError("Server did not accept free horizontal travel");if(combatant.get().position().distanceTo(start.get().add(4,1.05,0))>1e-5)throw new AssertionError("Combatant escaped its full anchor");});
+                context.runOnClient(client->{if(NativeMovementGameTest.mask(client.player)!=10||!MinecraftHorizontalSpeed.speed(client.player).equals(OptionalDouble.of(2))||Math.hypot(client.player.getDeltaMovement().x,client.player.getDeltaMovement().z)>.1+1e-7||client.player.getZ()<=start.get().z+.1||Math.abs(client.player.getY()-start.get().y-1.05)>1e-5)throw new AssertionError("Guardian capped horizontal travel or vertical hold differed from the status rules");});
+                game.getServer().runOnServer(server->{var player=connection.getServerPlayer();if(player.getZ()<=start.get().z+.1||Math.abs(player.getY()-start.get().y-1.05)>1e-5)throw new AssertionError("Server did not accept limited horizontal travel");if(!MinecraftHorizontalSpeed.speed(player).equals(OptionalDouble.of(2))||MinecraftHorizontalSpeed.speed(combatant.get()).isPresent())throw new AssertionError("Speed ceiling targeted the wrong recipient tier");if(combatant.get().position().distanceTo(start.get().add(4,1.05,0))>1e-5)throw new AssertionError("Combatant escaped its full anchor");});
                 context.getInput().releaseKey(o->o.keyUp);context.getInput().releaseKey(o->o.keyJump);
-                context.waitFor(client->NativeMovementGameTest.mask(client.player)==0&&client.player.getY()<start.get().y+.85);
+                context.waitFor(client->NativeMovementGameTest.mask(client.player)==0&&MinecraftHorizontalSpeed.speed(client.player).isEmpty()&&client.player.getY()<start.get().y+.85);
                 context.runOnClient(client->{var npc=client.level.getEntity(combatant.get().getId());if(!(npc instanceof LivingEntity e)||NativeMovementGameTest.mask(e)!=14)throw new AssertionError("Guardian expiry incorrectly ended six-second combatant status");});
                 game.getServer().runOnServer(server->{if(runtime.get().failure().isPresent())throw new AssertionError(runtime.get().failure());SuspendGameTest.event(runtime.get(),source.get(),combatant.get(),"clear_suspend");if(NativeMovementGameTest.mask(combatant.get())!=0||combatant.get().isNoAi())throw new AssertionError("Cleared combatant fixture cannot run native physics");});
                 context.waitFor(client->client.level.getEntity(combatant.get().getId()) instanceof LivingEntity e&&NativeMovementGameTest.mask(e)==0&&e.getY()<start.get().y+.85);

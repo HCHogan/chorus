@@ -23,7 +23,7 @@ import net.minecraft.world.phys.Vec3;
 public class SuspendGameTest {
     public static CompiledEffects program(){return CompiledEffects.link(List.of("suspend","continuity","combat_damage").stream().map(name->EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow()).toList());}
     public static EffectSource source(LivingEntity actor){
-        String id=actor.getUUID().toString();var calibration=ThreadedSpikeGameTest.json("suspend_test_calibration");var values=new HashMap<String,Measure>();for(String key:List.of("lift_height","lift_step"))values.put(key,new Measure(calibration.getAsJsonObject(key).get("value").getAsDouble(),Unit.METER));
+        String id=actor.getUUID().toString();var calibration=ThreadedSpikeGameTest.json("suspend_test_calibration");var values=new HashMap<String,Measure>();for(String key:List.of("lift_height","lift_step","hover_speed"))values.put(key,new Measure(calibration.getAsJsonObject(key).get("value").getAsDouble(),new Unit("chorus:"+calibration.getAsJsonObject(key).get("unit").getAsString())));
         return new EffectSource(id+"/suspend","chorus_d2:suspend_application",id,new BuffInstance.Origin(id,"suspend-test","weapon","ability"),Set.of(),values);
     }
     public static void event(MinecraftEffectRuntime runtime,EffectSource source,LivingEntity recipient,String type){runtime.start(new RuleEngine.Signal("chorus_d2:"+type,new EffectEvent(source.holder(),recipient.getUUID().toString(),source.origin(),Set.of(),Map.of(),Map.of(),Map.of("source_instance",source.instance(),"bundle",source.bundle()))));}
@@ -88,8 +88,8 @@ public class SuspendGameTest {
     public void realGuardianUsesTwoSecondsKeepsHorizontalMovementAndLosesOnlyVerticalMotion(GameTestHelper h){
         var t=new Harness(h);try{
             var source=t.caster();var player=NativeMeleeGameTest.player(h);t.actors.add(player);player.setPos(h.absoluteVec(new Vec3(2.5,40,2.5)));player.setNoGravity(false);var start=player.position();t.apply(source,player);h.assertValueEqual(t.checks.getLast().duration(),2_000_000L,"player classification in PVE world");h.assertValueEqual(NativeMovementGameTest.mask(player),10,"Guardian locked horizontal movement");
-            h.runAfterDelay(8,()->{try{t.runtime.prepare();near(h,player.getY(),start.y+1.05,"Guardian lift");player.move(MoverType.PLAYER,new Vec3(.2,.2,0));near(h,player.getX(),start.x+.2,"Guardian horizontal axis");near(h,player.getY(),start.y+1.05,"Guardian vertical hold");}catch(Exception|Error e){t.close();throw e;}});
-            h.runAfterDelay(45,()->{try(t){t.runtime.prepare();h.assertValueEqual(NativeMovementGameTest.mask(player),0,"two-second Guardian expiry");h.assertTrue(t.status(player).isEmpty()&&t.damage.isEmpty(),"Guardian expiration snapped like a boss");t.settled();h.succeed();}});
+            h.runAfterDelay(8,()->{try{t.runtime.prepare();near(h,player.getY(),start.y+1.05,"Guardian lift");player.move(MoverType.PLAYER,new Vec3(.2,.2,0));near(h,player.getX(),start.x+.1,"Guardian calibrated horizontal ceiling");near(h,MinecraftHorizontalSpeed.speed(player).orElseThrow(),2,"Guardian speed projection");near(h,player.getY(),start.y+1.05,"Guardian vertical hold");}catch(Exception|Error e){t.close();throw e;}});
+            h.runAfterDelay(45,()->{try(t){t.runtime.prepare();h.assertValueEqual(NativeMovementGameTest.mask(player),0,"two-second Guardian expiry");h.assertTrue(t.status(player).isEmpty()&&t.damage.isEmpty()&&MinecraftHorizontalSpeed.speed(player).isEmpty(),"Guardian expiration retained speed ceiling or snapped like a boss");t.settled();h.succeed();}});
         }catch(Exception|Error e){t.close();throw e;}
     }
     @GameCase(environment="chorus_gametest:suspend_fault",maxTicks=35)

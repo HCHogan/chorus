@@ -21,6 +21,10 @@
             "step": {
               "initial": 0,
               "unit": "meter"
+            },
+            "hover_speed": {
+              "initial": 0,
+              "unit": "meter_per_second"
             }
           }
         }
@@ -33,7 +37,8 @@
       "id": "chorus_d2:suspend_application",
       "parameters": {
         "lift_height": "meter",
-        "lift_step": "meter"
+        "lift_step": "meter",
+        "hover_speed": "meter_per_second"
       },
       "rules": [
         {
@@ -86,6 +91,19 @@
                   "type": "chorus:constant",
                   "value": 64,
                   "unit": "meter"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "hover_speed"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second"
                 }
               }
             ]
@@ -470,6 +488,17 @@
                           "value": {
                             "type": "chorus:source_parameter",
                             "name": "lift_step"
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:suspend",
+                          "target": "victim",
+                          "component": "hover_speed",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:source_parameter",
+                            "name": "hover_speed"
                           }
                         }
                       ]
@@ -991,6 +1020,35 @@
               "scaling_profile": "chorus_d2:outgoing"
             }
           ]
+        }
+      ],
+      "horizontal_speed_limits": [
+        {
+          "id": "guardian_hover",
+          "speed": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:suspend",
+            "component": "hover_speed"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
         }
       ]
     }
