@@ -1,5 +1,5 @@
 {
-  "version": "test-1",
+  "version": "compendium-2026-10-05",
   "equipment": {
     "slots": [
       {
@@ -147,7 +147,7 @@
   "profiles": [
     {
       "id": "test:weapon_damage",
-      "version": "test-1",
+      "version": "compendium-2026-10-05",
       "input_unit": "damage",
       "steps": [
         {
@@ -198,9 +198,9 @@
                 "unit": "damage"
               },
               "damage_type": "minecraft:generic",
-              "scaling_profile": "test:melee_damage",
+              "scaling_profile": "chorus_d2:outgoing",
               "tags": [
-                "chorus:melee_damage"
+                "chorus:melee_damage", "chorus:basic_melee"
               ]
             }
           ]
@@ -242,9 +242,9 @@
                 "unit": "damage"
               },
               "damage_type": "minecraft:generic",
-              "scaling_profile": "test:melee_damage",
+              "scaling_profile": "chorus_d2:outgoing",
               "tags": [
-                "chorus:melee_damage"
+                "chorus:melee_damage", "chorus:basic_melee"
               ]
             },
             {
@@ -258,9 +258,9 @@
                 "unit": "damage"
               },
               "damage_type": "minecraft:generic",
-              "scaling_profile": "test:melee_damage",
+              "scaling_profile": "chorus_d2:outgoing",
               "tags": [
-                "chorus:melee_damage"
+                "chorus:melee_damage", "chorus:basic_melee"
               ]
             }
           ]
@@ -302,7 +302,7 @@
                 "unit": "damage"
               },
               "damage_type": "minecraft:generic",
-              "scaling_profile": "test:melee_damage",
+              "scaling_profile": "chorus_d2:outgoing",
               "tags": [
                 "chorus:grenade_damage"
               ]
@@ -311,7 +311,7 @@
         }
       ]
     },
-    {"id":"test:split_melee","slot":"test:melee","on_use":[{"action":{"type":"chorus:select_targets","center":"self","radius":{"type":"chorus:constant","value":3,"unit":"meter"},"relation":"any","include_center":false,"order":"nearest","limit":{"type":"chorus:constant","value":1,"unit":"count"}},"as":"victims"},{"action":{"type":"chorus:begin_damage_group","lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"attack"},{"for_each":"victims","as":"victim","do":[{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"test:melee_damage","tags":["chorus:melee_damage"],"group":"attack"},{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"test:melee_damage","tags":["chorus:melee_damage"],"group":"attack"}]},{"type":"chorus:end_damage_group","group":"attack"}]}
+    {"id":"test:split_melee","slot":"test:melee","on_use":[{"action":{"type":"chorus:select_targets","center":"self","radius":{"type":"chorus:constant","value":3,"unit":"meter"},"relation":"any","include_center":false,"order":"nearest","limit":{"type":"chorus:constant","value":1,"unit":"count"}},"as":"victims"},{"action":{"type":"chorus:begin_damage_group","lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},"as":"attack"},{"for_each":"victims","as":"victim","do":[{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"chorus_d2:outgoing","tags":["chorus:melee_damage", "chorus:basic_melee"],"group":"attack"},{"type":"chorus:damage","target":{"binding":"victim"},"amount":{"type":"chorus:constant","value":5,"unit":"damage"},"damage_type":"minecraft:generic","scaling_profile":"chorus_d2:outgoing","tags":["chorus:melee_damage", "chorus:basic_melee"],"group":"attack"}]},{"type":"chorus:end_damage_group","group":"attack"}]}
   ],
   "bundles": [
     {
@@ -322,7 +322,7 @@
       "modifiers": [
         {
           "id": "bonus",
-          "profile": "test:melee_damage",
+          "profile": "chorus_d2:outgoing",
           "stage": "melee",
           "group": "melee",
           "op": "multiply",
@@ -347,7 +347,7 @@
       "modifiers": [
         {
           "id": "bonus",
-          "profile": "test:melee_damage",
+          "profile": "chorus_d2:outgoing",
           "stage": "melee",
           "group": "melee/one_two_or_frozen",
           "op": "multiply",
@@ -372,7 +372,7 @@
       "modifiers": [
         {
           "id": "bonus",
-          "profile": "test:melee_damage",
+          "profile": "chorus_d2:outgoing",
           "stage": "melee",
           "group": "melee/one_two_or_frozen",
           "op": "multiply",

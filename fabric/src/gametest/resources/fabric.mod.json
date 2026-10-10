@@ -105,7 +105,8 @@
       "com.imdomestic.chorus.SuppressionNativeGameTest",
       "com.imdomestic.chorus.DisplacementGameTest",
       "com.imdomestic.chorus.SuspendGameTest",
-      "com.imdomestic.chorus.FreezeGameTest"
+      "com.imdomestic.chorus.FreezeGameTest",
+      "com.imdomestic.chorus.FreezeDamageGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

@@ -2984,13 +2984,14 @@
           "text_sha256": "a9e37fa6cc2248eb5469ad2e437a2b0392fab6417a23f06f08f5c693c48999ce"
         }
       ],
-      "scope": "独立 JSON；实际弹丸回执在普通12/强化10颗同目标命中时触发、三秒下一近战增伤、收枪/词条替换清除；四组武器/活动倍率和冰冻取高后相加；双加载器实际容器/命令/伤害验收；显式同攻击分量共享一次性资格，独立近战仍分别消费",
+      "scope": "独立 JSON；实际弹丸回执在普通12/强化10颗同目标命中时触发、三秒下一近战增伤、收枪/词条替换清除；四组武器/活动倍率和冰冻取高后相加；双加载器实际容器/命令/伤害验收；显式同攻击分量共享一次性资格，独立近战仍分别消费；与实际目标Freeze的Basic/Glaive近战增量同组取高",
       "acceptance": [
         "同一枪同一目标普通12/强化10颗唯一命中即触发；不等剩余飞行，不混合目标/枪次/重复接触",
         "三秒内下一次合格近战命中后消费；新合格射击刷新但不叠层，同枪后续弹丸不刷新；收枪移除",
         "霰弹枪PvE/PvP增加150%/100%，手炮增加75%/50%；与冰冻非Boss被动近战增量取高后再加算其他近战增量",
         "实际玩家武器与技能命令驱动物理弹丸和扣血；原持有者弹丸不触发新持有者，未知结果不重放",
-        "显式同一攻击的5+5分量共享已消费资格，后续独立10点近战不获增益；不以合成拆分推断全部D2技能归组"
+        "显式同一攻击的5+5分量共享已消费资格，后续独立10点近战不获增益；不以合成拆分推断全部D2技能归组",
+        "真实霰弹命中后，已冻结目标的下一次基础近战取One-Two Punch与Freeze较高值；消费词条后下一击仍保留Freeze贡献"
       ],
       "evidence": [
         {
@@ -3085,13 +3086,19 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
           "symbol": "declaredSingleMeleeAttackSharesTheBuffAcrossTwoActualComponents"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk"
         }
       ],
       "gaps": [
         "枪械速度/散布、容量/间隔和基础伤害为合成夹具；完整D2原型、近战技能分类和客户端HUD尚未接入",
-        "冻结比较值50%/200%与其他40%只验证算法；冰冻非Boss的真实被动来源、数值和完整伤害Profile未装配",
+        "历史50%/200%冻结输入与其他40%保留为算子回归；实际目标Freeze的120%已接入共享outgoing，原作近战完整叠加与具体技能资格仍待校准",
         "通用引擎已支持受管/原版回执消费、嵌套额度预留和显式damage_group共享；具体D2原版近战标签、Profile与技能归组仍未装配；double_melee为两次独立打击，split_melee为合成的同一次双分量攻击",
-        "免疫/格挡计作hit并消费、更高冰冻增益下仍消费、新枪刷新与词条替换清除均为明确内容策略，原表未说明的边界仍待校准"
+        "免疫/格挡计作hit并消费、更高冰冻增益下仍消费、新枪刷新与词条替换清除均为明确内容策略，原表未说明的边界仍待校准",
+        "已接入共享outgoing与真实Freeze目标贡献；冻结近战乘算/互斥存在公开冲突，当前以Compendium取高加法模型为明确内容政策，未宣称实测解决"
       ]
     },
     {
@@ -5582,12 +5589,13 @@
           "text_sha256": "168797cc7db11235a4a09f963b0ba5b1f9bbfcb4f6d96a60cb1ce22c44b1dea4"
         }
       ],
-      "scope": "实际接收者与来源分级时长、原版行动和两轴运动控制、Boss例外、地面Super解冻；按当前冻结代次累计真实损失并触发碎冰",
+      "scope": "实际接收者与来源分级时长、原版行动和两轴运动控制、Boss例外、地面Super解冻；按当前冻结代次累计真实损失并触发碎冰；按命中分类应用主武器减伤、特殊/威能和光能技能增伤、Basic/Glaive近战增量，并与攻击者One-Two Punch同组取高",
       "acceptance": [
         "普通战员六秒、Boss三秒；实际Guardian按Player非Super来源1.35秒、战斗人员或Super来源4.75秒、Roaming状态一秒",
         "Boss保留减益但不限制行动；其他目标禁止新攻击、技能和运动；地面Guardian的Super例外由服务端状态决定",
         "冻结结束一次性施放标签；缺失、死亡、未分类和授权拒绝不控制目标",
-        "HP加Chorus护盾实际损失按damage_id及Buff generation累计，旧冻结命中不计入新实例；致死、达到阈值或显式请求碎冰"
+        "HP加Chorus护盾实际损失按damage_id及Buff generation累计，旧冻结命中不计入新实例；致死、达到阈值或显式请求碎冰",
+        "冻结贡献在命中时加入攻击者同一Profile；发射后冻结/解冻生效，未知分类不猜测；实际增伤后的损失进入碎冰阈值"
       ],
       "evidence": [
         {
@@ -5632,13 +5640,34 @@
           "kind": "client_test",
           "path": "fabric/src/gametest/java/com/imdomestic/chorus/FreezeClientGameTest.java",
           "symbol": "runTest"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeDamageTest.java",
+          "symbol": "oneTwoAndActualTargetFreezeShareMaxInsteadOfMultiplyingSeparateProfiles"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeDamageTest.java",
+          "symbol": "weaponCategoriesAndLightAbilitiesUseIndependentFrozenFactors"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeDamageGameTest.java",
+          "symbol": "scaledRealMeleeLossTriggersShatterWhileBossReceivesNoMinorMeleeBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OneTwoPunchGameTest.java",
+          "symbol": "actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk"
         }
       ],
       "gaps": [
-        "冻结承伤倍率与基础/偃月近战、One-Two Punch组合未实现",
+        "基础承伤修饰和Basic/Glaive近战已实现；冻结近战与其他配装增伤的实际叠加有公开冲突，当前采用Compendium的同组取高/相加政策，未完成原作实测校准",
         "Breakout技能替换与生命成本、实际Super状态生产者、Slow百层转换、Champion反应未完成",
         "战斗人员阈值使用必填参数；100伤害仅为合成测试值；阈值排除原版Absorption、忽略重施加及禁止换弹政策待校准",
-        "技能/武器/子职业生产装配、实体效果持久化、视觉/HUD与NeoForge真实客户端尚未验收"
+        "技能/武器/子职业生产装配、实体效果持久化、视觉/HUD与NeoForge真实客户端尚未验收",
+        "主武器减伤按全局活动模式选择PvE/PvP；生产攻击标签、混合Guardian上下文和所有实际近战资格待验收"
       ]
     },
     {
@@ -5715,7 +5744,7 @@
         "实际半径、衰减、PvP伤害和PvE阈值未校准；4米/线性衰减/80玩家伤害是独立合成输入",
         "保持最初冻结者信用和非友方筛选政策待实测；施加者实体失联后的阵营参照尚未解决",
         "Stasis Crystal碎裂、具体技能/武器装配、势不可挡眩晕与其他Champion状态未完成",
-        "完整冻结承伤算法、生产内容装配、持久化和视觉反馈未完成"
+        "冻结近战叠加实测校准、生产内容装配、持久化和视觉反馈未完成"
       ]
     }
   ]

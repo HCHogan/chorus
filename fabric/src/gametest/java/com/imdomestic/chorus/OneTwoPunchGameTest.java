@@ -16,4 +16,6 @@ public class OneTwoPunchGameTest extends com.imdomestic.chorus.test.OneTwoPunchG
     public void realTicksExpireTheThreeSecondBuffBeforeTheNextMelee(GameTestHelper h) throws Exception { super.realTicksExpireTheThreeSecondBuffBeforeTheNextMelee(h); }
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:one_two_punch_unknown", maxTicks = 25) @Override
     public void unknownBoostedMeleeReceiptStopsBeforeSecondStrikeWithoutReplaying(GameTestHelper h) throws Exception { super.unknownBoostedMeleeReceiptStopsBeforeSecondStrikeWithoutReplaying(h); }
+    @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:one_two_freeze",maxTicks=35) @Override
+    public void actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk(GameTestHelper h)throws Exception{super.actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk(h);}
 }

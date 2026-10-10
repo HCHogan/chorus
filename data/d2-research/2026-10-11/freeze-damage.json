@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "scope": "Freeze incoming-category factors and a Compendium-based melee MAX policy; not a fully calibrated live-game melee model",
+  "compendium": [
+    {
+      "sheet": "Stasis",
+      "snapshot_cell": "D8",
+      "original_cell": "D10",
+      "text_sha256": "168797cc7db11235a4a09f963b0ba5b1f9bbfcb4f6d96a60cb1ce22c44b1dea4"
+    },
+    {
+      "sheet": "Weapon Perks",
+      "snapshot_cell": "C154",
+      "original_cell": "C155",
+      "text_sha256": "a9e37fa6cc2248eb5469ad2e437a2b0392fab6417a23f06f08f5c693c48999ce"
+    }
+  ],
+  "source_archive": "data/d2-research/2026-10-11/control-stasis-source.html.gz",
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1",
+      "claim": "Melee buildcrafting bonuses move to additive stacking; enhanced melee stat remains a separate base-damage multiplier. This alone does not verify every current Freeze interaction."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/twid_06_19_2025",
+      "claim": "Describes the additive melee system and separate enhanced-stat multiplier."
+    }
+  ],
+  "conflicting_player_report": {
+    "url": "https://www.bungie.net/co/Forums/Post/265280642?page=0&sort=0",
+    "reported_at": "2026-06-16",
+    "status": "First-person game-issue report; not independently reproduced or treated as confirmed current behavior",
+    "claim": "Reports Frozen melee remaining multiplicative with other buffs and losing to the presence of One-Two Punch, rather than the simple shared additive maximum."
+  },
+  "implementation": {
+    "provider": "victim; evaluate:on_hit; joins the same outgoing Profile as attacker contributions",
+    "primary": "delta -0.05 PVE, -0.6 PVP; explicit weapon_damage and exactly one ammo category",
+    "special_or_heavy": "delta +0.10; explicit weapon_damage and exactly one ammo category",
+    "light_ability": "delta +0.05 with ability_damage and at least one arc/solar/void tag",
+    "basic_or_glaive": "delta +1.20 for saved Freeze tiers Rank-and-File/Elite/Guardian, explicit melee_damage and exactly one basic_melee/glaive_melee category",
+    "melee_group": "1 + max(One-Two Punch delta, eligible Frozen delta) + other additive melee deltas; explicitly assumed policy from Compendium, not resolution of the current-game dispute",
+    "independent_factors": "Frozen category factor multiplies melee group; target defense and native mitigation remain subsequent stages",
+    "sampling": "Current target state at each impact, including captured attacks; no target contributions at capture"
+  },
+  "remaining": [
+    "Full damage and kill classification for production weapons/abilities",
+    "Resolve actual-game Frozen melee stacking conflict",
+    "Mixed PvE/Guardian context for primary reduction uses existing global activity mode policy",
+    "Breakout health cost, Slow conversion, Champion reactions, Crystal and production integration"
+  ]
+}

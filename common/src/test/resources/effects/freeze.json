@@ -1947,6 +1947,269 @@
             }
           ]
         }
+      ],
+      "modifiers": [
+        {
+          "id": "primary",
+          "profile": "chorus_d2:outgoing",
+          "stage": "frozen_damage_type",
+          "group": "frozen_damage_type",
+          "op": "multiply",
+          "provider": "victim",
+          "evaluate": "on_hit",
+          "stacking_key": "chorus_d2:freeze/primary",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": -0.05,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": -0.6,
+              "unit": "delta"
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:primary_ammo"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:special_ammo"
+                    },
+                    {
+                      "type": "chorus:event_tag",
+                      "tag": "chorus:heavy_ammo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Stasis D8, Weapon Perks C154. Explicit impact tags and shared additive melee placement are Chorus policy; current-game stacking remains disputed.",
+          "confidence": "measured"
+        },
+        {
+          "id": "special_or_heavy",
+          "profile": "chorus_d2:outgoing",
+          "stage": "frozen_damage_type",
+          "group": "frozen_damage_type",
+          "op": "multiply",
+          "provider": "victim",
+          "evaluate": "on_hit",
+          "stacking_key": "chorus_d2:freeze/special_or_heavy",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:any",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:special_ammo"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:primary_ammo"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:heavy_ammo"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:heavy_ammo"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:primary_ammo"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:special_ammo"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Stasis D8, Weapon Perks C154. Explicit impact tags and shared additive melee placement are Chorus policy; current-game stacking remains disputed.",
+          "confidence": "measured"
+        },
+        {
+          "id": "light_ability",
+          "profile": "chorus_d2:outgoing",
+          "stage": "frozen_damage_type",
+          "group": "frozen_damage_type",
+          "op": "multiply",
+          "provider": "victim",
+          "evaluate": "on_hit",
+          "stacking_key": "chorus_d2:freeze/light_ability",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.05,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:ability_damage"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:arc"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:solar"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:void"
+                  }
+                ]
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Stasis D8, Weapon Perks C154. Explicit impact tags and shared additive melee placement are Chorus policy; current-game stacking remains disputed.",
+          "confidence": "measured"
+        },
+        {
+          "id": "basic_or_glaive",
+          "profile": "chorus_d2:outgoing",
+          "stage": "melee",
+          "group": "melee/one_two_or_frozen",
+          "op": "multiply",
+          "provider": "victim",
+          "evaluate": "on_hit",
+          "stacking_key": "chorus_d2:freeze/basic_or_glaive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1.2,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:by_buff_tier",
+                  "values": [
+                    1,
+                    0,
+                    0,
+                    1,
+                    1,
+                    1
+                  ],
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_damage"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_tag",
+                        "tag": "chorus:basic_melee"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_tag",
+                        "tag": "chorus:glaive_melee"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:basic_melee"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 CSV Stasis D8, Weapon Perks C154. Explicit impact tags and shared additive melee placement are Chorus policy; current-game stacking remains disputed.",
+          "confidence": "assumed"
+        }
       ]
     }
   ]

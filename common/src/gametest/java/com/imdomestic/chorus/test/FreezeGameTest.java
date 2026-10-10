@@ -36,16 +36,17 @@ public class FreezeGameTest {
     static final class Harness implements AutoCloseable {
         final GameTestHelper h;final MinecraftEffectRuntime runtime;final MinecraftWorldActions world;final List<LivingEntity> actors=new ArrayList<>();
         final List<StatusResult.Check> checks=new ArrayList<>();final List<DamageCommand> damage=new ArrayList<>();final List<DamageReceipt> receipts=new ArrayList<>();final List<TargetQuery> queries=new ArrayList<>();final List<Action.CueCommand> cues=new ArrayList<>();
-        boolean allow=true,failShatter,discardTriggerVictim;EffectSource driver;
-        Harness(GameTestHelper h){
+        boolean allow=true,failShatter,discardTriggerVictim;EffectSource driver;Set<String> nativeTags=Set.of();
+        Harness(GameTestHelper h){this(h,program(),EffectState.empty());}
+        Harness(GameTestHelper h,CompiledEffects program,EffectState initial){
             this.h=h;var type=h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE,Identifier.parse("chorus_gametest:delayed")));
             world=new MinecraftWorldActions(h.getLevel(),this::resolve,d->new DamageSource(type,null,resolve(d.source().owner())),(_,_) -> allow,cues::add);
-            runtime=MinecraftEffectRuntime.install(h.getLevel(),program(),EffectState.empty(),new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),r->{
+            runtime=MinecraftEffectRuntime.install(h.getLevel(),program,initial,new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),r->{
                 if(r.command() instanceof StatusResult.Check q)checks.add(q);if(r.command() instanceof DamageCommand d)damage.add(d);if(r.command() instanceof TargetQuery q)queries.add(q);
                 var result=world.apply(r);if(result instanceof DamageReceipt receipt)receipts.add(receipt);
                 if(r.command() instanceof DamageCommand d){if(discardTriggerVictim&&d.tags().contains("test:freeze_trigger"))resolve(d.target()).discard();if(failShatter&&d.tags().contains("chorus:freeze_shatter"))throw new IllegalStateException("unknown shatter outcome");}
                 return result;
-            },MinecraftEffectRuntime::nativeSource);
+            },(target,source,amount)->{var original=MinecraftEffectRuntime.nativeSource(target,source,amount);return nativeTags.isEmpty()?original:new DamageCommand(original.target(),original.source(),original.amount(),original.damageType(),nativeTags,Set.of(),false,Optional.of("chorus_d2:outgoing"));});
         }
         LivingEntity resolve(String id){return actors.stream().filter(a->a.getUUID().toString().equals(id)&&!a.isRemoved()).findFirst().orElse(null);}
         <T extends Mob>T mob(EntityType<T> type,int x,int z,String tier){var actor=h.spawnWithNoFreeWill(type,new Vec3(x+.5,40,z+.5));actor.setNoGravity(true);actor.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);actor.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);actor.setHealth(1000);if(actor instanceof Skeleton)actor.setItemSlot(EquipmentSlot.HEAD,new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.CARVED_PUMPKIN));if(!tier.isEmpty())actor.addTag("chorus_d2:"+tier);actors.add(actor);return actor;}

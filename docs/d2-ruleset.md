@@ -196,13 +196,15 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 
 达到门槛即获得 3 秒增益，下一次合格近战命中后消费，收枪移除。内容监听 shot_progress 的门槛跨越；强化版不等待另外两颗结束，同枪第 11 / 12 颗不重置计时。新一枪再次达标刷新时长但不叠层，恰好到期时已无增益。旧持有者的弹丸不能触发新持有者；更换词条 / 卸下来源会清除就绪。
 
-近战组按 `1 + max(One-Two Punch 增量, 冰冻非 Boss 被动近战增量) + 其他可相加近战增量` 求倍率，再用于该阶段输入伤害。互斥关系来自 C154，近战 buildcrafting 增伤改为相加及霰弹枪 PvE 的 +150% 由 [Bungie 9.0.0.1](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1) 支持。测试注入的冰冻 50% / 200% 和其他 40% 只验证取高与相加，不是原作冰冻数值。
+近战组按 `1 + max(One-Two Punch 增量, 冰冻非 Boss 被动近战增量) + 其他可相加近战增量` 求倍率，再用于该阶段输入伤害。互斥关系来自 C154，近战 buildcrafting 增伤改为相加及霰弹枪 PvE 的 +150% 由 [Bungie 9.0.0.1](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1) 支持。早期测试注入的冰冻 50% / 200% 和其他 40% 继续用于算子回归；现在实际 Freeze 通过 provider:victim 把符合等级 / Basic 或 Glaive 资格的 +120% 放进同组。两片段统一链接 combat_damage.json 的 chorus_d2:outgoing。
 
-11 项纯核心、6 项双加载器共享场景覆盖两种武器 / 活动模式、实际玩家命令与扣血、分散命中 / 不同枪次 / 重复接触、三秒到期、收枪、来源移交、未结束弹丸、免疫 / 取消与未知回执。下一击通过 consume_on_damage 在回执完成时消费；同一动作体的第二次独立近战已无此加成，复用攻击快照也不能复制增益。未知结果保留待确认状态并停止，不重放已经发生的扣血。
+11 项 OneTwoPunchTest、7 项双加载器共享 OneTwoPunchGameTest 场景覆盖两种武器 / 活动模式、实际玩家命令与扣血、分散命中 / 不同枪次 / 重复接触、三秒到期、收枪、来源移交、未结束弹丸、免疫 / 取消与未知回执。下一击通过 consume_on_damage 在回执完成时消费；同一动作体的第二次独立近战已无此加成，复用攻击快照也不能复制增益。未知结果保留待确认状态并停止，不重放已经发生的扣血。
 
 内容已声明 sharing=group：受管技能可用 begin_damage_group 把同一次攻击的多个分量明确关联。合成 split_melee 把 10 点近战拆为 5 + 5，普通 PvE 霰弹枪 Buff 下分别造成 12.5 + 12.5，后续独立 10 点近战不再增伤；第一段回执即消费 Buff。原有 double_melee 继续表示两次独立打击，结果为 25 + 10。这个对照验证引擎可以表达两种语义，不代表已校准每个 D2 近战技能的分量归组。
 
-**当前为 partial。** 枪械速度 / 散布、容量 / 间隔和基础伤害是合成夹具参数，近战 Profile 仅验证增益组合。引擎已支持原版观察入口自动消费和嵌套伤害预留；默认原版来源不猜测 D2 标签，完整 D2 原型、技能近战分类 / 攻击归组和冰冻非 Boss 被动来源仍未完成。以 hit 计入免疫 / 格挡及消费、冻结增益更高时仍消费、新枪刷新和词条替换清除，是明确的当前内容策略；原表未说明的边界仍需原作校准。
+**当前为 partial。** 枪械速度 / 散布、容量 / 间隔和基础伤害是合成夹具参数，近战 Profile 已装配目标 Freeze 的共享取高分组。引擎已支持原版观察入口自动消费和嵌套伤害预留；默认原版来源不猜测 D2 标签，完整 D2 原型、技能近战分类 / 攻击归组仍未完成。以 hit 计入免疫 / 格挡及消费、冻结增益更高时仍消费、新枪刷新和词条替换清除，是明确的当前内容策略；原表未说明的边界仍需原作校准。
+
+当前冻结近战归组仍是明确的 Compendium 内容政策。[2026-06-16 的玩家问题报告](https://www.bungie.net/co/Forums/Post/265280642?page=0&sort=0)给出了冻结加成仍与其他近战乘算、且被 One-Two Punch 存在状态排除的对照结果，与原表“较高者优先”的简单加法模型不一致。这是第一手报告，不是已复现的当前版本结论；官方通用加法改动也不能单独证明该交互已修复。保留 partial 与该冲突，相关数值、分类、政策和来源见 [冻结伤害记录](../data/d2-research/2026-10-11/freeze-damage.json)。
 
 ## 弹药生成、补充与换弹
 
@@ -950,7 +952,7 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 2026-10-11 重新抓取原表 Stasis B9/D9、B10/D10、B11/D11 和 Strand B11/D11，与固定 CSV 的 Slow、Freeze、Shatter、Suspend 描述归一化一致。原始 HTML、哈希、坐标和待实现要求见 [控制效果资料](../data/d2-research/2026-10-11/control-effects.json)。[Bungie 9.7.0（2026-06-09）](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)将碎冰伤害恢复为眩晕势不可挡，因此不能沿用 9.0.0.1 的过载映射，也不能把 Freeze 施加事实直接当成 Shatter 伤害。
 
-现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤修饰、Breakout 与实际技能来源仍未完成；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
+现有行动门槛可以分别表达技能、武器输入、原版射击和近战资格；它们不会自动实现完整控制状态。Slow 还需要百层到 Freeze 的转换、区分目标的移动 / 武器惩罚；Freeze 已有分级时长、实际损失阈值、Boss 例外、地面 Super 解冻和跨目标碎冰；承伤分类修饰已接线，近战叠加实测、Breakout 与实际技能来源仍未完成；Suspend 的分级状态、战斗人员控制和 Boss 短暂状态 / 后续伤害现已接线；Guardian 已接入显式参数的水平限速，原作速度 / 腰射限制与镜头仍需进一步完成，见下节。
 
 已增加通用 movement_input / jump 门槛、服务端输入归约和客户端同步过滤，保留惯性、重力与外部冲量。另有 horizontal_motion / vertical_motion，可固定全部坐标或当前高度，覆盖原版位置 / 速度写入与服务端玩家位置包纠正；它们明确阻挡受限轴的外力，和输入门槛不同。另有 displace_entity / world_direction，可按完整碰撞箱逐步抬升、触顶停升并保留当前悬停；Buff 到期或清除后释放。其合成夹具已区分请求、碰撞裁剪和实际距离，尚未校准 Suspend 的抬升高度 / 速度、Guardian 有限水平运动曲线；目标等级、Boss 与状态结束伤害现由下节 Suspend 内容组合。不能用这些通用机制或 NoAI 代替完整 Freeze / Suspend。Suspend、Freeze 和 Shatter 均保持 partial 审阅；其余通用接口不自动增加控制效果完成数，见 [主动移动输入限制](engine-data-packs.md#原版主动移动输入与跳跃限制)及[碰撞感知位移](engine-data-packs.md#碰撞感知位移与逐步抬升)。
 
@@ -981,7 +983,22 @@ Guardian 处于冻结时，只有服务端确认 on_ground 且最终技能带 ch
 
 [freeze_test_calibration.json](../common/src/test/resources/effects/freeze_test_calibration.json) 明确提供合成阈值 100、半径 4 米和 Guardian 碎冰伤害 80；[freeze_test_falloff.json](../common/src/test/resources/effects/freeze_test_falloff.json) 提供从 0 米的 1 到 4 米的 0 的合成线性曲线。这些均非原作实测参数。12 项纯核心测试、8 项双端共享世界场景和 FreezeClientGameTest 分别覆盖数值 / 生命周期、真实扣血与行动、实际玩家和远端生物的冻结同步与解冻。
 
-冻结承伤修饰（主武器、特殊 / 威能、元素技能、基础 / 偃月近战）及其与 One-Two Punch 的组合仍需独立数值实现和验收；目前没有把这些倍率叠进冻结状态。[Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 的 Boss 冻结类型和 Celestial Nighthawk 对冻结 Boss 的异常增伤，不能将旧异常固化为通用规则。Slow 百层转换、Stasis Crystal 碎裂、实际技能 / 武器生产者、Shatter 对势不可挡的眩晕、持久化和正式 HUD / 视觉仍未完成。
+冻结承伤修饰现在由该 Buff 的 provider:victim / evaluate:on_hit 声明进入 chorus_d2:outgoing：
+
+| 明确的命中分类 | 当前冻结修饰 |
+| --- | --- |
+| weapon_damage + primary_ammo | PvE ×0.95，PvP ×0.4；当前按规则集活动模式选择 |
+| weapon_damage + special_ammo 或 heavy_ammo | ×1.1 |
+| ability_damage + arc / solar / void | ×1.05 |
+| melee_damage + basic_melee 或 glaive_melee，且冻结 tier 属于普通 / 精英 / Guardian | +120%，在 melee/one_two_or_frozen 与 One-Two Punch 取高后，再与其他近战增量相加 |
+
+以上标签均使用 chorus: 前缀。武器分类必须恰有一种弹药类别；基础 / 偃月分类也互斥，缺失或冲突时对应项不贡献，不从手持物猜测。普通 / 精英共享 tier 1，Miniboss / Champion 和 Boss 不获得该 +120%。一个同时有基础近战与光能技能资格的攻击按 (1 + 近战组增量) × 1.05 计算；偃月近战不会因为武器本身使用特殊弹药就自动得到 weapon_damage 资格。实际技能 / 枪械生产者仍须提供正确标签。
+
+combat_damage.json 的有序阶段为 ability_stat → melee → perk → frozen_damage_type → outgoing_debuff；冻结类别项按 PRODUCT 合并，随后继续目标防御和护盾 / 原版结算。一次世界受击只结算一次；实际损失而非未缩放输入进入碎冰阈值。攻击快照不捕获目标冻结，未来每次命中读当前目标的 Freeze、tier 与来源；原冻结者仍出现在计算贡献追踪里，伤害 / 击杀信用不因此转移。
+
+6 项 FreezeDamageTest 与 3 项 FreezeDamageGameTest 验证分类、等级、与 Woven Mail 的顺序、捕获后状态变化和实际扣血；新增 OneTwoPunchGameTest 从真实霰弹命中进入冻结目标的两次近战：基础 10 的第一次按较高词条得到 25，词条消费后第二次仍由 Freeze 得到 22。这里验收的是上述可追踪内容政策，冻结近战实测冲突、原作完整近战分类及混合 PvE / Guardian 环境中的主武器政策仍待校准。
+
+[Bungie 9.7.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0_1)修复过 Howl of the Storm 的 Boss 冻结类型和 Celestial Nighthawk 对冻结 Boss 的异常增伤，不能将旧异常固化为通用规则。Slow 百层转换、Stasis Crystal 碎裂、实际技能 / 武器生产者、Shatter 对势不可挡的眩晕、持久化和正式 HUD / 视觉仍未完成。
 
 ## Suspend 的分级状态与脱离伤害
 

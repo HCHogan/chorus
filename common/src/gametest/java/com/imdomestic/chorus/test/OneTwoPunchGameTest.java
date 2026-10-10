@@ -38,7 +38,7 @@ public class OneTwoPunchGameTest {
         final List<EffectProjectile> projectiles = new ArrayList<>(); final List<Double> melee = new ArrayList<>(); final List<DamageReceipt> hits = new ArrayList<>();
         boolean unknownMelee;
         Harness(GameTestHelper h) throws Exception { this(h, false, false, EffectState.Mode.PVE); }
-        Harness(GameTestHelper h, boolean enhanced, boolean handCannon, EffectState.Mode mode) throws Exception {
+        Harness(GameTestHelper h, boolean enhanced, boolean handCannon, EffectState.Mode mode, String... extra) throws Exception {
             this.h = h;
             var cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "one-two-test"), false);
             owner = new ServerPlayer(h.getLevel().getServer(), h.getLevel(), cookie.gameProfile(), cookie.clientInformation());
@@ -48,7 +48,8 @@ public class OneTwoPunchGameTest {
             target = h.spawnWithNoFreeWill(EntityTypes.COW, 2, 46, 3); target.setPos(h.absoluteVec(new Vec3(2.5, 46, 3.5))); target.setNoGravity(true);
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000); target.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1); target.setHealth(1000);
             var fragments = new ArrayList<EffectProgram>();
-            for (String fixture : List.of("one_two_punch", "one_two_punch_weapon")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
+            var fixtures = new ArrayList<>(List.of("one_two_punch", "one_two_punch_weapon", "combat_damage")); fixtures.addAll(List.of(extra));
+            for (String fixture : fixtures) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
                 var data = JsonParser.parseReader(reader).getAsJsonObject();
                 if (fixture.equals("one_two_punch_weapon")) {
                     if (handCannon) data.getAsJsonObject("equipment").getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonArray("tags").set(1, new JsonPrimitive("chorus_d2:hand_cannon"));
@@ -192,4 +193,14 @@ public class OneTwoPunchGameTest {
             });
         } catch (Exception | Error error) { t.close(); throw error; }
     }
+    @GameCase(environment="chorus_gametest:one_two_freeze",maxTicks=35)
+    public void actualPelletsAndFrozenVictimUseOneSharedMeleeMaximumAndConsumeOnlyThePerk(GameTestHelper h)throws Exception{
+        var t=new Harness(h,false,false,EffectState.Mode.PVE,"freeze","freeze_test_falloff");try{
+            t.command("chorus weapon fire");h.runAfterDelay(10,()->{try(t){
+                t.settled();h.assertTrue(t.ready("a").isPresent(),"real pellet hits did not arm One-Two Punch");t.target.addTag("chorus_d2:elite");var freezer=FreezeGameTest.source(t.owner);t.runtime.bind(freezer);FreezeGameTest.event(t.runtime,freezer,t.target,"apply_freeze");
+                double before=t.target.getHealth();t.meleeRange();t.ability("melee");t.ability("melee");h.assertValueEqual(t.melee,List.of(25.0,22.0),"perk MAX then live frozen bonus");near(h,t.target.getHealth(),before-47,"actual combined loss");h.assertTrue(t.ready("a").isEmpty(),"One-Two Punch did not consume");h.assertTrue(t.state().buffs().instances().values().stream().anyMatch(b->b.definition().id().equals("chorus_d2:freeze")),"melee consumption removed target Freeze");t.settled();h.succeed();
+            }catch(Exception e){throw new RuntimeException(e);}});
+        }catch(Exception|Error e){t.close();throw e;}
+    }
+
 }

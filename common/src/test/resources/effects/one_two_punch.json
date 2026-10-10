@@ -1,12 +1,7 @@
 {
-  "version":"test-1",
-  "profiles":[{"id":"test:melee_damage","version":"test-1","input_unit":"damage","steps":[
-    {"type":"chorus:apply","id":"melee","operation":"multiply","group":{
-      "name":"melee","reduction":"sum","children":[{"name":"one_two_or_frozen","reduction":"max"}]
-    }}
-  ]}],
+  "version":"compendium-2026-10-05",
   "buffs":[{
-    "definition":{"id":"chorus_d2:one_two_punch","version":"test-1","duration":3,
+    "definition":{"id":"chorus_d2:one_two_punch","version":"compendium-2026-10-05","duration":3,
       "attach":"holder","instanced_by":"weapon","refresh":"reset","on_stow":"remove"},
     "bundle":"chorus_d2:one_two_punch_active",
     "consume_on_damage":{"when":"hit","sharing":"group","if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"}}
@@ -34,7 +29,7 @@
       ]}
     ]},
     {"id":"chorus_d2:one_two_punch_active","scope":"buff","modifiers":[{
-      "id":"melee_bonus","profile":"test:melee_damage","stage":"melee","group":"melee/one_two_or_frozen",
+      "id":"melee_bonus","profile":"chorus_d2:outgoing","stage":"melee","group":"melee/one_two_or_frozen",
       "op":"multiply","stacking_key":"chorus_d2:one_two_punch","evaluate":"on_hit",
       "if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"},
       "value":{"type":"chorus:choose","if":{"type":"chorus:source_tag","tag":"chorus_d2:hand_cannon"},

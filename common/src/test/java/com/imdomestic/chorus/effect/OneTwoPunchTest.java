@@ -28,7 +28,7 @@ class OneTwoPunchTest {
         Harness(boolean enhanced, boolean handCannon, EffectState.Mode mode, JsonObject fixture) throws Exception {
             this.enhanced = enhanced;
             if (handCannon) fixture.getAsJsonObject("equipment").getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonArray("tags").set(1, new JsonPrimitive("chorus_d2:hand_cannon"));
-            program = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, fixture).getOrThrow(), load("one_two_punch").program()));
+            program = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, fixture).getOrThrow(), link("one_two_punch","combat_damage").program()));
             session = new EffectSession(engine(program), EffectState.empty().withMode(mode), request -> {
                 return switch (request.command()) {
                     case PositionQuery q -> new PositionQuery.Result(q, Optional.of(POINT));
@@ -152,6 +152,6 @@ class OneTwoPunchTest {
         var capture = new JsonObject(); capture.add("action", attack); capture.addProperty("as", "attack"); actions.add(capture);
         for (int i = 0; i < 2; i++) actions.add(JsonParser.parseString("{\"type\":\"chorus:damage_snapshot\",\"snapshot\":\"attack\",\"target\":{\"binding\":\"victim\"}}"));
         var h = new Harness(false, false, EffectState.Mode.PVE, data); h.arm(); h.ability("double_melee"); assertEquals(List.of(25.0, 10.0), h.melee);
-        var p = load("one_two_punch").program(); assertEquals(p, EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, p).getOrThrow()).getOrThrow());
+        var p = link("one_two_punch","combat_damage").program(); assertEquals(p, EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, p).getOrThrow()).getOrThrow());
     }
 }

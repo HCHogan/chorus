@@ -17,11 +17,35 @@
         },
         {
           "type": "chorus:apply",
+          "id": "melee",
+          "operation": "multiply",
+          "group": {
+            "name": "melee",
+            "reduction": "sum",
+            "children": [
+              {
+                "name": "one_two_or_frozen",
+                "reduction": "max"
+              }
+            ]
+          }
+        },
+        {
+          "type": "chorus:apply",
           "id": "perk",
           "operation": "multiply",
           "group": {
             "name": "perk",
             "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "frozen_damage_type",
+          "operation": "multiply",
+          "group": {
+            "name": "frozen_damage_type",
+            "reduction": "product"
           }
         },
         {
