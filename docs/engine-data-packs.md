@@ -1615,7 +1615,7 @@ AbilityInput.Receipt input = runtime.abilityInput(player, "chorus_d2:grenade", A
 
 `chorus:ability_input` 网络包包含正递增 sequence、原按下的 gesture、维度、槽位及 edge；PRESS 要求 gesture 等于 sequence。服务器按实际连接记录最新序号，在资格检查和世界操作之前消费序号；重复包不重试，过时维度不施放。服务端 tick 粒度及到包时点决定时长；尚未实现延迟补偿或客户端成功确认。未知世界结果保留已提交支付与副作用，停止运行时且不重放。
 
-`bleak_watcher_conversion.json` 的 SOURCE Bundle 要求显式 `hold_time: second` 参数，仅在松开且正阈值达到时替换为冰炮台。缺少参数拒绝绑定，非正阈值不转换；没有该来源、短按或直接 use 均保留原选择。0.3 秒仅是测试校准，原表没有提供可确认的长按阈值。此来源仍需正式 Aspect 装配挂载；它不覆盖全局手雷冷却或 CES。
+`bleak_watcher_conversion.json` 的 SOURCE Bundle 要求显式 `hold_time: second` 参数，仅在松开且正阈值达到时替换为冰炮台。缺少参数拒绝绑定，非正阈值不转换；没有该来源、短按或直接 use 均保留原选择。0.3 秒仅是测试校准，原表没有提供可确认的长按阈值。`bleak_watcher_aspect.json` includes 此来源，并覆盖共用手雷 Profile 的基础恢复率和接收系数；正式 Aspect 装配挂载与换装能量迁移仍待实现，详见 [冰炮台规则集](d2-ruleset.md#bleak-watcher-的独立炮台与五连发)。
 
 ## 技能、开火与手动换弹的行动限制
 
@@ -2055,7 +2055,7 @@ on_use 的来源属性必须在捕获时可求值，结果保存为常量；vict
 
 `character_stats.json` 定义 Health / Grenade / Melee / Class / Super / Weapons 六个属性 Profile，每项合计来源贡献后限制在 0–200。`armor_stats.json` 的 SOURCE Bundle 要求六项 stat_point 参数，按实际装备来源累加，不先钳制或改写物品原始值。`armor_stat_inputs.json` 展示 helmet / arms / chest / legs / class_item 五槽与显式物品参数映射；其中 `test:armor_*` 和每项 0–200 的输入范围只是验收原型，不是原作合法掉落生成器，不校验六项总点数、金装特例或 archetype。
 
-实际技能定义通过 `effects.energy_scaling.bundle` 选择 `chorus_d2:arcbolt_energy_scaling` 或 `chorus_d2:threaded_spike_energy_scaling`，两者查询零输入的最终 grenade_stat / melee_stat 再套用已有主动 / 被动曲线。裸装、首次选择和只有碎片时均无需先创建属性 Buff。卸载技能来源后该曲线不再贡献，资源账户仍按固定定义的基础率 / CES 及剩余来源运行。
+实际技能定义通过 `effects.energy_scaling.bundle` 选择 `chorus_d2:arcbolt_energy_scaling` 或 `chorus_d2:threaded_spike_energy_scaling`，两者查询零输入的最终 grenade_stat / melee_stat 再套用已有主动 / 被动曲线。裸装、首次选择和只有碎片时均无需先创建属性 Buff。卸载技能来源后该曲线不再贡献，资源账户仍按固有基础率 / CES 及剩余来源运行。Arcbolt、Duskfield 和 Bleak Watcher 的能量片段现须额外链接 `grenade_energy.json`；各自选择期修饰以 resource 引用限定原账户，共用 Profile 接受 Aspect 的基准覆盖，内容迁移不能同时保留旧 CES 曲线。
 
 原 `grenade_stat / melee_stat` Buff 现在只把 points 加进对应属性 Profile，可用于独立的角色固有输入；没有时贡献为零。宿主若继续填写这些组件，须只填未由装备来源表示的点数，不能把已汇总护甲值再填进去。查询 Profile 的 input 同样用 0，避免把组件既作为 input 又作为修饰加两次。Buff 存储值与实际 Gear 数值均不随最后的限幅改写。
 

@@ -211,6 +211,9 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/ember_of_tempering.json'
         include 'effects/character_stats.json', 'effects/armor_stats.json', 'effects/armor_stat_inputs.json'
         include 'effects/tempering_weapon.json'
+        include 'effects/grenade_energy.json'
+        include 'effects/bleak_watcher_aspect.json'
+        include 'effects/bleak_watcher_aspect_inputs.json'
         include 'effects/arcbolt_energy.json'
         include 'effects/threaded_spike_test_calibration.json'
     }

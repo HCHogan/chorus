@@ -6,8 +6,10 @@
       "capacity": 1,
       "initial": 1,
       "base_rate": 0.007593014426727412,
-      "rate_profile": "chorus_d2:duskfield_regeneration",
-      "gain_profile": "chorus_d2:duskfield_gain"
+      "rate_profile": "chorus_d2:grenade_regeneration",
+      "gain_profile": "chorus_d2:grenade_gain",
+      "gain_scalar": 0.875,
+      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
     }
   ],
   "abilities": [

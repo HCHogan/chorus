@@ -34,7 +34,7 @@ public class BleakWatcherGameTest {
         ThreadedSpikeGameTest.json("bleak_watcher_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
                 data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
         var parts = new ArrayList<EffectProgram>(); parts.add(DuranceGameTest.program().program()); parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow());
-        for (String name : List.of("bleak_watcher_energy", "bleak_watcher_inputs")) parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
+        for (String name : List.of("grenade_energy", "bleak_watcher_energy", "bleak_watcher_inputs")) parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
         return CompiledEffects.link(parts);
     }
     static String id(Entity e) { return e.getUUID().toString(); }
@@ -43,7 +43,7 @@ public class BleakWatcherGameTest {
         ThreadedSpikeGameTest.json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
                 duskfield.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
         var parts = new ArrayList<EffectProgram>(); parts.add(program().program()); parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, duskfield).getOrThrow());
-        for (String name : List.of("duskfield_energy", "duskfield_damage_test_calibration", "bleak_watcher_conversion_inputs", "bleak_watcher_conversion"))
+        for (String name : List.of("duskfield_energy", "duskfield_damage_test_calibration", "bleak_watcher_conversion_inputs", "bleak_watcher_conversion", "bleak_watcher_aspect", "bleak_watcher_aspect_inputs"))
             parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json(name)).getOrThrow());
         return CompiledEffects.link(parts);
     }
@@ -51,7 +51,7 @@ public class BleakWatcherGameTest {
         final GameTestHelper h; final MinecraftWorldActions world; final MinecraftEffectRuntime runtime; final ServerPlayer owner;
         final List<LivingEntity> entities = new ArrayList<>(); final List<EffectConstruct> turrets = new ArrayList<>(); final List<EffectProjectile> flights = new ArrayList<>();
         final List<ProjectileFlight.Launch> launches = new ArrayList<>(); final List<DamageCommand> damage = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<StatusResult.Check> checks = new ArrayList<>();
-        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failDamage;
+        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failDamage, failGainHealing;
         Harness(GameTestHelper h) { this(h, program()); }
         Harness(GameTestHelper h, CompiledEffects program) {
             this.h = h; owner = player(2.5); floor(2);
@@ -60,6 +60,7 @@ public class BleakWatcherGameTest {
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 if (request.command() instanceof StatusResult.Check check) checks.add(check);
                 var result = world.apply(request);
+                if (failGainHealing && request.command() instanceof HealingCommand) throw new IllegalStateException("Unknown healing after energy gain");
                 if (result instanceof WorldConstruct.Receipt r && r.entity().isPresent()) turrets.add((EffectConstruct) h.getLevel().getEntity(UUID.fromString(r.entity().orElseThrow())));
                 if (result instanceof ProjectileFlight.Receipt r && r.entity().isPresent()) { launches.add(r.launch()); flights.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(r.entity().orElseThrow()))); }
                 if (result instanceof DamageReceipt r && request.command() instanceof DamageCommand d && d.tags().contains("chorus_d2:bleak_watcher_bolt")) {
@@ -95,6 +96,49 @@ public class BleakWatcherGameTest {
         void finish(int ticks, Runnable check) { at(ticks, () -> { check.run(); close(); h.succeed(); }); }
         @Override public void close() { runtime.close(); flights.forEach(Entity::discard); entities.forEach(Entity::discard); blocks.forEach((p, s) -> h.getLevel().setBlockAndUpdate(p, s)); }
     }
+    static void energyInput(Harness t, String event) {
+        t.runtime.start(new RuleEngine.Signal("test:bleak_" + event, new EffectEvent(id(t.owner), id(t.owner), new BuffInstance.Origin(id(t.owner), "energy", "", ""), Set.of(), Map.of())));
+    }
+    static void prepareEnergy(Harness t) {
+        t.runtime.abilities(new AbilityChange(id(t.owner), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of(SLOT, "chorus_d2:duskfield"))));
+        t.runtime.bind(new EffectSource("energy", "test:bleak_aspect_inputs", id(t.owner), new BuffInstance.Origin(id(t.owner), "energy", "", ""), Set.of()));
+        energyInput(t, "drain");
+    }
+    static void equipAspect(Harness t) {
+        t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_aspect", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
+                Map.of("hold_time", new com.imdomestic.chorus.stat.Measure(.3, com.imdomestic.chorus.stat.Unit.SECOND))));
+    }
+    static double energy(Harness t) { return t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), "chorus_d2:duskfield_energy")).value(); }
+    @GameCase(environment="chorus_gametest:bleak_aspect_energy", maxTicks=25)
+    public void equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(GameTestHelper h) {
+        var t = new Harness(h, conversionProgram());
+        try {
+            prepareEnergy(t); long start = t.runtime.nowMicros(); long[] boundary = new long[2]; double[] balance = new double[2];
+            t.at(3, () -> { near(h, energy(t), (t.runtime.nowMicros() - start) / 1_000_000.0 / 131.7, "original recharge");
+                boundary[0] = t.runtime.nowMicros(); balance[0] = energy(t); equipAspect(t); near(h, energy(t), balance[0], "equip reset balance"); });
+            t.at(9, () -> { near(h, energy(t), balance[0] + (t.runtime.nowMicros() - boundary[0]) / 1_000_000.0 / 175.6, "aspect recharge interval");
+                boundary[1] = t.runtime.nowMicros(); balance[1] = energy(t); t.runtime.unbind("aspect"); near(h, energy(t), balance[1], "unequip reset balance"); });
+            t.finish(15, () -> near(h, energy(t), balance[1] + (t.runtime.nowMicros() - boundary[1]) / 1_000_000.0 / 131.7, "restored recharge interval"));
+        } catch (RuntimeException | Error e) { t.close(); throw e; }
+    }
+    @GameCase public void currentAspectScalarPrecedesStatGainAndFixedEnergyStillDrivesNativeHealing(GameTestHelper h) {
+        try (var t = new Harness(h, conversionProgram())) {
+            prepareEnergy(t); t.owner.setHealth(100); equipAspect(t);
+            t.runtime.bind(new EffectSource("stats", "test:bleak_stats", id(t.owner), new BuffInstance.Origin(id(t.owner), "stats", "", ""), Set.of(),
+                    Map.of("points", new com.imdomestic.chorus.stat.Measure(100, com.imdomestic.chorus.stat.Unit.STAT_POINT))));
+            energyInput(t, "base"); near(h, energy(t), .05625, "aspect gain"); near(h, t.owner.getHealth(), 105.625, "scaled gain actual healing");
+            t.runtime.unbind("aspect"); energyInput(t, "base"); near(h, energy(t), .135, "restored Duskfield gain");
+            energyInput(t, "fixed"); near(h, energy(t), .175, "fixed gain scaled again"); near(h, t.owner.getHealth(), 117.5, "fixed and restored actual healing"); t.healthy();
+        } h.succeed();
+    }
+    @GameCase public void unknownGainFollowupRetainsTheScaledEnergyAndActualHealingWithoutReplay(GameTestHelper h) {
+        try (var t = new Harness(h, conversionProgram())) {
+            prepareEnergy(t); equipAspect(t); t.owner.setHealth(100); t.failGainHealing = true;
+            try { energyInput(t, "base"); } catch (IllegalStateException expected) { /* runtime retains the committed grant and world result */ }
+            h.assertTrue(t.runtime.failure().isPresent(), "unknown followup did not stop runtime"); near(h, energy(t), .025, "committed scaled gain lost");
+            near(h, t.owner.getHealth(), 102.5, "actual healing lost"); t.runtime.prepare(); near(h, t.owner.getHealth(), 102.5, "unknown followup replayed");
+        } h.succeed();
+    }
     @GameCase(environment="chorus_gametest:bleak_conversion", maxTicks=45)
     public void convertedDuskfieldPaysItsSelectedEnergyAndDeploysARealTurretWithBleakCredit(GameTestHelper h) {
         var t = new Harness(h, conversionProgram());
@@ -123,9 +167,10 @@ public class BleakWatcherGameTest {
         try {
             var target = t.mob(6.5); String base = "chorus_d2:duskfield";
             t.runtime.abilities(new AbilityChange(id(t.owner), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of(SLOT, base))));
-            t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_conversion", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
+            t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_aspect", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
                     Map.of("hold_time", new com.imdomestic.chorus.stat.Measure(.3, com.imdomestic.chorus.stat.Unit.SECOND))));
             h.assertValueEqual(t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.PRESS, 1).outcome(), AbilityInput.Outcome.PRESSED, "held grenade press");
+            near(h, conversionProgram().resourceRate(t.state(), t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), base + "_energy"))).perSecond(), 1 / 175.6, "aspect cooldown before release");
             t.at(8, () -> {
                 h.assertTrue(t.launches.isEmpty(), "holding grenade fired before release");
                 var r = t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.RELEASE, 1);

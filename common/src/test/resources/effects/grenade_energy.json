@@ -1,0 +1,81 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:grenade_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "trigger",
+          "operation": "multiply",
+          "group": {
+            "name": "trigger",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:grenade_regeneration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "base_rate",
+          "operation": "replace",
+          "group": {
+            "name": "override",
+            "reduction": "max",
+            "families": {
+              "chorus_d2:grenade_base_override": {
+                "kind": "priority"
+              }
+            }
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:grenade_recipient_scalar",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "scalar",
+          "operation": "replace",
+          "group": {
+            "name": "override",
+            "reduction": "max",
+            "families": {
+              "chorus_d2:grenade_base_override": {
+                "kind": "priority"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

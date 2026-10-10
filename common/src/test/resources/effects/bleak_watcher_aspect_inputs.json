@@ -1,0 +1,92 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:bleak_aspect_inputs",
+      "rules": [
+        {
+          "id": "drain",
+          "on": "test:bleak_drain",
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "chorus_d2:duskfield_energy",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "payment": "drain"
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:bleak_base",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ability_energy",
+                "slot": "chorus_d2:grenade",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 0.04,
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "base"
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "credited"
+                },
+                "factor": 100,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "on": "test:bleak_fixed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ability_energy",
+                "slot": "chorus_d2:grenade",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 0.04,
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "fixed"
+              },
+              "as": "gain"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "gain",
+                  "field": "credited"
+                },
+                "factor": 100,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

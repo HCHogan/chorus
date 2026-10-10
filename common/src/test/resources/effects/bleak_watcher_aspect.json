@@ -1,0 +1,45 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:bleak_watcher_aspect",
+      "includes": [
+        "chorus_d2:bleak_watcher_conversion"
+      ],
+      "modifiers": [
+        {
+          "id": "cooldown",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "base_rate",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 10,
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.0056947608200455585,
+            "unit": "charge_fraction_per_second"
+          },
+          "reference": "Compendium original Stasis D103 states Glacier cooldown and CES override; N39 gives 175.6 seconds and .625. Verified HTML and coordinate hashes in data/d2-research/2026-10-11/bleak-watcher.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "chunk",
+          "profile": "chorus_d2:grenade_recipient_scalar",
+          "stage": "scalar",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 10,
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.625,
+            "unit": "multiplier"
+          },
+          "reference": "Compendium original Stasis D103 states Glacier cooldown and CES override; N39 gives 175.6 seconds and .625. Verified HTML and coordinate hashes in data/d2-research/2026-10-11/bleak-watcher.json.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

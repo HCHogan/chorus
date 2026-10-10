@@ -6,8 +6,10 @@
       "capacity": 1,
       "initial": 1,
       "base_rate": 0.0056947608200455585,
-      "rate_profile": "chorus_d2:bleak_watcher_regeneration",
-      "gain_profile": "chorus_d2:bleak_watcher_gain"
+      "rate_profile": "chorus_d2:grenade_regeneration",
+      "gain_profile": "chorus_d2:grenade_gain",
+      "gain_scalar": 0.625,
+      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
     }
   ],
   "abilities": [

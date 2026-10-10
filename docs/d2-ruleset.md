@@ -857,7 +857,7 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 
 ## Duskfield 暮域手雷与固定周期场
 
-[duskfield.json](../common/src/test/resources/effects/duskfield.json) 通过实际技能支付、投射物接触、固定位置 Buff、周期计时器和 invoke_bundle 组合实现。它与 duskfield_energy、Slow / Freeze、stasis_duration、Durance、character_stats、combat_damage、movement_attributes、weapon_stats 及外部碎冰 / 落点衰减 Profile 同版本链接。原表 Stasis B36/D36/N36 与 CSV B30/D30/N30 已逐格核对，新抓取的 HTML 与哈希见 [来源记录](../data/d2-research/2026-10-11/duskfield.json)。[官方 3.4.0 更新](https://www.bungie.net/7/en/News/Article/50880)曾移除引爆拉拽；该历史记录不替代当前表格的冷却和其他数值。
+[duskfield.json](../common/src/test/resources/effects/duskfield.json) 通过实际技能支付、投射物接触、固定位置 Buff、周期计时器和 invoke_bundle 组合实现。它与 grenade_energy、duskfield_energy、Slow / Freeze、stasis_duration、Durance、character_stats、combat_damage、movement_attributes、weapon_stats 及外部碎冰 / 落点衰减 Profile 同版本链接。原表 Stasis B36/D36/N36 与 CSV B30/D30/N30 已逐格核对，新抓取的 HTML 与哈希见 [来源记录](../data/d2-research/2026-10-11/duskfield.json)。[官方 3.4.0 更新](https://www.bungie.net/7/en/News/Article/50880)曾移除引爆拉拽；该历史记录不替代当前表格的冷却和其他数值。
 
 | 阶段 | 伤害 | 战员 / Guardian 的 Slow | 时长 / 周期 |
 | --- | --- | --- | --- |
@@ -1136,7 +1136,13 @@ Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害�
 
 当前定义可独立选择，也已通过 `cost_from: base_selection` 支持转换时消费原手雷账户。[转换来源](../common/src/test/resources/effects/bleak_watcher_conversion.json) 在松开时读取服务端计量的 `input_hold_time`，达到显式正数 `hold_time: second` 才把所选手雷转换成炮台；无来源、短按或直接 use 不转换。长按本身不扣费或提前投掷。双端场景已验证从真实长按转换暮域，实际扣掉暮域的一份能量、保持暮域基础选择和常驻来源、保留冰炮台的攻击信用；独立炮台账户不被扣除。
 
-默认 V 的可重绑定手雷键和按下 / 松开协议已接入两加载器，具体取消与重复包语义见 [输入协议](engine-data-packs.md#按下长按与松开)。原表只说明 hold，并未给出阈值；测试的 0.3 秒是合成校准。**正式 Aspect / 子职业装备约束，以及装备 Aspect 时对所有所选手雷基础冷却 / CES 的覆盖仍未实现**。转换来源当前显式绑定，不能用模板独立选择时的冰川回充数值声称全局覆盖已经完成。来源按松开时的当前装配读取，不在按下时冻结。
+默认 V 的可重绑定手雷键和按下 / 松开协议已接入两加载器，具体取消与重复包语义见 [输入协议](engine-data-packs.md#按下长按与松开)。原表只说明 hold，并未给出阈值；测试的 0.3 秒是合成校准。正式 Aspect / 子职业装备约束仍未实现；下面的组合来源当前显式绑定，来源按松开时的当前装配读取，不在按下时冻结。
+
+[bleak_watcher_aspect.json](../common/src/test/resources/effects/bleak_watcher_aspect.json) includes 长按转换来源，并给共用手雷 Profile 提供两个独立覆盖。`grenade_regeneration` 首先将固有 base_rate 替换为 `1 / 175.6 charge_fraction_per_second`，再应用当前 Grenade 属性恢复倍率；`grenade_recipient_scalar` 将资源固有 gain_scalar 替换为 0.625，之后才由 `grenade_gain` 计算属性和触发来源倍率。它们使用同一优先级家族，重复来源不会累乘；不同覆盖的优先级属于内容政策。短按普通手雷同样受回充覆盖，不要求本次已经转换成炮台。
+
+Arcbolt、Duskfield 和独立 Bleak Watcher 的资源已接入 [共用手雷 Profile](../common/src/test/resources/effects/grenade_energy.json)，固有冷却和系数仍保留在各自资源声明中。覆盖按接收账户持有者收集来源，不影响队友或其他种类的资源；新手雷只要引用这些 Profile 即可加入，不依赖技能 ID 特例列表。原有选择期属性修饰仍按 resource 引用限定到本账户。卸下 Aspect 恢复原始基准，换装时先结算旧时间段，保留余额；fixed 回能、实付退款及完整充能跳过接收系数。参考数值先去除旧因子，再应用当前 0.625，不能把新旧 CES 同时乘上。
+
+原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。当前运行时保留候选技能的独立账户，所有采用共用 Profile 的账户都参与覆盖；尚未实现原作切换手雷 / 子职业时的共享槽能量迁移，不能把余额保留政策当作原作换装复现。
 
 部署弹体在实体或方块接触点尝试生成构造物；无有效接触不生成。当前位置用接触点作为脚底，生成遭遇阻挡时保留已支付能量；落点偏移、弹跳和退款政策未作原作校准。构造物与行为期限同时捕获，Durance 后续卸下不缩短已有期限。每组第一枚直接调用发射 bundle，其余四枚由行为拥有的延迟回调触发；每枚发射前再次观察炮台存活并重新选目标。目标不合格或实际发射被拒绝时保持 67% 减伤，首个 `launch_as.launched` 回执才写入 fired 状态。该开火边界是明确的 Chorus 政策。
 
@@ -1146,4 +1152,4 @@ Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害�
 
 单发伤害、部署和射击的速度 / 重力 / 阻力 / 寿命、实体尺寸、第一组相位、四枚延迟及追踪转向参数都是必填校准输入；缺少参数在支付前报错。[独立测试校准](../common/src/test/resources/effects/bleak_watcher_test_calibration.json) 使用每发 1 伤害、0.25 秒首组延迟，以及 0.175 / 0.35 / 0.525 / 0.7 秒组内延迟，均为合成验收值。不要据此宣称复现了原作精确连发节奏或伤害。
 
-10 项 BleakWatcherTest 与 8 项双加载器共享场景覆盖真实投掷落地、150 HP / 减伤、连续实际扣血、战员五发和 Guardian 十发冻结、阵营变化、两个炮台的 25 / 30 秒独立寿命、摧毁后的在途弹体、消费已选暮域能量的转换、服务器计时的长按投掷，以及未知伤害结果不退款、不重放、不继续施加 Slow。另有 AbilityInputTest 验证来源和阈值资格，通用输入世界场景覆盖重复输入与取消。定义仍放在测试资源；正式子职业目录、完整 Aspect / 金装互动、原作参数校准、技能 HUD、美术和持久化仍待完成，覆盖保持 **partial**。
+10 项 BleakWatcherTest、5 项 BleakWatcherAspectTest 与 11 项双加载器共享场景覆盖真实投掷落地、150 HP / 减伤、连续实际扣血、战员五发和 Guardian 十发冻结、阵营变化、两个炮台的 25 / 30 秒独立寿命、摧毁后的在途弹体、消费已选暮域能量的转换、服务器计时的长按投掷、回充切段与 CES 恢复，以及未知世界结果保留且不重放。Aspect 单元测试还包含合成新手雷、不同接收者、重复来源、固定与参考收益、两段计算轨迹；它不声称已装配 Compendium 的全部手雷。另有 AbilityInputTest 验证来源和阈值资格。定义仍放在测试资源；正式子职业目录、完整金装互动、原作参数校准、技能 HUD、美术和持久化仍待完成，覆盖保持 **partial**。

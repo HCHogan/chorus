@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 /** Fragment points feed existing community-fit curves; skill-specific CES remains independent. */
 class SolarFragmentStatsTest {
     static final String MELEE="chorus_d2:threaded_spike_energy",GRENADE="chorus_d2:arcbolt_energy";
-    static CompiledEffects program()throws Exception{return link("threaded_spike","combat_damage", "strand_defense","continuity","threaded_spike_energy","arcbolt_energy","character_stats","solar","solar_test_calibration","ember_of_char","ember_of_eruption","solar_attribute_inputs");}
+    static CompiledEffects program()throws Exception{return link("threaded_spike","combat_damage", "strand_defense","continuity","threaded_spike_energy","grenade_energy", "arcbolt_energy","character_stats","solar","solar_test_calibration","ember_of_char","ember_of_eruption","solar_attribute_inputs");}
     static double chunk(double stat){return 1.625-.625*StrictMath.cos(StrictMath.PI*Math.clamp(stat,0,100)/100);}
     static double passive(double stat){stat=Math.clamp(stat,0,100);return stat>=100?2.75:stat>=70?2.10898698+.00639461*stat:1+.004273626*stat+.000300195*stat*stat-6.37618e-7*stat*stat*stat;}
     static EffectSource source(String instance,String bundle,String owner){return new EffectSource(instance,bundle,owner,new BuffInstance.Origin(owner,instance,"",""),Set.of());}

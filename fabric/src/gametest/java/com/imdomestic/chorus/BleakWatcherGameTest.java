@@ -4,6 +4,12 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class BleakWatcherGameTest extends com.imdomestic.chorus.test.BleakWatcherGameTest {
+    @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_aspect_energy", maxTicks=25) @Override
+    public void equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(GameTestHelper h) { super.equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(h); }
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void currentAspectScalarPrecedesStatGainAndFixedEnergyStillDrivesNativeHealing(GameTestHelper h) { super.currentAspectScalarPrecedesStatGainAndFixedEnergyStillDrivesNativeHealing(h); }
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void unknownGainFollowupRetainsTheScaledEnergyAndActualHealingWithoutReplay(GameTestHelper h) { super.unknownGainFollowupRetainsTheScaledEnergyAndActualHealingWithoutReplay(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_held_input", maxTicks=55) @Override
     public void serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource(GameTestHelper h) { super.serverMeasuredHoldConvertsTheSelectedGrenadeOnlyWithEquippedConversionSource(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_conversion", maxTicks=45) @Override

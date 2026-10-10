@@ -22,7 +22,7 @@ class BleakWatcherTest {
         if (calibrated) json("bleak_watcher_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
                 data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
         var parts = new ArrayList<EffectProgram>(); parts.add(DuranceTest.program().program()); parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow());
-        for (String name : List.of("strand_defense", "bleak_watcher_energy", "bleak_watcher_inputs")) parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json(name)).getOrThrow());
+        for (String name : List.of("strand_defense", "grenade_energy", "bleak_watcher_energy", "bleak_watcher_inputs")) parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json(name)).getOrThrow());
         return CompiledEffects.link(parts);
     }
     static WorldPosition point(double x) { return new WorldPosition("world", x, 40, 0); }
@@ -177,13 +177,11 @@ class BleakWatcherTest {
         var h = new Harness(false); h.cast("player");
         var key = new com.imdomestic.chorus.effect.resource.ResourceState.Key("player", ENERGY); var account = h.state().resources().get(key);
         assertEquals(1 / 175.6, h.p.resourceRate(h.state(), account).perSecond(), 1e-12);
-        assertEquals(.04 * .625, h.p.calculate(h.state(), "player", new EffectEvent("player", "player", new BuffInstance.Origin("player", "external", "", ""), Set.of(), Map.of()),
-                "chorus_d2:bleak_watcher_gain", new Measure(.04, Unit.CHARGE), List.of()).output().value(), 1e-12);
+        assertEquals(.04 * .625, BleakWatcherAspectTest.gain(h.p, h.state(), "player", ENERGY, .04).grant().scaled(), 1e-12);
         var origin = new BuffInstance.Origin("player", "armor", "", "");
         h.send(SourceChange.bind(new EffectSource("armor", "test:bleak_stats", "player", origin, Set.of(), Map.of("points", new Measure(100, Unit.STAT_POINT)))));
         assertEquals(2.75 / 175.6, h.p.resourceRate(h.state(), account).perSecond(), 1e-12);
-        assertEquals(.04 * .625 * 2.25, h.p.calculate(h.state(), "player", new EffectEvent("player", "player", origin, Set.of(), Map.of()),
-                "chorus_d2:bleak_watcher_gain", new Measure(.04, Unit.CHARGE), List.of()).output().value(), 1e-12);
+        assertEquals(.04 * .625 * 2.25, BleakWatcherAspectTest.gain(h.p, h.state(), "player", ENERGY, .04).grant().scaled(), 1e-12);
         h.select("player", false); h.select("player", true); assertEquals(0, h.state().resources().get(key).value());
     }
 }

@@ -21,7 +21,7 @@ class DuskfieldTest {
     static CompiledEffects program(boolean calibrated)throws Exception{
         var data=json("duskfield");if(calibrated)json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e->data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));
         var fragments=new ArrayList<EffectProgram>();fragments.add(DuranceTest.program().program());fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow());
-        for(String n:List.of("duskfield_energy","duskfield_damage_test_calibration","duskfield_inputs"))fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json(n)).getOrThrow());return CompiledEffects.link(fragments);
+        for(String n:List.of("grenade_energy","duskfield_energy","duskfield_damage_test_calibration","duskfield_inputs"))fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json(n)).getOrThrow());return CompiledEffects.link(fragments);
     }
     static WorldPosition point(double x){return new WorldPosition("world",x,40,0);}
     static AbilityUse.Request request(String player,int cast){return new AbilityUse.Request(player,SLOT,"dusk-"+cast,new EffectEvent(player,player,new BuffInstance.Origin(player,"","",""),Set.of(),Map.of()));}
@@ -58,7 +58,7 @@ class DuskfieldTest {
         var h=new Harness(EffectState.Mode.PVE);assertThrows(IllegalArgumentException.class,()->program(false).useAbility(h.state(),request("player",1)));assertEquals(1,h.energy());h.cast("player");assertEquals(0,h.energy());
         var account=h.state().resources().get(new ResourceState.Key("player",ENERGY));assertEquals(1/131.7,h.p.resourceRate(h.state(),account).perSecond(),1e-12);
         var origin=new BuffInstance.Origin("player","armor","","");h.send(SourceChange.bind(new EffectSource("armor","test:duskfield_stats","player",origin,Set.of(),Map.of("points",new Measure(100,Unit.STAT_POINT)))));assertEquals(2.75/131.7,h.p.resourceRate(h.state(),account).perSecond(),1e-12);
-        assertEquals(.07875,h.p.calculate(h.state(),"player",new EffectEvent("player","player",origin,Set.of(),Map.of()),"chorus_d2:duskfield_gain",new Measure(.04,Unit.CHARGE),List.of()).output().value(),1e-12);
+        assertEquals(.07875,BleakWatcherAspectTest.gain(h.p,h.state(),"player",ENERGY,.04).grant().scaled(),1e-12);
         h.select("player",false);h.select("player",true);assertEquals(0,h.energy());assertEquals(h.p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,h.p.program()).getOrThrow()).getOrThrow());
     }
     @Test void impactAndPeriodicValuesAreSeparateAndExpiryHasNoExtraEndpointPulse()throws Exception{

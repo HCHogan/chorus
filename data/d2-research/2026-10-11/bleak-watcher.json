@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Partial thrown turret producer with server-measured held-input conversion and base-selection cost; original hold threshold, Aspect assembly and global grenade override remain incomplete",
+  "status": "Partial thrown turret producer with held-input conversion, base-selection cost and shared grenade cooldown/recipient-scalar overrides; original hold threshold and formal Aspect assembly remain incomplete",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
     "retrieved_at": "2026-10-10T22:03:30.794295+00:00",
@@ -61,11 +61,29 @@
     "damage_classification": "Stasis Grenade Ability Damage"
   },
   "unresolved": [
-    "Server-measured paired input and an explicitly bound conversion source are implemented. The original hold threshold is not provided by the verified Compendium source; .3 seconds is synthetic test calibration. Formal Aspect equipment constraints and overriding every equipped grenade cooldown/chunk scalar remain unimplemented.",
+    "Server-measured paired input and the explicitly bound Aspect bundle now compose conversion with Glacier base-cooldown and chunk-scalar overrides for every account opting into shared grenade profiles. The verified Compendium source does not provide the hold threshold; .3 seconds is synthetic. Formal subclass/Aspect equipment constraints and shared slot-energy migration remain incomplete.",
     "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
     "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
     "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",
     "Durance is sampled at deployment for construct life and at impact for each Slow. Existing deadlines are preserved. Successful launch, not a damage receipt, ends the initial resistance.",
-    "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources."
-  ]
+    "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources.",
+    "Shared grenade profiles opt accounts into the Aspect override; unrelated resources retain their profiles. Per-selection stat sources still target their original pool. Persisted inactive candidate pools follow existing runtime recovery policy; this does not implement original-game energy handling when swapping subclass or grenade."
+  ],
+  "aspect_recheck": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+    "retrieved_at": "2026-10-10T23:11:45.763298+00:00",
+    "html_sha256": "9ae925ef5e28c7d5f1c53342a517da2095bbbaa990d4ed304c95a0a45aec7671",
+    "path": "data/d2-research/2026-10-11/bleak-watcher-aspect-source.html.gz",
+    "gzip_sha256": "f18940b2377288b870bce05f79527933e81cd3f898d92c6c40057645a23a9ee3",
+    "rows": [
+      {
+        "original_row": 39,
+        "normalized_cells_match_original_archive": true
+      },
+      {
+        "original_row": 103,
+        "normalized_cells_match_original_archive": true
+      }
+    ]
+  }
 }

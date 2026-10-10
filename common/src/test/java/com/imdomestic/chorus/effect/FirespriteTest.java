@@ -20,7 +20,7 @@ class FirespriteTest {
     static final String ENERGY="chorus_d2:arcbolt_energy", SLOT="chorus_d2:grenade", COOLDOWN="chorus_d2:firesprite_cooldown";
     static final WorldPosition POINT=new WorldPosition("world",4,40,3);
     static CompiledEffects program() throws Exception {
-        return link("firesprite","firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","arcbolt_energy","tempering_weapon");
+        return link("firesprite","firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","grenade_energy", "arcbolt_energy","tempering_weapon");
     }
     static class Harness {
         final CompiledEffects program; final EffectSession session;

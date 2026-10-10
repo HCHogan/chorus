@@ -1,63 +1,5 @@
 {
   "version": "compendium-2026-10-05",
-  "profiles": [
-    {
-      "id": "chorus_d2:arcbolt_gain",
-      "version": "compendium-2026-10-05",
-      "input_unit": "charge_fraction",
-      "steps": [
-        {
-          "type": "chorus:curve",
-          "id": "recipient_scalar",
-          "curve": {
-            "type": "chorus:polynomial",
-            "coefficients": [
-              0,
-              0.75
-            ],
-            "minimum": 0,
-            "maximum": 1.7976931348623157e+308,
-            "boundary": "error"
-          },
-          "output_unit": "charge_fraction"
-        },
-        {
-          "type": "chorus:apply",
-          "id": "stat",
-          "operation": "multiply",
-          "group": {
-            "name": "stat",
-            "reduction": "max"
-          }
-        },
-        {
-          "type": "chorus:apply",
-          "id": "trigger",
-          "operation": "multiply",
-          "group": {
-            "name": "trigger",
-            "reduction": "max"
-          }
-        }
-      ]
-    },
-    {
-      "id": "chorus_d2:arcbolt_regeneration",
-      "version": "compendium-2026-10-05",
-      "input_unit": "charge_fraction_per_second",
-      "steps": [
-        {
-          "type": "chorus:apply",
-          "id": "stat",
-          "operation": "multiply",
-          "group": {
-            "name": "stat",
-            "reduction": "max"
-          }
-        }
-      ]
-    }
-  ],
   "buffs": [
     {
       "definition": {
@@ -104,7 +46,7 @@
       "modifiers": [
         {
           "id": "passive",
-          "profile": "chorus_d2:arcbolt_regeneration",
+          "profile": "chorus_d2:grenade_regeneration",
           "stage": "stat",
           "group": "stat",
           "op": "multiply",
@@ -207,11 +149,16 @@
             }
           },
           "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Arc N28 supplies the independent .75 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
-          "confidence": "fitted"
+          "confidence": "fitted",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:arcbolt_energy"
+          }
         },
         {
           "id": "energy_gained",
-          "profile": "chorus_d2:arcbolt_gain",
+          "profile": "chorus_d2:grenade_gain",
           "stage": "stat",
           "group": "stat",
           "op": "multiply",
@@ -260,7 +207,12 @@
             ]
           },
           "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Arc N28 supplies the independent .75 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
-          "confidence": "fitted"
+          "confidence": "fitted",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:arcbolt_energy"
+          }
         }
       ]
     }
@@ -271,8 +223,10 @@
       "capacity": 1,
       "initial": 1,
       "base_rate": 0.006600660066006601,
-      "gain_profile": "chorus_d2:arcbolt_gain",
-      "rate_profile": "chorus_d2:arcbolt_regeneration"
+      "gain_profile": "chorus_d2:grenade_gain",
+      "rate_profile": "chorus_d2:grenade_regeneration",
+      "gain_scalar": 0.75,
+      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
     }
   ]
 }

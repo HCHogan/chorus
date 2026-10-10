@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class EmberOfMercyTest {
     static final String RESTORE="chorus_d2:restoration", MERCY="chorus_d2:ember_of_mercy", SOLACE="chorus_d2:ember_of_solace";
     static CompiledEffects program() throws Exception {
-        return link("firesprite","firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","arcbolt_energy","tempering_weapon",
+        return link("firesprite","firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","grenade_energy", "arcbolt_energy","tempering_weapon",
                 "restoration_effect","restoration_test_calibration","solar_effect_duration","ember_of_mercy","ember_of_solace","mercy_inputs");
     }
     static class Harness extends FirespriteTest.Harness {
