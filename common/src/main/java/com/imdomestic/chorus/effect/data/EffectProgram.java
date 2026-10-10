@@ -42,7 +42,9 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Shield(String capacity, Value takenMultiplier, int priority) { this(capacity, takenMultiplier, priority, Optional.empty()); }
     }
     public record ShieldRecovery(Value rate, Condition condition) {}
-    public record Buff(BuffDefinition definition, String bundle, Optional<Shield> shield) {
+    public record Buff(BuffDefinition definition, String bundle, Optional<Shield> shield, Optional<com.imdomestic.chorus.effect.combat.BuffConsumption.Policy> consumeOnDamage) {
+        public Buff { java.util.Objects.requireNonNull(consumeOnDamage); }
+        public Buff(BuffDefinition definition, String bundle, Optional<Shield> shield) { this(definition, bundle, shield, Optional.empty()); }
         public Buff(BuffDefinition definition, String bundle) { this(definition, bundle, Optional.empty()); }
     }
     public record Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery, List<com.imdomestic.chorus.effect.ability.AbilityDefinition.Replacement> abilityOverrides) {

@@ -854,6 +854,27 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
 
+## 伤害回执时消费 Buff
+
+下一击增益可以在 buff 上声明 `consume_on_damage`。`damage` / `damage_snapshot` 发出世界请求前，只读捕获当前符合条件的 Buff 键与 generation；对应回执完成时，先消费同 generation 的层数，再执行同一动作体的下一条指令。hit 等后续反应仍走既有广度优先队列，不为此更改全局事件顺序。
+
+```json
+{
+  "definition":{"id":"example:next_melee","version":"v1","duration":3},
+  "bundle":"example:next_melee",
+  "consume_on_damage":{
+    "when":"hit","stacks":1,
+    "if":{"type":"chorus:event_tag","tag":"chorus:melee_damage"}
+  }
+}
+```
+
+`when=hit` 遵从 hit 契约，包含免疫 / 格挡，但不包含 CANCELLED / FAILED；`effective_damage` 要求 HP + Chorus 护盾 + Absorption 损失大于零。stacks 默认 1，必须为正整数。资格条件在请求前、该 Buff 的作用域中求值；只选择攻击所有者的活动实例，遵守 affects 和暂停状态。结果不满足条件时保留 Buff，未知结果保持 pending 并停止，不能推断为消费或自动重试。原 Buff 已结束并以新 generation 重新施加时，旧回执不能消费新实例。
+
+声明该策略的 Buff，其数值 modifier 必须使用 `evaluate:"on_hit"`。查询与 capture_damage 不消费；实际发出的每条 damage_snapshot 重新捕获资格，以免一份快照永久复制已消费的增益。同一动作体的两个串行世界伤害会分别看到消费前与消费后的状态，示例见 [damage_consumption.json](../common/src/test/resources/effects/damage_consumption.json)。
+
+当前接线范围是上述受管伤害动作；宿主直接执行命令时应显式使用 prepareDamage / BuffConsumption.finish 配对。原版观察入口尚未自动消费，世界伤害回调中的原版嵌套命中、并行攻击与整批多分量共用一次资格也尚无统一预留事务。该字段不等于跨所有宿主入口的完整“下一击”系统；这些边界须在对应内容接入时继续实现。
+
 ## 选择派生动作的来源
 
 `damage`、`capture_damage` 和 `heal` 接受可选 `origin`：

@@ -1085,7 +1085,7 @@ record StatusResult(Optional<DamageId> cause,      // 触发它的那次伤害
 - 切割：hit 规则先读 `lethal`，不致死才施加 Sever；`StatusResult.applied` 为真才消耗层数；免疫目标照样施加（`Weapon Perks!C198`）。
 - 护盾是 Buff 带的血池层；虚空 overshield 的数值参考 `Void!D6`，层内减伤仅作用于该层。跨层预算算法和默认 FIFO 是 Chorus 约定，不能当作此单元格证明了原作所有跨层行为。
 - on_hit 获得的增伤默认只影响后续伤害，不回头改变已经提交的这一击。真正需要先行处理的动作显式声明 before_damage，在冻结该击查询视图之前执行。
-- “下一次命中消耗”的 buff 要写明消耗时机（施放、命中确认、造成伤害、状态施加成功），以及同一批次（多弹丸、范围命中）是只消耗一次，还是每个实例各消耗一次。
+- “下一次命中消耗”的 buff 要写明消耗时机（施放、命中确认、造成伤害、状态施加成功），以及同一批次（多弹丸、范围命中）是只消耗一次，还是每个实例各消耗一次。 受管 damage / damage_snapshot 已支持 consume_on_damage：发出请求前保存符合条件的 Buff generation，回执完成时消费，下一条指令读取新状态；数值 modifier 必须 on_hit。仅在排队的 hit 反应中消费不足以保证同一动作体的下一次伤害已失去增益。原版嵌套命中与跨分量预留事务仍待实现，见 [实现边界](engine-implementation.md#受管伤害的回执消费)。
 
 ### buff 实例
 

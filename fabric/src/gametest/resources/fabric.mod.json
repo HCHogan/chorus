@@ -20,6 +20,7 @@
       "com.imdomestic.chorus.WeaponReloadGameTest",
       "com.imdomestic.chorus.WeaponFireGameTest",
       "com.imdomestic.chorus.ShotGroupGameTest",
+      "com.imdomestic.chorus.DamageConsumptionGameTest",
       "com.imdomestic.chorus.ClownCartridgeGameTest",
       "com.imdomestic.chorus.AdrenalineJunkieGameTest",
       "com.imdomestic.chorus.TargetIterationGameTest",

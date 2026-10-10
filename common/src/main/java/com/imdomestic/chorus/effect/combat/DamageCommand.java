@@ -11,8 +11,11 @@ import java.util.Set;
 /** Resolved request for the world damage adapter. Damage and shield loss are not pre-committed here. */
 public record DamageCommand(String target, BuffInstance.Origin source, double amount, String damageType,
         Set<String> tags, Set<String> killTags, boolean nonLethal, Optional<String> scalingProfile, Optional<DamageSnapshot> snapshot, ImpactData impact,
-        Optional<String> shieldScalingProfile) implements RuleEngine.WorldCommand {
+        Optional<String> shieldScalingProfile, java.util.List<BuffConsumption.Candidate> consumptions) implements RuleEngine.WorldCommand {
     public DamageCommand {
+        consumptions = java.util.List.copyOf(consumptions);
+        if (consumptions.stream().map(BuffConsumption.Candidate::key).distinct().count() != consumptions.size()
+                || consumptions.stream().anyMatch(c -> !c.key().holder().equals(source.owner()))) throw new IllegalArgumentException("Duplicate or foreign damage consumption");
         Objects.requireNonNull(target); Objects.requireNonNull(source); Objects.requireNonNull(damageType);
         Objects.requireNonNull(scalingProfile);
         Objects.requireNonNull(snapshot);
@@ -23,6 +26,14 @@ public record DamageCommand(String target, BuffInstance.Origin source, double am
         Numbers.nonnegative(amount, "requested damage"); tags = Set.copyOf(tags); killTags = Set.copyOf(killTags);
         if (target.isBlank() || damageType.isBlank()) throw new IllegalArgumentException("Missing damage target/type");
         if (snapshot.isPresent()) snapshot.orElseThrow().validate(new DamageCommand(target, source, amount, damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), ImpactData.EMPTY, shieldScalingProfile));
+    }
+    public DamageCommand(String target, BuffInstance.Origin source, double amount, String damageType,
+            Set<String> tags, Set<String> killTags, boolean nonLethal, Optional<String> scalingProfile, Optional<DamageSnapshot> snapshot,
+            ImpactData impact, Optional<String> shieldScalingProfile) {
+        this(target, source, amount, damageType, tags, killTags, nonLethal, scalingProfile, snapshot, impact, shieldScalingProfile, java.util.List.of());
+    }
+    public DamageCommand withConsumptions(java.util.List<BuffConsumption.Candidate> value) {
+        return new DamageCommand(target, source, amount, damageType, tags, killTags, nonLethal, scalingProfile, snapshot, impact, shieldScalingProfile, value);
     }
     public DamageCommand(String target, BuffInstance.Origin source, double amount, String damageType,
             Set<String> tags, Set<String> killTags, boolean nonLethal, Optional<String> scalingProfile, Optional<DamageSnapshot> snapshot, ImpactData impact) {

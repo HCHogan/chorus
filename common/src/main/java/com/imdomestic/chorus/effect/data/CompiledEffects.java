@@ -29,6 +29,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final Map<String, CalculationProfile> profiles;
     private final Map<String, ResourceDefinition> resources;
     private final Map<String, EffectProgram.Shield> shields;
+    private final Map<String, BuffConsumption.Policy> consumptions;
     private final CompiledEquipment equipment;
     private final CompiledWeapons weapons;
     private final Map<String, AbilityDefinition> abilities;
@@ -89,6 +90,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var shieldDefinitions = new HashMap<String, EffectProgram.Shield>();
         program.buffs().forEach(buff -> buff.shield().ifPresent(shield -> shieldDefinitions.put(buff.definition().id(), shield)));
         this.shields = Map.copyOf(shieldDefinitions);
+        var consumptionPolicies = new HashMap<String, BuffConsumption.Policy>();
+        program.buffs().forEach(buff -> buff.consumeOnDamage().ifPresent(policy -> consumptionPolicies.put(buff.definition().id(), policy)));
+        this.consumptions = Map.copyOf(consumptionPolicies);
         this.weapons = new CompiledWeapons(program.weapons(), equipment, new Validation(buffs, Map.of(), false, profiles, resources, shields), profiles);
         for (var buff : program.buffs()) buff.shield().ifPresent(shield -> {
             Validation.same(buff.definition().components().number(shield.capacity()).unit(), Unit.DAMAGE);
@@ -105,6 +109,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 Validation.same(recovery.rate().unit(validation), Unit.DAMAGE_PER_SECOND);
                 if (recovery.rate() instanceof Value.Constant constant) Numbers.nonnegative(constant.value(), "shield recovery rate");
             });
+        });
+        for (var buff : program.buffs()) buff.consumeOnDamage().ifPresent(policy -> {
+            policy.condition().validate(new Validation(buffs, Map.of(), true, profiles, resources, shields));
+            if (!buff.bundle().isEmpty() && bundle(buff.bundle()).modifiers().stream().anyMatch(m -> m.evaluate() != EffectProgram.Evaluate.ON_HIT))
+                throw new IllegalArgumentException("Consumable damage buffs require on_hit modifiers");
         });
         buffs.values().forEach(definition -> version(definition.version())); profiles.values().forEach(profile -> version(profile.version()));
         var continuations = new ArrayList<RuleEngine.EventRule<EffectState>>();
@@ -799,6 +808,21 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (modifier.multiplicity() == EffectProgram.Multiplicity.STACK && bundle.scope() != EffectProgram.Scope.BUFF) throw new IllegalArgumentException("Stack multiplicity needs a buff source");
     }
 
+    /** Read-only eligibility capture. Receipt completion consumes only these existing generations. */
+    public DamageCommand prepareDamage(EffectState state, DamageCommand command) {
+        settled(state);
+        var candidates = new ArrayList<BuffConsumption.Candidate>();
+        var event = queryEvent(state, damageQuery(command, command.amount()));
+        for (var instance : state.buffs().instances().values()) {
+            var policy = consumptions.get(instance.definition().id());
+            if (policy == null || !instance.key().holder().equals(command.source().owner())
+                    || instance.pausedAt().isPresent() || instance.activeCount(state.buffs().timeMicros()) == 0
+                    || !instance.affects(command.source().weapon(), command.source().ability())) continue;
+            var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
+            if (policy.condition().test(evaluation(state, context, Map.of()))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks()));
+        }
+        return command.withConsumptions(candidates);
+    }
     private static EffectEvent damageQuery(DamageCommand command, double input) {
         return new EffectEvent(command.source().owner(), command.target(), command.source(), command.tags(),
                 Map.of("incoming_damage", new Measure(input, Unit.DAMAGE)), Map.of(), Map.of("damage_type", command.damageType()), command.impact());

@@ -1,0 +1,28 @@
+{
+  "version":"test-1",
+  "profiles":[{"id":"test:melee","version":"test-1","input_unit":"damage","steps":[
+    {"type":"chorus:apply","id":"bonus","operation":"multiply","group":{"name":"bonus","reduction":"sum"}}
+  ]}],
+  "buffs":[{"definition":{"id":"test:next_hit","version":"test-1","duration":3},"bundle":"test:next_hit",
+    "consume_on_damage":{"when":"hit","if":{"type":"chorus:event_tag","tag":"test:melee"}}
+  }],
+  "bundles":[
+    {"id":"test:control","rules":[
+      {"id":"arm","on":"test:arm","do":[{"type":"chorus:grant_buff","buff":"test:next_hit"}]},
+      {"id":"double","on":"test:double","do":[
+        {"type":"chorus:damage","damage_type":"minecraft:generic","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"scaling_profile":"test:melee","tags":["test:melee"]},
+        {"type":"chorus:damage","damage_type":"minecraft:generic","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"scaling_profile":"test:melee","tags":["test:melee"]}
+      ]},
+      {"id":"snapshot","on":"test:snapshot","do":[
+        {"action":{"type":"chorus:capture_damage","damage_type":"minecraft:generic","amount":{"type":"chorus:constant","value":10,"unit":"damage"},"scaling_profile":"test:melee","tags":["test:melee"]},"as":"attack"},
+        {"type":"chorus:damage_snapshot","snapshot":"attack"},
+        {"type":"chorus:damage_snapshot","snapshot":"attack"}
+      ]}
+    ]},
+    {"id":"test:next_hit","scope":"buff","modifiers":[{
+      "id":"damage","profile":"test:melee","stage":"bonus","group":"bonus","op":"multiply","stacking_key":"test:next_hit",
+      "value":{"type":"chorus:constant","value":1.5,"unit":"delta"},"evaluate":"on_hit",
+      "if":{"type":"chorus:event_tag","tag":"test:melee"},"reference":"Synthetic one-use damage fixture","confidence":"assumed"
+    }]}
+  ]
+}

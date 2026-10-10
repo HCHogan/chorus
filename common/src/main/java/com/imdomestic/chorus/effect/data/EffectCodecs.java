@@ -498,10 +498,15 @@ public final class EffectCodecs {
                 shieldRecovery.optionalFieldOf("recovery").forGetter(EffectProgram.Shield::recovery),
                 ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("excluded_attack_factors", Set.of()).forGetter(EffectProgram.Shield::excludedAttackFactors)
         ).apply(i, EffectProgram.Shield::new)), Set.of("capacity", "taken_multiplier", "priority", "maximum", "recovery", "excluded_attack_factors"));
+        Codec<com.imdomestic.chorus.effect.combat.BuffConsumption.Policy> consumption = strict(RecordCodecBuilder.create(i -> i.group(
+                enumeration(com.imdomestic.chorus.effect.combat.BuffConsumption.When.class).fieldOf("when").forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::when),
+                Codec.INT.optionalFieldOf("stacks", 1).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::stacks),
+                conditions.optionalFieldOf("if", new Condition.Constant(true)).forGetter(com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::condition)
+        ).apply(i, com.imdomestic.chorus.effect.combat.BuffConsumption.Policy::new)), Set.of("when", "stacks", "if"));
         Codec<EffectProgram.Buff> buff = strict(RecordCodecBuilder.create(i -> i.group(
                 BuffCodecs.DEFINITION.fieldOf("definition").forGetter(EffectProgram.Buff::definition), ID.optionalFieldOf("bundle", "").forGetter(EffectProgram.Buff::bundle),
-                shield.optionalFieldOf("shield").forGetter(EffectProgram.Buff::shield)
-        ).apply(i, EffectProgram.Buff::new)), Set.of("definition", "bundle", "shield"));
+                shield.optionalFieldOf("shield").forGetter(EffectProgram.Buff::shield), consumption.optionalFieldOf("consume_on_damage").forGetter(EffectProgram.Buff::consumeOnDamage)
+        ).apply(i, EffectProgram.Buff::new)), Set.of("definition", "bundle", "shield", "consume_on_damage"));
         return strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("version").forGetter(EffectProgram::version), buff.listOf().optionalFieldOf("buffs", List.of()).forGetter(EffectProgram::buffs),
                 bundle.listOf().optionalFieldOf("bundles", List.of()).forGetter(EffectProgram::bundles), profiles.listOf().optionalFieldOf("profiles", List.of()).forGetter(EffectProgram::profiles),

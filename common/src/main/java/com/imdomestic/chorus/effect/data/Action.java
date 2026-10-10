@@ -156,6 +156,14 @@ public interface Action {
         new java.util.TreeMap<>(impact).forEach((name, value) -> values.put(name, value.evaluate(e)));
         return new ImpactData(values);
     }
+    private static DamageCommand prepareDamage(Evaluation e, DamageCommand command) {
+        return e.program().map(p -> p.prepareDamage(e.state(), command)).orElse(command);
+    }
+    private static RuleEngine.Local<EffectState> finishDamage(EffectState state, DamageCommand command, DamageReceipt receipt, java.util.Map<String, String> attribution) {
+        var consumed = BuffConsumption.finish(state, command, receipt);
+        var signals = new java.util.ArrayList<>(DamageFacts.from(command, receipt, attribution)); signals.addAll(consumed.emitted());
+        return new RuleEngine.Local<>(consumed.state(), receipt, signals);
+    }
     record DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact, Optional<String> pellet) implements Action {
         public DamageCaptured { impact = java.util.Map.copyOf(impact); java.util.Objects.requireNonNull(pellet); }
         public DamageCaptured(String snapshot, Evaluation.Target target, java.util.Map<String, Value> impact) { this(snapshot, target, impact, Optional.empty()); }
@@ -163,7 +171,7 @@ public interface Action {
         @Override public ResultShape validate(Validation v) {
             v.result(snapshot).requireSnapshot(); v.target(target); validateImpact(impact, v); pellet.ifPresent(name -> v.result(name).requireShotImpact()); return ResultShape.DAMAGE;
         }
-        private DamageCommand request(Evaluation e) { return e.snapshot(snapshot).command(e.target(target), Action.impact(impact, e)); }
+        private DamageCommand request(Evaluation e) { return prepareDamage(e, e.snapshot(snapshot).command(e.target(target), Action.impact(impact, e))); }
         private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact contact(Evaluation e) {
             return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) e.context().bindings().get(pellet.orElseThrow());
         }
@@ -174,10 +182,10 @@ public interface Action {
         }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var damage = (DamageReceipt) receipt; var command = e.context().command(DamageCommand.class);
-            if (pellet.isEmpty()) return new RuleEngine.Local<>(e.state(), damage, DamageFacts.from(command, damage));
+            if (pellet.isEmpty()) return finishDamage(e.state(), command, damage, java.util.Map.of());
             var contact = contact(e); var member = contact.member().orElseThrow();
-            return new RuleEngine.Local<>(com.imdomestic.chorus.effect.projectile.ShotGroups.damage(e.state(), contact, command, damage), damage,
-                    DamageFacts.from(command, damage, java.util.Map.of("shot", member.shot().id(), "pellet", Integer.toString(member.pellet()), "contact", Long.toString(contact.sequence()))));
+            return finishDamage(com.imdomestic.chorus.effect.projectile.ShotGroups.damage(e.state(), contact, command, damage), command, damage,
+                    java.util.Map.of("shot", member.shot().id(), "pellet", Integer.toString(member.pellet()), "contact", Long.toString(contact.sequence())));
         }
     }
     record Damage(Evaluation.Target target, Value amount, String damageType, Set<String> tags, Set<String> killTags,
@@ -207,12 +215,12 @@ public interface Action {
         }
         private DamageCommand request(Evaluation e) {
             var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
-            return new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile);
+            return prepareDamage(e, new DamageCommand(e.target(target), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, scalingProfile, Optional.empty(), Action.impact(impact, e), shieldScalingProfile));
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(request(e)); }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var damage = (DamageReceipt) receipt;
-            return new RuleEngine.Local<>(e.state(), damage, DamageFacts.from(e.context().command(DamageCommand.class), damage));
+            return finishDamage(e.state(), e.context().command(DamageCommand.class), damage, java.util.Map.of());
         }
     }
     record Heal(Evaluation.Target target, Value amount, Set<String> tags, ActionOrigin origin) implements Action {
