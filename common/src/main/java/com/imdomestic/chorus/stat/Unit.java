@@ -15,6 +15,7 @@ public record Unit(String id) {
     public static final Unit RESISTANCE = new Unit("chorus:resistance");
     public static final Unit MULTIPLIER = new Unit("chorus:multiplier");
     public static final Unit COUNT = new Unit("chorus:count");
+    public static final Unit ROUND = new Unit("chorus:round");
 
     public Unit {
         Objects.requireNonNull(id, "unit id");

@@ -98,6 +98,11 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         if (account == null) throw new IllegalArgumentException("Missing resource account: " + id);
         resourceDefinition(id).validate(account); return account;
     }
+    public com.imdomestic.chorus.effect.ammo.AmmoState ammo(Target weapon) {
+        var state = this.state.ammunition().get(target(weapon));
+        if (state == null) throw new IllegalArgumentException("Missing ammunition account");
+        return state;
+    }
     /** Lexical visibility applies to the reference; refund accounting includes all executed branches. */
     public Resources.CostReceipt cost(String binding) {
         var shape = results.get(binding); var result = context.bindings().get(binding);

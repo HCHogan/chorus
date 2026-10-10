@@ -384,6 +384,55 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 上述场景在 [resource_refund.json](../common/src/test/resources/effects/resource_refund.json) 中完整可执行，并有双加载器的实际治疗与资源断言。这是通用合成机制测试，不代表某个 Compendium 效果的全部触发、归因和数值已经验收。
 
+## 整数弹药与弹匣转移
+
+弹药是以当前运行时内唯一的稳定武器实例 ID 为键的账户，和技能能量的连续 `charge_fraction` 分开。以下步骤放在携带 weapon 身份的 source 规则中；所有动作的 `weapon` 默认 `this_weapon`，也接受其他已验证的 Target。测试使用合成容量，不是某把 D2 武器的数值：
+
+```json
+[
+  {"action": {"type": "chorus:initialize_ammo",
+    "capacity": {"type": "chorus:constant", "value": 6, "unit": "round"},
+    "magazine": {"type": "chorus:constant", "value": 2, "unit": "round"},
+    "reserves": {
+      "amount": {"type": "chorus:constant", "value": 10, "unit": "round"},
+      "capacity": {"type": "chorus:constant", "value": 16, "unit": "round"}
+    }}, "as": "initial"},
+  {"action": {"type": "chorus:refill_magazine",
+    "ceiling": {"type": "chorus:constant", "value": 12, "unit": "round"}}, "as": "refill"}
+]
+```
+
+结果为弹匣 12、储备 0，refill.applied = 10；基础 capacity 仍为 6。省略 amount 时，请求补齐至 ceiling；ceiling 默认基础容量。绑定初始化结果并不意味着每次调用都重新获得弹药。
+
+| 类型 | 字段 / 行为 |
+| --- | --- |
+| `initialize_ammo` | capacity / magazine / reserves 必填；reserves 为上例的有限账户或字符串 `unlimited`。基础容量须为正，初始弹匣允许溢出，有限储备须在容量内。重复初始化保留现值，基础容量或储备种类 / 容量不一致则拒绝。初始化不发布弹药变化事实 |
+| `observe_ammo` | 返回 available / created / infinite_reserves / finite_reserves。观察不会创建账户，created 恒为 false；initialize 的新建结果 created 为 true。未初始化时 available 为 false，不能直接读其弹数 |
+| `spend_ammo` | amount 必填，pool 为 magazine（默认）或 reserves；全部足额才扣除，失败 applied = 0。零请求可 complete，但不会产生实际弹药或开火事实 |
+| `refill_magazine` | amount / ceiling 均可省略；实际量受请求、弹匣空间和储备限制。从有限储备扣除同量；无限储备无需保存一个虚构的大数 |
+| `grant_ammo` | amount 必填，pool 默认 magazine，ceiling 可省略。给弹匣不会扣储备；给有限储备最多到储备容量；给无限储备 applied = 0。弹匣默认 ceiling 为基础容量，已有溢出不被删除 |
+| `ammo` Value | weapon 默认 this_weapon，field 为 magazine / capacity / missing / reserves / reserve_capacity；单位 round，missing = max(0, capacity − magazine)。不存在账户或读取无限储备的有限数值均报错 |
+| `round` Value | input 为任意同单位数值，mode 必填 floor / ceiling / half_up。保留单位；half_up 在恰好半数时远离零。它不自动将 charge_fraction 或 count 换成 round |
+
+实际弹数、容量、请求和 ceiling 都须为 0 至 2³¹−1 的整数（基础容量至少为 1）。常量在加载时校验，动态值在写状态前校验；不隐式截断小数。按基础容量的 60% 上取整可写为：
+
+```json
+{"type": "chorus:round", "mode": "ceiling", "input": {
+  "type": "chorus:scale", "of": {"type": "chorus:ammo", "field": "capacity"},
+  "factor": 0.6, "from": "round", "to": "round"
+}}
+```
+
+三个变更动作的结果均提供变化后的 magazine / capacity / missing / reserves / reserve_capacity，以及 requested / applied / unfulfilled / magazine_delta（全部 round），和 complete / changed / infinite_reserves 标志。无限储备的 reserves / reserve_capacity 不可读取；先用 observe 的 finite_reserves，或变更结果的 infinite_reserves 分支。unfulfilled 是本次未完成数量，不保存为未来可领取额度，也不是消耗弹药的退款权。
+
+applied > 0 时，按动作分别发布 `chorus:ammo_spent / chorus:ammo_refilled / chorus:ammo_generated`；账户改变时另发 `chorus:ammo_changed`。无限储备的显式消费可 applied > 0 且 changed = false。事实携带 requested / applied / unfulfilled / before_magazine / magazine / capacity / magazine_delta；有限储备另有 reserves / reserve_capacity / reserve_delta。布尔值为 complete / changed / infinite_reserves，引用为 weapon / pool / reason，reason 是 spend / refill / generate。actor 为动作持有者，victim 和 weapon 引用指向实际受影响武器，source 保留动作发起来源；跨武器补给不能把收款武器冒充触发者。通用监听通常只监听 changed，避免同时监听专项事实重复发放收益。
+
+这些事实不自动发布 `reload_finished`、shot_fired 或“射空弹匣”。一次逻辑扣弹不能证明真实射击，一次 refill 也不能触发 Kill Clip / Voltshot。合格换弹由武器宿主在完成后确认。动作本身不设置循环次数限制，内容可以按实际量和状态继续连锁。
+
+弹药写集在后续世界动作前提交；世界结果未知时保留已写弹数和待确认操作，不重新转移、自动退款或重放。显式快照中的来源 ammo 操作数冻结，victim 依赖保留到命中时读取；普通延迟动作内的 ammo 读取则按执行时账户求值。来源解绑和逻辑时钟不会丢失账户，detached 延迟动作可以继续，但默认绑定来源的生命周期规则不变。
+
+完整合成夹具见 [ammunition.json](../common/src/test/resources/effects/ammunition.json)，有两把武器隔离、整数取整和两端真实 tick / 治疗 / 异常验收。目前由可信服务端宿主提供武器身份；`initialize_ammo` 不是任意客户端可调用的装填接口。真实枪械输入、武器销毁 / 转移 / 跨维度时的账户迁移、基础容量动态重算、玩家 NBT 弹药保存和弹药同步 / HUD 尚未接入。现有逻辑账户不等于库存物品已经具有这些弹数。
+
 ## 目标查询和逐目标执行
 
 以下步骤可放进 source 规则的 do 数组；查询半径、伤害和标签均为合成演示值。完整可执行程序见 [target_iteration.json](../common/src/test/resources/effects/target_iteration.json)，还展示了按每个目标实际伤害回血。

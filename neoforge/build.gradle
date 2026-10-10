@@ -98,6 +98,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/restoration.json'
         include 'effects/resource_regeneration.json'
         include 'effects/resource_refund.json'
+        include 'effects/ammunition.json'
         include 'effects/adrenaline_junkie.json'
         include 'effects/target_iteration.json'
         include 'effects/radial_falloff.json'

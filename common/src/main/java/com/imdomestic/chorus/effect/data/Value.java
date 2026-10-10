@@ -30,6 +30,19 @@ public interface Value {
             return new Measure(e.resource(resource, target).value(), Unit.CHARGE);
         }
     }
+    record Ammo(Evaluation.Target weapon, com.imdomestic.chorus.effect.ammo.AmmoState.Field field) implements Value {
+        @Override public Unit unit(Validation v) { v.target(weapon); return Unit.ROUND; }
+        @Override public Measure evaluate(Evaluation e) { return new Measure(e.ammo(weapon).read(field), Unit.ROUND); }
+    }
+    enum Rounding { FLOOR, CEILING, HALF_UP }
+    record Round(Value input, Rounding mode) implements Value {
+        @Override public Unit unit(Validation v) { return input.unit(v); }
+        @Override public Measure evaluate(Evaluation e) {
+            var value = input.evaluate(e);
+            double rounded = java.math.BigDecimal.valueOf(value.value()).setScale(0, java.math.RoundingMode.valueOf(mode.name())).doubleValue();
+            return new Measure(rounded, value.unit());
+        }
+    }
     record EventNumber(String name, Unit quantity) implements Value {
         @Override public Unit unit(Validation v) { return quantity; }
         @Override public Measure evaluate(Evaluation e) {

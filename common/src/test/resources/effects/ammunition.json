@@ -1,0 +1,337 @@
+{
+  "version": "test-ammo-v1",
+  "buffs": [],
+  "profiles": [],
+  "bundles": [
+    {
+      "id": "test:ammo",
+      "rules": [
+        {
+          "id": "initialize",
+          "on": "test:initialize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_ammo",
+              "capacity": {
+                "type": "chorus:constant",
+                "value": 6,
+                "unit": "round"
+              },
+              "magazine": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "round"
+              },
+              "reserves": {
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "round"
+                },
+                "capacity": {
+                  "type": "chorus:constant",
+                  "value": 16,
+                  "unit": "round"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:spend_ammo",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "rounds",
+                  "unit": "round"
+                }
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "complete"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "target": "self",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "factor": 1,
+                    "from": "round",
+                    "to": "damage",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "ammo",
+                      "field": "applied"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "refill",
+          "on": "test:refill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refill_magazine",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "rounds",
+                  "unit": "round"
+                },
+                "ceiling": {
+                  "type": "chorus:event_number",
+                  "name": "ceiling",
+                  "unit": "round"
+                }
+              },
+              "as": "ammo"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "self",
+              "amount": {
+                "type": "chorus:scale",
+                "factor": 1,
+                "from": "round",
+                "to": "damage",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "ammo",
+                  "field": "applied"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "generate",
+          "on": "test:generate",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ammo",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "rounds",
+                  "unit": "round"
+                },
+                "ceiling": {
+                  "type": "chorus:event_number",
+                  "name": "ceiling",
+                  "unit": "round"
+                }
+              },
+              "as": "ammo"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "self",
+              "amount": {
+                "type": "chorus:scale",
+                "factor": 1,
+                "from": "round",
+                "to": "damage",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "ammo",
+                  "field": "applied"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "reserve",
+          "on": "test:reserve",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ammo",
+                "pool": "reserves",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "rounds",
+                  "unit": "round"
+                }
+              },
+              "as": "ammo"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "self",
+              "amount": {
+                "type": "chorus:scale",
+                "factor": 1,
+                "from": "round",
+                "to": "damage",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "ammo",
+                  "field": "applied"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "defer",
+          "on": "test:defer",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:refill_magazine",
+                    "amount": {
+                      "type": "chorus:event_number",
+                      "name": "rounds",
+                      "unit": "round"
+                    },
+                    "ceiling": {
+                      "type": "chorus:event_number",
+                      "name": "ceiling",
+                      "unit": "round"
+                    }
+                  },
+                  "as": "ammo"
+                },
+                {
+                  "type": "chorus:heal",
+                  "target": "self",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "factor": 1,
+                    "from": "round",
+                    "to": "damage",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "ammo",
+                      "field": "applied"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "inspect",
+          "on": "test:inspect",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "view"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:observed"
+            }
+          ]
+        },
+        {
+          "id": "change",
+          "on": "chorus:ammo_changed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:ammo_changed"
+            }
+          ]
+        },
+        {
+          "id": "reload",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:reload"
+            }
+          ]
+        },
+        {
+          "id": "rounded",
+          "on": "test:rounded",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "amount": {
+                "type": "chorus:round",
+                "mode": "ceiling",
+                "input": {
+                  "type": "chorus:scale",
+                  "of": {
+                    "type": "chorus:ammo",
+                    "field": "capacity"
+                  },
+                  "factor": 0.6,
+                  "from": "round",
+                  "to": "round"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

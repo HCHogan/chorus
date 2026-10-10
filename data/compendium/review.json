@@ -1778,6 +1778,331 @@
         "返回施加者、接回输入/窗口、跨飞行持有的施放成本返还权、命中/击杀累计及Woven Mail授予尚未实现或装配",
         "完整技能资源、原作模式/属性缩放、动作归属交互和表现未装配"
       ]
+    },
+    {
+      "id": "perk/clown_cartridge",
+      "name": "Clown Cartridge",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A47",
+          "text_sha256": "4525d6178bcc044cc73709ff200123c416c51320010eae4853b7e204b13fe6b3"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C47",
+          "text_sha256": "c812b7c5f4120782b6d3ac969a764254f9a63c1c4c7ab864054dc0b2334a5fd6"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "完成合格换弹后随机增加10% / 强化13%至50%的弹匣容量，上取整",
+        "快照均值为30% / 强化31.5%，不能用平均值代替随机触发；换弹与补弹事实独立"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "roundingPreservesUnitsAndDeclaresCeilingFloorAndHalfUpSemantics"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "可记录随机抽样与完整分布、基础容量取得及换弹后转移顺序尚未校准",
+        "实际换弹进度 / 完成输入、动态基础容量和账户持久化待实现"
+      ]
+    },
+    {
+      "id": "perk/fourth_times_the_charm",
+      "name": "Fourth Time's The Charm",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A99",
+          "text_sha256": "961edf24cd09a89e129d412041d783097c2ec0342f932794d5d9f51a957d5504"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C99",
+          "text_sha256": "c43ca92fb3cda77371a68b4be1a8e93002ccf132ebc437e73798131e4428b63e"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "相邻精准命中间隔不超过2 / 强化3秒，四次后生成2发弹药",
+        "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "generationDoesNotDebitReservesAndLowerCeilingsNeverDestroyExistingOverflow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "精准命中资格、逐次计数 / 重复事实识别、边界与计数重置策略及真实射击输入未装配"
+      ]
+    },
+    {
+      "id": "perk/overflow",
+      "name": "Overflow",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A160",
+          "text_sha256": "17b8dcf53e4ba045ddf86985ba6f75857065b73c202aaf596d3501f71dba9f97"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C160",
+          "text_sha256": "e0375bd3ee01a7a76341251e9d0cc238780a61071e85289693bc64531a833cff"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "拾取特殊或重型弹药砖后补充弹匣并增加100% / 强化120%容量；收枪可触发",
+        "按C250溢出取整；特殊 / 威能补弹从储备转移，不能触发换弹词条"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "refillConservesFiniteRoundsAndRespectsSourceAndDestinationLimits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "弹药砖资格、拾取增加储备与本词条转移的先后、不同弹药种类交互未验收",
+        "临时补弹上限与动态基础弹匣容量须分开；后者尚未实现"
+      ]
+    },
+    {
+      "id": "perk/reconstruction",
+      "name": "Reconstruction",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A178",
+          "text_sha256": "14947a56d0bb0e5f09ed8eb9557f76939de076e6893163be4b1bf961ba7b3a33"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C178",
+          "text_sha256": "a04d3ed98f74d827954e22a2b149f690b3c6b25aecf935e68cc664740ed5d5ee"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "停火6 / 强化5.5秒后，每6 / 强化5.5秒补充基础弹匣容量的25%",
+        "上限为100%增加容量，收枪可触发且保留；有限储备守恒"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "refillConservesFiniteRoundsAndRespectsSourceAndDestinationLimits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "停火后首个补弹时点、射击重置、25%弹数的精确取整尚需校准",
+        "尚无真实开火 / 停火输入；1秒合成定时器不是本词条验收"
+      ]
+    },
+    {
+      "id": "perk/rewind_rounds",
+      "name": "Rewind Rounds",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A187",
+          "text_sha256": "399b44795aec424164982ef5b47aeac9aa2dd8200957db6820af25e8a4982a5e"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C187",
+          "text_sha256": "d46bdc5b8870f2f87738bc892e524c7b83e0438d8042aaeeea3dc2fc15fb3dc0"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "射空弹匣后按造成伤害次数的60% / 强化70%补弹并上取整，计数收枪保留",
+        "至少发射ceil(基础弹匣容量 × 28.5%)才可触发；补弹后1?秒内命中不计数",
+        "适应爆发线融每个bolt分别计数，按伤害次数14%补弹"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "roundingPreservesUnitsAndDeclaresCeilingFloorAndHalfUpSemantics"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "1?秒保持未知；精确屏蔽窗口、伤害次数信用 / 去重、射空资格与当前弹匣发射计数尚未装配",
+        "实际枪械输入和武器类别分支未实现，不能仅用泛用弹药变化推断射空"
+      ]
+    },
+    {
+      "id": "perk/triple_tap",
+      "name": "Triple Tap",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A235",
+          "text_sha256": "560f1da5c27bb310ff3d13617c26481c42c55f762f95587b70302504286ba33d"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C235",
+          "text_sha256": "888b394599c3680129c78c25736dfcf722406f2d662dcd3741fb80a2bd1c4bef"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "acceptance": [
+        "相邻精准命中间隔不超过2 / 强化3秒，三次后生成1发弹药",
+        "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
+          "symbol": "generationDoesNotDebitReservesAndLowerCeilingsNeverDestroyExistingOverflow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
+          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+        }
+      ],
+      "gaps": [
+        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
+        "精准命中资格、逐次计数 / 重复事实识别、边界与计数重置策略及真实射击输入未装配"
+      ]
+    },
+    {
+      "id": "reference/reload_terminology",
+      "name": "Reload Perk Notes",
+      "kind": "reference",
+      "archived": false,
+      "status": "not_applicable",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "Generate 凭空生成至基础弹匣；Refill 从有限储备转移、不触发换弹词条；Reload 包含指定技能及手动排热完成",
+      "acceptance": [
+        "区分生成 / 溢出 / 补弹 / 合格换弹，不用通用补弹事实冒充换弹完成",
+        "热量武器的散热 / 手动排热和 Marksman Dodge / Dragon Shadow 分类是内容需求，尚未据此实现这些对象"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": []
     }
   ]
 }

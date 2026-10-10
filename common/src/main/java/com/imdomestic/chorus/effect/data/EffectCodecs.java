@@ -39,6 +39,11 @@ public final class EffectCodecs {
 
     public static TypeRegistry<Value> valueTypes(Codec<Value> self) {
         return new TypeRegistry<Value>()
+                .register("chorus:ammo", Value.Ammo.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(Value.Ammo::weapon),
+                        enumeration(com.imdomestic.chorus.effect.ammo.AmmoState.Field.class).fieldOf("field").forGetter(Value.Ammo::field)).apply(i, Value.Ammo::new)))
+                .register("chorus:round", Value.Round.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        self.fieldOf("input").forGetter(Value.Round::input), enumeration(Value.Rounding.class).fieldOf("mode").forGetter(Value.Round::mode)).apply(i, Value.Round::new)))
                 .register("chorus:constant", Value.Constant.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         FINITE.fieldOf("value").forGetter(Value.Constant::value), StatCodecs.UNIT.fieldOf("unit").forGetter(Value.Constant::quantity)
                 ).apply(i, Value.Constant::new)))
@@ -187,7 +192,31 @@ public final class EffectCodecs {
         ).apply(i, SelectionData::new)).flatXmap(data -> safe(data::action), action -> DataResult.success(SelectionData.of(action)));
     }
     public static TypeRegistry<Action> actionTypes(Codec<Value> values) {
+        Codec<AmmoActions.FiniteReserve> finiteReserve = strict(RecordCodecBuilder.create(i -> i.group(
+                values.fieldOf("amount").forGetter(AmmoActions.FiniteReserve::amount), values.fieldOf("capacity").forGetter(AmmoActions.FiniteReserve::capacity)
+        ).apply(i, AmmoActions.FiniteReserve::new)), Set.of("amount", "capacity"));
+        Codec<AmmoActions.ReserveSpec> reserves = Codec.either(Codec.STRING, finiteReserve).flatXmap(
+                value -> value.map(name -> name.equals("unlimited") ? DataResult.success(AmmoActions.ReserveSpec.UNLIMITED) : DataResult.error(() -> "Expected unlimited or finite ammunition reserves"),
+                        finite -> DataResult.success(new AmmoActions.ReserveSpec(java.util.Optional.of(finite)))),
+                value -> DataResult.success(value.finite().<Either<String, AmmoActions.FiniteReserve>>map(Either::right).orElseGet(() -> Either.left("unlimited"))));
         return new TypeRegistry<Action>()
+                .register("chorus:initialize_ammo", AmmoActions.Initialize.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Initialize::weapon),
+                        values.fieldOf("capacity").forGetter(AmmoActions.Initialize::capacity), values.fieldOf("magazine").forGetter(AmmoActions.Initialize::magazine),
+                        reserves.fieldOf("reserves").forGetter(AmmoActions.Initialize::reserves)).apply(i, AmmoActions.Initialize::new)))
+                .register("chorus:observe_ammo", AmmoActions.Observe.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Observe::weapon)).apply(i, AmmoActions.Observe::new)))
+                .register("chorus:spend_ammo", AmmoActions.Spend.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Spend::weapon),
+                        enumeration(com.imdomestic.chorus.effect.ammo.Ammunition.Pool.class).optionalFieldOf("pool", com.imdomestic.chorus.effect.ammo.Ammunition.Pool.MAGAZINE).forGetter(AmmoActions.Spend::pool),
+                        values.fieldOf("amount").forGetter(AmmoActions.Spend::amount)).apply(i, AmmoActions.Spend::new)))
+                .register("chorus:refill_magazine", AmmoActions.Refill.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Refill::weapon), values.optionalFieldOf("amount").forGetter(AmmoActions.Refill::amount),
+                        values.optionalFieldOf("ceiling").forGetter(AmmoActions.Refill::ceiling)).apply(i, AmmoActions.Refill::new)))
+                .register("chorus:grant_ammo", AmmoActions.Generate.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Generate::weapon),
+                        enumeration(com.imdomestic.chorus.effect.ammo.Ammunition.Pool.class).optionalFieldOf("pool", com.imdomestic.chorus.effect.ammo.Ammunition.Pool.MAGAZINE).forGetter(AmmoActions.Generate::pool),
+                        values.fieldOf("amount").forGetter(AmmoActions.Generate::amount), values.optionalFieldOf("ceiling").forGetter(AmmoActions.Generate::ceiling)).apply(i, AmmoActions.Generate::new)))
                 .register("chorus:restore_shield", Action.RestoreShield.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Action.RestoreShield::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.RestoreShield::target),
                         values.fieldOf("amount").forGetter(Action.RestoreShield::amount)
