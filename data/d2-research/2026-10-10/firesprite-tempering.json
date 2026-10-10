@@ -98,7 +98,8 @@
     "unequip": "Existing buff lives until expiry; existing pickup continuation survives source removal. Fragment penalty disappears when unbound.",
     "source": "Each player has exactly one bound firesprite_system source. Pickup creator is that system source; initiating kill remains in the continuation cause. Does not claim weapon-origin propagation on pickup facts.",
     "stats": "Health/Class/AE are stat queries only; physical health recovery, class scaling and airborne accuracy are not projected yet.",
-    "collection": "Current base grenade selection, resource and stat/CES; absent or costless selection and full energy still consume the unit and publish pickup fact."
+    "collection": "Current base grenade selection, resource and stat/CES; absent or costless selection and full energy still consume the unit and publish pickup fact.",
+    "placement": "Use the triggering receipt EntityObservation victim/feet point through event_position_observed + read_event_position. Death reactions may move or remove the corpse without relocating the pickup. Missing anchor evidence emits firesprite_position_unobserved; recorded unavailable, foreign dimension or unloaded area is rejected by the ordinary world spawn. No current-position fallback, forced loading or cooldown on rejection. Receipt-time feet placement is a content policy pending actual D2 sampling calibration."
   },
   "required_calibration": {
     "chorus_d2:firesprite_collection_radius": "meter -> meter; original contact range absent from source",
@@ -111,14 +112,16 @@
     "normalization_confidence": "unverified reference-basis hypothesis for exercising the pipeline, not a measured current Firesprite number",
     "recipient_fixture": "Arcbolt .75 CES; 100 Grenade stat factor 2.25; expected .084375 after test normalization",
     "weapon": "Two synthetic 10-damage rifles, no Incandescent perk; actual physical kill receipts",
-    "world_lifetime": "Tests retain the 25-second content lifetime and five-second cooldown rather than shortening them"
+    "world_lifetime": "Tests retain the 25-second content lifetime and five-second cooldown rather than shortening them",
+    "death_cleanup": "Searing native and physical kills, and Tempering physical kills, move/remove the corpse before kill processing. Pickup remains at recorded death position; physical collection credits current grenade energy once."
   },
   "remaining": [
     "Measure current Firesprite base energy and pickup range",
     "Verify first-kill, cross-producer shared-stack and ally-generated Firesprite policies in current D2",
     "Production subclass and exactly-once player system assembly",
-    "Other Firesprite producers and Ember of Mercy listener",
+    "Other Firesprite producers and Ember of Mercy revival branch; the confirmed pickup listener is already linked",
     "Native Health/Class/AE gameplay projection",
-    "Real art, per-recipient visibility, HUD and persistence"
+    "Real art, per-recipient visibility, HUD and persistence",
+    "Calibrate actual placement anchor and native death/teleport sampling order in D2"
   ]
 }

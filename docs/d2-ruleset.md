@@ -59,7 +59,7 @@ Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个�
 
 `firesprite_test_calibration.json` 使用 0.5 米和 .1125 / 2.25 = .05。该换算只是用于贯通执行流程的参考点假设；[当前能力属性研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/)支持通用回能曲线，不足以证明 Firesprite 的参考基准。测试在 Arcbolt .75 CES 和 100 Grenade 属性 2.25 倍下得到 .084375，这证明一次归一化、一次接收方修饰的执行次序，不宣称每个 Firesprite 当前实测回复 8.4375%。
 
-每名角色需要恰好一个 firesprite_system 来源，生成请求保留击杀目标位置；确认生成才挂冷却，收集不刷新冷却。拾取物 source 为生成系统，原始击杀仍在 continuation cause 中，尚未宣称 pickup 事实继承武器归因。收集读取当前基础手雷选择；无选择、无成本账户或满能量仍消费物品并发事实。既有物体的动作体可在来源卸下后执行；死亡、旁观者或他人不能领取该私有单位。当前私有性是收集资格，所有追踪客户端仍能看到占位实体。
+每名角色需要恰好一个 firesprite_system 来源。生成系统以 event_position_observed + read_event_position 读取触发伤害回执中的 victim / feet，死亡反应移动或删除尸体后仍在确认时的位置生成，不实时重查尸体。没有该锚点观察时发 firesprite_position_unobserved，既不生成也不挂冷却；已记录不可用、维度不符或区块未加载则由正常生成回执拒绝。有效坐标不授权加载区块或跨维度生成。确认生成才挂冷却，收集不刷新冷却。回执后脚底取样是当前内容政策，原作具体生成点 / 取样时机仍须校准。拾取物 source 为生成系统，原始击杀仍在 continuation cause 中，尚未宣称 pickup 事实继承武器归因。收集读取当前基础手雷选择；无选择、无成本账户或满能量仍消费物品并发事实。既有物体的动作体可在来源卸下后执行；死亡、旁观者或他人不能领取该私有单位。当前私有性是收集资格，所有追踪客户端仍能看到占位实体。
 
 这两项状态为 partial：定义仍是可组合的验收数据，尚未接入完整生产子职业装配。实际回能基准、接触半径、特殊击杀资格、其他 Firesprite 生成来源、Mercy 复活分支、Health / Class / AE 的实际玩法投影、HUD、真实素材与存档尚未完成。
 
@@ -78,7 +78,7 @@ Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个�
 
 等级输入从伤害回执的 EntityObservation 读取实际 player，或非玩家的 entity / type 标签中恰好出现一种 `chorus_d2:combatant_tier_1` 至 `_4`。同一种标签同时存在于两处仍只算一种；不同 tier 冲突则未分类。不得把 elite / boss 等敌人 Rank 标签自动当作这里的 Tier，完整目录需要另外装配。未提供事件实体观察、观察时实体不可用、没有 tier 或 tier 冲突会发 `chorus_d2:searing_unclassified`，跳过无法计算的近战收益，但仍请求已知的 Firesprite 分支；这是显式不完整输入，不是零收益的游戏设定，也没有事后补领逻辑。
 
-分类通过 `event_entity_observed` + `read_event_entity` 读取；death 反应删除尸体或把 T1 改成 T4 后，回能仍按回执中的 T1。没有事件观察时不会重新查询当前尸体来补造历史。Firesprite 的死亡位置仍由当前 capture_position 获得；尸体提前移除时生成回执为 missing_position，不生成拾取物、不消耗生成冷却，但不撤销已确认的近战回能。死亡位置的事件快照仍待接入。
+分类通过 `event_entity_observed` + `read_event_entity` 读取；death 反应删除尸体或把 T1 改成 T4 后，回能仍按回执中的 T1。没有事件观察时不会重新查询当前尸体来补造历史。Firesprite 也读取同一事件的 victim / feet 历史位置，尸体提前移动或移除后仍能在原死亡点生成，确认生成才进入共享冷却。元数据与位置观察独立：缺失分类可报告诊断但继续已知位置的生成分支；没有位置证据则明确诊断，不实时兜底，也不撤销已确认的近战回能。
 
 近战回能与 Firesprite 的持有者级生成冷却独立。多个有效击杀在同一生成冷却中仍各获得近战能量；没有近战选择仍可生成 Firesprite。Class +10 只影响现有属性查询，卸下来源后消失。本项仍为 partial：当前回能基准 / CES 资格、完整等级目录、特殊死亡顺序、助攻、子职业生产装配、Class 实际玩法、HUD 与持久化均未完成。
 

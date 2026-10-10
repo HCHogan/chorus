@@ -26,7 +26,7 @@ class FirespriteTest {
         final CompiledEffects program; final EffectSession session;
         final List<WorldPickup.Spawn> spawns=new ArrayList<>(); final List<Action.CueCommand> cues=new ArrayList<>(); final List<TargetQuery> selections=new ArrayList<>();
         final List<HealingCommand> heals=new ArrayList<>();
-        WorldPickup.Outcome outcome=WorldPickup.Outcome.SPAWNED; boolean failSpawn; List<TargetQuery.Target> allies=List.of();
+        WorldPickup.Outcome outcome=WorldPickup.Outcome.SPAWNED; boolean failSpawn, omitPosition;int positionReads;Optional<WorldPosition> observedPosition=Optional.of(POINT); List<TargetQuery.Target> allies=List.of();
         Harness() throws Exception { this(program()); }
         Harness(CompiledEffects program) {
             this.program=program;
@@ -36,11 +36,12 @@ class FirespriteTest {
                 for(String bundle:List.of("chorus_d2:firesprite_system","test:tempering_inputs"))initial=initial.withSource(source(owner,bundle));
             }
             session=new EffectSession(engine(program),initial,request->switch(request.command()) {
-                case PositionQuery q -> new PositionQuery.Result(q,Optional.of(POINT));
+                case PositionQuery q -> {positionReads++;yield new PositionQuery.Result(q,Optional.of(POINT));}
                 case TargetQuery q -> { selections.add(q); yield new TargetQuery.Result(q,TargetQuery.Outcome.AVAILABLE,allies.stream().filter(t->!q.exclude().contains(t.entity())).toList()); }
                 case WorldPickup.Spawn spawn -> {
                     spawns.add(spawn); if(failSpawn)throw new IllegalStateException("unknown physical creation result");
-                    yield new WorldPickup.Receipt(spawn,outcome,outcome==WorldPickup.Outcome.SPAWNED?Optional.of("entity/"+spawns.size()):Optional.empty());
+                    var actual=spawn.position().isEmpty()?WorldPickup.Outcome.MISSING_POSITION:outcome;
+                    yield new WorldPickup.Receipt(spawn,actual,actual==WorldPickup.Outcome.SPAWNED?Optional.of("entity/"+spawns.size()):Optional.empty());
                 }
                 case Action.CueCommand cue -> { cues.add(cue); yield RuleEngine.Empty.INSTANCE; }
                 case HealingCommand heal -> { heals.add(heal); yield new HealingReceipt("heal/"+heals.size(),heal,HealingReceipt.Outcome.APPLIED,heal.amount(),heal.amount(),0); }
@@ -58,7 +59,11 @@ class FirespriteTest {
         void bind(String owner,String bundle){session.start(now(),SourceChange.bind(source(owner,bundle)));healthy();}
         void remove(String owner,String bundle){session.start(now(),SourceChange.remove(source(owner,bundle).instance()));healthy();}
         void select(String owner,String ability){session.start(now(),new AbilityChange(owner,state().abilities().getOrDefault(owner,AbilityLoadout.EMPTY),ability==null?AbilityLoadout.EMPTY:new AbilityLoadout(Map.of(SLOT,ability))).signal());healthy();}
-        void event(String kind,String owner,Set<String> tags,Set<String> sourceTags,Map<String,Measure> numbers){session.start(now(),new RuleEngine.Signal(kind,new EffectEvent(owner,"victim",new BuffInstance.Origin(owner,"shot","weapon","",sourceTags),tags,numbers)));healthy();}
+        void event(String kind,String owner,Set<String> tags,Set<String> sourceTags,Map<String,Measure> numbers){
+            var event=new EffectEvent(owner,"victim",new BuffInstance.Origin(owner,"shot","weapon","",sourceTags),tags,numbers);
+            if(!omitPosition&&(kind.equals("chorus:kill")||kind.equals("chorus_d2:spawn_firesprite")))event=event.withObservedEntities(Optional.of(new EntityObservation(now(),Map.of(),Map.of(new PositionQuery("victim"),observedPosition))));
+            session.start(now(),new RuleEngine.Signal(kind,event));healthy();
+        }
         void spawn(String owner){event("chorus_d2:spawn_firesprite",owner,Set.of(),Set.of(),Map.of());}
         void stat(String owner,int points){event("test:stat",owner,Set.of(),Set.of(),Map.of("stat",new Measure(points,Unit.STAT_POINT)));}
         void kill(String owner,boolean weapon,boolean solar){event("chorus:kill",owner,weapon?Set.of("chorus:weapon_kill"):Set.of(),solar?Set.of("chorus_d2:solar"):Set.of(),Map.of());}
@@ -109,6 +114,18 @@ class FirespriteTest {
                 """));
         var h=new Harness(compile(data));h.event("test:fill","player",Set.of(),Set.of(),Map.of());assertEquals(1,h.energy("player"));
         h.spawn("player");h.finish(0,1,true);assertEquals(1,h.energy("player"));assertEquals(0,h.energy("ally"));assertEquals(1,h.cues.size());
+    }
+    @Test void spawnUsesRecordedDeathPointAndNeverReadsCurrentCorpsePosition()throws Exception{
+        var h=new Harness();var death=new WorldPosition("past:dimension",19,70,-23);h.observedPosition=Optional.of(death);h.spawn("player");
+        assertEquals(Optional.of(death),h.spawns.getFirst().position());assertEquals(0,h.positionReads);assertTrue(h.buff("player",COOLDOWN).isPresent());
+    }
+    @Test void unobservedAndKnownMissingPositionsCannotSpawnOrSpendCooldownButValidLaterRequestsCan()throws Exception{
+        for(boolean unknown:List.of(false,true)){
+            var h=new Harness();h.omitPosition=unknown;h.observedPosition=Optional.empty();h.spawn("player");
+            assertTrue(h.buff("player",COOLDOWN).isEmpty());assertEquals(unknown?0:1,h.spawns.size());assertEquals(0,h.positionReads);
+            assertEquals(unknown?List.of("test:firesprite_position_unobserved"):List.of(),h.cues.stream().map(Action.CueCommand::cue).toList());
+            h.omitPosition=false;h.observedPosition=Optional.of(POINT);h.spawn("player");assertTrue(h.buff("player",COOLDOWN).isPresent());assertEquals(unknown?1:2,h.spawns.size());
+        }
     }
     @Test void radiusAndBaseEnergyCalibrationAreMandatoryAndAllFixturesRoundTrip() throws Exception {
         var p=program();var encoded=EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,p.program()).getOrThrow();

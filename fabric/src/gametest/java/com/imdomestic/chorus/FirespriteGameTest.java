@@ -12,4 +12,8 @@ public class FirespriteGameTest extends com.imdomestic.chorus.test.FirespriteGam
     public void originalTwentyFiveSecondLifetimeExpiresWithoutCollectionFact(GameTestHelper h) throws Exception {super.originalTwentyFiveSecondLifetimeExpiresWithoutCollectionFact(h);}
     @GameTest(structure="chorus_gametest:empty") @Override
     public void unknownPickupListenerOutcomeNeverReplaysAlreadyCommittedEnergy(GameTestHelper h) throws Exception {super.unknownPickupListenerOutcomeNeverReplaysAlreadyCommittedEnergy(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void temperingKillCreatesAndCollectsFirespriteAtReceiptPositionAfterCorpseCleanup(GameTestHelper h)throws Exception{super.temperingKillCreatesAndCollectsFirespriteAtReceiptPositionAfterCorpseCleanup(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void unobservedMissingForeignAndUnloadedPositionsCannotCreateOrStartCooldown(GameTestHelper h)throws Exception{super.unobservedMissingForeignAndUnloadedPositionsCannotCreateOrStartCooldown(h);}
 }

@@ -210,6 +210,21 @@
               "cue": "test:collected"
             }
           ]
+        },
+        {
+          "id": "unobserved_position",
+          "on": "chorus_d2:firesprite_position_unobserved",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:firesprite_position_unobserved"
+            }
+          ]
         }
       ]
     }

@@ -68,7 +68,7 @@
     "firesprite": "Requests the shared per-owner firesprite_system; existing generation cooldown only suppresses pickup creation.",
     "class_stat": "Query-only +10, removed with fragment source.",
     "missing_entity_observation": "Unknown, observed unavailable, absent tier or conflicting tiers reports the existing unclassified event. Never re-query the live corpse to manufacture historical classification.",
-    "firesprite_position": "Classification survives corpse removal, but the shared Firesprite request still reads the current victim position. Missing position rejects the spawn without cooldown or rollback of credited melee energy."
+    "firesprite_position": "The shared Firesprite request reads the receipt victim/feet position and can create after death reactions move or remove the corpse. Missing position evidence reports firesprite_position_unobserved; known rejected placement does not spend cooldown or roll back melee energy."
   },
   "calibration": {
     "required": "chorus_d2:searing_base_energy, charge_fraction -> charge_fraction",
@@ -90,7 +90,6 @@
     "Complete combatant tier catalogue and actual kill/assist attribution policy",
     "Special same-hit Scorch/ignition ordering and effects removed during native combat",
     "Production subclass assembly and native Class-stat projection",
-    "Firesprite calibration, other pickup interactions, UI and persistence",
-    "Receipt-time death position for Firesprite creation after corpse removal"
+    "Firesprite calibration, other pickup interactions, UI and persistence"
   ]
 }

@@ -11,5 +11,5 @@ public class EmberOfSearingGameTest extends com.imdomestic.chorus.test.EmberOfSe
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:searing_dot",maxTicks=40) @Override
     public void actualScorchTickDeathUsesItsOriginalKillerAndRetainsObservedScorchForSearing(GameTestHelper h) throws Exception {super.actualScorchTickDeathUsesItsOriginalKillerAndRetainsObservedScorchForSearing(h);}
     @GameTest(structure="chorus_gametest:empty") @Override
-    public void corpseCleanupPreservesSearingTierButMissingPositionCannotCreateAPickup(GameTestHelper h)throws Exception{super.corpseCleanupPreservesSearingTierButMissingPositionCannotCreateAPickup(h);}
+    public void corpseCleanupPreservesSearingTierAndSpawnsAtTheRecordedDeathPosition(GameTestHelper h)throws Exception{super.corpseCleanupPreservesSearingTierAndSpawnsAtTheRecordedDeathPosition(h);}
 }

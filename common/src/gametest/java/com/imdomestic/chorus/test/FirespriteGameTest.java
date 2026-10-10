@@ -7,6 +7,8 @@ import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.data.Action;
 import com.imdomestic.chorus.effect.equipment.Loadout;
 import com.imdomestic.chorus.effect.resource.ResourceState;
+import com.imdomestic.chorus.effect.target.*;
+import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
 import com.imdomestic.chorus.stat.*;
@@ -95,6 +97,39 @@ public class FirespriteGameTest {
             h.runAfterDelay(499,()->{try{h.assertTrue(!pickup.isRemoved(),"expired too early");}catch(Throwable e){t.close();throw e;}});
             t.finish(502,()->{h.assertTrue(pickup.isRemoved()&&t.cues.isEmpty(),"expiry generated a collection fact");h.assertTrue(buff(t,t.owner,BUFF).isEmpty()&&buff(t,t.owner,COOLDOWN).isEmpty(),"expired buffs retained");});
         }catch(Exception|Error e){t.close();throw e;}
+    }
+    @GameCase public void temperingKillCreatesAndCollectsFirespriteAtReceiptPositionAfterCorpseCleanup(GameTestHelper h)throws Exception{
+        for(boolean removed:List.of(false,true))try(var t=harness(h,EmberOfSearingGameTest::addCorpseCleanup)){
+            kill(t,"primary");IncandescentGameTest.bind(t,"cleanup","test:corpse_cleanup","");
+            var victim=cow(t,0,6);victim.setHealth(1);var deathPoint=victim.position();
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){victim.setPos(victim.getX()+20,victim.getY(),victim.getZ());if(removed)victim.discard();}};
+            PugilistGameTest.draw(t,"secondary");PugilistGameTest.impact(t,PugilistGameTest.fire(t),victim);
+            h.assertValueEqual(t.pickups.size(),1,"confirmed second kill generates Firesprite despite cleanup");var pickup=t.pickups.getFirst();h.assertValueEqual(pickup.position(),deathPoint,"original death point retained");
+            h.assertTrue(buff(t,t.owner,COOLDOWN).isPresent(),"confirmed creation starts cooldown");double before=energy(t);t.owner.setPos(deathPoint);pickup.tick();
+            near(h,energy(t)-before,.0375,"collecting historical-position pickup grants current grenade energy");h.assertTrue(pickup.isRemoved(),"collection consumes physical unit");
+            pickup.tick();near(h,energy(t)-before,.0375,"no duplicate credit");h.assertTrue(t.runtime.failure().isEmpty(),"position-to-pickup chain failed");
+        }h.succeed();
+    }
+    @GameCase public void unobservedMissingForeignAndUnloadedPositionsCannotCreateOrStartCooldown(GameTestHelper h)throws Exception{
+        for(String kind:List.of("unobserved","eyes_only","missing","foreign","unloaded"))try(var t=harness(h)){
+            var victim=cow(t,0,6);String target=id(victim),owner=id(t.owner),dimension=h.getLevel().dimension().identifier().toString();
+            var point=new WorldPosition(dimension,victim.getX(),victim.getY(),victim.getZ());
+            Optional<EntityObservation> observation=switch(kind){
+                case "unobserved"->Optional.empty();
+                case "eyes_only"->Optional.of(new EntityObservation(0,Map.of(),Map.of(new PositionQuery(target,TargetQuery.Anchor.EYES),Optional.of(point))));
+                case "missing"->Optional.of(new EntityObservation(0,Map.of(),Map.of(new PositionQuery(target),Optional.empty())));
+                case "foreign"->Optional.of(new EntityObservation(0,Map.of(),Map.of(new PositionQuery(target),Optional.of(new WorldPosition("test:other_dimension",point.x(),point.y(),point.z())))));
+                case "unloaded"->Optional.of(new EntityObservation(0,Map.of(),Map.of(new PositionQuery(target),Optional.of(new WorldPosition(dimension,16_000_016,40,16_000_016)))));
+                default->throw new AssertionError(kind);
+            };
+            var event=new EffectEvent(owner,target,new BuffInstance.Origin(owner,"test:request","",""),Set.of(),Map.of());
+            t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_firesprite",event.withObservedEntities(observation)));
+            h.assertTrue(t.pickups.isEmpty()&&buff(t,t.owner,COOLDOWN).isEmpty(),"invalid history must not create or spend cooldown: "+kind);
+            h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),Set.of("unobserved","eyes_only").contains(kind)?List.of("test:firesprite_position_unobserved"):List.of(),"unknown differs from known rejected placement");
+            h.assertTrue(h.getLevel().getChunkSource().getChunkNow(1_000_001,1_000_001)==null,"historical position must not load unknown chunks");
+            t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_firesprite",event.withObservedEntities(Optional.of(new EntityObservation(0,Map.of(),Map.of(new PositionQuery(target),Optional.of(point)))))));
+            h.assertValueEqual(t.pickups.size(),1,"valid later request is still eligible");h.assertTrue(buff(t,t.owner,COOLDOWN).isPresent()&&t.runtime.failure().isEmpty(),"valid position did not commit normally");
+        }h.succeed();
     }
     @GameCase public void unknownPickupListenerOutcomeNeverReplaysAlreadyCommittedEnergy(GameTestHelper h) throws Exception {
         try(var t=harness(h)){

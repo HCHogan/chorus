@@ -39,7 +39,7 @@ class EmberOfSearingTest {
                 boolean applied=outcome==DamageReceipt.Outcome.APPLIED;
                 if(applied&&!prevented){var v=views.get(d.target());if(v!=null)views.put(d.target(),new EntityQuery.View(false,v.player(),0,v.maximumHealth(),v.absorption(),v.entityTags(),v.typeTags()));}
                 var receipt=new DamageReceipt(request.id().toString(),outcome,0,0,applied?10:0,applied&&!prevented?Optional.of("death/"+request.id()):Optional.empty(),applied&&prevented);
-                if(!omitObservation)receipt=receipt.withObservedEntities(new EntityObservation(state().buffs().timeMicros(),Map.of(d.target(),Optional.ofNullable(views.get(d.target())))));
+                receipt=receipt.withObservedEntities(new EntityObservation(state().buffs().timeMicros(),omitObservation?Map.of():Map.of(d.target(),Optional.ofNullable(views.get(d.target()))),Map.of(new PositionQuery(d.target()),Optional.of(new WorldPosition("test:world",4,50,6)))));
                 afterObservation.run();return receipt;
             }
             return super.execute(request);
@@ -79,11 +79,11 @@ class EmberOfSearingTest {
             assertEquals(0,h.energy(FIRST));assertEquals(List.of("test:unclassified"),h.cues.stream().map(Action.CueCommand::cue).toList());assertEquals(1,h.pickups.size());
         }
     }
-    @Test void observedTierSurvivesLiveMutationOrRemovalWhilePickupStillNeedsAnAvailablePosition()throws Exception{
+    @Test void observedTierAndPositionSurviveLiveMutationOrRemoval()throws Exception{
         for(boolean removed:List.of(false,true)){
             var h=new Harness();h.classify(false,Set.of("chorus_d2:combatant_tier_1"),Set.of());h.apply(0,SECOND,1);int reads=h.entityReads;
             h.afterObservation=()->{if(removed)h.views.clear();else h.classify(false,Set.of("chorus_d2:combatant_tier_4"),Set.of());};
-            h.kill(FIRST);assertEquals(.08/2.25*.8,h.energy(FIRST),1e-12);assertTrue(h.cues.isEmpty());assertEquals(reads,h.entityReads);assertEquals(removed?0:1,h.pickups.size());
+            h.kill(FIRST);assertEquals(.08/2.25*.8,h.energy(FIRST),1e-12);assertTrue(h.cues.isEmpty());assertEquals(reads,h.entityReads);assertEquals(1,h.pickups.size());assertEquals(Optional.of(new WorldPosition("test:world",4,50,6)),h.pickups.getFirst().position());
         }
     }
     @Test void absentAdapterObservationDoesNotGuessTierFromCurrentCorpseButKnownPickupLegRemains()throws Exception{

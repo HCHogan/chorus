@@ -888,7 +888,7 @@ source 为 entity（默认）或 type。entity 精确匹配实例上的字符串
 
 固定位置没有对应的“中心实体”，include_center 对它不产生隐式排除；位于零距离的任何合格实体都可以入选，想排除原目标须明确写 exclude。关系仍通过 relative_to 的当前实体判断，坐标本身不保存阵营。nearest、limit、半径边界和距离曲线与实体中心相同，距离均从固定点到候选脚底计算。
 
-若直接使用 missing 的位置绑定，查询返回 missing_center 和空列表；坐标维度不同返回 wrong_dimension 和空列表，不跨维度查询、不加载区块。position 不能作为伤害 target、for_each 集合或伤害快照，词法作用域与其他结果一致。当前只捕获 LivingEntity 脚底位置，没有提供碰撞接触点、方块 / 物体位置、坐标运算、独立场物体或跨重启恢复。
+若直接使用 missing 的位置绑定，查询返回 missing_center 和空列表；坐标维度不同返回 wrong_dimension 和空列表，不跨维度查询、不加载区块。position 不能作为伤害 target、for_each 集合或伤害快照，词法作用域与其他结果一致。实体位置可选择 LivingEntity 的 feet / body / eyes；伤害回执中的历史位置另见下文。方块 / 物体位置、通用坐标运算、独立场物体及跨重启恢复仍待实现。
 
 完整 [fixed_position.json](../common/src/test/resources/effects/fixed_position.json) 将一次位置捕获、伤害快照和三次嵌套延迟组合；每次爆发重新选择目标。测试使用 5 米、10 点伤害、100 / 150 / 200 ms，都是合成参数，不是 Kinetic Tremors 的数值定义。
 

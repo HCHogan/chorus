@@ -68,14 +68,15 @@ public class EmberOfSearingGameTest {
             {"id":"test:corpse_cleanup","rules":[{"id":"remove","on":"chorus:death","do":[{"type":"chorus:play_cue","cue":"test:remove_corpse"}]}]}
             """));
     }
-    @GameCase public void corpseCleanupPreservesSearingTierButMissingPositionCannotCreateAPickup(GameTestHelper h)throws Exception{
+    @GameCase public void corpseCleanupPreservesSearingTierAndSpawnsAtTheRecordedDeathPosition(GameTestHelper h)throws Exception{
         for(boolean nativeHit:List.of(false,true))for(boolean removed:List.of(false,true))try(var t=harness(h,EmberOfSearingGameTest::addCorpseCleanup)){
-            IncandescentGameTest.bind(t,"cleanup","test:corpse_cleanup","");var victim=target(t,"1");scorch(t,t.owner,victim);
-            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){victim.removeTag("chorus_d2:combatant_tier_1");victim.addTag("chorus_d2:combatant_tier_4");if(removed)victim.discard();}};
+            IncandescentGameTest.bind(t,"cleanup","test:corpse_cleanup","");var victim=target(t,"1");var deathPoint=victim.position();scorch(t,t.owner,victim);
+            t.onCue=cue->{if(cue.cue().equals("test:remove_corpse")){victim.removeTag("chorus_d2:combatant_tier_1");victim.addTag("chorus_d2:combatant_tier_4");victim.setPos(victim.getX()+20,victim.getY(),victim.getZ());if(removed)victim.discard();}};
             kill(t,victim,"primary",nativeHit);near(h,energy(t),.08*.8,"original tier one survives earlier corpse mutation or removal");
             h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),List.of("test:remove_corpse"),"classification is present despite cleanup");
-            h.assertValueEqual(t.pickups.size(),removed?0:1,"pickup still requires current world position");
-            h.assertTrue(FirespriteGameTest.buff(t,t.owner,"chorus_d2:firesprite_cooldown").isPresent()!=removed,"missing-position spawn must not spend generation cooldown");
+            h.assertValueEqual(t.pickups.size(),1,"pickup uses historical position even after corpse removal");
+            h.assertValueEqual(t.pickups.getFirst().position(),deathPoint,"Firesprite remains at confirmed death point");
+            h.assertTrue(FirespriteGameTest.buff(t,t.owner,"chorus_d2:firesprite_cooldown").isPresent(),"confirmed physical creation spends generation cooldown");
         }h.succeed();
     }
     @GameCase(environment="chorus_gametest:searing_dot",maxTicks=40)

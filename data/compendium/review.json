@@ -4287,7 +4287,8 @@
         "生成不回能；已知失败不占冷却，未知结果不重试",
         "收集者与来源隔离；来源卸下后仍按当前基础手雷选择、属性和 CES 结算",
         "无选择、无成本账户或满能量仍消费单位；过期不发拾取事实",
-        "真实服务器保留原表 25 秒寿命与 5 秒生成冷却，世界后续失败不重放已提交回能"
+        "真实服务器保留原表 25 秒寿命与 5 秒生成冷却，世界后续失败不重放已提交回能",
+        "回执 feet 坐标支持尸体移动 / 删除后的生成；未知位置明确诊断，不可用 / 异维度 / 未加载位置拒绝且不消耗冷却"
       ],
       "evidence": [
         {
@@ -4313,6 +4314,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
           "symbol": "unknownPickupListenerOutcomeNeverReplaysAlreadyCommittedEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FirespriteTest.java",
+          "symbol": "unobservedAndKnownMissingPositionsCannotSpawnOrSpendCooldownButValidLaterRequestsCan"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "unobservedMissingForeignAndUnloadedPositionsCannotCreateOrStartCooldown"
         }
       ],
       "gaps": [
@@ -4350,7 +4361,8 @@
         "无武器击杀标签、非太阳和其他持有者击杀不激活本人碎片",
         "首次激活与已有 Buff 再击杀分离；生成使用统一 Firesprite 冷却",
         "真实敌友和 15 米端点筛选；共享三层、刷新和到期，卸装仅立即移除碎片属性罚值",
-        "真实玩家装备、物理射弹及死亡串起 Buff、拾取物和手雷回能"
+        "真实玩家装备、物理射弹及死亡串起 Buff、拾取物和手雷回能",
+        "真实击杀的死亡反应先移动 / 删除尸体，焰灵仍在原回执位置生成并完成一次手雷回能"
       ],
       "evidence": [
         {
@@ -4376,6 +4388,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
           "symbol": "physicalSpawnsShareFiveSecondCooldownAcrossBothWeapons"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "temperingKillCreatesAndCollectsFirespriteAtReceiptPositionAfterCorpseCleanup"
         }
       ],
       "gaps": [
@@ -4414,7 +4431,8 @@
         "无灼烧、已过期、他人击杀及未确认死亡不产生收益",
         "Firesprite 生成冷却不阻止近战回能；缺近战选择仍可生成拾取物",
         "原版普通伤害、装备物理子弹和实际 Scorch tick 死亡均贯通",
-        "按伤害回执中的实体观察分类，death 反应删除尸体或改写等级仍保留原分支；缺失观察不会实时重查补造历史"
+        "按伤害回执中的实体观察分类，death 反应删除尸体或改写等级仍保留原分支；缺失观察不会实时重查补造历史",
+        "尸体移动或移除后以回执死亡位置生成焰灵，确认生成才消耗冷却；分类与位置观察独立"
       ],
       "evidence": [
         {
@@ -4444,20 +4462,19 @@
         {
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfSearingTest.java",
-          "symbol": "observedTierSurvivesLiveMutationOrRemovalWhilePickupStillNeedsAnAvailablePosition"
+          "symbol": "observedTierAndPositionSurviveLiveMutationOrRemoval"
         },
         {
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfSearingGameTest.java",
-          "symbol": "corpseCleanupPreservesSearingTierButMissingPositionCannotCreateAPickup"
+          "symbol": "corpseCleanupPreservesSearingTierAndSpawnsAtTheRecordedDeathPosition"
         }
       ],
       "gaps": [
         "原表百分比属性基准未说明，测试除以 2.25 为参考点假设；当前原作基础量及 CES 资格待实测",
         "需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求",
         "助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准",
-        "Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现",
-        "焰灵仍需要实时死亡位置；尸体提前移除时回能正常，生成返回 missing_position 且不消耗冷却，死亡位置快照待接入"
+        "Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现"
       ]
     },
     {
