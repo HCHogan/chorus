@@ -91,6 +91,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case TargetQuery query -> select(query);
             case com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch -> launch(launch);
             case com.imdomestic.chorus.effect.object.WorldPickup.Spawn spawn -> pickup(spawn);
+            case com.imdomestic.chorus.effect.object.WorldConstruct.Spawn spawn -> MinecraftConstructExecutor.spawn(level, spawn);
             default -> throw new IllegalArgumentException("No world executor for " + request.command().getClass().getName());
         };
     }

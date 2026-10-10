@@ -27,6 +27,7 @@ public class Chorus {
         Constants.LOG.info("Hello NeoForge world!");
         NeoForgeRegistrationHelper.setModBus(eventBus);
         CommonClass.init();
+        eventBus.addListener((net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) -> event.put(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_CONSTRUCT.get(), com.imdomestic.chorus.platform.minecraft.EffectConstruct.attributes().build()));
         eventBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> {
             var registrar = event.registrar("1").optional();
             registrar.playToClient(com.imdomestic.chorus.network.MovementInputPayload.TYPE, com.imdomestic.chorus.network.MovementInputPayload.CODEC);

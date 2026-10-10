@@ -113,7 +113,8 @@
       "com.imdomestic.chorus.BundleInvocationGameTest",
       "com.imdomestic.chorus.HealthPaymentGameTest",
       "com.imdomestic.chorus.BreakoutGameTest",
-      "com.imdomestic.chorus.FreezeDamageGameTest"
+      "com.imdomestic.chorus.FreezeDamageGameTest",
+      "com.imdomestic.chorus.ConstructGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -130,7 +131,8 @@
       "com.imdomestic.chorus.SuspendClientGameTest",
       "com.imdomestic.chorus.FreezeClientGameTest",
       "com.imdomestic.chorus.SlowClientGameTest",
-      "com.imdomestic.chorus.BreakoutClientGameTest"
+      "com.imdomestic.chorus.BreakoutClientGameTest",
+      "com.imdomestic.chorus.ConstructClientGameTest"
     ]
   }
 }

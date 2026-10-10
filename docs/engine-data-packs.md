@@ -2075,6 +2075,39 @@ Durance 复用同一机制：链接 [stasis_duration.json](../common/src/test/re
 
 withBase / withoutFactors 只重算已保存的数学输入，不重新读取状态、表达式或调用原收集器。上游变化会逐段重新送入下游曲线 / 限幅；移除因子按命名匹配各段，使用重算而非除法，所以零倍率也能处理。已选贡献的置信度跨段汇总。这里是有限顺序查询；没有改变事件队列、合法效果循环或单个攻击快照的结算协议。
 
+## 可受伤构造物
+
+`chorus:spawn_construct` 是世界动作，先消费已捕获的 POSITION，再返回生成回执。种类用于内容身份和实体标签，不是新的注册实体类型。
+
+```json
+{
+  "action": {
+    "type": "chorus:spawn_construct",
+    "position": "point",
+    "kind": "example:turret",
+    "health": { "type": "chorus:constant", "value": 150, "unit": "damage" },
+    "width": { "type": "chorus:constant", "value": 0.5, "unit": "meter" },
+    "height": { "type": "chorus:constant", "value": 0.75, "unit": "meter" },
+    "lifetime": { "type": "chorus:constant", "value": 25, "unit": "second" },
+    "origin": "bound",
+    "tags": ["example:damageable"]
+  },
+  "as": "spawned"
+}
+```
+
+示例尺寸仅是合成输入，不能作为 Bleak Watcher 的原作几何。生命值和尺寸要求有限且大于零，寿命要求正的整微秒；表达式在生成时求值一次。`origin` 默认 bound，也可选择 event，保留施放者 / 武器 / 技能信用。生成请求固定当前程序版本，宿主拒绝错配运行时。
+
+回执 `count` 为 0 或 1，提供 `spawned / missing_position / wrong_dimension / unloaded / out_of_bounds / unsupported_parameters / obstructed / rejected` 标志。它是 TARGET_IDENTITIES 集合，可用 `for_each: "spawned"` 对成功生成的实体施加 Buff、捕获位置或继续查询；失败为空集合，不会创建虚假身份。回执必须对应原请求。世界结果未知时停止，不自动重试；已经生成的实体和此前支付不会回滚，依赖回执的行为不会继续执行。
+
+Minecraft 使用 `chorus:effect_construct`，具有独立 UUID、真实生命值和同步的碰撞箱尺寸；始终带 `chorus:construct`、kind 和声明的 tags。现有 `inspect_entity / select_targets`、伤害管线与普通死亡事实适用，内容须显式区分构造物与其他目标类别。当前实现无 AI、自主移动、重力、经验和掉落，不能进传送门；铁粒渲染仅供占位。宿主在完整碰撞箱及一格查询边距内预检已加载区块，不加载未知地形；边界或实体 / 方块碰撞拒绝生成。单边尺寸最多 16 格，生命值必须可由原版 MAX_HEALTH 属性及正 float 表示，超限明确拒绝，不静默裁剪。这些限制只约束一次物理生成请求。
+
+生命周期为 `[creation, expiry)`。到期即不再被存活查询选中，随后实体 tick 清理；施放者卸下来源、死亡或被移除不自动结束构造物。程序运行时关闭立即清理自己生成的构造物；运行时失败时实体失活并在下一次 tick 清理。实体不写存档。
+
+行为 Buff 是内容声明，未由 spawn 隐式创建。推荐让它持有相同期限的自有定时器，在每次攻击前检查 self 的 available / alive；在 `chorus:death` 的 victim 等于 self 时移除该行为。这样摧毁只取消对应实例的未来行为，已脱离行为生命周期的投射物可以继续。删除实体也会由下一次查询观察为 missing，进而移除行为；这里没有新增专用 despawn / construct_destroyed 事实。内容仍须声明友敌参照、施放者失联策略、攻击规则和伤害归属，不能把保留 origin 当成已经实现阵营代理。
+
+验证：`ConstructTest` 的身份、归属、独立 Buff / 定时器、失败和单位检查；共享 `ConstructGameTest` 的真实生命损失 / 死亡、独立实例、到期、未知结果及不加载区块；`ConstructClientGameTest` 的同步尺寸、生命值、占位渲染和关闭移除。当前仅完成通用宿主，Bleak Watcher 的寻敌连发与首次开火前减伤仍需独立装配。
+
 ## 物理拾取物的动作体
 
 ```json

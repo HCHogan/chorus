@@ -1037,7 +1037,7 @@ Slow 的实际投影与查询分别为：
 
 当前政策是施加 / 创建时读取施加者的当前碎片，已提交的截止时间保持不变；卸下只影响之后查询。新 Slow 刷新仍取最晚截止时间并保留首次信用，达到百层的来源拥有 Freeze。Durance 的 +10 Melee 进入共享 character_stats，重复来源按同碎片去重，再与其他加值相加并按 200 点封顶。这些取样、重复装配与刷新规则是 Chorus 内容政策，并非已实测的全部原作边界。
 
-8 项 DuranceTest 验证上表时长、双方装备隔离、卸下 / 刷新 / 精确到期、授权、百层转换、+10 Melee 及缺失参数；3 项共享 DuranceGameTest 验证真实目标、tick 到期后原版移速恢复和 Freeze 控制。Withering Blade 的实际命中与 Duskfield 的落点、周期场及 7 / 9 秒生命周期已有独立验收；Bleak Watcher 仍只用测试 Buff 验证期限，**不代表冰炮台构造物及其寻敌投射物已实现**。Winter's Shroud 战员时长在原表带问号，未采为确定校准。生产技能全套来源、原作采样边界、正式子职业装配 / HUD / 持久化仍待完成，Durance 保持 **partial**。
+8 项 DuranceTest 验证上表时长、双方装备隔离、卸下 / 刷新 / 精确到期、授权、百层转换、+10 Melee 及缺失参数；3 项共享 DuranceGameTest 验证真实目标、tick 到期后原版移速恢复和 Freeze 控制。Withering Blade 的实际命中与 Duskfield 的落点、周期场及 7 / 9 秒生命周期已有独立验收；Bleak Watcher 的 Durance 期限仍只由测试 Buff 验证。新增通用 spawn_construct 可生成有独立生命值和寿命的实体，但**不代表冰炮台的寻敌连发、首次开火前减伤、长按转换和完整技能装配已实现**。Winter's Shroud 战员时长在原表带问号，未采为确定校准。生产技能全套来源、原作采样边界、正式子职业装配 / HUD / 持久化仍待完成，Durance 保持 **partial**。
 
 ### Freeze / Shatter 的分级控制与范围碎冰
 

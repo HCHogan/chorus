@@ -21,6 +21,7 @@ public final class ChorusClient {
         bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE, (payload, context) -> com.imdomestic.chorus.client.HorizontalSpeedClient.accept(payload)));
         bus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_PROJECTILE.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new));
         bus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_ENTITY.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new));
+        bus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) -> event.registerEntityRenderer(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_CONSTRUCT.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new));
         EquipmentClient.init(ClientPacketDistributor::sendToServer, () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(EquipmentPayloads.Visit.TYPE));
         bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(EquipmentPayloads.View.TYPE, (view, context) -> EquipmentClient.accept(view)));
         var open = new KeyMapping("key.chorus.equipment", InputConstants.KEY_K, KeyMapping.Category.INVENTORY);

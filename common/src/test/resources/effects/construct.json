@@ -1,0 +1,194 @@
+{
+  "version": "test-1",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:paid",
+        "version": "test-1",
+        "duration": 10
+      },
+      "bundle": "test:paid"
+    },
+    {
+      "definition": {
+        "id": "test:construct_behavior",
+        "version": "test-1",
+        "duration": 0.5,
+        "attach": "target"
+      },
+      "bundle": "test:construct_behavior"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:construct",
+      "rules": [
+        {
+          "id": "spawn",
+          "on": "test:spawn",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:paid"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "point"
+            },
+            {
+              "action": {
+                "type": "chorus:spawn_construct",
+                "position": "point",
+                "kind": "test:turret",
+                "health": {
+                  "type": "chorus:event_number",
+                  "name": "health",
+                  "unit": "damage"
+                },
+                "width": {
+                  "type": "chorus:constant",
+                  "value": 0.5,
+                  "unit": "meter"
+                },
+                "height": {
+                  "type": "chorus:constant",
+                  "value": 0.75,
+                  "unit": "meter"
+                },
+                "lifetime": {
+                  "type": "chorus:event_number",
+                  "name": "duration",
+                  "unit": "second"
+                },
+                "tags": [
+                  "test:damageable"
+                ]
+              },
+              "as": "spawned"
+            },
+            {
+              "for_each": "spawned",
+              "as": "construct",
+              "do": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "test:construct_behavior",
+                  "target": {
+                    "binding": "construct"
+                  },
+                  "duration": {
+                    "type": "chorus:event_number",
+                    "name": "duration",
+                    "unit": "second"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:paid",
+      "scope": "buff"
+    },
+    {
+      "id": "test:construct_behavior",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "pulse",
+              "event": "test:pulse",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "repeat": -1
+            }
+          ]
+        },
+        {
+          "id": "pulse",
+          "on": "test:pulse",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "pulse"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity"
+              },
+              "as": "entity"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "entity",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "entity",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:construct_pulse"
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "test:construct_behavior"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:construct_behavior"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

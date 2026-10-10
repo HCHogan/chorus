@@ -501,6 +501,13 @@ public final class EffectCodecs {
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(MotionActions.Apply::origin),
                         ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(MotionActions.Apply::tags)
                 ).apply(i, MotionActions.Apply::new)))
+                .register("chorus:spawn_construct", ConstructActions.Spawn.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("position").forGetter(ConstructActions.Spawn::position), ID.fieldOf("kind").forGetter(ConstructActions.Spawn::kind),
+                        values.fieldOf("health").forGetter(ConstructActions.Spawn::health), values.fieldOf("width").forGetter(ConstructActions.Spawn::width),
+                        values.fieldOf("height").forGetter(ConstructActions.Spawn::height), values.fieldOf("lifetime").forGetter(ConstructActions.Spawn::lifetime),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(ConstructActions.Spawn::origin),
+                        ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(ConstructActions.Spawn::tags)
+                ).apply(i, ConstructActions.Spawn::new)))
                 .register("chorus:select_targets", Action.SelectTargets.class, selection(values))
                 .register("chorus:play_cue", Action.Cue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("cue").forGetter(Action.Cue::cue), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Cue::target)).apply(i, Action.Cue::new)));

@@ -3,6 +3,7 @@ package com.imdomestic.chorus.registry;
 import com.imdomestic.chorus.platform.Services;
 import com.imdomestic.chorus.platform.minecraft.EffectProjectile;
 import com.imdomestic.chorus.platform.minecraft.EffectObject;
+import com.imdomestic.chorus.platform.minecraft.EffectConstruct;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.*;
 import java.util.function.Supplier;
@@ -14,5 +15,8 @@ public final class ChorusEntities {
     public static final Supplier<EntityType<EffectObject>> EFFECT_ENTITY = Services.REGISTRATION.register(Registries.ENTITY_TYPE, "effect_entity",
             key -> EntityType.Builder.<EffectObject>of(EffectObject::new, MobCategory.MISC)
                     .sized(0.25f, 0.25f).noSave().noSummon().clientTrackingRange(8).updateInterval(1).build(key));
+    public static final Supplier<EntityType<EffectConstruct>> EFFECT_CONSTRUCT = Services.REGISTRATION.register(Registries.ENTITY_TYPE, "effect_construct",
+            key -> EntityType.Builder.<EffectConstruct>of(EffectConstruct::new, MobCategory.MISC)
+                    .sized(.5f, .5f).noSave().noSummon().clientTrackingRange(8).updateInterval(1).build(key));
     public static void init() {}
 }

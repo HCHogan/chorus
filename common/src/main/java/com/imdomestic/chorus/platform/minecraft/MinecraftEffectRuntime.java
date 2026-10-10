@@ -451,6 +451,9 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
         closed = true; equipmentOwners.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        var constructs = new ArrayList<EffectConstruct>();
+        for (var entity : level.getAllEntities()) if (entity instanceof EffectConstruct construct && construct.ownedBy(this)) constructs.add(construct);
+        constructs.forEach(EffectConstruct::discard);
         RuntimeException cleanup=null;
         try { nativeAttributes.close(); } catch(RuntimeException error) { cleanup=error; }
         try { nativeMovement.close(); } catch(RuntimeException error) { if(cleanup==null)cleanup=error;else cleanup.addSuppressed(error); }
