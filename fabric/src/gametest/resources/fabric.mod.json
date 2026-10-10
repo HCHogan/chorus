@@ -41,7 +41,8 @@
       "com.imdomestic.chorus.SpatialQueryGameTest",
       "com.imdomestic.chorus.ArcboltGameTest",
       "com.imdomestic.chorus.ProjectileGameTest",
-      "com.imdomestic.chorus.ProjectileCollisionGameTest"
+      "com.imdomestic.chorus.ProjectileCollisionGameTest",
+      "com.imdomestic.chorus.ProjectileTrackingGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

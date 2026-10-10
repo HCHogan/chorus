@@ -1,6 +1,9 @@
 package com.imdomestic.chorus.platform.minecraft;
 
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.projectile.ProjectileTracking;
+import com.imdomestic.chorus.effect.target.TargetQuery;
+import com.imdomestic.chorus.effect.target.WorldDirection;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import net.minecraft.network.syncher.*;
 import net.minecraft.server.level.ServerLevel;
@@ -21,8 +24,10 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     private boolean terminal;
     private ProjectileFlight.Progress progress = ProjectileFlight.Progress.EMPTY;
     private final Set<UUID> inside = new HashSet<>();
+    private UUID trackingTarget;
     private static final double SEPARATION = 1e-5;
     public ProjectileFlight.Progress progress() { return progress; }
+    public Optional<String> trackingTarget() { return Optional.ofNullable(trackingTarget).map(UUID::toString); }
     public EffectProjectile(EntityType<? extends EffectProjectile> type, Level level) { super(type, level); }
     @Override protected void defineSynchedData(SynchedEntityData.Builder data) { data.define(GRAVITY, 0.0f); data.define(DRAG, 1.0f); }
     @Override public ItemStack getItem() { return new ItemStack(Items.AMETHYST_SHARD); }
@@ -37,7 +42,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         updateRotation();
     }
     public Optional<ProjectileFlight.Launch> launch() { return Optional.ofNullable(launch); }
-    private void abandon() { progress = progress.abandon(); terminal = true; discard(); }
+    private void abandon() { progress = progress.abandon(); terminal = true; trackingTarget = null; discard(); }
     private WorldPosition point(Vec3 p) { return new WorldPosition(level().dimension().identifier().toString(), p.x, p.y, p.z); }
     @Override public void tick() {
         if (terminal) return;
@@ -53,6 +58,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         var movement = getDeltaMovement().add(0, -gravity / 400.0, 0).scale(drag);
         setDeltaMovement(movement); var from = position(); var to = from.add(movement); updateRotation();
         if (!(level() instanceof ServerLevel server)) { setPos(to); return; }
+        steer(server, false);
         ageMicros = Math.addExact(ageMicros, 50_000);
         double remaining = 1;
         while (!terminal && remaining > 0) {
@@ -66,6 +72,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 inside.add(entity.getEntity().getUUID());
                 if (!observe(ProjectileFlight.End.ENTITY, entity.getLocation(), Optional.of(entity.getEntity().getUUID().toString()), 0, 0, 0, false)) return;
                 setPos(entity.getLocation().add(getDeltaMovement().normalize().scale(SEPARATION)));
+                steer(server, true);
             } else if (block.getType() == HitResult.Type.BLOCK) {
                 remaining = remainingAfter(remaining, from, end, movement);
                 var normal = block.getDirection(); var n = new Vec3(normal.getStepX(), normal.getStepY(), normal.getStepZ());
@@ -76,6 +83,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 }
                 if (!observe(ProjectileFlight.End.BLOCK, end, Optional.empty(), n.x, n.y, n.z, embedded)) return;
                 setPos(end.add(n.scale(SEPARATION)));
+                steer(server, true);
                 if (getDeltaMovement().lengthSqr() == 0) break;
             } else { setPos(to); remaining = 0; }
         }
@@ -85,9 +93,53 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         double length = movement.length();
         return length == 0 ? remaining : remaining * Math.max(0, 1 - from.distanceTo(contact) / length);
     }
+    private void refreshInside(ServerLevel level, Vec3 from) {
+        inside.removeIf(id -> { var e = level.getEntity(id); return e == null || !e.getBoundingBox().inflate(0.125).contains(from); });
+    }
+    private Vec3 anchor(LivingEntity target, TargetQuery.Anchor anchor) {
+        double y = switch (anchor) { case FEET -> target.getY(); case BODY -> target.getBoundingBox().getCenter().y; case EYES -> target.getEyeY(); };
+        return new Vec3(target.getX(), y, target.getZ());
+    }
+    private WorldDirection direction(Vec3 vector) { return new WorldDirection(level().dimension().identifier().toString(), vector.x, vector.y, vector.z); }
+    private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire) {
+        if (!candidate.isAlive() || candidate.isRemoved() || candidate.isSpectator() || candidate.level() != level
+                || candidate.getUUID().toString().equals(launch.owner()) || inside.contains(candidate.getUUID())
+                || !progress.canHit(candidate.getUUID().toString(), launch.parameters().collision())) return false;
+        var offset = anchor(candidate, policy.anchor()).subtract(position());
+        if (offset.lengthSqr() == 0 || offset.length() > policy.radius()) return false;
+        if (policy.relation() != TargetQuery.Relation.ANY) {
+            var owner = getOwner(); if (owner == null || owner.isRemoved() || owner.level() != level) return false;
+            boolean allied = owner.isAlliedTo(candidate);
+            if (policy.relation() == TargetQuery.Relation.ALLIED ? !allied : allied) return false;
+        }
+        if (acquire && !ProjectileTracking.inCone(direction(getDeltaMovement()), direction(offset), policy.acquisitionAngle())) return false;
+        return !policy.lineOfSight() || MinecraftVisibility.visible(level, point(position()), point(anchor(candidate, policy.anchor())));
+    }
+    private void steer(ServerLevel level, boolean contact) {
+        var policy = launch.parameters().tracking().orElse(null);
+        if (policy == null || contact && !policy.redirectOnContact()) return;
+        if (getDeltaMovement().lengthSqr() == 0) { trackingTarget = null; return; }
+        refreshInside(level, position());
+        var retained = trackingTarget == null || contact ? null : level.getEntity(trackingTarget);
+        LivingEntity selected = retained instanceof LivingEntity living && trackable(level, living, policy, false) ? living : null;
+        if (selected == null) {
+            double closest = Double.POSITIVE_INFINITY;
+            // Loaded entities only, with identity retention to avoid chasing whichever target becomes marginally nearer.
+            for (var entity : level.getAllEntities()) {
+                if (!(entity instanceof LivingEntity living) || !trackable(level, living, policy, true)) continue;
+                double distance = position().distanceToSqr(anchor(living, policy.anchor()));
+                if (distance < closest || distance == closest && (selected == null || living.getUUID().compareTo(selected.getUUID()) < 0)) { selected = living; closest = distance; }
+            }
+        }
+        trackingTarget = selected == null ? null : selected.getUUID();
+        if (selected == null) return; // Losing a target keeps ballistic flight; no guessed target or chunk loading.
+        double speed = getDeltaMovement().length();
+        var turned = ProjectileTracking.turn(direction(getDeltaMovement()), direction(anchor(selected, policy.anchor()).subtract(position())), contact ? 180 : policy.turnRate() / 20);
+        setDeltaMovement(turned.x() * speed, turned.y() * speed, turned.z() * speed); updateRotation();
+    }
     private EntityHitResult entityHit(ServerLevel level, Vec3 from, Vec3 to, Vec3 movement) {
         // Reentry can count again only after physically leaving the expanded hitbox; no tick cooldown or global dedup.
-        inside.removeIf(id -> { var e = level.getEntity(id); return e == null || !e.getBoundingBox().inflate(0.125).contains(from); });
+        refreshInside(level, from);
         EntityHitResult best = null; double distance = Double.POSITIVE_INFINITY;
         for (var entity : level.getEntities(this, getBoundingBox().expandTowards(movement).inflate(0.125),
                 e -> e instanceof LivingEntity living && living.isAlive() && !e.isSpectator()

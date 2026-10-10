@@ -1,13 +1,28 @@
 package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.projectile.ProjectileTracking;
+import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.stat.Unit;
 import java.util.Optional;
 
 /** Values resolve once when launched. Drag is a multiplier applied every 50 ms physical tick. */
-public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision) {
+public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking) {
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime) { this(position, direction, speed, gravity, drag, lifetime, Collisions.STOP); }
+    public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision) { this(position, direction, speed, gravity, drag, lifetime, collision, Optional.empty()); }
     public static final Unit SPEED = new Unit("chorus:meter_per_second"), GRAVITY = new Unit("chorus:meter_per_second_squared");
+    public static final Unit ANGLE = new Unit("chorus:degree"), TURN_RATE = new Unit("chorus:degree_per_second");
+    public record Tracking(Value radius, Value turnRate, Value acquisitionAngle, TargetQuery.Anchor anchor,
+            TargetQuery.Relation relation, boolean lineOfSight, boolean redirectOnContact) {
+        void validate(Validation v) {
+            Validation.same(radius.unit(v), Unit.METER); Validation.same(turnRate.unit(v), TURN_RATE); Validation.same(acquisitionAngle.unit(v), ANGLE);
+            new ProjectileTracking.Policy(radius instanceof Value.Constant c ? c.value() : 0, turnRate instanceof Value.Constant c ? c.value() : 0,
+                    acquisitionAngle instanceof Value.Constant c ? c.value() : 180, anchor, relation, lineOfSight, redirectOnContact);
+        }
+        ProjectileTracking.Policy resolve(Evaluation e) {
+            return new ProjectileTracking.Policy(measure(radius, Unit.METER, e), measure(turnRate, TURN_RATE, e), measure(acquisitionAngle, ANGLE, e), anchor, relation, lineOfSight, redirectOnContact);
+        }
+    }
     public record LimitSpec(Optional<Value> value) {
         public static final LimitSpec UNLIMITED = new LimitSpec(Optional.empty()), ZERO = fixed(0), ONE = fixed(1);
         private static LimitSpec fixed(int value) { return new LimitSpec(Optional.of(new Value.Constant(value, Unit.COUNT))); }
@@ -28,6 +43,7 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     public void validate(Validation v) {
         collision.validate(v);
+        tracking.ifPresent(t -> t.validate(v));
         v.result(position).requirePosition(); v.result(direction).requireDirection();
         Validation.same(speed.unit(v), SPEED); Validation.same(gravity.unit(v), GRAVITY); Validation.same(drag.unit(v), Unit.MULTIPLIER);
         Action.validateDuration(lifetime, v);
@@ -36,6 +52,6 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     private static double measure(Value value, Unit unit, Evaluation e) { var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value(); }
     public ProjectileFlight.Parameters resolve(Evaluation e) {
-        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e));
+        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e), tracking.map(t -> t.resolve(e)));
     }
 }

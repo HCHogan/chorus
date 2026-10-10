@@ -24,10 +24,11 @@ public final class ProjectileFlight {
             if (!hitsPerTarget.allows(0) || restitution > 1) throw new IllegalArgumentException("Invalid projectile collision policy");
         }
     }
-    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision) {
+    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking) {
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros) { this(speed, gravity, drag, lifetimeMicros, Collision.STOP); }
+        public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision) { this(speed, gravity, drag, lifetimeMicros, collision, Optional.empty()); }
         public Parameters {
-            Objects.requireNonNull(collision);
+            Objects.requireNonNull(collision); Objects.requireNonNull(tracking);
             Numbers.nonnegative(speed, "projectile speed"); Numbers.nonnegative(gravity, "projectile gravity"); Numbers.nonnegative(drag, "projectile drag");
             if (speed > 2000 || gravity > 2000 || drag > 1 || lifetimeMicros <= 0 || lifetimeMicros == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Projectile parameters exceed host limits");

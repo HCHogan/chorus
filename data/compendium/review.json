@@ -1622,6 +1622,162 @@
         "当前实际损失包括HP、Chorus护盾和Absorption；后续跳跃沿原施加者的实时not_allied关系，离线/跨维度阵营快照和D2敌我分类未完成",
         "基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x及正式伤害类型、表现仍未实现"
       ]
+    },
+    {
+      "id": "ability/shield_throw",
+      "name": "Shield Throw",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B57",
+          "text_sha256": "cf70b33a5834ba3f1e2c1ccfb717ba4e2dc5753fe55f434fd19010fa38d013f4"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D57",
+          "text_sha256": "5ff8880322b4017101dc233e0c0696229339581fde66023200bfca7b9f9967ae"
+        },
+        {
+          "sheet": "Void",
+          "cell": "N57",
+          "text_sha256": "452bc210163924ce14a880a0d20915213adfc7f7337d28e8ec6b13fecde52c29"
+        }
+      ],
+      "scope": "需求已审阅；通用物理追踪、接触转向和命中计数有机制验收，尚无此技能的完整内容定义",
+      "acceptance": [
+        "向前投掷、重力、尝试追踪与最多4次弹跳；明确墙面和实体是否共用次数预算",
+        "400 [PvP 70]命中伤害、每次命中给予15 HP Void Overshield，并接通实际伤害/护盾资格",
+        "131.7秒基础冷却、0.9x chunk scalar、技能槽位/输入与正式数值缩放"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileTrackingTest.java",
+          "symbol": "boundedShortestArcPreservesNormalizedDirectionsAndCanSnapOrRemainBallistic"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileTrackingGameTest.java",
+          "symbol": "contactRedirectVisitsThreeDistinctEnemiesInOneTickAndHonorsPierceBudget"
+        }
+      ],
+      "gaps": [
+        "尚未提供此技能的数据定义；泛用追踪/转向夹具使用合成数值，不能当作Shield Throw实现",
+        "真实速度、重力、转向率、扫描半径/角度、追踪与弹跳资格未校准；当前宿主的墙面反弹和实体穿透预算独立，未确认原作4次是否为共享预算",
+        "Void Overshield的15 HP逐命中授予/叠加、技能资源、标签/免疫、正式伤害缩放和表现未装配"
+      ]
+    },
+    {
+      "id": "ability/withering_blade",
+      "name": "Withering Blade",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B38",
+          "text_sha256": "5e74bfbea5c542b1df1e4457c3859824228a9b5b6ef74f6823fd8284bb500270"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D38",
+          "text_sha256": "3d0fa7c7dda2e42081f69505917945d66d3619b3dfb3646606c8e04c1ed791a7"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "N38",
+          "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
+        }
+      ],
+      "scope": "需求已审阅；通用物理追踪、接触转向和命中计数有机制验收，尚无此技能的完整内容定义",
+      "acceptance": [
+        "初始2次近战充能，145.2秒基础冷却与0.8x chunk scalar",
+        "最多3次表面反弹或最多4个敌人、12 [PvP 8]米追踪，并明确两种次数是否共享预算",
+        "296 [PvP 72]命中伤害，x60 [PvP x40] Slow，持续3.5+3.5 [PvP 1.5+0.5]秒的基准/延长条件"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileTrackingTest.java",
+          "symbol": "boundedShortestArcPreservesNormalizedDirectionsAndCanSnapOrRemainBallistic"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileTrackingGameTest.java",
+          "symbol": "contactRedirectVisitsThreeDistinctEnemiesInOneTickAndHonorsPierceBudget"
+        }
+      ],
+      "gaps": [
+        "尚未提供此技能的数据定义；通用追踪、按实体次数转向及独立资源充能机制不等于完整技能实现",
+        "轨迹、转向率/角度、反弹共享计数和有效命中资格尚未校准；12/8半径可由带单位的Value表达，但未装配PvE/PvP技能数据",
+        "Slow数值/持续时间修饰、碎片交互、两次充能、成本/冷却、技能缩放与表现未装配"
+      ]
+    },
+    {
+      "id": "ability/threaded_spike",
+      "name": "Threaded Spike",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Strand",
+          "cell": "B38",
+          "text_sha256": "e9f66a92065e007280ca7ed7101d426c6aec071a09fbcbd2d623138279be41c2"
+        },
+        {
+          "sheet": "Strand",
+          "cell": "D38",
+          "text_sha256": "dfe3181ff3727f4265a7a8b49d4be105394869d3304a57351fd919b819db587b"
+        },
+        {
+          "sheet": "Strand",
+          "cell": "N38",
+          "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
+        }
+      ],
+      "scope": "需求已审阅；通用物理追踪、接触转向和命中计数有机制验收，尚无此技能的完整内容定义",
+      "acceptance": [
+        "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
+        "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
+        "施加Sever，持续时间在快照中为未知；返回施加者与近战输入接回",
+        "0/1/2/3/4/5+次命中对应普通回能5/10/20/30/35/40%，接回20/30/50/70/85/100%",
+        "Strand职业接回时每次击杀给予2秒Woven Mail、上限10秒；145.2秒基础冷却与0.8x chunk scalar"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileTrackingTest.java",
+          "symbol": "boundedShortestArcPreservesNormalizedDirectionsAndCanSnapOrRemainBallistic"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileTrackingGameTest.java",
+          "symbol": "contactRedirectVisitsThreeDistinctEnemiesInOneTickAndHonorsPierceBudget"
+        }
+      ],
+      "gaps": [
+        "尚未提供此技能的数据定义；现有逐接触计数可驱动衰减，但通用夹具并非Threaded Spike的数值/时序",
+        "未知半径和Sever持续时间保持未知；没有用合成扫描参数填入原作数据，转向率/轨迹与衰减计数仍待校准",
+        "返回施加者、接回输入/窗口、跨飞行持有的施放成本返还权、命中/击杀累计及Woven Mail授予尚未实现或装配",
+        "完整技能资源、原作模式/属性缩放、动作归属交互和表现未装配"
+      ]
     }
   ]
 }

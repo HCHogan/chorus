@@ -1,0 +1,436 @@
+{
+  "version": "test-projectile-v1",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:projectile_damage",
+      "version": "test-projectile-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "bounce",
+          "operation": "multiply",
+          "group": {
+            "name": "bounce",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:bolt",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "damage"
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "test:projectile_damage",
+            "tags": [
+              "chorus:ability_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill"
+            ]
+          },
+          "as": "shot"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:constant",
+              "value": 2,
+              "unit": "second"
+            },
+            "collision": {
+              "block_bounces": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              },
+              "entity_pierces": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "count"
+              },
+              "max_hits_per_target": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              },
+              "restitution": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              }
+            },
+            "tracking": {
+              "radius": {
+                "type": "chorus:constant",
+                "value": 8,
+                "unit": "meter"
+              },
+              "turn_rate": {
+                "type": "chorus:constant",
+                "value": 180,
+                "unit": "degree_per_second"
+              },
+              "acquisition_angle": {
+                "type": "chorus:constant",
+                "value": 90,
+                "unit": "degree"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true,
+              "redirect_on_contact": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "for_each": "impact",
+              "as": "victim",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    },
+                    "impact": {
+                      "sequence": {
+                        "type": "chorus:result",
+                        "binding": "impact",
+                        "field": "sequence"
+                      },
+                      "bounces": {
+                        "type": "chorus:result",
+                        "binding": "impact",
+                        "field": "bounces"
+                      },
+                      "entity_contacts": {
+                        "type": "chorus:result",
+                        "binding": "impact",
+                        "field": "entity_contacts"
+                      },
+                      "target_contacts": {
+                        "type": "chorus:result",
+                        "binding": "impact",
+                        "field": "target_contacts"
+                      }
+                    }
+                  },
+                  "as": "damage"
+                },
+                {
+                  "type": "chorus:heal",
+                  "target": "self",
+                  "amount": {
+                    "type": "chorus:result",
+                    "binding": "damage",
+                    "field": "health_loss"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:contact"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "launch",
+          "on": "test:launch",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction"
+              },
+              "as": "aim"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:projectile_damage",
+                "tags": [
+                  "chorus:ability_damage"
+                ],
+                "kill_tags": [
+                  "chorus:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "collision": {
+                  "block_bounces": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "count"
+                  },
+                  "entity_pierces": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "count"
+                  },
+                  "max_hits_per_target": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "count"
+                  },
+                  "restitution": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "multiplier"
+                  }
+                },
+                "tracking": {
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 8,
+                    "unit": "meter"
+                  },
+                  "turn_rate": {
+                    "type": "chorus:constant",
+                    "value": 180,
+                    "unit": "degree_per_second"
+                  },
+                  "acquisition_angle": {
+                    "type": "chorus:constant",
+                    "value": 90,
+                    "unit": "degree"
+                  },
+                  "target_anchor": "body",
+                  "relation": "not_allied",
+                  "line_of_sight": true,
+                  "redirect_on_contact": true
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "for_each": "impact",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "sequence": {
+                            "type": "chorus:result",
+                            "binding": "impact",
+                            "field": "sequence"
+                          },
+                          "bounces": {
+                            "type": "chorus:result",
+                            "binding": "impact",
+                            "field": "bounces"
+                          },
+                          "entity_contacts": {
+                            "type": "chorus:result",
+                            "binding": "impact",
+                            "field": "entity_contacts"
+                          },
+                          "target_contacts": {
+                            "type": "chorus:result",
+                            "binding": "impact",
+                            "field": "target_contacts"
+                          }
+                        }
+                      },
+                      "as": "damage"
+                    },
+                    {
+                      "type": "chorus:heal",
+                      "target": "self",
+                      "amount": {
+                        "type": "chorus:result",
+                        "binding": "damage",
+                        "field": "health_loss"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:contact"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "bounce",
+          "profile": "test:projectile_damage",
+          "stage": "bounce",
+          "group": "bounce",
+          "op": "multiply",
+          "stacking_key": "test:bounce",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:impact_number",
+              "name": "bounces",
+              "unit": "count"
+            },
+            "from": "count",
+            "to": "delta",
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.5
+                }
+              ],
+              "interpolation": "floor",
+              "boundary": "clamp"
+            }
+          },
+          "reference": "Synthetic half damage after a surface bounce; not a Destiny value",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:power",
+      "modifiers": [
+        {
+          "id": "power",
+          "profile": "test:projectile_damage",
+          "stage": "power",
+          "group": "power",
+          "op": "multiply",
+          "stacking_key": "test:power",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic projectile acceptance; not Destiny damage",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

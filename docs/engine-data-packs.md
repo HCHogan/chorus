@@ -914,7 +914,7 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 服务端每个 Minecraft tick（50 ms）推进一次：先加重力，再乘 drag，再移动。drag 是每 tick 的乘数，不是每秒速率。寿命向上量化到物理 tick，在最后一步先处理碰撞再处理到期；它不改变规则引擎计时器的微秒协议。速度 / 重力必须在 0–2000 的各自单位内，drag 在 0–1 内，寿命必须为正且能表示为有限整数微秒；超出宿主边界拒绝，不裁剪成另一个值。
 
-命中用每 tick 的完整线段扫描，方块碰撞形状先限制线段末端，再检查实体。实体碰撞箱向外扩张 0.125 米，方块使用中心射线；只有存活且非旁观的 LivingEntity 可作为直击目标，原施加者始终排除。没有自动阵营排除、投射物互撞、盾牌反射、追踪、水下阻力或方块 `onProjectileHit` 副作用。流体不遮挡。未知端点 / 途中区块终止为 unloaded，停在上个已知位置，绝不加载新地形；范围 / 阵营及爆炸视线由动作体另行声明。
+命中用每 tick 的完整线段扫描，方块碰撞形状先限制线段末端，再检查实体。实体碰撞箱向外扩张 0.125 米，方块使用中心射线；只有存活且非旁观的 LivingEntity 可作为直击目标，原施加者始终排除。没有自动阵营排除、投射物互撞、盾牌反射、水下阻力或方块 `onProjectileHit` 副作用。流体不遮挡。未知端点 / 途中区块终止为 unloaded，停在上个已知位置，绝不加载新地形；范围 / 阵营及爆炸视线由动作体另行声明。
 
 每次接触先提交计数，终止时才消费实体，再恢复独立动作体；后续失败会放弃余下飞行，已提交接触不重放。运行时停止 / 替换 / 故障后，旧飞行物会移除，不交给新程序执行。当前实体 `noSave / noSummon`，不支持传送门、区块卸载续接或重启持久化。两端使用原版实体跟踪协议同步运动，重力 / drag 是显示用同步数据，完整动作体和快照仅在服务端；默认紫水晶碎片外观只是占位。原版箭、雪球等不会被自动转成该协议，完整 origin_bundle / current_owner_bundle 反应继承仍未实现。
 
@@ -938,4 +938,33 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 每次接触，包括非终止的反弹 / 穿透，都会执行一次 `do`，各次有独立操作身份和结果帧。`sequence` 从 1 开始；`bounces` 是已成功反弹的次数，`entity_contacts` 是总实体接触次数，`target_contacts` 是此目标累计次数（其他类型为 0）。这些计数均包含当前接触。`count` 仍为此次命中集合的大小（0 或 1）。可用 `result_flag.terminal` 限制只执行最终爆炸，也可将计数作为 `damage_snapshot.impact` 输入，驱动快照保留的命中期衰减表达式。
 
-[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。现有机制只覆盖墙面反射与沿轨迹穿透；从敌人转向另一敌人、自动追踪、盾牌反射与返回 / 接回动作仍待实现。
+[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。墙面反射与沿轨迹穿透可结合下节的追踪及接触转向；盾牌反射与返回 / 接回动作仍待实现。
+
+
+### 追踪与接触后转向
+
+`projectile.tracking` 可选；省略时保持纯弹道运动。以下均为通用机制的合成参数，完整程序见 [projectile_tracking.json](../common/src/test/resources/effects/projectile_tracking.json)：
+
+```json
+"tracking": {
+  "radius": { "type": "chorus:constant", "value": 8, "unit": "meter" },
+  "turn_rate": { "type": "chorus:constant", "value": 180, "unit": "degree_per_second" },
+  "acquisition_angle": { "type": "chorus:constant", "value": 90, "unit": "degree" },
+  "target_anchor": "body",
+  "relation": "not_allied",
+  "line_of_sight": true,
+  "redirect_on_contact": true
+}
+```
+
+`radius / turn_rate` 必填，都是非负且有限的 Value，允许为零。`acquisition_angle` 是相对于当前飞行方向的扫描锥**半角**，范围 0–180 度，默认 180（全方向）。数值在发射时求值并保留；未给出原作速度、角度或半径时，不会从技能名称猜测。其他默认值依次为 body、not_allied、true、false。
+
+服务端每 50 ms 先加重力、乘 drag，再进行一次持续转向；角度最多 `turn_rate / 20` 度，保持该时刻速度的大小，然后执行扫掠。转向沿当前方向与目标方向之间的最短圆弧；恰好相反时选确定性的正交方向，避免零轴 / NaN。速度为零不凭空产生运动；目标丢失时继续当前弹道。
+
+初次选取半径、扫描锥、阵营和可选视线内最近的已加载存活非旁观 LivingEntity，同距按 UUID 排序。排除施加者、当前仍重叠的目标及已经达到该弹体命中上限的目标。成功锁定后保留实体身份，逐 tick 使用目标当前取样点；更近的新敌人不会抢走有效锁定。死亡、移除、离开半径、阵营改变、视线失效或命中上限会使锁定失效，再依当前扫描锥重新选择。扫描锥只用于选取，不用于保持锁定。
+
+`relation` 沿用 `any / allied / not_allied` 和原版 `isAlliedTo`；相对施加者的关系要求施加者仍在此维度，any 不需要它存在。`line_of_sight: false` 仅允许选取墙后的目标，不会关闭物理碰撞。这些条件控制追踪目标，不自动使弹体穿过友军；实际碰撞目标仍使用前节规则。目标观察不加载区块，也不触发伤害。
+
+`redirect_on_contact: true` 是额外的接触行为：仅在弹体尚未终止时，于此次碰撞动作体完成、位置离开接触面后重新选敌，立即朝所选目标取样点转向，并继续本 tick 余下路程。此次瞬时转向不受持续转向率限制；未选到敌人时保留当前方向（方块已先按法线反射）。可以将 turn_rate 设为 0，只保留碰撞后的离散转向。转向不凭空增加可命中次数：实体必须获准穿透后才能继续转向，方块也必须有剩余反弹预算。每次接触的伤害与计数保持独立，因此相邻目标可在同 tick 被依次击中。
+
+当前只支持上述最近目标策略，尚无显式指定目标、返回施加者 / 接回、目标类别优先级、D2 转向率校准或统一的墙面 / 实体弹跳总预算。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。

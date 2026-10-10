@@ -349,12 +349,21 @@ public final class EffectCodecs {
                     collisionLimit.optionalFieldOf("max_hits_per_target", ProjectileSpec.LimitSpec.ONE).forGetter(ProjectileSpec.Collisions::hitsPerTarget),
                     values.optionalFieldOf("restitution", new Value.Constant(1, Unit.MULTIPLIER)).forGetter(ProjectileSpec.Collisions::restitution)
             ).apply(i, ProjectileSpec.Collisions::new)), Set.of("block_bounces", "entity_pierces", "max_hits_per_target", "restitution"));
+            Codec<ProjectileSpec.Tracking> tracking = strict(RecordCodecBuilder.create(i -> i.group(
+                    values.fieldOf("radius").forGetter(ProjectileSpec.Tracking::radius), values.fieldOf("turn_rate").forGetter(ProjectileSpec.Tracking::turnRate),
+                    values.optionalFieldOf("acquisition_angle", new Value.Constant(180, ProjectileSpec.ANGLE)).forGetter(ProjectileSpec.Tracking::acquisitionAngle),
+                    enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("target_anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.BODY).forGetter(ProjectileSpec.Tracking::anchor),
+                    enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Relation.class).optionalFieldOf("relation", com.imdomestic.chorus.effect.target.TargetQuery.Relation.NOT_ALLIED).forGetter(ProjectileSpec.Tracking::relation),
+                    Codec.BOOL.optionalFieldOf("line_of_sight", true).forGetter(ProjectileSpec.Tracking::lineOfSight),
+                    Codec.BOOL.optionalFieldOf("redirect_on_contact", false).forGetter(ProjectileSpec.Tracking::redirectOnContact)
+            ).apply(i, ProjectileSpec.Tracking::new)), Set.of("radius", "turn_rate", "acquisition_angle", "target_anchor", "relation", "line_of_sight", "redirect_on_contact"));
             Codec<ProjectileSpec> projectileSpec = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("position").forGetter(ProjectileSpec::position), Codec.STRING.fieldOf("direction").forGetter(ProjectileSpec::direction),
                     values.fieldOf("speed").forGetter(ProjectileSpec::speed), values.fieldOf("gravity").forGetter(ProjectileSpec::gravity),
                     values.fieldOf("drag").forGetter(ProjectileSpec::drag), values.fieldOf("lifetime").forGetter(ProjectileSpec::lifetime),
-                    collisions.optionalFieldOf("collision", ProjectileSpec.Collisions.STOP).forGetter(ProjectileSpec::collision)
-            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision"));
+                    collisions.optionalFieldOf("collision", ProjectileSpec.Collisions.STOP).forGetter(ProjectileSpec::collision),
+                    tracking.optionalFieldOf("tracking").forGetter(ProjectileSpec::tracking)
+            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body)

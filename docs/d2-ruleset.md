@@ -432,4 +432,9 @@ transcendence（20 秒）
 `projectile.json` 的 20 米/秒、重力 0、drag 1、1 秒寿命和基础 10 伤害均为合成验收参数，不能套用到 Arcbolt / Firebolt 的 Heavy Trajectory。现有 Arcbolt 内容夹具仍从测试落地事件开始；实际出手位置、重轨迹、碰撞时序与技能冷却尚未逐项校准和装配。当前中心射线 / 实体碰撞箱扩张、50 ms 离散积分和施加者排除也是宿主策略，不是原作数值断言。通用物理测试不增加已审阅 Compendium 条目数。
 
 
-墙面反弹、直线穿透、每目标命中上限与逐接触计数已接入通用 DSL。需求参考快照 `Weapon Perks!C20/C188`（穿甲弹一次穿透、Ricochet Rounds 反弹）、`Exotic Weapons!D27/D83`（Khvostov 同目标两次、Hard Light 墙面反弹）、`Void!D57`、`Stasis!D38`、`Strand!D38`（技能弹跳 / 追踪 / 回能）。这些内容还依赖各自的数值、追踪、目标间转向或技能装配；本轮合成夹具不将它们标为已实现，也未改变 Compendium 条目覆盖状态。
+墙面反弹、直线穿透、每目标命中上限与逐接触计数已接入通用 DSL。需求参考快照 `Weapon Perks!C20/C188`（穿甲弹一次穿透、Ricochet Rounds 反弹）、`Exotic Weapons!D27/D83`（Khvostov 同目标两次、Hard Light 墙面反弹）、`Void!D57`、`Stasis!D38`、`Strand!D38`（技能弹跳 / 追踪 / 回能）。通用限速追踪与接触后目标间转向也已接入；这些内容仍依赖各自数值、资格、计数语义及技能装配，合成夹具不将它们标为已实现。
+
+
+Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38），状态均为 unimplemented：尚无完整内容数据定义。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
+
+Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。Threaded Spike 的返回、接回、按命中次数返还资源、按击杀授予 Woven Mail，以及来源效果 / 技能输入仍需实现；同序列退款额度不能直接跨物理飞行帧引用。完整验收要求和明确缺口保存在 `data/compendium/review.json`。
