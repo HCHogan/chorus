@@ -8,6 +8,7 @@ import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.object.WorldPickup;
 import com.imdomestic.chorus.effect.resource.ResourceState;
 import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.platform.minecraft.*;
@@ -35,9 +36,10 @@ public class ProjectileGameTest {
     static final class Harness implements AutoCloseable {
         final GameTestHelper h; final ServerPlayer owner; final MinecraftWorldActions world; final MinecraftEffectRuntime runtime;
         final List<LivingEntity> entities = new ArrayList<>(); final List<EffectProjectile> projectiles = new ArrayList<>();
+        final List<EffectObject> pickups = new ArrayList<>();
         final List<DamageCommand> hits = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<TargetQuery> queries = new ArrayList<>();
         final List<Action.CueCommand> cues = new ArrayList<>(); final List<RuleEngine.OperationId> operations = new ArrayList<>();
-        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing;
+        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
         Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception { this(h, fixture, edit, false); }
@@ -64,6 +66,8 @@ public class ProjectileGameTest {
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withSource(source).withSource(boost), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 operations.add(request.id()); var result = world.apply(request);
                 if (result instanceof ProjectileFlight.Receipt receipt && receipt.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
+                if (result instanceof WorldPickup.Receipt receipt && receipt.entity().isPresent()) pickups.add((EffectObject) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
+                if (request.command() instanceof Action.CueCommand && failAfterCue) throw new IllegalStateException("Injected unknown pickup cue outcome");
                 if (result instanceof DamageReceipt receipt) { hits.add((DamageCommand) request.command()); receipts.add(receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
                 if (request.command() instanceof HealingCommand && failAfterHealing) throw new IllegalStateException("Injected unknown projectile healing outcome");
                 if (request.command() instanceof TargetQuery q) queries.add(q);
@@ -84,7 +88,7 @@ public class ProjectileGameTest {
         void finish(int ticks, Runnable checks) {
             h.runAfterDelay(ticks, () -> { try { h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "Projectile runtime failed: " + runtime.failure()); checks.run(); h.succeed(); } finally { close(); } });
         }
-        @Override public void close() { runtime.close(); projectiles.forEach(Entity::discard); owner.discard(); entities.forEach(Entity::discard); blocks.forEach((p, b) -> h.getLevel().setBlockAndUpdate(p, b)); }
+        @Override public void close() { runtime.close(); projectiles.forEach(Entity::discard); pickups.forEach(Entity::discard); owner.discard(); entities.forEach(Entity::discard); blocks.forEach((p, b) -> h.getLevel().setBlockAndUpdate(p, b)); }
     }
     @GameCase(environment = "chorus_gametest:projectile_entity", maxTicks = 60)
     public void paidAbilityLaunchesPhysicalProjectileAndRetainsCapturedPowerAfterOwnerMovesAndSourceDetaches(GameTestHelper h) throws Exception {

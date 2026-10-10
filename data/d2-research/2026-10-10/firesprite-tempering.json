@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effects": [
+    "Firesprite",
+    "Ember of Tempering"
+  ],
+  "implementation_status": "partial; declarative source, private pickup and current-recipient energy routing; calibration and production assembly remain incomplete",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B5",
+        "Solar D5",
+        "Solar B25",
+        "Solar D25",
+        "Solar N25"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "retrieved_at": "2026-10-10T11:13:58.663075+00:00",
+      "file": "data/d2-research/2026-10-10/firesprite-solar-source.html.gz",
+      "html_sha256": "8a9e5d3f4220df4991465d8f9f10ec6817bef380314f32cc7c588734ff834298",
+      "coordinate_system": "original_google_sheet",
+      "mapping": [
+        {
+          "original": "B7",
+          "snapshot": "B5",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D7",
+          "snapshot": "D5",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "B28",
+          "snapshot": "B25",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D28",
+          "snapshot": "D25",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "N28",
+          "snapshot": "N25",
+          "normalized_text_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "bungie_official_historical_mechanism",
+      "url": "https://www.bungie.net/7/en/News/Article/ability-changes-lightfall-d2",
+      "published": "2023-02-08",
+      "support": "Tempering creates Firesprites on Solar weapon kills while active. Does not establish all current shared-buff or cooldown policies."
+    },
+    {
+      "kind": "primary_research_general_energy_scaling",
+      "url": "https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/",
+      "support": "Current general ability energy scaling; does not measure or identify the stat basis of the Compendium Firesprite 11.25% value.",
+      "related_local_evidence": "data/d2-research/2026-10-10/armor-energy.json"
+    }
+  ],
+  "confirmed_from_compendium": {
+    "firesprite": {
+      "quoted_grenade_energy_fraction": 0.1125,
+      "quoted_energy_basis": "unspecified",
+      "lifetime_seconds": 25,
+      "spawn_cooldown_seconds": 5,
+      "no_ally_copy": true
+    },
+    "tempering": {
+      "trigger": "Solar weapon kills",
+      "radius_meters": 15,
+      "duration_seconds": 8,
+      "maximum_stacks": 3,
+      "health_stat_by_stack": [
+        20,
+        40,
+        60
+      ],
+      "airborne_effectiveness": 20,
+      "class_stat_penalty": -10,
+      "firesprite_trigger": "Solar weapon kills while Tempering active"
+    }
+  },
+  "current_content_policies": {
+    "cooldown": "One owner-wide generation cooldown, starting only after confirmed physical creation. Rejected creation does not start it; collection does not reset it. Unknown creation results stop, without retry.",
+    "first_kill": "New buff rules are not retroactively attached to the activating kill. An already-active buff may spawn on that kill.",
+    "shared_buff": "All producers stack and refresh one eight-second recipient buff. No per-producer bonus multiplication.",
+    "ally_trigger": "Any recipient of the active shared buff can request its own private Firesprite on its own Solar weapon kill, even without the fragment. Requires current D2 verification.",
+    "unequip": "Existing buff lives until expiry; existing pickup continuation survives source removal. Fragment penalty disappears when unbound.",
+    "source": "Each player has exactly one bound firesprite_system source. Pickup creator is that system source; initiating kill remains in the continuation cause. Does not claim weapon-origin propagation on pickup facts.",
+    "stats": "Health/Class/AE are stat queries only; physical health recovery, class scaling and airborne accuracy are not projected yet.",
+    "collection": "Current base grenade selection, resource and stat/CES; absent or costless selection and full energy still consume the unit and publish pickup fact."
+  },
+  "required_calibration": {
+    "chorus_d2:firesprite_collection_radius": "meter -> meter; original contact range absent from source",
+    "chorus_d2:firesprite_base_energy": "charge_fraction -> charge_fraction; convert the quoted .1125 to the chosen current stat-zero pre-CES basis; no default or implicit legacy multiplier"
+  },
+  "synthetic_acceptance": {
+    "collection_radius_meters": 0.5,
+    "normalization_divisor": 2.25,
+    "resulting_base_energy": 0.05,
+    "normalization_confidence": "unverified reference-basis hypothesis for exercising the pipeline, not a measured current Firesprite number",
+    "recipient_fixture": "Arcbolt .75 CES; 100 Grenade stat factor 2.25; expected .084375 after test normalization",
+    "weapon": "Two synthetic 10-damage rifles, no Incandescent perk; actual physical kill receipts",
+    "world_lifetime": "Tests retain the 25-second content lifetime and five-second cooldown rather than shortening them"
+  },
+  "remaining": [
+    "Measure current Firesprite base energy and pickup range",
+    "Verify first-kill, cross-producer shared-stack and ally-generated Firesprite policies in current D2",
+    "Production subclass and exactly-once player system assembly",
+    "Other Firesprite producers and Ember of Mercy listener",
+    "Native Health/Class/AE gameplay projection",
+    "Real art, per-recipient visibility, HUD and persistence"
+  ]
+}

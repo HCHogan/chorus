@@ -79,7 +79,8 @@
       "com.imdomestic.chorus.SolarGameTest",
       "com.imdomestic.chorus.EmberOfCharGameTest",
       "com.imdomestic.chorus.IncandescentGameTest",
-      "com.imdomestic.chorus.PickupGameTest"
+      "com.imdomestic.chorus.PickupGameTest",
+      "com.imdomestic.chorus.FirespriteGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

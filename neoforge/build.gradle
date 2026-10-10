@@ -183,6 +183,11 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/frenzy_test_calibration.json'
         include 'effects/wellspring_targets.json'
         include 'effects/demolitionist_weapon.json'
+        include 'effects/firesprite.json'
+        include 'effects/firesprite_test_calibration.json'
+        include 'effects/ember_of_tempering.json'
+        include 'effects/character_stats.json'
+        include 'effects/tempering_weapon.json'
         include 'effects/arcbolt_energy.json'
         include 'effects/threaded_spike_test_calibration.json'
     }

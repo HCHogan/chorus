@@ -1,0 +1,169 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:tempering",
+        "version": "compendium-2026-10-05",
+        "duration": 8,
+        "max_stacks": 3,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "none"
+      },
+      "bundle": "chorus_d2:tempering_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_tempering",
+      "rules": [
+        {
+          "id": "solar_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:solar"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:tempering"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "self",
+                "relative_to": "self",
+                "relation": "allied",
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 15,
+                  "unit": "meter"
+                },
+                "exclude": [
+                  "self"
+                ]
+              },
+              "as": "allies"
+            },
+            {
+              "for_each": "allies",
+              "as": "ally",
+              "do": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:tempering",
+                  "target": {
+                    "binding": "ally"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "class_penalty",
+          "profile": "chorus_d2:class_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:tempering_class_penalty",
+          "value": {
+            "type": "chorus:constant",
+            "value": -10,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Solar D25 / N25, original Solar D28 / N28 checked 2026-10-10. Stat query only; native gameplay projection remains separate.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:tempering_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "firesprite_on_next_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:solar"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:emit",
+              "event": "chorus_d2:spawn_firesprite"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "health",
+          "profile": "chorus_d2:health_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:tempering_health",
+          "value": {
+            "type": "chorus:by_stacks",
+            "values": [
+              20,
+              40,
+              60
+            ],
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Solar D25 / N25, original Solar D28 / N28 checked 2026-10-10. Stat query only; native gameplay projection remains separate.",
+          "confidence": "measured"
+        },
+        {
+          "id": "airborne",
+          "profile": "chorus_d2:weapon_airborne_effectiveness",
+          "stage": "perks",
+          "group": "airborne_effectiveness",
+          "op": "add",
+          "stacking_key": "chorus_d2:tempering_airborne",
+          "value": {
+            "type": "chorus:constant",
+            "value": 20,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Solar D25 / N25, original Solar D28 / N28 checked 2026-10-10. Stat query only; native gameplay projection remains separate.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

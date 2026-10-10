@@ -42,6 +42,27 @@
 
 8 项 FrenzyTest 和 4 项共享 FrenzyGameTest 验证精确时间边界、普通 / 强化断档差异、输入 / 承伤、无击杀激活、收枪、物理卸装重装、真实子弹 10→11.5 伤害及换弹接受后 Buff 到期仍按已捕获秒数完成。[武器夹具](../common/src/test/resources/effects/frenzy_weapon.json) 的 5 发容量、4 发初始弹量和 `2 − 0.01 × 属性` 换弹曲线均为合成参数。自动内容装配、完整武器曲线、HUD 和活动存档尚未完成，覆盖保持 partial；来源、已知数值与假设见 [研究记录](../data/d2-research/2026-10-10/frenzy.json)。
 
+## Firesprite 与 Ember of Tempering
+
+2026-10-10 核对原表 Solar：Firesprite 为 B7 / D7，Tempering 为 B28 / D28 / N28；对应固定 CSV 快照 B5 / D5 与 B25 / D25 / N25，不能混用坐标。两者原表正文与快照归一化后一致。[原表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409)及 [HTML 哈希与政策记录](../data/d2-research/2026-10-10/firesprite-tempering.json)保留了可核查依据。
+
+| 内容 | 表中参数 | 已实现的表达 |
+|---|---|---|
+| Firesprite | 私有手雷回能拾取物，25 秒寿命，5 秒生成间隔 | pickup + 确认生成回执 + 持有者共享冷却 + 收集时 grant_ability_energy |
+| Tempering 触发 | 太阳武器击杀，自身及 15 米队友，8 秒最多 3 层 | 武器击杀标签 / 事件来源元素 + allied 查询 + 共享 Buff |
+| Tempering 属性 | Health +20/40/60，AE +20，碎片 Class -10 | 当前持有者查询期修饰；Health / Class 限幅 0–200，AE 限幅 0–100 |
+| Tempering 拾取物生成 | Buff 活跃期间的太阳武器击杀 | 已有 Buff 的规则发出 spawn_firesprite 请求，交统一生成系统处理 |
+
+第一次击杀先获得 Buff，后续击杀才看到已绑定的 active 规则；这与 [Bungie 的历史机制说明](https://www.bungie.net/7/en/News/Article/ability-changes-lightfall-d2)相符，但首次激活和队友交互仍需当前游戏验证。当前共享政策允许收到 Tempering 的队友用自己的太阳武器击杀生成自己的私有 Firesprite，采用各自冷却，不借用原施加者额度。各生产者给同一持有者加层 / 刷新同一个 8 秒 Buff；卸下碎片后既有 Buff 自然到期，碎片的 Class 罚值立即消失。以上跨来源及卸装政策不是已完成的原作校准。
+
+Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个外部定义：`firesprite_collection_radius`（meter → meter）及 `firesprite_base_energy`（charge_fraction → charge_fraction）。后者把原表的 .1125 转成当前属性零点、CES 之前的基础量，之后才让接收方 gain Profile 施加属性和 CES。缺失任一 Profile 会在编译 / 链接时失败；不会把未说明基准的百分比再直接乘一次属性，也不套用其他 perk 的旧版本换算系数。
+
+`firesprite_test_calibration.json` 使用 0.5 米和 .1125 / 2.25 = .05。该换算只是用于贯通执行流程的参考点假设；[当前能力属性研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/)支持通用回能曲线，不足以证明 Firesprite 的参考基准。测试在 Arcbolt .75 CES 和 100 Grenade 属性 2.25 倍下得到 .084375，这证明一次归一化、一次接收方修饰的执行次序，不宣称每个 Firesprite 当前实测回复 8.4375%。
+
+每名角色需要恰好一个 firesprite_system 来源，生成请求保留击杀目标位置；确认生成才挂冷却，收集不刷新冷却。拾取物 source 为生成系统，原始击杀仍在 continuation cause 中，尚未宣称 pickup 事实继承武器归因。收集读取当前基础手雷选择；无选择、无成本账户或满能量仍消费物品并发事实。既有物体的动作体可在来源卸下后执行；死亡、旁观者或他人不能领取该私有单位。当前私有性是收集资格，所有追踪客户端仍能看到占位实体。
+
+这两项状态为 partial：定义仍是可组合的验收数据，尚未接入完整生产子职业装配。实际回能基准、接触半径、特殊击杀资格、其他 Firesprite 生成来源、Mercy、Health / Class / AE 的实际玩法投影、HUD、真实素材与存档尚未完成。
+
 ## Incandescent 与共享 Solar 状态的接入依据
 
 共享 Scorch / Ignition 与 [Incandescent](../common/src/test/resources/effects/incandescent.json) 已接通，并有实际玩家装备、物理子弹击杀到范围爆炸、Scorch 和后续点燃的验收；覆盖保持 partial。2026-10-10 抓取的[原表 Weapon Perks A125 / C125](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1662574278&range=C125)与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸基础伤害最多 30 Solar。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：

@@ -4249,6 +4249,126 @@
         "其余来源仍需按各自原表数值映射",
         "原作时序校准、生产子职业与状态持久化未完成"
       ]
+    },
+    {
+      "id": "solar/firesprite",
+      "name": "Firesprite",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B5",
+          "text_sha256": "2cb02991acef1daf4c0a46aedff915bfba6dfd7ebfc5d964f1da8574383fca1e"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D5",
+          "text_sha256": "0f35241e3bd7008a420776d7b732f14dfe7342eb748ac44b41446aa3879e7254"
+        }
+      ],
+      "scope": "私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准",
+      "acceptance": [
+        "生成不回能；已知失败不占冷却，未知结果不重试",
+        "收集者与来源隔离；来源卸下后仍按当前基础手雷选择、属性和 CES 结算",
+        "无选择、无成本账户或满能量仍消费单位；过期不发拾取事实",
+        "真实服务器保留原表 25 秒寿命与 5 秒生成冷却，世界后续失败不重放已提交回能"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firesprite.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FirespriteTest.java",
+          "symbol": "collectionUsesCurrentGrenadeStatAfterProducerRemovalAndNeverRewardsAllies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FirespriteTest.java",
+          "symbol": "radiusAndBaseEnergyCalibrationAreMandatoryAndAllFixturesRoundTrip"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "originalTwentyFiveSecondLifetimeExpiresWithoutCollectionFact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "unknownPickupListenerOutcomeNeverReplaysAlreadyCommittedEnergy"
+        }
+      ],
+      "gaps": [
+        "原表 11.25% 未注明属性基准；测试除以 2.25 得 5% 为待验证假设，不能视为当前实测值",
+        "0.5 米接触半径为合成校准",
+        "共享冷却归属、生成点及按成功生成开始冷却需原作校准",
+        "未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现"
+      ]
+    },
+    {
+      "id": "solar/ember_of_tempering",
+      "name": "Ember of Tempering",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B25",
+          "text_sha256": "a3049477bd5d56821ab6dcc8cf1cd26a5f7d2c98b44953b401d89a28aabd1cdf"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D25",
+          "text_sha256": "e50164a5a481ae43946626a2a0a179365f498aef5535ae13a13a1c5476855bfc"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N25",
+          "text_sha256": "8ffe497b521f8e5333831186e181dcf2c62a554b0cdf9be1f18775ce7537cc5f"
+        }
+      ],
+      "scope": "太阳武器击杀给自己与 15 米队友 8 秒最多三层 Tempering，Health +20/40/60、AE +20、碎片 Class -10 查询；已有 Buff 的再次击杀请求 Firesprite",
+      "acceptance": [
+        "无武器击杀标签、非太阳和其他持有者击杀不激活本人碎片",
+        "首次激活与已有 Buff 再击杀分离；生成使用统一 Firesprite 冷却",
+        "真实敌友和 15 米端点筛选；共享三层、刷新和到期，卸装仅立即移除碎片属性罚值",
+        "真实玩家装备、物理射弹及死亡串起 Buff、拾取物和手雷回能"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_tempering.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfTemperingTest.java",
+          "symbol": "firstKillActivatesAndOnlySubsequentSolarWeaponKillsRequestFiresprites"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfTemperingTest.java",
+          "symbol": "alliedBuffSharesThreeStacksAndEightSecondRefreshWhileClassPenaltyBelongsToFragment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "nativeKillsBuffNearbyAlliesThenPrivateCollectionUsesLiveGrenadeAfterUnequip"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FirespriteGameTest.java",
+          "symbol": "physicalSpawnsShareFiveSecondCooldownAcrossBothWeapons"
+        }
+      ],
+      "gaps": [
+        "跨来源共享叠层、卸下碎片后既有 Buff 保留、无碎片队友自行生成 Firesprite 为当前内容政策，需原作校准",
+        "Health / Class / AE 只有属性查询，未投影回血、职业技能缩放和空中射击",
+        "完整子职业装配、UI、所有特殊武器击杀资格和存档未完成"
+      ]
     }
   ]
 }

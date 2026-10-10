@@ -14,7 +14,7 @@
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
 | Arc | 否 | 191 | 7 | 184 |
-| Solar | 否 | 210 | 14 | 196 |
+| Solar | 否 | 210 | 19 | 191 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
 | Strand | 否 | 153 | 10 | 143 |
@@ -86,6 +86,8 @@
 | Ignition | partial | Solar B8; Solar D8; Solar D10 | 共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；缺口：PvP 距离衰减、全部来源缩放与取样时机仍需校准；未知非 Guardian / construct 的 PvP 目标不猜为构造体；Unstoppable 眩晕、非叠层直接点燃来源、范围扩展片段、全部特殊交互未接入；当前 on_use 攻击冻结与实时目标分类为明确内容政策；近战倍率需继续与 Solar 专属 Profile 隔离；无生产子职业 / perk 自动装配及活动状态存档，Incandescent 已有 partial 实际武器接线；阈值至爆炸延迟需要显式 Profile；0 / 1 / 2 秒验收均为合成参数。当前固定阈值位置与禁用起算点待原作校准 |
 | Ember of Char | partial | Solar B16; Solar D16; Solar N16 | 点燃实际伤害后对非中心目标施加 40 / Ashes 60 层；保留原施加者信用，跨目标本地禁用窗口持续反馈；缺口：+10 Grenade 属性未装配；点燃真实延迟、禁用窗口起点、移动中心与片段取样时机未校准；Solar Fulmination、直接点燃来源及代际数值快照继承未覆盖；无生产子职业装配或状态持久化 |
 | Ember of Ashes | partial | Solar B12; Solar D12 | Char 的 40 → 60 与 Incandescent 的八分支专属层数；以 ashes_equipped 查询持有者选择，不套用全局 1.5 倍；缺口：通用 50% 向上取整以及 Caliban / Tommy / Skyburner 等特例未装配；其余来源仍需按各自原表数值映射；原作时序校准、生产子职业与状态持久化未完成 |
+| Firesprite | partial | Solar B5; Solar D5 | 私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准；缺口：原表 11.25% 未注明属性基准；测试除以 2.25 得 5% 为待验证假设，不能视为当前实测值；0.5 米接触半径为合成校准；共享冷却归属、生成点及按成功生成开始冷却需原作校准；未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现 |
+| Ember of Tempering | partial | Solar B25; Solar D25; Solar N25 | 太阳武器击杀给自己与 15 米队友 8 秒最多三层 Tempering，Health +20/40/60、AE +20、碎片 Class -10 查询；已有 Buff 的再次击杀请求 Firesprite；缺口：跨来源共享叠层、卸下碎片后既有 Buff 保留、无碎片队友自行生成 Firesprite 为当前内容政策，需原作校准；Health / Class / AE 只有属性查询，未投影回血、职业技能缩放和空中射击；完整子职业装配、UI、所有特殊武器击杀资格和存档未完成 |
 
 ## 使用
 

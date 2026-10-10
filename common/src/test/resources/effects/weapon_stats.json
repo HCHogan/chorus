@@ -83,6 +83,28 @@
           "factor": "chorus_d2:reload_animation"
         }
       ]
+    },
+    {
+      "id": "chorus_d2:weapon_airborne_effectiveness",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "airborne_effectiveness",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,134 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:firesprite_cooldown",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "attach": "holder",
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:firesprite_system",
+      "rules": [
+        {
+          "id": "spawn",
+          "on": "chorus_d2:spawn_firesprite",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:firesprite_cooldown"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "place"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:firesprite_collection_radius",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              "as": "radius"
+            },
+            {
+              "pickup": {
+                "position": "place",
+                "kind": "chorus_d2:firesprite",
+                "recipient": "self",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 25,
+                  "unit": "second"
+                },
+                "radius": {
+                  "type": "chorus:result",
+                  "binding": "radius",
+                  "field": "value"
+                }
+              },
+              "as": "contact",
+              "spawn_as": "created",
+              "do": [
+                {
+                  "for_each": "contact",
+                  "as": "collector",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:firesprite_base_energy",
+                        "target": {
+                          "binding": "collector"
+                        },
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 0.1125,
+                          "unit": "charge_fraction"
+                        }
+                      },
+                      "as": "base"
+                    },
+                    {
+                      "type": "chorus:grant_ability_energy",
+                      "slot": "chorus_d2:grenade",
+                      "target": {
+                        "binding": "collector"
+                      },
+                      "amount": {
+                        "type": "chorus:result",
+                        "binding": "base",
+                        "field": "value"
+                      },
+                      "value_basis": "base",
+                      "tags": [
+                        "chorus_d2:firesprite"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "created",
+                "field": "spawned"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:firesprite_cooldown"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
