@@ -141,6 +141,23 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             refreshEquipment(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
+    /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
+    public com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt fire(ServerPlayer player) {
+        thread(); prepare();
+        if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot fire here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Fire requires a healthy idle runtime");
+        String holder = player.getUUID().toString();
+        var physical = PlayerEquipment.get(player).projection(program.equipment());
+        if (!physical.equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY))) throw new IllegalStateException("Fire equipment differs from physical ownership");
+        trackEquipment(player);
+        var before = view(); var resolved = program.fire(before, new com.imdomestic.chorus.effect.weapon.WeaponFire.Request(holder, java.util.UUID.randomUUID().toString()));
+        var receipt = (com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt) resolved.result();
+        if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.ACCEPTED) return receipt;
+        try {
+            session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponFire.Commit(before, resolved.state()));
+            refreshEquipment(); return receipt;
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
     private com.imdomestic.chorus.effect.weapon.WeaponReload.Verified verifyReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query) {
         var plan = query.plan(); ServerPlayer player;
         try { player = equipmentOwners.get(java.util.UUID.fromString(plan.holder())); }

@@ -461,10 +461,16 @@ public final class EffectCodecs {
         Codec<WeaponDefinition.Reload> weaponReload = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("value").forGetter(WeaponDefinition.Reload::value), ID.optionalFieldOf("profile").forGetter(WeaponDefinition.Reload::profile)
         ).apply(i, WeaponDefinition.Reload::new)), Set.of("value", "profile"));
+        Codec<WeaponDefinition.Fire> weaponFire = strict(RecordCodecBuilder.create(i -> i.group(
+                values.fieldOf("cost").forGetter(WeaponDefinition.Fire::cost), values.fieldOf("interval").forGetter(WeaponDefinition.Fire::interval),
+                ID.optionalFieldOf("interval_profile").forGetter(WeaponDefinition.Fire::intervalProfile), conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Fire::condition),
+                ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(WeaponDefinition.Fire::tags),
+                step.listOf().fieldOf("on_fire").forGetter(WeaponDefinition.Fire::onFire)
+        ).apply(i, WeaponDefinition.Fire::new)), Set.of("cost", "interval", "interval_profile", "if", "tags", "on_fire"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
-                weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload)
-        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload"));
+                weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire)
+        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire"));
         Codec<EffectProgram.Bundle> bundle = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("id").forGetter(EffectProgram.Bundle::id), enumeration(EffectProgram.Scope.class).optionalFieldOf("scope", EffectProgram.Scope.SOURCE).forGetter(EffectProgram.Bundle::scope),
                 rule.listOf().optionalFieldOf("rules", List.of()).forGetter(EffectProgram.Bundle::rules), modifier.listOf().optionalFieldOf("modifiers", List.of()).forGetter(EffectProgram.Bundle::modifiers),

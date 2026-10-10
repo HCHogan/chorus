@@ -14,7 +14,7 @@ public final class EffectContinuations {
         public Pending {
             Objects.requireNonNull(id); Objects.requireNonNull(definition); Objects.requireNonNull(version);
             Objects.requireNonNull(scope); Objects.requireNonNull(cause); bindings = Map.copyOf(bindings); Objects.requireNonNull(owner);
-            if (id.isBlank() || definition.isBlank() || version.isBlank() || !(scope instanceof EffectSource || scope instanceof BuffRules.Scope || scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope)) {
+            if (id.isBlank() || definition.isBlank() || version.isBlank() || !(scope instanceof EffectSource || scope instanceof BuffRules.Scope || scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope || scope instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope)) {
                 throw new IllegalArgumentException("Invalid continuation identity or source");
             }
             owner.ifPresent(value -> {

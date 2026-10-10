@@ -14,7 +14,7 @@ import java.util.TreeMap;
 
 /** Domain state for the effect timeline. World references are identifiers, never mutable entities. */
 public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers,
-        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads) {
+        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads, Map<String, com.imdomestic.chorus.effect.weapon.WeaponFire.Shot> shots) {
     public enum Mode { PVE, PVP }
     public record Lifetime(BuffInstance.Key key, long generation) {
         public Lifetime { Objects.requireNonNull(key); if (generation < 1) throw new IllegalArgumentException("Invalid buff generation"); }
@@ -50,6 +50,9 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     public EffectState {
         Objects.requireNonNull(buffs);
         Objects.requireNonNull(mode);
+        shots = Collections.unmodifiableMap(new TreeMap<>(shots));
+        for (var entry : shots.entrySet()) if (!entry.getKey().equals(entry.getValue().gear().instance()) || entry.getValue().firedAt() > buffs.timeMicros())
+            throw new IllegalArgumentException("Wrong accepted shot identity or clock");
         reloads = Collections.unmodifiableMap(new TreeMap<>(reloads));
         for (var entry : reloads.entrySet()) if (!entry.getKey().equals(entry.getValue().holder())) throw new IllegalArgumentException("Wrong reload holder identity");
         ammunition = Collections.unmodifiableMap(new TreeMap<>(ammunition));
@@ -77,6 +80,9 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                 throw new IllegalArgumentException("Timer pause state differs from its bound buff");
             }
         }
+    }
+    public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers, Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads) {
+        this(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, Map.of());
     }
     public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers, Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition) {
         this(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, Map.of());
@@ -108,29 +114,33 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                         timer.intervalMicros(), timer.remaining(), timer.signal(), timer.lifetime()));
             }
         }
-        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition, reloads);
+        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition, reloads, shots);
+    }
+    public EffectState withShot(com.imdomestic.chorus.effect.weapon.WeaponFire.Shot value) {
+        var copy = new TreeMap<>(shots); copy.put(value.gear().instance(), value);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, copy);
     }
     public EffectState withReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Plan value) {
         var copy = new TreeMap<>(reloads); copy.put(value.holder(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots);
     }
     public EffectState withoutReload(String holder) {
         var copy = new TreeMap<>(reloads); copy.remove(holder);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots);
     }
     public EffectState withAmmo(com.imdomestic.chorus.effect.ammo.AmmoState value) {
         var copy = new TreeMap<>(ammunition); copy.put(value.weapon(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy, reloads);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy, reloads, shots);
     }
     public EffectState withResource(ResourceState value) {
-        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads);
+        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads, shots);
     }
     public EffectState schedule(Timer timer) {
         var copy = new TreeMap<>(timers);
         if (copy.putIfAbsent(timer.id(), timer) != null) throw new IllegalArgumentException("Duplicate timer identity: " + timer.id());
-        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads);
+        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots);
     }
-    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads); }
+    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots); }
     public EffectState withSource(EffectSource source) {
         var copy = new TreeMap<>(sources); copy.put(source.instance(), source); return withSources(copy);
     }
@@ -139,17 +149,17 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     }
     public EffectState withSources(Map<String, EffectSource> value) {
         var updated = new TreeMap<>(timers); updated.values().removeIf(timer -> !EffectTimers.active(timer, value, buffs));
-        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition, reloads);
+        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition, reloads, shots);
     }
     public EffectState withEquipment(String holder, com.imdomestic.chorus.effect.equipment.Loadout value) {
         var updated = new TreeMap<>(equipment);
         if (value.equals(com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition, reloads);
+        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition, reloads, shots);
     }
     public EffectState withAbilities(String holder, com.imdomestic.chorus.effect.ability.AbilityLoadout value) {
         var updated = new TreeMap<>(abilities);
         if (value.equals(com.imdomestic.chorus.effect.ability.AbilityLoadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition, reloads);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition, reloads, shots);
     }
-    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition, reloads); }
+    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition, reloads, shots); }
 }

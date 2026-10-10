@@ -32,6 +32,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final CompiledWeapons weapons;
     private final Map<String, AbilityDefinition> abilities;
     private final Map<String, RuleEngine.EventRule<EffectState>> abilityRules;
+    private final Map<String, RuleEngine.EventRule<EffectState>> fireRules;
     private final Map<String, List<RuleEngine.EventRule<EffectState>>> sourceRules;
     private final Map<String, String> buffBundles;
     private final BuffRules<EffectState> buffRules;
@@ -177,6 +178,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     var batch = (SourceBatch) context.event().signal().payload();
                     validateSources(batch); return batch.apply(state);
                 }, ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponFire.REQUEST, WeaponFire.REQUEST, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> fire(state, (WeaponFire.Request) context.event().signal().payload()), ""))));
+        var fireRules = new LinkedHashMap<String, RuleEngine.EventRule<EffectState>>();
+        for (var weapon : program.weapons()) weapon.fire().ifPresent(fire -> {
+            var scope = new EffectProgram.Bundle(weapon.item(), EffectProgram.Scope.SOURCE, List.of(), List.of());
+            validateInstantSteps(fire.onFire()); validatePayments(fire.onFire(), new HashSet<>());
+            String id = "chorus:internal/fire/" + weapon.item();
+            var actions = compileSteps(scope, fire.onFire(), Map.of(), Map.of(), "", id, continuations);
+            var rule = new RuleEngine.EventRule<EffectState>(id, WeaponFire.ACCEPTED, (_, _) -> true, actions);
+            fireRules.put(weapon.item(), rule); definitions.add(rule);
+        });
+        this.fireRules = Map.copyOf(fireRules);
         var abilityRules = new LinkedHashMap<String, RuleEngine.EventRule<EffectState>>();
         for (var ability : abilities.values()) {
             var scope = new EffectProgram.Bundle(ability.id(), EffectProgram.Scope.SOURCE, List.of(), List.of());
@@ -187,7 +200,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 validateAbilityProfile(cost.profile(), Unit.CHARGE);
             });
             ability.parameters().values().forEach(parameter -> validateAbilityProfile(parameter.profile(), parameter.value().unit(validation)));
-            validateAbilitySteps(ability.onUse()); validatePayments(ability.onUse(), new HashSet<>());
+            validateInstantSteps(ability.onUse()); validatePayments(ability.onUse(), new HashSet<>());
             var actions = new ArrayList<RuleEngine.Instruction<EffectState>>();
             var resultShapes = ability.cost().isPresent() ? Map.of("cast_cost", ResultShape.RESOURCE_SPEND) : Map.<String, ResultShape>of();
             var resultSlots = ability.cost().isPresent() ? Map.of("cast_cost", "cast_cost") : Map.<String, String>of();
@@ -211,18 +224,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         id.ifPresent(key -> { var profile = profiles.get(key); if (profile == null) throw new IllegalArgumentException("Unknown ability profile: " + key);
             Validation.same(profile.inputUnit(), unit); Validation.same(profile.outputUnit(), unit); });
     }
-    private static void validateAbilitySteps(List<EffectProgram.Step> steps) {
+    private static void validateInstantSteps(List<EffectProgram.Step> steps) {
         for (var step : steps) switch (step) {
             case EffectProgram.Instruction instruction -> {
                 if (instruction.action() instanceof Action.Schedule || instruction.action() instanceof Action.CancelTimer)
-                    throw new IllegalArgumentException("Instant ability actions need detached after or a durable buff/source for named timers");
+                    throw new IllegalArgumentException("Instant invocation actions need detached after or a durable buff/source for named timers");
             }
-            case EffectProgram.Branch branch -> { validateAbilitySteps(branch.then()); validateAbilitySteps(branch.otherwise()); }
-            case EffectProgram.ForEach loop -> validateAbilitySteps(loop.body());
-            case EffectProgram.Projectile projectile -> validateAbilitySteps(projectile.body());
+            case EffectProgram.Branch branch -> { validateInstantSteps(branch.then()); validateInstantSteps(branch.otherwise()); }
+            case EffectProgram.ForEach loop -> validateInstantSteps(loop.body());
+            case EffectProgram.Projectile projectile -> validateInstantSteps(projectile.body());
             case EffectProgram.After after -> {
-                if (after.lifetime() != EffectContinuations.Lifetime.DETACHED) throw new IllegalArgumentException("Instant ability continuation must explicitly be detached");
-                validateAbilitySteps(after.body());
+                if (after.lifetime() != EffectContinuations.Lifetime.DETACHED) throw new IllegalArgumentException("Instant invocation continuation must explicitly be detached");
+                validateInstantSteps(after.body());
             }
         }
     }
@@ -320,6 +333,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public CompiledEquipment equipment() { return equipment; }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
     public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
+    public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
     public void validateSource(EffectSource source) {
         if (bundle(source.bundle()).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipped source references a buff-only bundle");
     }
@@ -369,6 +383,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 ? resourceRate(state, account) : clock.resourceRate(state, account)).withRecovery(this::recoveryOffers).withShieldRecovery(this::shieldRecoveryOffers);
         return new TimelineEngine<>(program.version(), definitions, this, configured, budget, (state, committed) ->
                 committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
+                        : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
                         : committed instanceof AbilityUse.Commit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
     }
@@ -686,7 +701,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
-        if (event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
+        if (event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));
@@ -706,6 +721,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             if (!used.definition().equals(abilities.get(used.definition().id()))) throw new IllegalArgumentException("Incompatible accepted ability");
             var rule = abilityRules.get(used.definition().id());
             result.add(new RuleEngine.RuleBinding("cast/" + used.receipt().cast(), rule.definition(), new AbilityUse.Scope(used.event())));
+        }
+        if (event.signal().type().equals(WeaponFire.ACCEPTED) && event.signal().payload() instanceof WeaponFire.Accepted accepted) {
+            if (!accepted.definition().equals(weapons.definition(accepted.shot().gear().definition())) || accepted.definition().fire().isEmpty())
+                throw new IllegalArgumentException("Incompatible accepted weapon fire");
+            var rule = fireRules.get(accepted.definition().item());
+            result.add(new RuleEngine.RuleBinding("shot/" + accepted.shot().token(), rule.definition(), new WeaponFire.Scope(accepted.event())));
         }
         for (var source : state.sources().values()) for (var rule : sourceRules.get(source.bundle())) if (rule.eventType().equals(event.signal().type())) {
             if (event.signal().type().equals("chorus:source_detached") && event.signal().payload() instanceof SourceChange.Fact fact
