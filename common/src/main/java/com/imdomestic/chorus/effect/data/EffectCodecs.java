@@ -202,6 +202,9 @@ public final class EffectCodecs {
                         finite -> DataResult.success(new AmmoActions.ReserveSpec(java.util.Optional.of(finite)))),
                 value -> DataResult.success(value.finite().<Either<String, AmmoActions.FiniteReserve>>map(Either::right).orElseGet(() -> Either.left("unlimited"))));
         return new TypeRegistry<Action>()
+                .register("chorus:sample_random", RandomActions.Sample.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        enumeration(com.imdomestic.chorus.effect.random.RandomState.Distribution.class).fieldOf("distribution").forGetter(RandomActions.Sample::distribution),
+                        values.fieldOf("lower").forGetter(RandomActions.Sample::lower), values.fieldOf("upper").forGetter(RandomActions.Sample::upper)).apply(i, RandomActions.Sample::new)))
                 .register("chorus:initialize_ammo", AmmoActions.Initialize.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Initialize::weapon),
                         values.fieldOf("capacity").forGetter(AmmoActions.Initialize::capacity), values.fieldOf("magazine").forGetter(AmmoActions.Initialize::magazine),

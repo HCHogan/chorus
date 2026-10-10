@@ -475,6 +475,24 @@ reload.value 是接受请求时求值的 Value。不使用 Profile 时单位必�
 
 [weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣手动换弹，尚无冲刺中断、逐发装填、排热、闪身 / Dragon's Shadow 自动换弹、按键 / 动画 / HUD、跨运行时保存恢复。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
 
+### 显式随机抽样
+
+`chorus:sample_random` 是动作，不能放进 Value、Profile、条件或查询表达式。每次实际执行只产生一份可绑定的抽样回执，后续读取和 capture_value / 攻击快照 / detached 延迟体复用该值，不重新抽样。规则条件不满足时不会消耗随机序列。
+
+```json
+{"action": {"type": "chorus:sample_random", "distribution": "uniform_real",
+  "lower": {"type": "chorus:constant", "value": 0.1, "unit": "multiplier"},
+  "upper": {"type": "chorus:constant", "value": 0.5, "unit": "multiplier"}}, "as": "roll"}
+```
+
+lower / upper 是同单位 Value；结果提供同单位的 value / lower / upper 字段。distribution 必填：uniform_real 将 53 位随机分数映射到 `[lower, upper)`；uniform_integer 在两个端点均包含的整数范围内抽样，端点须为 signed int 范围内的整数，使用拒绝采样消除取模偏差。两种模式均允许相等端点并仍消耗一次抽样。非有限宽度、颠倒范围、单位不匹配及非法整数在状态变更前拒绝。
+
+随机源是 EffectState.random 中版本固定的 `chorus:splitmix64_v1`、64 位 seed 与原始取样游标 cursor。seed 运算按 64 位回绕；cursor 是非负 long，耗尽时失败而非回绕。整数拒绝采样可能推进多次游标。Sample 回执保存分布、前后随机状态、上下界和结果，其构造校验可从种子和起始游标复算；不依赖可变 Java Random 对象、时钟或暂停次数。算法采用 SplitMix64 的固定参数，参考 [OpenJDK SplittableRandom](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/util/SplittableRandom.java)；实现及金标准序列固定在本项目中。
+
+每次抽样提交游标后发布 `chorus:random_sampled`，包含类型化 Sample 回执与通用事件上下文。numbers 为 value / lower / upper，references 包含 algorithm / distribution、十六进制 seed、十进制 cursor_before / cursor_after；64 位标识不转成可能丢精度的 double。它可以用于服务端审计或规则响应，没有默认客户端广播。抽样事实的监听仍遵守正常事件队列。
+
+同一维度运行时使用一个有序随机流；不同来源的实际抽样顺序会影响后续结果。EffectPrograms 安装生产运行时时由服务端生成新种子；纯核心 EffectState.empty() 固定 seed=0，测试 / 回放可显式提供状态。暂停、Buff / 资源更新、切枪、重新装备和 tick 推进都保留随机源。未知世界结果保留已提交游标与当前绑定，不自动重抽或退款。跨运行时保存、独立命名随机流、加权离散分布和坏运气保护尚未提供；坏运气计数也不能由通用 RNG 自动推断。
+
 ### 服务端单次开火
 
 weapons 中可选的 fire 为当前物品原型声明一次触发。缺省时拒绝开火；不会回退到原版近战或偷偷生成弹药。完整示例见 [weapon_fire.json](../common/src/test/resources/effects/weapon_fire.json)，与 kill_clip.json 链接；其中弹量、0.15 秒射击间隔、0.2 秒换弹与 10 点基础伤害都是机制测试参数。

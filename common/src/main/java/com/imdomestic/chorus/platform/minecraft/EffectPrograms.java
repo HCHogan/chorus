@@ -33,7 +33,7 @@ public final class EffectPrograms {
         }, (target, check) -> true, cue -> {
             throw new IllegalArgumentException("No cue binding installed for " + cue.cue());
         });
-        return MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode),
+        return MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode).withRandom(new com.imdomestic.chorus.effect.random.RandomState(new java.security.SecureRandom().nextLong(), 0)),
                 new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), world, MinecraftEffectRuntime::nativeSource);
     }
     private static LivingEntity living(ServerLevel level, String id) {
