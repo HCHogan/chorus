@@ -60,7 +60,8 @@
       "com.imdomestic.chorus.ArcboltGameTest",
       "com.imdomestic.chorus.ProjectileGameTest",
       "com.imdomestic.chorus.ProjectileCollisionGameTest",
-      "com.imdomestic.chorus.ProjectileTrackingGameTest"
+      "com.imdomestic.chorus.ProjectileTrackingGameTest",
+      "com.imdomestic.chorus.ProjectileDestinationGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

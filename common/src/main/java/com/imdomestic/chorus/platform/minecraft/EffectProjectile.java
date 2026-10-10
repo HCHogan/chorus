@@ -59,14 +59,21 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         var movement = getDeltaMovement().add(0, -gravity / 400.0, 0).scale(drag);
         setDeltaMovement(movement); var from = position(); var to = from.add(movement); updateRotation();
         if (!(level() instanceof ServerLevel server)) { setPos(to); return; }
-        steer(server, false);
         ageMicros = Math.addExact(ageMicros, 50_000);
+        steer(server, false);
+        if (terminal) return;
         double remaining = 1;
         while (!terminal && remaining > 0) {
             from = position(); movement = getDeltaMovement().scale(remaining); to = from.add(movement);
-            var terrain = MinecraftVisibility.projectile(server, point(from), point(to));
+            var destination = launch.parameters().destination().orElse(null);
+            LivingEntity receiver = destination == null ? null : destinationTarget(server);
+            if (destination != null && receiver == null) { observe(ProjectileFlight.End.TARGET_LOST, from, Optional.empty(), 0, 0, 0, false); return; }
+            var arrival = destination == null ? OptionalDouble.empty() : destination.entry(point(from), point(to), point(anchor(receiver, destination.anchor())));
+            var travelEnd = arrival.isPresent() ? from.add(movement.scale(arrival.getAsDouble())) : to;
+            // Sweep only as far as arrival. Geometry beyond a completed flight cannot reject it.
+            var terrain = MinecraftVisibility.projectile(server, point(from), point(travelEnd));
             if (terrain.isEmpty()) { observe(ProjectileFlight.End.UNLOADED, from, Optional.empty(), 0, 0, 0, false); return; }
-            var block = terrain.orElseThrow(); var end = block.getType() == HitResult.Type.BLOCK ? block.getLocation() : to;
+            var block = terrain.orElseThrow(); var end = block.getType() == HitResult.Type.BLOCK ? block.getLocation() : travelEnd;
             var entity = entityHit(server, from, end, movement);
             if (entity != null) {
                 remaining = remainingAfter(remaining, from, entity.getLocation(), movement);
@@ -86,6 +93,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 setPos(end.add(n.scale(SEPARATION)));
                 steer(server, true);
                 if (getDeltaMovement().lengthSqr() == 0) break;
+            } else if (arrival.isPresent()) {
+                observe(ProjectileFlight.End.ARRIVED, travelEnd, Optional.of(receiver.getUUID().toString()), 0, 0, 0, false); return;
             } else { setPos(to); remaining = 0; }
         }
         if (!terminal && ageMicros >= launch.parameters().lifetimeMicros()) observe(ProjectileFlight.End.EXPIRED, position(), Optional.empty(), 0, 0, 0, false);
@@ -102,6 +111,13 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         return new Vec3(target.getX(), y, target.getZ());
     }
     private WorldDirection direction(Vec3 vector) { return new WorldDirection(level().dimension().identifier().toString(), vector.x, vector.y, vector.z); }
+    private LivingEntity destinationTarget(ServerLevel level) {
+        var destination = launch.parameters().destination().orElseThrow();
+        Entity entity;
+        try { entity = level.getEntity(UUID.fromString(destination.target())); }
+        catch (IllegalArgumentException invalidIdentity) { return null; }
+        return entity instanceof LivingEntity living && living.isAlive() && !living.isRemoved() && !living.isSpectator() && living.level() == level ? living : null;
+    }
     private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire) {
         if (!candidate.isAlive() || candidate.isRemoved() || candidate.isSpectator() || candidate.level() != level
                 || candidate.getUUID().toString().equals(launch.owner()) || inside.contains(candidate.getUUID())
@@ -117,6 +133,18 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         return !policy.lineOfSight() || MinecraftVisibility.visible(level, point(position()), point(anchor(candidate, policy.anchor())));
     }
     private void steer(ServerLevel level, boolean contact) {
+        var destination = launch.parameters().destination().orElse(null);
+        if (destination != null) {
+            if (contact) return; // Reflection keeps its remaining travel; turning budget is once per physical tick.
+            var target = destinationTarget(level);
+            if (target == null) { observe(ProjectileFlight.End.TARGET_LOST, position(), Optional.empty(), 0, 0, 0, false); return; }
+            trackingTarget = target.getUUID();
+            var offset = anchor(target, destination.anchor()).subtract(position());
+            double speed = getDeltaMovement().length();
+            if (speed == 0 || offset.lengthSqr() == 0) return;
+            var turned = ProjectileTracking.turn(direction(getDeltaMovement()), direction(offset), destination.turnRate() / 20);
+            setDeltaMovement(turned.x() * speed, turned.y() * speed, turned.z() * speed); updateRotation(); return;
+        }
         var policy = launch.parameters().tracking().orElse(null);
         if (policy == null || contact && !policy.redirectOnContact()) return;
         if (getDeltaMovement().lengthSqr() == 0) { trackingTarget = null; return; }
@@ -139,12 +167,15 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         setDeltaMovement(turned.x() * speed, turned.y() * speed, turned.z() * speed); updateRotation();
     }
     private EntityHitResult entityHit(ServerLevel level, Vec3 from, Vec3 to, Vec3 movement) {
+        var destination = launch.parameters().destination().orElse(null);
+        if (destination != null && !destination.collideEntities()) return null;
         // Reentry can count again only after physically leaving the expanded hitbox; no tick cooldown or global dedup.
         refreshInside(level, from);
         EntityHitResult best = null; double distance = Double.POSITIVE_INFINITY;
         for (var entity : level.getEntities(this, getBoundingBox().expandTowards(movement).inflate(0.125),
                 e -> e instanceof LivingEntity living && living.isAlive() && !e.isSpectator()
                         && !e.getUUID().toString().equals(launch.owner()) && !inside.contains(e.getUUID())
+                        && (destination == null || !e.getUUID().toString().equals(destination.target()))
                         && progress.canHit(e.getUUID().toString(), launch.parameters().collision()))) {
             var box = entity.getBoundingBox().inflate(0.125);
             var contact = box.contains(from) ? Optional.of(from) : box.clip(from, to);
@@ -163,7 +194,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         if (terminal) discard(); // Commit collision bookkeeping before reactions; failures never replay the contact.
         try {
             runtime.start(launch.finish(new ProjectileFlight.Impact(reason, point(at), target, nx, ny, nz, ageMicros,
-                    progress.sequence(), progress.bounces(), progress.entityContacts(), target.map(id -> progress.hits().get(id)).orElse(0L), terminal)));
+                    progress.sequence(), progress.bounces(), progress.entityContacts(), reason == ProjectileFlight.End.ENTITY ? progress.hits().get(target.orElseThrow()) : 0, terminal)));
         } catch (RuntimeException error) {
             abandon(); com.imdomestic.chorus.Constants.LOG.error("Projectile contact action failed; consumed projectile will not replay", error);
         }

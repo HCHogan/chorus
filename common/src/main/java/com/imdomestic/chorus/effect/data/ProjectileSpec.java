@@ -1,15 +1,24 @@
 package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.projectile.ProjectileDestination;
 import com.imdomestic.chorus.effect.projectile.ProjectileTracking;
 import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.stat.Unit;
 import java.util.Optional;
 
 /** Values resolve once when launched. Drag is a multiplier applied every 50 ms physical tick. */
-public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking) {
+public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination) {
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime) { this(position, direction, speed, gravity, drag, lifetime, Collisions.STOP); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision) { this(position, direction, speed, gravity, drag, lifetime, collision, Optional.empty()); }
+    public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking) { this(position, direction, speed, gravity, drag, lifetime, collision, tracking, Optional.empty()); }
+    public record Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities) {
+        void validate(Validation v) {
+            v.target(target); Validation.same(turnRate.unit(v), TURN_RATE); Validation.same(arrivalRadius.unit(v), Unit.METER);
+            new ProjectileDestination("validation", turnRate instanceof Value.Constant c ? c.value() : 0, arrivalRadius instanceof Value.Constant c ? c.value() : 0, anchor, collideEntities);
+        }
+        ProjectileDestination resolve(Evaluation e) { return new ProjectileDestination(e.target(target), measure(turnRate, TURN_RATE, e), measure(arrivalRadius, Unit.METER, e), anchor, collideEntities); }
+    }
     public static final Unit SPEED = new Unit("chorus:meter_per_second"), GRAVITY = new Unit("chorus:meter_per_second_squared");
     public static final Unit ANGLE = new Unit("chorus:degree"), TURN_RATE = new Unit("chorus:degree_per_second");
     public record Tracking(Value radius, Value turnRate, Value acquisitionAngle, TargetQuery.Anchor anchor,
@@ -43,7 +52,8 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     public void validate(Validation v) {
         collision.validate(v);
-        tracking.ifPresent(t -> t.validate(v));
+        tracking.ifPresent(t -> t.validate(v)); destination.ifPresent(d -> d.validate(v));
+        if (tracking.isPresent() && destination.isPresent()) throw new IllegalArgumentException("Projectile tracking and destination are mutually exclusive");
         v.result(position).requirePosition(); v.result(direction).requireDirection();
         Validation.same(speed.unit(v), SPEED); Validation.same(gravity.unit(v), GRAVITY); Validation.same(drag.unit(v), Unit.MULTIPLIER);
         Action.validateDuration(lifetime, v);
@@ -52,6 +62,6 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     private static double measure(Value value, Unit unit, Evaluation e) { var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value(); }
     public ProjectileFlight.Parameters resolve(Evaluation e) {
-        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e), tracking.map(t -> t.resolve(e)));
+        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e), tracking.map(t -> t.resolve(e)), destination.map(d -> d.resolve(e)));
     }
 }

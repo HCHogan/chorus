@@ -37,7 +37,7 @@ public class ProjectileGameTest {
         final List<LivingEntity> entities = new ArrayList<>(); final List<EffectProjectile> projectiles = new ArrayList<>();
         final List<DamageCommand> hits = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<TargetQuery> queries = new ArrayList<>();
         final List<Action.CueCommand> cues = new ArrayList<>(); final List<RuleEngine.OperationId> operations = new ArrayList<>();
-        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage;
+        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
         Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception {
@@ -56,6 +56,7 @@ public class ProjectileGameTest {
                 operations.add(request.id()); var result = world.apply(request);
                 if (result instanceof ProjectileFlight.Receipt receipt && receipt.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (result instanceof DamageReceipt receipt) { hits.add((DamageCommand) request.command()); receipts.add(receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
+                if (request.command() instanceof HealingCommand && failAfterHealing) throw new IllegalStateException("Injected unknown projectile healing outcome");
                 if (request.command() instanceof TargetQuery q) queries.add(q);
                 return result;
             }, MinecraftEffectRuntime::nativeSource);

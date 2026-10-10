@@ -1301,9 +1301,9 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 | 接触结果的用途 | 行为 |
 | --- | --- |
-| `for_each: impact` | ENTITY 为命中的一个 LivingEntity 身份，其他结果为空集合；没有猜测目标或距离字段 |
+| `for_each: impact` | ENTITY 为碰撞目标，ARRIVED 为接收者的单元素身份集合，其他结果为空集合；没有猜测目标或距离字段 |
 | 查询 `center: { "position": "impact" }` | 以真实接触点或终止位置发起后续范围查询 |
-| `result_flag` | `entity / block / expired / unloaded` 恰有一个为 true；`terminal` 表示飞行结束，`bounced / pierced` 表示此次接触后继续反弹 / 穿透 |
+| `result_flag` | `entity / block / expired / unloaded / arrived / target_lost` 恰有一个为 true；`terminal` 表示飞行结束，`bounced / pierced` 表示此次接触后继续反弹 / 穿透 |
 | `result` | `count / sequence / bounces / entity_contacts / target_contacts`（count）、`age`（second）、`normal_x/y/z`（multiplier）；法线只有 BLOCK 为单位向量，其他为零 |
 
 发射使用 `ProjectileFlight.Launch / Receipt` 世界协议，操作账本防止重复发射；回执必须对应原请求。缺失位置 / 方向、错误维度、未知区块和宿主拒绝不会产生可执行实体，也不会自动退款或重试。当前步骤不在外层暴露命名的发射回执；需要按发射失败退款的内容仍需扩展结果接口。
@@ -1332,14 +1332,14 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 反弹按表面单位法线计算 `v' = (v - 2(v·n)n) × restitution`，恢复系数为 0–1，默认 1。每次接触使用该 tick 尚未走完的时间继续扫掠，支持同 tick 多次碰撞。物理射线使用碰撞形状各包围盒的闭线段交点，包含恰好在 tick 末端 / 起点面上的接触和盒间接缝；从表面外接近不因前向采样被误判为嵌入。真正嵌在方块中的弹体直接结束。每目标次数独立于总穿透次数；同一目标必须先离开扩张后的碰撞箱，再进入才可再次命中，连续重叠不会每 tick 重复伤害。达到目标上限后，该目标不再阻挡此弹体。
 
-每次接触，包括非终止的反弹 / 穿透，都会执行一次 `do`，各次有独立操作身份和结果帧。`sequence` 从 1 开始；`bounces` 是已成功反弹的次数，`entity_contacts` 是总实体接触次数，`target_contacts` 是此目标累计次数（其他类型为 0）。这些计数均包含当前接触。`count` 仍为此次命中集合的大小（0 或 1）。可用 `result_flag.terminal` 限制只执行最终爆炸，也可将计数作为 `damage_snapshot.impact` 输入，驱动快照保留的命中期衰减表达式。
+每次接触，包括非终止的反弹 / 穿透，都会执行一次 `do`，各次有独立操作身份和结果帧。`sequence` 从 1 开始；`bounces` 是已成功反弹的次数，`entity_contacts` 是总实体接触次数，`target_contacts` 是此目标累计次数（其他类型为 0）。这些计数均包含当前接触。`count` 为此次目标集合的大小（0 或 1）；下节 ARRIVED 也带接收者，但不增加实体命中次数。可用 `result_flag.terminal` 限制只执行最终爆炸，也可将计数作为 `damage_snapshot.impact` 输入，驱动快照保留的命中期衰减表达式。
 
-[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。墙面反射与沿轨迹穿透可结合下节的追踪及接触转向；盾牌反射与返回 / 接回动作仍待实现。
+[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。墙面反射与沿轨迹穿透可结合下节的追踪及接触转向；指定目的地 / 返回阶段见下文；盾牌反射与玩家接回输入仍待实现。
 
 
 ### 追踪与接触后转向
 
-`projectile.tracking` 可选；省略时保持纯弹道运动。以下均为通用机制的合成参数，完整程序见 [projectile_tracking.json](../common/src/test/resources/effects/projectile_tracking.json)：
+`projectile.tracking` 可选；与下节 destination 都省略时保持纯弹道运动。以下均为通用机制的合成参数，完整程序见 [projectile_tracking.json](../common/src/test/resources/effects/projectile_tracking.json)：
 
 ```json
 "tracking": {
@@ -1363,4 +1363,31 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 `redirect_on_contact: true` 是额外的接触行为：仅在弹体尚未终止时，于此次碰撞动作体完成、位置离开接触面后重新选敌，立即朝所选目标取样点转向，并继续本 tick 余下路程。此次瞬时转向不受持续转向率限制；未选到敌人时保留当前方向（方块已先按法线反射）。可以将 turn_rate 设为 0，只保留碰撞后的离散转向。转向不凭空增加可命中次数：实体必须获准穿透后才能继续转向，方块也必须有剩余反弹预算。每次接触的伤害与计数保持独立，因此相邻目标可在同 tick 被依次击中。
 
-当前只支持上述最近目标策略，尚无显式指定目标、返回施加者 / 接回、目标类别优先级、D2 转向率校准或统一的墙面 / 实体弹跳总预算。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。
+上述 tracking 负责自动选敌；下节 destination 负责固定身份的返回。玩家接回输入、目标类别优先级、D2 转向率校准与统一的墙面 / 实体弹跳总预算仍待实现。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。
+
+
+### 指定目的地与返回阶段
+
+`projectile.destination` 固定一个实体身份并逐 tick 追踪其当前位置；与自动选敌的 tracking 互斥。它允许 self，也接受 victim 或已经验证的 `{ "binding": "receiver" }` 目标。示例字段放在 projectile 内：
+
+```json
+"destination": {
+  "target": "self",
+  "turn_rate": { "type": "chorus:constant", "value": 3600, "unit": "degree_per_second" },
+  "arrival_radius": { "type": "chorus:constant", "value": 0.3, "unit": "meter" },
+  "target_anchor": "body",
+  "collide_entities": false
+}
+```
+
+target / turn_rate / arrival_radius 必填；数值有限非负，在发射时求值；anchor 默认为 body，也接受 feet / eyes。目标身份在发射时固定，后续选择变化、来源卸下或更近的其他实体不会替换它。目标须为此维度已加载、存活、非旁观 LivingEntity；缺失、死亡、移除或跨维度均在下次物理观察时终止为 target_lost，不改追其他实体，不加载区块。发射回执仍只确认实体生成，目标资格由飞行时观察。
+
+每 tick 沿最短圆弧最多转 turn_rate / 20 度，保持重力和 drag 处理后的速度；碰撞反射后不会额外重置这个转向额度。目的地模式没有自动选敌的半径、锥角或阵营条件，也不额外执行目的地中心的视线检测；实际飞行路径仍做方块碰撞。
+
+抵达区域是以接收者当前 anchor 为中心、arrival_radius 为半径的闭球。使用本次完整扫掠线段的第一个入球点，两个端点都在球外也能识别高速穿越；起点已在球内且未被碰撞阻挡时立即抵达，包括零速度。抵达点之前的方块 / 有效实体碰撞照常处理，抵达点之后的地形不再检查。collide_entities 默认为 true，控制其他生物是否沿用普通碰撞策略；false 明确允许穿过其他生物。接收者自身始终使用抵达球，不以其碰撞箱触发普通 ENTITY，原施加者也可以是接收者。
+
+ARRIVED 携带接收者身份，`count=1`、`arrived=true`、`terminal=true`；它增加 sequence，但不增加 entity_contacts / bounces，target_contacts 为 0。TARGET_LOST 没有目标、count=0。两者都在执行 do 之前消费弹体；不会自动伤害、返还能量或视为玩家“接住”。内容应按 result_flag.arrived 显式执行相应动作；仅遍历目标集合并不代表发生了伤害命中。
+
+[projectile_return.json](../common/src/test/resources/effects/projectile_return.json) 的可执行合成示例从普通玩家技能入口支付成本并保留退款凭据。去程实际命中后造成伤害，再以该 impact 位置启动另一枚 destination:self 弹体；抵达才返还成本、按 credited 治疗并关闭凭据。新阶段拥有独立的物理寿命 / 接触计数，原 impact、来源和有限期成本句柄仍由词法捕获保留。世界结果未知时保留已完成的伤害 / 退款 / 治疗，消耗飞行且不重放。
+
+当前支持返回移动实体和到达后动作，尚未提供玩家按键接回窗口、原飞行实体内切换阶段、独立场物体或跨维度 / 重启恢复。示例 20 m/s、3600 度每秒、0.3 米、伤害和退款比例均为合成参数，不是 Threaded Spike 的已校准定义。

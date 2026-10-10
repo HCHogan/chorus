@@ -122,5 +122,6 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/projectile.json'
         include 'effects/projectile_collisions.json'
         include 'effects/projectile_tracking.json'
+        include 'effects/projectile_return.json'
     }
 }

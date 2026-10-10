@@ -423,13 +423,20 @@ public final class EffectCodecs {
                     Codec.BOOL.optionalFieldOf("line_of_sight", true).forGetter(ProjectileSpec.Tracking::lineOfSight),
                     Codec.BOOL.optionalFieldOf("redirect_on_contact", false).forGetter(ProjectileSpec.Tracking::redirectOnContact)
             ).apply(i, ProjectileSpec.Tracking::new)), Set.of("radius", "turn_rate", "acquisition_angle", "target_anchor", "relation", "line_of_sight", "redirect_on_contact"));
+            Codec<ProjectileSpec.Destination> destination = strict(RecordCodecBuilder.create(i -> i.group(
+                    TARGET.fieldOf("target").forGetter(ProjectileSpec.Destination::target),
+                    values.fieldOf("turn_rate").forGetter(ProjectileSpec.Destination::turnRate), values.fieldOf("arrival_radius").forGetter(ProjectileSpec.Destination::arrivalRadius),
+                    enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("target_anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.BODY).forGetter(ProjectileSpec.Destination::anchor),
+                    Codec.BOOL.optionalFieldOf("collide_entities", true).forGetter(ProjectileSpec.Destination::collideEntities)
+            ).apply(i, ProjectileSpec.Destination::new)), Set.of("target", "turn_rate", "arrival_radius", "target_anchor", "collide_entities"));
             Codec<ProjectileSpec> projectileSpec = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("position").forGetter(ProjectileSpec::position), Codec.STRING.fieldOf("direction").forGetter(ProjectileSpec::direction),
                     values.fieldOf("speed").forGetter(ProjectileSpec::speed), values.fieldOf("gravity").forGetter(ProjectileSpec::gravity),
                     values.fieldOf("drag").forGetter(ProjectileSpec::drag), values.fieldOf("lifetime").forGetter(ProjectileSpec::lifetime),
                     collisions.optionalFieldOf("collision", ProjectileSpec.Collisions.STOP).forGetter(ProjectileSpec::collision),
-                    tracking.optionalFieldOf("tracking").forGetter(ProjectileSpec::tracking)
-            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking"));
+                    tracking.optionalFieldOf("tracking").forGetter(ProjectileSpec::tracking),
+                    destination.optionalFieldOf("destination").forGetter(ProjectileSpec::destination)
+            ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking", "destination"));
             Codec<ShotActions.Membership> membership = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("binding").forGetter(ShotActions.Membership::binding), values.fieldOf("pellet").forGetter(ShotActions.Membership::pellet)
             ).apply(i, ShotActions.Membership::new)), Set.of("binding", "pellet"));

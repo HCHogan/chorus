@@ -24,11 +24,13 @@ public final class ProjectileFlight {
             if (!hitsPerTarget.allows(0) || restitution > 1) throw new IllegalArgumentException("Invalid projectile collision policy");
         }
     }
-    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking) {
+    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking, Optional<ProjectileDestination> destination) {
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros) { this(speed, gravity, drag, lifetimeMicros, Collision.STOP); }
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision) { this(speed, gravity, drag, lifetimeMicros, collision, Optional.empty()); }
+        public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking) { this(speed, gravity, drag, lifetimeMicros, collision, tracking, Optional.empty()); }
         public Parameters {
-            Objects.requireNonNull(collision); Objects.requireNonNull(tracking);
+            Objects.requireNonNull(collision); Objects.requireNonNull(tracking); Objects.requireNonNull(destination);
+            if (tracking.isPresent() && destination.isPresent()) throw new IllegalArgumentException("Projectile cannot acquire enemies and pursue an explicit destination together");
             Numbers.nonnegative(speed, "projectile speed"); Numbers.nonnegative(gravity, "projectile gravity"); Numbers.nonnegative(drag, "projectile drag");
             if (speed > 2000 || gravity > 2000 || drag > 1 || lifetimeMicros <= 0 || lifetimeMicros == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Projectile parameters exceed host limits");
@@ -57,7 +59,10 @@ public final class ProjectileFlight {
             if ((outcome == Outcome.LAUNCHED) != entity.isPresent() || entity.filter(String::isBlank).isPresent()) throw new IllegalArgumentException("Invalid projectile launch receipt");
         }
     }
-    public enum End { ENTITY, BLOCK, EXPIRED, UNLOADED }
+    public enum End {
+        ENTITY, BLOCK, EXPIRED, UNLOADED, ARRIVED, TARGET_LOST;
+        public boolean hasTarget() { return this == ENTITY || this == ARRIVED; }
+    }
     /** Contact limits are content policy, not a restriction on the engine's event cycles. */
     public record Progress(long sequence, long bounces, long entityContacts, Map<String, Long> hits, boolean terminal) {
         public static final Progress EMPTY = new Progress(0, 0, 0, Map.of(), false);
@@ -76,7 +81,7 @@ public final class ProjectileFlight {
         public boolean canHit(String target, Collision policy) { return !terminal && policy.hitsPerTarget().allows(hits.getOrDefault(target, 0L)); }
         public Progress contact(Collision policy, End end, Optional<String> target, boolean embedded) {
             if (terminal) throw new IllegalStateException("Consumed projectile cannot observe another contact");
-            if ((end == End.ENTITY) != target.isPresent()) throw new IllegalArgumentException("Contact target does not match kind");
+            if (end.hasTarget() != target.isPresent()) throw new IllegalArgumentException("Contact target does not match kind");
             long nextSequence = Math.addExact(sequence, 1), nextBounces = bounces, nextContacts = entityContacts;
             var nextHits = new HashMap<>(hits); boolean done = true;
             if (end == End.ENTITY) {
@@ -87,7 +92,7 @@ public final class ProjectileFlight {
             return new Progress(nextSequence, nextBounces, nextContacts, nextHits, done);
         }
     }
-    /** Only ENTITY contains a living target; all outcomes have an exact observed position. */
+    /** ENTITY and ARRIVED carry a target; arrival is not a collision hit. All outcomes have an observed position. */
     public record Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
             long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member) implements PositionResult, Targets.Collection {
         public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
@@ -103,7 +108,7 @@ public final class ProjectileFlight {
         public Impact {
             Objects.requireNonNull(end); Objects.requireNonNull(point); Objects.requireNonNull(target); Objects.requireNonNull(member);
             Numbers.finite(normalX, "normal x"); Numbers.finite(normalY, "normal y"); Numbers.finite(normalZ, "normal z");
-            if (ageMicros < 0 || (end == End.ENTITY) != target.isPresent() || target.filter(String::isBlank).isPresent()) throw new IllegalArgumentException("Invalid projectile impact");
+            if (ageMicros < 0 || end.hasTarget() != target.isPresent() || target.filter(String::isBlank).isPresent()) throw new IllegalArgumentException("Invalid projectile impact");
             double normal = Math.hypot(Math.hypot(normalX, normalY), normalZ);
             if (end == End.BLOCK ? Math.abs(normal - 1) > 1e-9 : normal != 0) throw new IllegalArgumentException("Only block impacts have a unit face normal");
             if (sequence < 1 || bounces < 0 || entityContacts < 0 || targetContacts < 0 || bounces > sequence || entityContacts > sequence || targetContacts > entityContacts
