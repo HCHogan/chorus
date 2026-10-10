@@ -1,0 +1,355 @@
+{
+  "version": "test-1",
+  "native_attributes": [
+    {
+      "id": "test:a_speed",
+      "attribute": "minecraft:movement_speed",
+      "operation": "add_multiplied_total",
+      "profile": "test:a_speed",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "test:b_base",
+      "attribute": "minecraft:movement_speed",
+      "operation": "add_multiplied_base",
+      "profile": "test:b_base",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "test:health",
+      "attribute": "minecraft:max_health",
+      "operation": "add_value",
+      "profile": "test:health",
+      "input": {
+        "value": 0,
+        "unit": "damage"
+      },
+      "output_unit": "damage"
+    },
+    {
+      "id": "test:reach",
+      "attribute": "minecraft:block_interaction_range",
+      "operation": "add_multiplied_total",
+      "profile": "test:reach",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "test:z_gravity",
+      "attribute": "minecraft:gravity",
+      "operation": "add_multiplied_total",
+      "profile": "test:z_gravity",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:a_speed",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:b_base",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:health",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:reach",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:z_gravity",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:slow",
+        "version": "test-1",
+        "duration": 0.2
+      },
+      "bundle": "test:slow"
+    },
+    {
+      "definition": {
+        "id": "test:health",
+        "version": "test-1",
+        "duration": 0.2
+      },
+      "bundle": "test:health"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:inputs",
+      "rules": [
+        {
+          "id": "slow",
+          "on": "test:slow",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:slow",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "health",
+          "on": "test:health",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:health",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 15,
+                "unit": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:fast",
+      "modifiers": [
+        {
+          "id": "fast",
+          "profile": "test:a_speed",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:faster",
+      "modifiers": [
+        {
+          "id": "faster",
+          "profile": "test:a_speed",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:faster",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:base",
+      "modifiers": [
+        {
+          "id": "base",
+          "profile": "test:b_base",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:base",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.25,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:reach",
+      "modifiers": [
+        {
+          "id": "reach",
+          "profile": "test:reach",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:reach",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:slow",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "slow",
+          "profile": "test:a_speed",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:slow",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.25,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        },
+        {
+          "id": "gravity",
+          "profile": "test:z_gravity",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:gravity",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:health",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "health",
+          "profile": "test:health",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:health",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "damage"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:bad",
+      "modifiers": [
+        {
+          "id": "bad",
+          "profile": "test:z_gravity",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:bad",
+          "value": {
+            "type": "chorus:event_number",
+            "name": "not_observed",
+            "unit": "delta"
+          },
+          "reference": "Synthetic native attribute projection acceptance; not Destiny calibration",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

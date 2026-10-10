@@ -1941,3 +1941,48 @@ EntityObservation 的 `positions` 按 `PositionQuery(target, anchor)` 保存不�
 原版伤害在 hurt 返回后的同一次实体观察中采样受击者与可解析攻击者的三个锚点，WorldPosition 保留实际实体所属维度。保留的受击对象即使被原版死亡钩子移除也可记录；后续死亡反应的移动、传送或删除不改变历史。UUID 攻击者确认不可用时三个锚点均记 empty，无法解析的逻辑别名仍是 unknown。此时机是伤害确认后、消费和派生反应前，不宣称为伤害进入前坐标或每个碰撞点。
 
 位置与实体元数据共同随回执复制及 hit / death / kill、emit、after、派生查询传播。detached 动作可以在尸体和装备来源都不存在后用原位置发起新的范围查询，每次成员仍取当前世界。历史位置只决定坐标，不保证查询或生成成功：已有维度、区块加载、阵营等世界校验继续生效，不会跨维度生成或加载未知区块。没有位置的旧适配器须显式提供证据；新资源 / 拾取等独立事实不会自动借用旧位置。跨重启序列化仍待实现。
+
+## 原版属性投影
+
+程序根的 `native_attributes` 将纯 Profile 的归约结果投影为当前运行时拥有的原版临时 AttributeModifier。旧程序省略它时没有投影。下面是可独立编译的合成加速示例；绑定 `example:fast` 来源后，当前原版移动速度乘以 1.5，解绑则移除该贡献：
+
+```json
+{
+  "version": "example-1",
+  "native_attributes": [{
+    "id": "example:speed", "attribute": "minecraft:movement_speed",
+    "operation": "add_multiplied_total", "profile": "example:speed",
+    "input": {"value": 0, "unit": "delta"}, "output_unit": "delta"
+  }],
+  "profiles": [{
+    "id": "example:speed", "version": "example-1", "input_unit": "delta",
+    "steps": [{"type": "chorus:apply", "id": "contributions", "operation": "add",
+      "group": {"name": "contributions", "reduction": "sum"}}]
+  }],
+  "bundles": [{
+    "id": "example:fast",
+    "modifiers": [{"id": "fast", "profile": "example:speed", "stage": "contributions",
+      "group": "contributions", "op": "add", "stacking_key": "example:fast",
+      "value": {"type": "chorus:constant", "value": 0.5, "unit": "delta"},
+      "reference": "Synthetic native attribute example; not Destiny calibration", "confidence": "assumed"}]
+  }]
+}
+```
+
+`id / attribute / operation / profile / input / output_unit` 均必填。Profile 的输入、输出单位须与绑定一致，绑定 id 唯一，同一原版属性的同一 operation 只能绑定一次；同属性不同 operation 可以组合。同版本 imports 会合并绑定，重复或引用 / 单位错误在编译阶段拒绝。原版 attribute id 在安装运行时前按当前注册表验证；已注册但目标不支持的属性保留诊断，不添加假属性。
+
+| operation | 输出含义 | 原版合成位置 |
+| --- | --- | --- |
+| add_value | 声明单位下的原版加值 | 加到原版 base；例如 max_health 的 10 点 |
+| add_multiplied_base | delta，0.25 表示 +25% | 对加值处理后的基数应用基础倍率增量之和 |
+| add_multiplied_total | delta，0.5 表示 ×1.5 | 作为一个总倍率因子，与其余总倍率因子相乘 |
+
+Profile 必须仅输出 Chorus 贡献。输入是绑定中的固定 Measure，不读取原版当前总值再参与归约；同一效果的 SUM / MAX / 份数规则在 Chorus 内处理完后只写一次。原版最终值仍受其他来源、原版范围裁剪和基础值变化影响。两种倍率强制输出 `delta`；`add_value` 的类型单位不会自动换算物理尺度，特别是 movement_speed 的原版值不是米／秒。属性对应关系、负值和上限由内容作者与原版定义共同决定，不将原版范围当作 D2 校准数据。减少 max_health 不自动构造一次伤害 / 治疗，也不额外实现生命值裁剪规则。
+
+查询上下文使用当前 holder 作为 actor / victim；origin 的 owner 是 holder，source 是绑定 id，weapon / ability 为空，带 `chorus:native_attribute_query` 标签及 `attribute / binding` 引用。来源和 Buff 修饰按接收者归约，实例参数沿用原有规则；没有武器伤害、历史动作结果或伪造的观测值。缺少所需输入会失败。`CompiledEffects.nativeAttributes` 返回含完整计算轨迹的纯快照。
+
+默认 Minecraft 宿主只枚举状态内来源 / Buff 的 holder 以及装备 / 技能持有者，并用当前维度 UUID 查找 LivingEntity；逻辑别名不能当作实体，未登记的实体不会被全局扫描。要让固定非零输入作用于实体，也要先登记来源、Buff、装备或技能。查询在普通世界动作执行前及规则提交后刷新，tick 的 prepare 处理到期与资格变化；这不表示在已经执行中的原版伤害管线内插入新的反应。治疗等后续动作能读取新上限，过期 Buff、移除来源、实体消失或变为旁观者后只清理该运行时拥有的修饰；未变化的 modifier 不反复写脏。
+
+`nativeAttributeReport()` 保存最后一次成功刷新中的每项计算、结果及可用的原版最终值。结果为 PROJECTED、ZERO、MISSING_TARGET、INELIGIBLE 或 UNSUPPORTED_ATTRIBUTE；不可观察的目标 / 属性没有数值，ZERO 则表示贡献为零且没有对应 modifier。报告不是持续实时采样，也不生成 attribute_changed 事实。客户端同步遵循该 Attribute 原有的 syncable 标志，不修改注册表同步策略。
+
+所有候选属性先完成计算和身份冲突检查，再改动原版；预检失败保留旧投影，已经提交的规则状态仍保留，运行时报告失败并停止。写入或后续世界动作发生未知失败时也不自动回滚 / 重试。显式关闭运行时会清理已知且仍匹配的自身修饰；其他模组覆盖了自身 modifier id 时会报冲突，关闭时也不删除被外部改写的值。运行时不修改原版 base、不持久化临时 modifier，也不把这套投影当作完整 Slow / Freeze / Suspend、滑翔或跨重启效果恢复。

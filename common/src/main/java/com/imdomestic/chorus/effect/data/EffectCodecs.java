@@ -5,6 +5,7 @@ import static com.imdomestic.chorus.core.codec.DataCodecs.*;
 import com.imdomestic.chorus.core.codec.TypeRegistry;
 import com.imdomestic.chorus.effect.buff.*;
 import com.imdomestic.chorus.effect.ability.AbilityDefinition;
+import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
 import com.imdomestic.chorus.effect.weapon.WeaponDefinition;
 import com.imdomestic.chorus.effect.ammo.AmmoState;
 import com.imdomestic.chorus.effect.combat.ProcPolicy;
@@ -716,14 +717,21 @@ public final class EffectCodecs {
                 BuffCodecs.DEFINITION.fieldOf("definition").forGetter(EffectProgram.Buff::definition), ID.optionalFieldOf("bundle", "").forGetter(EffectProgram.Buff::bundle),
                 shield.optionalFieldOf("shield").forGetter(EffectProgram.Buff::shield), consumption.optionalFieldOf("consume_on_damage").forGetter(EffectProgram.Buff::consumeOnDamage)
         ).apply(i, EffectProgram.Buff::new)), Set.of("definition", "bundle", "shield", "consume_on_damage"));
+        Codec<NativeAttributeBinding> nativeAttribute = strict(RecordCodecBuilder.create(i -> i.group(
+                ID.fieldOf("id").forGetter(NativeAttributeBinding::id), ID.fieldOf("attribute").forGetter(NativeAttributeBinding::attribute),
+                enumeration(NativeAttributeBinding.Operation.class).fieldOf("operation").forGetter(NativeAttributeBinding::operation),
+                ID.fieldOf("profile").forGetter(NativeAttributeBinding::profile), StatCodecs.MEASURE.fieldOf("input").forGetter(NativeAttributeBinding::input),
+                StatCodecs.UNIT.fieldOf("output_unit").forGetter(NativeAttributeBinding::outputUnit)
+        ).apply(i, NativeAttributeBinding::new)), Set.of("id", "attribute", "operation", "profile", "input", "output_unit"));
         return strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("version").forGetter(EffectProgram::version), buff.listOf().optionalFieldOf("buffs", List.of()).forGetter(EffectProgram::buffs),
                 bundle.listOf().optionalFieldOf("bundles", List.of()).forGetter(EffectProgram::bundles), profiles.listOf().optionalFieldOf("profiles", List.of()).forGetter(EffectProgram::profiles),
                 ID.optionalFieldOf("defense_profile").forGetter(EffectProgram::defenseProfile), RESOURCE.listOf().optionalFieldOf("resources", List.of()).forGetter(EffectProgram::resources),
                 com.imdomestic.chorus.effect.equipment.EquipmentCodecs.SCHEMA.optionalFieldOf("equipment", com.imdomestic.chorus.effect.equipment.EquipmentSchema.EMPTY).forGetter(EffectProgram::equipment),
                 ability.listOf().optionalFieldOf("abilities", List.of()).forGetter(EffectProgram::abilities),
-                weapon.listOf().optionalFieldOf("weapons", List.of()).forGetter(EffectProgram::weapons)
-        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities", "weapons"));
+                weapon.listOf().optionalFieldOf("weapons", List.of()).forGetter(EffectProgram::weapons),
+                nativeAttribute.listOf().optionalFieldOf("native_attributes", List.of()).forGetter(EffectProgram::nativeAttributes)
+        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities", "weapons", "native_attributes"));
     }
     public static final Codec<EffectProgram> PROGRAM = program(VALUE, CONDITION, ACTION, StatCodecs.PROFILE);
     public static Codec<CompiledEffects> compiled(Codec<EffectProgram> program) {

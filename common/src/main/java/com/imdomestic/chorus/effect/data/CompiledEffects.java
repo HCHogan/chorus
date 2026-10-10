@@ -6,6 +6,7 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.ability.*;
+import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
 import com.imdomestic.chorus.effect.weapon.*;
 import com.imdomestic.chorus.effect.projectile.*;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -51,6 +52,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var buffs = new ArrayList<EffectProgram.Buff>(); var bundles = new ArrayList<EffectProgram.Bundle>();
         var abilities = new ArrayList<AbilityDefinition>();
         var weapons = new ArrayList<WeaponDefinition>();
+        var nativeAttributes = new ArrayList<NativeAttributeBinding>();
         var profiles = new ArrayList<CalculationProfile>(); var resources = new ArrayList<ResourceDefinition>();
         var slots = new ArrayList<EquipmentSchema.Slot>(); var items = new ArrayList<EquipmentSchema.Item>(); var limits = new ArrayList<EquipmentSchema.Limit>();
         Optional<String> defense = Optional.empty(), presentation = Optional.empty();
@@ -63,6 +65,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             buffs.addAll(fragment.buffs()); bundles.addAll(fragment.bundles());
             abilities.addAll(fragment.abilities());
             weapons.addAll(fragment.weapons());
+            nativeAttributes.addAll(fragment.nativeAttributes());
             profiles.addAll(fragment.profiles()); resources.addAll(fragment.resources());
             slots.addAll(fragment.equipment().slots()); items.addAll(fragment.equipment().items()); limits.addAll(fragment.equipment().limits());
             if (fragment.equipment().presentation().isPresent()) {
@@ -70,7 +73,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 presentation = fragment.equipment().presentation();
             }
         }
-        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons));
+        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons, nativeAttributes));
     }
 
     public CompiledEffects(EffectProgram program) {
@@ -82,6 +85,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             if (bundle(id).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipment requires a source-scoped bundle: " + id);
         }, id -> bundle(id).parameters());
         this.profiles = index(program.profiles(), CalculationProfile::id);
+        index(program.nativeAttributes(),NativeAttributeBinding::id);
+        var attributeOperations=new HashSet<String>();
+        for(var binding:program.nativeAttributes()){
+            if(!attributeOperations.add(binding.attribute()+"/"+binding.operation()))throw new IllegalArgumentException("Multiple native projections for one attribute operation");
+            var profile=this.profiles.get(binding.profile());if(profile==null)throw new IllegalArgumentException("Unknown native attribute profile: "+binding.profile());
+            Validation.same(profile.inputUnit(),binding.input().unit());Validation.same(profile.outputUnit(),binding.outputUnit());
+        }
         this.resources = index(program.resources(), ResourceDefinition::id);
         this.abilities = index(program.abilities(), AbilityDefinition::id);
         this.abilitySources = new com.imdomestic.chorus.effect.ability.AbilitySources(abilities, this::validateSource);
@@ -379,6 +389,15 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 .map(id -> validateSelection(slot, id));
     }
     public CompiledEquipment equipment() { return equipment; }
+    /** Isolated, side-effect-free contribution queries. Native base values and other mods are not re-fed into these profiles. */
+    public List<NativeAttributeBinding.Calculated> nativeAttributes(EffectState state,String holder){
+        settled(state);
+        return program.nativeAttributes().stream().sorted(java.util.Comparator.comparing(NativeAttributeBinding::id)).map(binding->{
+            var query=new EffectEvent(holder,holder,new BuffInstance.Origin(holder,binding.id(),"",""),java.util.Set.of("chorus:native_attribute_query"),Map.of(),Map.of(),
+                    Map.of("attribute",binding.attribute(),"binding",binding.id()));
+            return new NativeAttributeBinding.Calculated(binding,calculate(state,holder,query,binding.profile(),binding.input(),List.of()));
+        }).toList();
+    }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
     public Optional<InstantReload.Check> instantReload(EffectState state, String holder, InstantReload.Selection selection,
             InstantReload.Completion completion, String reason, BuffInstance.Origin cause, RuleEngine.OperationId operation) {
