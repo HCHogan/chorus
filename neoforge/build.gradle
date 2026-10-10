@@ -163,6 +163,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/demolitionist.json'
         include 'effects/wellspring.json'
         include 'effects/surplus.json'
+        include 'effects/pipeline_inputs.json'
         include 'effects/surplus_weapon.json'
         include 'effects/wellspring_targets.json'
         include 'effects/demolitionist_weapon.json'

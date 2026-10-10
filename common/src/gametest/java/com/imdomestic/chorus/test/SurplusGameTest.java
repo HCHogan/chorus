@@ -32,9 +32,12 @@ public class SurplusGameTest {
     static EffectState state(ProjectileGameTest.Harness t) { return t.runtime.state().engine().domain(); }
     static String owner(ProjectileGameTest.Harness t) { return t.owner.getUUID().toString(); }
     static void start(ProjectileGameTest.Harness t, boolean wellspring, double grenade, double melee, double clazz) {
+        start(t, wellspring, grenade, melee, clazz, false);
+    }
+    static void start(ProjectileGameTest.Harness t, boolean wellspring, double grenade, double melee, double clazz, boolean secondarySurplus) {
         t.owner.setGameMode(GameType.SURVIVAL); var equipment = PlayerEquipment.get(t.owner);
         for (String id : List.of("a", "b")) {
-            var sockets = new HashMap<String, String>(); sockets.put("perk", id.equals("a") ? "normal" : "none"); if (id.equals("a") && wellspring) sockets.put("energy", "wellspring");
+            var sockets = new HashMap<String, String>(); sockets.put("perk", id.equals("a") || secondarySurplus ? "normal" : "none"); if (id.equals("a") && wellspring) sockets.put("energy", "wellspring");
             var stack = new ItemStack(Items.DIAMOND_SWORD); stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(id, id.equals("a") ? "test:rifle" : "test:shotgun", sockets));
             t.owner.getInventory().setItem(0, stack); equipment.swap(t.owner, id.equals("a") ? "test:primary" : "test:secondary", 0, equipment.revision());
         }

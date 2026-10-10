@@ -65,9 +65,18 @@
       0,
       100
     ],
-    "reload_seconds": "2 - 0.01 * capped_stat",
+    "reload_seconds": {
+      "rifle": "2 - 0.01 * capped_stat",
+      "shotgun": "3 - 0.02 * capped_stat"
+    },
     "confidence": "synthetic_test_archetype_not_a_measured_D2_weapon",
     "timing_policy": "Existing Chorus contract samples duration at acceptance; later changes affect the next request.",
-    "handling_stability": "Numeric outputs only; draw/ADS/recoil presentation and timing are not implemented."
+    "handling_stability": "Numeric outputs only; draw/ADS/recoil presentation and timing are not implemented.",
+    "reload_pipeline": [
+      "chorus_d2:weapon_reload",
+      "test:<archetype>_reload_time",
+      "chorus_d2:reload_animation"
+    ],
+    "synthetic_animation_factor": 0.75
   }
 }

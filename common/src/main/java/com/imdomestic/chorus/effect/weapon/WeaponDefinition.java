@@ -35,9 +35,10 @@ public record WeaponDefinition(String item, Ammunition ammunition, Reload reload
             return new AmmoState(account.weapon(), account.magazine(), account.capacity(), account.reserve(), capacityProfile.map(id -> new AmmoState.CapacityProfile(holder, id)));
         }
     }
-    /** With a profile, value has the profile's input unit; its output must be seconds. */
-    public record Reload(Value value, Optional<String> profile) {
-        public Reload { Objects.requireNonNull(value); Objects.requireNonNull(profile); profile.ifPresent(WeaponDefinition::id); }
+    /** The optional ordered pipeline starts with value's unit and must finish in seconds. */
+    public record Reload(Value value, List<String> profiles) {
+        public Reload { Objects.requireNonNull(value); profiles = List.copyOf(profiles); profiles.forEach(WeaponDefinition::id); }
+        public Reload(Value value, Optional<String> profile) { this(value, profile.stream().toList()); }
     }
     private static void id(String id) {
         if (id == null || !id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid weapon definition id");

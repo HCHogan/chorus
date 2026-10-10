@@ -83,7 +83,7 @@ class WeaponReloadTest {
     @Test void acceptedDurationIsFrozenButCapacityIsResolvedAfterSameBoundaryExpiry() throws Exception {
         var h = new Harness(); h.equip(pair("primary")); h.source(true); var plan = h.reload().plan().orElseThrow();
         assertEquals(100_000, plan.dueAt()); assertEquals(.1, plan.duration().value()); assertEquals(.2, plan.input().value());
-        assertEquals(1, plan.calculation().orElseThrow().inputs().contributions().size()); h.source(false);
+        assertEquals(1, plan.calculation().orElseThrow().steps().getFirst().inputs().contributions().size()); h.source(false);
         h.until(99_999); assertEquals(1, h.ammo("a").magazine()); h.until(100_000); assertEquals(5, h.ammo("a").magazine());
         var other = new Harness(); other.equip(pair("primary")); other.event("test:expand", "a", 0); assertEquals(10, other.program.ammoCapacity(other.state(), "a").capacity());
         other.reload(); other.until(200_000); assertEquals(5, other.ammo("a").magazine()); assertEquals(8, other.ammo("a").reserve().orElseThrow().rounds());

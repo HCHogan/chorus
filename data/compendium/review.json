@@ -3490,7 +3490,7 @@
           "text_sha256": "3c8dbd6005f504936b52ae9d66ec02e53d43b2f4cf55c0fbfd2ec97ba9a255f3"
         }
       ],
-      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度",
+      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度；装填属性、两种原型曲线和动画倍率分段组合并保留全部轨迹",
       "acceptance": [
         "普通稳定性5/15/25、操控5/25/60、装填10/25/60；零档无加值",
         "各槽完整份数相加并封顶3，额外充能独立计数，Super和缺失槽不计入",
@@ -3566,12 +3566,47 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ReloadPipelineTest.java",
+          "symbol": "samePerkProfileFeedsTwoArchetypeCurvesWithoutDuplicatingModifiers"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ReloadPipelineTest.java",
+          "symbol": "animationIsAfterCurveAndAcceptedTraceReplaysWithoutReadingNewState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ReloadPipelineTest.java",
+          "symbol": "legacyProfileAndExplicitPipelineAreEquivalentAndAmbiguousOrBrokenListsFail"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ReloadPipelineTest.java",
+          "symbol": "invalidLastSegmentCannotCreateTimerOrTransferAmmo"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProfilePipelineGameTest.java",
+          "symbol": "twoWeaponsShareSurplusStatsButUseDifferentCurvesAndPhysicalReloads"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProfilePipelineGameTest.java",
+          "symbol": "calculatedPipelineSurvivesSourceRemovalAndAbilityChangeBeforeDelayedHealing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProfilePipelineGameTest.java",
+          "symbol": "animationStageRunsAfterCurveAndAcceptedPlanRetainsAllTraces"
         }
       ],
       "gaps": [
         "强化版只有Stronger Effect描述，没有数值；模板要求显式测量，自动换弹宿主尚不提供，因此强化自动换弹未完成",
         "额外份数和3档上限有历史第一手研究支持，当前全部异域/替换能力/共享池/并行充能仍需校准",
-        "2−0.01×属性的秒数曲线、弹数和射速均为合成测试原型；实际D2各武器曲线未实现",
+        "2−0.01×属性和3−0.02×属性的秒数曲线、0.75动画倍率、弹数和射速均为合成测试原型；实际D2各武器曲线未实现",
         "已接受换弹保持时长是Chorus政策，原作中途技能变化是否重新采样待校准",
         "稳定性/操控目前只有数值结果，后坐力、举枪/开镜、HUD与完整子职业/存档仍未装配"
       ]

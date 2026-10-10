@@ -84,7 +84,10 @@ class SurplusTest {
     @Test void bonusesEnterBeforeStatClampAndReloadArchetypeCurve() throws Exception {
         var h = new Harness(false, 1, 2, 1); var result = h.query("reload", "a", 80, Map.of());
         assertEquals(140, result.trace().stages().get("perks").value()); assertEquals(100, result.trace().stages().get("stat_cap").value());
-        assertEquals(new Measure(1, Unit.SECOND), result.output()); assertEquals(1, result.trace().contributions().stream().filter(c -> c.selected()).count());
+        assertEquals(new Measure(100, Unit.STAT_POINT), result.output()); assertEquals(1, result.trace().contributions().stream().filter(c -> c.selected()).count());
+        var pipeline = h.program.calculatePipeline(h.state(), "player", new EffectEvent("player", "a", new BuffInstance.Origin("player", "a", "a", ""), Set.of(), Map.of()),
+                List.of("chorus_d2:weapon_reload", "test:rifle_reload_time", "chorus_d2:reload_animation"), new Measure(80, Unit.STAT_POINT));
+        assertEquals(new Measure(1, Unit.SECOND), pipeline.output());
         assertEquals(100, h.query("stability", "a", 90, Map.of()).output().value());
     }
     @Test void acceptedReloadKeepsItsDurationAndNextReloadUsesSpentAbilityState() throws Exception {

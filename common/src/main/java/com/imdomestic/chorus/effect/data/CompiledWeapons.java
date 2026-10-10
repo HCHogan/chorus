@@ -35,10 +35,9 @@ final class CompiledWeapons {
                 }
             });
             var input = weapon.reload().value().unit(validation);
-            if (weapon.reload().profile().isPresent()) {
-                var profile = profiles.get(weapon.reload().profile().orElseThrow());
-                if (profile == null) throw new IllegalArgumentException("Unknown reload profile");
-                Validation.same(input, profile.inputUnit()); Validation.same(Unit.SECOND, profile.outputUnit());
+            if (!weapon.reload().profiles().isEmpty()) {
+                var pipeline = CalculationPipeline.resolve(weapon.reload().profiles(), profiles);
+                Validation.same(input, pipeline.inputUnit()); Validation.same(Unit.SECOND, pipeline.outputUnit());
             } else {
                 Validation.same(input, Unit.SECOND);
                 if (weapon.reload().value() instanceof Value.Constant c) WeaponReload.micros(new Measure(c.value(), input));
@@ -82,8 +81,9 @@ final class CompiledWeapons {
         var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(), new RuleEngine.Signal("chorus:internal/reload_query", query));
         var evaluation = program.evaluation(state, new RuleEngine.Context(event, "reload/" + request.token(), new WeaponReload.Scope(query), Map.of()), Map.of());
         var input = definition.reload().value().evaluate(evaluation);
-        var calculation = definition.reload().profile().map(id -> program.calculate(state, request.holder(), query, id, input, List.of()));
-        var duration = calculation.map(CalculationProfile.Result::output).orElse(input);
+        Optional<CalculationPipeline.Result> calculation = definition.reload().profiles().isEmpty() ? Optional.empty()
+                : Optional.of(program.calculatePipeline(state, request.holder(), query, definition.reload().profiles(), input));
+        var duration = calculation.map(CalculationPipeline.Result::output).orElse(input);
         long now = state.buffs().timeMicros(); long due = Math.addExact(now, WeaponReload.micros(duration));
         var plan = new WeaponReload.Plan(request.holder(), request.token(), weapon, origin, now, due, input, duration, calculation);
         var updated = state.withReload(plan).schedule(plan.timer());

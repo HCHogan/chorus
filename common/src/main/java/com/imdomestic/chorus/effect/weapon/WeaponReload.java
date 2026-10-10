@@ -18,14 +18,14 @@ public final class WeaponReload {
         public RuleEngine.Signal signal() { return new RuleEngine.Signal(REQUEST, this); }
     }
     public record Plan(String holder, String token, Loadout.Gear gear, BuffInstance.Origin origin,
-            long startedAt, long dueAt, Measure input, Measure duration, Optional<CalculationProfile.Result> calculation) implements RuleEngine.Payload {
+            long startedAt, long dueAt, Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation) implements RuleEngine.Payload {
         public Plan {
             identity(holder); identity(token); Objects.requireNonNull(gear); Objects.requireNonNull(origin);
             Objects.requireNonNull(input); Objects.requireNonNull(duration); Objects.requireNonNull(calculation);
             if (startedAt < 0 || dueAt != Math.addExact(startedAt, micros(duration)) || dueAt == Long.MAX_VALUE
                     || !origin.owner().equals(holder) || !origin.weapon().equals(gear.instance())) throw new IllegalArgumentException("Invalid accepted reload");
             calculation.ifPresent(result -> {
-                if (!result.inputs().base().equals(input) || !result.output().equals(duration)) throw new IllegalArgumentException("Reload calculation differs from accepted duration");
+                if (!result.input().equals(input) || !result.output().equals(duration)) throw new IllegalArgumentException("Reload calculation differs from accepted duration");
             });
             if (calculation.isEmpty() && !input.equals(duration)) throw new IllegalArgumentException("Unexplained reload duration");
         }

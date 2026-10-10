@@ -459,7 +459,7 @@ Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceSt
 
 [wellspring.json](../common/src/test/resources/effects/wellspring.json) 展示多个观察的组合：先绑定三个槽，再用 available / full 守卫数值读取，capture_value 保存未充能槽数量与分配系数，最后分别 grant_ability_energy。整个分配无需新增专用 Java 动作。一次收益填满某池不会改变本次的分母；溢出、额外充能份额和未选槽政策由 JSON 明确给出，原作校准边界见 [Wellspring](d2-ruleset.md#wellspring)。
 
-[surplus.json](../common/src/test/resources/effects/surplus.json) 展示查询期消费者：按 available 守卫各槽的 full_charges，再以总份数选择属性加值。独立武器 Profile 决定后续限幅与原型曲线，现有 reload.profile 直接消费这条属性管线。强化版缺少原表数值，要求显式的分档测量；完整约定与测试曲线边界见 [Surplus](d2-ruleset.md#surplus)。
+[surplus.json](../common/src/test/resources/effects/surplus.json) 展示查询期消费者：按 available 守卫各槽的 full_charges，再以总份数选择属性加值。独立武器 Profile 决定后续限幅与原型曲线，reload.profiles 将共用属性段、原型曲线和秒数修正串联。强化版缺少原表数值，要求显式的分档测量；完整约定与测试曲线边界见 [Surplus](d2-ruleset.md#surplus)。
 
 ### 按已付成本返还与完整充能
 
@@ -584,11 +584,18 @@ applied > 0 时，按动作分别发布 `chorus:ammo_spent / chorus:ammo_refille
 }]}
 ```
 
-item / ammunition / reload 均必填；capacity_profile、reload.profile 可省略。reserves 必须显式给出 rounds / capacity，或字符串 `unlimited`。所有弹数都是 int；capacity 至少为 1，初始 magazine 可以高于 capacity。定义引用不存在的装备、重复绑定同一原型、Profile 单位错误或未知字段在加载时拒绝。有 weapons 定义的物品必须放在 weapon 槽。
+item / ammunition / reload 均必填；capacity_profile、reload.profiles 可省略。单段写法 reload.profile 继续接受，但不得与 profiles 同时出现；显式空 profiles 拒绝，省略则直接使用秒数。reserves 必须显式给出 rounds / capacity，或字符串 `unlimited`。所有弹数都是 int；capacity 至少为 1，初始 magazine 可以高于 capacity。定义引用不存在的装备、重复绑定同一原型、Profile 单位错误或未知字段在加载时拒绝。有 weapons 定义的物品必须放在 weapon 槽。
 
 装备事务在发布装配 / 来源事实前初始化该实例的账户，只初始化一次。同一次装配的所有账户和来源先同时就绪，再解析有效容量；重复装备保留余额。已有账户的基础容量、容量 Profile 或储备类型 / 容量不兼容时，在转移真实 ItemStack 前拒绝。仍由另一持有者装备的实例不能重复装配；同一运行时内移交已卸下的实例保留弹数。
 
-reload.value 是接受请求时求值的 Value。不使用 Profile 时单位必须为 second；使用 Profile 时 value 匹配其输入单位，输出必须为 second，因此也可采用 `stat_point → 属性限幅 → 原型曲线 → 秒数修饰`。计算采用实际武器持有者和武器实例，保留输入、最终秒数及计算 Trace。最终秒数必须为正且可表示，调度向上取整到微秒；到期时间不能溢出。开始后新获得或失去的换弹速度修饰不改写已接受时长。
+reload.value 是接受请求时求值的 Value。没有 Profile 时单位必须为 second；profiles 为非空有序 ID 列表，value 匹配首段输入，相邻段单位一致，末段必须为 second。profile 的旧单段写法解码成一元素列表；编码统一写 profiles。计算采用实际武器持有者、武器实例与同一接受时状态，各段只收集指向自己 Profile 的修饰。
+
+```json
+{"reload":{"value":{"type":"chorus:constant","value":10,"unit":"stat_point"},
+ "profiles":["chorus_d2:weapon_reload","example:rifle_reload_time","chorus_d2:reload_animation"]}}
+```
+
+例如共用装填属性段执行加值与限幅，原型段把 stat_point 变成 second，最后共用动画段乘秒数倍率。Surplus 只声明一次对属性段的贡献，两把枪可以选择不同的原型段。各段的 base / percent_of 作用域仍属于该段；不会把后一段的 base 误指向整条管线最初输入。输入、最终秒数以及所有分段 CalculationProfile.Result 都保存在 Plan.calculation 的 CalculationPipeline.Result 中，Java 调用者通过 steps 查看分段轨迹。没有 Profile 时 calculation 为空。最终秒数必须为正且可表示，调度向上取整到微秒；到期时间不能溢出。任一段失败都不会保存换弹计划或转移弹药。开始后新获得或失去的换弹速度修饰不改写已接受时长。
 
 普通玩家可执行 `/chorus weapon reload` 和 `/chorus weapon status`。reload 不接受客户端指定的武器实例、弹量或时间；服务端从独立真实容器取当前持握武器，并检查存活、维度、旁观者状态与运行时健康。空手、没有 weapons 定义、正在换弹、当前弹匣已满 / 溢出或有限储备为空时拒绝。BUSY 不重置原计时。status 展示当前持握武器的弹匣 / 有效容量、储备和换弹状态。
 

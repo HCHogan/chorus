@@ -1,0 +1,12 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [{"id":"test:pipeline_healing","version":"compendium-2026-10-05","input_unit":"second","steps":[
+    {"type":"chorus:curve","id":"synthetic_healing","curve":{"type":"chorus:polynomial","coefficients":[0,10],"minimum":0,"maximum":10,"boundary":"error"},"output_unit":"damage"}
+  ]}],
+  "bundles": [{"id":"test:pipeline_inputs","rules":[{"id":"query","on":"test:pipeline_query","do":[
+    {"action":{"type":"chorus:calculate_pipeline","profiles":["chorus_d2:weapon_reload","test:rifle_reload_time","test:pipeline_healing"],"input":{"type":"chorus:constant","value":10,"unit":"stat_point"}},"as":"calculated"},
+    {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+      {"type":"chorus:heal","amount":{"type":"chorus:result","binding":"calculated","field":"value"}}
+    ]}
+  ]}]}]
+}

@@ -104,7 +104,11 @@
           "value": 10,
           "unit": "stat_point"
         },
-        "profile": "chorus_d2:weapon_reload"
+        "profiles": [
+          "chorus_d2:weapon_reload",
+          "test:rifle_reload_time",
+          "chorus_d2:reload_animation"
+        ]
       },
       "fire": {
         "cost": {
@@ -215,7 +219,11 @@
           "value": 10,
           "unit": "stat_point"
         },
-        "profile": "chorus_d2:weapon_reload"
+        "profiles": [
+          "chorus_d2:weapon_reload",
+          "test:shotgun_reload_time",
+          "chorus_d2:reload_animation"
+        ]
       },
       "fire": {
         "cost": {
@@ -381,7 +389,14 @@
           "id": "stat_cap",
           "minimum": 0,
           "maximum": 100
-        },
+        }
+      ]
+    },
+    {
+      "id": "test:rifle_reload_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
         {
           "type": "chorus:curve",
           "id": "synthetic_reload_seconds",
@@ -396,6 +411,45 @@
             "boundary": "error"
           },
           "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "test:shotgun_reload_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_reload_seconds",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              3,
+              -0.02
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:reload_animation",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "animation",
+          "operation": "multiply",
+          "group": {
+            "name": "animation",
+            "reduction": "product"
+          },
+          "factor": "chorus_d2:reload_animation"
         }
       ]
     }
@@ -454,6 +508,30 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "test:fast_animation",
+      "modifiers": [
+        {
+          "id": "animation",
+          "profile": "chorus_d2:reload_animation",
+          "stage": "animation",
+          "group": "animation",
+          "op": "multiply",
+          "stacking_key": "test:fast_animation",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.25,
+            "unit": "delta"
+          },
+          "reference": "Synthetic animation multiplier for pipeline integration, not a calibrated perk",
+          "confidence": "assumed"
         }
       ]
     }
