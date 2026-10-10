@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-10T09:13:46.093809+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "824d95f0ac594de7b7c02c358a5abd0b6e1e30f166005f91c21ed8dfc57b61aa"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/incandescent",
+      "label": "Incandescent",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label_cell": "A125",
+      "image_cell": "B125",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B125",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLaQ05ehYlolOhudTQO8GbdwH0l60FGgqI0k86eplhTWq5xKUR2CQDOZV086_bb2j_UySEYNRkBIRrjOzZJB8qJl00WwP5xyd1w7k51Dlth4qaVda87EPSTQ_QW-j88SbljX1LO-3reP6ii3JHTt8w4IyB6in8J_XTyE=w70-h119",
+      "retrieved_at": "2026-10-10T09:13:47.443904+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/incandescent.png",
+      "texture": "chorus_d2:textures/gui/perks/incandescent.png",
+      "sha256": "28ad7d1d15a35947445624f76ef9f57518d993c4a04a50a60900a7076aedb7df",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

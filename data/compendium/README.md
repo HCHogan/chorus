@@ -31,6 +31,8 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 
 第三批补充 [Rampage](assets/2026-10-10-rampage/manifest.json)，对应原表 A173 名称 / B173 图标，保留 70×70 PNG 原始字节及本批 HTML；C173 文本已与数值快照 C172 对照。累计 10 个图标，选择清单为 [selection-rampage.json](assets/selection-rampage.json)，尚未完成 HUD 绑定。
 
+第四批补充 [Incandescent](assets/2026-10-10-incandescent/manifest.json)，对应原表 A125 / B125，C125 与固定 CSV C124 一致；累计 11 个图标。该词条内容尚未实现，图标不代表玩法覆盖。另保存 Solar / Landing 原始 HTML 与 [颜色解释记录](../d2-research/2026-10-10/incandescent-solar.json)：Scorch 的红色 PvP 衰减参数不能当成蓝色 PvE 的难度参数，固定 CSV 本身无法恢复这个格式区别。
+
 `tools/compendium_assets.py` 读取原表的 `htmlview/sheet?headers=true&gid=…`。导入清单中的名称、名称单元格与图片单元格必须同时匹配；坐标依据网页原始行头和合并单元格还原，不借用 CSV 行号。例如原表 Overflow 图标在 B161，而既有数值快照的描述在 C160。名字移动或图片缺失 / 歧义会终止导入，先校对 `assets/selection.json` 再重试。
 
 下载保留 PNG 原始响应字节、尺寸、SHA-256、抓取时间和图片 URL；来源 HTML 压缩保存在同批目录，可离线复核图片与名称的对应。当前来源是网页预览图：perk 为 70×70、技能为 64×64，没有放大、重绘或假设为最高分辨率。Google 图片 URL 可能失效，运行时使用已打包的本地资源，不请求 Google。
@@ -40,6 +42,7 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10/manifest.json
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-energy-perks/manifest.json
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-rampage/manifest.json
+python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-incandescent/manifest.json
 python3 -m unittest discover -s tools -p 'test_compendium*.py'
 
 # 后续按需扩展 selection，在新的来源目录导入。

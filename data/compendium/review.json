@@ -3798,6 +3798,58 @@
         "原型伤害/弹量/弹道/射速/换弹曲线为合成；100操控只有数值，举枪/ADS表现未装配",
         "自动玩家装配、HUD、存档与跨维度状态迁移未完成"
       ]
+    },
+    {
+      "id": "weapon/incandescent",
+      "name": "Incandescent",
+      "kind": "effect",
+      "archived": false,
+      "status": "unimplemented",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A124",
+          "text_sha256": "26cd59a7b431753e81b31472ae92710ba6f80add4420b5aa3ab7f852d4bac6f9"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C124",
+          "text_sha256": "11162d9024cafb11de94fce8b9e3839bfe98f491c56fb19a15d8278bb9b77586"
+        }
+      ],
+      "scope": "原表范围与普通/强化/Ashes层数已审阅；通用死亡分类观测路径已验，实际词条及共享Solar状态尚未实现",
+      "acceptance": [
+        "同实例武器击杀产生最多30 Solar伤害的范围爆炸并向附近目标施加Scorch",
+        "普通目标4米，精英以上及Guardian为8米；普通/强化和Ashes使用对应层数表",
+        "爆炸与Scorch遵守武器增伤/减益及本词条声明的等级倍率排除",
+        "共享Scorch累计、衰减、周期伤害、100层Ignition、来源继承和后续循环均须验收"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "design",
+          "path": "data/d2-research/2026-10-10/incandescent-solar.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ObservedEntityTagTest.java",
+          "symbol": "classifiedDeathRadiusSurvivesSourceRemovalAndDelayedWorldExecution"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EntityObservationGameTest.java",
+          "symbol": "actualDeathsSelectObservedRadiiAfterTagChangesSourceDetachAndCorpseRemoval"
+        }
+      ],
+      "gaps": [
+        "classified_burst仅为通用路径，1伤害/0.1秒是合成输入，不能代替Incandescent定义与武器消费者",
+        "Scorch、Ignition、实际词条/技能装配、敌人目录和伤害缩放未实现",
+        "Solar原表颜色区分PvE与PvP；2.3秒/.04秒衰减只在PvP红色段落，PvE须按难度校准",
+        "伤害衰减曲线、非致命作用范围、首来源数值取样及特殊来源继承需进一步校准"
+      ]
     }
   ]
 }

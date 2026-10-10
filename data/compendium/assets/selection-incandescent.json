@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "perks/incandescent",
+      "label": "Incandescent",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label_cell": "A125",
+      "image_cell": "B125"
+    }
+  ]
+}
