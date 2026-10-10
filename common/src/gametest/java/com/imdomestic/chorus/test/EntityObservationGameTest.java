@@ -28,6 +28,22 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 
 public class EntityObservationGameTest {
+    @GameCase public void nativeMovementFlagsAreFrozenIndependentlyOfEntityAvailability(GameTestHelper h) {
+        var player=h.makeMockServerPlayerInLevel();
+        try {
+            player.setOnGround(true);player.setSprinting(true);player.setPose(net.minecraft.world.entity.Pose.CROUCHING);player.setSwimming(true);
+            var world=new MinecraftWorldActions(h.getLevel(),_->player,_->h.getLevel().damageSources().generic(),(_,_) -> true,_ -> {});
+            var before=inspect(world,"player").available().observedMovement();
+            h.assertTrue(before.onGround()&&before.sprinting()&&before.crouching()&&before.swimming(),"native movement flags not captured");
+            h.assertTrue(!before.fallFlying()&&!before.passenger()&&!before.sleeping(),"unrelated flags fabricated");
+            player.setOnGround(false);player.setSprinting(false);player.setPose(net.minecraft.world.entity.Pose.STANDING);player.setSwimming(false);
+            var after=inspect(world,"player").available().observedMovement();
+            h.assertTrue(!after.onGround()&&!after.sprinting()&&!after.crouching()&&!after.swimming(),"fresh state not observed");
+            h.assertTrue(before.sprinting()&&before.crouching(),"past movement observation mutated");
+            player.discard();h.assertTrue(inspect(world,"player").view().isEmpty(),"removed entity movement fabricated");
+        } finally {player.discard();}
+        h.succeed();
+    }
     private static final String ELITE = "chorus_gametest:elite";
     private static EntityQuery.Result inspect(MinecraftWorldActions world, String target) {
         return (EntityQuery.Result) world.apply(new RuleEngine.WorldRequest(new RuleEngine.OperationId(1, 0, 0), new EntityQuery(target)));

@@ -91,7 +91,9 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     static EntityQuery.View observeEntity(LivingEntity target) {
         return new EntityQuery.View(target.isAlive(), target instanceof net.minecraft.world.entity.player.Player,
                 target.getHealth(), target.getMaxHealth(), target.getAbsorptionAmount(), target.entityTags(),
-                target.getType().builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(java.util.stream.Collectors.toSet()));
+                target.getType().builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(java.util.stream.Collectors.toSet()),
+                Optional.of(new EntityQuery.Movement(target.onGround(), target.isSprinting(), target.isCrouching(), target.isSwimming(),
+                        target.isFallFlying(), target.isPassenger(), target.isSleeping())));
     }
     private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt launch(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch) {
         var outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.LAUNCHED;

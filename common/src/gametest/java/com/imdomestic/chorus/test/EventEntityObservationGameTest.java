@@ -14,6 +14,17 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.damagesource.DamageSource;
 
 public class EventEntityObservationGameTest {
+    @GameCase public void confirmedNativeDamageKeepsTheAttackersObservedSprintAfterTheyStop(GameTestHelper h)throws Exception{
+        try(var t=harness(h)){
+            var victim=t.cow(2.5,46,3.5);t.owner.setSprinting(true);
+            var receipt=MinecraftDamageExecutor.execute("movement-observation/"+UUID.randomUUID(),victim,h.getLevel().damageSources().playerAttack(t.owner),1,false);
+            t.owner.setSprinting(false);var old=receipt.observedEntities().orElseThrow().require(t.owner.getUUID().toString()).orElseThrow();
+            h.assertTrue(old.observedMovement().sprinting(),"native receipt lost attacker movement evidence");
+            h.assertTrue(!t.owner.isSprinting(),"current native flag should differ from receipt");
+            h.assertTrue(receipt.observedEntities().orElseThrow().require(victim.getUUID().toString()).orElseThrow().movement().isPresent(),"victim movement not captured");
+            h.assertTrue(t.runtime.failure().isEmpty(),"movement observation failed: "+t.runtime.failure());
+        }h.succeed();
+    }
     static ProjectileGameTest.Harness harness(GameTestHelper h)throws Exception{
         var t=new ProjectileGameTest.Harness(h,"event_entities",data->{
             for(String id:List.of("projectile","power"))data.getAsJsonArray("bundles").add(JsonParser.parseString("{\"id\":\"test:"+id+"\"}"));

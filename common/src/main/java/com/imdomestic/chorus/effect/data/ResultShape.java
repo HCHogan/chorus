@@ -121,8 +121,17 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "max_health", new Field(Unit.DAMAGE, result -> entity(result).available().maximumHealth()),
             "absorption", new Field(Unit.DAMAGE, result -> entity(result).available().absorption()),
             "health_fraction", new Field(Unit.MULTIPLIER, result -> entity(result).available().health() / entity(result).available().maximumHealth())),
-            Map.of("available", result -> entity(result).view().isPresent(), "missing", result -> entity(result).view().isEmpty(),
-                    "alive", result -> entity(result).available().alive(), "player", result -> entity(result).available().player()), false, Reference.ENTITY_OBSERVATION);
+            Map.ofEntries(
+                    Map.entry("available", result -> entity(result).view().isPresent()), Map.entry("missing", result -> entity(result).view().isEmpty()),
+                    Map.entry("alive", result -> entity(result).available().alive()), Map.entry("player", result -> entity(result).available().player()),
+                    Map.entry("movement_observed", result -> entity(result).view().flatMap(com.imdomestic.chorus.effect.target.EntityQuery.View::movement).isPresent()),
+                    Map.entry("on_ground", result -> entity(result).available().observedMovement().onGround()),
+                    Map.entry("sprinting", result -> entity(result).available().observedMovement().sprinting()),
+                    Map.entry("crouching", result -> entity(result).available().observedMovement().crouching()),
+                    Map.entry("swimming", result -> entity(result).available().observedMovement().swimming()),
+                    Map.entry("fall_flying", result -> entity(result).available().observedMovement().fallFlying()),
+                    Map.entry("passenger", result -> entity(result).available().observedMovement().passenger()),
+                    Map.entry("sleeping", result -> entity(result).available().observedMovement().sleeping())), false, Reference.ENTITY_OBSERVATION);
     public java.util.Optional<DamageSnapshot> optionalSnapshot(RuleEngine.ActionResult result) {
         requireSnapshot(); return result instanceof DamageSnapshot.Stored stored ? stored.snapshot() : java.util.Optional.of((DamageSnapshot) result);
     }

@@ -5,6 +5,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 public class EntityObservationGameTest extends com.imdomestic.chorus.test.EntityObservationGameTest {
     @GameTest(structure = "chorus_gametest:empty") @Override
+    public void nativeMovementFlagsAreFrozenIndependentlyOfEntityAvailability(GameTestHelper h) { super.nativeMovementFlagsAreFrozenIndependentlyOfEntityAvailability(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
     public void observationsDistinguishPlayersDeadEntitiesMissingRemovedAndForeignDimensions(GameTestHelper h) { super.observationsDistinguishPlayersDeadEntitiesMissingRemovedAndForeignDimensions(h); }
     @GameTest(structure = "chorus_gametest:empty") @Override
     public void dependentHealingUsesObservedDeficitEvenIfWorldChangesBeforeResume(GameTestHelper h) throws Exception { super.dependentHealingUsesObservedDeficitEvenIfWorldChangesBeforeResume(h); }

@@ -1942,6 +1942,24 @@ EntityObservation 的 `positions` 按 `PositionQuery(target, anchor)` 保存不�
 
 位置与实体元数据共同随回执复制及 hit / death / kill、emit、after、派生查询传播。detached 动作可以在尸体和装备来源都不存在后用原位置发起新的范围查询，每次成员仍取当前世界。历史位置只决定坐标，不保证查询或生成成功：已有维度、区块加载、阵营等世界校验继续生效，不会跨维度生成或加载未知区块。没有位置的旧适配器须显式提供证据；新资源 / 拾取等独立事实不会自动借用旧位置。跨重启序列化仍待实现。
 
+## 查询移动状态
+
+`inspect_entity` 和 `read_event_entity` 的 ENTITY 回执新增 `movement_observed` 标记，以及 `on_ground / sprinting / crouching / swimming / fall_flying / passenger / sleeping` 七个布尔字段。新字段沿用 `result_flag`，无需将移动状态伪装成实体标签：
+
+```json
+[
+  {"action":{"type":"chorus:inspect_entity","target":"self"},"as":"state"},
+  {"if":{"type":"chorus:all","of":[
+    {"type":"chorus:result_flag","binding":"state","field":"movement_observed"},
+    {"type":"chorus:result_flag","binding":"state","field":"sprinting"}
+  ]},"then":[{"type":"chorus:play_cue","cue":"example:sprinting"}]}
+]
+```
+
+这里采样的是服务端当前原版实体标志，不证明键盘输入、实际位移、持续冲刺时间、滑铲或 D2 动作资格。`crouching` 对应原版姿态，不等同于按住潜行键；`on_ground` 也不等同于没有垂直速度。资格和持续时间由内容规则另外判断。
+
+Minecraft 宿主在显式查询与伤害回执的实体采样中保存全部七项；`read_event_entity` 读取的仍是回执当时的冻结状态，后续停止冲刺、改变姿态、移除来源或实体不会改写该结果。旧适配器使用原有 View 构造器时，移动信息保持未观察；实体缺失或移动信息未提供时 `movement_observed` 返回 false，直接读取任何一个移动字段都会失败，不虚构“没有冲刺”。实体元数据可用与移动信息可用须分别判断。历史回执、emit、延迟动作和后续计算沿用原有观察传播规则；没有新增客户端输入包、移动事件或属性反馈查询。
+
 ## 原版属性投影
 
 程序根的 `native_attributes` 将纯 Profile 的归约结果投影为当前运行时拥有的原版临时 AttributeModifier。旧程序省略它时没有投影。下面是可独立编译的合成加速示例；绑定 `example:fast` 来源后，当前原版移动速度乘以 1.5，解绑则移除该贡献：
