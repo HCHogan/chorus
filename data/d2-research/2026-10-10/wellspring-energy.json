@@ -1,0 +1,36 @@
+{
+  "retrieved": "2026-10-10",
+  "compendium": {
+    "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278",
+    "sheet": "Weapon Perks",
+    "snapshot_cells": [
+      "A246",
+      "C246"
+    ],
+    "original_html_cells": [
+      "A247",
+      "C247"
+    ],
+    "saved_html": "data/compendium/assets/2026-10-10/sheets/1662574278.html.gz"
+  },
+  "current_basis": {
+    "source_url": "https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/",
+    "legacy_normal": 0.08,
+    "legacy_enhanced": 0.09,
+    "legacy_multiplier": 0.4,
+    "normal_stat_zero": 0.032,
+    "enhanced_stat_zero": 0.036,
+    "confidence": "inferred_from_general_flat_gain_conversion_not_independent_wellspring_measurement"
+  },
+  "allocation_policy": {
+    "snapshot": "All three base slot accounts before any grant. Ignore absent selection and absent cost. Super excluded.",
+    "uncharged": "Available, not full, value < 1; divide q by the number of these slots.",
+    "extra_charge": "Available, not full, value >= 1; q/3 independent of uncharged count.",
+    "scaling": "Apply each recipient gain profile after splitting; discard overflow without redistribution.",
+    "confidence": "explicit_content_interpretation_requires_current_game_calibration",
+    "ambiguity": "Compendium says counts as charged and receives one third of regular energy, but does not resolve mixed-case denominators. This policy can give more than q across accounts before receiver scaling; do not claim a measured conserved total.",
+    "older_primary_test": "https://www.reddit.com/r/DestinyTheGame/comments/jvaolr/",
+    "older_test_scope": "2020 firsthand testing reported no energy beyond first charge. Historical contradiction only, not current numeric authority."
+  },
+  "fixture_scope": "wellspring_targets contains synthetic abilities and .75/.8/.5 receiver scalars. The class scalar is not a Destiny class ability calibration; full subclasses and current stat integration remain partial."
+}

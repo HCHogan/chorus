@@ -136,6 +136,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/pugilist.json'
         include 'effects/pugilist_weapon.json'
         include 'effects/demolitionist.json'
+        include 'effects/wellspring.json'
+        include 'effects/wellspring_targets.json'
         include 'effects/demolitionist_weapon.json'
         include 'effects/arcbolt_energy.json'
         include 'effects/threaded_spike_test_calibration.json'

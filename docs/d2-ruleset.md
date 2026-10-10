@@ -220,6 +220,24 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 [demolitionist_weapon.json](../common/src/test/resources/effects/demolitionist_weapon.json) 用实际玩家容器 / 开火 / 击杀 / 施放入口验证联动，但技能动作体是合成治疗，武器容量与射速也是测试参数；尚未完成真实投掷、Grapple / 消耗手雷等全部资格、武器原型、动画与持久化。原作循环仍允许，3 秒仅限制这条补弹规则，不限制击杀回能或全局事件。
 
+## Wellspring
+
+固定 CSV `Weapon Perks!A246/C246`，对应保存原表 HTML `A247/C247`：普通 / 强化列示 8% / 9%，分配给未充能的技能；多充能技能拥有至少一份后视为已充能，但额外充能仍收到常规能量的三分之一。[当前回能研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/)提供通用旧基准 ×0.4 的转换依据，模板据此采用 0 属性 q=0.032 / 0.036。**Wellspring 的这两个当前基准是推断，尚未逐项实测。** 坐标与政策记录见 [wellspring-energy.json](../data/d2-research/2026-10-10/wellspring-energy.json)。
+
+[wellspring.json](../common/src/test/resources/effects/wellspring.json) 在有效的本武器击杀后，先观察当前基础 grenade / melee / class 三槽，再捕获基础量与分母。未选技能、无 cost、满账户不参与普通分配；Super 不参与。令 n 为有账户、未满且能量小于 1 的槽数，当前内容采用以下规则：
+
+| 观察时的账户 | 缩放前份额 |
+| --- | --- |
+| 小于一份充能、未满 | q/n |
+| 已有至少一份、额外充能未满 | q/3，不计入 n |
+| 已满、无选择或无账户 | 不授予 |
+
+每份分别进入接收技能的 gain_profile，应用其 CES / 当前属性等修饰，再按容量裁剪；溢出不重新分给其他槽。同次击杀的分母来自收益前快照，所以先填满第一个槽不会增加后面两个槽的份额。下一次击杀重新观察。全满 / 全缺失时 n=0，捕获的分配系数为 0，分支不会执行除零或读取缺失账户。
+
+**原表没有消除混合多充能情形的分母歧义。** 当前把“常规能量的三分之一”解释为 q/3，与其他未充能槽的 q/n 独立；例如只有一个空手雷，近战已有一份但第二份未满时，手雷取得 q，近战另取得 q/3。缩放前总和可能超过 q，这是一项待校准的内容政策，不能当成已经测得的原作总量。[2020 年第一手测试](https://www.reddit.com/r/DestinyTheGame/comments/jvaolr/)甚至报告额外充能不回能；它仅保留为历史冲突，不用于覆盖当前表述。当前版本的混合情形、强化比例、溢出再分配、技能切换和共享池仍需原作复核。
+
+8 项纯核心测试覆盖全部单充能组合、普通 / 强化、独立接收 Profile、多充能阈值、固定分母、缺失槽、归属与换技能、后续未知世界结果及编解码。3 项双端共享场景使用真实装备 / 开火 / 投射物击杀，其中一项由服务器 tick 自动确认击杀。接收器 [wellspring_targets.json](../common/src/test/resources/effects/wellspring_targets.json) 是合成技能账户，0.75 / 0.8 / 0.5 只是验证独立缩放的输入，尤其 0.5 不是某个职业技能的 D2 校准。武器复用 Pugilist 测试原型并替换词条；当前完整子职业 / 属性 / UI / 存档装配仍未完成，覆盖为 partial。
+
 ## Cure 恢复与冷却
 
 本地 2026-10-05 Compendium 快照 `Solar!D4` 记录：Cure 每级恢复 60 HP（PvP 为 30），恢复过程为 0.1 秒，激活冷却为 1 秒；冷却期间再次激活不恢复生命。

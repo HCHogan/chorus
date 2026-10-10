@@ -69,7 +69,8 @@
       "com.imdomestic.chorus.ThreadedSpikeGameTest",
       "com.imdomestic.chorus.EnergyGainGameTest",
       "com.imdomestic.chorus.PugilistGameTest",
-      "com.imdomestic.chorus.DemolitionistGameTest"
+      "com.imdomestic.chorus.DemolitionistGameTest",
+      "com.imdomestic.chorus.WellspringGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

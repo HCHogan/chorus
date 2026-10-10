@@ -3368,6 +3368,109 @@
         "测试施放动作体为合成治疗，Arcbolt的151.5秒/0.75与属性曲线只装配资源侧，尚未连成完整投掷/落地技能",
         "全部武器原型、弹药存档、换弹动画/HUD及动态技能共享池仍未完成"
       ]
+    },
+    {
+      "id": "weapon/wellspring",
+      "name": "Wellspring",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A246",
+          "text_sha256": "69f367300690bcc6f041511f44458477c0f79c9594a66afb9854db184a486153"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C246",
+          "text_sha256": "0973d10be871e7408bd6cbcb6b0972587cb218d096fa9fad112ab264d7720ef4"
+        }
+      ],
+      "scope": "武器击杀后先观察三槽能量、按未充能数分配普通/强化收益、各接收Profile独立缩放；覆盖多充能分支、溢出、空槽、换技能和真实装备/投射物/服务器tick",
+      "acceptance": [
+        "普通/强化旧8/9%按通用0.4转换为0属性3.2/3.6%，明确标为推断",
+        "收益前观察三个基础技能槽，一份阈值和满池资格由内容处理，Super不参与",
+        "先填满第一个池不改变后续份额；溢出不再分配，缺失选择/无成本有明确分支",
+        "多充能已有一份后不计入未充能分母，按q/3独立授予，为待校准政策",
+        "武器与持有者信用隔离、当前选择、未知世界结果保留和实际服务端击杀",
+        "完成当前原作多充能混合分母、基础值和完整子职业/属性的校准"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/wellspring.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/wellspring_targets.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "allSingleChargeCombinationsSplitBeforeIndependentReceiverScaling"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "fillingFirstRecipientDoesNotChangeLaterSharesOrRedistributeOverflow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "multipleChargesUseExplicitOneChargeBoundaryAndFixedThirdPolicy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "missingSlotsAndNoCostAreExcludedWithoutReadingAbsentNumbers"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "weaponCreditAndTwoEquippedCopiesCannotDuplicateEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "selectionChangesUseTheNewPoolWithoutMovingOldEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "laterUnknownWorldOutcomeKeepsAllThreeConfirmedGrants"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WellspringTest.java",
+          "symbol": "contentRoundTripsAndObservationFieldUnitsAreChecked"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WellspringGameTest.java",
+          "symbol": "actualWeaponKillsSplitNormalAndEnhancedEnergyAcrossThreeRecipients"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WellspringGameTest.java",
+          "symbol": "serverProjectileTickKeepsTheOriginalDenominatorWhenFirstPoolFills"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WellspringGameTest.java",
+          "symbol": "extraChargePolicyAndInFlightSelectionUseCurrentBaseAccounts"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "当前0属性3.2/3.6%由通用换算推断，尚无独立Wellspring实测",
+        "原表未明确混合多充能分母，当前额外份额q/3与其余q/n独立，缩放前总和可能超过q；不是已证实的原作守恒总量",
+        "不再分配溢出、空槽排除、击杀执行时选择和来源卸下后资格为当前内容政策，待原作校准",
+        "测试接收技能与.75/.8/.5 Profile为合成账户，职业技能.5不是D2校准；完整子职业、当前属性、共享池/并行充能、HUD和存档仍未装配"
+      ]
     }
   ]
 }

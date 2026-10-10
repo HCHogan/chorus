@@ -1,0 +1,218 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:grenade_energy",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:grenade_gain"
+    },
+    {
+      "id": "test:melee_energy",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:melee_gain"
+    },
+    {
+      "id": "test:melee_double_energy",
+      "capacity": 2,
+      "initial": 0,
+      "gain_profile": "test:melee_gain"
+    },
+    {
+      "id": "test:class_energy",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:class_gain"
+    },
+    {
+      "id": "test:super_energy",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:class_gain"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:grenade_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_receiver",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.75
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    },
+    {
+      "id": "test:melee_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_receiver",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.8
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    },
+    {
+      "id": "test:class_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_receiver",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.5
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "test:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:melee",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:melee_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:melee_double",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:melee_double_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:class",
+      "slot": "chorus_d2:class",
+      "cost": {
+        "resource": "test:class_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:no_energy",
+      "slot": "chorus_d2:class",
+      "on_use": []
+    },
+    {
+      "id": "test:super",
+      "slot": "chorus_d2:super",
+      "cost": {
+        "resource": "test:super_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:wellspring_input",
+      "rules": [
+        {
+          "id": "fill",
+          "on": "test:fill",
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:grenade",
+              "value_basis": "fixed",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "grenade",
+                "unit": "charge_fraction"
+              }
+            },
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "value_basis": "fixed",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "melee",
+                "unit": "charge_fraction"
+              }
+            },
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:class",
+              "value_basis": "fixed",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "class",
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

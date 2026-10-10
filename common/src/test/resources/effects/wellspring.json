@@ -1,0 +1,454 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:wellspring",
+      "rules": [
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ability_energy",
+                "slot": "chorus_d2:grenade"
+              },
+              "as": "grenade"
+            },
+            {
+              "action": {
+                "type": "chorus:observe_ability_energy",
+                "slot": "chorus_d2:melee"
+              },
+              "as": "melee"
+            },
+            {
+              "action": {
+                "type": "chorus:observe_ability_energy",
+                "slot": "chorus_d2:class"
+              },
+              "as": "class"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:enhanced",
+                  "base": {
+                    "type": "chorus:constant",
+                    "value": 0.032,
+                    "unit": "charge_fraction"
+                  },
+                  "enhanced": {
+                    "type": "chorus:constant",
+                    "value": 0.036,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "as": "base"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "grenade",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "grenade",
+                              "field": "full"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "op": "lt",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "grenade",
+                              "field": "value"
+                            },
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "charge_fraction"
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    },
+                    {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "melee",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "melee",
+                              "field": "full"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "op": "lt",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "melee",
+                              "field": "value"
+                            },
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "charge_fraction"
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    },
+                    {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "class",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "class",
+                              "field": "full"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "op": "lt",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "class",
+                              "field": "value"
+                            },
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "charge_fraction"
+                            }
+                          }
+                        ]
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    }
+                  ]
+                }
+              },
+              "as": "uncharged_count"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:result",
+                    "binding": "uncharged_count",
+                    "field": "value"
+                  },
+                  "from": "count",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:table",
+                    "points": [
+                      {
+                        "input": 0,
+                        "output": 0
+                      },
+                      {
+                        "input": 1,
+                        "output": 1
+                      },
+                      {
+                        "input": 2,
+                        "output": 0.5
+                      },
+                      {
+                        "input": 3,
+                        "output": 0.3333333333333333
+                      }
+                    ],
+                    "interpolation": "linear",
+                    "boundary": "error"
+                  }
+                }
+              },
+              "as": "uncharged_share"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "grenade",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:result_flag",
+                      "binding": "grenade",
+                      "field": "full"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_ability_energy",
+                  "slot": "chorus_d2:grenade",
+                  "value_basis": "base",
+                  "amount": {
+                    "type": "chorus:arithmetic",
+                    "op": "mul",
+                    "of": [
+                      {
+                        "type": "chorus:result",
+                        "binding": "base",
+                        "field": "value"
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:compare",
+                          "op": "lt",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "grenade",
+                            "field": "value"
+                          },
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "charge_fraction"
+                          }
+                        },
+                        "then": {
+                          "type": "chorus:result",
+                          "binding": "uncharged_share",
+                          "field": "value"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0.3333333333333333,
+                          "unit": "multiplier"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "melee",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:result_flag",
+                      "binding": "melee",
+                      "field": "full"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_ability_energy",
+                  "slot": "chorus_d2:melee",
+                  "value_basis": "base",
+                  "amount": {
+                    "type": "chorus:arithmetic",
+                    "op": "mul",
+                    "of": [
+                      {
+                        "type": "chorus:result",
+                        "binding": "base",
+                        "field": "value"
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:compare",
+                          "op": "lt",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "melee",
+                            "field": "value"
+                          },
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "charge_fraction"
+                          }
+                        },
+                        "then": {
+                          "type": "chorus:result",
+                          "binding": "uncharged_share",
+                          "field": "value"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0.3333333333333333,
+                          "unit": "multiplier"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "class",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:result_flag",
+                      "binding": "class",
+                      "field": "full"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_ability_energy",
+                  "slot": "chorus_d2:class",
+                  "value_basis": "base",
+                  "amount": {
+                    "type": "chorus:arithmetic",
+                    "op": "mul",
+                    "of": [
+                      {
+                        "type": "chorus:result",
+                        "binding": "base",
+                        "field": "value"
+                      },
+                      {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:compare",
+                          "op": "lt",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "class",
+                            "field": "value"
+                          },
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "charge_fraction"
+                          }
+                        },
+                        "then": {
+                          "type": "chorus:result",
+                          "binding": "uncharged_share",
+                          "field": "value"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 0.3333333333333333,
+                          "unit": "multiplier"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
