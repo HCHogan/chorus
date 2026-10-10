@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-10T08:39:43.795635+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "6dfcf8c6783db1668e59bf8ae873455f59e999af8586c25e69b0f930737210a9"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/rampage",
+      "label": "Rampage",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label_cell": "A173",
+      "image_cell": "B173",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B173",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLbpayvNoO4DE-qwQYb6xWoQVIgyg0x87t-FxmKOt4kO9XfD0U9gAcMjIhXjixTFJ5nXDzV4u-K0swqGBkfHRGTbGHwl0kBuvSxCvghfIMZNr1RGRKj9MyVd5enL5HuPt3XCcklkBBfjQK6unOJo1GAFyU25NcxQ6D7Y=w70-h89",
+      "retrieved_at": "2026-10-10T08:39:44.958649+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/rampage.png",
+      "texture": "chorus_d2:textures/gui/perks/rampage.png",
+      "sha256": "0e1b04ad908cf07fb02724f85916d55cae4c816adc170aaabe0d5a377e89fba1",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

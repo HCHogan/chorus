@@ -29,6 +29,8 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 
 第二批补充 [Demolitionist、Pugilist、Wellspring](assets/2026-10-10-energy-perks/manifest.json)，对应原表图像 B63 / B170 / B247，均保留 70×70 PNG 原始字节与新抓取的 HTML。累计 9 个图标已打包；这批来源独立保存，不覆盖首批来源或数值快照。选择清单为 [selection-energy-perks.json](assets/selection-energy-perks.json)。
 
+第三批补充 [Rampage](assets/2026-10-10-rampage/manifest.json)，对应原表 A173 名称 / B173 图标，保留 70×70 PNG 原始字节及本批 HTML；C173 文本已与数值快照 C172 对照。累计 10 个图标，选择清单为 [selection-rampage.json](assets/selection-rampage.json)，尚未完成 HUD 绑定。
+
 `tools/compendium_assets.py` 读取原表的 `htmlview/sheet?headers=true&gid=…`。导入清单中的名称、名称单元格与图片单元格必须同时匹配；坐标依据网页原始行头和合并单元格还原，不借用 CSV 行号。例如原表 Overflow 图标在 B161，而既有数值快照的描述在 C160。名字移动或图片缺失 / 歧义会终止导入，先校对 `assets/selection.json` 再重试。
 
 下载保留 PNG 原始响应字节、尺寸、SHA-256、抓取时间和图片 URL；来源 HTML 压缩保存在同批目录，可离线复核图片与名称的对应。当前来源是网页预览图：perk 为 70×70、技能为 64×64，没有放大、重绘或假设为最高分辨率。Google 图片 URL 可能失效，运行时使用已打包的本地资源，不请求 Google。
@@ -37,6 +39,7 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 # 离线校验已导入的图标及来源，不访问网络。
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10/manifest.json
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-energy-perks/manifest.json
+python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-rampage/manifest.json
 python3 -m unittest discover -s tools -p 'test_compendium*.py'
 
 # 后续按需扩展 selection，在新的来源目录导入。
