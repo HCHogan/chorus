@@ -493,6 +493,10 @@ lower / upper 是同单位 Value；结果提供同单位的 value / lower / uppe
 
 同一维度运行时使用一个有序随机流；不同来源的实际抽样顺序会影响后续结果。EffectPrograms 安装生产运行时时由服务端生成新种子；纯核心 EffectState.empty() 固定 seed=0，测试 / 回放可显式提供状态。暂停、Buff / 资源更新、切枪、重新装备和 tick 推进都保留随机源。未知世界结果保留已提交游标与当前绑定，不自动重抽或退款。跨运行时保存、独立命名随机流、加权离散分布和坏运气保护尚未提供；坏运气计数也不能由通用 RNG 自动推断。
 
+随机动作的首个内容用例是 [clown_cartridge.json](../common/src/test/resources/effects/clown_cartridge.json)：合格换弹后抽取普通 / 强化增幅，再按该次完成事实的 capacity 计算上取整后的 refill.ceiling。sample_random 与 refill 是不同动作，先提交抽样游标，再提交实际储备转移；后续世界结果未知不重做任一步。实际容器夹具与分布假设见 [Clown Cartridge 规则集](d2-ruleset.md#clown-cartridge-的随机溢出与验收边界)。
+
+DSL arithmetic 的 add / mul 对有限操作数采用 BigDecimal.valueOf 的规范十进制运算，当前表达式节点最终仍返回 double；min / max 保持同单位比较。显式 round 再按声明的 floor / ceiling / half_up 取整，避免二进制乘法残差让 `100 × 1.1` 被 ceil 成 111；不会用 epsilon 把真正的非整数当成整数。Profile 阶段、曲线与已捕获测量的各自精度契约保持原有定义。
+
 ### 服务端单次开火
 
 weapons 中可选的 fire 为当前物品原型声明一次触发。缺省时拒绝开火；不会回退到原版近战或偷偷生成弹药。完整示例见 [weapon_fire.json](../common/src/test/resources/effects/weapon_fire.json)，与 kill_clip.json 链接；其中弹量、0.15 秒射击间隔、0.2 秒换弹与 10 点基础伤害都是机制测试参数。

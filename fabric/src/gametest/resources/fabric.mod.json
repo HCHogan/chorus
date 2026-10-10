@@ -19,6 +19,7 @@
       "com.imdomestic.chorus.AmmoCapacityGameTest",
       "com.imdomestic.chorus.WeaponReloadGameTest",
       "com.imdomestic.chorus.WeaponFireGameTest",
+      "com.imdomestic.chorus.ClownCartridgeGameTest",
       "com.imdomestic.chorus.AdrenalineJunkieGameTest",
       "com.imdomestic.chorus.TargetIterationGameTest",
       "com.imdomestic.chorus.TargetSelectionGameTest",

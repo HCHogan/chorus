@@ -39,9 +39,25 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 | Overflow，C160 | 拾取特殊 / 重型弹药砖后 refill，临时 ceiling 为基础容量的 2 / 强化 2.2 倍；收枪可触发 | 拾取资格 / 储备增加与 refill 的顺序、真实物品和词条装配 |
 | Reconstruction，C178 | 停火 6 / 强化 5.5 秒后按相同周期 refill 基础容量的 25%，最多溢出到 2 倍；收枪保留 | 首次时点、停火重置、25% 发数取整须明确；不能把合成的 1 秒定时测试当成该词条 |
 | Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | 每发 / 每 bolt 计数与射空资格；适应爆发线融为 14%；补弹后计数屏蔽 `1?` 秒仍是未知 |
-| Clown Cartridge，C47 | 合格换弹后增加 10% / 强化 13% 至 50% 的容量并上取整 | 可记录的随机抽样、完整随机分布、换弹后的转移顺序与真实装配；不能用均值代替随机效果 |
+| Clown Cartridge，C47 | 合格换弹后一次随机取值，以有效基础容量计算溢出上限并上取整，从储备 refill | partial：独立 JSON / 实际装备与换弹 / 随机回执已验；分布与组合顺序仍待校准 |
 
-这六项仍是需求审阅，状态为 unimplemented：通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表已提供这些 perk 的可执行内容定义。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体顺序仍需验收；来源有问号的参数保留未知。
+除下文 Clown Cartridge 已推进到 partial，其他五项仍是需求审阅，状态为 unimplemented：通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表已提供这些 perk 的可执行内容定义。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体顺序仍需验收；来源有问号的参数保留未知。
+
+### Clown Cartridge 的随机溢出与验收边界
+
+固定快照 Weapon Perks A47 / C47 / C250 提供触发、普通 / 强化范围、上取整及 Reload / Refill 术语；2026-10-10 再次读取 [在线原表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278)，对应 A48 / C48 的描述相同。原表坐标与固定 CSV 坐标分开记录，不改写既有快照。
+
+[clown_cartridge.json](../common/src/test/resources/effects/clown_cartridge.json) 监听同持有者的本武器 reload_finished，执行一次 sample_random，再以 `ceil(该次换弹有效容量 × (1 + 随机增幅))` 为本次 refill.ceiling。额外子弹继续从有限储备转移，不生成弹药，不再次发布 reload_finished；基础容量保持不变，已装入的溢出弹数在收枪或容量 Buff 到期后保留。普通范围 0.10～0.50，强化下界 0.13，由装备来源 enhanced 标签选择。
+
+当前分布明确采用 uniform_real 的 `[lower, upper)`，这是**内容假设**：原文给出范围和均值，没有证明连续 / 整数百分比、步长或权重，不能以 30% / 31.5% 的均值代替抽样，也不能把现有均匀模型视为完成校准。固定种子仅用于测试和复算；生产运行时生成服务端种子。
+
+先完成基础换弹，再使用完成事实中的 capacity 快照计算溢出；若剩余储备不足，只装入实际剩余发数，储备已经耗尽仍记录该次抽样但不产生额外 refill 事实。拒绝或取消的换弹、普通 refill 不抽样。允许下一次合格换弹重新抽样；当前手动宿主要求弹匣低于有效基础容量才开始换弹，因此满弹或已有超额弹药不会靠重复输入重抽。
+
+8 项纯核心测试覆盖持有者移交后的旧事实拒绝、普通 / 强化下界、动态容量、再次抽样、两实例、有限 / 无限储备、补弹与取消隔离、未知结果保留；3 项共享游戏测试把真实物品的词条选择、普通玩家换弹命令和真实 tick 接起来，检查最终弹数 / 储备以及以实际转移量驱动的世界治疗。另修正 DSL arithmetic 的规范十进制加乘后再输出 double，使 `ceil(100 × 1.1)` 为 110，`ceil(50 × 0.28)` 为 14；真正高于整数的量仍向上取整，不使用容差吞掉分数。
+
+覆盖为 partial。除随机分布外，上述基础换弹 / 溢出阶段、容量快照、基础容量不变及多种 on-reload 效果的顺序仍需原作交互验收。技能换弹、完整 D2 原型、弹药存档与 HUD 尚未完成；clown_weapon.json 的 5 发初始容量与 0.2 秒换弹为合成夹具。
+
+### 动态基础容量与溢出
 
 还要区分临时溢出上限与**改变基础容量**。C364 Fail-Deadly、C409 Timelost Magazine 明确指出基础容量变化还影响其他按弹匣计算的效果，并能与 Overflow 叠加。现有 capacity_profile 已从固定输入、当前来源和 Buff 求有效基础容量，默认补弹 / 生成上限及按容量百分比统一读取它；refill.ceiling 另表达这一次的溢出上限。加成结束后不需要把容量改回旧值，也不删除已装弹数。具体 DSL 见 [动态基础容量](engine-data-packs.md#动态基础容量与数值快照)。
 

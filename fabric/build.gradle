@@ -77,6 +77,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/ammo_capacity.json'
         include 'effects/weapon_fire.json'
         include 'effects/weapons.json'
+        include 'effects/clown_cartridge.json'
+        include 'effects/clown_weapon.json'
         include 'effects/kill_clip.json'
         include 'effects/adrenaline_junkie.json'
         include 'effects/target_iteration.json'

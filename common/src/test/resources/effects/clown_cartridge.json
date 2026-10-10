@@ -1,0 +1,88 @@
+{
+  "version": "test-1",
+  "bundles": [
+    {
+      "id": "chorus_d2:clown_cartridge",
+      "rules": [
+        {
+          "id": "reload_overflow",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:sample_random",
+                "distribution": "uniform_real",
+                "lower": {
+                  "type": "chorus:enhanced",
+                  "base": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "enhanced": {
+                    "type": "chorus:constant",
+                    "value": 0.13,
+                    "unit": "multiplier"
+                  }
+                },
+                "upper": {
+                  "type": "chorus:constant",
+                  "value": 0.5,
+                  "unit": "multiplier"
+                }
+              },
+              "as": "roll"
+            },
+            {
+              "type": "chorus:refill_magazine",
+              "ceiling": {
+                "type": "chorus:round",
+                "mode": "ceiling",
+                "input": {
+                  "type": "chorus:arithmetic",
+                  "op": "mul",
+                  "of": [
+                    {
+                      "type": "chorus:event_number",
+                      "name": "capacity",
+                      "unit": "round"
+                    },
+                    {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "multiplier"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "roll",
+                          "field": "value"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

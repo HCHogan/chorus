@@ -132,16 +132,18 @@ public interface Value {
             return output;
         }
         @Override public Measure evaluate(Evaluation e) {
-            Measure first = operands.getFirst().evaluate(e); double result = first.value();
+            Measure first = operands.getFirst().evaluate(e); var result = java.math.BigDecimal.valueOf(first.value());
             for (int i = 1; i < operands.size(); i++) {
                 Measure next = operands.get(i).evaluate(e);
                 Validation.same(next.unit(), operation == Operator.MUL ? Unit.MULTIPLIER : first.unit());
+                var operand = java.math.BigDecimal.valueOf(next.value());
                 result = switch (operation) {
-                    case ADD -> result + next.value(); case MIN -> Math.min(result, next.value());
-                    case MAX -> Math.max(result, next.value()); case MUL -> result * next.value();
+                    case ADD -> result.add(operand); case MIN -> result.min(operand);
+                    case MAX -> result.max(operand); case MUL -> result.multiply(operand);
                 };
             }
-            return new Measure(result, first.unit());
+            // Canonical decimal operands avoid a binary residue becoming an extra round under ceil.
+            return new Measure(result.doubleValue(), first.unit());
         }
     }
     /** Explicit conversion, such as charge_fraction per credited stack. No implicit unit coercion. */
