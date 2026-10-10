@@ -253,7 +253,7 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 Woven Mail 的刷新依据为 Bungie [Ash & Iron 数值预览](https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron)（2025-09-03），其中明确比较当前剩余时间和新来源时长；[9.1.0 正式补丁](https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0)（2025-09-09）确认修复刷新回原始时长的问题。这条规则补充固定快照，不改写 CSV 来源摘要。例如旧效果余 8 秒时授予 2 秒仍余 8 秒，余 1 秒时授予 2 秒变为 2 秒；不会恢复历史曾有的 10 秒，也不会相加到 3 秒。短来源到期后仍承受实际减伤已有双端世界回归。
 
-Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%；当前 Slice 已按下节查询施加者配装，支持 D8 的 10+5 / 5+2.5 秒。完整子职业装配和全部来源特例尚未完成。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 按击杀授予 Woven Mail 的收益规则也尚未接到该共享定义，不能由这里推断完整技能已经支持。
+Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%；当前 Slice 已按下节查询施加者配装，支持 D8 的 10+5 / 5+2.5 秒。完整子职业装配和全部来源特例尚未完成。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 模板现已按击杀授予同一 Woven Mail；物理及持续时间校准仍未完成。
 
 ## Continuity 与来源指定的状态延长
 
@@ -583,6 +583,21 @@ transcendence（20 秒）
 墙面反弹、直线穿透、每目标命中上限与逐接触计数已接入通用 DSL。需求参考快照 `Weapon Perks!C20/C188`（穿甲弹一次穿透、Ricochet Rounds 反弹）、`Exotic Weapons!D27/D83`（Khvostov 同目标两次、Hard Light 墙面反弹）、`Void!D57`、`Stasis!D38`、`Strand!D38`（技能弹跳 / 追踪 / 回能）。通用限速追踪与接触后目标间转向也已接入；这些内容仍依赖各自数值、资格、计数语义及技能装配，合成夹具不将它们标为已实现。
 
 
-Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38），状态均为 unimplemented：尚无完整内容数据定义。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
+Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。前两者仍为 unimplemented；Threaded Spike 已有下节的 partial 模板。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
 
-Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。通用 destination 已能从命中点返回移动中的施放者或固定的其他实体，ARRIVED 与普通伤害命中分开；通用 catch 已提供独立按键、接收者验证、半径 / 时间 / 视线窗口与 CAUGHT 分支；Threaded Spike 的实际返回时机、近战键映射和窗口校准、按命中次数返还资源、按击杀授予 Woven Mail，以及具体技能装配仍需实现；普通成本回执不能直接跨物理飞行帧引用，现可用 retain_cost 把剩余额度转交到有限期共享账本。该通用机制已通过真实技能 / 飞行 / 延迟验收，返回合成夹具也已串起真实去程伤害、回程及抵达后退款 / 治疗，新增 damage_tally 已串起三目标真实连锁、累计命中 / 击杀到返回或接回的不同收益，前两击击杀在最后一击非致死后仍保留；该统计可支持技能装配，但没有装配 Threaded Spike 的九目标连锁和原作命中档位；原表的 Melee % 不自动等同于实际成本百分比，固定充能比例仍应使用 grant_resource。完整验收要求和明确缺口保存在 `data/compendium/review.json`。
+Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_resource 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
+
+## Threaded Spike 技能模板
+
+[threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 与 strand_defense.json、continuity.json 同版本链接。依据固定 CSV Strand D38 / N38，声明 427 / PvP 82 基础伤害、最多九个不同敌人、首次弹跳乘 0.82、之后每次乘 0.575，以及 145.2 秒基础冷却。已发生的墙面反弹也计入衰减：当前实体命中的前序弹跳数为 `bounces + entity_contacts - 1`；这是需要原作校准的计数政策，不能将命中回能的 hits 数直接当作弹跳数。
+
+| 确认命中数 | 0 | 1 | 2 | 3 | 4 | 5+ |
+| --- | --- | --- | --- | --- | --- | --- |
+| 自动返回 | 5% | 10% | 20% | 30% | 35% | 40% |
+| 主动接回 | 20% | 30% | 50% | 70% | 85% | 100% |
+
+两种收益均按完整一格近战充能授予，另有持续基础恢复。接回时若持有者当前绑定带 `chorus_d2:strand_subclass` 标签的来源，每次确认击杀给予 2 秒 Woven Mail，最多 10 秒；零击杀不授予。它复用共享 max_remaining 定义，短奖励不会缩短已有长状态。只检查攻击的 Strand 标签会错误地把 Prismatic 的缚丝攻击算成缚丝子职业。[Bungie 9.7.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0) 在 Threadrunner 的 Rope Dart 条目中确认“接回按击杀授予 Woven Mail”；具体 2 秒 / 10 秒和回能数字来自固定 Compendium，不从该补丁推算。
+
+未知参数没有默认 D2 值。模板的 `calibration.*` 测量包括追踪半径、速度 / 转向 / 寿命、墙面预算、接回窗口与 Sever 基础 / Continuity 扩展时间；缺少测量会在参数求值阶段、扣费前失败。宿主应先装配经过验证的参数定义。独立的 threaded_spike_test_calibration.json 只供测试，0.4+0.2 秒 Sever、15 米追踪等值不是原作测量。数值查询后显式四舍五入到整数微秒，随后 apply_status；没有削弱引擎的精确微秒契约。
+
+当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。0.8 chunk scalar 尚未装配到外部能量生产者，不能擅自乘到本技能自己的回能表。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。

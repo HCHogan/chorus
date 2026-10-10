@@ -266,9 +266,10 @@ effective > 0 时产生 `chorus:shield_restored`，携带恢复来源、受益�
 | has_buff 的 match:bound | 默认行为，按当前来源和 Buff 的实例键匹配 |
 | has_buff 的 match:any | 此目标任意来源中，至少一个该定义的实例单独达到 minimum；不跨实例相加 |
 | has_buff_tag | 此目标至少一个现存 Buff 的定义含 tag；不限施加来源 |
+| has_source_tag | 此目标当前绑定的至少一个 EffectSource 的 tags 或 origin.tags 含 tag；不读取动作保留的旧来源或触发事件标签 |
 | has_shield | 此目标至少一层活动、未暂停的 Chorus 护盾余量大于零；可用 tag 筛选层的定义标签 |
 
-它们均接受 target（默认 self），只读取已提交的引擎状态。has_buff / has_buff_tag 保留原有 Buff 存在性语义，暂停实例仍可被查询；has_shield 判断实际参与防御的正容量层，不把空层或原版 Absorption 算进去。标签取自 Buff 定义，不读取来源标签或事件标签。用于 on_use 修饰时，来源侧判断会冻结，victim 判断留到命中时求值。
+它们均接受 target（默认 self），只读取已提交的引擎状态。has_buff / has_buff_tag 保留原有 Buff 存在性语义，暂停实例仍可被查询；has_shield 判断实际参与防御的正容量层，不把空层或原版 Absorption 算进去。Buff / shield 标签取自定义；has_source_tag 则明确查询持有者当前来源，用于子职业等装备资格，不把 Strand 攻击标签当成 Strand 子职业。用于 on_use 修饰时，来源侧判断会冻结，victim 判断留到命中时求值；普通动作分支直接查询当时状态。
 
 Rift 内容将这两个概念分开：presence 带 `chorus:counts_as_overshield` 供交互资格使用，即使尚未生成容量；共享 rift_overshield 才保存能挡伤害的实际池。每位成员的多个 Rift 共用一个池和补充计时器：每 50 ms 观测存活且满血、没有带 `chorus_d2:void_overshield` 标签的正容量层后，补充 0.015，封顶 1.5（原表 3 HP/s、15 HP，测试缩放 0.1）。离开一个场保留其他场；最后一个场清理时移除该池，重新进入从零开始。正常观测失败、死亡、受伤或 Void 盾阻止生成时不累计补偿。
 
@@ -838,7 +839,7 @@ read_position 在自身 ended 规则中读取旧 generation 的最终快照；�
 }
 ```
 
-这里 3 米内保持全量，3–7 米线性下降至零。table 也可选 exact（只接受列出的点）或 floor（取前一档）；polynomial 用从常数项起的 coefficients、minimum / maximum 定义域。boundary = error 拒绝超出定义域，clamp 使用最近端点；所有结果仍须满足 damage、radius 等消费方约束，不自动把非法负伤害改成零。
+这里 3 米内保持全量，3–7 米线性下降至零。table 也可选 exact（只接受列出的点）或 floor（取前一档）；polynomial 用从常数项起的 coefficients、minimum / maximum 定义域。exponential 使用正数 base，计算 base^input，同样要求 minimum / maximum 与 boundary。指数曲线可表达连续弹跳衰减，避免有限表格在末项停止衰减；溢出拒绝，浮点下溢到 0 允许。boundary = error 拒绝超出定义域，clamp 使用最近端点；所有结果仍须满足 damage、radius 等消费方约束，不自动把非法负伤害改成零。
 
 完整 [radial_falloff.json](../common/src/test/resources/effects/radial_falloff.json) 展示从事件读取目标上限、排除施加者、以事件受害者为中心、按距离决定伤害。双加载器测试验证目标在查询后移动时仍使用捕获距离。演示的基础伤害和线性曲线是合成机制验证，不代表任何具体 Compendium perk 的全部数值已校准。
 
@@ -1460,7 +1461,7 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 统计不授予退款权限，不自动返还资源或触发效果。固定充能收益使用 grant_resource；实际成本返还仍需成本回执 / retain_cost。世界结果未知时，未取得回执的动作不会被推测记入统计；已关闭统计、已授予资源及已发生的世界动作保持提交，不重放。
 
-可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计，不是 Threaded Spike 的完整九目标定义、命中档位或 Woven Mail 装配。句柄尚不支持从任意事件 / Buff 按字符串查找、跨运行时迁移或重启持久化。
+可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计；另有 [threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 按 Compendium 组装九目标、原表档位和 Woven Mail，必填校准参数与内容边界见 [规则集](d2-ruleset.md#threaded-spike-技能模板)。句柄尚不支持从任意事件 / Buff 按字符串查找、跨运行时迁移或重启持久化。
 
 
 ## 共享 Strand 防御示例

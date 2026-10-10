@@ -148,6 +148,9 @@ public final class EffectCodecs {
                         ID.fieldOf("buff").forGetter(Condition.HasBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasBuff::target),
                         Codec.INT.optionalFieldOf("minimum", 1).forGetter(Condition.HasBuff::minimum),
                         enumeration(Condition.BuffMatch.class).optionalFieldOf("match", Condition.BuffMatch.BOUND).forGetter(Condition.HasBuff::match)).apply(i, Condition.HasBuff::new)))
+                .register("chorus:has_source_tag", Condition.HasSourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("tag").forGetter(Condition.HasSourceTag::tag), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasSourceTag::target)
+                ).apply(i, Condition.HasSourceTag::new)))
                 .register("chorus:has_buff_tag", Condition.HasBuffTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.HasBuffTag::tag), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasBuffTag::target)
                 ).apply(i, Condition.HasBuffTag::new)))

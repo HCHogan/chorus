@@ -133,6 +133,15 @@ public interface Condition {
                     && value.activeCount(e.state().buffs().timeMicros()) >= minimum);
         }
     }
+    /** Query currently bound sources on a holder, independently of this action's retained origin. */
+    record HasSourceTag(String tag, Evaluation.Target target) implements Condition {
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) {
+            String holder = e.target(target);
+            return e.state().sources().values().stream().anyMatch(source -> source.holder().equals(holder)
+                    && (source.tags().contains(tag) || source.origin().tags().contains(tag)));
+        }
+    }
     record HasBuffTag(String tag, Evaluation.Target target) implements Condition {
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {

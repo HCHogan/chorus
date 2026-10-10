@@ -49,6 +49,7 @@ public final class SnapshotExpressions {
             }
             case Condition.HasBuff c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasBuffTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.HasSourceTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasShield c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.TargetIs c -> target(c.left()) || target(c.right()) ? c : new Condition.Constant(c.test(e));
             case Condition.Compare c -> {

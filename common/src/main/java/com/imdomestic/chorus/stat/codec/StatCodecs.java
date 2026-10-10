@@ -81,9 +81,19 @@ public final class StatCodecs {
     ).apply(i, PolynomialData::new)).flatXmap(data -> safe(() -> new Curve.Polynomial(data.coefficients(), data.minimum(), data.maximum(), data.boundary())),
             curve -> DataResult.success(new PolynomialData(curve.coefficients(), curve.minimum(), curve.maximum(), curve.boundary())));
 
+    private record ExponentialData(double base, double minimum, double maximum, Curve.Boundary boundary) {}
+    private static final MapCodec<Curve.Exponential> EXPONENTIAL = RecordCodecBuilder.<ExponentialData>mapCodec(i -> i.group(
+            FINITE.fieldOf("base").forGetter(ExponentialData::base),
+            FINITE.fieldOf("minimum").forGetter(ExponentialData::minimum),
+            FINITE.fieldOf("maximum").forGetter(ExponentialData::maximum),
+            enumeration(Curve.Boundary.class).fieldOf("boundary").forGetter(ExponentialData::boundary)
+    ).apply(i, ExponentialData::new)).flatXmap(data -> safe(() -> new Curve.Exponential(data.base(), data.minimum(), data.maximum(), data.boundary())),
+            curve -> DataResult.success(new ExponentialData(curve.base(), curve.minimum(), curve.maximum(), curve.boundary())));
+
     public static TypeRegistry<Curve> curveTypes() {
         return new TypeRegistry<Curve>().register("chorus:table", Curve.Table.class, TABLE)
-                .register("chorus:polynomial", Curve.Polynomial.class, POLYNOMIAL);
+                .register("chorus:polynomial", Curve.Polynomial.class, POLYNOMIAL)
+                .register("chorus:exponential", Curve.Exponential.class, EXPONENTIAL);
     }
     public static final Codec<Curve> CURVE = curveTypes().build();
 

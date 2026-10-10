@@ -39,6 +39,23 @@ public interface Curve {
         }
     }
 
+    /** Positive-base exponential, base^input. Domain and out-of-range behavior are explicit. */
+    record Exponential(double base, double minimum, double maximum, Boundary boundary) implements Curve {
+        public Exponential {
+            Numbers.finite(base, "exponential base");
+            Numbers.finite(minimum, "minimum"); Numbers.finite(maximum, "maximum");
+            Objects.requireNonNull(boundary);
+            if (base <= 0 || minimum > maximum) throw new IllegalArgumentException("Invalid exponential base or domain");
+        }
+        @Override public double evaluate(double input) {
+            Numbers.finite(input, "curve input");
+            if (boundary == Boundary.ERROR && (input < minimum || input > maximum)) {
+                throw new IllegalArgumentException("Input outside exponential domain: " + input);
+            }
+            return Numbers.finite(StrictMath.pow(base, Math.clamp(input, minimum, maximum)), "exponential output");
+        }
+    }
+
     /** Coefficients are ordered from constant to highest power. Domain is explicit. */
     record Polynomial(List<Double> coefficients, double minimum, double maximum, Boundary boundary) implements Curve {
         public Polynomial {

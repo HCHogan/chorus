@@ -544,7 +544,7 @@
       "gaps": [
         "Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配",
         "独立减伤组合、Under-Over 分组及盾层叠加仍待原作校准；max_remaining 刷新已有官方依据及短/长来源回归，详见 d2-ruleset",
-        "Threaded Spike 按击杀时长、Warding、Into the Fray 等具体生产者还未装配；合成测试超能不代表真实技能实现"
+        "Threaded Spike 已部分装配按击杀时长，仍需物理/子职业校准；Warding、Into the Fray 等其他生产者还未装配，合成测试超能不代表真实技能实现"
       ]
     },
     {
@@ -2119,7 +2119,7 @@
       "name": "Threaded Spike",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Strand",
@@ -2137,7 +2137,7 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需求已审阅；通用追踪、接触转向、计数、有限期成本凭据、返回与主动接回已有机制验收。接回独立输入可按窗口/距离/接收者/视线确认并执行不同退款动作。尚无此技能的完整内容定义，具体连锁、近战键装配及数值基准仍需完成；通用伤害统计已验证三目标真实连锁后读取累计命中/击杀并结算返回/接回收益",
+      "scope": "需显式校准参数的技能模板：九目标连锁、427/82 与指数衰减、两张原表回能档位、共享 Sever/Continuity、接回当前 Strand 子职业按击杀授予 Woven Mail、145.2 秒基础恢复；7 项纯核心和 3 项共享世界场景，物理/持续时间测试值不作为 D2 数值",
       "acceptance": [
         "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
         "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
@@ -2146,6 +2146,60 @@
         "Strand职业接回时每次击杀给予2秒Woven Mail、上限10秒；145.2秒基础冷却与0.8x chunk scalar"
       ],
       "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/threaded_spike.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "missingCalibrationFailsBeforePaymentAndKnownBaseCooldownRemainsExplicit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "allTenHitCountsSelectTheTwoReferenceEnergyTables"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "damageUsesModeAndBothWallAndEntityBounceCountsWithoutNinePointClamping"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "caughtStrandKillsGrantTwoSecondsEachCappedAtTen"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "subclassQualificationIsCurrentHolderStateNotStrandAttackTagsOrAnotherPlayersLoadout"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "survivingAppliedTargetsReceiveCalibratedSeverAndCurrentCasterContinuity"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ThreadedSpikeTest.java",
+          "symbol": "confirmedOutcomesDetermineHitsAndOnlySuccessfulReturnPaysOnce"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ThreadedSpikeGameTest.java",
+          "symbol": "ninePhysicalTargetsUseTheDecaySeriesAndLeaveTheTenthUntouched"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ThreadedSpikeGameTest.java",
+          "symbol": "actualKillsFeedCaughtEnergyAndMailWithoutShorteningAnEarlierGrant"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ThreadedSpikeGameTest.java",
+          "symbol": "realTicksAutomaticallyReturnAndCombineTheReferenceGainWithBaseRecovery"
+        },
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
@@ -2237,11 +2291,11 @@
         }
       ],
       "gaps": [
-        "尚未提供此技能的数据定义；现有逐接触计数可驱动衰减，但通用夹具并非Threaded Spike的数值/时序",
-        "未知半径和Sever持续时间保持未知；没有用合成扫描参数填入原作数据，转向率/轨迹与衰减计数仍待校准",
-        "通用 destination 返回与 ARRIVED / TARGET_LOST / CAUGHT 已验收；本技能的九目标连锁何时转入返回、近战输入映射/接回窗口校准、通用实际命中/击杀统计已完成，但原作命中档位、资格策略与按击杀授予共享 Woven Mail 的动作尚未装配。retain_cost 支持共享实付成本退款，但原表 Melee % 不自动解释为实际成本百分比",
-        "完整技能资源、原作模式/属性缩放、动作归属交互和表现未装配",
-        "返回夹具使用两个物理实体表示去程/回程，接回夹具参数为合成值；同一实体内阶段切换、完整轨迹/范围校准和原作接回增益仍待实现"
+        "模板必须先提供 calibration 参数；未知半径、Sever/Continuity 时间与速度/转向/寿命/窗口没有 D2 默认值，独立测试校准文件不代表原作测量",
+        "墙面与实体前序计数、免疫/格挡计 hits 而取消/失败不计、仅 APPLIED 非死亡目标尝试 Sever、当前子职业及输出修饰取样均为显式内容政策，仍需原作边界校准",
+        "去程第九次接触或终止后新建回程，仍需实际早返时机、同实体阶段切换、近战输入/grapple 优先级和 Phalanx 盾穿透；图形接回按键验收尚未通过",
+        "145.2 秒基础恢复已接入；0.8 chunk scalar、完整属性/目标/等级缩放、混合交战分类、自动子职业/装备装配、表现与状态持久化仍未完成",
+        "原表回能按完整一格充能授予，不是实付成本退款；来源变更、死亡或模式切换的原作具体资格仍需测量"
       ]
     },
     {
