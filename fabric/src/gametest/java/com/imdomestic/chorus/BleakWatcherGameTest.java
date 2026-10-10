@@ -4,6 +4,10 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class BleakWatcherGameTest extends com.imdomestic.chorus.test.BleakWatcherGameTest {
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void switchingGrenadesAfterAnActualThrowCannotAccessAnotherFullCharge(GameTestHelper h) { super.switchingGrenadesAfterAnActualThrowCannotAccessAnotherFullCharge(h); }
+    @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_shared_energy", maxTicks=30) @Override
+    public void selectionAndEmptySlotSplitNativeRecoveryWhileAspectRemainsEquipped(GameTestHelper h) { super.selectionAndEmptySlotSplitNativeRecoveryWhileAspectRemainsEquipped(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:bleak_aspect_energy", maxTicks=25) @Override
     public void equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(GameTestHelper h) { super.equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(h); }
     @GameTest(structure="chorus_gametest:empty") @Override

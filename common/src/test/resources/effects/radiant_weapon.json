@@ -270,7 +270,7 @@
       "id": "test:grenade",
       "slot": "chorus_d2:grenade",
       "cost": {
-        "resource": "chorus_d2:arcbolt_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 1,

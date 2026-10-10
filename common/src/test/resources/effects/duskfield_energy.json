@@ -6,175 +6,50 @@
       "scope": "source",
       "modifiers": [
         {
-          "id": "passive",
+          "id": "base_rate",
           "profile": "chorus_d2:grenade_regeneration",
-          "stage": "stat",
-          "group": "stat",
-          "op": "multiply",
-          "stacking_key": "chorus_d2:grenade_stat",
+          "stage": "base_rate",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
           "value": {
-            "type": "chorus:choose",
-            "if": {
-              "type": "chorus:compare",
-              "left": {
-                "type": "chorus:attribute",
-                "profile": "chorus_d2:grenade_stat",
-                "input": {
-                  "type": "chorus:constant",
-                  "value": 0,
-                  "unit": "stat_point"
-                }
-              },
-              "op": "ge",
-              "right": {
-                "type": "chorus:constant",
-                "value": 100,
-                "unit": "stat_point"
-              }
-            },
-            "then": {
-              "type": "chorus:constant",
-              "value": 1.75,
-              "unit": "delta"
-            },
-            "else": {
-              "type": "chorus:choose",
-              "if": {
-                "type": "chorus:compare",
-                "left": {
-                  "type": "chorus:attribute",
-                  "profile": "chorus_d2:grenade_stat",
-                  "input": {
-                    "type": "chorus:constant",
-                    "value": 0,
-                    "unit": "stat_point"
-                  }
-                },
-                "op": "ge",
-                "right": {
-                  "type": "chorus:constant",
-                  "value": 70,
-                  "unit": "stat_point"
-                }
-              },
-              "then": {
-                "type": "chorus:curve",
-                "of": {
-                  "type": "chorus:attribute",
-                  "profile": "chorus_d2:grenade_stat",
-                  "input": {
-                    "type": "chorus:constant",
-                    "value": 0,
-                    "unit": "stat_point"
-                  }
-                },
-                "curve": {
-                  "type": "chorus:polynomial",
-                  "coefficients": [
-                    1.10898698,
-                    0.00639461
-                  ],
-                  "minimum": 0,
-                  "maximum": 100,
-                  "boundary": "clamp"
-                },
-                "from": "stat_point",
-                "to": "delta"
-              },
-              "else": {
-                "type": "chorus:curve",
-                "of": {
-                  "type": "chorus:attribute",
-                  "profile": "chorus_d2:grenade_stat",
-                  "input": {
-                    "type": "chorus:constant",
-                    "value": 0,
-                    "unit": "stat_point"
-                  }
-                },
-                "curve": {
-                  "type": "chorus:polynomial",
-                  "coefficients": [
-                    0,
-                    0.004273626,
-                    0.000300195,
-                    -6.37618e-07
-                  ],
-                  "minimum": 0,
-                  "maximum": 100,
-                  "boundary": "clamp"
-                },
-                "from": "stat_point",
-                "to": "delta"
-              }
-            }
+            "type": "chorus:constant",
+            "value": 0.007593014426727412,
+            "unit": "charge_fraction_per_second"
           },
-          "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Stasis N30 supplies the independent .875 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
-          "confidence": "fitted",
+          "reference": "Compendium original Stasis N36; data/d2-research/2026-10-11/duskfield.json; selected-source baseline for the common grenade account.",
+          "confidence": "measured",
           "if": {
             "type": "chorus:event_reference",
             "name": "resource",
-            "is": "chorus_d2:duskfield_energy"
+            "is": "chorus_d2:grenade_energy"
           }
         },
         {
-          "id": "energy_gained",
-          "profile": "chorus_d2:grenade_gain",
-          "stage": "stat",
-          "group": "stat",
-          "op": "multiply",
-          "stacking_key": "chorus_d2:grenade_stat",
+          "id": "scalar",
+          "profile": "chorus_d2:grenade_recipient_scalar",
+          "stage": "scalar",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
           "value": {
-            "type": "chorus:arithmetic",
-            "op": "add",
-            "of": [
-              {
-                "type": "chorus:constant",
-                "value": 0.625,
-                "unit": "delta"
-              },
-              {
-                "type": "chorus:scale",
-                "of": {
-                  "type": "chorus:curve",
-                  "of": {
-                    "type": "chorus:scale",
-                    "of": {
-                      "type": "chorus:attribute",
-                      "profile": "chorus_d2:grenade_stat",
-                      "input": {
-                        "type": "chorus:constant",
-                        "value": 0,
-                        "unit": "stat_point"
-                      }
-                    },
-                    "factor": 0.031415926535897934,
-                    "from": "stat_point",
-                    "to": "radian"
-                  },
-                  "from": "radian",
-                  "to": "multiplier",
-                  "curve": {
-                    "type": "chorus:cosine",
-                    "minimum": 0,
-                    "maximum": 3.141592653589793,
-                    "boundary": "clamp"
-                  }
-                },
-                "factor": -0.625,
-                "from": "multiplier",
-                "to": "delta"
-              }
-            ]
+            "type": "chorus:constant",
+            "value": 0.875,
+            "unit": "multiplier"
           },
-          "reference": "Engineeeer Armor Stat Info fit retained from data/d2-research/2026-10-10/armor-energy.json (gviz array coordinates). Explicit original-sheet passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11; coefficients not remeasured. Compendium CSV Stasis N30 supplies the independent .875 recipient scalar. See armor-stat-inputs.json for the unresolved Compendium E187 text conflict.",
-          "confidence": "fitted",
+          "reference": "Compendium original Stasis N36; data/d2-research/2026-10-11/duskfield.json; selected-source baseline for the common grenade account.",
+          "confidence": "measured",
           "if": {
             "type": "chorus:event_reference",
             "name": "resource",
-            "is": "chorus_d2:duskfield_energy"
+            "is": "chorus_d2:grenade_energy"
           }
         }
+      ],
+      "includes": [
+        "chorus_d2:grenade_energy_scaling"
       ]
     }
   ]

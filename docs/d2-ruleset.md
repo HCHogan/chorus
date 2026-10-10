@@ -1140,9 +1140,11 @@ Boss snap 只由 own_buff(reason=expired) 触发。显式清除不制造伤害�
 
 [bleak_watcher_aspect.json](../common/src/test/resources/effects/bleak_watcher_aspect.json) includes 长按转换来源，并给共用手雷 Profile 提供两个独立覆盖。`grenade_regeneration` 首先将固有 base_rate 替换为 `1 / 175.6 charge_fraction_per_second`，再应用当前 Grenade 属性恢复倍率；`grenade_recipient_scalar` 将资源固有 gain_scalar 替换为 0.625，之后才由 `grenade_gain` 计算属性和触发来源倍率。它们使用同一优先级家族，重复来源不会累乘；不同覆盖的优先级属于内容政策。短按普通手雷同样受回充覆盖，不要求本次已经转换成炮台。
 
-Arcbolt、Duskfield 和独立 Bleak Watcher 的资源已接入 [共用手雷 Profile](../common/src/test/resources/effects/grenade_energy.json)，固有冷却和系数仍保留在各自资源声明中。覆盖按接收账户持有者收集来源，不影响队友或其他种类的资源；新手雷只要引用这些 Profile 即可加入，不依赖技能 ID 特例列表。原有选择期属性修饰仍按 resource 引用限定到本账户。卸下 Aspect 恢复原始基准，换装时先结算旧时间段，保留余额；fixed 回能、实付退款及完整充能跳过接收系数。参考数值先去除旧因子，再应用当前 0.625，不能把新旧 CES 同时乘上。
+Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 声明的 `chorus_d2:grenade_energy`，每位持有者只有一个容量为 1 的手雷账户。资源自身的 base_rate / gain_scalar 均为 0；所选技能的 energy_scaling 来源在优先级 0 提供原始冷却和 CES，并 includes 共用属性曲线。Aspect 在同一家族的优先级 10 覆盖基准，因此更换手雷不能找回另一份独立储存的能量，也不会移除仍装备的 Aspect 覆盖。新手雷声明共用成本及自己的基准来源即可加入，不需要引擎维护技能 ID 列表。
 
-原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。当前运行时保留候选技能的独立账户，所有采用共用 Profile 的账户都参与覆盖；尚未实现原作切换手雷 / 子职业时的共享槽能量迁移，不能把余额保留政策当作原作换装复现。
+选择事务先结算旧时间段，再原子替换常驻来源；余额不重置，后续恢复及外部 BASE / REFERENCE 回能使用新选择的基准。清空槽位保留余额，移除选择期来源，并令 Aspect 的 available 条件不成立：被动恢复和直接 BASE / REFERENCE 收益均为 0。重新选择不重新初始化账户。FIXED 回能、实付退款及完整充能沿用显式账户路径；延迟退款仍退入已支付的同一资源，不乘新 CES。参考数值先去除旧因子，再应用当前 CES；属性与触发收益保留第二段独立轨迹。此政策不改变仅有一个候选的 Threaded Spike 资源配置。
+
+原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。**共用余额和空槽暂停是当前 Chorus 装配政策；原作换手雷 / 子职业的额外扣减尚未校准。** 这次取消三个示例的独立账户，并不表示已完成动态多充能容量、跨规则集存档迁移或正式子职业装配。旧运行时仍固定旧目录；测试资源改名不会自动迁移旧存档。
 
 部署弹体在实体或方块接触点尝试生成构造物；无有效接触不生成。当前位置用接触点作为脚底，生成遭遇阻挡时保留已支付能量；落点偏移、弹跳和退款政策未作原作校准。构造物与行为期限同时捕获，Durance 后续卸下不缩短已有期限。每组第一枚直接调用发射 bundle，其余四枚由行为拥有的延迟回调触发；每枚发射前再次观察炮台存活并重新选目标。目标不合格或实际发射被拒绝时保持 67% 减伤，首个 `launch_as.launched` 回执才写入 fired 状态。该开火边界是明确的 Chorus 政策。
 
@@ -1152,4 +1154,4 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 的资源已接入 [共用手雷 Pro
 
 单发伤害、部署和射击的速度 / 重力 / 阻力 / 寿命、实体尺寸、第一组相位、四枚延迟及追踪转向参数都是必填校准输入；缺少参数在支付前报错。[独立测试校准](../common/src/test/resources/effects/bleak_watcher_test_calibration.json) 使用每发 1 伤害、0.25 秒首组延迟，以及 0.175 / 0.35 / 0.525 / 0.7 秒组内延迟，均为合成验收值。不要据此宣称复现了原作精确连发节奏或伤害。
 
-10 项 BleakWatcherTest、5 项 BleakWatcherAspectTest 与 11 项双加载器共享场景覆盖真实投掷落地、150 HP / 减伤、连续实际扣血、战员五发和 Guardian 十发冻结、阵营变化、两个炮台的 25 / 30 秒独立寿命、摧毁后的在途弹体、消费已选暮域能量的转换、服务器计时的长按投掷、回充切段与 CES 恢复，以及未知世界结果保留且不重放。Aspect 单元测试还包含合成新手雷、不同接收者、重复来源、固定与参考收益、两段计算轨迹；它不声称已装配 Compendium 的全部手雷。另有 AbilityInputTest 验证来源和阈值资格。定义仍放在测试资源；正式子职业目录、完整金装互动、原作参数校准、技能 HUD、美术和持久化仍待完成，覆盖保持 **partial**。
+10 项 BleakWatcherTest、9 项 BleakWatcherAspectTest 与 13 项双加载器共享场景覆盖真实投掷落地、150 HP / 减伤、连续实际扣血、战员五发和 Guardian 十发冻结、阵营变化、两个炮台的 25 / 30 秒独立寿命、摧毁后的在途弹体、消费共用手雷能量的转换、服务器计时的长按投掷、回充切段与 CES 恢复，以及未知世界结果保留且不重放。Aspect 单元测试还包含合成新手雷、不同接收者、重复来源、固定与参考收益、两段计算轨迹、切换及空槽无额外储能、旧成本延迟退款；共享世界场景验证真实投掷后切换仍因余额不足拒绝，以及 tick 在换技能、空槽和重新选择间分段积分。它不声称已装配 Compendium 的全部手雷。另有 AbilityInputTest 验证来源和阈值资格。定义仍放在测试资源；正式子职业目录、完整金装互动、原作参数校准、技能 HUD、美术和持久化仍待完成，覆盖保持 **partial**。

@@ -28,7 +28,7 @@ import net.minecraft.world.phys.Vec3;
 
 /** Real thrown deployment, independently damageable turrets and each physical projectile's hit. */
 public class BleakWatcherGameTest {
-    static final String ABILITY = "chorus_d2:bleak_watcher", BEHAVIOR = ABILITY + "_behavior", SLOT = "chorus_d2:grenade", ENERGY = ABILITY + "_energy";
+    static final String ABILITY = "chorus_d2:bleak_watcher", BEHAVIOR = ABILITY + "_behavior", SLOT = "chorus_d2:grenade", ENERGY = "chorus_d2:grenade_energy";
     static CompiledEffects program() {
         var data = ThreadedSpikeGameTest.json("bleak_watcher");
         ThreadedSpikeGameTest.json("bleak_watcher_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->
@@ -108,7 +108,43 @@ public class BleakWatcherGameTest {
         t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_aspect", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
                 Map.of("hold_time", new com.imdomestic.chorus.stat.Measure(.3, com.imdomestic.chorus.stat.Unit.SECOND))));
     }
-    static double energy(Harness t) { return t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), "chorus_d2:duskfield_energy")).value(); }
+    static double energy(Harness t) { return t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), "chorus_d2:grenade_energy")).value(); }
+    static void choose(Harness t, String ability) {
+        t.runtime.abilities(new AbilityChange(id(t.owner), t.state().abilities().getOrDefault(id(t.owner), AbilityLoadout.EMPTY),
+                ability.isEmpty() ? AbilityLoadout.EMPTY : new AbilityLoadout(Map.of(SLOT, ability))));
+    }
+    @GameCase public void switchingGrenadesAfterAnActualThrowCannotAccessAnotherFullCharge(GameTestHelper h) {
+        try (var t = new Harness(h, conversionProgram())) {
+            choose(t, "chorus_d2:duskfield"); t.use(t.owner); near(h, energy(t), 0, "throw did not spend shared energy");
+            h.assertValueEqual(t.launches.size(), 1, "first physical throw missing");
+            for (String selected : List.of(ABILITY, "", "chorus_d2:duskfield", ABILITY)) {
+                choose(t, selected); near(h, energy(t), 0, "selection refilled energy");
+                if (!selected.isEmpty()) h.assertValueEqual(t.runtime.useAbility(t.owner, SLOT).outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "switch bypassed shared cooldown");
+            }
+            h.assertValueEqual(t.launches.size(), 1, "rejected casts spawned a projectile");
+            h.assertValueEqual(t.state().resources().size(), 1, "hidden candidate accounts remain"); t.healthy();
+        } h.succeed();
+    }
+    @GameCase(environment="chorus_gametest:bleak_shared_energy", maxTicks=30)
+    public void selectionAndEmptySlotSplitNativeRecoveryWhileAspectRemainsEquipped(GameTestHelper h) {
+        var t = new Harness(h, conversionProgram());
+        try {
+            prepareEnergy(t); long start=t.runtime.nowMicros(); long[] boundary=new long[2]; double[] balance=new double[2];
+            t.at(3, () -> {
+                near(h, energy(t), (t.runtime.nowMicros()-start)/1_000_000.0/131.7, "Duskfield interval");
+                boundary[0]=t.runtime.nowMicros();balance[0]=energy(t);choose(t, ABILITY);near(h, energy(t), balance[0], "switch created energy");equipAspect(t);
+            });
+            t.at(9, () -> {
+                near(h, energy(t), balance[0]+(t.runtime.nowMicros()-boundary[0])/1_000_000.0/175.6, "Bleak interval");
+                balance[1]=energy(t);choose(t, "");
+            });
+            t.at(15, () -> {
+                near(h, energy(t), balance[1], "empty slot recharged through Aspect");choose(t, "chorus_d2:duskfield");t.runtime.unbind("aspect");
+                near(h, energy(t), balance[1], "restore refilled shared energy");boundary[1]=t.runtime.nowMicros();
+            });
+            t.finish(21, () -> near(h, energy(t), balance[1]+(t.runtime.nowMicros()-boundary[1])/1_000_000.0/131.7, "restored Duskfield interval"));
+        } catch (RuntimeException | Error e) { t.close(); throw e; }
+    }
     @GameCase(environment="chorus_gametest:bleak_aspect_energy", maxTicks=25)
     public void equippingAndRemovingAspectSplitsNativeTickRecoveryWithoutResettingThePool(GameTestHelper h) {
         var t = new Harness(h, conversionProgram());
@@ -147,14 +183,14 @@ public class BleakWatcherGameTest {
             t.runtime.abilities(new AbilityChange(id(t.owner), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of(SLOT, base))));
             t.runtime.bind(new EffectSource("conversion", "test:bleak_conversion", id(t.owner), new BuffInstance.Origin(id(t.owner), "conversion", "", ""), Set.of()));
             var receipt = t.use(t.owner); h.assertValueEqual(receipt.base(), base, "conversion base"); h.assertValueEqual(receipt.resolved(), ABILITY, "conversion result");
-            h.assertValueEqual(receipt.cost().orElseThrow().after().key().resource(), base + "_energy", "wrong pool paid");
+            h.assertValueEqual(receipt.cost().orElseThrow().after().key().resource(), ENERGY, "wrong pool paid");
             near(h, receipt.cost().orElseThrow().receipt().paid(), 1, "selected grenade payment");
             t.finish(35, () -> {
                 h.assertValueEqual(t.turrets.size(), 1, "conversion did not deploy"); h.assertValueEqual(t.damage.size(), 5, "conversion burst"); near(h, target.getHealth(), 995, "conversion native damage");
                 h.assertTrue(t.buff("chorus_d2:freeze", target).isPresent(), "conversion did not apply Slow and Freeze");
-                var key = new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), base + "_energy");
+                var key = new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), ENERGY);
                 h.assertTrue(t.state().resources().get(key).value() < .05, "selected energy was not consumed");
-                near(h, t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), ENERGY)).value(), 1, "nominal turret energy consumed");
+                h.assertValueEqual(t.state().resources().keySet().stream().filter(k -> k.holder().equals(id(t.owner))).count(), 1L, "conversion created a hidden grenade bank");
                 h.assertValueEqual(t.state().abilities().get(id(t.owner)).slots().get(SLOT), base, "base selection replaced");
                 h.assertTrue(t.damage.stream().allMatch(d -> d.source().ability().equals(ABILITY) && d.tags().contains("chorus:grenade_damage")), "converted damage credit changed to base grenade");
                 h.assertTrue(t.state().sources().values().stream().noneMatch(s -> s.bundle().equals(ABILITY + "_energy_scaling")), "replacement mounted its own recharge source");
@@ -170,12 +206,12 @@ public class BleakWatcherGameTest {
             t.runtime.bind(new EffectSource("aspect", "chorus_d2:bleak_watcher_aspect", id(t.owner), new BuffInstance.Origin(id(t.owner), "aspect", "", ""), Set.of(),
                     Map.of("hold_time", new com.imdomestic.chorus.stat.Measure(.3, com.imdomestic.chorus.stat.Unit.SECOND))));
             h.assertValueEqual(t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.PRESS, 1).outcome(), AbilityInput.Outcome.PRESSED, "held grenade press");
-            near(h, conversionProgram().resourceRate(t.state(), t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), base + "_energy"))).perSecond(), 1 / 175.6, "aspect cooldown before release");
+            near(h, conversionProgram().resourceRate(t.state(), t.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key(id(t.owner), ENERGY))).perSecond(), 1 / 175.6, "aspect cooldown before release");
             t.at(8, () -> {
                 h.assertTrue(t.launches.isEmpty(), "holding grenade fired before release");
                 var r = t.runtime.abilityInput(t.owner, SLOT, AbilityInput.Edge.RELEASE, 1);
                 h.assertTrue(r.heldMicros() >= 300_000, "server hold duration below synthetic threshold"); h.assertValueEqual(r.cast().orElseThrow().resolved(), ABILITY, "held conversion missing");
-                h.assertValueEqual(r.cast().orElseThrow().cost().orElseThrow().after().key().resource(), base + "_energy", "hold used wrong energy");
+                h.assertValueEqual(r.cast().orElseThrow().cost().orElseThrow().after().key().resource(), ENERGY, "hold used wrong energy");
                 t.owner.setPos(t.owner.getX(), t.owner.getY(), h.absoluteVec(new Vec3(0, 0, 6)).z);
             });
             t.finish(42, () -> {

@@ -372,7 +372,7 @@
       "id": "test:grenade",
       "slot": "chorus_d2:grenade",
       "cost": {
-        "resource": "chorus_d2:arcbolt_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 1,
@@ -402,7 +402,7 @@
       "id": "test:free_grenade",
       "slot": "chorus_d2:grenade",
       "cost": {
-        "resource": "chorus_d2:arcbolt_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 0,
@@ -432,7 +432,7 @@
       "id": "test:not_grenade",
       "slot": "chorus_d2:grenade",
       "cost": {
-        "resource": "chorus_d2:arcbolt_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 0,
@@ -462,7 +462,7 @@
       "id": "test:blocked_grenade",
       "slot": "chorus_d2:grenade",
       "cost": {
-        "resource": "chorus_d2:arcbolt_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 0,

@@ -20,7 +20,7 @@ import net.minecraft.world.level.GameType;
 
 /** Physical weapon deaths -> Tempering -> private world pickup -> current grenade account. */
 public class FirespriteGameTest {
-    static final String ENERGY="chorus_d2:arcbolt_energy", BUFF="chorus_d2:tempering", COOLDOWN="chorus_d2:firesprite_cooldown";
+    static final String ENERGY="chorus_d2:grenade_energy", BUFF="chorus_d2:tempering", COOLDOWN="chorus_d2:firesprite_cooldown";
     static void prepare(JsonObject data) {
         for(String fixture:List.of("firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","grenade_energy", "arcbolt_energy","tempering_weapon")) {
             var fragment=ThreadedSpikeGameTest.json(fixture);

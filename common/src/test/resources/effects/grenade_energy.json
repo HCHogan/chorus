@@ -77,5 +77,195 @@
         }
       ]
     }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:grenade_energy_scaling",
+      "scope": "source",
+      "modifiers": [
+        {
+          "id": "passive",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:grenade_stat",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:attribute",
+                "profile": "chorus_d2:grenade_stat",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
+                }
+              },
+              "op": "ge",
+              "right": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "stat_point"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 1.75,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 70,
+                  "unit": "stat_point"
+                }
+              },
+              "then": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    1.10898698,
+                    0.00639461
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              },
+              "else": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:grenade_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    0,
+                    0.004273626,
+                    0.000300195,
+                    -6.37618e-07
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              }
+            }
+          },
+          "reference": "Engineeeer Armor Stat Info fit retained in data/d2-research/2026-10-10/armor-energy.json and rechecked 2026-10-11. Applies to the shared grenade account; selected skill supplies base recharge and recipient scalar independently.",
+          "confidence": "fitted",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        },
+        {
+          "id": "energy_gained",
+          "profile": "chorus_d2:grenade_gain",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:grenade_stat",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:constant",
+                "value": 0.625,
+                "unit": "delta"
+              },
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:grenade_stat",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
+                      }
+                    },
+                    "factor": 0.031415926535897934,
+                    "from": "stat_point",
+                    "to": "radian"
+                  },
+                  "from": "radian",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:cosine",
+                    "minimum": 0,
+                    "maximum": 3.141592653589793,
+                    "boundary": "clamp"
+                  }
+                },
+                "factor": -0.625,
+                "from": "multiplier",
+                "to": "delta"
+              }
+            ]
+          },
+          "reference": "Engineeeer Armor Stat Info fit retained in data/d2-research/2026-10-10/armor-energy.json and rechecked 2026-10-11. Applies to the shared grenade account; selected skill supplies base recharge and recipient scalar independently.",
+          "confidence": "fitted",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "chorus_d2:grenade_energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0,
+      "rate_profile": "chorus_d2:grenade_regeneration",
+      "gain_profile": "chorus_d2:grenade_gain",
+      "gain_scalar": 0,
+      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
+    }
   ]
 }

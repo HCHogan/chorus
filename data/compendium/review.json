@@ -6252,7 +6252,7 @@
           "text_sha256": "c6e0ffd54a26669cf78919f62d26c3a83ff5832041bf7b158b3647f46e280778"
         }
       ],
-      "scope": "Thrown damageable Stasis turret with server-held conversion, selected-pool payment, shared grenade cooldown/CES overrides, source ownership, initial resistance and Slow/Freeze; explicit calibration and Aspect binding required",
+      "scope": "Thrown damageable Stasis turret with server-held conversion, shared grenade-account payment, shared grenade cooldown/CES overrides, source ownership, initial resistance and Slow/Freeze; explicit calibration and Aspect binding required",
       "acceptance": [
         "Physical contact deploys an independent 150 HP construct for 25 seconds, or 30 seconds with Durance at deployment.",
         "Five seeking shots over a calibrated 0.7-second burst every 2 seconds; each shot selects a current visible non-ally within 35 meters.",
@@ -6263,9 +6263,10 @@
         "Dedicated projectile damage bypasses only native hit cooldown so each rapid hit commits actual HP loss.",
         "Selected template uses 175.6-second base recharge and 0.625 chunk scalar, current Grenade stats, and no energy reset on reselect.",
         "Unknown world results preserve charge payment and committed damage without replaying or applying later Slow.",
-        "Base-selection cost conversion consumes the selected Duskfield pool while leaving the turret pool and base selection/passives unchanged; native projectile damage keeps Bleak Watcher credit.",
+        "Base-selection cost conversion consumes the common grenade account without changing base selection/passives or creating a second bank; native projectile damage keeps Bleak Watcher credit.",
         "An explicitly bound source converts only on release after the server-measured hold reaches its positive calibrated threshold; native deployment consumes selected Duskfield energy once, and a repeated release cannot cast again.",
-        "An explicitly bound combined Aspect replaces participating grenade base rates with 1/175.6 before current Grenade stat scaling and recipient chunk scalars with .625 before gain scaling. Removing it restores intrinsic values without resetting energy; fixed gains bypass both scalar and gain profiles."
+        "An explicitly bound combined Aspect replaces participating grenade base rates with 1/175.6 before current Grenade stat scaling and recipient chunk scalars with .625 before gain scaling. Removing it restores intrinsic values without resetting energy; fixed gains bypass both scalar and gain profiles.",
+        "Switching selection preserves the shared balance, splits passive integration and applies the newly selected intrinsic CES. Clearing selection pauses recovery even with the Aspect equipped. Delayed refunds return to the original common account without current CES."
       ],
       "evidence": [
         {
@@ -6434,16 +6435,46 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
           "symbol": "unknownGainFollowupRetainsTheScaledEnergyAndActualHealingWithoutReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherAspectTest.java",
+          "symbol": "allSelectionsShareTheSpentBalanceWithoutHiddenCandidateBanks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherAspectTest.java",
+          "symbol": "switchingSplitsRecoveryAndUsesTheCurrentSelectionsScalarWithoutDuplicatedStats"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherAspectTest.java",
+          "symbol": "clearingSelectionPausesBaselineAndAspectWithoutErasingOrRefillingThePool"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BleakWatcherAspectTest.java",
+          "symbol": "delayedRefundAfterChangingGrenadeCreditsTheSamePoolWithoutCurrentCes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "switchingGrenadesAfterAnActualThrowCannotAccessAnotherFullCharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
+          "symbol": "selectionAndEmptySlotSplitNativeRecoveryWhileAspectRemainsEquipped"
         }
       ],
       "gaps": [
-        "Server-measured paired input and the explicitly bound Aspect bundle now compose conversion with Glacier base-cooldown and chunk-scalar overrides for every account opting into shared grenade profiles. The verified Compendium source does not provide the hold threshold; .3 seconds is synthetic. Formal subclass/Aspect equipment constraints and shared slot-energy migration remain incomplete.",
+        "Server-measured paired input and the explicitly bound Aspect bundle compose conversion with Glacier base-cooldown and chunk-scalar overrides. The verified Compendium source does not provide the hold threshold; .3 seconds is synthetic. Formal subclass/Aspect equipment constraints remain incomplete.",
         "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
         "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
         "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",
         "Durance is sampled at deployment for construct life and at impact for each Slow. Existing deadlines are preserved. Successful launch, not a damage receipt, ends the initial resistance.",
         "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources.",
-        "Shared grenade profiles opt accounts into the Aspect override; unrelated resources retain their profiles. Per-selection stat sources still target their original pool. Persisted inactive candidate pools follow existing runtime recovery policy; this does not implement original-game energy handling when swapping subclass or grenade."
+        "Arcbolt, Duskfield and Bleak Watcher now pay one shared grenade account. Selection sources provide baseline cooldown/CES; clearing pauses recovery and ordinary scaled grants without erasing balance. This is an explicit Chorus policy, not evidence of original-game swap penalties. Dynamic multi-charge capacity, original subclass/grenade swap reductions and persistence migration remain incomplete."
       ]
     }
   ]

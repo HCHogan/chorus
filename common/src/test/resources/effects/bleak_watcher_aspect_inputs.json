@@ -10,7 +10,7 @@
           "do": [
             {
               "type": "chorus:spend_resource",
-              "resource": "chorus_d2:duskfield_energy",
+              "resource": "chorus_d2:grenade_energy",
               "amount": {
                 "type": "chorus:constant",
                 "value": 1,

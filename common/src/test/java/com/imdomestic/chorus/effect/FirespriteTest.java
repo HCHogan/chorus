@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /** Numerical normalization and contact radius are explicit test calibration, not measured Firesprite values. */
 class FirespriteTest {
-    static final String ENERGY="chorus_d2:arcbolt_energy", SLOT="chorus_d2:grenade", COOLDOWN="chorus_d2:firesprite_cooldown";
+    static final String ENERGY="chorus_d2:grenade_energy", SLOT="chorus_d2:grenade", COOLDOWN="chorus_d2:firesprite_cooldown";
     static final WorldPosition POINT=new WorldPosition("world",4,40,3);
     static CompiledEffects program() throws Exception {
         return link("firesprite","firesprite_test_calibration","ember_of_tempering","character_stats","weapon_stats","grenade_energy", "arcbolt_energy","tempering_weapon");
@@ -110,7 +110,7 @@ class FirespriteTest {
         for(var b:rules)if(b.getAsJsonObject().get("id").getAsString().equals("test:tempering_inputs"))
             b.getAsJsonObject().getAsJsonArray("rules").add(com.google.gson.JsonParser.parseString("""
                 {"id":"fill","on":"test:fill","if":{"type":"chorus:target_is","left":"self","right":"event_actor"},"do":[
-                  {"type":"chorus:grant_energy","resource":"chorus_d2:arcbolt_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"},"value_basis":"fixed"}]}
+                  {"type":"chorus:grant_energy","resource":"chorus_d2:grenade_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"},"value_basis":"fixed"}]}
                 """));
         var h=new Harness(compile(data));h.event("test:fill","player",Set.of(),Set.of(),Map.of());assertEquals(1,h.energy("player"));
         h.spawn("player");h.finish(0,1,true);assertEquals(1,h.energy("player"));assertEquals(0,h.energy("ally"));assertEquals(1,h.cues.size());

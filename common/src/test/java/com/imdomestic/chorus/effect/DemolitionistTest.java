@@ -18,7 +18,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class DemolitionistTest {
-    static final String ENERGY = "chorus_d2:arcbolt_energy", SLOT = "chorus_d2:grenade", COOLDOWN = "chorus_d2:demolitionist_cooldown";
+    static final String ENERGY = "chorus_d2:grenade_energy", SLOT = "chorus_d2:grenade", COOLDOWN = "chorus_d2:demolitionist_cooldown";
     static CompiledEffects program() throws Exception {
         var parts = new ArrayList<EffectProgram>();
         for (String fixture : List.of("demolitionist", "character_stats", "grenade_energy", "arcbolt_energy", "demolitionist_weapon", "kill_clip", "clown_cartridge")) {

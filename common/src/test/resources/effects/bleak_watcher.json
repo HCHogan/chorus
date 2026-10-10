@@ -1,17 +1,5 @@
 {
   "version": "compendium-2026-10-05",
-  "resources": [
-    {
-      "id": "chorus_d2:bleak_watcher_energy",
-      "capacity": 1,
-      "initial": 1,
-      "base_rate": 0.0056947608200455585,
-      "rate_profile": "chorus_d2:grenade_regeneration",
-      "gain_profile": "chorus_d2:grenade_gain",
-      "gain_scalar": 0.625,
-      "gain_scalar_profile": "chorus_d2:grenade_recipient_scalar"
-    }
-  ],
   "abilities": [
     {
       "id": "chorus_d2:bleak_watcher",
@@ -22,7 +10,7 @@
         "chorus_d2:stasis"
       ],
       "cost": {
-        "resource": "chorus_d2:bleak_watcher_energy",
+        "resource": "chorus_d2:grenade_energy",
         "amount": {
           "type": "chorus:constant",
           "value": 1,

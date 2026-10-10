@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 /** Source-backed field cadence; initial blast, first pulse and physical flight are explicitly calibrated. */
 class DuskfieldTest {
-    static final String ABILITY="chorus_d2:duskfield",FIELD="chorus_d2:duskfield_field",SLOT="chorus_d2:grenade",ENERGY="chorus_d2:duskfield_energy";
+    static final String ABILITY="chorus_d2:duskfield",FIELD="chorus_d2:duskfield_field",SLOT="chorus_d2:grenade",ENERGY="chorus_d2:grenade_energy";
     static CompiledEffects program(boolean calibrated)throws Exception{
         var data=json("duskfield");if(calibrated)json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e->data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));
         var fragments=new ArrayList<EffectProgram>();fragments.add(DuranceTest.program().program());fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow());

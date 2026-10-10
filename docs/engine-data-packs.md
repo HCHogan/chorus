@@ -567,7 +567,7 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
  "amount":{"type":"chorus:constant","value":0.04,"unit":"charge_fraction"}}
 ```
 
-发射后换技能时，以击杀收益执行时的选择为准。选择变化不会把旧池能量转移到新池，也不会自动重配共享池的容量 / CES；这延续现有技能资源目录的边界。无选中技能时的跳过、基础技能归属和当前时点路由都是显式宿主政策，不能据此宣称已校准全部原作换装行为。完整合成候选池见 [ability_energy_targets.json](../common/src/test/resources/effects/ability_energy_targets.json)。
+发射后换技能时，以击杀收益执行时的选择为准。选择变化不会把旧池能量转移到新池，也不会自动重配共享池的容量 / CES；内容可以让同槽技能支付同一资源，并以选择期 effects 提供恢复率和收益系数，D2 手雷片段现采用这一方式。无选中技能时的跳过、基础技能归属和当前时点路由都是显式宿主政策，不能据此宣称已校准全部原作换装行为。独立账户的合成候选示例见 [ability_energy_targets.json](../common/src/test/resources/effects/ability_energy_targets.json)。
 
 [demolitionist.json](../common/src/test/resources/effects/demolitionist.json) 进一步组合两个独立分支：weapon_kill 使用 grant_ability_energy 指向 grenade 槽；已接受的 ability_started 用 grenade_ability、weapon_drawn 和无冷却条件筛选，再执行 refill_magazine。只有结果 applied > 0 才授予 3 秒冷却，不从请求量推测实际补弹。底层不发布 reload_finished，冷却也不限制另一条击杀回能规则。技能原型、数据基准及待校准政策见 [Demolitionist](d2-ruleset.md#demolitionist)。
 
@@ -1570,7 +1570,7 @@ runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(Map.of("e
 AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 ```
 
-选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与恢复定义仍属于程序固定目录，切换技能不会自动重设 CES、容量或恢复基准。
+选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与基础声明仍属于固定目录，切换不会隐式重设它们；有效恢复率及 CES 可通过 rate_profile / gain_scalar_profile 查询选择期来源。D2 手雷示例用零基础值、选择期基准来源和 Aspect 条件实现共用余额及空槽暂停；固定回能和已付款退款仍可显式作用于保留账户，未实现原作换装额外扣减或动态容量迁移。
 
 use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突、所需基础成本缺失和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 
@@ -1615,7 +1615,7 @@ AbilityInput.Receipt input = runtime.abilityInput(player, "chorus_d2:grenade", A
 
 `chorus:ability_input` 网络包包含正递增 sequence、原按下的 gesture、维度、槽位及 edge；PRESS 要求 gesture 等于 sequence。服务器按实际连接记录最新序号，在资格检查和世界操作之前消费序号；重复包不重试，过时维度不施放。服务端 tick 粒度及到包时点决定时长；尚未实现延迟补偿或客户端成功确认。未知世界结果保留已提交支付与副作用，停止运行时且不重放。
 
-`bleak_watcher_conversion.json` 的 SOURCE Bundle 要求显式 `hold_time: second` 参数，仅在松开且正阈值达到时替换为冰炮台。缺少参数拒绝绑定，非正阈值不转换；没有该来源、短按或直接 use 均保留原选择。0.3 秒仅是测试校准，原表没有提供可确认的长按阈值。`bleak_watcher_aspect.json` includes 此来源，并覆盖共用手雷 Profile 的基础恢复率和接收系数；正式 Aspect 装配挂载与换装能量迁移仍待实现，详见 [冰炮台规则集](d2-ruleset.md#bleak-watcher-的独立炮台与五连发)。
+`bleak_watcher_conversion.json` 的 SOURCE Bundle 要求显式 `hold_time: second` 参数，仅在松开且正阈值达到时替换为冰炮台。缺少参数拒绝绑定，非正阈值不转换；没有该来源、短按或直接 use 均保留原选择。0.3 秒仅是测试校准，原表没有提供可确认的长按阈值。`bleak_watcher_aspect.json` includes 此来源，并在手雷槽存在能量账户时覆盖共用手雷 Profile 的基础恢复率和接收系数；三个手雷示例现支付同一账户。正式 Aspect 装配挂载与原作换装扣减仍待实现，详见 [冰炮台规则集](d2-ruleset.md#bleak-watcher-的独立炮台与五连发)。
 
 ## 技能、开火与手动换弹的行动限制
 
@@ -2055,7 +2055,7 @@ on_use 的来源属性必须在捕获时可求值，结果保存为常量；vict
 
 `character_stats.json` 定义 Health / Grenade / Melee / Class / Super / Weapons 六个属性 Profile，每项合计来源贡献后限制在 0–200。`armor_stats.json` 的 SOURCE Bundle 要求六项 stat_point 参数，按实际装备来源累加，不先钳制或改写物品原始值。`armor_stat_inputs.json` 展示 helmet / arms / chest / legs / class_item 五槽与显式物品参数映射；其中 `test:armor_*` 和每项 0–200 的输入范围只是验收原型，不是原作合法掉落生成器，不校验六项总点数、金装特例或 archetype。
 
-实际技能定义通过 `effects.energy_scaling.bundle` 选择 `chorus_d2:arcbolt_energy_scaling` 或 `chorus_d2:threaded_spike_energy_scaling`，两者查询零输入的最终 grenade_stat / melee_stat 再套用已有主动 / 被动曲线。裸装、首次选择和只有碎片时均无需先创建属性 Buff。卸载技能来源后该曲线不再贡献，资源账户仍按固有基础率 / CES 及剩余来源运行。Arcbolt、Duskfield 和 Bleak Watcher 的能量片段现须额外链接 `grenade_energy.json`；各自选择期修饰以 resource 引用限定原账户，共用 Profile 接受 Aspect 的基准覆盖，内容迁移不能同时保留旧 CES 曲线。
+实际技能定义通过 `effects.energy_scaling.bundle` 选择 `chorus_d2:arcbolt_energy_scaling` 或 `chorus_d2:threaded_spike_energy_scaling`，两者查询零输入的最终 grenade_stat / melee_stat 再套用已有主动 / 被动曲线。裸装、首次选择和只有碎片时均无需先创建属性 Buff。卸载技能来源后该曲线不再贡献，资源账户仍按基础声明及剩余来源运行。Arcbolt、Duskfield 和 Bleak Watcher 的能量片段须链接 `grenade_energy.json`，并统一支付 `chorus_d2:grenade_energy`；各自来源提供基础率 / CES、includes 共用属性曲线，修饰以 resource 引用限定共用手雷账户。资源零基础值及 Aspect 的槽位条件使空槽暂停；Threaded Spike 仍保留原有独立资源基础值。内容迁移不能同时保留旧 CES 曲线。
 
 原 `grenade_stat / melee_stat` Buff 现在只把 points 加进对应属性 Profile，可用于独立的角色固有输入；没有时贡献为零。宿主若继续填写这些组件，须只填未由装备来源表示的点数，不能把已汇总护甲值再填进去。查询 Profile 的 input 同样用 0，避免把组件既作为 input 又作为修饰加两次。Buff 存储值与实际 Gear 数值均不随最后的限幅改写。
 

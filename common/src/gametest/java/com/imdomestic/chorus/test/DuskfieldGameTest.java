@@ -26,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
 
 /** Real registry damage types, physical impact, time, area membership and shared status lifecycle. */
 public class DuskfieldGameTest {
-    static final String ABILITY="chorus_d2:duskfield",FIELD="chorus_d2:duskfield_field",SLOT="chorus_d2:grenade",ENERGY="chorus_d2:duskfield_energy";
+    static final String ABILITY="chorus_d2:duskfield",FIELD="chorus_d2:duskfield_field",SLOT="chorus_d2:grenade",ENERGY="chorus_d2:grenade_energy";
     static CompiledEffects program(){
         var data=ThreadedSpikeGameTest.json("duskfield");ThreadedSpikeGameTest.json("duskfield_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e->data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));
         var parts=new ArrayList<EffectProgram>();parts.add(DuranceGameTest.program().program());parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow());for(String name:List.of("grenade_energy","duskfield_energy","duskfield_damage_test_calibration","duskfield_inputs"))parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(name)).getOrThrow());return CompiledEffects.link(parts);

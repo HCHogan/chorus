@@ -21,7 +21,12 @@
             "unit": "charge_fraction_per_second"
           },
           "reference": "Compendium original Stasis D103 states Glacier cooldown and CES override; N39 gives 175.6 seconds and .625. Verified HTML and coordinate hashes in data/d2-research/2026-10-11/bleak-watcher.json.",
-          "confidence": "measured"
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:ability_energy_flag",
+            "slot": "chorus_d2:grenade",
+            "field": "available"
+          }
         },
         {
           "id": "chunk",
@@ -37,7 +42,12 @@
             "unit": "multiplier"
           },
           "reference": "Compendium original Stasis D103 states Glacier cooldown and CES override; N39 gives 175.6 seconds and .625. Verified HTML and coordinate hashes in data/d2-research/2026-10-11/bleak-watcher.json.",
-          "confidence": "measured"
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:ability_energy_flag",
+            "slot": "chorus_d2:grenade",
+            "field": "available"
+          }
         }
       ]
     }

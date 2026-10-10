@@ -16,7 +16,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class BleakWatcherTest {
-    static final String ABILITY = "chorus_d2:bleak_watcher", BEHAVIOR = ABILITY + "_behavior", SLOT = "chorus_d2:grenade", ENERGY = ABILITY + "_energy";
+    static final String ABILITY = "chorus_d2:bleak_watcher", BEHAVIOR = ABILITY + "_behavior", SLOT = "chorus_d2:grenade", ENERGY = "chorus_d2:grenade_energy";
     static CompiledEffects program(boolean calibrated) throws Exception {
         var data = json("bleak_watcher");
         if (calibrated) json("bleak_watcher_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e ->

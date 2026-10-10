@@ -61,13 +61,13 @@
     "damage_classification": "Stasis Grenade Ability Damage"
   },
   "unresolved": [
-    "Server-measured paired input and the explicitly bound Aspect bundle now compose conversion with Glacier base-cooldown and chunk-scalar overrides for every account opting into shared grenade profiles. The verified Compendium source does not provide the hold threshold; .3 seconds is synthetic. Formal subclass/Aspect equipment constraints and shared slot-energy migration remain incomplete.",
+    "Server-measured paired input and the explicitly bound Aspect bundle compose conversion with Glacier base-cooldown and chunk-scalar overrides. The verified Compendium source does not provide the hold threshold; .3 seconds is synthetic. Formal subclass/Aspect equipment constraints remain incomplete.",
     "Projectile damage, geometry, deployment/bolt physics and first burst phase require explicit calibration. Test damage 1, first delay .25 and evenly spaced .175 second sub-delays are synthetic.",
     "Per-shot nearest body-anchor targeting, current line of sight, relation checks at impact, fire-time outgoing snapshots and successful nonlethal damage before Slow are explicit Chorus policies requiring original-game evidence.",
     "A friendly physical collision consumes a projectile without damage or Slow. Unknown owner allegiance suppresses targeting and impacts; original-game friendly interception and absent-caster behavior remain unverified.",
     "Durance is sampled at deployment for construct life and at impact for each Slow. Existing deadlines are preserved. Successful launch, not a damage receipt, ends the initial resistance.",
     "Construct visual assets, subclass assembly, HUD, persistence, enhanced abilities and exotic interactions remain incomplete. Content definitions currently live under test resources.",
-    "Shared grenade profiles opt accounts into the Aspect override; unrelated resources retain their profiles. Per-selection stat sources still target their original pool. Persisted inactive candidate pools follow existing runtime recovery policy; this does not implement original-game energy handling when swapping subclass or grenade."
+    "Arcbolt, Duskfield and Bleak Watcher now pay one shared grenade account. Selection sources provide baseline cooldown/CES; clearing pauses recovery and ordinary scaled grants without erasing balance. This is an explicit Chorus policy, not evidence of original-game swap penalties. Dynamic multi-charge capacity, original subclass/grenade swap reductions and persistence migration remain incomplete."
   ],
   "aspect_recheck": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",

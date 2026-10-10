@@ -96,7 +96,7 @@ class ArmorStatInputsTest {
         h.session.start(0, new RuleEngine.Signal("test:stat", new EffectEvent("owner", "owner", source.origin(), Set.of(), Map.of("grenade", new Measure(30, Unit.STAT_POINT), "melee", new Measure(40, Unit.STAT_POINT)))));
         assertEquals(60, h.points("owner", "grenade")); assertEquals(60, h.points("owner", "melee"));
         assertEquals(.04 * .75 * SolarFragmentStatsTest.chunk(60), h.gain("owner", GRENADE, EnergyGains.Basis.BASE), 1e-12);
-        h.choose("owner", false); assertEquals(60, h.points("owner", "grenade")); assertEquals(.04 * .75, h.gain("owner", GRENADE, EnergyGains.Basis.BASE), 1e-12);
+        h.choose("owner", false); assertEquals(60, h.points("owner", "grenade")); assertEquals(0, h.gain("owner", GRENADE, EnergyGains.Basis.BASE), 1e-12);
         h.equip("owner", Loadout.EMPTY); assertEquals(40, h.points("owner", "grenade")); assertEquals(40, h.points("owner", "melee"));
     }
 }
