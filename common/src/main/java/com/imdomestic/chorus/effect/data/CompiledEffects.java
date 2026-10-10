@@ -558,7 +558,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (definition == null) throw new IllegalArgumentException("Unknown resource definition: " + account.key().resource());
         definition.validate(account);
         double value = resourceCalculation(state, account).map(result -> result.output().value()).orElse(definition.baseRate());
-        return new EffectClock.Rate(value, definition.thresholds());
+        return new EffectClock.Rate(value, definition.thresholds().stream().filter(threshold -> threshold <= account.capacity()).toList());
     }
     public Optional<CalculationProfile.Result> resourceCalculation(EffectState state, ResourceState account) {
         var definition = resources.get(account.key().resource());

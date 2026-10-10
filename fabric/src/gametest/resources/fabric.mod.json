@@ -117,7 +117,8 @@
       "com.imdomestic.chorus.ConstructGameTest",
       "com.imdomestic.chorus.ProjectileEmitterGameTest",
       "com.imdomestic.chorus.BleakWatcherGameTest",
-      "com.imdomestic.chorus.AbilityInputGameTest"
+      "com.imdomestic.chorus.AbilityInputGameTest",
+      "com.imdomestic.chorus.ResourceCapacityGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

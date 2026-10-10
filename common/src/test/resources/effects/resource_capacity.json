@@ -1,0 +1,323 @@
+{
+  "version": "test-resource-capacity",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 1,
+      "initial": 0,
+      "base_rate": 1,
+      "resizable": true,
+      "thresholds": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:capacity",
+      "version": "test-resource-capacity",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "add",
+          "group": {
+            "name": "bonus",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:grenade",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:retain_cost",
+            "cost": "cast_cost",
+            "duration": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "second"
+            }
+          },
+          "as": "right"
+        },
+        {
+          "after": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          },
+          "lifetime": "detached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refund_retained_cost",
+                "cost": "right",
+                "fraction": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                }
+              },
+              "as": "refund"
+            },
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "tags": [
+                "test:refund"
+              ],
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "refund",
+                  "field": "credited"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            },
+            {
+              "type": "chorus:close_retained_cost",
+              "cost": "right"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:capacity_inputs",
+      "rules": [
+        {
+          "id": "init",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "test:energy"
+            }
+          ]
+        },
+        {
+          "id": "resize",
+          "on": "test:resize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:resize_resource",
+                "resource": "test:energy",
+                "target": "victim",
+                "capacity": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "size"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "size",
+                "field": "changed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "target": "victim",
+                  "tags": [
+                    "test:capacity"
+                  ],
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "size",
+                      "field": "capacity"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "recompute",
+          "on": "test:recompute",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "test:capacity",
+                "target": "victim",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "desired"
+            },
+            {
+              "action": {
+                "type": "chorus:resize_resource",
+                "resource": "test:energy",
+                "target": "victim",
+                "capacity": {
+                  "type": "chorus:result",
+                  "binding": "desired",
+                  "field": "value"
+                }
+              },
+              "as": "size"
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_resource",
+              "resource": "test:energy",
+              "target": "victim",
+              "requested": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lost",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_reference",
+                "name": "reason",
+                "is": "resize"
+              },
+              {
+                "type": "chorus:resource_crossed",
+                "resource": "test:energy",
+                "threshold": 2,
+                "direction": "down"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "tags": [
+                "test:discard"
+              ],
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "discarded",
+                  "unit": "charge_fraction"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "three",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "test:energy",
+            "threshold": 3,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "tags": [
+                "test:threshold"
+              ],
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "charge_fraction"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:capacity_bonus",
+      "modifiers": [
+        {
+          "id": "extra",
+          "profile": "test:capacity",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "add",
+          "stacking_key": "test:extra",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "reference": "Synthetic independently stacking capacity source",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

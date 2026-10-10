@@ -508,6 +508,8 @@ T0 为 **0 属性下**的一份充能基础冷却，P 为被动倍率，A0_i 为
 
 资源另可声明 `gain_scalar`（默认 1）及 `gain_scalar_profile`（multiplier → multiplier），在归一化后、gain_profile 前单独求接收系数。查询使用接收者当前来源 / Buff，保留固有系数、覆盖后的系数和完整轨迹；卸下覆盖不改余额。fixed 回能、实付退款、完整充能与被动恢复不经过该阶段。旧内容若已在收益 Profile 内乘 CES，应保留默认 1 或把该步骤迁出，避免双乘。
 
+容量变更另由 `resizable` 声明及显式 `resize_resource` 事务提供：保留绝对能量、缩容裁剪到新上限，单独返回 discarded，不作为消费或退款。时间轴先结算旧上限，未来使用新上限；超出当前上限的已声明阈值在扩容后重新参与调度。多来源先归约完整期望容量，再执行一次变更；当前已有合成 Profile 组合和真实服务器验证，装备／Buff 容量来源的自动协调仍待实现。此能力仅改变共享顺序账户的容量，不能冒充 parallel / linked 回充。
+
 ### 治疗、取整与输出统计
 
 治疗结果分别保留 requested、offered、effective、overheal：requested 为请求值，offered 为经过加载器改量后进入生命写入的量，effective 为实际正生命增量，overheal 只记录超过当时生命容量的部分。取消和减量不能伪装成过量治疗；回调内发生的伤害不能从治疗量中倒扣。原版 float 精度及其他模组进一步改变写入时，不强求 requested = effective + overheal。

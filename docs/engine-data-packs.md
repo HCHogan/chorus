@@ -517,14 +517,32 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 使用 `chorus engine start example:energy`、`chorus engine attach @s example:energy skill` 启动并绑定。该示例每秒恢复半份充能，第一次达到一份时回血；造成命中时尝试消费一份，成功再回血。全部数值都是通用机制演示参数。若已有运行时，先显式 stop；这会清空旧暂态状态。
 
-- 一份充能固定为 1；capacity = 2 不会把 `charge_fraction = 0.1` 翻倍。当前只实现共享能量的顺序回充。capacity / initial 必填，base_rate 默认 0，允许负速率表示持续消耗。capacity 必须为正，initial 和 thresholds 必须在容量内；阈值不允许重复。
+- 一份充能固定为 1；capacity = 2 不会把 `charge_fraction = 0.1` 翻倍。当前只实现共享能量的顺序回充。capacity / initial 必填，base_rate 默认 0，允许负速率表示持续消耗。capacity 必须为正，initial 必须在初始容量内；thresholds 非负、不重复。默认 resizable = false，此时阈值也不得超过声明容量；可变账户允许预先声明未来扩容后才可达的阈值。
 - `rate_profile` 可引用本程序中的 Profile，其输入、输出均须为 `charge_fraction_per_second`。base_rate 是输入，输出是本段积分速率，静态来源与 Buff 的 modifiers 按同一数值管线归约。速率查询携带 resource 引用、resource_value / capacity 测量和 `chorus:resource_rate_query` 标签；归属为账户持有者，不把多来源回能任意算给一把武器。完整示例见 [resource_regeneration.json](../common/src/test/resources/effects/resource_regeneration.json)。
 - 独立的 `gain_profile` 用于 `grant_energy`，输入、输出均须为 `charge_fraction`；资源只声明 rate_profile 不会自动获得一次性收益的缩放。可另声明非负 `gain_scalar`（默认 1）和 `gain_scalar_profile`（输入、输出均为 multiplier），在收益 Profile 前计算当前接收系数。所有已声明的 Profile 均在编译时验证引用和单位。
 - 0、capacity 以及 thresholds 是精确逻辑时间边界；需要监听的中间整格必须声明。`resource_crossed` 默认匹配 self 的账户，支持 up / down；达到后停留在阈值上不会重复触发。一次性入账或消费跨越阈值同样生效。初始化只发 initialized，初值不冒充恢复过程。
 - 初始化返回 value / created；消费返回 paid / after / succeeded，并保留实际成本回执。余额不足时不部分扣款；零成本可以成功但 paid = 0。payment 是规则内唯一的本地标识，完整回执身份另含事件、规则实例及动作 OperationId；同一指令在循环中每次执行也是独立付款，不在不同激活或迭代间复用。
 - `chorus:resource_changed` 只在值变化时发布；`resource_granted` 另带请求 / 入账测量，`resource_spent` 在实际扣费后发布。统一测量为 before / after / delta / capacity，单位 charge_fraction；引用为 resource / reason，布尔值为 changed。恢复、普通入账、完整充能、消费、返还的 reason 分别为 regeneration / grant / full_charge / spend / refund。通用规则通常监听 changed，避免同时监听专项事实而重复发放同一收益。
 - 定义只描述账户，不自动创建所有玩家的资源。DSL 读取、入账或消费未初始化账户会报错；缺失定义、错误 Profile 单位、未声明的反应阈值在加载时拒绝。
-- 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。持久化、动态容量、parallel / linked、多份充能分配策略和持久成本账本尚未实现。
+- 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。显式容量变更见下节；持久化、容量来源自动协调、parallel / linked、多份充能分配策略和持久成本账本尚未实现。
+
+### 显式资源容量变更
+
+资源声明 `"resizable":true` 后，`resize_resource` 可改变已存在账户的上限。定义中的 capacity / initial 仅用于首次创建；重复初始化保留当前上限和余额。默认不可变账户在编译和执行时均拒绝 resize，不能通过数据指令绕开声明。
+
+```json
+{"action":{"type":"chorus:resize_resource","resource":"example:energy",
+  "capacity":{"type":"chorus:constant","value":3,"unit":"charge_fraction"}},
+ "as":"resized"}
+```
+
+target 默认 self；capacity 必须为有限正数，单位 charge_fraction。新余额严格为 `min(旧余额, 新上限)`，不按比例缩放、补满或保留隐藏溢出；账户身份、逻辑时间、已经支付的成本和退款资格不变。三格只是示例，不是全局上限；连续资源也允许小数容量。技能完整充能阈值依旧是一份能量，不随上限改变。
+
+结果提供 before / after / before_capacity / capacity / discarded（charge_fraction）及 changed（上限是否变化）。上限变化发出 resource_capacity_changed；只有裁剪实际改变余额时才另发 resource_changed，两者 reason 均为 resize。事实包含原有 before / after / delta / capacity，并增加 before_capacity、discarded 和 capacity_changed。相同上限返回未变化结果，不重复发事实。缩容不是付款、收益或退款，没有 paid / credited，不创造可退款额度；resource_crossed 可正常观察实际向下裁剪。
+
+时间轴在外部 resize 前先按旧上限结算；后续恢复使用新上限。thresholds 中超出当前上限的值暂不进入下一截止点计算，扩容后恢复生效，0 / 当前上限始终参与时间边界。需要精确监听的中间整格仍应显式声明。缩容后的延迟退款按当时容量裁剪，溢出消耗原退款额度；重新扩容不能取回已经丢弃的余额、满槽期间的恢复时间或退款溢出。
+
+这是显式动作，不会自动监听任意属性变化。多个来源决定容量时，先用 calculate 按接收者查询完整 Profile，再把结果交给 resize；应在来源或选择事务已提交后按内容规则重算，不能各自卸下时盲目设回基础容量。示例 [resource_capacity.json](../common/src/test/resources/effects/resource_capacity.json) 验证两个 +1 来源合成三格、接收者隔离和移除一个来源后保留另一个；真实装备／Aspect 自动协调尚待接入。缩容裁剪是该指令的明确语义，是否适用于某项 D2 换装效果仍需原作校准。
 
 ### 归一化后授予能量
 
@@ -1570,7 +1588,7 @@ runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(Map.of("e
 AbilityUse.Receipt receipt = runtime.useAbility(player, "example:grenade");
 ```
 
-选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。此版资源容量与基础声明仍属于固定目录，切换不会隐式重设它们；有效恢复率及 CES 可通过 rate_profile / gain_scalar_profile 查询选择期来源。D2 手雷示例用零基础值、选择期基准来源和 Aspect 条件实现共用余额及空槽暂停；固定回能和已付款退款仍可显式作用于保留账户，未实现原作换装额外扣减或动态容量迁移。
+选择入口是可信宿主 API；尚未提供子职业、解锁和装备约束的玩家选择校验。变更核对完整 before 及常驻来源投影，预检定义 / 槽位后整体提交选择和 effects。当前首次选择某槽时初始化该槽所有已声明候选技能会用到的资源池，已有账户只校验、不回满；清除选择也保留账户，账户继续按该运行时的资源时间轴推进；角色离线 / 暂停恢复策略尚未接入。槽内共用能量应引用同一个 resource id，不能为每个变体分别建账户后误称为同一冷却。资源基础声明仍属于固定目录，切换不会隐式重设它们；resizable 账户可通过 resize_resource 显式变更容量，有效恢复率及 CES 可通过 rate_profile / gain_scalar_profile 查询选择期来源。D2 手雷示例用零基础值、选择期基准来源和 Aspect 条件实现共用余额及空槽暂停；固定回能和已付款退款仍可显式作用于保留账户，未实现原作换装额外扣减或容量来源自动协调。
 
 use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行时健康；服务端采样 on_ground / sprinting / crouching。请求不带任意目标、施法者、技能定义或客户端运动断言。槽为空、条件不满足、替换冲突、所需基础成本缺失和能量不足返回明确结果，不发 ability_started / ability_used、不执行效果。成功时先提交实际资源扣除，再依次排入 resource_spent / resource_changed（仅有实际支付时）、ability_started、ability_used，on_use 在 ability_used 执行。
 

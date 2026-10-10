@@ -391,6 +391,9 @@ public final class EffectCodecs {
                 .register("chorus:grant_resource", Action.GrantResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.GrantResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.GrantResource::target),
                         values.fieldOf("requested").forGetter(Action.GrantResource::requested), values.optionalFieldOf("scaled").forGetter(Action.GrantResource::scaled)).apply(i, Action.GrantResource::new)))
+                .register("chorus:resize_resource", ResourceCapacityActions.Resize.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("resource").forGetter(ResourceCapacityActions.Resize::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(ResourceCapacityActions.Resize::target),
+                        values.fieldOf("capacity").forGetter(ResourceCapacityActions.Resize::capacity)).apply(i, ResourceCapacityActions.Resize::new)))
                 .register("chorus:initialize_resource", Action.InitializeResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.InitializeResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.InitializeResource::target)
                 ).apply(i, Action.InitializeResource::new)))
@@ -536,16 +539,16 @@ public final class EffectCodecs {
                 Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(EnergyGrantData::numbers)
         ).apply(i, EnergyGrantData::new));
     }
-    private record ResourceData(String id, double capacity, double initial, double baseRate, List<Double> thresholds, java.util.Optional<String> rateProfile, java.util.Optional<String> gainProfile, double gainScalar, java.util.Optional<String> gainScalarProfile) {}
+    private record ResourceData(String id, double capacity, double initial, double baseRate, List<Double> thresholds, java.util.Optional<String> rateProfile, java.util.Optional<String> gainProfile, double gainScalar, java.util.Optional<String> gainScalarProfile, boolean resizable) {}
     public static final Codec<ResourceDefinition> RESOURCE = strict(RecordCodecBuilder.<ResourceData>create(i -> i.group(
             ID.fieldOf("id").forGetter(ResourceData::id), FINITE.fieldOf("capacity").forGetter(ResourceData::capacity),
             FINITE.fieldOf("initial").forGetter(ResourceData::initial), FINITE.optionalFieldOf("base_rate", 0.0).forGetter(ResourceData::baseRate),
             FINITE.listOf().optionalFieldOf("thresholds", List.of()).forGetter(ResourceData::thresholds), ID.optionalFieldOf("rate_profile").forGetter(ResourceData::rateProfile),
             ID.optionalFieldOf("gain_profile").forGetter(ResourceData::gainProfile), FINITE.optionalFieldOf("gain_scalar", 1.0).forGetter(ResourceData::gainScalar),
-            ID.optionalFieldOf("gain_scalar_profile").forGetter(ResourceData::gainScalarProfile)
-    ).apply(i, ResourceData::new)), Set.of("id", "capacity", "initial", "base_rate", "thresholds", "rate_profile", "gain_profile", "gain_scalar", "gain_scalar_profile")).flatXmap(
-            data -> safe(() -> new ResourceDefinition(data.id(), data.capacity(), data.initial(), data.baseRate(), data.thresholds(), data.rateProfile(), data.gainProfile(), data.gainScalar(), data.gainScalarProfile())),
-            value -> DataResult.success(new ResourceData(value.id(), value.capacity(), value.initial(), value.baseRate(), value.thresholds(), value.rateProfile(), value.gainProfile(), value.gainScalar(), value.gainScalarProfile())));
+            ID.optionalFieldOf("gain_scalar_profile").forGetter(ResourceData::gainScalarProfile), Codec.BOOL.optionalFieldOf("resizable", false).forGetter(ResourceData::resizable)
+    ).apply(i, ResourceData::new)), Set.of("id", "capacity", "initial", "base_rate", "thresholds", "rate_profile", "gain_profile", "gain_scalar", "gain_scalar_profile", "resizable")).flatXmap(
+            data -> safe(() -> new ResourceDefinition(data.id(), data.capacity(), data.initial(), data.baseRate(), data.thresholds(), data.rateProfile(), data.gainProfile(), data.gainScalar(), data.gainScalarProfile(), data.resizable())),
+            value -> DataResult.success(new ResourceData(value.id(), value.capacity(), value.initial(), value.baseRate(), value.thresholds(), value.rateProfile(), value.gainProfile(), value.gainScalar(), value.gainScalarProfile(), value.resizable())));
 
     public static Codec<EffectProgram> program(Codec<Value> values, Codec<Condition> conditions, Codec<Action> actions, Codec<CalculationProfile> profiles) {
         Codec<EffectProgram.Instruction> bound = strict(RecordCodecBuilder.create(i -> i.group(

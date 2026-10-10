@@ -30,6 +30,23 @@ public final class Resources {
         return grant(state, count, count);
     }
 
+    /** Explicit account resize: keep charge units, discarding only the amount above the new ceiling. */
+    public record ResizeResult(ResourceState before, ResourceState after, double discarded) implements com.imdomestic.chorus.rule.RuleEngine.ActionResult {
+        public ResizeResult {
+            Objects.requireNonNull(before); Objects.requireNonNull(after);
+            if (!before.key().equals(after.key()) || before.timeMicros() != after.timeMicros() || after.capacity() <= 0
+                    || after.value() != Math.min(before.value(), after.capacity()) || discarded != subtract(before.value(), after.value()))
+                throw new IllegalArgumentException("Invalid resource resize receipt");
+        }
+        public boolean changed() { return before.capacity() != after.capacity(); }
+    }
+    public static ResizeResult resize(ResourceState state, double capacity) {
+        Numbers.nonnegative(capacity, "resource capacity");
+        if (capacity == 0) throw new IllegalArgumentException("Resource capacity must be positive");
+        var after = capacity == state.capacity() ? state : new ResourceState(state.key(), Math.min(state.value(), capacity), capacity, state.timeMicros());
+        return new ResizeResult(state, after, subtract(state.value(), after.value()));
+    }
+
     public record CostReceipt(String operation, ResourceState.Key account, double paid, double refundClaimed) {
         public CostReceipt {
             Objects.requireNonNull(operation);

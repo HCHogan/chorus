@@ -6,7 +6,12 @@ import java.util.*;
 /** One charge is always 1. These definitions currently describe sequential, shared energy accounts. */
 public record ResourceDefinition(String id, double capacity, double initial, double baseRate,
         List<Double> thresholds, Optional<String> rateProfile, Optional<String> gainProfile,
-        double gainScalar, Optional<String> gainScalarProfile) {
+        double gainScalar, Optional<String> gainScalarProfile, boolean resizable) {
+    public ResourceDefinition(String id, double capacity, double initial, double baseRate,
+            List<Double> thresholds, Optional<String> rateProfile, Optional<String> gainProfile,
+            double gainScalar, Optional<String> gainScalarProfile) {
+        this(id, capacity, initial, baseRate, thresholds, rateProfile, gainProfile, gainScalar, gainScalarProfile, false);
+    }
     public ResourceDefinition(String id, double capacity, double initial, double baseRate,
             List<Double> thresholds, Optional<String> rateProfile, Optional<String> gainProfile) {
         this(id, capacity, initial, baseRate, thresholds, rateProfile, gainProfile, 1, Optional.empty());
@@ -24,13 +29,13 @@ public record ResourceDefinition(String id, double capacity, double initial, dou
         var ordered = new TreeSet<Double>();
         for (double threshold : thresholds) {
             Numbers.nonnegative(threshold, "resource threshold");
-            if (threshold > capacity || !ordered.add(threshold)) throw new IllegalArgumentException("Invalid or duplicate resource threshold");
+            if (!resizable && threshold > capacity || !ordered.add(threshold)) throw new IllegalArgumentException("Invalid or duplicate resource threshold");
         }
         thresholds = List.copyOf(ordered);
     }
     public ResourceState initialize(String holder, long time) { return new ResourceState(new ResourceState.Key(holder, id), initial, capacity, time); }
     public void validate(ResourceState state) {
-        if (!id.equals(state.key().resource()) || state.capacity() != capacity) throw new IllegalArgumentException("Resource account disagrees with its definition: " + id);
+        if (!id.equals(state.key().resource()) || state.capacity() <= 0 || !resizable && state.capacity() != capacity) throw new IllegalArgumentException("Resource account disagrees with its definition: " + id);
     }
     public void threshold(double value) {
         Numbers.nonnegative(value, "resource threshold");

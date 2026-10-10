@@ -18,6 +18,13 @@ public final class ResourceFacts {
         // Regeneration is account-owned; a sum of modifiers is not attributed to one arbitrary contributor.
         return change(before, after, new BuffInstance.Origin(after.key().holder(), after.key().resource(), "", ""), "regeneration");
     }
+    public static EffectEvent resized(Resources.ResizeResult result, BuffInstance.Origin origin) {
+        var base = change(result.before(), result.after(), origin, "resize"); var numbers = new HashMap<>(base.numbers());
+        numbers.put("before_capacity", new Measure(result.before().capacity(), Unit.CHARGE));
+        numbers.put("discarded", new Measure(result.discarded(), Unit.CHARGE));
+        var flags = new HashMap<>(base.flags()); flags.put("capacity_changed", result.changed());
+        return new EffectEvent(base.actor(), base.victim(), base.source(), base.tags(), numbers, flags, base.references());
+    }
     public static EffectEvent granted(ResourceResult result, BuffInstance.Origin origin) {
         return granted(result, origin, "grant");
     }
