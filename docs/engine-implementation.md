@@ -880,6 +880,12 @@ Pugilist 的武器实例 / 击杀信用、普通 / 强化、四类武器双倍�
 
 6 项 PugilistTest 与 4 项 AbilityEnergyTest 覆盖武器类别、强化、接收者 / 武器隔离、换技能、空槽 / 无成本 / 零成本、损坏配置、参考与固定收益、溢出及操控刷新 / 卸装 / 精确到期。3 项共享 PugilistGameTest 使用实际玩家容器、开火扣弹、物理投射物死亡和 tick，验证飞行中换技能后入账、无信用 / 空槽不回能、正近战伤害刷新与免疫拒绝。测试玩家显式设为 Survival，避免 GameTest 默认 Creative 攻击越过永久免疫；并核对真实 IMMUNE 回执，不能只靠给实体设置标志推断拒绝。 完整门禁通过：JUnit 634、Fabric 269、NeoForge 279，日志 `/tmp/chorus-pugilist-gate-final.log`；两端发布包构建成功。
 
+### 当前技能能量观察
+
+observe_ability_energy 与回能动作使用相同的当前基础技能路由，返回不可变账户快照；未选槽 / 无成本声明有明确 flags，不能读取虚假零值。已有账户缺失或容量不匹配仍失败。观察不要求 gain_profile，不触发成本支付，不创建账户或发布事实；一份能量恒为 1，顺序多充能以 full_charges=floor(value) 表示。
+
+5 项 AbilityEnergyObservationTest 覆盖缺失与真实空池、1 份 / 满容量端点、后续收益不改旧观察、不同接收者与施放替换、损坏配置、零成本及编解码。与既有 4 项 AbilityEnergyTest 一起通过定向测试，日志 `/tmp/chorus-ability-observation-test.log`。多技能分配内容由后续 Wellspring 装配验收；这一步未扩展为并行充能或跨延迟固定路由。
+
 ### Demolitionist 的回能与补弹隔离
 
 Demolitionist 复用现有 grant_ability_energy、ability_started、refill_magazine、Buff 冷却及有类型的结果分支，不添加特例代码。击杀回能和手雷使用补弹独立：前者使用当前手雷槽与接收方属性 / CES，后者只给当前手持武器转移储备，实际转移后开启三秒冷却。满 / 溢出弹匣与空储备不会新建冷却；原作未明确的每武器冷却、收枪 / 卸装保留、免费施放资格均记录为当前政策。基础手雷回能受能力输入替换影响的问题另有 Bungie 6.3.0.1 修复说明，见 [D2 规则集](d2-ruleset.md#demolitionist)。

@@ -434,6 +434,18 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 [demolitionist.json](../common/src/test/resources/effects/demolitionist.json) 进一步组合两个独立分支：weapon_kill 使用 grant_ability_energy 指向 grenade 槽；已接受的 ability_started 用 grenade_ability、weapon_drawn 和无冷却条件筛选，再执行 refill_magazine。只有结果 applied > 0 才授予 3 秒冷却，不从请求量推测实际补弹。底层不发布 reload_finished，冷却也不限制另一条击杀回能规则。技能原型、数据基准及待校准政策见 [Demolitionist](d2-ruleset.md#demolitionist)。
 
+### 观察当前技能槽能量
+
+`chorus:observe_ability_energy` 接受 slot 和 target（默认 self），按与 grant_ability_energy 相同的基础选择解析账户，绑定不可变的观察结果。不会初始化账户、扣费、运行 gain_profile、发布事实或改变状态。后续回能不改写已有观察；多个技能的分配规则应先观察全部槽，再按这些结果计算各份收益。
+
+结果 flags 为 available / no_selection / no_resource / full；数值字段 value / capacity / missing 的单位是 charge_fraction，full_charges 为 count（总能量向下取整，一份充能恒为 1）。缺失选择或 cost 时分别设置 no_selection / no_resource，available 与 full 均为 false；任何数值读取都会失败，需先用 available 守卫。已有 cost 的账户缺失、容量不匹配或已选定义损坏仍是错误。读取不要求 gain_profile，也不把 cost.amount=0 当成无账户。
+
+```json
+{"action":{"type":"chorus:observe_ability_energy","slot":"chorus_d2:melee"},"as":"melee_before"}
+```
+
+Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceState。它是观察证据，不是冻结路由的支付凭证；之后的 grant_ability_energy 仍解析执行时选择。跨延迟或世界调用的分配需要另外明确路由政策。当前依然只支持顺序充能账户，不能把 full_charges 当作并行充能槽位模型。
+
 ### 按已付成本返还与完整充能
 
 `refund_cost` 引用当前动作序列中已有的成本结果，fraction 的单位为 multiplier、取值范围为 0–1。返还账户直接取自成本回执，不接受另一个 target / resource，避免把别人的支付返到自身账户。如下步骤可放进已有资源来源的规则中：
