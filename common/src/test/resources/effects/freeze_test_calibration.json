@@ -1,0 +1,15 @@
+{
+  "note": "Synthetic threshold, radius, Guardian damage and linear falloff for tests; not measured D2 parameters.",
+  "combatant_threshold": {
+    "value": 100,
+    "unit": "damage"
+  },
+  "shatter_radius": {
+    "value": 4,
+    "unit": "meter"
+  },
+  "guardian_shatter_damage": {
+    "value": 80,
+    "unit": "damage"
+  }
+}

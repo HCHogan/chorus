@@ -104,7 +104,8 @@
       "com.imdomestic.chorus.SuppressionGameTest",
       "com.imdomestic.chorus.SuppressionNativeGameTest",
       "com.imdomestic.chorus.DisplacementGameTest",
-      "com.imdomestic.chorus.SuspendGameTest"
+      "com.imdomestic.chorus.SuspendGameTest",
+      "com.imdomestic.chorus.FreezeGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -118,7 +119,8 @@
       "com.imdomestic.chorus.NativeMotionClientGameTest",
       "com.imdomestic.chorus.HorizontalSpeedClientGameTest",
       "com.imdomestic.chorus.DisplacementClientGameTest",
-      "com.imdomestic.chorus.SuspendClientGameTest"
+      "com.imdomestic.chorus.SuspendClientGameTest",
+      "com.imdomestic.chorus.FreezeClientGameTest"
     ]
   }
 }

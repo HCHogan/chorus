@@ -1,0 +1,16 @@
+{
+  "version":"compendium-2026-10-05",
+  "buffs":[
+    {"definition":{"id":"test:roaming","version":"compendium-2026-10-05","duration":10,"attach":"target","tags":["chorus_d2:roaming_super"]}},
+    {"definition":{"id":"test:oneoff","version":"compendium-2026-10-05","duration":10,"attach":"target","tags":["chorus_d2:freeze_interruptible"]}}
+  ],
+  "abilities":[
+    {"id":"test:super","slot":"chorus_d2:super","tags":["chorus:super_ability"],"on_use":[{"type":"chorus:play_cue","cue":"test:super"}]},
+    {"id":"test:class","slot":"chorus_d2:class","on_use":[{"type":"chorus:play_cue","cue":"test:class"}]}
+  ],
+  "bundles":[{"id":"test:freeze_inputs","rules":[
+    {"id":"roaming","on":"test:roaming","do":[{"type":"chorus:grant_buff","buff":"test:roaming","target":"victim"}]},
+    {"id":"oneoff","on":"test:oneoff","do":[{"type":"chorus:grant_buff","buff":"test:oneoff","target":"victim"}]},
+    {"id":"damage","on":"test:damage","do":[{"type":"chorus:damage","target":"victim","amount":{"type":"chorus:event_number","name":"amount","unit":"damage"},"damage_type":"test:freeze_trigger","tags":["test:freeze_trigger"]}]}
+  ]}]
+}

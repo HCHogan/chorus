@@ -1,0 +1,32 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:shatter_falloff",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "distance",
+          "output_unit": "multiplier",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 1
+              },
+              {
+                "input": 4,
+                "output": 0
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "clamp"
+          }
+        }
+      ]
+    }
+  ]
+}

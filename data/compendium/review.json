@@ -5563,6 +5563,160 @@
         "逻辑伤害类型到正式chorus-d2伤害目录、HUD、子职业/fragment选择与持久化仍未完成",
         "Fabric 已验收玩家/战斗人员分离同步与到期/清除释放；NeoForge 真实客户端和高延迟观感尚未验收"
       ]
+    },
+    {
+      "id": "stasis/freeze",
+      "name": "Freeze",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B8",
+          "text_sha256": "509b1035c55fa2eb5475dd19d4066db6be98966c2cba7073a2cd5ca38768c017"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D8",
+          "text_sha256": "168797cc7db11235a4a09f963b0ba5b1f9bbfcb4f6d96a60cb1ce22c44b1dea4"
+        }
+      ],
+      "scope": "实际接收者与来源分级时长、原版行动和两轴运动控制、Boss例外、地面Super解冻；按当前冻结代次累计真实损失并触发碎冰",
+      "acceptance": [
+        "普通战员六秒、Boss三秒；实际Guardian按Player非Super来源1.35秒、战斗人员或Super来源4.75秒、Roaming状态一秒",
+        "Boss保留减益但不限制行动；其他目标禁止新攻击、技能和运动；地面Guardian的Super例外由服务端状态决定",
+        "冻结结束一次性施放标签；缺失、死亡、未分类和授权拒绝不控制目标",
+        "HP加Chorus护盾实际损失按damage_id及Buff generation累计，旧冻结命中不计入新实例；致死、达到阈值或显式请求碎冰"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/freeze.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "classificationUsesRecipientCasterAndSuperStateInsteadOfWorldMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "realLossThresholdDeduplicatesDamageAndOldGenerationCannotShatterNewFreeze"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "guardianFreezeInterruptsOneOffStatesAndAcceptedGroundedSuperRemovesFreeze"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "frozenCombatantsLoseNativeShotsMeleeAndBothAxesWhileBossesKeepActing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "realGuardianDurationsFollowCasterAndRoamingSuperInsteadOfWorldMode"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "realGuardianGroundedSuperThawsButAirborneSuperAndClassInputAreDenied"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/FreezeClientGameTest.java",
+          "symbol": "runTest"
+        }
+      ],
+      "gaps": [
+        "冻结承伤倍率与基础/偃月近战、One-Two Punch组合未实现",
+        "Breakout技能替换与生命成本、实际Super状态生产者、Slow百层转换、Champion反应未完成",
+        "战斗人员阈值使用必填参数；100伤害仅为合成测试值；阈值排除原版Absorption、忽略重施加及禁止换弹政策待校准",
+        "技能/武器/子职业生产装配、实体效果持久化、视觉/HUD与NeoForge真实客户端尚未验收"
+      ]
+    },
+    {
+      "id": "stasis/shatter",
+      "name": "Shatter",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B9",
+          "text_sha256": "e25ac0db27e81435d8ab3da19cced502d109af461ce808621ef3351a926333b2"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D9",
+          "text_sha256": "f99d825ed647c6c1a158fc6ac71c63cccd4b108d106c433f664f2d35da1fcec2"
+        }
+      ],
+      "scope": "冻结阈值/致死/显式触发与Boss自然到期范围碎冰；历史中心、原施加者信用和邻近冻结目标连锁；361战斗人员基础峰值，独立校准半径与衰减",
+      "acceptance": [
+        "结束本代Freeze后才查询范围并逐目标结算，新碎冰伤害可以触发邻近冻结目标，无全局链深度限制",
+        "优先使用伤害回执记录的位置，原目标移除仍能命中当前位置附近的存活成员",
+        "普通到期和清除不碎冰，Boss自然到期仅一次并标记boss_auto_shatter；卸下施加来源不转移信用",
+        "未知世界回执保留已扣血和已结束状态，停止运行时且不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/freeze.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "explicitShatterUsesOriginalCreditAndActualRecipientTypeForItsCalibratedDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "receiptPositionSurvivesDisappearingVictimAndNoWorldPositionIsReread"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FreezeTest.java",
+          "symbol": "unknownExplosionOutcomeStopsAfterRemovalAndNeverRepeatsWorldDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "bossAutoShattersAtThreeSecondsButOrdinaryExpiryAndCleanseOnlyThaw"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "actualLossReachesThresholdAndShatterDamageCanShatterAnotherFrozenTarget"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "lethalReceiptKeepsBlastCenterAfterOriginalVictimIsRemoved"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FreezeGameTest.java",
+          "symbol": "unknownShatterResultKeepsCommittedHealthAndNeverReplaysExplosion"
+        }
+      ],
+      "gaps": [
+        "实际半径、衰减、PvP伤害和PvE阈值未校准；4米/线性衰减/80玩家伤害是独立合成输入",
+        "保持最初冻结者信用和非友方筛选政策待实测；施加者实体失联后的阵营参照尚未解决",
+        "Stasis Crystal碎裂、具体技能/武器装配、势不可挡眩晕与其他Champion状态未完成",
+        "完整冻结承伤算法、生产内容装配、持久化和视觉反馈未完成"
+      ]
     }
   ]
 }
