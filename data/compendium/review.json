@@ -1951,7 +1951,7 @@
           "text_sha256": "5dd7d0b634a92c03da499a4c2be1dfbdb15e3585580fc5576bba374fd432812e"
         }
       ],
-      "scope": "落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收",
+      "scope": "落点视线内12米最近目标、1秒延迟、逐次10米最近未命中目标、最多4个；实际损失才继续、施放归属与两种模式伤害；纯核心及双加载器真实tick/遮挡/致死/取消/移除验收；另有独立151.5秒/0.75能量定义与手雷属性曲线，Demolitionist真实击杀回能与合成施放支付验收",
       "acceptance": [
         "落地扫描12米内视线可见的最近敌人，1秒后发出电弧",
         "命中后从该目标向10米内最近未命中敌人连锁，最多4个目标",
@@ -2002,14 +2002,28 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArcboltGameTest.java",
           "symbol": "lateWallDoesNotRewriteFirstScanAndSubsequentHopsUseExplicitNoSightPolicy"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/arcbolt_energy.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "grenadePassiveAndGainCurvesUsePublishedValuesAndRoundTripWithContent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DemolitionistGameTest.java",
+          "symbol": "actualWeaponKillsRestoreGrenadeAndAbilityRefillsDoNotTriggerKillClipOrClown"
         }
       ],
       "gaps": [
-        "投掷轨迹、实体碰撞/落地点、释放输入和技能资源装配未接入；当前由测试宿主发出impact事件，以独立LivingEntity表示落点，显式排除它，不是生产投射物",
+        "投掷轨迹、实体碰撞/落地点和释放输入未接入；当前由测试宿主发出impact事件，以独立LivingEntity表示落点，显式排除它，不是生产投射物；能量定义已有独立验收，尚未与落地/连锁组合成技能",
         "521/85来自固定快照，0.1为明确的Minecraft伤害投影；绝对值、Grenade属性、完整等级/目标类别缩放仍待校准；9.0.0.1相对改动不再次乘到固定快照数值",
         "初次锁定不在1秒后重扫或复验视线/距离；后续跳跃无额外延迟/视线要求；从伤害前捕获的目标身体点继续；拒绝或零损失终止且不重选；这些为待原作校准的内容策略",
         "当前实际损失包括HP、Chorus护盾和Absorption；后续跳跃沿原施加者的实时not_allied关系，离线/跨维度阵营快照和D2敌我分类未完成",
-        "基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x及正式伤害类型、表现仍未实现"
+        "基础4次由内容展开并逐次排除本次已命中目标，不是引擎全局循环限制；Lucky Raspberry等额外次数、Jolt/Disrupt和回能、碎片交互未装配；151.5秒/0.75x资源侧已接入，正式伤害类型、投掷与表现仍未实现"
       ]
     },
     {
@@ -3242,6 +3256,117 @@
         "收枪保留、卸装清理、正吸收/护盾损失资格、基础技能及击杀时路由是明确内容政策，需校准换装与临时技能特例",
         "操控已进入数值Profile，真实举枪/收枪/瞄准时长及HUD尚未接入；武器弹量、射速、轨迹和替代技能为合成验收参数",
         "未覆盖全部子职业资源、动态共享池变更、跨重启状态及所有武器/近战信用分类"
+      ]
+    },
+    {
+      "id": "weapon/demolitionist",
+      "name": "Demolitionist",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A62",
+          "text_sha256": "33112a447192a4a9133af701d05cc5048d96821d0390bbf7a41596b5ebb544a8"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C62",
+          "text_sha256": "9c4e25305630104d2cd6510a1de64684c57585a2ea05da83f6587fef22f0407b"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C250",
+          "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
+        }
+      ],
+      "scope": "按当前手雷槽结算普通/强化及四类武器回能；接受手雷使用后当前手持武器从储备补弹、实际转移后3秒冷却；Kill Clip/Clown不触发，真实容器/击杀/施放/tick与未知世界结果验收",
+      "acceptance": [
+        "同持有者及武器实例的weapon_kill信用才能回能；使用接收技能的CES与当前Grenade属性",
+        "旧表10/11/20/22%显式换为当前0属性4/4.4/8/8.8%，基础4%有当前研究说明，其余分支仍需逐类复核",
+        "接受的Grenade使用为手持武器补弹；有限储备实际扣除，不生成弹药、不伪造reload_finished",
+        "3秒补弹冷却、满/溢出弹匣、无/部分储备、切枪与重新装备、免费/拒绝使用和世界异常的时间线",
+        "完成真实Grenade投掷/落地、全部来源资格及冷却边界的原作校准"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/demolitionist.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/arcbolt_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/demolitionist_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "weaponKillUsesGrenadeStatAndRecipientScalarWithInstanceAndCreditIsolation"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "heldWeaponRefillsFromReservesBeforeAbilityBodyWithoutReloadPerkTriggers"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "cooldownIsThreeSecondsPerWeaponAndStowOrReequipDoesNotResetIt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "noTransferDoesNotStartCooldownAndPartialReservesDoNotCreateAmmo"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "rejectedOrNonGrenadeUsesCannotRefillWhileAcceptedFreeGrenadesCan"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "laterUnknownWorldOutcomeKeepsAcceptedRefillAndCooldownWithoutReplaying"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "refillDuringPendingManualReloadDoesNotProduceAFalseCompletion"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DemolitionistTest.java",
+          "symbol": "grenadePassiveAndGainCurvesUsePublishedValuesAndRoundTripWithContent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DemolitionistGameTest.java",
+          "symbol": "actualWeaponKillsRestoreGrenadeAndAbilityRefillsDoNotTriggerKillClipOrClown"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DemolitionistGameTest.java",
+          "symbol": "serverTicksEnforceCooldownAndAlreadyFullManualReloadDoesNotFinishAsReload"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DemolitionistGameTest.java",
+          "symbol": "laterUnknownAbilityWorldOutcomeRetainsPaidEnergyRefillAndCooldown"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "强化/四类双倍武器的当前基准由旧表比例和通用0.4换算推断，仍需原作逐类实测",
+        "只对手持武器补弹、正转移才开冷却、每武器独立且收枪/卸装不清除、免费接受也触发，为明确待校准政策；Grapple/消耗手雷/替换能力特例未逐项验收",
+        "测试施放动作体为合成治疗，Arcbolt的151.5秒/0.75与属性曲线只装配资源侧，尚未连成完整投掷/落地技能",
+        "全部武器原型、弹药存档、换弹动画/HUD及动态技能共享池仍未完成"
       ]
     }
   ]

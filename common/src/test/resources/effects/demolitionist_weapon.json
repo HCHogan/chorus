@@ -1,0 +1,476 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:demolitionist"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:demolitionist",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "reload_perk": {
+            "required": true,
+            "options": {
+              "kill_clip": {
+                "bundle": "chorus_d2:kill_clip"
+              },
+              "clown": {
+                "bundle": "chorus_d2:clown_cartridge"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:shotgun",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:shotgun"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:demolitionist"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:demolitionist",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "reload_perk": {
+            "required": true,
+            "options": {
+              "kill_clip": {
+                "bundle": "chorus_d2:kill_clip"
+              },
+              "clown": {
+                "bundle": "chorus_d2:clown_cartridge"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 30
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:shotgun",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 30
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:demo_inputs",
+      "rules": [
+        {
+          "id": "stat",
+          "on": "test:stat",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:grenade_stat"
+            },
+            {
+              "type": "chorus:update_component",
+              "buff": "chorus_d2:grenade_stat",
+              "component": "points",
+              "op": "set",
+              "value": {
+                "type": "chorus:event_number",
+                "name": "stat",
+                "unit": "stat_point"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "weapon": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "rounds",
+                "unit": "round"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:arcbolt_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:free_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:arcbolt_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:not_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:arcbolt_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:blocked_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:arcbolt_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "if": {
+        "type": "chorus:any",
+        "of": []
+      }
+    }
+  ]
+}

@@ -192,7 +192,7 @@ Class:
 
 Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害、受到伤害、击杀、拾球分别按已提交的事实计算主动收益。具体收益系数、漫游超能系数和目标修正必须逐条校准，不能拿上述 chunk 公式代替完整 Super 生成机制。
 
-当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。手雷 / 职业技能 / Super 的全部资源、其余回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
+当前可执行装配见 [threaded_spike_energy.json](../common/src/test/resources/effects/threaded_spike_energy.json)：独立 gain_profile 使用 0.8 CES 和 F(s)，rate_profile 使用 P(s)/145.2。近战属性由接收者的 melee_stat 数值组件提供，未绑定时按 0 属性；属性变化前的时间先按旧速率结算。BASE / REFERENCE 收益经 gain_profile，Threaded Spike 自身返回 / 接回表显式使用 FIXED，避免把 CES 或属性再次乘入。可选 CMS 由明确查询标签与 trigger_multiplier 提供，测试的 0.5 仅为合成输入，未校准到某个具体职业模组。Arcbolt 手雷资源与 Demolitionist 已另行接入；其余手雷 / 职业技能 / Super 的资源、其他回能 perk 生产者、属性配装 UI、恢复加速通道叠加与技能切换路由仍待装配；这一片段不代表整个资源系统已经完成 D2 校准。
 
 ## Pugilist
 
@@ -205,6 +205,20 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 操控分支要求持有者的 melee_damage 且实际 HP / Shield / Absorption 正损失；武器击杀本身不授予操控。各已装备实例获得自己的 35 点增益，同实例重施加刷新 3 秒，收枪保留、卸装清除。以上资格、换装 / 刷新政策需原作边界校准，尤其 glaive / 持续伤害的信用分类；不把免疫 / 取消接触当作造成伤害。操控目前只进入 weapon_handling 数值 Profile，尚未映射到真实举枪 / 收枪 / 瞄准动画时长。
 
 [pugilist_weapon.json](../common/src/test/resources/effects/pugilist_weapon.json) 通过真实玩家容器、普通开火命令、扣弹与物理投射物死亡驱动内容；弹量、射速、飞行及测试伤害均为合成参数。覆盖仍为 partial，尚需完整物品 / 属性 / 子职业装配、操控表现、逐类回能实测和状态持久化。
+
+## Demolitionist
+
+固定 CSV `Weapon Perks!A62/C62` 与保存的原表 HTML `A63/C63` 记录两部分效果：武器击杀给予手雷能量；使用手雷补充弹匣，补弹间隔 3 秒。回能分支采用与 Pugilist 相同的四类武器名单及普通 / 强化比例。[当前研究](https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/)直接说明普通 Demolitionist 在 0 属性、CES=1 时为 4%；强化 4.4%、四类武器 8% / 8.8% 是按旧表比例换算，仍需逐类测量。来源与置信度分开保存在 [demolitionist-energy.json](../data/d2-research/2026-10-10/demolitionist-energy.json)。
+
+[demolitionist.json](../common/src/test/resources/effects/demolitionist.json) 的击杀分支匹配持有者、武器实例和 weapon_kill 信用，使用 grant_ability_energy 读取当前基础手雷槽。[Bungie 6.3.0.1](https://www.bungie.net/7/en/News/article/hotfix_6_3_0_1) 确认 Pugilist、Demolitionist、Wellspring 在能力输入被替换时仍应给予能量，例子包括持剑 / 偃月时的近战；这支持保留基础账户，但并未定义所有临时能力或共享池的切换政策。
+
+资源侧新增 [arcbolt_energy.json](../common/src/test/resources/effects/arcbolt_energy.json)：固定 CSV Arc N28 的 151.5 秒与 CES=0.75，手雷属性组件 grenade_stat 与近战组件分开，复用相同的主动函数和被动拟合数值。例如 100 手雷属性时普通武器一次击杀为 `0.04×2.25×0.75=0.0675`，强化 Shotgun 为 `0.088×2.25×0.75=0.1485`。资源定义可以独立验证，不代表 Arcbolt 已有完整投掷 / 落地技能；当前 Arcbolt 连锁内容仍由宿主提供 impact 事件。
+
+补弹监听已接受、已付费后的 ability_started，并要求 grenade_ability 标签和本武器当前手持。refill_magazine 从储备转移至当前有效容量，保留已有溢出；实际转移大于零后才授予按武器实例保存的 3 秒冷却。满弹匣、已有溢出或空储备不启动冷却；部分储备可以部分补充并启动冷却。收枪 / 卸装不清除未到期冷却；另一把武器有自己的冷却。免费但已接受的手雷也触发，条件失败 / 能量不足 / 非手雷使用不触发。**手持要求、正转移计时、每武器独立及免费施放等边界是当前明确的内容策略，原表没有逐项说明，仍需原作校准。**
+
+固定 CSV C250 区分 Refill 与 Reload：这里的补弹不发布 reload_finished，所以不会激活 Kill Clip，也不会为 Clown Cartridge 抽随机数。已开始的手动换弹若到期时已满，只结束其计划，不伪造实际换弹完成。后续技能世界动作结果未知时，已付能量、储备转移及冷却保留，不自动回滚或重放。
+
+[demolitionist_weapon.json](../common/src/test/resources/effects/demolitionist_weapon.json) 用实际玩家容器 / 开火 / 击杀 / 施放入口验证联动，但技能动作体是合成治疗，武器容量与射速也是测试参数；尚未完成真实投掷、Grapple / 消耗手雷等全部资格、武器原型、动画与持久化。原作循环仍允许，3 秒仅限制这条补弹规则，不限制击杀回能或全局事件。
 
 ## Cure 恢复与冷却
 
@@ -581,7 +595,7 @@ transcendence（20 秒）
 | 首次攻击延迟 | 1 秒 | 锁定身份与攻击快照，detached 延迟 1 秒 |
 | 连锁 | 每次 10 米内最近的未命中敌人，最多伤害 4 个 | 每跳新查询，从伤害前保存的身体点起算，显式排除已命中身份 |
 | PvE / PvP 伤害 | 521 / 85 | 每目标 52.1 / 8.5 Minecraft HP；0.1 缩放尚未校准 |
-| 基础冷却 / chunk scalar | 151.5 秒 / 0.75x | 尚未装配到技能资源 |
+| 基础冷却 / chunk scalar | 151.5 秒 / 0.75x | arcbolt_energy.json 已装配独立资源与手雷属性曲线；仍未与真实投掷 / 落地连成技能 |
 
 “造成伤害后”目前用实际 HP + Chorus 护盾 + Absorption 损失大于 0 表示。未命中 / 被取消 / 免疫 / 零损失会结束本次连锁，不重新选择替代目标。初始目标锁定后不会重查视线或距离；后续跳跃在同一逻辑时刻结算且不要求视线。这些边界没有在源单元格给出足够细节，是明确的 Chorus 内容选择，不能当成已核对的原作行为。
 

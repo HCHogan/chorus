@@ -1,0 +1,179 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:demolitionist_cooldown",
+        "version": "compendium-2026-10-05",
+        "duration": 3,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "refresh": "reset",
+        "on_stow": "keep"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:demolitionist",
+      "rules": [
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:grenade",
+              "amount": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:fusion_rifle"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:glaive"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:shotgun"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:sniper_rifle"
+                      }
+                    ]
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0.08,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0.04,
+                    "unit": "charge_fraction"
+                  }
+                },
+                "enhanced": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:fusion_rifle"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:glaive"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:shotgun"
+                      },
+                      {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:sniper_rifle"
+                      }
+                    ]
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 0.088,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 0.044,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "grenade_refill",
+          "on": "chorus:ability_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:grenade_ability"
+              },
+              {
+                "type": "chorus:weapon_drawn"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:demolitionist_cooldown"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refill_magazine"
+              },
+              "as": "refill"
+            },
+            {
+              "if": {
+                "type": "chorus:compare",
+                "op": "gt",
+                "left": {
+                  "type": "chorus:result",
+                  "binding": "refill",
+                  "field": "applied"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "round"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:demolitionist_cooldown"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

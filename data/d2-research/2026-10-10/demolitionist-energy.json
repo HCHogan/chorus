@@ -1,0 +1,34 @@
+{
+  "retrieved": "2026-10-10",
+  "compendium": {
+    "sheet": "Weapon Perks",
+    "snapshot_cells": [
+      "A62",
+      "C62",
+      "C250"
+    ],
+    "original_html_cells": [
+      "A63",
+      "C63"
+    ],
+    "saved_html": "data/compendium/assets/2026-10-10/sheets/1662574278.html.gz"
+  },
+  "receiver": {
+    "sheet": "Arc",
+    "snapshot_cell": "N28",
+    "base_cooldown_seconds": 151.5,
+    "chunk_scalar": 0.75
+  },
+  "current_basis": {
+    "source_url": "https://www.reddit.com/r/DestinyTheGame/comments/1u6czmi/the_final_armor_ability_stats_update_monument_of/",
+    "normal_stat_zero": 0.04,
+    "normal_confidence": "reported_by_primary_research",
+    "legacy_multiplier": 0.4,
+    "enhanced_and_weapon_family_confidence": "inferred_from_compendium_ratios",
+    "note": "Apply current recipient CES and Grenade stat curve after converting the old quoted baseline. Do not treat all four branches as separately measured."
+  },
+  "override_evidence": {
+    "source_url": "https://www.bungie.net/7/en/News/article/hotfix_6_3_0_1",
+    "scope": "Official fix confirms energy gains still work while ability input is overridden, including Sword/Glaive melee. It does not define all future replacement or shared-pool policies."
+  }
+}
