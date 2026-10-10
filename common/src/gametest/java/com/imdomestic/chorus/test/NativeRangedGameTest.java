@@ -32,8 +32,10 @@ public class NativeRangedGameTest {
         final GameTestHelper h;final ServerLevel level;final MinecraftEffectRuntime runtime;
         final List<Mob> mobs=new ArrayList<>();
         Harness(GameTestHelper h)throws Exception{
+            this(h,EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("native_ranged")).getOrThrow());
+        }
+        Harness(GameTestHelper h,CompiledEffects program){
             this.h=h;level=h.getLevel();
-            var program=EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("native_ranged")).getOrThrow();
             var world=new MinecraftWorldActions(level,id->{var entity=level.getEntity(UUID.fromString(id));return entity instanceof LivingEntity living?living:null;},_ -> level.damageSources().generic(),(_,_) -> true,_ -> {});
             runtime=MinecraftEffectRuntime.install(level,program,EffectState.empty(),new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),world::apply,MinecraftEffectRuntime::nativeSource);
         }
@@ -169,14 +171,16 @@ public class NativeRangedGameTest {
             var victim=t.mob(EntityTypes.COW,12,2);victim.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
             var skeleton=t.mob(EntityTypes.SKELETON,2,2);bow(skeleton);skeleton.setItemSlot(EquipmentSlot.HEAD,new ItemStack(Items.IRON_HELMET));
             skeleton.performRangedAttack(victim,1);var old=t.shots(skeleton).getFirst();
-            // Calibrate the old arrow's trajectory only; collision, damage and lifetime remain vanilla.
+            // Drive this already-launched arrow through vanilla collision explicitly; AI below uses real world ticks.
             old.setPos(victim.getX()-3,victim.getY()+0.6,victim.getZ());old.setNoGravity(true);old.setDeltaMovement(1,0,0);
-            var seen=new HashSet<UUID>();seen.add(old.getUUID());var active=new boolean[]{true};float[] afterOld={100};
-            t.restrict(skeleton);skeleton.setNoAi(false);skeleton.setTarget(victim);
+            var seen=new HashSet<UUID>();seen.add(old.getUUID());var active=new boolean[]{true};
+            t.restrict(skeleton);
+            for(int i=0;i<10&&!old.isRemoved();i++)old.tick();
+            h.assertTrue(victim.getHealth()<100,"pre-restriction arrow failed to hit under restriction");float afterOld=victim.getHealth();
+            skeleton.setNoAi(false);skeleton.setTarget(victim);
             h.onEachTick(()->{if(active[0])t.shots(skeleton).forEach(p->seen.add(p.getUUID()));});
-            h.runAfterDelay(10,()->{try{h.assertTrue(victim.getHealth()<100,"pre-restriction arrow failed to hit");afterOld[0]=victim.getHealth();}catch(Exception|Error e){active[0]=false;t.close();throw e;}});
             h.runAfterDelay(70,()->{try{
-                h.assertValueEqual(seen.size(),1,"autonomous restricted skeleton emitted new arrows");h.assertValueEqual(victim.getHealth(),afterOld[0],"restricted AI dealt further arrow damage");
+                h.assertValueEqual(seen.size(),1,"autonomous restricted skeleton emitted new arrows");h.assertValueEqual(victim.getHealth(),afterOld,"restricted AI dealt further arrow damage");
                 t.report(skeleton,MinecraftNativeActions.Outcome.RESTRICTED);t.allow(skeleton);
             }catch(Exception|Error e){active[0]=false;t.close();throw e;}});
             h.runAfterDelay(135,()->{active[0]=false;try(t){h.assertTrue(seen.size()>1,"autonomous AI did not resume shooting");t.settled();h.succeed();}});

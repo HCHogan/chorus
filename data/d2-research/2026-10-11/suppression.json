@@ -4,7 +4,7 @@
   "effects": [
     "Suppression"
   ],
-  "implementation_status": "partial; ability gates and explicit active-buff lifetimes; native AI disorientation and champion stun are not implemented",
+  "implementation_status": "partial; ability gates, explicit active-buff lifetimes and native ranged attack gates for explicitly classified rank-and-file/elite; full disorientation and champion stun are not implemented",
   "sources": [
     {
       "kind": "compendium_snapshot",
@@ -64,14 +64,16 @@
     "reapplication": "MAX_REMAINING, preserves the first source while the instance exists; exact original-game cross-source refresh attribution is not calibrated.",
     "duration": "Shared buff defaults to 10 s; the acceptance applier explicitly provides 10 / 5 by PVE/PVP mode. Each future producer must provide its own actual duration.",
     "cancelled_work": "Only lifetime-owned work disappears. Detached actions and committed cost remain. No implicit energy refund, restoration of old abilities or global chain cut.",
-    "guardian_weapons": "This shared status has no weapon fire/reload denial; native acceptance checks both remain usable."
+    "guardian_weapons": "This shared status has no weapon fire/reload denial; native acceptance checks both remain usable.",
+    "combatant_fire": "Native ranged_attack requires chorus:combatant plus chorus_d2:rank_and_file or chorus_d2:elite, excludes chorus:guardian and chorus_d2:champion/miniboss/boss even under conflicting tags. Native adapter observes current instance/type tags. Unclassified Minecraft mobs are not guessed to be rank-and-file; production tier mapping and NPC Chorus weapon inputs remain pending."
   },
   "synthetic_acceptance": {
     "active_abilities": "Two synthetic Super / Transcendence lifetimes; periodic native healing stands in for ongoing work, with synthetic energy and weapon parameters. No full original Super is claimed.",
-    "world_pvp_duration": "Actual 5-second runtime expiry and a newly paid cast after expiry."
+    "world_pvp_duration": "Actual 5-second runtime expiry and a newly paid cast after expiry.",
+    "world_pve_duration": "Actual 10-second suppression on an explicitly elite-tagged skeleton; native projectile emission is rejected before expiry and succeeds after expiry. A second world case checks tier exclusions, changed tags and cleanse."
   },
   "remaining": [
-    "Native rank-and-file / elite AI disorientation and firing restrictions",
+    "Full rank-and-file / elite disorientation behavior (ranged fire restriction is implemented for covered vanilla attacks); production tier mapping and custom-mod/NPC weapon attack paths",
     "Overload Champion stun and eligibility",
     "All actual Super / Transcendence / movement ability lifetimes and cleanup",
     "Suppression grenade and all other real producers, exceptions and durations",

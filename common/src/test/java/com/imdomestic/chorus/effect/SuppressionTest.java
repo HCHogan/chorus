@@ -76,4 +76,26 @@ class SuppressionTest {
         var h=new Harness(EffectState.Mode.PVE);h.event("suppress",CASTER,"owner");h.event("clear",CASTER,"owner");assertFalse(h.has(SUPPRESSED,"owner"));assertEquals(AbilityUse.Outcome.ACCEPTED,h.use("super").outcome());
         assertEquals(h.program.program(),EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE,h.program).getOrThrow()).getOrThrow().program());
     }
+    static ActionGate.Decision ranged(Harness h,String holder,Set<String> tags){
+        var input=new EffectEvent(holder,"target",new BuffInstance.Origin(holder,"minecraft:ranged_attack","","",tags),Set.of("chorus:native_ranged_attack"),Map.of());
+        return h.program.checkAction(h.state(),ActionGate.Kind.RANGED_ATTACK,ActionGate.Phase.START,input);
+    }
+    @Test void onlyExplicitMinorAndEliteCombatantsLoseNativeShootingAndExcludedTiersWin()throws Exception{
+        var h=new Harness(EffectState.Mode.PVE);h.event("suppress",CASTER,"owner");
+        for(String tier:List.of("chorus_d2:rank_and_file","chorus_d2:elite")){
+            var tags=Set.of("chorus:combatant",tier);var denied=ranged(h,"owner",tags);assertFalse(denied.allowed());assertEquals(CASTER.origin(),denied.denials().getFirst().origin());
+            assertTrue(ranged(h,"other",tags).allowed());assertTrue(ranged(h,"owner",Set.of(tier)).allowed());
+            for(String exclusion:List.of("chorus:guardian","chorus_d2:champion","chorus_d2:miniboss","chorus_d2:boss")){
+                assertTrue(ranged(h,"owner",Set.of("chorus:combatant",tier,exclusion)).allowed(),exclusion);
+                assertTrue(ranged(h,"owner",Set.of("chorus:combatant",exclusion)).allowed(),exclusion);
+            }
+        }
+        assertTrue(ranged(h,"owner",Set.of()).allowed());assertTrue(ranged(h,"owner",Set.of("chorus:combatant")).allowed());
+    }
+    @Test void recipientShootingUsesCurrentTierAndReturnsAtExpiryOrExplicitCleanse()throws Exception{
+        var h=new Harness(EffectState.Mode.PVE);h.event("suppress",CASTER,"owner");var minor=Set.of("chorus:combatant","chorus_d2:rank_and_file");
+        assertFalse(ranged(h,"owner",minor).allowed());assertTrue(ranged(h,"owner",Set.of("chorus:combatant","chorus_d2:boss")).allowed());assertFalse(ranged(h,"owner",minor).allowed());
+        h.until(9_999_999);assertFalse(ranged(h,"owner",minor).allowed());h.until(10_000_000);assertTrue(ranged(h,"owner",minor).allowed());
+        h.event("suppress",CASTER,"owner");assertFalse(ranged(h,"owner",minor).allowed());h.event("clear",CASTER,"owner");assertTrue(ranged(h,"owner",minor).allowed());
+    }
 }

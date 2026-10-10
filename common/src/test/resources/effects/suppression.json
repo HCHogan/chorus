@@ -8,7 +8,22 @@
   ],
   "bundles":[
     {"id":"chorus_d2:suppression_active","scope":"buff",
-      "action_gates":[{"id":"abilities","action":"ability_use"}],
+      "action_gates":[
+        {"id":"abilities","action":"ability_use"},
+        {"id":"combatant_fire","action":"ranged_attack","if":{"type":"chorus:all","of":[
+          {"type":"chorus:event_source_tag","tag":"chorus:combatant"},
+          {"type":"chorus:any","of":[
+            {"type":"chorus:event_source_tag","tag":"chorus_d2:rank_and_file"},
+            {"type":"chorus:event_source_tag","tag":"chorus_d2:elite"}
+          ]},
+          {"type":"chorus:not","of":{"type":"chorus:any","of":[
+            {"type":"chorus:event_source_tag","tag":"chorus:guardian"},
+            {"type":"chorus:event_source_tag","tag":"chorus_d2:champion"},
+            {"type":"chorus:event_source_tag","tag":"chorus_d2:miniboss"},
+            {"type":"chorus:event_source_tag","tag":"chorus_d2:boss"}
+          ]}}
+        ]}}
+      ],
       "rules":[
         {"id":"interrupt_existing","on":"chorus:buff_gained","if":{"type":"chorus:own_buff"},"do":[
           {"type":"chorus:remove_buffs_with_tag","tag":"chorus_d2:suppression_interruptible"}

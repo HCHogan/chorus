@@ -1517,7 +1517,7 @@ Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_
 
 Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、溺尸、女巫、幻术师、掠夺者、猪灵、雪傀儡、羊驼和凋灵（含侧头及无目标坐标发射）；另覆盖烈焰人、恶魂、潜影贝、守卫者光束、旋风人 Shoot、监守者 SonicBoom 和末影龙扫射火球。判定在新弹体创建、发射音效、弩弹消耗或光束伤害之前进行。烈焰人近战和其他 AI 不被整体关闭。Goal / Brain 的持续检查会正常结束受限蓄力，保留原版停止时的姿态 / 冷却处理；拒绝的龙扫射转回盘旋。不会补发受限期间错过的攻击。
 
-查询的 actor 是攻击 Mob，victim 是入口提供的目标；凋灵坐标发射没有实体目标，victim 为空。来源 owner 为攻击者，source 为原版攻击标识，weapon / ability 为空；不凭手持物猜 Chorus 信用。来源标签包含当前实体类型标签、实体自身标签和宿主明确提供的 `chorus:combatant`，不自动猜 D2 等级。事件带 `chorus:native_ranged_attack`，references 提供 `native_attack / entity_type`，flags 提供当前 `on_ground / sprinting / crouching`。每次尝试重新读取当前标签和已结算 Buff。
+查询的 actor 是攻击 Mob，victim 是入口提供的目标；凋灵坐标发射没有实体目标，victim 为空。来源 owner 为攻击者，source 为原版攻击标识，weapon / ability 为空；不凭手持物猜 Chorus 信用。来源标签包含当前实体类型标签、实体自身标签和宿主明确提供的 `chorus:combatant`，不自动猜 D2 等级。事件带 `chorus:native_ranged_attack`，references 提供 `native_attack / entity_type`，flags 提供当前 `on_ground / sprinting / crouching`。每次尝试重新读取当前标签和已结算 Buff。这些原版查询使用 `start` 阶段；蓄力检查复核尚未发射攻击的资格，没有额外创建 Chorus 技能施放或 accepted 事实。
 
 `MinecraftEffectRuntime.nativeActionReport()` 保留最近一次查询的不可变输入、逻辑时间、Decision 或查询失败原因；它只用于诊断，不发布新事件，也不无限积累实体引用。查询错误拒绝本次尝试并记录运行时失败。运行时失败后查询沿用最后已提交状态，其他没有命中限制的生物仍可射击；没有把查询错误伪装成有效拒绝声明。
 

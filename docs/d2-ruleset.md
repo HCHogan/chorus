@@ -923,11 +923,15 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 当前状态禁止受影响者的新 `ability_use`，在替换后的定义资格阶段拒绝，不支付资源。它不添加玩家武器开火或手动换弹限制。中断采用明确内容约定：活动技能的 Buff 带 `chorus_d2:suppression_interruptible` 标签。压制授予 / 重授予时，统一移除目标身上全部这类实例；压制期间随后授予的匹配状态也会结束。每个技能自己的 ended 规则负责清理，生命周期绑定的计时器 / 延迟动作终止，已脱离来源的动作继续；不会从 Buff 名称猜测 Super，也不移除没有该标签的其他增益。
 
+原版生物另有独立 `ranged_attack` 禁止条件：来源明确带 `chorus:combatant`，并带 `chorus_d2:rank_and_file` 或 `chorus_d2:elite`。`chorus:guardian` 和 `chorus_d2:champion / miniboss / boss` 优先排除，即使同时含较低等级标签。原版适配器提供 Mob 角色和当前实体 / 类型标签，不把未标记生物猜成普通目标；这些标签是明确的内容分类约定，不改变原版伤害的归属。该分支不增加玩家 `weapon_fire / weapon_reload` 限制。原版发射、光束、Goal / Brain 接线见 [原版远程攻击资格](engine-data-packs.md#原版生物的远程攻击资格)；不取消旧弹体、DOT 或点燃链。
+
+两项新增共享 SuppressionNativeGameTest 以真实骷髅和明确等级标签验证普通 / 精英拒绝射击、其余等级与未分类目标排除、施加者归属、同一 Buff 下动态换级、驱散，以及世界时钟十秒到期后实际新箭生成。测试用等级标签进行 D2 适配，不声称 Minecraft 骷髅天然对应某个 D2 等级；过载勇士的眩晕也不能由这项射击限制替代。
+
 默认 Buff 为 10 秒，[suppression_inputs.json](../common/src/test/resources/effects/suppression_inputs.json) 的验收施加器通过 apply_status 明确给出 PvE 10 / PvP 5 秒，真实效果生产者也必须提供自己对应的时长。资格拒绝、死亡或缺失不授予状态，因此不触发中断。重复施加当前采用 MAX_REMAINING，同实例保留最初来源；跨来源归属、刷新边界和持续技能精细中断时机仍待原作校准。压制解除不返还旧技能成本，也不会自动恢复已结束技能，新的施放单独支付。
 
-5 项 SuppressionTest 验证两种活动状态的结束、附着 / 脱离工作、其他状态与接收者隔离、拒绝施加、5 / 10 秒精确到期、重施加、后续活动状态、显式清除和 Codec。2 项共享 SuppressionGameTest 使用真实玩家、普通命令与装备容器，验证周期回血确实停止、detached 回血继续、能量不被拒绝请求消耗、玩家仍可扣弹开火和完成换弹，以及实际五秒到期后新技能付费生效。测试中的 Super / Transcendence、回血、能量及武器数值都是合成验收输入，未实现完整原作技能。
+7 项 SuppressionTest 验证两种活动状态的结束、附着 / 脱离工作、其他状态与接收者隔离、拒绝施加、5 / 10 秒精确到期、重施加、后续活动状态、显式清除和 Codec。2 项共享 SuppressionGameTest 使用真实玩家、普通命令与装备容器，验证周期回血确实停止、detached 回血继续、能量不被拒绝请求消耗、玩家仍可扣弹开火和完成换弹，以及实际五秒到期后新技能付费生效。测试中的 Super / Transcendence、回血、能量及武器数值都是合成验收输入，未实现完整原作技能。
 
-覆盖保持 partial：普通 / 精英 AI 失能与禁止射击、过载勇士眩晕、全部压制来源及特例、真实 Super / Transcendence 原型与持续耗能、宿主移动模式、HUD / 客户端提示、生产装配和持久化仍未完成。上述共享状态还不能代表完整压制行为。
+覆盖保持 partial：普通 / 精英迷失方向等完整 AI 失能、过载勇士眩晕、全部压制来源及特例、真实 Super / Transcendence 原型与持续耗能、宿主移动模式、HUD / 客户端提示、生产装配和持久化仍未完成。原版射击路径已接线，其他模组自定义攻击、NPC Chorus 武器发射装配及正式 D2 敌人等级目录仍待完成。上述共享状态还不能代表完整压制行为。
 
 ## Marksman's Dodge（神射手闪身）：换弹分支
 

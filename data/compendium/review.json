@@ -5374,13 +5374,15 @@
           "text_sha256": "f1167619a86e890b24906c524cac1d89d76d2a261d56a7b8006cbbf7845ab22f"
         }
       ],
-      "scope": "共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；实际玩家能量、周期回血停止、武器操作与到期后重新施放验收",
+      "scope": "共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；明确普通/精英分类的原版远程攻击限制、动态分类、驱散和实际十秒到期恢复；实际玩家能量、武器与重新施放验收",
       "acceptance": [
         "状态施加须通过宿主资格检查；拒绝、死亡或缺失回执不结束旧技能或限制新技能",
         "结束带suppression_interruptible标签的全部活动实例，保留其他增益与其他目标；压制期间后续授予的该类状态也结束",
         "被拒绝的技能不扣能量；附着工作停止，detached工作和已付成本保留，不自动退款或恢复旧技能",
         "测试施加器按PvE/PvP明确提供10/5秒，精确到期恢复资格；重施加取剩余时长最大值为明确待校准政策",
-        "双加载器实际玩家命令验证活动状态停止、玩家开火与换弹仍可使用，以及五秒压制结束后新施放独立付费"
+        "双加载器实际玩家命令验证活动状态停止、玩家开火与换弹仍可使用，以及五秒压制结束后新施放独立付费",
+        "明确带combatant与rank_and_file或elite标签的持有者禁止ranged_attack；guardian/champion/miniboss/boss优先排除，缺失等级不推断",
+        "双加载器原版骷髅验收实际射击拒绝、原施加者、当前等级变化、驱散及PvE十秒世界时钟到期恢复；玩家weapon_fire/reload不新增限制"
       ],
       "evidence": [
         {
@@ -5420,10 +5422,31 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuppressionGameTest.java",
           "symbol": "fiveSecondPvpSuppressionExpiresWithoutResumingTheInterruptedSuper"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "onlyExplicitMinorAndEliteCombatantsLoseNativeShootingAndExcludedTiersWin"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "recipientShootingUsesCurrentTierAndReturnsAtExpiryOrExplicitCleanse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuppressionNativeGameTest.java",
+          "symbol": "nativeSuppressionUsesExplicitCurrentTierAndDoesNotDisableBossOrChampionShooting"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuppressionNativeGameTest.java",
+          "symbol": "tenSecondPveSuppressionExpiresOnTheWorldClockAndRestoresNativeFire"
         }
       ],
       "gaps": [
-        "普通/精英战斗人员AI失能及禁止射击、过载勇士眩晕尚未实现；不能把仅技能行动限制当作完整压制",
+        "普通/精英禁止射击已接原版远程攻击入口；迷失方向等完整AI失能、过载勇士眩晕及模组自定义攻击入口尚未实现",
+        "敌人等级采用明确实体/类型标签，未分类目标不猜普通；正式D2敌人目录与NPC Chorus武器发射装配仍待实现",
         "活动Super与Transcendence使用合成Buff及能量/回血/武器输入验证；完整技能原型、持续能量消耗、动画与宿主移动模式尚待装配",
         "共享Buff默认10秒，PvP五秒由验收施加器显式提供；压制手雷及全部真实来源和特例时长未逐项接入",
         "取剩余时间最大值、同实例保留最初来源及标签驱动的中断边界为当前内容政策，原作刷新与跨施加者归属仍待校准",

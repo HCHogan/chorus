@@ -97,7 +97,8 @@
       "com.imdomestic.chorus.ActionGateGameTest",
       "com.imdomestic.chorus.NativeRangedGameTest",
       "com.imdomestic.chorus.BuffRemovalGameTest",
-      "com.imdomestic.chorus.SuppressionGameTest"
+      "com.imdomestic.chorus.SuppressionGameTest",
+      "com.imdomestic.chorus.SuppressionNativeGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
