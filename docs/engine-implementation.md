@@ -914,6 +914,12 @@ surplus.json 在查询期从当前基础三槽读取完整充能份数，求和�
 
 surplus_weapon.json 是合成属性消费者：叠加属性、限幅、按测试曲线换成秒数，再由既有服务端手动换弹管线保存时长和完整轨迹。8 项 SurplusTest 覆盖全部普通档位、额外份数 / 部分充能、来源隔离、选择与缺失、强化输入、限幅顺序和微秒截止点。3 项共享 SurplusGameTest 验证真实成本支付、同武器 Wellspring 物理击杀填满技能后提高装填属性，以及服务器 tick 下旧换弹不变 / 新换弹重新取值、储备守恒。完整门禁通过：JUnit 669、Fabric 278、NeoForge 288，两端发布包成功；日志 `/tmp/chorus-surplus-gate-final.log`。稳定性 / 操控仍只有数值输出，测试秒数不代表某个真实 D2 原型，覆盖保持 partial。
 
+### 有序数值 Profile 管线
+
+CalculationPipeline 连接有类型的 Profile 序列，calculate_pipeline 提供只读 DSL 入口。各段使用同一状态与明确上下文，输入值沿序列传递；分段 Result 保留独立版本、来源、分组与因子。withBase / withoutFactors 只用已有数学输入重算，下游限幅 / 曲线也重新执行，不读取之后的状态。重复 Profile 是显式重复应用，不折叠或拒绝。
+
+5 项 CalculationPipelineTest 与 3 项 CalculationPipelineActionTest 覆盖单位衔接、不可变结果、重复段、零因子、下游重算、回调身份检查、上下文隔离和跨延迟消费；与已有单 Profile 查询测试一起通过，日志 `/tmp/chorus-pipeline-test.log`。武器换弹消费者的接线在下一阶段验收。
+
 ## 后续覆盖工作
 
 1. 在已固定并逐格核对的全 Compendium 来源上，继续人工区分效果、说明、表头和公式，扩展 `data/compendium/review.json`。当前只审阅了首批 43 个条目，不把导入完成当成逐条分析完成。

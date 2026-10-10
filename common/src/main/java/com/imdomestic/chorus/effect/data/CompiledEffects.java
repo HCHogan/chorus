@@ -944,6 +944,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             List<NumericContribution> frozen) {
         return calculateEvent(state, holder, queryEvent(state, query), profileId, base, frozen);
     }
+    /** All profiles query the same immutable state and explicit context; only the numerical input advances. */
+    public CalculationPipeline.Result calculatePipeline(EffectState state, String holder, EffectEvent query, List<String> profileIds, Measure base) {
+        var pipeline = CalculationPipeline.resolve(profileIds, profiles);
+        settled(state); var event = queryEvent(state, query);
+        return pipeline.calculate(base, (profile, input) -> calculateEvent(state, holder, event, profile.id(), input, List.of()));
+    }
     private CalculationProfile.Result calculateEvent(EffectState state, String holder, RuleEngine.Event event, String profileId, Measure base,
             List<NumericContribution> frozen) {
         settled(state);

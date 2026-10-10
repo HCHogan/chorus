@@ -302,6 +302,15 @@ public final class EffectCodecs {
                         Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(CalculationActions.Calculate::numbers),
                         TARGET.optionalFieldOf("victim").forGetter(CalculationActions.Calculate::victim)
                 ).apply(i, CalculationActions.Calculate::new)))
+                .register("chorus:calculate_pipeline", CalculationActions.CalculatePipeline.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.listOf().validate(p -> p.isEmpty() ? DataResult.error(() -> "Empty calculation pipeline") : DataResult.success(p)).fieldOf("profiles").forGetter(CalculationActions.CalculatePipeline::profiles),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(CalculationActions.CalculatePipeline::target),
+                        values.fieldOf("input").forGetter(CalculationActions.CalculatePipeline::input),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(CalculationActions.CalculatePipeline::origin),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(CalculationActions.CalculatePipeline::tags),
+                        Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(CalculationActions.CalculatePipeline::numbers),
+                        TARGET.optionalFieldOf("victim").forGetter(CalculationActions.CalculatePipeline::victim)
+                ).apply(i, CalculationActions.CalculatePipeline::new)))
                 .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("amount").forGetter(Action.CaptureDamage::amount), ID.fieldOf("damage_type").forGetter(Action.CaptureDamage::damageType),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.CaptureDamage::tags),

@@ -1582,3 +1582,17 @@ actor、flags、references、impact 仍来自触发上下文；Buff 生命周期
 结果是不可变快照，允许跨 `after` / projectile 捕获。先 calculate 再延迟会保留原结果；把 calculate 放进回调会重新读取届时的修饰。`evaluate:on_use/on_hit` 只控制伤害快照的采样方式，独立 calculate 按当前查询求值所有合格贡献，不自动延迟或构造伤害快照。需要影响状态时间时，应先明确原作究竟按发射、施加还是其他时机取样。
 
 Continuity 的 fragment Bundle 只贡献该次查询提供的 extension，生产者只声明已知基础时间与对应扩展，不直接检查 fragment。采用 MAX 避免重复装配同一 fragment 叠加。该入口可表达 Sever 10+5 / 5+2.5，也能表达 Suspend 6+2 / 3+1 / 2+1；后者目前只有数值查询验证，不代表 Suspend 的位移、控制、Boss 和勇士机制已经实现。
+
+### 有序 Profile 组合查询
+
+`chorus:calculate_pipeline` 接受非空 profiles 列表，其余 target / input / origin / tags / numbers / victim 与 calculate 相同。先解析所有 Profile，检查输入与相邻段的单位，再按列表顺序执行。每段使用同一已提交状态、持有者和显式查询上下文；上一段输出成为下一段基础输入，不改写事件 numbers，也不自动加入中间值测量。
+
+```json
+{"action":{"type":"chorus:calculate_pipeline",
+ "profiles":["example:reload_stat","example:rifle_reload_seconds","example:reload_animation"],
+ "input":{"type":"chorus:constant","value":30,"unit":"stat_point"}},"as":"reload_query"}
+```
+
+结果 input / value 分别采用首段输入和末段输出单位，可像普通 calculate 结果一样跨延迟 / 投射物保留。Java 的 CalculationPipeline.Result.steps 按发生顺序保留每段完整 Result，包括 Profile / 版本、输入、贡献归约、置信度、命名因子与阶段轨迹。同名阶段或重复 Profile 不合并；明确列两次就执行两次。未知 Profile、空列表、单位断裂在编译时拒绝。
+
+withBase / withoutFactors 只重算已保存的数学输入，不重新读取状态、表达式或调用原收集器。上游变化会逐段重新送入下游曲线 / 限幅；移除因子按命名匹配各段，使用重算而非除法，所以零倍率也能处理。已选贡献的置信度跨段汇总。这里是有限顺序查询；没有改变事件队列、合法效果循环或单个攻击快照的结算协议。
