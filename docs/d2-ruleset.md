@@ -917,6 +917,18 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 每步接受时取样、下一步在上一步完成反应后读取，以及额外弹数组采用 MAX，均是明确的 Chorus 内容策略；与 Timelost Magazine 等其他装填数量效果的原作组合待校准。验收用真实装备词条、普通手动换弹命令及两名玩家，武器基础一发 / 五发容量 / 0.2 秒首次 / 0.1 秒重复都是合成参数。完整武器目录、动画 / 按键、弹药持久化和所有 reload perk 的原作逐发资格仍未完成。
 
 
+## Suppression（压制）：行动限制与活动状态结束
+
+[suppression.json](../common/src/test/resources/effects/suppression.json) 提供共享压制 Buff 和技能行动门槛。2026-10-11 抓取的[原表 Void B10 / D10](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1907852650&range=D10)与固定快照 B8 / D8 一致：压制持续 10 [5] 秒；Guardian 退出活动 Super / Transcendence，期间不能施放技能；普通和精英战斗人员另有失能及禁止射击，过载勇士受眩晕。[Bungie 4.0.0.1](https://www.bungie.net/7/en/News/article/51110)提供历史上的中断技能、禁止技能 / 移动模式及战斗人员射击说明，不作为当前全部时长的数值依据。原始 HTML、坐标和哈希保存于 [suppression.json 资料记录](../data/d2-research/2026-10-11/suppression.json)。
+
+当前状态禁止受影响者的新 `ability_use`，在替换后的定义资格阶段拒绝，不支付资源。它不添加玩家武器开火或手动换弹限制。中断采用明确内容约定：活动技能的 Buff 带 `chorus_d2:suppression_interruptible` 标签。压制授予 / 重授予时，统一移除目标身上全部这类实例；压制期间随后授予的匹配状态也会结束。每个技能自己的 ended 规则负责清理，生命周期绑定的计时器 / 延迟动作终止，已脱离来源的动作继续；不会从 Buff 名称猜测 Super，也不移除没有该标签的其他增益。
+
+默认 Buff 为 10 秒，[suppression_inputs.json](../common/src/test/resources/effects/suppression_inputs.json) 的验收施加器通过 apply_status 明确给出 PvE 10 / PvP 5 秒，真实效果生产者也必须提供自己对应的时长。资格拒绝、死亡或缺失不授予状态，因此不触发中断。重复施加当前采用 MAX_REMAINING，同实例保留最初来源；跨来源归属、刷新边界和持续技能精细中断时机仍待原作校准。压制解除不返还旧技能成本，也不会自动恢复已结束技能，新的施放单独支付。
+
+5 项 SuppressionTest 验证两种活动状态的结束、附着 / 脱离工作、其他状态与接收者隔离、拒绝施加、5 / 10 秒精确到期、重施加、后续活动状态、显式清除和 Codec。2 项共享 SuppressionGameTest 使用真实玩家、普通命令与装备容器，验证周期回血确实停止、detached 回血继续、能量不被拒绝请求消耗、玩家仍可扣弹开火和完成换弹，以及实际五秒到期后新技能付费生效。测试中的 Super / Transcendence、回血、能量及武器数值都是合成验收输入，未实现完整原作技能。
+
+覆盖保持 partial：普通 / 精英 AI 失能与禁止射击、过载勇士眩晕、全部压制来源及特例、真实 Super / Transcendence 原型与持续耗能、宿主移动模式、HUD / 客户端提示、生产装配和持久化仍未完成。上述共享状态还不能代表完整压制行为。
+
 ## Marksman's Dodge（神射手闪身）：换弹分支
 
 2026-10-11 原表 `Class Abilities!B9/D9/N9` 说明：闪身换弹全部武器、拾取 15 米内弹药，并在动画期间移除 PvE 投射物追踪和对玩家的辅助瞄准；基础冷却 42 秒、Chunk Scalar 1。对应固定 CSV 坐标为 `B6/D6/N6`。原表 `Weapon Perks!C251`（CSV C250）将 Marksman's Dodge 与 Dragon's Shadow 列为触发换弹 perk 的 Reload。[来源记录](../data/d2-research/2026-10-11/marksman-dodge.json) 保存原始 HTML、哈希、坐标和实现边界。

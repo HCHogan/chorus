@@ -40,6 +40,9 @@ public class WeaponReloadGameTest {
         final List<EffectState> beforeHeals = new ArrayList<>(); boolean failHeal;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, java.util.function.Consumer<com.google.gson.JsonObject> edit) throws Exception {
+            this(h,edit,EffectState.Mode.PVE);
+        }
+        Harness(GameTestHelper h, java.util.function.Consumer<com.google.gson.JsonObject> edit,EffectState.Mode mode) throws Exception {
             this.h = h; var fragments = new ArrayList<EffectProgram>();
             for (String fixture : List.of("weapons", "kill_clip")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
                 var data = JsonParser.parseReader(reader).getAsJsonObject(); if (fixture.equals("weapons")) edit.accept(data);
@@ -48,7 +51,7 @@ public class WeaponReloadGameTest {
             var program = CompiledEffects.link(fragments);
             var world = new MinecraftWorldActions(h.getLevel(), id -> players.stream().filter(p -> p.getUUID().toString().equals(id)).findFirst().orElse(null),
                     _ -> h.getLevel().damageSources().generic(), (_, _) -> true, _ -> {});
-            runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
+            runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withMode(mode), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 if (request.command() instanceof HealingCommand heal) { heals.add(heal); beforeHeals.add(state()); }
                 var receipt = world.apply(request);
                 if (failHeal && request.command() instanceof HealingCommand) throw new IllegalStateException("Injected unknown reload reaction outcome");

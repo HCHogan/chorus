@@ -1,0 +1,25 @@
+{
+  "version":"compendium-2026-10-05",
+  "buffs":[
+    {"definition":{
+      "id":"chorus_d2:suppression","version":"compendium-2026-10-05","duration":10,
+      "attach":"target","refresh":"max_remaining","tags":["chorus_d2:suppression","chorus_d2:void_debuff"]
+    },"bundle":"chorus_d2:suppression_active"}
+  ],
+  "bundles":[
+    {"id":"chorus_d2:suppression_active","scope":"buff",
+      "action_gates":[{"id":"abilities","action":"ability_use"}],
+      "rules":[
+        {"id":"interrupt_existing","on":"chorus:buff_gained","if":{"type":"chorus:own_buff"},"do":[
+          {"type":"chorus:remove_buffs_with_tag","tag":"chorus_d2:suppression_interruptible"}
+        ]},
+        {"id":"interrupt_new","on":"chorus:buff_gained","if":{"type":"chorus:all","of":[
+          {"type":"chorus:event_tag","tag":"chorus_d2:suppression_interruptible"},
+          {"type":"chorus:target_is","left":"self","right":"victim"}
+        ]},"do":[
+          {"type":"chorus:remove_buffs_with_tag","tag":"chorus_d2:suppression_interruptible"}
+        ]}
+      ]
+    }
+  ]
+}

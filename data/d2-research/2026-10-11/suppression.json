@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "effects": [
+    "Suppression"
+  ],
+  "implementation_status": "partial; ability gates and explicit active-buff lifetimes; native AI disorientation and champion stun are not implemented",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Void B8",
+        "Void D8"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "file": "data/d2-research/2026-10-11/suppression-void-source.html.gz",
+      "retrieved_at": "2026-10-10T16:46:51.362564+00:00",
+      "html_sha256": "41bab954de21b13fb3fa731edaf68f068910679e968db111f8e514e71f72b3d1",
+      "gzip_sha256": "6e09e0fab8e6f060eed818c252a784665a74b7b47fc843578cece44da49dc9ed",
+      "coordinate_system": "original_google_sheet",
+      "entries": {
+        "Suppression": {
+          "label": "B10",
+          "description": "D10",
+          "snapshot_description": "D8",
+          "normalized_text_matches_snapshot": true
+        }
+      }
+    },
+    {
+      "kind": "bungie_official_update",
+      "url": "https://www.bungie.net/7/en/News/article/51110",
+      "support": "Historical 4.0.0.1 description: interrupts active abilities and prevents abilities/movement modes; combatants cannot fire. Not a current numerical specification."
+    }
+  ],
+  "confirmed_from_compendium": {
+    "pve_seconds": 10,
+    "pvp_seconds": 5,
+    "guardian_interruption": [
+      "Super",
+      "Transcendence"
+    ],
+    "guardian_restrictions": [
+      "Grenade",
+      "Melee",
+      "Class",
+      "Super",
+      "Movement Abilities",
+      "Transcendence"
+    ],
+    "disoriented_combatants": [
+      "Rank-and-File",
+      "Elite"
+    ],
+    "champion": "Overload stun"
+  },
+  "current_content_policies": {
+    "active_state_contract": "An interruptible ongoing ability is a buff tagged chorus_d2:suppression_interruptible. Suppression removes all such instances on application, reapplication and later gains. This tag is a content contract, not inferred from a name.",
+    "reapplication": "MAX_REMAINING, preserves the first source while the instance exists; exact original-game cross-source refresh attribution is not calibrated.",
+    "duration": "Shared buff defaults to 10 s; the acceptance applier explicitly provides 10 / 5 by PVE/PVP mode. Each future producer must provide its own actual duration.",
+    "cancelled_work": "Only lifetime-owned work disappears. Detached actions and committed cost remain. No implicit energy refund, restoration of old abilities or global chain cut.",
+    "guardian_weapons": "This shared status has no weapon fire/reload denial; native acceptance checks both remain usable."
+  },
+  "synthetic_acceptance": {
+    "active_abilities": "Two synthetic Super / Transcendence lifetimes; periodic native healing stands in for ongoing work, with synthetic energy and weapon parameters. No full original Super is claimed.",
+    "world_pvp_duration": "Actual 5-second runtime expiry and a newly paid cast after expiry."
+  },
+  "remaining": [
+    "Native rank-and-file / elite AI disorientation and firing restrictions",
+    "Overload Champion stun and eligibility",
+    "All actual Super / Transcendence / movement ability lifetimes and cleanup",
+    "Suppression grenade and all other real producers, exceptions and durations",
+    "Original refresh, attribution and active-state timing calibration",
+    "HUD, client feedback, persistence and production assembly"
+  ]
+}

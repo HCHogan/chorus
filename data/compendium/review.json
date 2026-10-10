@@ -5355,6 +5355,80 @@
         "50ms采样可能漏掉一tick以内的冲刺变化；着地/空中/碰撞等D2动作边界、传送与完整客户端预测尚未建模",
         "多人远程服与NeoForge真实客户端未验收；生产装配、表现/HUD及存档未完成"
       ]
+    },
+    {
+      "id": "void/suppression",
+      "name": "Suppression",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B8",
+          "text_sha256": "858c847b742b96bd9dd93f2739fbd0c7e10469ca79af5d73db307d722aa70947"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D8",
+          "text_sha256": "f1167619a86e890b24906c524cac1d89d76d2a261d56a7b8006cbbf7845ab22f"
+        }
+      ],
+      "scope": "共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；实际玩家能量、周期回血停止、武器操作与到期后重新施放验收",
+      "acceptance": [
+        "状态施加须通过宿主资格检查；拒绝、死亡或缺失回执不结束旧技能或限制新技能",
+        "结束带suppression_interruptible标签的全部活动实例，保留其他增益与其他目标；压制期间后续授予的该类状态也结束",
+        "被拒绝的技能不扣能量；附着工作停止，detached工作和已付成本保留，不自动退款或恢复旧技能",
+        "测试施加器按PvE/PvP明确提供10/5秒，精确到期恢复资格；重施加取剩余时长最大值为明确待校准政策",
+        "双加载器实际玩家命令验证活动状态停止、玩家开火与换弹仍可使用，以及五秒压制结束后新施放独立付费"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/suppression.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/suppression_inputs.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "suppressionEndsActiveSuperAndTranscendenceButKeepsUnrelatedBuffsAndDetachedEffects"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "exactPveAndPvpExpiryRestoresEligibilityWithoutRestoringOldActiveAbilities"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "rejectedStatusCannotInterruptOrRestrictAndOtherRecipientsRemainIndependent"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SuppressionTest.java",
+          "symbol": "repeatedApplicationsExtendAndLateInterruptibleStatesCannotBypassExistingSuppression"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuppressionGameTest.java",
+          "symbol": "actualSuppressionStopsActiveAbilityTicksButAllowsWeaponsAndDetachedEffects"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SuppressionGameTest.java",
+          "symbol": "fiveSecondPvpSuppressionExpiresWithoutResumingTheInterruptedSuper"
+        }
+      ],
+      "gaps": [
+        "普通/精英战斗人员AI失能及禁止射击、过载勇士眩晕尚未实现；不能把仅技能行动限制当作完整压制",
+        "活动Super与Transcendence使用合成Buff及能量/回血/武器输入验证；完整技能原型、持续能量消耗、动画与宿主移动模式尚待装配",
+        "共享Buff默认10秒，PvP五秒由验收施加器显式提供；压制手雷及全部真实来源和特例时长未逐项接入",
+        "取剩余时间最大值、同实例保留最初来源及标签驱动的中断边界为当前内容政策，原作刷新与跨施加者归属仍待校准",
+        "状态HUD、客户端操作提示、生产装配和持久化未完成"
+      ]
     }
   ]
 }
