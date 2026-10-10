@@ -1,0 +1,1021 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:mobility",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "add",
+          "group": {
+            "name": "bonus",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:handling_animation",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "animation",
+          "operation": "multiply",
+          "group": {
+            "name": "animation",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:arc_kill_progress",
+        "version": "compendium-2026-10-05",
+        "duration": 6,
+        "attach": "holder",
+        "refresh": "reset",
+        "max_stacks": 4
+      },
+      "bundle": "chorus_d2:arc_kill_progress_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:amplified",
+        "version": "compendium-2026-10-05",
+        "duration": 15,
+        "attach": "holder",
+        "refresh": "max_remaining",
+        "tags": [
+          "chorus:amplified",
+          "chorus_d2:amplified"
+        ]
+      },
+      "bundle": "chorus_d2:amplified_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:speed_booster_windup",
+        "version": "compendium-2026-10-05",
+        "duration": 2.5,
+        "attach": "holder",
+        "refresh": "none"
+      },
+      "bundle": "chorus_d2:speed_booster_windup_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:speed_booster",
+        "version": "compendium-2026-10-05",
+        "duration": 2,
+        "attach": "holder",
+        "refresh": "max_remaining",
+        "tags": [
+          "chorus_d2:speed_booster"
+        ]
+      },
+      "bundle": "chorus_d2:speed_booster_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:arc_intrinsic",
+      "rules": [
+        {
+          "id": "arc_kill",
+          "on": "chorus:kill",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:event_entity_observed",
+                "target": "victim"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_entity",
+                    "target": "victim"
+                  },
+                  "as": "victim"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "victim",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:arc_kill_progress",
+                      "stacks": {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:result_flag",
+                          "binding": "victim",
+                          "field": "player"
+                        },
+                        "then": {
+                          "type": "chorus:constant",
+                          "value": 2,
+                          "unit": "count"
+                        },
+                        "else": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:any",
+                            "of": [
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:miniboss"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "type",
+                                    "tag": "chorus_d2:miniboss"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:boss"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "type",
+                                    "tag": "chorus_d2:boss"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "entity",
+                                    "tag": "chorus_d2:champion"
+                                  },
+                                  {
+                                    "type": "chorus:observed_entity_tag",
+                                    "binding": "victim",
+                                    "source": "type",
+                                    "tag": "chorus_d2:champion"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 4,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "victim",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:elite"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "victim",
+                                  "source": "type",
+                                  "tag": "chorus_d2:elite"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 2,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:compare",
+                        "op": "ge",
+                        "left": {
+                          "type": "chorus:buff_count",
+                          "buff": "chorus_d2:arc_kill_progress"
+                        },
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 4,
+                          "unit": "count"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:grant_buff",
+                          "buff": "chorus_d2:amplified"
+                        },
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:arc_kill_progress"
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:arc_kill_classification_unresolved"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:arc_kill_classification_unresolved"
+                }
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:arc_damage"
+              }
+            ]
+          }
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:arc_kill_progress"
+            }
+          ],
+          "if": {
+            "type": "chorus:own_source"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:arc_kill_progress_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:arc_kill_progress"
+            }
+          ],
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:amplified_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:buff_gained",
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "sample",
+              "event": "chorus_d2:amplified_sample",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            },
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "self"
+              },
+              "as": "state"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "movement_observed"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "state",
+                            "field": "sprinting"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "passenger"
+                            }
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "sleeping"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:speed_booster"
+                                }
+                              },
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:speed_booster_windup"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:speed_booster_windup"
+                            }
+                          ]
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:speed_booster_windup"
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:speed_booster_windup"
+                    },
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:amplified_movement_unresolved"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:amplified"
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:speed_booster_windup"
+                }
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:own_buff"
+          }
+        },
+        {
+          "id": "sample",
+          "on": "chorus_d2:amplified_sample",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "self"
+              },
+              "as": "state"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "movement_observed"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "state",
+                            "field": "sprinting"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "passenger"
+                            }
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "sleeping"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:speed_booster"
+                                }
+                              },
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:speed_booster_windup"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:speed_booster_windup"
+                            }
+                          ]
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:speed_booster_windup"
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:speed_booster_windup"
+                    },
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:amplified_movement_unresolved"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:amplified"
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:speed_booster_windup"
+                }
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "sample"
+          }
+        },
+        {
+          "id": "end",
+          "on": "chorus:buff_ended",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:speed_booster_windup"
+            }
+          ],
+          "if": {
+            "type": "chorus:own_buff"
+          }
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:amplified"
+            }
+          ],
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          }
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "amplified_mobility",
+          "profile": "chorus_d2:mobility",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "add",
+          "stacking_key": "chorus_d2:amplified_mobility",
+          "value": {
+            "type": "chorus:constant",
+            "value": 50,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Arc D4, original Arc D6; grouping and lifecycle boundaries are explicit Chorus content policies.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "amplified_handling",
+          "profile": "chorus_d2:weapon_handling",
+          "stage": "perks",
+          "group": "handling",
+          "op": "add",
+          "stacking_key": "chorus_d2:amplified_handling",
+          "value": {
+            "type": "chorus:constant",
+            "value": 40,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium CSV Arc D4, original Arc D6; grouping and lifecycle boundaries are explicit Chorus content policies.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "amplified_handling_animation",
+          "profile": "chorus_d2:handling_animation",
+          "stage": "animation",
+          "group": "animation",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:amplified_handling_animation",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.05,
+            "unit": "delta"
+          },
+          "reference": "Compendium CSV Arc D4, original Arc D6; grouping and lifecycle boundaries are explicit Chorus content policies.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "amplified_resistance",
+          "profile": "chorus_d2:incoming",
+          "stage": "resistance",
+          "group": "resistance",
+          "op": "resist",
+          "stacking_key": "chorus_d2:amplified_resistance",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.15,
+              "unit": "resistance"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "resistance"
+            }
+          },
+          "reference": "Compendium CSV Arc D4, original Arc D6; grouping and lifecycle boundaries are explicit Chorus content policies.",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:combatant"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_source_tag",
+                  "tag": "chorus:guardian"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:speed_booster_windup_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "ready",
+          "on": "chorus:buff_ended",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:amplified"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "state"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "state",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "state",
+                        "field": "alive"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "state",
+                        "field": "movement_observed"
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "state",
+                                "field": "sprinting"
+                              },
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:result_flag",
+                                  "binding": "state",
+                                  "field": "passenger"
+                                }
+                              },
+                              {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:result_flag",
+                                  "binding": "state",
+                                  "field": "sleeping"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:speed_booster"
+                            }
+                          ],
+                          "else": []
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "chorus:emit",
+                          "event": "chorus_d2:speed_booster_movement_unresolved"
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:speed_booster_movement_unresolved"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:own_buff",
+            "reason": "expired"
+          }
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:speed_booster_windup"
+            }
+          ],
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:speed_booster_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:buff_gained",
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "sample",
+              "event": "chorus_d2:speed_booster_sample",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.05,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            }
+          ],
+          "if": {
+            "type": "chorus:own_buff"
+          }
+        },
+        {
+          "id": "sample",
+          "on": "chorus_d2:speed_booster_sample",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "self"
+              },
+              "as": "state"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "state",
+                    "field": "movement_observed"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "state",
+                            "field": "sprinting"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "passenger"
+                            }
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "state",
+                              "field": "sleeping"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:refresh_buff",
+                          "buff": "chorus_d2:speed_booster",
+                          "duration": {
+                            "type": "chorus:constant",
+                            "value": 2,
+                            "unit": "second"
+                          }
+                        }
+                      ],
+                      "else": []
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:speed_booster_movement_unresolved"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:speed_booster"
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:speed_booster_windup"
+                }
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "sample"
+          }
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:speed_booster"
+            }
+          ],
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          }
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "speed_booster_resistance",
+          "profile": "chorus_d2:incoming",
+          "stage": "resistance",
+          "group": "resistance",
+          "op": "resist",
+          "stacking_key": "chorus_d2:speed_booster_resistance",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.15,
+              "unit": "resistance"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "resistance"
+            }
+          },
+          "reference": "Compendium CSV Arc D4, original Arc D6; grouping and lifecycle boundaries are explicit Chorus content policies.",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:combatant"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_source_tag",
+                  "tag": "chorus:guardian"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

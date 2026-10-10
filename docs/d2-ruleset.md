@@ -560,7 +560,27 @@ Slice 当前按状态施加动作前的配装计算时间；装备 fragment 后�
 
 7 项 RollingStormTest 验证条件矩阵、Amplified 精确到期、外来来源隔离、另一把武器、收枪 / 卸装、溢出回能、先 hit 后 kill 的组合顺序，以及放电后重新开始下一轮。3 项共享 RollingStormGameTest 使用真实玩家容器、普通 fire / reload / ability 命令和实体死亡，验证七次合成武器击杀达到十层、普通近战消费后延迟放电击杀，以及收枪期间强化 Amplified 击杀和无 weapon_kill 信用的反例。
 
-**仍为 partial。** `rolling_storm_weapon.json` 中五发弹匣、10 点伤害、射速 / 换弹时间及一秒 test:amplified 均为验收输入。Amplified 的实际获得、完整持续时间和其他收益未实现；系统来源由测试宿主显式安装，尚无玩家系统自动装配。Bolt Charge 的空间范围、数值映射与迁移缺口仍适用。这些测试资源未进入发布 jar。
+**仍为 partial。** `rolling_storm_weapon.json` 中五发弹匣、10 点伤害、射速 / 换弹时间及一秒 test:amplified 均为验收输入。另已用下述共享 Amplified 定义的获得 / 到期验证每次 2 层 / 1 层的切换；旧 Bolt Charge 合成夹具仅在该组合测试内统一版本，不表示生产数据版本已经全部迁移。系统来源仍由测试宿主显式安装，尚无玩家系统自动装配。Bolt Charge 的空间范围、数值映射与迁移缺口仍适用。这些测试资源未进入发布 jar。
+
+### Amplified 与 Speed Booster
+
+`amplified.json` 提供共享状态、Arc 内在击杀计数和移动状态驱动的计时规则；`amplified_movement.json` 提供需要显式校准参数的原版属性投影。来源为固定 CSV Arc B4 / D4，本轮重新抓取的原表为 B6 / D6，文本已核对一致并保留 HTML 与哈希，见 [来源记录](../data/d2-research/2026-10-11/amplified.json)。官方 [8.2.0](https://www.bungie.net/7/en/News/Article/destiny_update_8_2_0) 支持增幅的 15% PvE 战斗人员减伤及降低敌人瞄准精度；官方 [Season 21 调整](https://www.bungie.net/7/en/News/Article/s21_abilities_tuning) 与 [7.1.0](https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0) 支持极速的 2.5 秒启动和停止后的 2 秒余留。这些历史改动只用于交叉核对，不重复叠加到固定快照。
+
+每名 Arc 持有者显式绑定一个 `chorus_d2:arc_intrinsic` 来源。只有其自身的 `chorus:arc_damage` 击杀推进共享计数：普通目标记 1 个四分之一进度、精英与 Guardian 记 2、Miniboss 及以上记 4。每次合格击杀重置 6 秒窗口；达到 4 后消费计数并获得 15 秒 Amplified。分类来自击杀回执中的 player / entity tag / type tag，未知或不可用发出 `arc_kill_classification_unresolved`，不重查尸体来假定它是普通目标。当前将已观察但未标记的非玩家当普通目标、champion 归入 4 层，均需由正式敌人映射与原作边界复核。
+
+Amplified 使用 `chorus:amplified` / `chorus_d2:amplified` 标签，提供 +50 Mobility、+40 Handling 和 0.95 操控动画倍率的查询贡献。Handling 沿用现有 weapon_handling 的 100 点上限；Mobility 当前只是点数归约，完整移动曲线与上限装配仍待完成。外部星相可直接授予同一共享状态，重施加取剩余时间最大值，不用短应用缩短较长状态；达到阈值后的新击杀重新累计，累计满后才再次授予。计数溢出丢弃、重施加取长及子职业卸下只清理未完成计数，是显式内容政策，尚非原作逐帧校准结论。测试输入 bundle 不代表正式星相。
+
+获得 Amplified 时立即观察当前移动标志，此后每 50 ms 观察一次。确认冲刺且未骑乘 / 睡眠时开始一个 2.5 秒 windup；停止、观察缺失或宿主未提供移动信息则取消 windup。观察未知会发诊断，不会补造“停止冲刺”的事实。windup 到期时再次确认仍有 Amplified 且当前仍在冲刺，才授予独立的 Speed Booster。已经冲刺后再获得 Amplified 也能开始计时；重复授予不重启已有 windup。采样间隔以内的短中断可能无法被观察，本实现不等同于完整输入状态机。
+
+Speed Booster 有自己的周期计时器，每次确认仍在冲刺就将剩余时间刷新至至少 2 秒。Amplified 结束会取消未完成 windup，但不会删除已经获得的 Speed Booster；继续冲刺可持续保持，停止后从最后一次确认冲刺起余留 2 秒。缺失移动证据时不续时，明确缺失 / 死亡的实体清理状态；正常死亡事实也清理计数、Amplified、windup 和 Speed Booster。它们均是同接收者的共享状态，不串到原施加者或别的角色。
+
+两个状态分别提供 15% resistance 贡献，因此同时生效时 `damage × 0.85 × 0.85`。资格要求明确的 `chorus:combatant` 来源标签、没有 `chorus:guardian`，且模式为 PvE；PvP、环境 / 未分类来源不会自动获得这项减伤。默认 Minecraft 原版伤害来源不推断 D2 敌人分类，正式适配器仍须提供这些标签；世界验收用真实生物攻击、明确的来源标签和实际 HP 扣除验证合成规则。
+
+可选 `chorus_d2:arc_movement_calibration` 来源必须提供三个 delta 参数：`amplified_speed / speed_booster_speed / speed_booster_jump`。前两个投影到 movement_speed，极速替换增幅的速度贡献；最后一个投影到 jump_strength。测试中的 0.2 / 0.5 / 0.1 是合成验收输入，不是 D2 参数。特别是原作“跳跃高度 +25%”不能直接写成原版跳跃初速度 +25%；“最大移动速度”也不能以固定 delta 声称准确复现。这些参数应在正式运动曲线与其他效果合成规则确定后校准。
+
+7 项 AmplifiedTest 验证加权进度与精确六秒边界、来源 / 分类隔离、连续 / 中断 / 未知冲刺、极速独立寿命、接收者与属性查询、两层减伤、死亡清理、严格校准输入和 Rolling Storm 组合。3 项共享世界场景验证真实电弧击杀、原版属性与真实 tick、实际生物攻击的 HP 结果。真实 Fabric 客户端按键链路的完成证据见实现记录。
+
+**两项均为 partial。** 尚未实现最大移动速度曲线、8.5 / 11 米滑铲、极速滑铲后持续到死亡的基础滑铲提升、敌人瞄准精度降低、真实操控动画、完整生产子职业 / 星相装配、HUD 或存档。原表数值被保留为需求；没有用原版属性临时值替代这些缺口。
 
 ## Jolt 的归属与施加顺序
 

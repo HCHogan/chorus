@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10T15:56:10.120791+00:00",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=618967225",
+      "file": "data/d2-research/2026-10-11/amplified-arc-source.html.gz",
+      "coordinate_system": "original_google_sheet",
+      "html_sha256": "795996391d03dbf8ab2faeff065bd72f624d1f5590388e3114aef30338f5e081",
+      "cells": {
+        "B6": "Amplified",
+        "D6": "Intrinsic Arc Subclass Buff\nObtained by reaching 100% Counter Progress through Arc Kills within 6 seconds of each, or through Aspects.\nRank-And-File = 25% | Elite = 50% | Miniboss+ = 100% | Guardians = 50%\n\nAmplified:\n+50 Mobility, increases Slide Distance to 8.5 meters, +40 Handling, and 0.95x Handling Duration Multiplier for 15 seconds. \nCombatants are less accurate at targeting the wearer and grants 15% Damage Resist against Combatants while active.\nWhile Amplified, sprinting for 2.5 seconds grants Speed Booster.\n\nSpeed Booster:\nMaximizes Movement Speed, increased Slide Distance to 11 meters, 25% Increased Jump Height, and 15% Damage Resist against Combatants.\nSpeed Booster lingers for 2 seconds until no longer sprinting, even after Amplified runs out.\nPerforming a Speed Booster Slide permanently increases base Slide Distance from 6.5 meters to 8.5 meters until death."
+      }
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_8_2_0",
+      "supports": "Amplified now has 15% PvE combatant damage resistance and reduces combatant accuracy."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/s21_abilities_tuning",
+      "supports": "Speed Booster starts after 2.5 seconds, lingers for 2 seconds, and may begin when already sprinting before Amplified."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0",
+      "supports": "Published patch notes independently list 2 second Speed Booster linger after stopping sprint."
+    }
+  ],
+  "implementation": {
+    "kill_counter": "One explicitly bound Arc intrinsic source per holder; 4 quarter-progress stacks, resetting 6 second window. Guardian/elite=2, miniboss/champion/boss=4, observed ordinary=1. Source tag classification remains host policy. Four quarters consume the counter and apply Amplified.",
+    "movement": "50 ms native-flag samples; first sample on application, no continuity inferred across unavailable/unknown state. A 2.5 second windup verifies current sprint again at expiry. Speed Booster has its own timer and refreshes to at least 2 seconds while observed sprinting after Amplified expires.",
+    "native_projection": "Optional explicit calibration source supplies three delta parameters. Speed Booster replaces Amplified speed contribution; native jump_strength is not equated to 25% jump height.",
+    "damage_resistance": "Separate 15% resistance contributions, requires explicit combatant source tag and excludes guardians; PvP mode yields zero. Missing native classification does not automatically receive PvE resistance.",
+    "lifetime": "Reapplication keeps max remaining duration; Arc kills build a new counter after activation. Exact refresh, overflow and polling boundaries are content policies pending original-game calibration."
+  },
+  "limits": [
+    "No automatic production subclass assembly, aspect producers or unique-source enforcement yet.",
+    "Mobility and handling points / animation modifiers have query evidence; actual D2 movement curves, sprint cap, slide distances, permanent slide enhancement and combatant accuracy are not implemented.",
+    "Native speed/jump deltas in acceptance tests are synthetic required calibration values, not D2 physical conversion.",
+    "Sampling can miss sprint stops shorter than one server tick; no keyboard input, continuous movement prediction or teleport detection is claimed.",
+    "No persistence, HUD or production animation wiring."
+  ]
+}

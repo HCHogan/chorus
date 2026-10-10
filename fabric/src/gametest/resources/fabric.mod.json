@@ -92,7 +92,8 @@
       "com.imdomestic.chorus.RadiantGameTest",
       "com.imdomestic.chorus.EmberOfEmpyreanGameTest",
       "com.imdomestic.chorus.ImpulseGameTest",
-      "com.imdomestic.chorus.NativeAttributeGameTest"
+      "com.imdomestic.chorus.NativeAttributeGameTest",
+      "com.imdomestic.chorus.AmplifiedGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -100,7 +101,8 @@
       "com.imdomestic.chorus.ProjectileCatchClientGameTest",
       "com.imdomestic.chorus.PickupClientGameTest",
       "com.imdomestic.chorus.ImpulseClientGameTest",
-      "com.imdomestic.chorus.NativeAttributeClientGameTest"
+      "com.imdomestic.chorus.NativeAttributeClientGameTest",
+      "com.imdomestic.chorus.AmplifiedClientGameTest"
     ]
   }
 }

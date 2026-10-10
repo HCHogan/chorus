@@ -3274,10 +3274,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/RollingStormGameTest.java",
           "symbol": "actualKillWithWeaponOriginButNoWeaponKillCreditCannotBootstrapCharge"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "actualAmplifiedStateFeedsRollingStormAndStrictCalibrationCannotBeOmitted"
         }
       ],
       "gaps": [
-        "Amplified 条件使用当前持有者 Buff 标签；测试一秒标记不代表完整 Amplified 的获得、持续时间或其他收益",
+        "原矩阵测试的一秒Amplified标记仍是夹具；另已用真实共享Amplified定义完成组合验收（测试内统一旧Bolt Charge版本），生产获得来源、完整收益和自动装配仍受arc/amplified缺口限制",
         "飞行中收枪保留、卸下词条失效、命中时读取 Amplified 使用当前内容策略，尚需原作边界校准",
         "武器容量、伤害、射速、换弹与近战参数为合成验收输入；系统由测试宿主显式安装，玩家自动装配未实现",
         "Bolt Charge 的未知空间范围、0.1数值投影、完整技能回能修正、保存及迁移缺口仍适用；见arc/bolt_charge"
@@ -5209,6 +5214,146 @@
         "Class属性对被动/块状回能的曲线、增强属性护盾、金装组合、职业/子职业限制与正式装配未完成",
         "实际换弹帧、延迟期间的配装取样/取消选择语义、满弹匣/无储备时perk资格仍待原作校准；当前策略均显式记录",
         "测试武器弹量和完成后的治疗为合成观察器；按键/HUD与弹药持久化未完成"
+      ]
+    },
+    {
+      "id": "arc/amplified",
+      "name": "Amplified",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Arc",
+          "cell": "B4",
+          "text_sha256": "38f6299e0c15f2aecb66370c1229f5406e2c1c9a1b372acfa8e403eff6fcaf19"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D4",
+          "text_sha256": "ca306435797e8d4c7a1f6288e127b7be896cdcd00b3071793d728216c980474a"
+        }
+      ],
+      "scope": "六秒电弧击杀加权进度、15秒共享增幅、接收者隔离、属性查询及PvE战斗人员15%减伤；使用真实移动观察进入极速准备，并与Rolling Storm组合",
+      "acceptance": [
+        "普通1/精英与Guardian2/Miniboss及以上4个四分之一进度，六秒窗口逐次刷新，阈值消费后授予15秒增幅",
+        "只有本持有者电弧击杀计数；回执分类未知/缺失不当成普通目标；卸下内在来源清理未完成进度",
+        "重施加取剩余时间最大值、死亡清理；+50 Mobility、+40 Handling和0.95操控动画倍率可查询，施加者不串到接收者",
+        "显式战斗人员资格的PvE减伤实际影响生命，Guardian和未知分类不获得该减伤；真实状态能使Rolling Storm每次获得两层"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/amplified.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/amplified_movement.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "weightedArcKillsShareASixSecondCounterAndOnlyRefreshAfterACompleteNewCounter"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "unobservedVictimsWrongElementsOtherOwnersAndDetachedIntrinsicCannotGrantProgress"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "recipientsShortApplicationsAndStatQueriesDoNotOverwriteAnotherHoldersState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "actualAmplifiedStateFeedsRollingStormAndStrictCalibrationCannotBeOmitted"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmplifiedGameTest.java",
+          "symbol": "actualArcKillsUseObservedVictimWeightsAndProjectOnlyTheKiller"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmplifiedGameTest.java",
+          "symbol": "independentCombatantResistancesChangeActualHealthAndExcludeUnclassifiedDamage"
+        }
+      ],
+      "gaps": [
+        "生产Arc子职业唯一内在来源、星相等其他获得来源、来源切换与持久化未自动装配",
+        "Mobility到实际移动曲线、操控实际动画、8.5米滑铲、战斗人员瞄准精度降低未实现；原版移动投影必须显式提供校准参数",
+        "激活后计数重置、溢出丢弃、重施加取长、未标记非玩家按普通目标以及Champion分类均为当前内容政策，需原作边界校准",
+        "真实伤害测试显式提供combatant来源标签；默认原版来源不会自动猜测D2战斗人员；HUD与完整多人体验未验收"
+      ]
+    },
+    {
+      "id": "arc/speed_booster",
+      "name": "Speed Booster",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Arc",
+          "cell": "B4",
+          "text_sha256": "38f6299e0c15f2aecb66370c1229f5406e2c1c9a1b372acfa8e403eff6fcaf19"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D4",
+          "text_sha256": "ca306435797e8d4c7a1f6288e127b7be896cdcd00b3071793d728216c980474a"
+        }
+      ],
+      "scope": "增幅期间连续冲刺2.5秒、独立极速状态、停止后2秒余留、15%独立PvE减伤及显式校准的原版速度/跳跃投影",
+      "acceptance": [
+        "增幅前已冲刺也能开始准备；中断或观察缺失取消准备，阈值时重新确认冲刺资格；获得、维持使用独立Buff定时器",
+        "增幅结束后只要继续冲刺就保持极速，停止后2秒移除，自身死亡立即清理",
+        "与增幅的15%减伤独立相乘，100伤害剩72.25；排除PvP和无资格来源",
+        "真实服务端tick推进状态；速度投影替换增幅而不相加，跳跃投影独立；终止后恢复原版属性",
+        "Fabric真实客户端按键冲刺，经服务端观察触发状态并同步原版属性，持续位移被服务端接受；停止后清理"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/amplified.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/amplified_movement.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "aContinuousSprintBuildsSpeedBoosterWhichOutlivesAmplifiedAndLingersAfterStopping"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "interruptedOrUnknownMovementRestartsWindupAndCannotCreateAFalseContinuousSprint"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmplifiedTest.java",
+          "symbol": "bothResistancesMultiplyOnlyForExplicitPveCombatantsAndDeathClearsBothStates"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmplifiedGameTest.java",
+          "symbol": "realTicksMaintainSpeedBoosterAfterAmplifiedThenRestoreSpeedAndJump"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/AmplifiedClientGameTest.java",
+          "symbol": "runTest"
+        }
+      ],
+      "gaps": [
+        "最大移动速度、11米滑铲、永久8.5米基础滑铲提升未实现；25%跳跃高度不能直接等同于25%原版jump_strength",
+        "原版速度/跳跃增量为必需校准输入，测试0.2/0.5/0.1仅证明协议，不代表原作手感或物理映射",
+        "50ms采样可能漏掉一tick以内的冲刺变化；着地/空中/碰撞等D2动作边界、传送与完整客户端预测尚未建模",
+        "多人远程服与NeoForge真实客户端未验收；生产装配、表现/HUD及存档未完成"
       ]
     }
   ]

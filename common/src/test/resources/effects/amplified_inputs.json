@@ -1,0 +1,78 @@
+{
+  "version": "compendium-2026-10-05",
+  "defense_profile": "chorus_d2:incoming",
+  "profiles": [
+    {
+      "id": "chorus_d2:incoming",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "resistance",
+          "operation": "resist",
+          "group": {
+            "name": "resistance",
+            "reduction": "resist"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:amplified_inputs",
+      "rules": [
+        {
+          "id": "grant",
+          "on": "test:amplified",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:amplified",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ],
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          }
+        },
+        {
+          "id": "arc_attack",
+          "on": "test:arc_attack",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1000,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:arc_damage"
+              ]
+            }
+          ],
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          }
+        }
+      ]
+    }
+  ]
+}

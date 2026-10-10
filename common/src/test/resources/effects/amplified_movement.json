@@ -1,0 +1,139 @@
+{
+  "version": "compendium-2026-10-05",
+  "native_attributes": [
+    {
+      "id": "chorus_d2:movement_speed",
+      "attribute": "minecraft:movement_speed",
+      "operation": "add_multiplied_total",
+      "profile": "chorus_d2:movement_speed_contribution",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "chorus_d2:jump_strength",
+      "attribute": "minecraft:jump_strength",
+      "operation": "add_multiplied_total",
+      "profile": "chorus_d2:jump_strength_contribution",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:movement_speed_contribution",
+      "version": "compendium-2026-10-05",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:jump_strength_contribution",
+      "version": "compendium-2026-10-05",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:arc_movement_calibration",
+      "parameters": {
+        "amplified_speed": "delta",
+        "speed_booster_speed": "delta",
+        "speed_booster_jump": "delta"
+      },
+      "modifiers": [
+        {
+          "id": "amplified_speed",
+          "profile": "chorus_d2:movement_speed_contribution",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "chorus_d2:amplified_speed",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "amplified_speed"
+          },
+          "reference": "Required native contribution calibration; no default Minecraft/Destiny physical conversion is inferred.",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:amplified"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:speed_booster"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "speed_booster_speed",
+          "profile": "chorus_d2:movement_speed_contribution",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "chorus_d2:speed_booster_speed",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "speed_booster_speed"
+          },
+          "reference": "Required native contribution calibration; no default Minecraft/Destiny physical conversion is inferred.",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:has_buff",
+            "buff": "chorus_d2:speed_booster"
+          }
+        },
+        {
+          "id": "speed_booster_jump",
+          "profile": "chorus_d2:jump_strength_contribution",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "chorus_d2:speed_booster_jump",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "speed_booster_jump"
+          },
+          "reference": "Required native contribution calibration; no default Minecraft/Destiny physical conversion is inferred.",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:has_buff",
+            "buff": "chorus_d2:speed_booster"
+          }
+        }
+      ]
+    }
+  ]
+}

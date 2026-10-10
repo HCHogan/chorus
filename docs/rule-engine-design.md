@@ -661,7 +661,7 @@ object 层把自己的动作类型（`spawn_object`）注册进 rule 层的注�
 
 Minecraft 里玩家的移动以客户端为准，所以每种动作都要明确在哪一侧执行。DSL 永远不逐 tick 模拟物理，只提供参数、对事件做出反应。
 
-服务端规则已可通过 `inspect_entity` 查询当时的原版冲刺、蹲伏姿态、着地、游泳、鞘翅飞行、骑乘和睡眠标志；伤害回执也保存这些信息，`read_event_entity` 可读取不可变的历史状态。`movement_observed` 区分宿主未提供与明确为 false，不从缺失观察推断停止移动。这些标志不是实际速度或键盘输入，连续冲刺计时、滑铲和完整 D2 动作状态仍由内容与宿主另外实现，见 [查询移动状态](engine-data-packs.md#查询移动状态)。
+服务端规则已可通过 `inspect_entity` 查询当时的原版冲刺、蹲伏姿态、着地、游泳、鞘翅飞行、骑乘和睡眠标志；伤害回执也保存这些信息，`read_event_entity` 可读取不可变的历史状态。`movement_observed` 区分宿主未提供与明确为 false，不从缺失观察推断停止移动。这些标志不是实际速度或键盘输入，连续冲刺计时、滑铲和完整 D2 动作状态由内容与宿主另外实现，见 [查询移动状态](engine-data-packs.md#查询移动状态)。已有 Amplified / Speed Booster 用 50 ms 观察、独立 windup 与 Buff 生命周期表达冲刺启动和余留，真实 Fabric 客户端按键链路通过；原作滑铲、运动曲线与生产输入装配仍待完成，见 [内容规则](d2-ruleset.md#amplified-与-speed-booster)。
 
 | 类型 | 执行侧 | 例子 | 实现要点 |
 | --- | --- | --- | --- |
