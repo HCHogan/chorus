@@ -250,6 +250,8 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 8 项纯核心测试覆盖全部单充能组合、普通 / 强化、独立接收 Profile、多充能阈值、固定分母、缺失槽、归属与换技能、后续未知世界结果及编解码。3 项双端共享场景使用真实装备 / 开火 / 投射物击杀，其中一项由服务器 tick 自动确认击杀。接收器 [wellspring_targets.json](../common/src/test/resources/effects/wellspring_targets.json) 是合成技能账户，0.75 / 0.8 / 0.5 只是验证独立缩放的输入，尤其 0.5 不是某个职业技能的 D2 校准。武器复用 Pugilist 测试原型并替换词条；当前完整子职业 / 属性 / UI / 存档装配仍未完成，覆盖为 partial。
 
+共用武器属性目录见 [weapon_stats.json](../common/src/test/resources/effects/weapon_stats.json)：Pugilist / Surplus 的贡献在同一操控组相加，随后统一限幅。武器原型曲线独立装配，不因每个 perk 复制属性 Profile。
+
 ## Surplus
 
 固定 CSV `Weapon Perks!A214/C214`，对应保存原表 HTML `A215/C215`，给出下列普通版加值，单位为 stat_point：

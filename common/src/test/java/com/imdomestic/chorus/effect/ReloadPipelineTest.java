@@ -48,7 +48,7 @@ class ReloadPipelineTest {
                 case "not_seconds" -> r.add("profiles", JsonParser.parseString("[\"chorus_d2:weapon_reload\"]"));
             }
             // Decode/link the full content so failure is about the pipeline, not unresolved perk bundles.
-            assertThrows(RuntimeException.class, () -> CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow(),
+            assertThrows(RuntimeException.class, () -> CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("weapon_stats")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow(),
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("surplus")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("wellspring")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("wellspring_targets")).getOrThrow())), variant);
         }
     }
@@ -56,7 +56,7 @@ class ReloadPipelineTest {
         var data = json("surplus_weapon");
         var fast = data.getAsJsonArray("bundles").asList().stream().map(JsonElement::getAsJsonObject).filter(b -> b.get("id").getAsString().equals("test:fast_animation")).findFirst().orElseThrow();
         fast.getAsJsonArray("modifiers").get(0).getAsJsonObject().getAsJsonObject("value").addProperty("value", -1);
-        var p = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow(),
+        var p = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("weapon_stats")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow(),
                 EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("surplus")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("wellspring")).getOrThrow(), EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("wellspring_targets")).getOrThrow()));
         var setup = new SurplusTest.Harness(false, 1, 1, 1); setup.spend("a");
         var before = setup.state().withSource(new EffectSource("zero", "test:fast_animation", "player", new BuffInstance.Origin("player", "zero", "a", ""), Set.of()));

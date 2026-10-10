@@ -142,6 +142,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/rampage.json'
         include 'effects/rampage_weapon.json'
         include 'effects/surplus_weapon.json'
+        include 'effects/weapon_stats.json'
         include 'effects/wellspring_targets.json'
         include 'effects/demolitionist_weapon.json'
         include 'effects/arcbolt_energy.json'

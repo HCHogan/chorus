@@ -938,6 +938,12 @@ Surplus 的属性段现在由两种合成武器共用，原型曲线独立转换
 
 Compendium 的既有 Rampage 审阅由 unimplemented 改为 partial，审阅总数仍为 43。在线 C173 已与固定 CSV C172 对照；官方 9.5.0 明确到期只丢一层，后续重复 4.5 / 5 秒的周期仍是内容解释，未独立实测。原作快照 / 换装边界、异域特例、完整武器原型、自动装配和存档缺口见 [规则集](d2-ruleset.md#rampage)，不据此声称全效果完成。
 
+### 共用武器属性目录
+
+weapon_stats.json 把稳定性 / 操控 / 装填的加值与 0–100 限幅、换弹动画秒数倍率从 Surplus 消费者中抽出。Pugilist 不再定义另一份同名操控 Profile，两者可链接到同一个目录。武器原型只保留自己的秒数曲线，内容对共用定义的引用由既有链接器校验。
+
+SharedWeaponStatsTest 将 Surplus 三档 +60 与 Pugilist +35 放到同一武器上，验证基础 10 + 60 + 35 先得 105 再限幅到 100，另一把枪不借用这 35。原有 20 项相关单元测试及两端 285 / 295 项世界测试通过；日志 `/tmp/chorus-shared-stats-gate.log`、`/tmp/chorus-shared-stats-unit.log`。
+
 ## 后续覆盖工作
 
 1. 在已固定并逐格核对的全 Compendium 来源上，继续人工区分效果、说明、表头和公式，扩展 `data/compendium/review.json`。当前只审阅了首批 43 个条目，不把导入完成当成逐条分析完成。

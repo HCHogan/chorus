@@ -1,0 +1,88 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_stability",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "stability",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_handling",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "handling",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_reload",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "reload",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:reload_animation",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "animation",
+          "operation": "multiply",
+          "group": {
+            "name": "animation",
+            "reduction": "product"
+          },
+          "factor": "chorus_d2:reload_animation"
+        }
+      ]
+    }
+  ]
+}

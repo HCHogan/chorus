@@ -20,7 +20,7 @@ import net.minecraft.world.item.*;
 public class PugilistGameTest {
     static void prepare(JsonObject data) {
         EnergyGainGameTest.prepare(data);
-        for (String fixture : List.of("pugilist", "ability_energy_targets", "pugilist_weapon")) {
+        for (String fixture : List.of("weapon_stats", "pugilist", "ability_energy_targets", "pugilist_weapon")) {
             var fragment = ThreadedSpikeGameTest.json(fixture);
             for (var entry : fragment.entrySet()) {
                 if (entry.getKey().equals("version")) continue;

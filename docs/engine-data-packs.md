@@ -459,6 +459,8 @@ Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceSt
 
 [wellspring.json](../common/src/test/resources/effects/wellspring.json) 展示多个观察的组合：先绑定三个槽，再用 available / full 守卫数值读取，capture_value 保存未充能槽数量与分配系数，最后分别 grant_ability_energy。整个分配无需新增专用 Java 动作。一次收益填满某池不会改变本次的分母；溢出、额外充能份额和未选槽政策由 JSON 明确给出，原作校准边界见 [Wellspring](d2-ruleset.md#wellspring)。
 
+[weapon_stats.json](../common/src/test/resources/effects/weapon_stats.json) 统一声明稳定性、操控、装填属性（加值后限幅 0–100）与秒数动画倍率 Profile。Perk 片段只引用这些 ID，武器原型只提供自己的曲线；链接时载入共用定义一次。Pugilist 与 Surplus 已迁移到同一属性目录，避免组合时重复定义同名 Profile。
+
 [surplus.json](../common/src/test/resources/effects/surplus.json) 展示查询期消费者：按 available 守卫各槽的 full_charges，再以总份数选择属性加值。独立武器 Profile 决定后续限幅与原型曲线，reload.profiles 将共用属性段、原型曲线和秒数修正串联。强化版缺少原表数值，要求显式的分档测量；完整约定与测试曲线边界见 [Surplus](d2-ruleset.md#surplus)。
 
 ### 按已付成本返还与完整充能

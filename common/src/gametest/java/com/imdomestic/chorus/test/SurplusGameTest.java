@@ -18,7 +18,7 @@ import net.minecraft.world.level.GameType;
 
 public class SurplusGameTest {
     static void prepare(JsonObject data) {
-        for (String fixture : List.of("surplus_weapon", "wellspring_targets", "wellspring")) {
+        for (String fixture : List.of("weapon_stats", "surplus_weapon", "wellspring_targets", "wellspring")) {
             var fragment = ThreadedSpikeGameTest.json(fixture);
             for (var entry : fragment.entrySet()) {
                 if (entry.getKey().equals("version")) continue;

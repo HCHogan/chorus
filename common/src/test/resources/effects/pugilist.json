@@ -1,23 +1,5 @@
 {
   "version": "compendium-2026-10-05",
-  "profiles": [
-    {
-      "id": "chorus_d2:weapon_handling",
-      "version": "compendium-2026-10-05",
-      "input_unit": "stat_point",
-      "steps": [
-        {
-          "type": "chorus:apply",
-          "id": "perks",
-          "operation": "add",
-          "group": {
-            "name": "handling",
-            "reduction": "sum"
-          }
-        }
-      ]
-    }
-  ],
   "buffs": [
     {
       "definition": {

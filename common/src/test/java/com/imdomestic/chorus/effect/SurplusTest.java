@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class SurplusTest {
     static final List<String> STATS = List.of("stability", "handling", "reload");
     static final double[][] BONUSES = {{0, 5, 15, 25}, {0, 5, 25, 60}, {0, 10, 25, 60}};
-    static CompiledEffects program() throws Exception { return link("surplus", "surplus_weapon", "wellspring_targets", "wellspring"); }
+    static CompiledEffects program() throws Exception { return link("weapon_stats", "surplus", "surplus_weapon", "wellspring_targets", "wellspring"); }
     static Loadout equipment(String primaryPerk, String secondaryPerk, String drawn) {
         return new Loadout(Map.of("test:primary", new Loadout.Gear("a", "test:rifle", Map.of("perk", primaryPerk)),
                 "test:secondary", new Loadout.Gear("b", "test:shotgun", Map.of("perk", secondaryPerk))), Optional.of("test:" + drawn));
