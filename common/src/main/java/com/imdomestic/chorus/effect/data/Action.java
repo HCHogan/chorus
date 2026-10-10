@@ -64,6 +64,13 @@ public interface Action {
         @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff); return ResultShape.BUFF; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return local(e, Buffs.remove(e.state().buffs(), e.key(buff, target), Buffs.Reason.REMOVED)); }
     }
+    record RemoveBuffsWithTag(String tag,Evaluation.Target target) implements Action {
+        @Override public ResultShape validate(Validation v){v.target(target);return ResultShape.BUFF_REMOVAL;}
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e){
+            var result=BuffRemoval.remove(e.state().buffs(),e.target(target),tag,e.origin());
+            return new RuleEngine.Local<>(e.state().withBuffs(result.store()),result.receipt(),result.signals());
+        }
+    }
     record ExtendBuff(String buff, Evaluation.Target target, Value amount, Value cap) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target);
             if (v.buff(buff).timer().mode() != BuffDefinition.TimerMode.SHARED) throw new IllegalArgumentException("Cannot extend independent stack timers");

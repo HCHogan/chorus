@@ -185,6 +185,10 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
         var field = fields.get(name); if (field == null) throw new IllegalArgumentException("Unknown result field: " + name); return field;
     }
     public static final ResultShape EMPTY = new ResultShape(Map.of());
+    public static final ResultShape BUFF_REMOVAL = new ResultShape(Map.of(
+            "instances",new Field(Unit.COUNT,r->((com.imdomestic.chorus.effect.buff.BuffRemoval.Receipt)r).removed().size()),
+            "stacks",new Field(Unit.COUNT,r->((com.imdomestic.chorus.effect.buff.BuffRemoval.Receipt)r).stacks())),
+            Map.of("changed",r->((com.imdomestic.chorus.effect.buff.BuffRemoval.Receipt)r).changed()));
     public static final ResultShape BUFF = new ResultShape(Map.of(
             "requested", new Field(Unit.COUNT, result -> ((Buffs.Receipt) result).requested()),
             "credited", new Field(Unit.COUNT, result -> ((Buffs.Receipt) result).credited()),

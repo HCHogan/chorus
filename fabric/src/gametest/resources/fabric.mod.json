@@ -94,7 +94,8 @@
       "com.imdomestic.chorus.ImpulseGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
-      "com.imdomestic.chorus.ActionGateGameTest"
+      "com.imdomestic.chorus.ActionGateGameTest",
+      "com.imdomestic.chorus.BuffRemovalGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

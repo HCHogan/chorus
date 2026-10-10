@@ -1511,6 +1511,27 @@ Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_
 
 该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。持续 Super 的终止、原版左键 / 物品使用、AI 射击 / 移动、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
 
+## 按标签批量结束 Buff
+
+`chorus:remove_buffs_with_tag` 接受必填的 `tag` 和默认 self 的 `target`，按持有者选择带有该标签的全部 Buff 实例，包含其他施加者的实例、同定义的不同 source / weapon 实例及暂停中的状态。它不依赖当前绑定来源来构造某个实例键，也不删除别的持有者或不匹配标签的状态。未提供 tag、未知字段及不合法 target 在编译时拒绝；未知但格式合法的标签可以匹配零项。
+
+```json
+{
+  "action": {
+    "type": "chorus:remove_buffs_with_tag",
+    "tag": "example:active_ability",
+    "target": "victim"
+  },
+  "as": "ended_abilities"
+}
+```
+
+结果提供 count 单位的 `instances / stacks` 及布尔 `changed`，Java 的 `BuffRemoval.Receipt` 另保留持有者、标签、移除原因来源和所有被移除实例的不可变快照。选择在动作开始时固定，按 Buff.Key 排序；先提交全部移除，再依次发布每个实例的 `buff_ended(reason=removed)`，最后发布一次 `buffs_removed`。后者的 actor / source 属于执行移除的来源、victim 属于被移除者，references.tag 和 numbers.instances / stacks 给出实际选择；各自的 ended 事实仍保留原 Buff 施加者。没有实际移除时不发布这些事实。
+
+结束规则读取的实时状态已经没有这整批实例。规则随后授予的新实例不追加入原选择，不会被这次移除再次删除；该动作不设事件链次数上限。`withBuffs` 统一撤销这些实例拥有的命名计时器和 source 生命周期 after，detached 动作继续保留。护盾、属性和恢复等由 Buff 提供的贡献随实例消失；其他来源的贡献不受影响。世界清理动作返回未知结果时，整批移除和此前实际世界效果保持提交，不恢复状态或自动重放。
+
+该动作可以表达驱散或结束以 Buff 生命周期建模的活动技能；它不自动发现任意 Java 宿主中运行的技能，不取消没有绑定到这些 Buff 的动作，也不代替具体 Super 的结束行为。[buff_removal.json](../common/src/test/resources/effects/buff_removal.json) 使用合成活动状态，验证整批结束、不同来源与持有者、暂停状态、真实清理回血及 detached 延迟回血。
+
 ## 一次性物理冲量与派生方向
 
 `chorus:apply_impulse` 在一次明确的世界操作中向目标当前速度加上冲量；单位为 meter_per_second。它接受已捕获的方向，不在执行或回执阶段重读施放者朝向，也不直接移动位置：

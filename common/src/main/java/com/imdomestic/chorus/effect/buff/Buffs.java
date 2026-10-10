@@ -276,7 +276,7 @@ public final class Buffs {
         if (value == null || value.isBlank()) throw new IllegalArgumentException("Missing buff " + field);
         return value;
     }
-    private static void settled(BuffStore store) {
+    static void settled(BuffStore store) {
         if (store.nextDeadline() <= store.timeMicros()) throw new IllegalStateException("Settle expired buffs before another operation");
     }
 }

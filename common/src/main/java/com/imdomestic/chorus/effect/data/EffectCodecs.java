@@ -297,6 +297,8 @@ public final class EffectCodecs {
                         values.optionalFieldOf("stacks", ONE).forGetter(Action.ConsumeBuff::stacks)).apply(i, Action.ConsumeBuff::new)))
                 .register("chorus:remove_buff", Action.RemoveBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Action.RemoveBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.RemoveBuff::target)).apply(i, Action.RemoveBuff::new)))
+                .register("chorus:remove_buffs_with_tag", Action.RemoveBuffsWithTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("tag").forGetter(Action.RemoveBuffsWithTag::tag), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.RemoveBuffsWithTag::target)).apply(i, Action.RemoveBuffsWithTag::new)))
                 .register("chorus:extend_buff", Action.ExtendBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Action.ExtendBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.ExtendBuff::target),
                         values.fieldOf("amount").forGetter(Action.ExtendBuff::amount), values.fieldOf("cap").forGetter(Action.ExtendBuff::cap)).apply(i, Action.ExtendBuff::new)))
