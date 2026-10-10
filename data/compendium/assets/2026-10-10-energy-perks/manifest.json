@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-10T07:58:47.467399+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "a63189da911023b5e2fd2231bf0aa66a6c0a54099b7c8ec7233ae45ce85a6096"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/demolitionist",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Demolitionist",
+      "label_cell": "A63",
+      "image_cell": "B63",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B63",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLb28wwDghEHHtWUE9PzRBKxsgyboVmmD5faC0OFAZumuuX4SUWqtetMI-QPyhjAnxMKHEcouraWWOLlx4kW0bYmjStP0LWdtCKtajYddM5pEdbjuZXPbqETK-XRL8AkIoIjkkperKaaYpIG1aLSfvq6XPYgkj89Rg=w70-h104",
+      "retrieved_at": "2026-10-10T07:58:48.625575+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/demolitionist.png",
+      "texture": "chorus_d2:textures/gui/perks/demolitionist.png",
+      "sha256": "3b5792f0be0d787edb82a137f3cff26cddef35549e4f0ad9544632a7a7bf79e9",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/pugilist",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Pugilist",
+      "label_cell": "A170",
+      "image_cell": "B170",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B170",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLb5BQhKT635AWKSYSQRlD8thPbvakQ_bnWUUtmscqYa57V4uS5O0ed5DgKpFAlMoK4cHn49Na53nU-bDnOfZZ0t4UHIseWXASWmCOF28ujiRJ0TTkMjTIHZXwD4h4jjj0r9DBZ4JkjWAKBCpysfkGyWnKPmm30NsxLA=w70-h119",
+      "retrieved_at": "2026-10-10T07:58:49.706362+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/pugilist.png",
+      "texture": "chorus_d2:textures/gui/perks/pugilist.png",
+      "sha256": "9380fd8b04aca2e1767a2b5a3b369c2d6f462d6a50aa346d5ab58cbc06c7f7e2",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/wellspring",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Wellspring",
+      "label_cell": "A247",
+      "image_cell": "B247",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B247",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLYMnLrAmczF0ncohBHSmk1dntgBKa_hrx0VOFS-gs6pQBUjgNNebvAmK1VKvfevKhIQq0yvvzNNVXj1O0Ha3r0rBCBPiIXBgerNEsoFl8Cf_Xknqu-NGKCsiBbBp6znx2qdMWvXszGXZVshExVyDUm3Oa9IMbf5XYEm=w70-h89",
+      "retrieved_at": "2026-10-10T07:58:50.696211+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/wellspring.png",
+      "texture": "chorus_d2:textures/gui/perks/wellspring.png",
+      "sha256": "3762998cf004b945b6907a9204e700d3e24e13ad321f69216cfced7cb17c8356",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

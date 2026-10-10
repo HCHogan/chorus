@@ -1,0 +1,28 @@
+{
+  "entries": [
+    {
+      "id": "perks/demolitionist",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Demolitionist",
+      "label_cell": "A63",
+      "image_cell": "B63"
+    },
+    {
+      "id": "perks/pugilist",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Pugilist",
+      "label_cell": "A170",
+      "image_cell": "B170"
+    },
+    {
+      "id": "perks/wellspring",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Wellspring",
+      "label_cell": "A247",
+      "image_cell": "B247"
+    }
+  ]
+}

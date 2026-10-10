@@ -27,6 +27,8 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 
 首批图标见 [素材清单](assets/2026-10-10/manifest.json)：Clown Cartridge、Kill Clip、Overflow、Voltshot，以及 Marksman's Dodge、Healing Rift。PNG 位于 `common/src/main/resources/assets/chorus_d2/textures/gui/{perks,abilities}/`，可用清单中的 `texture` id 引用。当前只完成资源导入，还未把这些图标绑定到 perk 卡片、技能选择页或 HUD，也不代表对应玩法已实现。
 
+第二批补充 [Demolitionist、Pugilist、Wellspring](assets/2026-10-10-energy-perks/manifest.json)，对应原表图像 B63 / B170 / B247，均保留 70×70 PNG 原始字节与新抓取的 HTML。累计 9 个图标已打包；这批来源独立保存，不覆盖首批来源或数值快照。选择清单为 [selection-energy-perks.json](assets/selection-energy-perks.json)。
+
 `tools/compendium_assets.py` 读取原表的 `htmlview/sheet?headers=true&gid=…`。导入清单中的名称、名称单元格与图片单元格必须同时匹配；坐标依据网页原始行头和合并单元格还原，不借用 CSV 行号。例如原表 Overflow 图标在 B161，而既有数值快照的描述在 C160。名字移动或图片缺失 / 歧义会终止导入，先校对 `assets/selection.json` 再重试。
 
 下载保留 PNG 原始响应字节、尺寸、SHA-256、抓取时间和图片 URL；来源 HTML 压缩保存在同批目录，可离线复核图片与名称的对应。当前来源是网页预览图：perk 为 70×70、技能为 64×64，没有放大、重绘或假设为最高分辨率。Google 图片 URL 可能失效，运行时使用已打包的本地资源，不请求 Google。
@@ -34,6 +36,7 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 ```sh
 # 离线校验已导入的图标及来源，不访问网络。
 python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10/manifest.json
+python3 tools/compendium_assets.py check data/compendium/assets/2026-10-10-energy-perks/manifest.json
 python3 -m unittest discover -s tools -p 'test_compendium*.py'
 
 # 后续按需扩展 selection，在新的来源目录导入。
