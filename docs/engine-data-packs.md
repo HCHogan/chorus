@@ -1415,3 +1415,47 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 两端提供默认 **G** 键（控制设置可改）和低权限自用命令 `/chorus ability catch`。网络请求携带连接内递增序号和当前维度；服务端在执行或拒绝前消费序号，重复或倒序请求不会接住下一枚弹体，断开连接后清理序号。菜单中不发送按键请求。当前是独立接回键；chorus-d2 仍需装配近战键复用、窗口提示与技能动画，尚无这些交互的成品界面。
 
 [projectile_catch.json](../common/src/test/resources/effects/projectile_catch.json) 用合成值区分普通抵达返还实付成本的 25% 与主动接回返还 100%，并将实际 credited 用于治疗；不是 Threaded Spike 的能量表。原表若表示固定充能比例，应使用 grant_resource，并单独装配命中 / 击杀档位。
+
+
+### 跨回调共享伤害统计
+
+多次穿透 / 反弹、连锁、延迟伤害与返回收益可以显式共享一个有限期 `DamageTallies.Handle`。`begin_damage_tally` 创建空统计；`record_damage` 只接受类型为 DamageReceipt 的动作结果，不接收客户端给出的伤害 / 击杀数字。示例片段分别放在施放、各次伤害、最终返回的动作体内：
+
+```json
+{ "action": { "type": "chorus:begin_damage_tally", "duration": { "type": "chorus:constant", "value": 5, "unit": "second" } }, "as": "flight_tally" }
+```
+
+```json
+[
+  { "action": { "type": "chorus:damage_snapshot", "snapshot": "attack", "target": { "binding": "victim" } }, "as": "hit" },
+  { "type": "chorus:record_damage", "tally": "flight_tally", "damage": "hit" }
+]
+```
+
+```json
+[
+{ "action": { "type": "chorus:close_damage_tally", "tally": "flight_tally" }, "as": "totals" },
+{ "if": { "type": "chorus:result_flag", "binding": "totals", "field": "available" }, "then": [
+  { "type": "chorus:heal", "amount": { "type": "chorus:scale", "factor": 3, "from": "count", "to": "damage", "of": { "type": "chorus:result", "binding": "totals", "field": "kills" } } }
+] }
+]
+```
+
+`read_damage_tally` 使用相同 tally 参数，只读取当前汇总，不关闭。record / read / close 的结果具有以下字段：
+
+| 字段 | 语义 |
+| --- | --- |
+| available | 统计在本次读取时仍存在且有效；关闭动作返回关闭前的最终快照 |
+| changed | record 新记录了一个 damage_id，或 close 实际移除了统计；只读与重复记录为 false |
+| attempts / hits / effective_hits | 所选唯一伤害回执数；除 CANCELLED / FAILED 外的回执数；实际 HP + Chorus 盾 + Absorption 损失大于 0 的回执数，均为 count |
+| kills | 所选回执中不同 death_id 的数量，count；来自已确认的实际死亡 |
+| health_loss / shield_loss / absorption_loss | 分别累计实际损失，damage；不计过量请求，不自动统一不同血池的承伤倍率 |
+| effective / effective_with_absorption | HP + Chorus 盾损失，或再加 Absorption；与单次 DamageReceipt 投影一致 |
+
+“所选”指内容显式执行 record_damage 的回执，不会自动搜集整棵事件树、原版攻击、其他来源伤害或同源 proc。每份回执按 damage_id 在**此统计内**去重；相同 ID 却有矛盾结果会拒绝，重复的同一 death_id 不重复记击杀。这不阻止合法连锁或不同伤害继续计数。IMMUNE / BLOCKED 依照现有 hit 事实语义计入 hits；具体技能若要求有效伤害，应使用 effective_hits，或在 record 前按回执条件筛选。它也不等同于不同敌人数、碰撞次数或整枪弹丸资格。
+
+句柄可被多个飞行 / 延迟回调捕获，读取时访问当前共享统计；**读取结果本身是不可变快照**，再捕获它不会自动刷新。不同 begin 动作产生不同身份，即使施放者和技能相同也不混合。来源卸下或技能选择改变不清空它。显式 close 先删除统计，再让后续动作使用最终快照；到达 duration 截止点时由 EffectClock 先清理，即使弹体已外部移除、没有任何回调也会清理。关闭或到期后的访问返回 available=false、changed=false，数值投影为 0；内容必须检查 available，不能把缺失当作真实零命中。
+
+统计不授予退款权限，不自动返还资源或触发效果。固定充能收益使用 grant_resource；实际成本返还仍需成本回执 / retain_cost。世界结果未知时，未取得回执的动作不会被推测记入统计；已关闭统计、已授予资源及已发生的世界动作保持提交，不重放。
+
+可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计，不是 Threaded Spike 的完整九目标定义、命中档位或 Woven Mail 装配。句柄尚不支持从任意事件 / Buff 按字符串查找、跨运行时迁移或重启持久化。

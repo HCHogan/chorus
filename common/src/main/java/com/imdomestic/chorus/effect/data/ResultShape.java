@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
@@ -48,6 +48,18 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "unloaded", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.UNLOADED,
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
                     "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()), false, Reference.PROJECTILE_IMPACT);
+    public void requireDamageTally() { if (reference != Reference.DAMAGE_TALLY) throw new IllegalArgumentException("Result is not a damage tally handle"); }
+    public void requireDamageReceipt() { if (reference != Reference.DAMAGE_RECEIPT) throw new IllegalArgumentException("Result is not a damage receipt"); }
+    public static final ResultShape DAMAGE_TALLY = new ResultShape(Map.of(), Map.of(), false, Reference.DAMAGE_TALLY);
+    private static com.imdomestic.chorus.effect.combat.DamageTallies.Result tally(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.combat.DamageTallies.Result) result; }
+    public static final ResultShape DAMAGE_TALLY_RESULT = new ResultShape(Map.of(
+            "attempts", new Field(Unit.COUNT, r -> tally(r).numbers().attempts()), "hits", new Field(Unit.COUNT, r -> tally(r).numbers().hits()),
+            "effective_hits", new Field(Unit.COUNT, r -> tally(r).numbers().effectiveHits()), "kills", new Field(Unit.COUNT, r -> tally(r).numbers().kills()),
+            "shield_loss", new Field(Unit.DAMAGE, r -> tally(r).numbers().shieldLoss()), "absorption_loss", new Field(Unit.DAMAGE, r -> tally(r).numbers().absorptionLoss()),
+            "health_loss", new Field(Unit.DAMAGE, r -> tally(r).numbers().healthLoss()),
+            "effective", new Field(Unit.DAMAGE, r -> tally(r).numbers().shieldLoss() + tally(r).numbers().healthLoss()),
+            "effective_with_absorption", new Field(Unit.DAMAGE, r -> tally(r).numbers().shieldLoss() + tally(r).numbers().healthLoss() + tally(r).numbers().absorptionLoss())),
+            Map.of("available", r -> tally(r).summary().isPresent(), "changed", r -> tally(r).changed()));
     public void requireRetainedCost() { if (reference != Reference.RETAINED_COST) throw new IllegalArgumentException("Result is not a retained cost handle"); }
     public static final ResultShape RETAINED_COST = new ResultShape(Map.of(), Map.of(), false, Reference.RETAINED_COST);
     private static java.util.Optional<Resources.RefundResult> retainedRefund(RuleEngine.ActionResult result) {
@@ -186,5 +198,5 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "absorption_loss", new Field(Unit.DAMAGE, result -> ((DamageReceipt) result).absorptionLoss())),
             Map.of("lethal", result -> ((DamageReceipt) result).lethal(), "death_prevented", result -> ((DamageReceipt) result).deathPrevented(),
                     "immune", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.IMMUNE,
-                    "applied", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.APPLIED));
+                    "applied", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.APPLIED), false, Reference.DAMAGE_RECEIPT);
 }

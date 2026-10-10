@@ -14,7 +14,7 @@ import java.util.TreeMap;
 
 /** Domain state for the effect timeline. World references are identifiers, never mutable entities. */
 public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers,
-        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads, Map<String, com.imdomestic.chorus.effect.weapon.WeaponFire.Shot> shots, com.imdomestic.chorus.effect.random.RandomState random, Map<String, com.imdomestic.chorus.effect.projectile.ShotGroups.Group> shotGroups, Map<String, com.imdomestic.chorus.effect.combat.DamageGroups.Group> damageGroups, Map<String, com.imdomestic.chorus.effect.resource.RetainedCosts.Entry> retainedCosts) {
+        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads, Map<String, com.imdomestic.chorus.effect.weapon.WeaponFire.Shot> shots, com.imdomestic.chorus.effect.random.RandomState random, Map<String, com.imdomestic.chorus.effect.projectile.ShotGroups.Group> shotGroups, Map<String, com.imdomestic.chorus.effect.combat.DamageGroups.Group> damageGroups, Map<String, com.imdomestic.chorus.effect.resource.RetainedCosts.Entry> retainedCosts, Map<String, com.imdomestic.chorus.effect.combat.DamageTallies.Entry> damageTallies) {
     public enum Mode { PVE, PVP }
     public record Lifetime(BuffInstance.Key key, long generation) {
         public Lifetime { Objects.requireNonNull(key); if (generation < 1) throw new IllegalArgumentException("Invalid buff generation"); }
@@ -58,6 +58,10 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     public EffectState {
         Objects.requireNonNull(buffs);
         Objects.requireNonNull(mode); Objects.requireNonNull(random);
+        damageTallies = Collections.unmodifiableMap(new TreeMap<>(damageTallies));
+        for (var entry : damageTallies.entrySet()) if (!entry.getKey().equals(entry.getValue().handle().id())
+                || entry.getValue().handle().startedAt() > buffs.timeMicros() || entry.getValue().handle().dueAt() <= buffs.timeMicros())
+            throw new IllegalArgumentException("Wrong damage tally identity or clock");
         retainedCosts = Collections.unmodifiableMap(new TreeMap<>(retainedCosts));
         for (var entry : retainedCosts.entrySet()) if (!entry.getKey().equals(entry.getValue().handle().id())
                 || entry.getValue().handle().startedAt() > buffs.timeMicros() || entry.getValue().handle().dueAt() <= buffs.timeMicros())
@@ -98,6 +102,10 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                 throw new IllegalArgumentException("Timer pause state differs from its bound buff");
             }
         }
+    }
+    public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers,
+        Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads, Map<String, com.imdomestic.chorus.effect.weapon.WeaponFire.Shot> shots, com.imdomestic.chorus.effect.random.RandomState random, Map<String, com.imdomestic.chorus.effect.projectile.ShotGroups.Group> shotGroups, Map<String, com.imdomestic.chorus.effect.combat.DamageGroups.Group> damageGroups, Map<String, com.imdomestic.chorus.effect.resource.RetainedCosts.Entry> retainedCosts) {
+        this(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, Map.of());
     }
     public EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState> resources, Map<String, Timer> timers,
         Map<String, EffectSource> sources, Mode mode, Map<String, com.imdomestic.chorus.effect.equipment.Loadout> equipment, Map<String, com.imdomestic.chorus.effect.ability.AbilityLoadout> abilities, Map<String, com.imdomestic.chorus.effect.ammo.AmmoState> ammunition, Map<String, com.imdomestic.chorus.effect.weapon.WeaponReload.Plan> reloads, Map<String, com.imdomestic.chorus.effect.weapon.WeaponFire.Shot> shots, com.imdomestic.chorus.effect.random.RandomState random, Map<String, com.imdomestic.chorus.effect.projectile.ShotGroups.Group> shotGroups, Map<String, com.imdomestic.chorus.effect.combat.DamageGroups.Group> damageGroups) {
@@ -145,60 +153,68 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                         timer.intervalMicros(), timer.remaining(), timer.signal(), timer.lifetime()));
             }
         }
-        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(value, resources, updated, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
+    }
+    public EffectState withDamageTally(com.imdomestic.chorus.effect.combat.DamageTallies.Entry value) {
+        var copy = new TreeMap<>(damageTallies); copy.put(value.handle().id(), value);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, copy);
+    }
+    public EffectState withoutDamageTally(String id) {
+        var copy = new TreeMap<>(damageTallies); copy.remove(id);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, copy);
     }
     public EffectState withRetainedCost(com.imdomestic.chorus.effect.resource.RetainedCosts.Entry value) {
         var copy = new TreeMap<>(retainedCosts); copy.put(value.handle().id(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, copy);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, copy, damageTallies);
     }
     public EffectState withoutRetainedCost(String id) {
         var copy = new TreeMap<>(retainedCosts); copy.remove(id);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, copy);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, copy, damageTallies);
     }
     public EffectState withDamageGroup(com.imdomestic.chorus.effect.combat.DamageGroups.Group value) {
         var copy = new TreeMap<>(damageGroups); copy.put(value.handle().id(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, copy, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, copy, retainedCosts, damageTallies);
     }
     public EffectState withoutDamageGroup(String id) {
         var copy = new TreeMap<>(damageGroups); copy.remove(id);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, copy, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, copy, retainedCosts, damageTallies);
     }
     public EffectState withShotGroup(com.imdomestic.chorus.effect.projectile.ShotGroups.Group value) {
         var copy = new TreeMap<>(shotGroups); copy.put(value.handle().id(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, copy, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, copy, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withoutShotGroup(String id) {
         var copy = new TreeMap<>(shotGroups); copy.remove(id);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, copy, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, copy, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withRandom(com.imdomestic.chorus.effect.random.RandomState value) {
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, value, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, value, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withShot(com.imdomestic.chorus.effect.weapon.WeaponFire.Shot value) {
         var copy = new TreeMap<>(shots); copy.put(value.gear().instance(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, copy, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, reloads, copy, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withReload(com.imdomestic.chorus.effect.weapon.WeaponReload.Plan value) {
         var copy = new TreeMap<>(reloads); copy.put(value.holder(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withoutReload(String holder) {
         var copy = new TreeMap<>(reloads); copy.remove(holder);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, ammunition, copy, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withAmmo(com.imdomestic.chorus.effect.ammo.AmmoState value) {
         var copy = new TreeMap<>(ammunition); copy.put(value.weapon(), value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, abilities, copy, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withResource(ResourceState value) {
-        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState schedule(Timer timer) {
         var copy = new TreeMap<>(timers);
         if (copy.putIfAbsent(timer.id(), timer) != null) throw new IllegalArgumentException("Duplicate timer identity: " + timer.id());
-        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
-    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts); }
+    public EffectState cancel(String id) { var copy = new TreeMap<>(timers); copy.remove(id); return new EffectState(buffs, resources, copy, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies); }
     public EffectState withSource(EffectSource source) {
         var copy = new TreeMap<>(sources); copy.put(source.instance(), source); return withSources(copy);
     }
@@ -207,17 +223,17 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     }
     public EffectState withSources(Map<String, EffectSource> value) {
         var updated = new TreeMap<>(timers); updated.values().removeIf(timer -> !EffectTimers.active(timer, value, buffs));
-        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, updated, value, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withEquipment(String holder, com.imdomestic.chorus.effect.equipment.Loadout value) {
         var updated = new TreeMap<>(equipment);
         if (value.equals(com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, updated, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
     public EffectState withAbilities(String holder, com.imdomestic.chorus.effect.ability.AbilityLoadout value) {
         var updated = new TreeMap<>(abilities);
         if (value.equals(com.imdomestic.chorus.effect.ability.AbilityLoadout.EMPTY)) updated.remove(holder); else updated.put(holder, value);
-        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts);
+        return new EffectState(buffs, resources, timers, sources, mode, equipment, updated, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies);
     }
-    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts); }
+    public EffectState withMode(Mode value) { return new EffectState(buffs, resources, timers, sources, value, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies); }
 }

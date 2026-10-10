@@ -62,7 +62,8 @@
       "com.imdomestic.chorus.ProjectileCollisionGameTest",
       "com.imdomestic.chorus.ProjectileTrackingGameTest",
       "com.imdomestic.chorus.ProjectileDestinationGameTest",
-      "com.imdomestic.chorus.ProjectileCatchGameTest"
+      "com.imdomestic.chorus.ProjectileCatchGameTest",
+      "com.imdomestic.chorus.DamageTallyGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

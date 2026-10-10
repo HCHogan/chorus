@@ -316,6 +316,14 @@ public final class EffectCodecs {
                         ID.fieldOf("resource").forGetter(Action.SpendResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.SpendResource::target),
                         values.fieldOf("amount").forGetter(Action.SpendResource::amount), Codec.STRING.fieldOf("payment").forGetter(Action.SpendResource::payment)
                 ).apply(i, Action.SpendResource::new)))
+                .register("chorus:begin_damage_tally", TallyActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        values.fieldOf("duration").forGetter(TallyActions.Begin::duration)).apply(i, TallyActions.Begin::new)))
+                .register("chorus:record_damage", TallyActions.Record.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("tally").forGetter(TallyActions.Record::tally), Codec.STRING.fieldOf("damage").forGetter(TallyActions.Record::damage)).apply(i, TallyActions.Record::new)))
+                .register("chorus:read_damage_tally", TallyActions.Read.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("tally").forGetter(TallyActions.Read::tally)).apply(i, TallyActions.Read::new)))
+                .register("chorus:close_damage_tally", TallyActions.Close.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("tally").forGetter(TallyActions.Close::tally)).apply(i, TallyActions.Close::new)))
                 .register("chorus:retain_cost", Action.RetainCost.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("cost").forGetter(Action.RetainCost::cost), values.fieldOf("duration").forGetter(Action.RetainCost::duration)
                 ).apply(i, Action.RetainCost::new)))

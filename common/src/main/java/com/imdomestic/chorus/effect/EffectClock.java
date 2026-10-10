@@ -45,6 +45,7 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
     @Override public long nextDeadline(EffectState state) {
         long next = state.buffs().nextDeadline();
         for (var timer : state.timers().values()) next = Math.min(next, timer.dueAt());
+        for (var tally : state.damageTallies().values()) next = Math.min(next, tally.handle().dueAt());
         for (var cost : state.retainedCosts().values()) next = Math.min(next, cost.handle().dueAt());
         next = Math.min(next, ShieldRecovery.nextDeadline(shieldRecovery.apply(state), time(state)));
         if (recovery.apply(state).stream().anyMatch(offer -> offer.perSecond() > 0)) {
@@ -101,8 +102,10 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
             var batch = Recovery.integrate(recovery.apply(state), time(state), until, signals);
             if (!batch.allocations().isEmpty()) signals = new ArrayList<>(List.of(new RuleEngine.Signal(Recovery.EVENT, batch)));
         }
+        var damageTallies = new TreeMap<>(state.damageTallies());
+        damageTallies.values().removeIf(tally -> tally.handle().dueAt() <= until);
         var retainedCosts = new TreeMap<>(state.retainedCosts());
         retainedCosts.values().removeIf(cost -> cost.handle().dueAt() <= until);
-        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts), RuleEngine.Empty.INSTANCE, signals);
+        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts, damageTallies), RuleEngine.Empty.INSTANCE, signals);
     }
 }

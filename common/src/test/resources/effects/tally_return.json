@@ -1,0 +1,334 @@
+{
+  "version": "test-tally-return-v1",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 2,
+      "initial": 2
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:return",
+      "slot": "test:melee",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:begin_damage_tally",
+            "duration": {
+              "type": "chorus:constant",
+              "value": 5,
+              "unit": "second"
+            }
+          },
+          "as": "flight_tally"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "damage"
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "test:weapon_damage",
+            "tags": [
+              "test:melee_damage"
+            ],
+            "kill_tags": [
+              "test:melee_kill"
+            ]
+          },
+          "as": "attack"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:constant",
+              "value": 2,
+              "unit": "second"
+            },
+            "collision": {
+              "entity_pierces": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "count"
+              }
+            },
+            "tracking": {
+              "radius": {
+                "type": "chorus:constant",
+                "value": 15,
+                "unit": "meter"
+              },
+              "turn_rate": {
+                "type": "chorus:constant",
+                "value": 3600,
+                "unit": "degree_per_second"
+              },
+              "acquisition_angle": {
+                "type": "chorus:constant",
+                "value": 180,
+                "unit": "degree"
+              },
+              "relation": "any",
+              "line_of_sight": true,
+              "redirect_on_contact": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "for_each": "impact",
+              "as": "victim",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "attack",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  },
+                  "as": "hit"
+                },
+                {
+                  "type": "chorus:record_damage",
+                  "tally": "flight_tally",
+                  "damage": "hit"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "terminal"
+              },
+              "then": [
+                {
+                  "projectile": {
+                    "position": "impact",
+                    "direction": "aim",
+                    "speed": {
+                      "type": "chorus:constant",
+                      "value": 20,
+                      "unit": "meter_per_second"
+                    },
+                    "gravity": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "meter_per_second_squared"
+                    },
+                    "drag": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "multiplier"
+                    },
+                    "lifetime": {
+                      "type": "chorus:constant",
+                      "value": 2,
+                      "unit": "second"
+                    },
+                    "destination": {
+                      "target": "self",
+                      "turn_rate": {
+                        "type": "chorus:constant",
+                        "value": 3600,
+                        "unit": "degree_per_second"
+                      },
+                      "arrival_radius": {
+                        "type": "chorus:constant",
+                        "value": 0.3,
+                        "unit": "meter"
+                      },
+                      "target_anchor": "body",
+                      "collide_entities": false,
+                      "catch": {
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 2,
+                          "unit": "meter"
+                        },
+                        "opens_after": {
+                          "type": "chorus:constant",
+                          "value": 0.05,
+                          "unit": "second"
+                        },
+                        "closes_after": {
+                          "type": "chorus:constant",
+                          "value": 0.5,
+                          "unit": "second"
+                        },
+                        "line_of_sight": true
+                      }
+                    }
+                  },
+                  "as": "returned",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:close_damage_tally",
+                        "tally": "flight_tally"
+                      },
+                      "as": "totals"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "totals",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "returned",
+                            "field": "arrived"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:play_cue",
+                              "cue": "test:arrived"
+                            },
+                            {
+                              "type": "chorus:grant_resource",
+                              "resource": "test:energy",
+                              "requested": {
+                                "type": "chorus:scale",
+                                "factor": 0.1,
+                                "from": "count",
+                                "to": "charge_fraction",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "totals",
+                                  "field": "hits"
+                                }
+                              }
+                            },
+                            {
+                              "type": "chorus:heal",
+                              "amount": {
+                                "type": "chorus:scale",
+                                "factor": 3,
+                                "from": "count",
+                                "to": "damage",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "totals",
+                                  "field": "kills"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "returned",
+                            "field": "caught"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:play_cue",
+                              "cue": "test:caught"
+                            },
+                            {
+                              "type": "chorus:grant_resource",
+                              "resource": "test:energy",
+                              "requested": {
+                                "type": "chorus:scale",
+                                "factor": 0.2,
+                                "from": "count",
+                                "to": "charge_fraction",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "totals",
+                                  "field": "hits"
+                                }
+                              }
+                            },
+                            {
+                              "type": "chorus:heal",
+                              "amount": {
+                                "type": "chorus:scale",
+                                "factor": 3,
+                                "from": "count",
+                                "to": "damage",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "totals",
+                                  "field": "kills"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "test-tally-return-v1",
+      "input_unit": "damage",
+      "steps": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    }
+  ]
+}
