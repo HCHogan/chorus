@@ -1201,12 +1201,15 @@
           "text_sha256": "6ec40d97a8a8722b00be17c2c12a605651010472910cd9eb7efeb500ff264724"
         }
       ],
-      "scope": "同版本片段链接共享 Jolt；5.3 秒击杀换弹窗、普通 7 / 强化 8 秒下一击、收枪保留与计时、武器/持有者隔离、命中消费、实际 Jolt 非武器击杀；真实双端伤害与 tick 验收；数据包imports真实重载后执行共享Jolt",
+      "scope": "同版本 imports 链接共享 Jolt；5.3 秒击杀换弹窗、普通 7 / 强化 8 秒下一击、收枪保留与计时、武器/持有者隔离；实际独立容器、玩家开火、手动换弹和切枪后的物理命中；真实 Jolt 链伤击杀不刷新武器窗口；双端世界与 tick 及数据包重载验收",
       "acceptance": [
         "武器击杀后 5.3 秒内完成换弹触发；击杀/换弹必须匹配正确武器",
         "之后 7 秒/强化 8 秒内下一次武器命中施加 Jolt 并消耗就绪状态",
         "换弹窗口及就绪状态在收枪后保留",
-        "Jolt 不因武器来源而算作武器伤害，来源与信用独立"
+        "Jolt 不因武器来源而算作武器伤害，来源与信用独立",
+        "由独立容器和普通玩家开火/换弹产生事实；在途弹丸切枪后仍保留发射武器身份和就绪消费归属",
+        "以完成换弹检查窗口；5.3 秒边界已失效但正常补弹仍完成，切枪取消和满弹匣拒绝不会授予就绪",
+        "状态资格结果未知时，已扣弹药、已造成伤害和已消费就绪保留，停止推导且不重放世界请求"
       ],
       "evidence": [
         {
@@ -1314,12 +1317,61 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProgramImportsGameTest.java",
           "symbol": "importedVoltshotAndJoltExecuteFromTheReloadedCatalogue"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/voltshot_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotWeaponTest.java",
+          "symbol": "actualReloadCompletionArmsOnlyTheMatchingWeaponWithItsEquippedEnhancement"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotWeaponTest.java",
+          "symbol": "finishingExactlyAtTheKillWindowBoundaryCannotArmFromAnEarlierReloadStart"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotWeaponTest.java",
+          "symbol": "stowCancelsReloadButPreservesReadyAndAnAlreadyLaunchedShotsIdentity"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotWeaponTest.java",
+          "symbol": "physicalWeaponProvenanceWithoutKillCreditCannotArmAfterARealRefill"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoltshotWeaponTest.java",
+          "symbol": "unknownStatusResultRetainsTheSpentReadyChargeAndDoesNotReplayItsWorldRequest"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotWeaponGameTest.java",
+          "symbol": "ownedKillReloadAndStowedFlightApplyJoltAndItsKillCannotRefreshTheWeaponWindow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotWeaponGameTest.java",
+          "symbol": "stowingBeforeReloadCompletesPreservesTheKillWindowButDoesNotArm"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotWeaponGameTest.java",
+          "symbol": "actualWeaponKillWithoutDeclaredCreditAndRealRefillDoNotActivateVoltshot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/VoltshotWeaponGameTest.java",
+          "symbol": "unknownStatusAfterChargedProjectileKeepsAmmoDamageAndSpentChargeWithoutReplay"
         }
       ],
       "gaps": [
-        "通用真实容器与手动换弹已接入，但此片段的世界夹具仍由测试宿主提供武器身份和完成事件；数据包片段 imports 已经真实重载和两模式链伤验收，与通用玩家输入的集成仍待完成",
+        "实际独立容器、手动换弹和单次物理开火已验收；夹具容量/射速/换弹/弹速/基础伤害为合成参数，完整 D2 武器原型、独立内容注册表和默认自动装配仍待接入",
         "窗口内重复换弹可重置就绪但不消耗击杀窗口、免疫/格挡命中及资格拒绝仍消费，就绪按同批首 hit 消费：均为待原作校准的内容策略",
-        "射击/多弹丸事务、玩家死亡/卸下装备清理策略未完成",
+        "多弹丸事务、技能换弹、玩家死亡/卸下装备清理策略未完成",
         "共享 Jolt 的完整数值投影、等级/Guardian 分类、余量/冷却策略、离线阵营及 Overload 眩晕仍未完整验收"
       ]
     },

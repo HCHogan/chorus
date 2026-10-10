@@ -105,6 +105,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/entity_observation.json'
         include 'effects/jolt.json'
         include 'effects/voltshot.json'
+        include 'effects/voltshot_weapon.json'
         include 'effects/membership_aura.json'
         include 'effects/healing_rift.json'
         include 'effects/shield_restoration.json'

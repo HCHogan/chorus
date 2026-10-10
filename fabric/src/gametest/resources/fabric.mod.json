@@ -44,6 +44,7 @@
       "com.imdomestic.chorus.EntityObservationGameTest",
       "com.imdomestic.chorus.JoltGameTest",
       "com.imdomestic.chorus.VoltshotGameTest",
+      "com.imdomestic.chorus.VoltshotWeaponGameTest",
       "com.imdomestic.chorus.TargetMembershipGameTest",
       "com.imdomestic.chorus.HealingRiftGameTest",
       "com.imdomestic.chorus.RiftShieldGameTest",

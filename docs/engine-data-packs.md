@@ -202,7 +202,7 @@ JsonElement flattened = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, prog
 
 Java 工具可用 `ProgramModule.CODEC` 解码模块，再把 id → 模块的 Map 传给 `ProgramCatalogue.compile`。`EffectCodecs.PROGRAM / COMPILED` 仍表示无 imports 的纯 AST / 完整程序；需要导出单文件时编码编译结果即可。数据包注册表的 Java 值为 LoadedProgram，宿主通常继续通过 EffectPrograms.find / ids 读取已完成校验的 CompiledEffects。
 
-[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。ProgramImportsGameTest 还将这两份原始夹具写为数据包模块，经真实 reload 后直接执行新目录中的两模式击杀、就绪、Jolt 中心与邻居伤害。通用容器与手动换弹已经接线；该片段与实际换弹 / 单次开火流程的集成验收、多弹丸射击事务仍待完成。
+[voltshot.json](../common/src/test/resources/effects/voltshot.json) 是片段：只声明击杀窗口、下一击就绪状态和触发规则，引用 [jolt.json](../common/src/test/resources/effects/jolt.json) 中的共享 Jolt 状态与计数事件。两者同为 test-jolt-v1；独立编译 Voltshot 会因缺少 Jolt 定义而失败，链接后的完整程序已通过纯核心及双端真实伤害测试。ProgramImportsGameTest 还将这两份原始夹具写为数据包模块，经真实 reload 后直接执行新目录中的两模式击杀、就绪、Jolt 中心与邻居伤害。[voltshot_weapon.json](../common/src/test/resources/effects/voltshot_weapon.json) 另提供完整武器输入模块，imports 同时引用 chorus_d2:voltshot 与 chorus_d2:jolt。需要手工运行这个合成示例时，把三份文件按原文件名放到 `data/chorus_d2/chorus/effect_program/` 目录，并在两个被引用片段上设置 `"fragment": true`；装备原型和来源会由独立容器投影。它已通过真实玩家开火、手动换弹、切枪后的物理命中与 Jolt 链伤验收；弹药 / 射速 / 飞行等参数是测试值，多弹丸具体资格及完整 D2 武器原型仍待完成。
 
 ## 状态施加与只读资格
 
