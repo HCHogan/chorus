@@ -1,0 +1,273 @@
+{
+  "version": "test",
+  "profiles": [
+    {
+      "id": "test:power",
+      "version": "test",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "add",
+          "operation": "add",
+          "group": {
+            "name": "add",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:mark",
+        "version": "test",
+        "duration": 1
+      },
+      "bundle": "test:mark_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:mark_active",
+      "scope": "buff"
+    },
+    {
+      "id": "test:common",
+      "parameters": {
+        "duration": "second"
+      },
+      "rules": [
+        {
+          "id": "echo",
+          "on": "test:echo",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:mark",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:source_parameter",
+                "name": "duration"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:callee",
+      "includes": [
+        "test:common"
+      ],
+      "parameters": {
+        "amount": "damage"
+      },
+      "modifiers": [
+        {
+          "id": "power",
+          "profile": "test:power",
+          "stage": "add",
+          "group": "add",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 100,
+            "unit": "damage"
+          },
+          "reference": "synthetic",
+          "confidence": "assumed",
+          "stacking_key": "test:power"
+        }
+      ],
+      "rules": [
+        {
+          "id": "apply",
+          "on": "test:apply",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:source_parameter",
+                "name": "amount"
+              },
+              "damage_type": "minecraft:generic"
+            },
+            {
+              "type": "chorus:emit",
+              "event": "test:echo"
+            }
+          ]
+        },
+        {
+          "id": "loop",
+          "on": "test:loop",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:event_number",
+              "name": "remaining",
+              "unit": "count"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:loop"
+            },
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "test:callee",
+              "event": "test:loop",
+              "parameters": {
+                "amount": {
+                  "type": "chorus:source_parameter",
+                  "name": "amount"
+                },
+                "duration": {
+                  "type": "chorus:source_parameter",
+                  "name": "duration"
+                }
+              },
+              "numbers": {
+                "remaining": {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:event_number",
+                      "name": "remaining",
+                      "unit": "count"
+                    },
+                    {
+                      "type": "chorus:constant",
+                      "value": -1,
+                      "unit": "count"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:caller",
+      "rules": [
+        {
+          "id": "call",
+          "on": "test:start",
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "test:callee",
+              "event": "test:apply",
+              "parameters": {
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                },
+                "duration": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                }
+              },
+              "tags": [
+                "test:invoked"
+              ],
+              "numbers": {
+                "counter": {
+                  "type": "chorus:constant",
+                  "value": 42,
+                  "unit": "count"
+                }
+              }
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:caller_done"
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "test:callee",
+                  "event": "test:apply",
+                  "parameters": {
+                    "amount": {
+                      "type": "chorus:event_number",
+                      "name": "amount",
+                      "unit": "damage"
+                    },
+                    "duration": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "second"
+                    }
+                  },
+                  "tags": [
+                    "test:invoked"
+                  ],
+                  "numbers": {
+                    "counter": {
+                      "type": "chorus:constant",
+                      "value": 42,
+                      "unit": "count"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:observer",
+      "rules": [
+        {
+          "id": "seen",
+          "on": "test:apply",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:invoked"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:observed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -682,7 +682,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return java.util.Collections.unmodifiableMap(result);
     }
     private Validation validation(EffectProgram.Bundle bundle, Map<String, ResultShape> results) {
-        return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields, bundle.parameters());
+        return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields, bundle.parameters(), bundles);
     }
     Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
         return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this));
@@ -697,6 +697,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             boolean captured = rule.binding() == EffectProgram.ReactionBinding.ORIGIN_BUNDLE
                     && context.scope() instanceof EffectSource source
                     && ReactionSnapshot.from(context.event()).filter(s -> s.sources().contains(source)).isPresent();
+            captured |= context.event().signal().payload() instanceof BundleInvocation invocation
+                    && invocation.version().equals(program.version()) && invocation.source().equals(context.scope());
             if (context.scope() instanceof EffectSource source && !captured && !source.equals(state.sources().get(source.instance()))) {
                 // Only the exact removal fact may run with an old source; ordinary stale bindings stay inactive.
                 if (!context.event().signal().type().equals("chorus:source_detached")
@@ -927,6 +929,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(EquipmentChange.EVENT)) return List.of(new RuleEngine.RuleBinding(EquipmentChange.EVENT, EquipmentChange.EVENT, RuleEngine.Empty.INSTANCE));
         var result = new ArrayList<RuleEngine.RuleBinding>();
+        if (event.signal().payload() instanceof BundleInvocation invocation) {
+            if (!program.version().equals(invocation.version())) throw new IllegalArgumentException("Incompatible bundle invocation version");
+            validateSource(invocation.source());
+            for (var rule : sourceRules.get(invocation.source().bundle())) if (rule.eventType().equals(event.signal().type())) {
+                result.add(new RuleEngine.RuleBinding(sourceId(invocation.source())+"/"+rule.definition(),rule.definition(),invocation.source()));
+            }
+        }
         if (event.signal().type().equals("chorus:source_detached") && event.signal().payload() instanceof SourceChange.Fact fact && fact.detached()) {
             validateSource(fact.source());
             for (var rule : sourceRules.get(fact.source().bundle())) if (rule.eventType().equals(event.signal().type())) {

@@ -88,13 +88,15 @@ Minecraft 适配器直接写正生命值，绕过护甲、Absorption、Chorus �
 
 ## 效果包声明复用
 
+与下节 `invoke_bundle` 不同，includes 是静态声明组合；它本身不会启动任何动作。
+
 Bundle 可声明 `includes`，引用同一链接目录内、相同 scope 的其他 Bundle。例如 Slow 的施加来源复用 Freeze 的施加规则：
 
 ```json
 {
   "id": "chorus_d2:slow_application",
   "includes": ["chorus_d2:freeze_application"],
-  "parameters": {"slow_duration": "second", "slow_jump_delta": "delta"},
+  "parameters": {"slow_duration": "second", "slow_durance_extension": "second", "slow_jump_delta": "delta"},
   "rules": []
 }
 ```
@@ -104,6 +106,42 @@ Bundle 可声明 `includes`，引用同一链接目录内、相同 scope 的其�
 展开后仍只有被实际绑定的来源 / Buff：`self`、组件、owner、origin、`own_source`、`own_buff` 和生命周期均绑定到这个组合实例，不额外创建父来源。继承参数也必须在实际来源上提供，装备与技能常驻来源使用同样的参数校验。引用的公开事件规则会同时成为组合包的能力；例如 Slow 来源也能处理显式 `apply_freeze` / `clear_freeze`。`origin_bundle` 捕获包含展开后的规则，解绑后按已捕获来源继续。`CompiledEffects.program()` 与 Codec 保留原始未展开目录，以便往返、重载和反应快照保持同一声明身份。
 
 静态引用环检查只解决声明无法有限展开的问题。事件执行中的循环、点燃传播和跨目标反馈不受它限制。可执行范例与边界见 [BundleCompositionTest](../common/src/test/java/com/imdomestic/chorus/effect/BundleCompositionTest.java)。
+
+## 显式效果包调用
+
+`chorus:invoke_bundle` 把一个普通事件连同不可变临时来源交给指定 SOURCE Bundle 的匹配规则。它用于投射物命中、延迟技能或其他效果复用一套施加逻辑；不需要把该包挂回当前装备。示例需链接 [bundle_invocation.json](../common/src/test/resources/effects/bundle_invocation.json)，数值为合成输入：
+
+```json
+{
+  "type": "chorus:invoke_bundle",
+  "bundle": "test:callee", "event": "test:apply",
+  "holder": "source_owner", "target": "victim", "origin": "bound",
+  "parameters": {
+    "amount": {"type":"chorus:constant","value":7,"unit":"damage"},
+    "duration": {"type":"chorus:constant","value":1,"unit":"second"}
+  },
+  "tags": ["test:invoked"],
+  "numbers": {"counter":{"type":"chorus:constant","value":42,"unit":"count"}}
+}
+```
+
+| 字段 | 语义 |
+| --- | --- |
+| bundle / event | 必填；包必须为 SOURCE，包含展开 includes 后的该事件规则；禁止 chorus:internal/ 事件 |
+| holder | 临时来源的 self，默认 source_owner；在调用者上下文求值 |
+| target | 新事件的 victim，默认原 victim；可用已绑定的逐目标身份 |
+| origin | 默认 bound，也可 event；选择信用，不改变调用者状态归属或 holder 表达式的含义 |
+| parameters | 在调用时求值一次，名称和单位必须完全符合被调包的展开声明；callee 用 source_parameter 读取 |
+| tags | 此次事件的显式标签，默认空；不自动继承触发标签，也不混入原始信用 tags |
+| numbers | 在调用者上下文求值，覆盖同名事件测量；未覆盖的测量保留 |
+
+actor、flags、impact、历史观察及其他 references 继续来自当前事件；source_instance / bundle 被替换成调用身份，因此 `own_source` 匹配临时来源，已有同包实例不会冒用这次身份。观察只覆盖原先观察到的实体，不因改写 victim 而补造记录。原 ProcPolicy 保留；原反应快照仅在信用 owner 相同时保留，不能借切换信用转交另一人的快照。
+
+调用身份由实际动作操作号派生；同一 for_each 的多次执行和不同飞行物不会共用参数。运行时复核程序版本和来源参数，然后分发被调包的匹配规则；普通活动来源和 Buff 仍可观察同一事件。callee 的 `emit` 保留调用负载，所以 Slow 能继续调用其继承的 Freeze 规则；新的显式调用则获得新身份。条件、proc_key、状态授权和世界回执照常执行。允许规则再次调用自身，由内容条件或后续事件推进，不增加全局深度 / 次数限制。
+
+这是一笔**排队投递**：现有父事件动作帧先完成，之后处理派生事件，不是有返回值的同步子程序。调用结果为空，不能紧跟调用就读取尚未归约的 callee 结果；需要后续反应时由 callee 发事件或授予状态。调用不写入 state.sources、不触发 source_attached，也不激活该包的修饰、恢复、技能替换或行动门槛。callee 的 detached 延迟可以继续持有参数；`after lifetime:source` 因来源并非常驻而拒绝。需要有生命周期的效果应授予 Buff 或显式创建真正来源，不能用调用冒充装备。
+
+世界动作结果未知时保留此前已提交状态和世界写入，停止当前会话，不重放调用或自动回滚。旧版本调用与非法参数被拒绝。8 项 BundleInvocationTest 覆盖排队顺序、归属 / 事件信用、参数、重复来源隔离、卸下后的 detached 执行、世界故障、256 次内容条件驱动调用、类型校验和临时生命周期。两端共享 BundleInvocationGameTest 用真实投射物验证卸下后命中才读取当前 Durance，以及复用 Slow 的授权、百层 Freeze、最后施加者信用和原版运动控制。此夹具并非完整 Withering Blade。
 
 ## 装备定义与原子装配投影
 

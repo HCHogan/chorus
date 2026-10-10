@@ -967,6 +967,8 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 施加前观察接收者的存活与实际玩家类别，已 Freeze 的目标不积累新 Slow；权限批准后才累计共享 Slow。达到 100 时保留本次施加来源并发出 `apply_freeze`，沿用既有目标等级、来源、Super、时长及状态授权。只有实际取得 Freeze 后才删除 Slow；直接 Freeze 同样清除它。冻结拒绝或缺少等级时保留 100 层与惩罚，之后合格施加可以重试；未知授权结果则停止运行时，保留已提交 Slow，不自动重放。解冻不还原已消费层数。
 
+实际生产者可通过 `invoke_bundle` 向 slow_application 投递 apply_slow，显式提供上述参数、接收者和 stacks，而不要求发射时的装备来源仍在常驻表中。真实投射物卸下后命中、命中时读取 Durance、以及从被调包继续发出 apply_freeze 的两端世界场景已验证。对应 [bundle_invocation_slow.json](../common/src/test/resources/effects/bundle_invocation_slow.json) 使用合成飞行与状态参数，只证明调用链，不能视为 Withering Blade 本体已实现。
+
 当前内容明确选择：不同来源共享层数，持续时间取现有截止时间与新截止时间较晚者；现有 Slow 保留最初施加者和跳跃参数，触发百层的来源拥有新 Freeze。以上归属、刷新、重复冻结排除与失败重试都是 Chorus 的暂定政策，原表未完整规定这些边界，尚需原作实测。首个来源卸下不会自动删已授予状态；运行时持久化和全体死亡清理仍未完成。
 
 Slow 的实际投影与查询分别为：

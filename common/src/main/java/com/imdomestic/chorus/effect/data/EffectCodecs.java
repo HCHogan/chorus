@@ -431,6 +431,15 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("name").forGetter(Action.CancelTimer::name)).apply(i, Action.CancelTimer::new)))
                 .register("chorus:emit", Action.Emit.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("event").forGetter(Action.Emit::event)).apply(i, Action.Emit::new)))
+                .register("chorus:invoke_bundle", BundleActions.Invoke.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("bundle").forGetter(BundleActions.Invoke::bundle), ID.fieldOf("event").forGetter(BundleActions.Invoke::event),
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SOURCE_OWNER).forGetter(BundleActions.Invoke::holder),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(BundleActions.Invoke::target),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(BundleActions.Invoke::origin),
+                        Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("parameters", Map.of()).forGetter(BundleActions.Invoke::parameters),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(BundleActions.Invoke::tags),
+                        Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(BundleActions.Invoke::numbers)
+                ).apply(i, BundleActions.Invoke::new)))
                 .register("chorus:read_event_entity", Action.ReadEventEntity.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventEntity::target)
                 ).apply(i, Action.ReadEventEntity::new)))

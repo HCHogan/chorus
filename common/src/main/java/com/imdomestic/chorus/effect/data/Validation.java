@@ -8,8 +8,11 @@ import java.util.Map;
 
 /** Compile-time environment, including only results from preceding instructions. */
 public record Validation(Map<String, BuffDefinition> buffs, Map<String, ResultShape> results, boolean buffSource,
-        Map<String, CalculationProfile> profiles, Map<String, ResourceDefinition> resources, Map<String, EffectProgram.Shield> shields, Map<String, Unit> parameters) {
-    public Validation { buffs = Map.copyOf(buffs); results = Map.copyOf(results); profiles = Map.copyOf(profiles); resources = Map.copyOf(resources); shields = Map.copyOf(shields); parameters = Map.copyOf(parameters); }
+        Map<String, CalculationProfile> profiles, Map<String, ResourceDefinition> resources, Map<String, EffectProgram.Shield> shields, Map<String, Unit> parameters,
+        Map<String, EffectProgram.Bundle> bundles) {
+    public Validation { buffs = Map.copyOf(buffs); results = Map.copyOf(results); profiles = Map.copyOf(profiles); resources = Map.copyOf(resources); shields = Map.copyOf(shields); parameters = Map.copyOf(parameters); bundles = Map.copyOf(bundles); }
+    public Validation(Map<String, BuffDefinition> buffs, Map<String, ResultShape> results, boolean buffSource,
+            Map<String, CalculationProfile> profiles, Map<String, ResourceDefinition> resources, Map<String, EffectProgram.Shield> shields, Map<String, Unit> parameters) { this(buffs,results,buffSource,profiles,resources,shields,parameters,Map.of()); }
     public Validation(Map<String, BuffDefinition> buffs, Map<String, ResultShape> results, boolean buffSource,
             Map<String, CalculationProfile> profiles, Map<String, ResourceDefinition> resources, Map<String, EffectProgram.Shield> shields) { this(buffs, results, buffSource, profiles, resources, shields, Map.of()); }
     public Validation(Map<String, BuffDefinition> buffs, Map<String, ResultShape> results, boolean buffSource,

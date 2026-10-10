@@ -108,6 +108,7 @@
       "com.imdomestic.chorus.FreezeGameTest",
       "com.imdomestic.chorus.SlowGameTest",
       "com.imdomestic.chorus.DuranceGameTest",
+      "com.imdomestic.chorus.BundleInvocationGameTest",
       "com.imdomestic.chorus.HealthPaymentGameTest",
       "com.imdomestic.chorus.BreakoutGameTest",
       "com.imdomestic.chorus.FreezeDamageGameTest"

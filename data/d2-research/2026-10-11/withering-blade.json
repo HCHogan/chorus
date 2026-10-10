@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Requirements verified; Withering Blade producer not yet implemented",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+    "path": "data/d2-research/2026-10-11/control-stasis-source.html.gz",
+    "retrieved_at": "2026-10-10T17:23:35.607152+00:00",
+    "html_sha256": "34194d03044168c07144b2acb77c937fbdb2400127e56673c559eeda7b8ae79b",
+    "gzip_sha256": "6ae546d699e2b5a2f523f04f3642b0c6f15f12eea7737e04e9d9d553463cf232"
+  },
+  "cells": [
+    {
+      "original_cell": "B51",
+      "snapshot_cell": "B38",
+      "snapshot_text_sha256": "5e74bfbea5c542b1df1e4457c3859824228a9b5b6ef74f6823fd8284bb500270",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D51",
+      "snapshot_cell": "D38",
+      "snapshot_text_sha256": "3d0fa7c7dda2e42081f69505917945d66d3619b3dfb3646606c8e04c1ed791a7",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N51",
+      "snapshot_cell": "N38",
+      "snapshot_text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "historical_crosscheck": {
+    "url": "https://www.bungie.net/7/en/News/article/this-week-in-destiny-11-22-23",
+    "published_at": "2023-11-22",
+    "evidence_kind": "web search extraction, not an archived full article",
+    "quote": "Increased maximum bounce count from 2 to 3.",
+    "quote_sha256": "f375aea799d8d087e610dbd44b475c5e11ca18326809e464b48b086ce64fd557"
+  },
+  "requirements": {
+    "charges": 2,
+    "base_cooldown_seconds": 145.2,
+    "chunk_scalar": 0.8,
+    "damage_combatant_guardian": [
+      296,
+      72
+    ],
+    "slow_stacks_combatant_guardian": [
+      60,
+      40
+    ],
+    "slow_seconds_combatant_guardian": [
+      3.5,
+      1.5
+    ],
+    "durance_extension_seconds_combatant_guardian": [
+      3.5,
+      0.5
+    ],
+    "tracking_radius_combatant_guardian": [
+      12,
+      8
+    ],
+    "surface_ricochets": 3,
+    "enemy_targets": 4
+  },
+  "core_progress": "invoke_bundle now lets detached projectile impacts reuse Slow/Freeze with explicit target-specific parameters and original attribution after unequipping. Synthetic native projectile and conversion tests pass on both loaders.",
+  "unresolved": [
+    "Speed, gravity, drag, turn rate, acquisition angle and maximum lifetime need explicit physical calibration; historical percentage changes do not establish absolute values.",
+    "Official maximum bounce count and Compendium wall/enemy wording suggest shared continuation limits; mixed wall/entity contact order and current post-bounce damage still need verification. Existing collision policy has separate limits.",
+    "Target revisit rules, flight sampling versus application sampling, full energy stat integration and production subclass/UI assembly need acceptance evidence."
+  ]
+}

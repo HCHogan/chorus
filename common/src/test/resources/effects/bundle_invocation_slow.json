@@ -1,0 +1,177 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:slow_invocation_host",
+      "rules": [
+        {
+          "id": "direct",
+          "on": "test:invoke_slow",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:slow_application",
+              "event": "chorus_d2:apply_slow",
+              "parameters": {
+                "slow_duration": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "slow_durance_extension": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "slow_jump_delta": {
+                  "type": "chorus:constant",
+                  "value": -0.3,
+                  "unit": "delta"
+                },
+                "combatant_threshold": {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "damage"
+                },
+                "shatter_radius": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "meter"
+                },
+                "guardian_shatter_damage": {
+                  "type": "chorus:constant",
+                  "value": 80,
+                  "unit": "damage"
+                }
+              },
+              "numbers": {
+                "stacks": {
+                  "type": "chorus:event_number",
+                  "name": "requested",
+                  "unit": "count"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "throw",
+          "on": "test:throw_slow",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction"
+              },
+              "as": "aim"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  "then": [
+                    {
+                      "for_each": "impact",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "type": "chorus:invoke_bundle",
+                          "bundle": "chorus_d2:slow_application",
+                          "event": "chorus_d2:apply_slow",
+                          "parameters": {
+                            "slow_duration": {
+                              "type": "chorus:constant",
+                              "value": 2,
+                              "unit": "second"
+                            },
+                            "slow_durance_extension": {
+                              "type": "chorus:constant",
+                              "value": 2,
+                              "unit": "second"
+                            },
+                            "slow_jump_delta": {
+                              "type": "chorus:constant",
+                              "value": -0.3,
+                              "unit": "delta"
+                            },
+                            "combatant_threshold": {
+                              "type": "chorus:constant",
+                              "value": 100,
+                              "unit": "damage"
+                            },
+                            "shatter_radius": {
+                              "type": "chorus:constant",
+                              "value": 4,
+                              "unit": "meter"
+                            },
+                            "guardian_shatter_damage": {
+                              "type": "chorus:constant",
+                              "value": 80,
+                              "unit": "damage"
+                            }
+                          },
+                          "numbers": {
+                            "stacks": {
+                              "type": "chorus:event_number",
+                              "name": "requested",
+                              "unit": "count"
+                            }
+                          },
+                          "target": {
+                            "binding": "victim"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
