@@ -149,6 +149,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 
 伤害事实可携带 BuffObservation：回执确认时记录攻击者与受击者的 Buff 存在性，再执行本次消费和排队反应。这样 death 反应移除灼烧后，kill 仍可用 event_has_buff 判断回执时确实带有灼烧；同次 hit 反应后来新增的状态不会倒灌。观察时护盾损耗等物理写入已完成，不将其宣称为攻击前全部状态。event_buffs_available 区分未采样与确认空集合，has_buff 仍查询实时状态。接口与边界见 [数据包文档](engine-data-packs.md#事实携带的-buff-观察值)。
 
+伤害事实也可携带 EntityObservation：同一回执边界保存受击者及可解析攻击者的生命、存活、MC 玩家类别、实体标签与类型标签。原版入口保留实际受击对象，因此死亡钩子已经移除尸体也能记录；后续反应删实体或改标签不改变该记录。`event_entity_observed` 检查是否有观察，`read_event_entity` 读取类型化结果，明确区分未观察、观察到不可用、观察到死亡实体。纯核心不从当前世界补造缺失历史，`inspect_entity` 仍明确查询执行时世界。取样时机和字段见 [事实携带的实体观察值](engine-data-packs.md#事实携带的实体观察值)。
+
 death / kill 来自同一次已确认死亡，共享 death id。Fabric 的 `ALLOW_DEATH` 在图腾检查之前，不能作为死亡事实；`AFTER_DEATH` 才确认死亡。图腾成功救活时该击仍可有受伤事实，但 lethal=false，不发 death / kill；救命效果联动监听 death_prevented。不能仅凭伤害超过当前 HP 或扣血过程中曾经归零判定死亡。世界物体的销毁、卸载与生物死亡是不同事件。
 
 这里的条件是“不死保护实际成功”，不是“拥有或手持图腾”。原版先检查 `checkTotemDeathProtection`，失败才进入 `die`；某些伤害原因会绕过保护。死亡事件不负责取消死亡，救命效果必须在死亡确认前完成。`death_prevented` 应携带真正生效的保护来源，不能从最终 HP 或背包物品猜测。当前伤害采集器在原版保护组件执行后记录实际物品 ID，在 LivingEntity / ServerPlayer 确认死亡的广播点采集 death；双加载器 GameTest 已验证显式请求与已注册维度中的普通伤害，包括真实图腾救活、绕过图腾和玩家死亡。其他模组保护机制及不经过这些采集路径的特殊实体仍待验收。

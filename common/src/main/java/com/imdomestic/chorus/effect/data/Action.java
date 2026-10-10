@@ -519,6 +519,16 @@ public interface Action {
             return new RuleEngine.Local<>(e.state(), difference.part(part), List.of());
         }
     }
+    /** Reuse typed entity results without issuing a new world query or substituting current state. */
+    record ReadEventEntity(Evaluation.Target target) implements Action {
+        @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.ENTITY; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            String holder = e.target(target);
+            var observation = e.event().observedEntities().orElseThrow(() -> new IllegalArgumentException("Event has no entity observation"));
+            return new RuleEngine.Local<>(e.state(), new com.imdomestic.chorus.effect.target.EntityQuery.Result(
+                    new com.imdomestic.chorus.effect.target.EntityQuery(holder), observation.require(holder)), List.of());
+        }
+    }
     record InspectEntity(Evaluation.Target target) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.ENTITY; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {

@@ -132,7 +132,7 @@ public final class EnergyActions {
                 var context = e.timerEvent(); var measurements = new HashMap<>(context.numbers());
                 numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
                 var refs = new HashMap<>(context.references()); refs.put("resource", resource);
-                var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs());
+                var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
                 var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
                         new Measure(normalized.base(), Unit.CHARGE), List.of());
                 Validation.same(result.output().unit(), Unit.CHARGE);

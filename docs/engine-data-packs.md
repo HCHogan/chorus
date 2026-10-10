@@ -1718,3 +1718,25 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 `bundle.health_recovery[]` 可选 `profile`。未声明时沿用 rate 的直接值；声明后必须引用输入、输出均为 damage_per_second 的 Profile，缺失或单位不符在链接时拒绝。先在恢复来源作用域求 rate，再用受益者当前的来源 / Buff 修饰计算最终速率，之后才参与 channel 的优先级与速率选择、区间积分；负数或非有限结果不能成为治疗额度。
 
 查询的 actor / victim 均为受益者，source 保留恢复来源，tags 为声明的 tags，numbers.recovery_rate 为原始速率，references.recovery_channel 为通道。查询不继承历史施加事件，不伪造事件 Buff 观察。来源变化前先积分旧区间，下一段使用新修饰；Profile 不改写治疗归因，不存储被取消或溢出的治疗。该入口可把 D2 HP/s 与 Minecraft HP/s 的校准从效果定义中分离，也能表达当前受益者的恢复倍率。护盾回充与离散 heal 仍使用各自既有入口。
+
+
+## 事实携带的实体观察值
+
+DamageReceipt / EffectEvent 可带 `EntityObservation(timeMicros, entities)`。每个已观察身份映射为不可变的 EntityQuery.View 或显式 unavailable；未包含该身份则是 unknown。View 保存生命 / 最大生命 / Absorption、alive、原版 player、entityTags 与 typeTags，不包含位置或 D2 敌人目录。死亡实体仍可有完整 View；unknown 与 unavailable 都不能直接读取 health、player 或标签。
+
+```json
+{"if":{"type":"chorus:event_entity_observed","target":"victim"},"then":[
+  {"action":{"type":"chorus:read_event_entity","target":"victim"},"as":"at_hit"},
+  {"if":{"type":"chorus:result_flag","binding":"at_hit","field":"available"},"then":[
+    {"if":{"type":"chorus:observed_entity_tag","binding":"at_hit","source":"entity","tag":"chorus_d2:combatant_tier_2"},"then":[
+      {"type":"chorus:play_cue","cue":"example:tier_two"}
+    ]}
+  ]}
+]}
+```
+
+`event_entity_observed` 与 `read_event_entity` 的 target 默认 victim。前者对 unknown 返回 false，对已观察到 unavailable 返回 true；后者是纯动作，返回既有 ENTITY 类型结果，不发世界查询，unknown 会报错。后续继续使用 result / result_flag / observed_entity_tag，实体标签和注册表类型标签保持分开。位置和当前状态仍用 capture_position / inspect_entity 明确查询，不能由这份历史记录推测。
+
+原版适配器在 hurt 返回后、该次 Buff 消费及派生反应前采样；真实受击对象保留在伤害作用域，即使原版钩子已移除它也能提供字段。目标按 DamageCommand.target 保存；攻击者 UUID 能解析为当前维度 LivingEntity 时采样，确定不可用则记 empty；无法解析的逻辑攻击者别名保持 unknown，自伤只保存一份观察。任意 Java 宿主可通过 DamageReceipt.withObservedEntities 提供自己的观察，同份回执不可替换为矛盾值。纯核心不会从 EffectState 补造世界信息，旧适配器省略该字段仍为未知。
+
+hit / damage_taken / shield / death / kill 共享回执观察；emit、原上下文的 after / 物理续体与派生 calculate / calculate_pipeline / grant_energy 保留历史。改写查询 victim 不会增加新目标记录，独立资源等新事实不会自动携带旧观察。event_entity_observed 在 on_use 数值快照中按原事实冻结。观察失败保留已提交伤害、报告失败并清理原版作用域，不重放伤害。

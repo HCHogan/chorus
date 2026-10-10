@@ -34,6 +34,7 @@ public final class DamageCapture {
         default Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) { return Optional.empty(); }
         default void abandoned(String id) {}
         default Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) { return Optional.empty(); }
+        default Optional<com.imdomestic.chorus.effect.target.EntityObservation> observeEntities(DamageCommand command, LivingEntity target, DamageSource source) { return Optional.empty(); }
         Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount);
         Optional<CalculationProfile.Result> defense(DamageCommand command, double amount);
         ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis);
@@ -107,6 +108,7 @@ public final class DamageCapture {
         boolean managedOrigin;
         Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts = Optional.empty();
         Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observedBuffs = Optional.empty();
+        Optional<com.imdomestic.chorus.effect.target.EntityObservation> observedEntities = Optional.empty();
         Call(String id, LivingEntity target, DamageSource source, boolean nonLethal) {
             this.id = id; this.target = target; this.source = source; this.nonLethal = nonLethal;
         }
@@ -117,7 +119,7 @@ public final class DamageCapture {
                     ? DamageReceipt.Outcome.APPLIED : immune ? DamageReceipt.Outcome.IMMUNE
                     : blocked || shieldBlocked ? DamageReceipt.Outcome.BLOCKED : DamageReceipt.Outcome.CANCELLED;
             return new DamageReceipt(id, outcome, shieldLoss, absorptionLoss, healthLoss,
-                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts, observedBuffs);
+                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts, observedBuffs, observedEntities);
         }
     }
     public static final class Scope implements AutoCloseable {
@@ -131,19 +133,27 @@ public final class DamageCapture {
         @Override public void close() {
             if (!owner) { call.layer = previousLayer; return; }
             if (CALLS.get().peek() != call) throw new IllegalStateException("Damage calls closed out of order");
-            if (call.observer != null) {
-                if (completed) {
-                    call.observedBuffs = call.observer.observeBuffs(call.command);
-                    call.consumptionFacts = call.observer.finished(call.id, call.command, call.receipt(accepted), call.managedOrigin);
+            try {
+                if (call.observer != null) {
+                    if (completed) {
+                        call.observedBuffs = call.observer.observeBuffs(call.command);
+                        call.observedEntities = call.observer.observeEntities(call.command, call.target, call.source);
+                        call.consumptionFacts = call.observer.finished(call.id, call.command, call.receipt(accepted), call.managedOrigin);
+                    }
+                    else call.observer.abandoned(call.id);
                 }
-                else call.observer.abandoned(call.id);
+            } catch (RuntimeException | Error error) {
+                failed(error);
+                if (call.observer != null) call.observer.abandoned(call.id);
+                throw error;
+            } finally {
+                CALLS.get().pop();
+                boolean outermost = CALLS.get().isEmpty();
+                if (outermost) CALLS.remove();
+                if (completed && call.publish) call.boundary.committed.add(new Delivery(call.observer, new Observed(call.command, call.receipt(accepted))));
+                // The managed primary hit is published by Action.complete, never a second time by this observer.
+                if (outermost) call.boundary.flush();
             }
-            CALLS.get().pop();
-            boolean outermost = CALLS.get().isEmpty();
-            if (outermost) CALLS.remove();
-            if (completed && call.publish) call.boundary.committed.add(new Delivery(call.observer, new Observed(call.command, call.receipt(accepted))));
-            // The managed primary hit is published by Action.complete, never a second time by this observer.
-            if (outermost) call.boundary.flush();
         }
     }
 

@@ -72,9 +72,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             }
             case EntityQuery query -> {
                 var target = entities.apply(query.target());
-                yield new EntityQuery.Result(query, present(target) ? Optional.of(new EntityQuery.View(target.isAlive(),
-                        target instanceof net.minecraft.world.entity.player.Player, target.getHealth(), target.getMaxHealth(), target.getAbsorptionAmount(),
-                        target.entityTags(), target.getType().builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(java.util.stream.Collectors.toSet()))) : Optional.empty());
+                yield new EntityQuery.Result(query, present(target) ? Optional.of(observeEntity(target)) : Optional.empty());
             }
             case DirectionQuery query -> {
                 var entity = entities.apply(query.target());
@@ -87,6 +85,12 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case com.imdomestic.chorus.effect.object.WorldPickup.Spawn spawn -> pickup(spawn);
             default -> throw new IllegalArgumentException("No world executor for " + request.command().getClass().getName());
         };
+    }
+    /** Also accepts a retained damage target that native death hooks have already removed from lookup. */
+    static EntityQuery.View observeEntity(LivingEntity target) {
+        return new EntityQuery.View(target.isAlive(), target instanceof net.minecraft.world.entity.player.Player,
+                target.getHealth(), target.getMaxHealth(), target.getAbsorptionAmount(), target.entityTags(),
+                target.getType().builtInRegistryHolder().tags().map(tag -> tag.location().toString()).collect(java.util.stream.Collectors.toSet()));
     }
     private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt launch(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch) {
         var outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.LAUNCHED;

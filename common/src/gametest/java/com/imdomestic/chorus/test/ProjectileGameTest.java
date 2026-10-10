@@ -39,6 +39,7 @@ public class ProjectileGameTest {
         final List<EffectObject> pickups = new ArrayList<>();
         final List<DamageCommand> hits = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<TargetQuery> queries = new ArrayList<>();
         final List<Action.CueCommand> cues = new ArrayList<>(); final List<RuleEngine.OperationId> operations = new ArrayList<>();
+        Consumer<Action.CueCommand> onCue = _ -> {};
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
@@ -60,7 +61,7 @@ public class ProjectileGameTest {
                 var data = JsonParser.parseReader(reader).getAsJsonObject(); edit.accept(data); program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).getOrThrow();
             }
             var type = h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse("chorus_gametest:delayed")));
-            world = new MinecraftWorldActions(h.getLevel(), this::resolve, _ -> new DamageSource(type, null, owner), (_, _) -> true, cues::add);
+            world = new MinecraftWorldActions(h.getLevel(), this::resolve, _ -> new DamageSource(type, null, owner), (_, _) -> true, cue -> { cues.add(cue); onCue.accept(cue); });
             var source = new EffectSource("launch", "test:projectile", id(owner), new BuffInstance.Origin(id(owner), "source", "", "test:bolt"), Set.of());
             var boost = new EffectSource("boost", "test:power", id(owner), source.origin(), Set.of());
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withSource(source).withSource(boost), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {

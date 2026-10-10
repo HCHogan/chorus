@@ -82,6 +82,7 @@
       "com.imdomestic.chorus.PickupGameTest",
       "com.imdomestic.chorus.FirespriteGameTest",
       "com.imdomestic.chorus.EventBuffObservationGameTest",
+      "com.imdomestic.chorus.EventEntityObservationGameTest",
       "com.imdomestic.chorus.EmberOfSearingGameTest",
       "com.imdomestic.chorus.EmberOfMercyGameTest",
       "com.imdomestic.chorus.RadiantGameTest",

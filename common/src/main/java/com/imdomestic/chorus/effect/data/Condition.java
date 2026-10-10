@@ -146,6 +146,10 @@ public interface Condition {
         @Override public void validate(Validation v) { v.target(target); EnergyActions.ABILITY_OBSERVATION.requireFlag(field); }
         @Override public boolean test(Evaluation e) { return EnergyActions.ABILITY_OBSERVATION.flag(field, EnergyActions.observeAbility(e, slot, target)) == expected; }
     }
+    record EventEntityObserved(Evaluation.Target target) implements Condition {
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) { return e.event().observedEntities().filter(o -> o.observed(e.target(target))).isPresent(); }
+    }
     record EventBuffsAvailable(Evaluation.Target target) implements Condition {
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) { return e.event().observedBuffs().filter(b -> b.available(e.target(target))).isPresent(); }

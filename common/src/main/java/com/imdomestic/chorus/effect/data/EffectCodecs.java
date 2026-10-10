@@ -157,6 +157,8 @@ public final class EffectCodecs {
                         ID.fieldOf("slot").forGetter(Condition.AbilityEnergyFlag::slot), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.AbilityEnergyFlag::target),
                         Codec.STRING.fieldOf("field").forGetter(Condition.AbilityEnergyFlag::field), Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.AbilityEnergyFlag::expected)
                 ).apply(i, Condition.AbilityEnergyFlag::new)))
+                .register("chorus:event_entity_observed", Condition.EventEntityObserved.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventEntityObserved::target)).apply(i, Condition.EventEntityObserved::new)))
                 .register("chorus:event_buffs_available", Condition.EventBuffsAvailable.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventBuffsAvailable::target)).apply(i, Condition.EventBuffsAvailable::new)))
                 .register("chorus:event_has_buff", Condition.EventHasBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -399,6 +401,9 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("name").forGetter(Action.CancelTimer::name)).apply(i, Action.CancelTimer::new)))
                 .register("chorus:emit", Action.Emit.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("event").forGetter(Action.Emit::event)).apply(i, Action.Emit::new)))
+                .register("chorus:read_event_entity", Action.ReadEventEntity.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventEntity::target)
+                ).apply(i, Action.ReadEventEntity::new)))
                 .register("chorus:inspect_entity", Action.InspectEntity.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.InspectEntity::target)
                 ).apply(i, Action.InspectEntity::new)))

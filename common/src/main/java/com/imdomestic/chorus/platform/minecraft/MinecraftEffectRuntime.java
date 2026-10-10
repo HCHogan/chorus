@@ -295,6 +295,23 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (failure.isPresent()) return Optional.empty();
         return Optional.of(com.imdomestic.chorus.effect.buff.BuffObservation.capture(view().buffs(), command.source().owner(), command.target()));
     }
+    @Override public Optional<com.imdomestic.chorus.effect.target.EntityObservation> observeEntities(DamageCommand command, LivingEntity target, DamageSource source) {
+        thread();
+        if (failure.isPresent()) return Optional.empty();
+        var entities = new java.util.HashMap<String, Optional<com.imdomestic.chorus.effect.target.EntityQuery.View>>();
+        entities.put(command.target(), Optional.of(MinecraftWorldActions.observeEntity(target)));
+        String owner = command.source().owner();
+        if (!owner.isBlank() && !entities.containsKey(owner)) {
+            java.util.UUID ownerId = null;
+            try { ownerId = java.util.UUID.fromString(owner); } catch (IllegalArgumentException ignored) { /* Logical aliases need their adapter's resolver. */ }
+            if (ownerId != null) {
+                var actor = source.getEntity() != null && source.getEntity().getUUID().equals(ownerId) ? source.getEntity() : level.getEntity(ownerId);
+                entities.put(owner, actor instanceof LivingEntity living && living.level() == level && !living.isRemoved()
+                        ? Optional.of(MinecraftWorldActions.observeEntity(living)) : Optional.empty());
+            }
+        }
+        return Optional.of(new com.imdomestic.chorus.effect.target.EntityObservation(view().buffs().timeMicros(), entities));
+    }
     @Override public void abandoned(String id) {
         thread();
         if (id.equals(activeDamage.peek())) activeDamage.pop();
