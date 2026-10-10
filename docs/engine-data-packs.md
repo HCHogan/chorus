@@ -64,6 +64,28 @@ chorus engine stop
 - `chorus:source_attached / source_detached` 事实携带 source_instance / bundle 引用及完整不可变来源快照。静态规则用 `chorus:own_source` 匹配本来源，包含原标签和归属，避免相同 bundle 或同键新词条处理旧词条的清理。被删除来源以旧快照执行自己的 detached 规则；其他活动来源仍可观察该事实。Java 负载为 `SourceChange.Fact`，通过 `EffectEvent.Carrier` 读取事件，不应强转为裸 `EffectEvent`。Buff 结束仍使用已有的 ended 快照协议。
 - `stop` 显式丢弃该维度运行时的暂态状态。已有运行时时，start 会拒绝覆盖；不会借重新启动偷偷清空来源、Buff、定时器或失败记录。
 
+## 非致死生命支付
+
+`chorus:spend_health` 是独立的世界动作，供内容明确消耗生命，不能通过普通 `damage` 或负数治疗替代：
+
+```json
+{
+  "action": {
+    "type": "chorus:spend_health", "target": "self", "origin": "event",
+    "amount": {"type": "chorus:constant", "value": 5, "unit": "damage"},
+    "minimum": {"type": "chorus:constant", "value": 1, "unit": "damage"},
+    "mode": "up_to", "tags": ["example:health_cost"]
+  },
+  "as": "payment"
+}
+```
+
+5 和 1 是示例参数。amount 必须非负，minimum 必须严格大于零，mode 必填：`exact` 在余额不足以保留下限时完全拒绝；`up_to` 扣除最多 `min(amount, max(health - minimum, 0))`。当前生命已经低于下限时不会治疗，也不会再扣血；up_to 可成功支付零。exact 表示完整请求可负担，原版 float 量化统一向保留生命方向舍入，回执以实际写入差额为准，因此可能比请求少不足一个原版精度单位。
+
+类型化结果提供 DAMAGE 字段 `requested / effective / health_before / health_after` 与布尔 `paid / changed / observed / insufficient`。缺失或死亡目标不会支付、没有前后生命观察；读取前后生命须先检查 observed，不能将不可用伪造为零生命。只有确认正扣除才发 `chorus:health_spent`，携带 requested / effective / health_before / health_after、payment_id、原来源和标签；零支付及拒绝不发此事实。
+
+Minecraft 适配器直接写正生命值，绕过护甲、Absorption、Chorus 护盾、伤害免疫和无敌帧；不触发 hurt / heal、hit / death / kill、图腾和碎冰损失累计，也不自动重置受伤回充延迟。需要这些行为的效果应显式使用伤害操作。若第三方改写实际 setHealth 结果或世界回执丢失，视为未知结果：保留已提交状态、停止运行时，不自动重试或回滚。动作本身不是 AbilityDefinition 的原子资源 cost；内容须在 paid 分支执行依赖动作，多种世界支付不自动组成可回滚事务。
+
 ## 效果包声明复用
 
 Bundle 可声明 `includes`，引用同一链接目录内、相同 scope 的其他 Bundle。例如 Slow 的施加来源复用 Freeze 的施加规则：

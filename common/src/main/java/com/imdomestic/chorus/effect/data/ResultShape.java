@@ -220,6 +220,15 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "denied", result -> ((StatusResult.Checked) result).decision() == StatusResult.Decision.DENIED,
             "dead", result -> ((StatusResult.Checked) result).decision() == StatusResult.Decision.DEAD,
             "missing", result -> ((StatusResult.Checked) result).decision() == StatusResult.Decision.MISSING));
+    public static final ResultShape HEALTH_PAYMENT = new ResultShape(Map.of(
+            "requested",new Field(Unit.DAMAGE,r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).command().amount()),
+            "effective",new Field(Unit.DAMAGE,r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).effective()),
+            "health_before",new Field(Unit.DAMAGE,r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).balance().orElseThrow().before()),
+            "health_after",new Field(Unit.DAMAGE,r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).balance().orElseThrow().after())),
+            Map.of("paid",r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).paid(),
+                    "changed",r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).effective()>0,
+                    "observed",r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).balance().isPresent(),
+                    "insufficient",r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).outcome()==com.imdomestic.chorus.effect.combat.HealthPayment.Outcome.INSUFFICIENT));
     public static final ResultShape HEALING = new ResultShape(Map.of(
             "requested", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).requested()),
             "offered", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).offered()),

@@ -107,6 +107,7 @@
       "com.imdomestic.chorus.SuspendGameTest",
       "com.imdomestic.chorus.FreezeGameTest",
       "com.imdomestic.chorus.SlowGameTest",
+      "com.imdomestic.chorus.HealthPaymentGameTest",
       "com.imdomestic.chorus.FreezeDamageGameTest"
     ],
     "fabric-client-gametest": [

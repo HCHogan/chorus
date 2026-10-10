@@ -275,6 +275,20 @@ public interface Action {
             return new RuleEngine.Local<>(e.state(), healing, HealingFacts.from(healing));
         }
     }
+    record SpendHealth(Evaluation.Target target,Value amount,Value minimum,HealthPayment.Mode mode,Set<String> tags,ActionOrigin origin) implements Action {
+        public SpendHealth { tags=Set.copyOf(tags);java.util.Objects.requireNonNull(mode);java.util.Objects.requireNonNull(origin); }
+        @Override public ResultShape validate(Validation v){
+            v.target(target);Validation.same(amount.unit(v),Unit.DAMAGE);Validation.same(minimum.unit(v),Unit.DAMAGE);
+            if(amount instanceof Value.Constant c)com.imdomestic.chorus.stat.Numbers.nonnegative(c.value(),"health payment");
+            if(minimum instanceof Value.Constant c&&c.value()<=0)throw new IllegalArgumentException("Health payment requires a positive floor");
+            return ResultShape.HEALTH_PAYMENT;
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e){return new RuleEngine.Await<>(new HealthPayment.Command(e.target(target),origin.resolve(e),amount.evaluate(e).value(),minimum.evaluate(e).value(),mode,tags));}
+        @Override public RuleEngine.Local<EffectState> complete(Evaluation e,RuleEngine.ActionResult result){
+            var receipt=(HealthPayment.Receipt)result;if(!receipt.command().equals(e.context().command(HealthPayment.Command.class)))throw new IllegalArgumentException("Health payment receipt differs from issued command");
+            return new RuleEngine.Local<>(e.state(),receipt,HealthPayment.facts(receipt));
+        }
+    }
     record RestoreShield(String buff, Evaluation.Target target, Value amount) implements Action {
         @Override public ResultShape validate(Validation v) {
             v.target(target); v.shield(buff); Validation.same(amount.unit(v), Unit.DAMAGE);

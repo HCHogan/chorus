@@ -1,0 +1,219 @@
+{
+  "version": "health-payment-test",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:paid",
+        "version": "health-payment-test",
+        "duration": 10
+      }
+    },
+    {
+      "definition": {
+        "id": "test:payment_meter",
+        "version": "health-payment-test",
+        "duration": 10,
+        "max_stacks": 100,
+        "components": {
+          "numbers": {
+            "effective": {
+              "initial": 0,
+              "unit": "damage"
+            }
+          }
+        }
+      }
+    },
+    {
+      "definition": {
+        "id": "test:shield",
+        "version": "health-payment-test",
+        "duration": 10,
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 45,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:health_payment",
+      "rules": [
+        {
+          "id": "exact",
+          "on": "test:exact",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:spend_health",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                },
+                "minimum": {
+                  "type": "chorus:event_number",
+                  "name": "minimum",
+                  "unit": "damage"
+                },
+                "mode": "exact",
+                "tags": [
+                  "test:cost"
+                ]
+              },
+              "as": "payment"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "payment",
+                "field": "paid"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "test:paid",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "up_to",
+          "on": "test:up_to",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:spend_health",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "damage"
+                },
+                "minimum": {
+                  "type": "chorus:event_number",
+                  "name": "minimum",
+                  "unit": "damage"
+                },
+                "mode": "up_to",
+                "tags": [
+                  "test:cost"
+                ]
+              },
+              "as": "payment"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "payment",
+                "field": "paid"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "test:paid",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "observe",
+          "on": "chorus:health_spent",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:payment_meter",
+              "target": "victim"
+            },
+            {
+              "type": "chorus:update_component",
+              "buff": "test:payment_meter",
+              "target": "victim",
+              "component": "effective",
+              "op": "add",
+              "value": {
+                "type": "chorus:event_number",
+                "name": "effective",
+                "unit": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "unexpected_hit",
+          "on": "chorus:hit",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:unexpected_hit"
+            }
+          ]
+        },
+        {
+          "id": "unexpected_heal",
+          "on": "chorus:heal",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:unexpected_heal"
+            }
+          ]
+        },
+        {
+          "id": "unexpected_death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:unexpected_death"
+            }
+          ]
+        },
+        {
+          "id": "unexpected_kill",
+          "on": "chorus:kill",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:unexpected_kill"
+            }
+          ]
+        },
+        {
+          "id": "unexpected_health_restored",
+          "on": "chorus:health_restored",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:unexpected_health_restored"
+            }
+          ]
+        },
+        {
+          "id": "shield",
+          "on": "test:shield",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:shield",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -367,6 +367,12 @@ public final class EffectCodecs {
                         Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
                         Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet),
                         Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.DamageCaptured::group)).apply(i, Action.DamageCaptured::new)))
+                .register("chorus:spend_health", Action.SpendHealth.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.SpendHealth::target), values.fieldOf("amount").forGetter(Action.SpendHealth::amount),
+                        values.fieldOf("minimum").forGetter(Action.SpendHealth::minimum), enumeration(com.imdomestic.chorus.effect.combat.HealthPayment.Mode.class).fieldOf("mode").forGetter(Action.SpendHealth::mode),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.SpendHealth::tags),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.SpendHealth::origin)
+                ).apply(i, Action.SpendHealth::new)))
                 .register("chorus:heal", Action.Heal.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Heal::target), values.fieldOf("amount").forGetter(Action.Heal::amount),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Heal::tags),

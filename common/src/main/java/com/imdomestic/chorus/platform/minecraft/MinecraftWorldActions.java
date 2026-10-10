@@ -58,6 +58,12 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 }
                 yield MinecraftHealingExecutor.execute(id, target, healing);
             }
+            case com.imdomestic.chorus.effect.combat.HealthPayment.Command payment -> {
+                String id=sessionId+"/"+request.id().frame()+"/"+request.id().pc()+"/"+request.id().invocation();
+                var target=entities.apply(payment.target());
+                if(target==null||target.isRemoved()||target.level()!=level)yield com.imdomestic.chorus.effect.combat.HealthPayment.Receipt.unavailable(id,payment,com.imdomestic.chorus.effect.combat.HealthPayment.Outcome.MISSING);
+                yield MinecraftHealthPaymentExecutor.execute(id,target,payment);
+            }
             case StatusResult.Check check -> {
                 var target = entities.apply(check.target());
                 var decision = target == null || target.isRemoved() || target.level() != level ? StatusResult.Decision.MISSING
