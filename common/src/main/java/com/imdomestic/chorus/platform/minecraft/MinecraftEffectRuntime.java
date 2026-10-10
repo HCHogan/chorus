@@ -115,6 +115,20 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void abilities(com.imdomestic.chorus.effect.ability.AbilityChange change) {
         thread(); prepare(); change.apply(view(), program); start(change.signal());
     }
+    /** One input consumes at most one eligible loaded flight, nearest first with UUID tie-breaking. */
+    public Optional<java.util.UUID> catchProjectile(ServerPlayer player) {
+        thread(); prepare();
+        if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot catch projectiles here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Projectile interaction requires a healthy idle runtime");
+        EffectProjectile selected = null; double closest = Double.POSITIVE_INFINITY;
+        for (var entity : level.getAllEntities()) {
+            if (!(entity instanceof EffectProjectile projectile)) continue;
+            var distance = projectile.catchDistance(player, this); if (distance.isEmpty()) continue;
+            double d = distance.getAsDouble();
+            if (d < closest || d == closest && (selected == null || projectile.getUUID().compareTo(selected.getUUID()) < 0)) { selected = projectile; closest = d; }
+        }
+        return selected != null && selected.catchBy(player, this) ? Optional.of(selected.getUUID()) : Optional.empty();
+    }
     /** Self-owned command/input entry. No client-supplied facts, definition, cost or target. */
     public com.imdomestic.chorus.effect.ability.AbilityUse.Receipt useAbility(ServerPlayer player, String slot) {
         thread(); prepare();

@@ -8,6 +8,7 @@
   "item.chorus.engram.rarity.exotic": "Exotic",
   "item.chorus.engram.rolls": "Rolls: %s",
   "key.chorus.equipment": "Equipment",
+  "key.chorus.catch_projectile": "Catch returning projectile",
   "equipment.chorus.title": "EQUIPMENT",
   "equipment.chorus.unavailable": "This server does not support the equipment screen.",
   "equipment.chorus.close": "Close",

@@ -31,6 +31,8 @@ public final class AbilityCommands {
     }
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("ability")
+                .then(Commands.literal("catch").executes(c -> execute(c.getSource(), (p, r) ->
+                        r.catchProjectile(p).map(id -> "Chorus caught: " + id).orElse("No catchable projectile"))))
                 .then(Commands.literal("status").executes(c -> execute(c.getSource(), (p, r) -> "Chorus abilities: " + r.state().engine().domain().abilities().getOrDefault(p.getUUID().toString(), AbilityLoadout.EMPTY).slots())))
                 .then(Commands.literal("choose").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("slot", IdentifierArgument.id()).then(Commands.argument("definition", IdentifierArgument.id())

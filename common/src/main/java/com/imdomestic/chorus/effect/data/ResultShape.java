@@ -40,6 +40,7 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "sequence", new Field(Unit.COUNT, r -> impact(r).sequence()), "bounces", new Field(Unit.COUNT, r -> impact(r).bounces()),
             "entity_contacts", new Field(Unit.COUNT, r -> impact(r).entityContacts()), "target_contacts", new Field(Unit.COUNT, r -> impact(r).targetContacts())),
             Map.of("arrived", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ARRIVED,
+                    "caught", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.CAUGHT,
                     "target_lost", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.TARGET_LOST,
                     "entity", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY,
                     "block", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK,

@@ -1301,9 +1301,9 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 | 接触结果的用途 | 行为 |
 | --- | --- |
-| `for_each: impact` | ENTITY 为碰撞目标，ARRIVED 为接收者的单元素身份集合，其他结果为空集合；没有猜测目标或距离字段 |
+| `for_each: impact` | ENTITY 为碰撞目标，ARRIVED / CAUGHT 为接收者的单元素身份集合，其他结果为空集合；没有猜测目标或距离字段 |
 | 查询 `center: { "position": "impact" }` | 以真实接触点或终止位置发起后续范围查询 |
-| `result_flag` | `entity / block / expired / unloaded / arrived / target_lost` 恰有一个为 true；`terminal` 表示飞行结束，`bounced / pierced` 表示此次接触后继续反弹 / 穿透 |
+| `result_flag` | `entity / block / expired / unloaded / arrived / target_lost / caught` 恰有一个为 true；`terminal` 表示飞行结束，`bounced / pierced` 表示此次接触后继续反弹 / 穿透 |
 | `result` | `count / sequence / bounces / entity_contacts / target_contacts`（count）、`age`（second）、`normal_x/y/z`（multiplier）；法线只有 BLOCK 为单位向量，其他为零 |
 
 发射使用 `ProjectileFlight.Launch / Receipt` 世界协议，操作账本防止重复发射；回执必须对应原请求。缺失位置 / 方向、错误维度、未知区块和宿主拒绝不会产生可执行实体，也不会自动退款或重试。当前步骤不在外层暴露命名的发射回执；需要按发射失败退款的内容仍需扩展结果接口。
@@ -1334,7 +1334,7 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 每次接触，包括非终止的反弹 / 穿透，都会执行一次 `do`，各次有独立操作身份和结果帧。`sequence` 从 1 开始；`bounces` 是已成功反弹的次数，`entity_contacts` 是总实体接触次数，`target_contacts` 是此目标累计次数（其他类型为 0）。这些计数均包含当前接触。`count` 为此次目标集合的大小（0 或 1）；下节 ARRIVED 也带接收者，但不增加实体命中次数。可用 `result_flag.terminal` 限制只执行最终爆炸，也可将计数作为 `damage_snapshot.impact` 输入，驱动快照保留的命中期衰减表达式。
 
-[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。墙面反射与沿轨迹穿透可结合下节的追踪及接触转向；指定目的地 / 返回阶段见下文；盾牌反射与玩家接回输入仍待实现。
+[projectile_collisions.json](../common/src/test/resources/effects/projectile_collisions.json) 用合成数值验证直击 20、一次反弹后 10，以及来源卸下后的保留；不声称这是某个 D2 弹体的实际数值。墙面反射与沿轨迹穿透可结合下节的追踪及接触转向；指定目的地 / 返回阶段见下文；玩家接回输入见下文；盾牌反射仍待实现。
 
 
 ### 追踪与接触后转向
@@ -1363,7 +1363,7 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 `redirect_on_contact: true` 是额外的接触行为：仅在弹体尚未终止时，于此次碰撞动作体完成、位置离开接触面后重新选敌，立即朝所选目标取样点转向，并继续本 tick 余下路程。此次瞬时转向不受持续转向率限制；未选到敌人时保留当前方向（方块已先按法线反射）。可以将 turn_rate 设为 0，只保留碰撞后的离散转向。转向不凭空增加可命中次数：实体必须获准穿透后才能继续转向，方块也必须有剩余反弹预算。每次接触的伤害与计数保持独立，因此相邻目标可在同 tick 被依次击中。
 
-上述 tracking 负责自动选敌；下节 destination 负责固定身份的返回。玩家接回输入、目标类别优先级、D2 转向率校准与统一的墙面 / 实体弹跳总预算仍待实现。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。
+上述 tracking 负责自动选敌；下节 destination 负责固定身份的返回。玩家接回输入见下文；目标类别优先级、D2 转向率校准与统一的墙面 / 实体弹跳总预算仍待实现。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。
 
 
 ### 指定目的地与返回阶段
@@ -1390,4 +1390,28 @@ ARRIVED 携带接收者身份，`count=1`、`arrived=true`、`terminal=true`；�
 
 [projectile_return.json](../common/src/test/resources/effects/projectile_return.json) 的可执行合成示例从普通玩家技能入口支付成本并保留退款凭据。去程实际命中后造成伤害，再以该 impact 位置启动另一枚 destination:self 弹体；抵达才返还成本、按 credited 治疗并关闭凭据。新阶段拥有独立的物理寿命 / 接触计数，原 impact、来源和有限期成本句柄仍由词法捕获保留。世界结果未知时保留已完成的伤害 / 退款 / 治疗，消耗飞行且不重放。
 
-当前支持返回移动实体和到达后动作，尚未提供玩家按键接回窗口、原飞行实体内切换阶段、独立场物体或跨维度 / 重启恢复。示例 20 m/s、3600 度每秒、0.3 米、伤害和退款比例均为合成参数，不是 Threaded Spike 的已校准定义。
+当前支持返回移动实体和到达后动作，接回窗口见下节；尚未提供原飞行实体内切换阶段、独立场物体或跨维度 / 重启恢复。示例 20 m/s、3600 度每秒、0.3 米、伤害和退款比例均为合成参数，不是 Threaded Spike 的已校准定义。
+
+
+### 玩家主动接回
+
+在 `projectile.destination` 内增加可选 `catch`，即可允许**发射时保存的接收者**主动接回；默认没有这个能力。普通返回施放者使用 `target: self`；显式指定另一玩家时，只有该玩家可以接住。catch 不自行改变技能选择或支付新技能成本。
+
+```json
+"catch": {
+  "radius": { "type": "chorus:constant", "value": 2, "unit": "meter" },
+  "opens_after": { "type": "chorus:constant", "value": 0.05, "unit": "second" },
+  "closes_after": { "type": "chorus:constant", "value": 0.5, "unit": "second" },
+  "line_of_sight": true
+}
+```
+
+radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 opens_after，两者为有限的非负整微秒时间。数值在发射时求值。窗口以**这枚弹体的物理飞行年龄**为基准，左闭右开 `[opens_after, closes_after)`；原飞行终止或寿命耗尽后不能接回。它不是原施放的累计时长，新建返回弹体的年龄从 0 开始。
+
+服务端接收输入时按接收者当前 destination.target_anchor 检查闭球距离，并在 line_of_sight（默认 true）开启时检查弹体到该 anchor 的方块碰撞形状；未知地形不算可见。不开启视线检查是内容的明确选择。客户端不提交施放者、弹体、位置、时间或返还比例。只查询本维度已加载、仍属于当前运行时的弹体，玩家必须存活且非旁观者。一次输入只消费一个合格弹体，按距离从近到远，等距按 UUID 排序；失效输入不会等待未来窗口，也不提供延迟补偿。
+
+成功产生 `CAUGHT`：`caught=true`、`arrived=false`、`entity=false`、`terminal=true`，count 为 1，目标为接收者。它增加 sequence，保持碰撞 / 反弹计数，target_contacts 为 0；先消费实体再执行 do。自动抵达仍只产生 ARRIVED，两个结果分别配置动作。使用 `for_each` 访问接收者不代表造成了碰撞伤害。未知世界结果保留已提交退款与实际动作，停止派生且不重放。
+
+两端提供默认 **G** 键（控制设置可改）和低权限自用命令 `/chorus ability catch`。网络请求携带连接内递增序号和当前维度；服务端在执行或拒绝前消费序号，重复或倒序请求不会接住下一枚弹体，断开连接后清理序号。菜单中不发送按键请求。当前是独立接回键；chorus-d2 仍需装配近战键复用、窗口提示与技能动画，尚无这些交互的成品界面。
+
+[projectile_catch.json](../common/src/test/resources/effects/projectile_catch.json) 用合成值区分普通抵达返还实付成本的 25% 与主动接回返还 100%，并将实际 credited 用于治疗；不是 Threaded Spike 的能量表。原表若表示固定充能比例，应使用 grant_resource，并单独装配命中 / 击杀档位。

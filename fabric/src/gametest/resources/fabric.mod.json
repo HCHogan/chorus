@@ -61,11 +61,13 @@
       "com.imdomestic.chorus.ProjectileGameTest",
       "com.imdomestic.chorus.ProjectileCollisionGameTest",
       "com.imdomestic.chorus.ProjectileTrackingGameTest",
-      "com.imdomestic.chorus.ProjectileDestinationGameTest"
+      "com.imdomestic.chorus.ProjectileDestinationGameTest",
+      "com.imdomestic.chorus.ProjectileCatchGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
-      "com.imdomestic.chorus.ProjectileClientGameTest"
+      "com.imdomestic.chorus.ProjectileClientGameTest",
+      "com.imdomestic.chorus.ProjectileCatchClientGameTest"
     ]
   }
 }

@@ -42,6 +42,23 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         updateRotation();
     }
     public Optional<ProjectileFlight.Launch> launch() { return Optional.ofNullable(launch); }
+    /** Only the launch-captured receiver may interact; client positions and projectile IDs are never accepted. */
+    OptionalDouble catchDistance(net.minecraft.server.level.ServerPlayer player, MinecraftEffectRuntime expected) {
+        if (launch == null || runtime != expected || terminal || isRemoved() || player.level() != level()
+                || ageMicros >= launch.parameters().lifetimeMicros()
+                || launch.member().filter(m -> !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), m)).isPresent()) return OptionalDouble.empty();
+        var destination = launch.parameters().destination().orElse(null);
+        if (destination == null || !destination.target().equals(player.getUUID().toString()) || destination.catching().isEmpty()) return OptionalDouble.empty();
+        var policy = destination.catching().orElseThrow(); var center = anchor(player, destination.anchor());
+        double distance = position().distanceTo(center);
+        if (!policy.allows(ageMicros, distance) || policy.lineOfSight() && !MinecraftVisibility.visible((ServerLevel) level(), point(position()), point(center))) return OptionalDouble.empty();
+        return OptionalDouble.of(distance);
+    }
+    boolean catchBy(net.minecraft.server.level.ServerPlayer player, MinecraftEffectRuntime expected) {
+        if (catchDistance(player, expected).isEmpty()) return false;
+        observe(ProjectileFlight.End.CAUGHT, position(), Optional.of(player.getUUID().toString()), 0, 0, 0, false);
+        return true; // The flight was consumed even if its subsequent world action failed.
+    }
     private void abandon() { progress = progress.abandon(); terminal = true; trackingTarget = null; discard(); }
     private WorldPosition point(Vec3 p) { return new WorldPosition(level().dimension().identifier().toString(), p.x, p.y, p.z); }
     @Override public void tick() {

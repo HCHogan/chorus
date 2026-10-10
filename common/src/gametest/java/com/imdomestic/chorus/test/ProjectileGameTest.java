@@ -40,8 +40,17 @@ public class ProjectileGameTest {
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
-        Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception {
-            this.h = h; owner = h.makeMockServerPlayerInLevel(); owner.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
+        Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception { this(h, fixture, edit, false); }
+        Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit, boolean actualPlayer) throws Exception {
+            this.h = h;
+            if (actualPlayer) {
+                // Deprecated mocks override gameMode() to CREATIVE, hiding spectator/respawn input checks.
+                var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(new com.mojang.authlib.GameProfile(UUID.randomUUID(), "catch-test"), false);
+                owner = new ServerPlayer(h.getLevel().getServer(), h.getLevel(), cookie.gameProfile(), cookie.clientInformation());
+                var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND); new io.netty.channel.embedded.EmbeddedChannel(connection);
+                h.getLevel().getServer().getPlayerList().placeNewPlayer(connection, owner, cookie);
+            } else owner = h.makeMockServerPlayerInLevel();
+            owner.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
             owner.setPos(h.absoluteVec(new Vec3(2.5, 40, 3.5))); owner.setNoGravity(true); owner.setYRot(0); owner.setXRot(-90);
             owner.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); owner.setHealth(10);
             CompiledEffects program;

@@ -72,8 +72,9 @@ class ProjectileDestinationTest {
     }
     static final class Harness {
         final EffectSession session; final List<ProjectileFlight.Launch> launches = new ArrayList<>(); final List<Double> heals = new ArrayList<>();
-        Harness() throws Exception {
-            session = new EffectSession(engine(load("projectile_return")), EffectState.empty(), request -> switch (request.command()) {
+        Harness() throws Exception { this("projectile_return"); }
+        Harness(String fixture) throws Exception {
+            session = new EffectSession(engine(load(fixture)), EffectState.empty(), request -> switch (request.command()) {
                 case PositionQuery q -> new PositionQuery.Result(q, Optional.of(point(1, 40, 3)));
                 case DirectionQuery q -> new DirectionQuery.Result(q, Optional.of(new WorldDirection("world", 0, 1, 0)));
                 case ProjectileFlight.Launch launch -> { launches.add(launch); yield new ProjectileFlight.Receipt(launch, ProjectileFlight.Outcome.LAUNCHED, Optional.of("flight-" + launches.size())); }

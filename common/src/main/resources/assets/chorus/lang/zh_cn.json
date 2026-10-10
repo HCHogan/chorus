@@ -8,6 +8,7 @@
   "item.chorus.engram.rarity.exotic": "异域",
   "item.chorus.engram.rolls": "解密次数：%s",
   "key.chorus.equipment": "装备",
+  "key.chorus.catch_projectile": "接住返回的投射物",
   "equipment.chorus.title": "装备",
   "equipment.chorus.unavailable": "此服务器不支持装备界面。",
   "equipment.chorus.close": "关闭",

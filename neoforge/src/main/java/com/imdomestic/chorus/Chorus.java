@@ -29,6 +29,8 @@ public class Chorus {
         CommonClass.init();
         eventBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> {
             var registrar = event.registrar("1").optional();
+            registrar.playToServer(com.imdomestic.chorus.network.ProjectileCatchPayload.TYPE, com.imdomestic.chorus.network.ProjectileCatchPayload.CODEC,
+                    (payload, context) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.EquipmentPayloads.Visit.TYPE, com.imdomestic.chorus.network.EquipmentPayloads.Visit.CODEC,
                     (payload, context) -> com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.visit((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.EquipmentPayloads.Request.TYPE, com.imdomestic.chorus.network.EquipmentPayloads.Request.CODEC,
@@ -47,6 +49,10 @@ public class Chorus {
         });
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> MinecraftEffectRuntime.stop(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.disconnected(player.connection);
+        });
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 Greeting.onPlayerJoin(player);

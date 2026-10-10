@@ -20,7 +20,10 @@ public class Chorus implements ModInitializer {
         Constants.LOG.info("Hello Fabric world!");
         CommonClass.init();
         com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
+        com.imdomestic.chorus.network.FabricProjectileCatchNetworking.init();
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::stop);
+        ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE::stop);
+        ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.disconnected(listener));
         net.fabricmc.fabric.api.event.registry.DynamicRegistries.registerReloadable(
                 com.imdomestic.chorus.platform.minecraft.EffectPrograms.KEY, com.imdomestic.chorus.platform.minecraft.LoadedProgram.CODEC);
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, context, environment) ->

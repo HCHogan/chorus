@@ -60,8 +60,8 @@ public final class ProjectileFlight {
         }
     }
     public enum End {
-        ENTITY, BLOCK, EXPIRED, UNLOADED, ARRIVED, TARGET_LOST;
-        public boolean hasTarget() { return this == ENTITY || this == ARRIVED; }
+        ENTITY, BLOCK, EXPIRED, UNLOADED, ARRIVED, TARGET_LOST, CAUGHT;
+        public boolean hasTarget() { return this == ENTITY || this == ARRIVED || this == CAUGHT; }
     }
     /** Contact limits are content policy, not a restriction on the engine's event cycles. */
     public record Progress(long sequence, long bounces, long entityContacts, Map<String, Long> hits, boolean terminal) {
@@ -92,7 +92,7 @@ public final class ProjectileFlight {
             return new Progress(nextSequence, nextBounces, nextContacts, nextHits, done);
         }
     }
-    /** ENTITY and ARRIVED carry a target; arrival is not a collision hit. All outcomes have an observed position. */
+    /** ENTITY, ARRIVED and CAUGHT carry a target; arrival/catch are not collision hits. */
     public record Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
             long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member) implements PositionResult, Targets.Collection {
         public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,

@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
 import com.imdomestic.chorus.effect.projectile.ProjectileDestination;
+import com.imdomestic.chorus.effect.projectile.ProjectileCatch;
 import com.imdomestic.chorus.effect.projectile.ProjectileTracking;
 import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.stat.Unit;
@@ -12,12 +13,30 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime) { this(position, direction, speed, gravity, drag, lifetime, Collisions.STOP); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision) { this(position, direction, speed, gravity, drag, lifetime, collision, Optional.empty()); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking) { this(position, direction, speed, gravity, drag, lifetime, collision, tracking, Optional.empty()); }
-    public record Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities) {
+    public record Catch(Value radius, Value opensAfter, Value closesAfter, boolean lineOfSight) {
+        private static long time(double seconds) {
+            long micros = java.math.BigDecimal.valueOf(seconds).movePointRight(6).longValueExact();
+            if (micros < 0 || micros == Long.MAX_VALUE) throw new IllegalArgumentException("Invalid catch window time");
+            return micros;
+        }
+        void validate(Validation v) {
+            Validation.same(radius.unit(v), Unit.METER); Validation.same(opensAfter.unit(v), Unit.SECOND); Validation.same(closesAfter.unit(v), Unit.SECOND);
+            if (radius instanceof Value.Constant c) com.imdomestic.chorus.stat.Numbers.nonnegative(c.value(), "catch radius");
+            if (opensAfter instanceof Value.Constant c) time(c.value());
+            if (closesAfter instanceof Value.Constant c && time(c.value()) == 0) throw new IllegalArgumentException("Catch window ends before opening");
+            if (opensAfter instanceof Value.Constant start && closesAfter instanceof Value.Constant end)
+                new ProjectileCatch(0, time(start.value()), time(end.value()), lineOfSight);
+        }
+        ProjectileCatch resolve(Evaluation e) { return new ProjectileCatch(measure(radius, Unit.METER, e), time(measure(opensAfter, Unit.SECOND, e)), time(measure(closesAfter, Unit.SECOND, e)), lineOfSight); }
+    }
+    public record Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<Catch> catching) {
+        public Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities) { this(target, turnRate, arrivalRadius, anchor, collideEntities, Optional.empty()); }
         void validate(Validation v) {
             v.target(target); Validation.same(turnRate.unit(v), TURN_RATE); Validation.same(arrivalRadius.unit(v), Unit.METER);
+            catching.ifPresent(c -> c.validate(v));
             new ProjectileDestination("validation", turnRate instanceof Value.Constant c ? c.value() : 0, arrivalRadius instanceof Value.Constant c ? c.value() : 0, anchor, collideEntities);
         }
-        ProjectileDestination resolve(Evaluation e) { return new ProjectileDestination(e.target(target), measure(turnRate, TURN_RATE, e), measure(arrivalRadius, Unit.METER, e), anchor, collideEntities); }
+        ProjectileDestination resolve(Evaluation e) { return new ProjectileDestination(e.target(target), measure(turnRate, TURN_RATE, e), measure(arrivalRadius, Unit.METER, e), anchor, collideEntities, catching.map(c -> c.resolve(e))); }
     }
     public static final Unit SPEED = new Unit("chorus:meter_per_second"), GRAVITY = new Unit("chorus:meter_per_second_squared");
     public static final Unit ANGLE = new Unit("chorus:degree"), TURN_RATE = new Unit("chorus:degree_per_second");

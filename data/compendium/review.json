@@ -1860,7 +1860,7 @@
           "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
         }
       ],
-      "scope": "需求已审阅；通用追踪、接触转向、计数与有限期成本凭据已有机制验收；新增真实技能去程命中到返回移动实体、抵达后退款/治疗。尚无此技能的完整内容定义，具体连锁、接回及数值基准仍需装配",
+      "scope": "需求已审阅；通用追踪、接触转向、计数、有限期成本凭据、返回与主动接回已有机制验收。接回独立输入可按窗口/距离/接收者/视线确认并执行不同退款动作。尚无此技能的完整内容定义，具体连锁、近战键装配及数值基准仍需完成",
       "acceptance": [
         "实体/表面碰撞后转向最多9个敌人；追踪半径在固定快照中为未知",
         "427 [PvP 82]初始伤害、第一次弹跳降低18%、后续每次降低42.5%；精确衰减序列和表面/实体计数须校准",
@@ -1915,14 +1915,33 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileDestinationGameTest.java",
           "symbol": "unknownArrivalHealingKeepsSpentFlightAndCommittedRefundWithoutReplay"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/projectile_catch.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileCatchTest.java",
+          "symbol": "caughtAndAutomaticArrivalChooseSeparateDataDefinedRefunds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileCatchGameTest.java",
+          "symbol": "networkRoundTripCatchesDetachedReturnAndDuplicateCannotRunActionsAgain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileCatchGameTest.java",
+          "symbol": "unknownCatchHealingKeepsRefundAndConsumesFlightAndInputWithoutReplay"
         }
       ],
       "gaps": [
         "尚未提供此技能的数据定义；现有逐接触计数可驱动衰减，但通用夹具并非Threaded Spike的数值/时序",
         "未知半径和Sever持续时间保持未知；没有用合成扫描参数填入原作数据，转向率/轨迹与衰减计数仍待校准",
-        "通用 destination 返回与 ARRIVED / TARGET_LOST 已验收；本技能的九目标连锁何时转入返回、玩家接回输入/窗口、命中/击杀累计及 Woven Mail 尚未装配。retain_cost 支持共享实付成本退款，但原表 Melee % 不自动解释为实际成本百分比",
+        "通用 destination 返回与 ARRIVED / TARGET_LOST / CAUGHT 已验收；本技能的九目标连锁何时转入返回、近战输入映射/接回窗口校准、命中/击杀累计及 Woven Mail 尚未装配。retain_cost 支持共享实付成本退款，但原表 Melee % 不自动解释为实际成本百分比",
         "完整技能资源、原作模式/属性缩放、动作归属交互和表现未装配",
-        "返回夹具使用两个物理实体表示去程/回程，参数均为合成值；同一实体内阶段切换、完整轨迹/范围校准和接回增益仍待实现"
+        "返回夹具使用两个物理实体表示去程/回程，接回夹具参数为合成值；同一实体内阶段切换、完整轨迹/范围校准和原作接回增益仍待实现"
       ]
     },
     {

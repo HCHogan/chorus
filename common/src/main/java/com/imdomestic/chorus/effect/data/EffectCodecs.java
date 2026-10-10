@@ -423,12 +423,19 @@ public final class EffectCodecs {
                     Codec.BOOL.optionalFieldOf("line_of_sight", true).forGetter(ProjectileSpec.Tracking::lineOfSight),
                     Codec.BOOL.optionalFieldOf("redirect_on_contact", false).forGetter(ProjectileSpec.Tracking::redirectOnContact)
             ).apply(i, ProjectileSpec.Tracking::new)), Set.of("radius", "turn_rate", "acquisition_angle", "target_anchor", "relation", "line_of_sight", "redirect_on_contact"));
+            Codec<ProjectileSpec.Catch> catching = strict(RecordCodecBuilder.create(i -> i.group(
+                    values.fieldOf("radius").forGetter(ProjectileSpec.Catch::radius),
+                    values.optionalFieldOf("opens_after", new Value.Constant(0, Unit.SECOND)).forGetter(ProjectileSpec.Catch::opensAfter),
+                    values.fieldOf("closes_after").forGetter(ProjectileSpec.Catch::closesAfter),
+                    Codec.BOOL.optionalFieldOf("line_of_sight", true).forGetter(ProjectileSpec.Catch::lineOfSight)
+            ).apply(i, ProjectileSpec.Catch::new)), Set.of("radius", "opens_after", "closes_after", "line_of_sight"));
             Codec<ProjectileSpec.Destination> destination = strict(RecordCodecBuilder.create(i -> i.group(
                     TARGET.fieldOf("target").forGetter(ProjectileSpec.Destination::target),
                     values.fieldOf("turn_rate").forGetter(ProjectileSpec.Destination::turnRate), values.fieldOf("arrival_radius").forGetter(ProjectileSpec.Destination::arrivalRadius),
                     enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("target_anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.BODY).forGetter(ProjectileSpec.Destination::anchor),
-                    Codec.BOOL.optionalFieldOf("collide_entities", true).forGetter(ProjectileSpec.Destination::collideEntities)
-            ).apply(i, ProjectileSpec.Destination::new)), Set.of("target", "turn_rate", "arrival_radius", "target_anchor", "collide_entities"));
+                    Codec.BOOL.optionalFieldOf("collide_entities", true).forGetter(ProjectileSpec.Destination::collideEntities),
+                    catching.optionalFieldOf("catch").forGetter(ProjectileSpec.Destination::catching)
+            ).apply(i, ProjectileSpec.Destination::new)), Set.of("target", "turn_rate", "arrival_radius", "target_anchor", "collide_entities", "catch"));
             Codec<ProjectileSpec> projectileSpec = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("position").forGetter(ProjectileSpec::position), Codec.STRING.fieldOf("direction").forGetter(ProjectileSpec::direction),
                     values.fieldOf("speed").forGetter(ProjectileSpec::speed), values.fieldOf("gravity").forGetter(ProjectileSpec::gravity),

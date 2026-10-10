@@ -21,6 +21,10 @@ public final class ChorusClient {
         EquipmentClient.init(ClientPacketDistributor::sendToServer, () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(EquipmentPayloads.Visit.TYPE));
         bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(EquipmentPayloads.View.TYPE, (view, context) -> EquipmentClient.accept(view)));
         var open = new KeyMapping("key.chorus.equipment", InputConstants.KEY_K, KeyMapping.Category.INVENTORY);
+        var catchProjectile = new KeyMapping("key.chorus.catch_projectile", InputConstants.KEY_G, KeyMapping.Category.GAMEPLAY);
+        bus.addListener((RegisterKeyMappingsEvent event) -> event.register(catchProjectile));
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> { while (catchProjectile.consumeClick()) com.imdomestic.chorus.client.ProjectileCatchClient.press(ClientPacketDistributor::sendToServer,
+                () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(com.imdomestic.chorus.network.ProjectileCatchPayload.TYPE)); });
         bus.addListener((RegisterKeyMappingsEvent event) -> event.register(open));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> { while (open.consumeClick()) EquipmentClient.open(); });
     }
