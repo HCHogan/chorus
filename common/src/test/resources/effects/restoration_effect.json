@@ -1,0 +1,54 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:restoration",
+        "version": "compendium-2026-10-05",
+        "duration": 4,
+        "refresh": "historic_max",
+        "extension_cap": 15,
+        "keep_highest_tier": true,
+        "tags": [
+          "chorus_d2:restoration"
+        ]
+      },
+      "bundle": "chorus_d2:restoration_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:restoration_active",
+      "scope": "buff",
+      "health_recovery": [
+        {
+          "id": "restore",
+          "channel": "chorus_d2:restoration_or_rift",
+          "tags": [
+            "chorus_d2:restoration"
+          ],
+          "rate": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                35,
+                50
+              ],
+              "unit": "damage_per_second"
+            },
+            "pvp": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                17.5,
+                25
+              ],
+              "unit": "damage_per_second"
+            }
+          },
+          "profile": "chorus_d2:restoration_rate"
+        }
+      ]
+    }
+  ]
+}

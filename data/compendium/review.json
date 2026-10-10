@@ -632,12 +632,26 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/RecoveryGameTest.java",
           "symbol": "restorationAndRiftShareAChannelWithoutAddingTheirRates"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/restoration_effect.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfMercyTest.java",
+          "symbol": "physicalContinuationFactGrantsTwoSecondsAndHighestTierHistorySurviveExtensionAndCap"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfMercyGameTest.java",
+          "symbol": "physicalCollectionUsesCurrentSolaceAndRecoverySurvivesDamageAndFragmentRemoval"
         }
       ],
       "gaps": [
-        "与 Healing Rift 不叠加时的取高优先级未核对",
-        "Phoenix Dive 的4+2秒例外",
-        "实际技能来源和延长条件装配"
+        "HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile",
+        "与 Healing Rift 不叠加时的当前优先级未完整校准",
+        "Phoenix Dive 等真实技能来源、Empyrean、死亡生命周期与生产装配待实现"
       ]
     },
     {
@@ -4432,6 +4446,114 @@
         "需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求",
         "助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准",
         "Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现"
+      ]
+    },
+    {
+      "id": "solar/ember_of_mercy",
+      "name": "Ember of Mercy",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B20",
+          "text_sha256": "103111bf115232fe7b9bca9e4401d0b07eadafc06f4fef89568f88020de7f2ab"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D20",
+          "text_sha256": "ce8a38fa3441092d1428abe29453c8747db8e8c0602327d54d4ecd1bcbd4dc25"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N20",
+          "text_sha256": "9b27659a985e6c19c61a5426c7e38ecd6ce35814dd7bf018a5991755c78e778b"
+        }
+      ],
+      "scope": "确认拾取 Firesprite 后授予或延长 Restoration；读取收集者当前 Solace，Health +10 查询",
+      "acceptance": [
+        "无恢复时获得 x1 2/3 秒；已有恢复延长并保留层级、来源及历史时间",
+        "超过 15 秒也压回 15 秒；重新施加与延长分开",
+        "私有物理拾取、真实持续回血、受伤不打断、卸装不提前结束"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_mercy.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfMercyTest.java",
+          "symbol": "exactExpiryCreatesFreshTierOneAndExtensionsAreNotHistoricReapplications"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfMercyGameTest.java",
+          "symbol": "physicalCollectionUsesCurrentSolaceAndRecoverySurvivesDamageAndFragmentRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfMercyGameTest.java",
+          "symbol": "physicalPickupCapsLongRestorationWithoutDowngradingOrErasingItsHistory"
+        }
+      ],
+      "gaps": [
+        "队友复活事件和 ? 米范围未实现，不能用原版重生替代",
+        "实际生命缩放、死亡生命周期、Health 游戏投影、完整子职业装配、HUD 和存档待实现"
+      ]
+    },
+    {
+      "id": "solar/ember_of_solace",
+      "name": "Ember of Solace",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B24",
+          "text_sha256": "06fec48a171515f60ea99fdd762d76fe790fd90b424e7149c7416e6b8ebb5923"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D24",
+          "text_sha256": "5e90c1b521dd7f2a7c9119ae03f02e7c62c6e0b61aab83ba722fbabd5e3b6c3a"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N24",
+          "text_sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112"
+        }
+      ],
+      "scope": "受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换",
+      "acceptance": [
+        "按受益者的当前来源计算，施加者的碎片不泄漏到其他目标",
+        "拾取前装上/卸下影响此次时长，既有倒计时不追溯重写"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_solace.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_effect_duration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfMercyTest.java",
+          "symbol": "solaceIsEvaluatedOnCollectorAtCollectionAndUnequipDoesNotRewriteExistingDuration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfMercyGameTest.java",
+          "symbol": "restorationUsesRecipientsSolaceRatherThanTheApplyingPlayersFragment"
+        }
+      ],
+      "gaps": [
+        "Radiant 与全部真实施加来源尚未接入该 Profile",
+        "完整装配与原作动态卸装行为仍需验证"
       ]
     }
   ]

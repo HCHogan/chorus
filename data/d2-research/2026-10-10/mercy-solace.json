@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effects": [
+    "Restoration",
+    "Ember of Mercy",
+    "Ember of Solace"
+  ],
+  "implementation_status": "partial; Mercy pickup leg, recipient Solace duration profile and calibrated continuous Restoration",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B7",
+        "Solar D7",
+        "Solar B20",
+        "Solar D20",
+        "Solar N20",
+        "Solar B24",
+        "Solar D24",
+        "Solar N24"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-10/firesprite-solar-source.html.gz",
+      "retrieved_at": "2026-10-10T11:13:58.663075+00:00",
+      "html_sha256": "8a9e5d3f4220df4991465d8f9f10ec6817bef380314f32cc7c588734ff834298",
+      "mapping": [
+        {
+          "original": "B9",
+          "snapshot": "B7",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D9",
+          "snapshot": "D7",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "B23",
+          "snapshot": "B20",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D23",
+          "snapshot": "D20",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "N23",
+          "snapshot": "N20",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "B27",
+          "snapshot": "B24",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D27",
+          "snapshot": "D24",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "N27",
+          "snapshot": "N24",
+          "normalized_text_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "official_historical_mechanism",
+      "url": "https://www.bungie.net/7/en/News/Article/this_week_in_destiny_02_15_24",
+      "support": "Restoration historic duration fix; Mercy extends active Restoration by 2 seconds, or 3 with Solace; not current numerical calibration."
+    },
+    {
+      "kind": "official_historical_patch",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5",
+      "support": "Duration extension fix. Patch wording also mentions Radiant for Mercy, whereas the detailed TWID and pinned current Compendium specify Restoration; this implementation follows the latter and does not infer a Mercy Radiant branch."
+    }
+  ],
+  "compendium_values": {
+    "restoration_hp_per_second": {
+      "pve": [
+        35,
+        50
+      ],
+      "pvp": [
+        17.5,
+        25
+      ]
+    },
+    "mercy_firesprite_seconds": 2,
+    "solace_multiplier": 1.5,
+    "extension_cap_seconds": 15,
+    "mercy_health_stat": 10,
+    "mercy_revive_seconds": 5,
+    "mercy_revive_radius": "unknown (? in original sheet)"
+  },
+  "current_policy": {
+    "pickup": "Confirmed chorus:pickup, pickup_kind firesprite, current collector owns Mercy; creator does not select the recipient fragment.",
+    "duration": "Query current recipient solar_effect_duration before application or extension. Solace adds 50%; fragment changes do not retroactively alter existing deadlines.",
+    "extension": "Active shared Restoration extends by 2/3 seconds, capped at 15 even when currently longer. Preserve tier, source and historical maximum. Missing/expired Restoration starts fresh tier 1.",
+    "reapplication": "Explicit source application uses historic_max and highest tier. Synthetic test source queries recipient duration; all real producers still need integration.",
+    "lifecycle": "Existing Restoration continues after fragment removal. Nonlethal damage does not reset or interrupt it. Lifecycle cleanup on owner death/respawn remains a separate unresolved policy.",
+    "calibration": "restoration_rate is a mandatory damage_per_second profile for the new definition. Test-only factor 0.1 maps D2 HP/s to Minecraft HP/s; not a measured scale.",
+    "scope": "No ally revival adapter or fabricated radius. No Radiant implementation or claim that all producers automatically query Solace."
+  },
+  "remaining": [
+    "Ally revival world event and measured radius; do not equate vanilla respawn/totem with revival",
+    "Complete Radiant, Empyrean and real source assembly",
+    "Current HP scaling and restoration/rift priority calibration",
+    "Buff policy on death, respawn, dimension change and reload",
+    "Health-stat gameplay projection, UI and persistence"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:mercy_inputs",
+      "rules": [
+        {
+          "id": "restore",
+          "on": "test:restore",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:solar_effect_duration",
+                "target": "victim",
+                "input": {
+                  "type": "chorus:event_number",
+                  "name": "duration",
+                  "unit": "second"
+                }
+              },
+              "as": "duration"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:restoration",
+              "target": "victim",
+              "tier": {
+                "type": "chorus:event_number",
+                "name": "tier",
+                "unit": "count"
+              },
+              "duration": {
+                "type": "chorus:result",
+                "binding": "duration",
+                "field": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "raw",
+          "on": "test:restore_raw",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:restoration",
+              "target": "victim",
+              "tier": {
+                "type": "chorus:event_number",
+                "name": "tier",
+                "unit": "count"
+              },
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

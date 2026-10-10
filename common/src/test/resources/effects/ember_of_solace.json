@@ -1,0 +1,25 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_solace",
+      "modifiers": [
+        {
+          "id": "duration",
+          "profile": "chorus_d2:solar_effect_duration",
+          "stage": "solace",
+          "group": "solace",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:ember_of_solace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Original Solar D27; CSV Solar D24. Recipient duration multiplier. Producers must explicitly query this profile.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

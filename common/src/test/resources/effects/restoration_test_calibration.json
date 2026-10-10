@@ -1,0 +1,27 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:restoration_rate",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage_per_second",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_hp_scale",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.1
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "damage_per_second"
+        }
+      ]
+    }
+  ]
+}

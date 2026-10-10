@@ -1,0 +1,100 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_mercy",
+      "rules": [
+        {
+          "id": "firesprite",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "pickup_kind",
+                "is": "chorus_d2:firesprite"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:solar_effect_duration",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                }
+              },
+              "as": "duration"
+            },
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:restoration",
+                "match": "any"
+              },
+              "then": [
+                {
+                  "type": "chorus:extend_buff",
+                  "buff": "chorus_d2:restoration",
+                  "amount": {
+                    "type": "chorus:result",
+                    "binding": "duration",
+                    "field": "value"
+                  },
+                  "cap": {
+                    "type": "chorus:constant",
+                    "value": 15,
+                    "unit": "second"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:restoration",
+                  "tier": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "count"
+                  },
+                  "duration": {
+                    "type": "chorus:result",
+                    "binding": "duration",
+                    "field": "value"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "health",
+          "profile": "chorus_d2:health_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:mercy_health",
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "reference": "Original Solar N23; CSV Solar N20. Query only; no native Health-stat projection.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

@@ -61,7 +61,7 @@ Firesprite 的 11.25% 没有标明参考属性。当前内容因此要求两个�
 
 每名角色需要恰好一个 firesprite_system 来源，生成请求保留击杀目标位置；确认生成才挂冷却，收集不刷新冷却。拾取物 source 为生成系统，原始击杀仍在 continuation cause 中，尚未宣称 pickup 事实继承武器归因。收集读取当前基础手雷选择；无选择、无成本账户或满能量仍消费物品并发事实。既有物体的动作体可在来源卸下后执行；死亡、旁观者或他人不能领取该私有单位。当前私有性是收集资格，所有追踪客户端仍能看到占位实体。
 
-这两项状态为 partial：定义仍是可组合的验收数据，尚未接入完整生产子职业装配。实际回能基准、接触半径、特殊击杀资格、其他 Firesprite 生成来源、Mercy、Health / Class / AE 的实际玩法投影、HUD、真实素材与存档尚未完成。
+这两项状态为 partial：定义仍是可组合的验收数据，尚未接入完整生产子职业装配。实际回能基准、接触半径、特殊击杀资格、其他 Firesprite 生成来源、Mercy 复活分支、Health / Class / AE 的实际玩法投影、HUD、真实素材与存档尚未完成。
 
 ## Ember of Searing 与回执时目标状态
 
@@ -810,3 +810,18 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 未知参数没有默认 D2 值。模板的 `calibration.*` 测量包括追踪半径、速度 / 转向 / 寿命、墙面预算、接回窗口与 Sever 基础 / Continuity 扩展时间；缺少测量会在参数求值阶段、扣费前失败。宿主应先装配经过验证的参数定义。独立的 threaded_spike_test_calibration.json 只供测试，0.4+0.2 秒 Sever、15 米追踪等值不是原作测量。数值查询后显式四舍五入到整数微秒，随后 apply_status；没有削弱引擎的精确微秒契约。
 
 当前 partial 边界：去程在第九次接触、无法继续反弹的表面或寿命结束后新建回程；卸载不制造回程，账本到期清理。归还成功前不会提前支付，close 先于收益，重复回调不能重复支付。取消 / 失败不计 hits，免疫 / 格挡计入，Sever 仅尝试施加于 APPLIED 且未确认死亡的目标；这些资格、接回时查询当前子职业及当前输出修饰的取样时机仍待原作验证。基础伤害按施放模式冻结，输出 Profile 在各次伤害时查询；测试以 1:1 数字投影到合成 1000 HP 靶，不代表完成等级 / 目标类型 / 属性缩放。外部收益路径现已装配 0.8 chunk scalar 与属性曲线，本技能自己的回能表显式豁免；Pugilist 及基础技能槽路由已接入，其他回能生产者和共享池的动态变更仍待完成。真实近战输入与 grapple 优先级、Phalanx 盾穿透、完整轨迹 / 转向 / 时机校准、单实体阶段切换、子职业 UI 和表现仍未完成。
+
+
+## Ember of Mercy / Solace 与恢复时长
+
+本地 CSV 快照 Solar B20/D20/N20 的 Mercy 对应原表 B23/D23/N23；Solace 的 B24/D24/N24 对应原表 B27/D27/N27；Restoration 的 B7/D7 对应原表 B9/D9。保存的原表 HTML 已逐格核对，来源、哈希、历史官方说明与缺口见 [mercy-solace.json](../data/d2-research/2026-10-10/mercy-solace.json)。这些坐标体系不能互换。
+
+[ember_of_mercy.json](../common/src/test/resources/effects/ember_of_mercy.json) 监听已确认的 chorus:pickup，以 pickup_kind 和实际收集者判断资格。收集时没有 Restoration 则授予 x1 2 秒；已有恢复则仅延长 2 秒，不重置历史时长、层级或恢复来源。上限是当前剩余 15 秒，已有 20 秒也会降到 15 秒。以后真正重新施加时，historic_max 仍可恢复到已达到的 20 秒；到期后再拾取则作为新 x1 开始。碎片 +10 Health 暂为属性查询。
+
+[ember_of_solace.json](../common/src/test/resources/effects/ember_of_solace.json) 对 solar_effect_duration 提供 +50% 修饰。Mercy 在收集时查询当前受益者，因此变为每次 3 秒；外部施加来源也可查询目标，使基础 4 秒成为 6 秒。施加者装了碎片并不让未装碎片的受益者多得时间。卸下碎片不会追溯改写既有倒计时；下一次查询读取新装配。这是显式的来源调用协议，尚未自动覆盖全部 Solar Buff；Radiant 与完整 Empyrean 尚未接入。
+
+[restoration_effect.json](../common/src/test/resources/effects/restoration_effect.json) 将共享恢复定义独立出来，原始速率为快照的 PvE 35/50、PvP 17.5/25 HP/s，要求 restoration_rate Profile 校准到世界生命单位。测试校准仍为 0.1；没有把该值当成实测比例。与旧 restoration.json 是同一 ID 的两套装配示例，不能同时链接；旧文件继续保留 Rift 及低层回归测试入口。新定义沿用 restoration_or_rift 通道，也保留 historic_max / keep_highest_tier。非致死伤害不打断恢复，碎片卸下后已授予的 Buff 正常计时。
+
+官方 [2024-02-15 说明](https://www.bungie.net/7/en/News/Article/this_week_in_destiny_02_15_24) 支持 Mercy 延长 Restoration 2 秒、Solace 下 3 秒及历史计时修复；[7.3.5 补丁](https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5) 的 Mercy 措辞还提到 Radiant，与详细说明及当前固定快照的 Restoration 分支不一致。本实现以快照和详细说明的交集为准，没有据此添加 Mercy 延长 Radiant 的行为，也没有把历史公告当成当前全部数值的实测。
+
+仍未实现 Mercy 的队友复活分支：原表写 5+2.5 秒并将半径标为 ?，需要真实队友复活事件和明确的范围校准。原版重生、不死图腾不能代替该事件。死亡 / 重生时恢复的清理政策、全部施加来源、真实 HP 缩放、Health 属性游戏投影、子职业装配、HUD 与存档仍待完成；Mercy 和 Solace 均记录为 partial。

@@ -1,0 +1,21 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:solar_effect_duration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "solace",
+          "operation": "multiply",
+          "group": {
+            "name": "solace",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ]
+}

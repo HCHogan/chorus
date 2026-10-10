@@ -4,6 +4,7 @@ import static com.imdomestic.chorus.effect.EffectTestSupport.*;
 import static org.junit.jupiter.api.Assertions.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.object.WorldPickup;
 import com.imdomestic.chorus.effect.resource.ResourceState;
@@ -24,6 +25,7 @@ class FirespriteTest {
     static class Harness {
         final CompiledEffects program; final EffectSession session;
         final List<WorldPickup.Spawn> spawns=new ArrayList<>(); final List<Action.CueCommand> cues=new ArrayList<>(); final List<TargetQuery> selections=new ArrayList<>();
+        final List<HealingCommand> heals=new ArrayList<>();
         WorldPickup.Outcome outcome=WorldPickup.Outcome.SPAWNED; boolean failSpawn; List<TargetQuery.Target> allies=List.of();
         Harness() throws Exception { this(program()); }
         Harness(CompiledEffects program) {
@@ -41,6 +43,7 @@ class FirespriteTest {
                     yield new WorldPickup.Receipt(spawn,outcome,outcome==WorldPickup.Outcome.SPAWNED?Optional.of("entity/"+spawns.size()):Optional.empty());
                 }
                 case Action.CueCommand cue -> { cues.add(cue); yield RuleEngine.Empty.INSTANCE; }
+                case HealingCommand heal -> { heals.add(heal); yield new HealingReceipt("heal/"+heals.size(),heal,HealingReceipt.Outcome.APPLIED,heal.amount(),heal.amount(),0); }
                 default -> throw new AssertionError(request.command());
             });
             for(String owner:List.of("player","ally"))select(owner,"test:grenade");

@@ -14,7 +14,7 @@
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 0 | 286 |
 | Arc | 否 | 191 | 7 | 184 |
-| Solar | 否 | 210 | 22 | 188 |
+| Solar | 否 | 210 | 28 | 182 |
 | Void | 否 | 223 | 5 | 218 |
 | Stasis | 否 | 155 | 3 | 152 |
 | Strand | 否 | 153 | 10 | 143 |
@@ -45,7 +45,7 @@
 | Thread of Continuity | partial | Strand B15; Strand D15; Strand D8; Strand D9 | 通用只读数值查询读取施加者 Continuity；Slice 实际 Sever 15 / 7.5 秒、拒绝施加与到期；Suspend 的 6+2 / 3+1 / 2+1 仅作来源特定的数值查询验证；缺口：真实子职业与 fragment 选择槽尚未装配；世界测试由可信宿主绑定来源/武器归因；Suspend 数值例外只有查询验收，控制动作、Boss/勇士规则未装配；Unravel 及所有技能生产者尚未逐项完成；Threaded Spike ?+? 和其他未知来源时长不以全局默认值替代；施加时配装采样、重复来源 MAX 和跨来源状态刷新为明确政策，原作换装/快照/刷新交互尚待校准 |
 | Woven Mail | partial | Strand B7; Strand D7 | 共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予；max_remaining 按官方规则保留较长剩余时长；缺口：Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配；独立减伤组合、Under-Over 分组及盾层叠加仍待原作校准；max_remaining 刷新已有官方依据及短/长来源回归，详见 d2-ruleset；Threaded Spike 已部分装配按击杀时长，仍需物理/子职业校准；Warding、Into the Fray 等其他生产者还未装配，合成测试超能不代表真实技能实现 |
 | Cure | partial | Solar B4; Solar D4 | 两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；缺口：两次等量脉冲为Chorus选择，原作细分恢复曲线未知；实际技能/装备来源装配 |
-| Restoration | partial | Solar B7; Solar D7 | 连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick；缺口：与 Healing Rift 不叠加时的取高优先级未核对；Phoenix Dive 的4+2秒例外；实际技能来源和延长条件装配 |
+| Restoration | partial | Solar B7; Solar D7 | 连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick；缺口：HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile；与 Healing Rift 不叠加时的当前优先级未完整校准；Phoenix Dive 等真实技能来源、Empyrean、死亡生命周期与生产装配待实现 |
 | Healing Rift | partial | Class Abilities B15; Class Abilities D15; Class Abilities N15 | 固定位置组件、5 米友方 / 自身范围、15 秒、40 / 35 HP/s 的 0.1 缩放、成员差分及晚进入清理、独立施放与重叠恢复通道；共享满血护盾池每 50 ms 补 0.015 至 1.5、Void 正容量阻止生成、空容量交互资格；部分内容已通过双端真实 tick / 扣盾 / 回血；缺口：实际技能输入与施放来源装配；场目前为状态与查询组合，没有独立物体 / 表现；脚底球形范围、50 ms 采样、地面接触点及施放动画尚待校准；来源实体失联后保存阵营 / 跨维度生命周期；当前 allied 参照缺失时结束场为暂定策略；首次补盾与刚恢复满血时的完整脉冲、最后离场立即删盾、空层创建即确定 FIFO 年龄及重叠共享池首个来源等时序 / 归属策略待原作校准；Void 测试层不代表完整内容；施放时 20% 减伤与移动接线；118.7秒基础冷却与0.5x chunk scalar装配；互斥取高、0.1 生命投影及绝对恢复率校准；9.5.0 官方相对改动不重复应用到固定快照 |
 | Frame of Reference | partial | Weapon Perks A369; Weapon Perks C369 | 已验证独立Buff定义的收枪暂停与恢复；尚非完整词条；缺口：实际武器击杀叠层；增伤/装填及完整档位；真实武器输入/属性连接 |
 | Rampage | partial | Weapon Perks A172; Weapon Perks C172 | 普通/强化的独立武器层数、刷新、逐层衰减与收枪计时；真实装备/开火/击杀、下一发伤害与过期后的飞行快照；后续周期按4.5/5秒重复是明确研究推断；缺口：官方9.5.0确认只掉一层，但后续每层重复4.5/5秒来自计时器解释，未独立实测；保留显式decay_interval和研究记录；发射取样、飞行中收枪仍触发、卸下清理、截止点先过期和特殊伤害资格为内容政策，需原作边界校准；测试武器的基础伤害/弹量/射速/换弹/物理弹道是合成值；Huckleberry等异域特例、完整原型和信用分类未完成；玩家自动装配、状态持久化、HUD图标绑定未完成 |
@@ -89,6 +89,8 @@
 | Firesprite | partial | Solar B5; Solar D5 | 私有拾取物的 25 秒生命周期、每收集者共享 5 秒生成冷却、确认生成后冷却、拾取时路由当前手雷；回能基准和半径要求显式校准；缺口：原表 11.25% 未注明属性基准；测试除以 2.25 得 5% 为待验证假设，不能视为当前实测值；0.5 米接触半径为合成校准；共享冷却归属、生成点及按成功生成开始冷却需原作校准；未自动装配全部来源；占位外观、按收集者可见性过滤、HUD 与持久化未实现 |
 | Ember of Tempering | partial | Solar B25; Solar D25; Solar N25 | 太阳武器击杀给自己与 15 米队友 8 秒最多三层 Tempering，Health +20/40/60、AE +20、碎片 Class -10 查询；已有 Buff 的再次击杀请求 Firesprite；缺口：跨来源共享叠层、卸下碎片后既有 Buff 保留、无碎片队友自行生成 Firesprite 为当前内容政策，需原作校准；Health / Class / AE 只有属性查询，未投影回血、职业技能缩放和空中射击；完整子职业装配、UI、所有特殊武器击杀资格和存档未完成 |
 | Ember of Searing | partial | Solar B22; Solar D22; Solar N22 | 以伤害回执时的灼烧观察判断已确认击杀，按显式 T1–T4 / Guardian 分支回当前近战能量，并独立请求共享 Firesprite；Class +10 查询；缺口：原表百分比属性基准未说明，测试除以 2.25 为参考点假设；当前原作基础量及 CES 资格待实测；需要完整 T1–T4 敌人目录；未知或冲突分类明确发 searing_unclassified，不猜回能，保留独立拾取物请求；助攻资格、同击施加灼烧 / 点燃和原版回执内部移除状态的特殊时序待校准；Class 仅属性查询，完整子职业装配、HUD、拾取物素材与存档未实现 |
+| Ember of Mercy | partial | Solar B20; Solar D20; Solar N20 | 确认拾取 Firesprite 后授予或延长 Restoration；读取收集者当前 Solace，Health +10 查询；缺口：队友复活事件和 ? 米范围未实现，不能用原版重生替代；实际生命缩放、死亡生命周期、Health 游戏投影、完整子职业装配、HUD 和存档待实现 |
+| Ember of Solace | partial | Solar B24; Solar D24; Solar N24 | 受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换；缺口：Radiant 与全部真实施加来源尚未接入该 Profile；完整装配与原作动态卸装行为仍需验证 |
 
 ## 使用
 
