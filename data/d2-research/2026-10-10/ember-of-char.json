@@ -55,7 +55,7 @@
     "char_with_ashes_stacks": 60,
     "excludes_ignited_enemy": true,
     "char_grenade_stat_bonus": 10,
-    "ashes_exceptions": "Other sources have explicit exceptions; this fragment implements only Char."
+    "ashes_exceptions": "Other sources have explicit exceptions. Char and Incandescent now have separate mappings; remaining sources still need assembly."
   },
   "current_content_policies": {
     "positive_actual_loss": "Health, custom shield or absorption loss; world status eligibility rechecked after damage.",

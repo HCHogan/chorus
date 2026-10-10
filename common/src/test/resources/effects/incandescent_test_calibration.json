@@ -1,0 +1,67 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:incandescent_outgoing",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "payload",
+          "operation": "add",
+          "group": {
+            "name": "payload",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "world_units",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.1
+            ],
+            "minimum": 0,
+            "maximum": 100000,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:incandescent_falloff",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_calibration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1,
+              -0.1
+            ],
+            "minimum": 0,
+            "maximum": 8,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    }
+  ]
+}

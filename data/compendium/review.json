@@ -3804,7 +3804,7 @@
       "name": "Incandescent",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -3817,38 +3817,84 @@
           "text_sha256": "11162d9024cafb11de94fce8b9e3839bfe98f491c56fb19a15d8278bb9b77586"
         }
       ],
-      "scope": "原表范围与普通 / 强化 / Ashes 层数已审阅；通用死亡分类观测及共享 Solar 状态已有独立验收，实际 Incandescent 词条尚未实现",
+      "scope": "真实玩家物品 / 开火 / 物理击杀到 4 / 8 米范围伤害、八种普通 / 强化 / Ashes 层数、共享 Scorch / 点燃与首个武器归属；未知原作数值要求显式校准",
       "acceptance": [
-        "同实例武器击杀产生最多30 Solar伤害的范围爆炸并向附近目标施加Scorch",
-        "普通目标4米，精英以上及Guardian为8米；普通/强化和Ashes使用对应层数表",
-        "爆炸与Scorch遵守武器增伤/减益及本词条声明的等级倍率排除",
-        "共享Scorch累计、衰减、周期伤害、100层Ignition、来源继承和后续循环均须验收"
+        "同施加者同武器 weapon_kill；收枪飞行保持归属，卸掉词条或无击杀信用不触发",
+        "一般目标 4 米 / 强目标与 Guardian 8 米；原表全部八种层数；敌友 / 死亡中心 / 距离筛选",
+        "30 基础爆炸 × 显式距离曲线；正实际损失及状态资格后上灼烧",
+        "两把枪共同叠到点燃时仍保留首次来源；禁用窗口只阻止重新施加",
+        "来源数值快照在卸装后仍用于真实 Scorch；非 Boss 豁免解释由独立校准决定",
+        "未知状态回执不重放已经造成的爆炸伤害"
       ],
       "evidence": [
         {
-          "kind": "design",
-          "path": "docs/d2-ruleset.md"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/incandescent.json"
         },
         {
-          "kind": "design",
-          "path": "data/d2-research/2026-10-10/incandescent-solar.json"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/incandescent_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/ObservedEntityTagTest.java",
-          "symbol": "classifiedDeathRadiusSurvivesSourceRemovalAndDelayedWorldExecution"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "allEightDocumentedStackCountsUseActualWeaponKillsAndSelectedEnhancement"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "mixedWeaponsReachIgnitionWithFirstSourceAndLockoutStopsScorchButNotBurstDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "nonbossScalingForRankExemptScorchIsAnExplicitCalibrationNotAnImplicitTwentyPercentDecision"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "deadImmuneAndDeniedNeighborsCannotReceiveScorchAndUnknownStatusDoesNotReplayDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "weaponCreditedExplosionKillCanTriggerAnotherBurstWithoutARepeatCap"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EntityObservationGameTest.java",
-          "symbol": "actualDeathsSelectObservedRadiiAfterTagChangesSourceDetachAndCorpseRemoval"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "actualKillsUseFourOrEightMetersExcludeAlliesAndApplyTheSelectedStacks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "twoPhysicalWeaponKillsIgniteWithFirstSourceAndFurtherBurstStillDamagesDuringLockout"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "actualScorchRetainsWeaponBonusAndRankExemptionAfterEquipmentIsRemoved"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "actualUncreditedKillAndPerkRemovedInFlightDoNotExplode"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
         }
       ],
       "gaps": [
-        "classified_burst仅为通用路径，1伤害/0.1秒是合成输入，不能代替Incandescent定义与武器消费者",
-        "共享 Scorch / Ignition 为 partial；实际 Incandescent 词条 / 技能装配、敌人目录和完整伤害缩放未实现",
-        "Solar原表颜色区分PvE与PvP；2.3秒/.04秒衰减只在PvP红色段落，PvE须按难度校准",
-        "伤害衰减曲线、非致命作用范围、首来源数值取样及特殊来源继承需进一步校准"
+        "衰减曲线、准确爆炸延迟及强化 / Ashes / 攻击取样时机待原作校准；测试值为合成输入",
+        "Scorch 非 Boss 20% 是否属于 Incandescent 排除的敌人等级倍率未确认，scorch_nonboss_factor 必须显式提供",
+        "完整武器等级 / 活动 / 属性与伤害加成、目标减益资格及正式敌人标签目录未装配",
+        "正爆炸损失后上灼烧、免疫 / 护盾边界、派生击杀继续触发等当前政策仍需原作核对",
+        "生产武器 / 子职业自动装配、HUD 和状态存档未完成"
       ]
     },
     {
@@ -3931,7 +3977,8 @@
         "PvE 难度持续 / 衰减表、PvP 完整伤害投影尚无实测校准；测试文件值为合成参数",
         "非致命目标范围、第二 tick 时间解释、首次衰减边界与全部 modifier 取样时机待原作校准",
         "共享来源缩放目录、来源特例和状态持久化 / 跨维度迁移未完成",
-        "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配"
+        "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配",
+        "Incandescent 的等级倍率排除与通用非 Boss 20% 的关系未确认，需显式 scorch_nonboss_factor 校准"
       ]
     },
     {
@@ -4029,7 +4076,7 @@
         "PvP 距离衰减、全部来源缩放与取样时机仍需校准；未知非 Guardian / construct 的 PvP 目标不猜为构造体",
         "Unstoppable 眩晕、非叠层直接点燃来源、范围扩展片段、全部特殊交互未接入",
         "当前 on_use 攻击冻结与实时目标分类为明确内容政策；近战倍率需继续与 Solar 专属 Profile 隔离",
-        "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 仍未实现",
+        "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 已有 partial 实际武器接线",
         "阈值至爆炸延迟需要显式 Profile；0 / 1 / 2 秒验收均为合成参数。当前固定阈值位置与禁用起算点待原作校准"
       ]
     },
@@ -4132,7 +4179,7 @@
           "text_sha256": "5f6e14eb8a6a02a4cf80f8000966aef96a626ce710848c31f07954d65c69ed19"
         }
       ],
-      "scope": "仅实现 Char 的明确 40 → 60 层映射；未套用于全部灼烧来源",
+      "scope": "Char 的 40 → 60 与 Incandescent 的八分支专属层数；以 ashes_equipped 查询持有者选择，不套用全局 1.5 倍",
       "acceptance": [
         "Char 40 / Ashes 60，排除点燃中心且不受其他施加者片段影响",
         "正实际损失触发；免疫 / 取消 / 零损失或死亡目标无灼烧",
@@ -4181,11 +4228,25 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/incandescent.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncandescentTest.java",
+          "symbol": "allEightDocumentedStackCountsUseActualWeaponKillsAndSelectedEnhancement"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncandescentGameTest.java",
+          "symbol": "actualKillsUseFourOrEightMetersExcludeAlliesAndApplyTheSelectedStacks"
         }
       ],
       "gaps": [
         "通用 50% 向上取整以及 Caliban / Tommy / Skyburner 等特例未装配",
-        "Incandescent 等来源必须按各自原表数值映射",
+        "其余来源仍需按各自原表数值映射",
         "原作时序校准、生产子职业与状态持久化未完成"
       ]
     }

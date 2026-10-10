@@ -38,6 +38,21 @@
           "stacking_key": "chorus_d2:ember_of_ashes",
           "confidence": "measured",
           "reference": "Compendium Solar D19 (Char 40, with Ashes 60). Ashes contribution here applies only to Char."
+        },
+        {
+          "id": "equipped",
+          "profile": "chorus_d2:ashes_equipped",
+          "stage": "equipped",
+          "group": "equipped",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "chorus_d2:ashes_equipped",
+          "confidence": "measured",
+          "reference": "Explicit Ashes selection; each producer supplies its documented stack mapping."
         }
       ]
     }

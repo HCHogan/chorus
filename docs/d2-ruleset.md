@@ -44,14 +44,24 @@
 
 ## Incandescent 与共享 Solar 状态的接入依据
 
-共享 Scorch / Ignition 的叠层、周期和点燃流程已通过下述测试，覆盖保持 partial；Incandescent 尚未实现。2026-10-10 抓取的原表 Weapon Perks A125 / C125 与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸最多 30 Solar 伤害。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：
+共享 Scorch / Ignition 与 [Incandescent](../common/src/test/resources/effects/incandescent.json) 已接通，并有实际玩家装备、物理子弹击杀到范围爆炸、Scorch 和后续点燃的验收；覆盖保持 partial。2026-10-10 抓取的[原表 Weapon Perks A125 / C125](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1662574278&range=C125)与固定 CSV A124 / C124 一致：普通目标范围 4 米，精英以上或 Guardian 范围 8 米，爆炸基础伤害最多 30 Solar。Scorch 层数按原表逐项展开，Ashes 不套用通用 50%：
 
 | 击杀目标 | 普通 | 普通 + Ashes | 强化 | 强化 + Ashes |
 | --- | ---: | ---: | ---: | ---: |
 | 普通目标 | 30 | 40 | 30 | 45 |
 | 精英以上 / Guardian | 40 | 50 | 45 | 60 |
 
-已实现的 observed_entity_tag 提供死亡实体分类读取，通用场景验证分类冻结后的 4 / 8 米选择；尚未把这些分支接到实际武器击杀、范围伤害和共享 Solar 状态。正式敌人分类、友军筛选及衰减曲线仍需声明，不能把通用测试的 1 点伤害 / 0.1 秒延迟当成该词条数值。
+每把装备实例的 Bundle 只接受同持有者、同武器的 weapon_kill；切枪不移除仍装备的词条，卸掉词条后才到达的子弹击杀不触发。死亡实体的玩家标记，或实体 / 类型上的 `chorus_d2:elite / champion / miniboss / boss` 标签选择强分支；未标记的可观测非玩家按普通目标处理，缺失观测不猜等级。分类、半径、Ashes 和强化层数在击杀时取得，当前位置为爆炸中心。当前声明击杀事实处理时立即爆炸；原作延迟和取样时机仍待校准。
+
+范围查询排除施加者、死亡中心和盟友；其余目标逐一观测存活，计算距离倍率并结算独立伤害回执。实际正损失（含 Absorption）后才检查 Scorch 禁用窗口和世界状态资格；免疫、取消、零损失、死亡或资格拒绝不加层。爆炸在禁用窗口内仍能伤害目标，只禁止重新施加 Scorch。此处“正损失后上灼烧”是当前内容政策，原作对免疫 / 护盾等边界需进一步验证。
+
+必须提供两个数值 Profile：`incandescent_falloff` 为 meter → multiplier，输入当前距离，并提供 radius 测量；`incandescent_outgoing` 为 damage → damage，必须有 payload / payload 的 ADD 阶段，接收 `incandescent_payload`，随后声明允许的武器增益、目标减益和世界单位映射。词条 Bundle 自带同武器的 payload 贡献，按爆炸创建时捕获攻击，逐目标传入 `30 × 距离倍率`。缺少校准定义会链接失败。[incandescent_test_calibration.json](../common/src/test/resources/effects/incandescent_test_calibration.json) 的 `1 − 0.1 × 米数` 与世界伤害乘 0.1 是合成值，不代表原作距离衰减。
+
+装备词条来源须带 `chorus:weapon_damage` 和 `chorus_d2:scorch_rank_exempt` 标签，前者明确后续 Scorch / Ignition 的武器信用，后者保存 Incandescent 的等级倍率排除资格。来源身份继续指向该武器。**原表没有明确说明 Scorch 自身的非 Boss 20% 是否属于这里排除的等级倍率**，因此使用下表的 `scorch_nonboss_factor` 显式校准；测试中将豁免来源设为 1，也验证改成 1.2 后无需修改效果即可保留增幅。宿主还须在具体伤害 Profile 中排除不适用的武器敌人等级乘区；scorch_rank_exempt 只声明 Scorch 的资格，Ignition 的乘区资格须单独判断。不把这一推断当作已实测的完整 D2 算法。
+
+`ashes_equipped` Profile 由 Solar 定义、Ashes Bundle 提供 1，MAX 合并重复装配；Incandescent 读取持有者的该结果后查上述专属层数表。9 项 IncandescentTest 验证全部八种组合、Guardian / 类型分类、武器隔离、收枪 / 卸装、两枪共同叠到点燃、来源快照、独立禁用、死亡 / 免疫 / 拒绝 / 未知回执和校准替换。4 项共享 IncandescentGameTest 通过实际容器和无权限开火命令产生物理击杀，验证真实 4 / 8 米、友军排除、叠层点燃、扣弹及卸装后的冻结 Scorch。当前赋予爆炸 weapon_kill 信用，合格派生击杀可继续产生爆炸；原作全部派生来源的特殊触发排除仍需核对。
+
+[incandescent_weapon.json](../common/src/test/resources/effects/incandescent_weapon.json) 的 10 点子弹、5 发弹匣、0.15 秒射击间隔和 50% 验收增益均为合成原型。完整武器目录、正式敌人标签映射、准确伤害 / 来源倍率、自动子职业装配、HUD 和状态存档尚未完成；不能把测试文件当成完整生产规则包。
 
 Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害快照) 已能将完整攻击保存到后续独立事件，保留来源、信用和所捕获的数值贡献。共享 Solar 现在用它保存首次施加的攻击；后续施加保留该值。具体修饰取样时机仍须按来源逐项校准。
 
@@ -79,23 +89,24 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 | scorch_decay_interval | second → second | PvE 以 0 请求显式难度值，PvP 基值为 0.04；结果必须为正微秒可表示时长 |
 | scorch_pvp_tick | count → damage | 当前层数 → 完整 PvP 原始 tick 伤害，已包含相应的 60 层增幅，内容不再重复乘入 |
 | scorch_nonlethal | count → count | 输入为 PvP Guardian 1、其他 0；正结果选择非致命攻击，目标范围须显式校准 |
+| scorch_nonboss_factor | count → multiplier | 输入 0 为普通来源、1 为 `scorch_rank_exempt` 来源；返回非 Boss 目标倍率，Boss 使用 1。一般来源表列 1.2，Incandescent 豁免与该 20% 的关系需要显式校准 |
 | ignition_falloff | meter → multiplier | 当前被选目标的已测距离 → PvP 距离倍率；另提供 guardian 测量，PvE 不使用该倍率 |
 | ignition_delay | second → second | 以 0 请求校准的阈值至爆炸时长；结果为 0 或正微秒可表示时长，不提供隐式默认值 |
 | solar_outgoing | damage → damage | 必须包含 payload / payload 的 ADD 阶段，接收 `solar_payload` 命中测量；之后声明来源允许的缩放与世界伤害单位换算 |
 
 宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；武器属性、武器 New Gear Bonus 的 5%、战斗单位等级倍率、Radiant、Surge、Verity 等具体资格及特殊来源仍需装配，当前没有声明这些 perk 全部生效。
 
-**施加入口契约：** 所有生产者在 apply_status 前检查目标没有 `chorus_d2:scorch_lockout`。共享 Buff 生命周期不提供隐式的状态授予否决；直接 grant_buff 绕过该契约属于错误装配。[solar_test_source.json](../common/src/test/resources/effects/solar_test_source.json) 只是合成输入及反应探针，未连接生产武器 / 技能。未来 Incandescent 需遵守同一入口契约，不能把测试事件当作实际装备流程。
+**施加入口契约：** 所有生产者在 apply_status 前检查目标没有 `chorus_d2:scorch_lockout`。共享 Buff 生命周期不提供隐式的状态授予否决；直接 grant_buff 绕过该契约属于错误装配。[solar_test_source.json](../common/src/test/resources/effects/solar_test_source.json) 只是合成输入及反应探针，未连接生产武器 / 技能。Incandescent 已从真实武器击杀入口遵守同一契约，见上节。
 
 [solar_test_calibration.json](../common/src/test/resources/effects/solar_test_calibration.json) 中 PvE 等待 3 秒 / 衰减 0.1 秒、PvP tick `1 + 0.1 × 层数`、点燃距离倍率 `1 − 0.1 × 米数`、点燃延迟 0 秒和世界伤害乘 0.1 都是**合成验收参数**。Char 测试另外将延迟显式替换为 1 / 2 秒，分别验证持续反馈和中心排除；这些也不是原作实测值。非致命示例只对 PvP Guardian 启用，用于验证健康下限机制，不替代原作范围证据。正式难度表、完整 PvP 曲线及来源修饰取样未校准前，不把这些文件作为完整游戏数值发布。
 
 12 项 SolarTest 覆盖来源与信用、当前层数 / 分类、独立计时、刷新 / 衰减、同帧多次授予、100 层点燃、禁用到期、源增益到期后的冻结值、缺失 / 死亡、校准依赖与未知结果。5 项共享 SolarGameTest 覆盖真实 tick、原版伤害 / 击杀归属、实际玩家非致命伤害后被点燃击杀、允许的连续点燃，以及已扣血后的未知回执不重放。连续点燃测试用合成反应在点燃命中后再施加 100 层，验证事件队列不全局禁用链式效果；这不是 Ember of Char 的数值实现。
 
-仍未实现：Unstoppable 眩晕、非叠层直接点燃来源、全部片段与等级 / 来源特例、Incandescent、生产装配及效果状态持久化。Scorch 和 Ignition 均保持 partial。
+仍未实现：Unstoppable 眩晕、非叠层直接点燃来源、全部片段与等级 / 来源特例、完整生产装配及效果状态持久化。Scorch 和 Ignition 均保持 partial。
 
 ### Char / Ashes 与持续互相点燃
 
-[ember_of_char.json](../common/src/test/resources/effects/ember_of_char.json) 为原施加者提供 `ember_of_char` / `ember_of_ashes` 来源 Bundle，修改 Solar 自带的 `char_stacks` Profile。依据[原表 Solar D19](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D19)，Char 向被点燃爆炸伤害到的其他敌人施加 40 层 Scorch；有 Ashes 时为 60 层。不向这次点燃的中心目标施加，即使中心的禁用窗口已经结束。固定 CSV 的对应位置为 D16，不将两套坐标混用。Ashes 的通用说明在原表 D15 / 快照 D12，本文件只实现其对 Char 的明确 40 → 60 映射，不对其他 Scorch 来源一律乘 1.5。
+[ember_of_char.json](../common/src/test/resources/effects/ember_of_char.json) 为原施加者提供 `ember_of_char` / `ember_of_ashes` 来源 Bundle，修改 Solar 自带的 `char_stacks` Profile。依据[原表 Solar D19](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D19)，Char 向被点燃爆炸伤害到的其他敌人施加 40 层 Scorch；有 Ashes 时为 60 层。不向这次点燃的中心目标施加，即使中心的禁用窗口已经结束。固定 CSV 的对应位置为 D16，不将两套坐标混用。Ashes 的通用说明在原表 D15 / 快照 D12，本文件的倍率修饰只用于 Char 的明确 40 → 60 映射，另提供 Ashes 选择查询供 Incandescent 使用专属表，不对其他 Scorch 来源一律乘 1.5。
 
 爆炸实际回执中的有效损失为正才进入 Char（包括 Absorption），并再次检查目标禁用状态及世界状态施加资格。取消 / 免疫 / 零损失、已经死亡的目标不获得 Scorch。Char 查询初始施加者在本次爆炸命中时装备的片段；后续灼烧保留该施加者完整来源和武器 / 技能信用，不改成片段自己的来源。片段取样时机是当前明确政策，仍需原作校准。
 
@@ -103,7 +114,7 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 
 6 项 EmberOfCharTest 包括真实 40 / 60 层、其他施加者片段隔离、中心排除、正损失 / 死亡资格、解绑后延迟攻击与信用、爆炸期选择片段，以及四目标交替八轮点燃。该连锁输入为两目标初始各 100 层、另外两目标初始零层，Ashes 使每轮两个爆炸分别施加 60 层，后续无需额外输入。没有 Ashes 的 80 层、只有一次种子爆炸的 60 层均不会凭空点燃。卸下 Char 后已排队的一轮完成，后续自然停止。3 项共享 EmberOfCharGameTest 验证实际四目标五轮扣血、第六轮完成后停止、中心排除和真实死亡。验证的是引擎可表达持续反馈，不是靠提高 Char 层数来制造连锁。
 
-Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配，Ashes 其他来源及特例尚未实现；原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
+Char / Ashes 均为 partial：Char 的 +10 Grenade 尚未装配；Ashes 已有 Char 和 Incandescent 的专属层数映射，其他来源及特例尚未实现。原作时间窗口、移动中心、来源数值快照的代际继承、Solar Fulmination、多种直接点燃来源、生产子职业装配与跨重启恢复仍待完成。
 
 ## 武器输入与 Kill Clip 集成边界
 

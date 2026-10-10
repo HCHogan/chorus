@@ -1439,6 +1439,31 @@
                 },
                 {
                   "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:scorch_nonboss_factor",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:source_tag",
+                        "tag": "chorus_d2:scorch_rank_exempt"
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    }
+                  },
+                  "as": "nonboss"
+                },
+                {
+                  "action": {
                     "type": "chorus:capture_value",
                     "value": {
                       "type": "chorus:pvp",
@@ -1481,9 +1506,9 @@
                               "unit": "multiplier"
                             },
                             "else": {
-                              "type": "chorus:constant",
-                              "value": 1.2,
-                              "unit": "multiplier"
+                              "type": "chorus:result",
+                              "binding": "nonboss",
+                              "field": "value"
                             }
                           },
                           {
@@ -1670,6 +1695,22 @@
           "operation": "multiply",
           "group": {
             "name": "ashes",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:ashes_equipped",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "equipped",
+          "operation": "add",
+          "group": {
+            "name": "equipped",
             "reduction": "max"
           }
         }

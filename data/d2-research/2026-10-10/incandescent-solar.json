@@ -6,7 +6,7 @@
     "Scorch",
     "Ignition"
   ],
-  "implementation_status": "Shared Scorch and Ignition state transitions are partial, with explicit calibration dependencies and synthetic test profiles; Incandescent is not implemented.",
+  "implementation_status": "Shared Scorch/Ignition, Char/Ashes and Incandescent are partial. Actual equipment/fire/kill/burst/Scorch/Ignition integration is tested; exact calibration and production assembly remain incomplete.",
   "sources": [
     {
       "kind": "compendium_snapshot",
@@ -120,7 +120,7 @@
     ],
     "explosion_max_solar_damage": 30,
     "damage_falloff_curve": null,
-    "rank_multiplier": "source explicitly excludes combatant rank multipliers for this explosion and its Scorch; reconcile with general Solar scaling before assembly"
+    "rank_multiplier": "Source excludes combatant rank multipliers for explosion and Scorch; whether the separate general Scorch non-boss +20% is excluded is unverified. scorch_nonboss_factor requires explicit calibration."
   },
   "solar_format_findings": {
     "pve_scorch": {
@@ -207,7 +207,7 @@
     "Provide actual PvE difficulty duration/decay calibration, PvP tick damage and ignition falloff; keep synthetic values separate.",
     "Confirm nonlethal target scope and source-specific exceptions, including Incandescent rank-scalar eligibility.",
     "Assemble weapon/ability modifiers, New Gear Bonus, activity scaling and source credit with the Solar profile and required scaling source.",
-    "Connect Incandescent weapon instance kills to corpse position and observed classification, Ashes/enhanced stacks, radial damage and shared Scorch, checking target lockout.",
+    "Calibrate the implemented Incandescent physical kill chain, immunity/status order, corpse timing, first-source sampling and derived proc eligibility; assemble complete production weapons.",
     "Implement Unstoppable stun, non-stack ignition sources, fragments and remaining Solar interactions without global cycle suppression.",
     "Add production equipment/subclass assembly and persistent runtime state."
   ],
@@ -224,6 +224,7 @@
       "scorch_decay_interval",
       "scorch_pvp_tick",
       "scorch_nonlethal",
+      "scorch_nonboss_factor",
       "ignition_falloff",
       "ignition_delay",
       "solar_outgoing"
@@ -236,9 +237,45 @@
       "Source-specific perk/scalar assembly",
       "Unstoppable stun",
       "Direct ignition sources, remaining fragments, and complete Char/Ashes assembly",
-      "Incandescent",
+      "Complete Incandescent calibration and production assembly",
       "Runtime persistence"
     ],
     "char_and_ashes": "data/d2-research/2026-10-10/ember-of-char.json"
+  },
+  "incandescent_implementation": {
+    "definition": "common/src/test/resources/effects/incandescent.json",
+    "weapon_fixture": "common/src/test/resources/effects/incandescent_weapon.json",
+    "test_calibration": "common/src/test/resources/effects/incandescent_test_calibration.json",
+    "unit_test": "IncandescentTest",
+    "world_test": "IncandescentGameTest",
+    "entry": "Same owner and same weapon weapon_kill; actual player containers, command fire and physical impacts tested. Stowed equipment remains eligible; unequipped perk at impact does not trigger.",
+    "classification": "Corpse player flag or instance/type elite, champion, miniboss, boss tags select 8m. Observable untagged nonplayers use 4m. Missing corpse observations skip.",
+    "sampling": "Classification, enhancement, Ashes and corpse position sampled when kill rule runs; blast attack captured then. Immediate explosion is a current policy, not an in-game timing measurement.",
+    "selection": "Current non-allied living neighbors, excludes source owner and killed center. Exact feet-distance query; no implicit line-of-sight check.",
+    "qualification": "Positive actual explosion health/shield/absorption loss, no Scorch lockout, then world status permission. Cancelled/immune/zero-loss/dead/denied targets receive no Scorch. This policy still needs D2 edge-case validation.",
+    "credit": "Equipment source tags weapon_damage and scorch_rank_exempt are copied to Scorch. Weapon identity and weapon kill credit persist through first-source Solar state. Weapon-credited derived kills may trigger another burst; exhaustive original proc exclusions unverified.",
+    "calibration_dependencies": [
+      "incandescent_falloff",
+      "incandescent_outgoing",
+      "shared Solar calibration profiles including scorch_nonboss_factor"
+    ],
+    "synthetic_values": {
+      "weapon_damage": 10,
+      "magazine": 5,
+      "fire_interval_seconds": 0.15,
+      "bonus_delta": 0.5,
+      "falloff": "1 - 0.1 * distance in meters",
+      "world_damage_scale": 0.1,
+      "rank_exempt_nonboss_factor": 1,
+      "alternative_rank_policy_tested": 1.2
+    },
+    "remaining": [
+      "Actual falloff, timing and sampling",
+      "Disambiguate Scorch intrinsic non-boss bonus from weapon combatant rank multipliers",
+      "Complete rank/activity/weapon/scalar/debuff eligibility",
+      "Full enemy classification catalog",
+      "Immunity/shield/status timing and derived proc exclusions",
+      "Production weapon/subclass assembly and persistence"
+    ]
   }
 }

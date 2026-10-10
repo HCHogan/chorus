@@ -181,6 +181,33 @@
           "output_unit": "second"
         }
       ]
+    },
+    {
+      "id": "chorus_d2:scorch_nonboss_factor",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "explicit_rank_policy",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 1.2
+              },
+              {
+                "input": 1,
+                "output": 1
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
     }
   ]
 }

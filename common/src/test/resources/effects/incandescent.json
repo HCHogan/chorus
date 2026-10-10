@@ -1,0 +1,543 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:incandescent",
+      "rules": [
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "classified"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "classified",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:ashes_equipped",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    },
+                    "target": "self"
+                  },
+                  "as": "ashes"
+                },
+                {
+                  "action": {
+                    "type": "chorus:capture_value",
+                    "value": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:any",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "classified",
+                            "field": "player"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:elite"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:champion"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:miniboss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:boss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:elite"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:champion"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:miniboss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:boss"
+                          }
+                        ]
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 8,
+                        "unit": "meter"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "meter"
+                      }
+                    }
+                  },
+                  "as": "radius"
+                },
+                {
+                  "action": {
+                    "type": "chorus:capture_value",
+                    "value": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:any",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "classified",
+                            "field": "player"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:elite"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:champion"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:miniboss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "entity",
+                            "tag": "chorus_d2:boss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:elite"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:champion"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:miniboss"
+                          },
+                          {
+                            "type": "chorus:observed_entity_tag",
+                            "binding": "classified",
+                            "source": "type",
+                            "tag": "chorus_d2:boss"
+                          }
+                        ]
+                      },
+                      "then": {
+                        "type": "chorus:enhanced",
+                        "base": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "ashes",
+                              "field": "value"
+                            },
+                            "op": "gt",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 50,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 40,
+                            "unit": "count"
+                          }
+                        },
+                        "enhanced": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "ashes",
+                              "field": "value"
+                            },
+                            "op": "gt",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 60,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 45,
+                            "unit": "count"
+                          }
+                        }
+                      },
+                      "else": {
+                        "type": "chorus:enhanced",
+                        "base": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "ashes",
+                              "field": "value"
+                            },
+                            "op": "gt",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 40,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 30,
+                            "unit": "count"
+                          }
+                        },
+                        "enhanced": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "ashes",
+                              "field": "value"
+                            },
+                            "op": "gt",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 45,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 30,
+                            "unit": "count"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "as": "stacks"
+                },
+                {
+                  "action": {
+                    "type": "chorus:capture_position",
+                    "target": "victim"
+                  },
+                  "as": "place"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "place",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_damage",
+                        "amount": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "damage"
+                        },
+                        "damage_type": "chorus_d2:incandescent",
+                        "scaling_profile": "chorus_d2:incandescent_outgoing",
+                        "tags": [
+                          "chorus:weapon_damage",
+                          "chorus_d2:solar_damage",
+                          "chorus_d2:incandescent_damage"
+                        ],
+                        "kill_tags": [
+                          "chorus:weapon_kill"
+                        ]
+                      },
+                      "as": "burst"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "place"
+                        },
+                        "radius": {
+                          "type": "chorus:result",
+                          "binding": "radius",
+                          "field": "value"
+                        },
+                        "relation": "not_allied",
+                        "relative_to": "source_owner",
+                        "exclude": [
+                          "source_owner",
+                          "victim"
+                        ]
+                      },
+                      "as": "neighbors"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "neighbors",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "for_each": "neighbors",
+                          "as": "neighbor",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:inspect_entity",
+                                "target": {
+                                  "binding": "neighbor"
+                                }
+                              },
+                              "as": "observed"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "observed",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "observed",
+                                    "field": "alive"
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:calculate",
+                                    "profile": "chorus_d2:incandescent_falloff",
+                                    "target": "self",
+                                    "input": {
+                                      "type": "chorus:result",
+                                      "binding": "neighbor",
+                                      "field": "distance"
+                                    },
+                                    "numbers": {
+                                      "radius": {
+                                        "type": "chorus:result",
+                                        "binding": "radius",
+                                        "field": "value"
+                                      }
+                                    }
+                                  },
+                                  "as": "falloff"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "burst",
+                                    "target": {
+                                      "binding": "neighbor"
+                                    },
+                                    "impact": {
+                                      "incandescent_payload": {
+                                        "type": "chorus:arithmetic",
+                                        "op": "mul",
+                                        "of": [
+                                          {
+                                            "type": "chorus:constant",
+                                            "value": 30,
+                                            "unit": "damage"
+                                          },
+                                          {
+                                            "type": "chorus:result",
+                                            "binding": "falloff",
+                                            "field": "value"
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:has_buff",
+                                          "buff": "chorus_d2:scorch_lockout",
+                                          "target": {
+                                            "binding": "neighbor"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:apply_status",
+                                      "buff": "chorus_d2:scorch",
+                                      "target": {
+                                        "binding": "neighbor"
+                                      },
+                                      "stacks": {
+                                        "type": "chorus:result",
+                                        "binding": "stacks",
+                                        "field": "value"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "payload",
+          "profile": "chorus_d2:incandescent_outgoing",
+          "stage": "payload",
+          "group": "payload",
+          "op": "add",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "incandescent_payload",
+            "unit": "damage"
+          },
+          "stacking_key": "chorus_d2:incandescent_payload",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incandescent_damage"
+              }
+            ]
+          },
+          "confidence": "measured",
+          "reference": "Compendium Weapon Perks C125 / snapshot C124; at most 30 raw Solar damage, falloff supplied explicitly."
+        }
+      ]
+    }
+  ]
+}
