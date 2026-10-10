@@ -15,14 +15,14 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags) { this(fields, flags, false); }
     public ResultShape(Map<String, Field> fields) { this(fields, Map.of()); }
     public void requireTarget() { if (reference != Reference.TARGET) throw new IllegalArgumentException("Result is not an entity target"); }
-    public void requireTargets() { if (reference != Reference.TARGETS && reference != Reference.TARGET_IDENTITIES && reference != Reference.PROJECTILE_IMPACT) throw new IllegalArgumentException("Result is not a target collection"); }
+    public void requireTargets() { if (reference != Reference.TARGETS && reference != Reference.TARGET_IDENTITIES && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a target collection"); }
     public void requireTargetDifference() { if (reference != Reference.TARGET_DIFFERENCE) throw new IllegalArgumentException("Result is not a target membership difference"); }
     public ResultShape targetElement() { requireTargets(); return reference == Reference.TARGETS ? TARGET : TARGET_IDENTITY; }
     public void requireSnapshot() { if (reference != Reference.DAMAGE_SNAPSHOT) throw new IllegalArgumentException("Result is not a damage snapshot"); }
@@ -45,10 +45,15 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "unloaded", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.UNLOADED,
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
                     "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()), false, Reference.PROJECTILE_IMPACT);
+    public static final ResultShape SHOT = new ResultShape(Map.of("pellets", new Field(Unit.COUNT,
+            r -> ((com.imdomestic.chorus.effect.projectile.ShotGroups.Handle) r).pellets())), Map.of(), false, Reference.SHOT);
+    public static final ResultShape SHOT_IMPACT = new ResultShape(PROJECTILE_IMPACT.fields(), PROJECTILE_IMPACT.flags(), false, Reference.SHOT_IMPACT);
+    public void requireShot() { if (reference != Reference.SHOT) throw new IllegalArgumentException("Result is not a shot handle"); }
+    public void requireShotImpact() { if (reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a grouped pellet impact"); }
     public static final ResultShape DIRECTION = new ResultShape(Map.of(), Map.of(
             "available", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isPresent(),
             "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionQuery.Result) result).direction().isEmpty()), false, Reference.DIRECTION);
-    public void requirePosition() { if (reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT) throw new IllegalArgumentException("Result is not a position capture"); }
+    public void requirePosition() { if (reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a position capture"); }
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldPosition> position(RuleEngine.ActionResult result) {
         requirePosition(); return ((com.imdomestic.chorus.effect.target.PositionResult) result).position();
     }

@@ -14,8 +14,11 @@ import java.util.Map;
 public final class DamageFacts {
     private DamageFacts() {}
     public static List<RuleEngine.Signal> from(DamageCommand command, DamageReceipt receipt) {
+        return from(command, receipt, Map.of());
+    }
+    public static List<RuleEngine.Signal> from(DamageCommand command, DamageReceipt receipt, Map<String, String> attribution) {
         if (receipt.outcome() == DamageReceipt.Outcome.CANCELLED || receipt.outcome() == DamageReceipt.Outcome.FAILED) return List.of();
-        var references = new HashMap<String, String>(); references.put("damage_id", receipt.damageId()); references.put("damage_type", command.damageType());
+        var references = new HashMap<String, String>(attribution); references.put("damage_id", receipt.damageId()); references.put("damage_type", command.damageType());
         receipt.deathId().ifPresent(value -> references.put("death_id", value));
         receipt.protectionSource().ifPresent(value -> references.put("protection_source", value));
         var numbers = Map.of("effective_damage", new Measure(receipt.effective(false), Unit.DAMAGE),

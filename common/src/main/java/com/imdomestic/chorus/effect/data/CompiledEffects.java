@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.weapon.*;
+import com.imdomestic.chorus.effect.projectile.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.stat.*;
@@ -158,6 +159,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         sourceRules.values().forEach(definitions::addAll); definitions.addAll(buffRules.definitions());
         definitions.add(weaponRule(true)); definitions.add(weaponRule(false));
         definitions.addAll(Recovery.definitions());
+        definitions.add(new RuleEngine.EventRule<>(ShotGroups.DUE, ShotGroups.DUE, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> ShotGroups.expire(state, (ShotGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceChange.EVENT, SourceChange.EVENT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> {
                     var change = (SourceChange) context.event().signal().payload();
@@ -605,7 +608,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     Action.validateDuration(after.delay(), validation(bundle, previous));
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
                     previous.forEach((name, shape) -> {
-                        if (!shape.carriesCost()) { capturedResults.put(name, shape); capturedSlots.put(name, previousSlots.get(name)); }
+                        if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); }
                     });
                     String definition = ownerRule + "/after/" + path + index;
                     var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
@@ -637,36 +640,51 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     }, ""));
                 }
                 case EffectProgram.Projectile projectile -> {
-                    projectile.spec().validate(validation(bundle, previous)); localId(projectile.bind());
+                    projectile.spec().validate(validation(bundle, previous)); projectile.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(projectile.bind());
                     if (previous.containsKey(projectile.bind())) throw new IllegalArgumentException("Shadowed projectile impact binding");
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
-                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape); capturedSlots.put(name, previousSlots.get(name)); } });
+                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); } });
                     String definition = ownerRule + "/projectile/" + path + index, impactSlot = path + index + "/impact/" + projectile.bind();
                     var nestedResults = new LinkedHashMap<>(capturedResults); var nestedSlots = new java.util.TreeMap<>(capturedSlots);
-                    nestedResults.put(projectile.bind(), ResultShape.PROJECTILE_IMPACT); nestedSlots.put(projectile.bind(), impactSlot);
+                    nestedResults.put(projectile.bind(), projectile.shot().isPresent() ? ResultShape.SHOT_IMPACT : ResultShape.PROJECTILE_IMPACT); nestedSlots.put(projectile.bind(), impactSlot);
                     var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
                     nestedSlots.forEach((name, slot) -> body.add(new RuleEngine.Instruction<>((state, context) -> {
                         var value = ((EffectContinuations.Pending) context.scope()).bindings().get(slot);
                         if (value == null) throw new IllegalArgumentException("Projectile is missing captured binding: " + name);
                         return new RuleEngine.Local<>(state, value, List.of());
                     }, slot)));
+                    if (projectile.shot().isPresent()) body.add(new RuleEngine.Instruction<>((state, context) ->
+                            new RuleEngine.Local<>(ShotGroups.open(state, (ProjectileFlight.Impact) context.bindings().get(impactSlot)), RuleEngine.Empty.INSTANCE, List.of()), ""));
                     body.addAll(compileSteps(bundle, projectile.body(), nestedResults, nestedSlots, path + index + "/projectile/", ownerRule, continuations));
-                    continuations.add(new RuleEngine.EventRule<>(definition, com.imdomestic.chorus.effect.projectile.ProjectileFlight.EVENT, (_, _) -> true, body));
+                    if (projectile.shot().isPresent()) body.add(new RuleEngine.Instruction<>((state, context) ->
+                            ShotGroups.close(state, (ProjectileFlight.Impact) context.bindings().get(impactSlot)), ""));
+                    continuations.add(new RuleEngine.EventRule<>(definition, ProjectileFlight.EVENT,
+                            (state, context) -> projectile.shot().isEmpty() || ShotGroups.accepts(state,
+                                    (ProjectileFlight.Impact) ((EffectContinuations.Pending) context.scope()).bindings().get(impactSlot)), body));
+                    String preparedSlot = path + index + "/prepared";
+                    java.util.function.BiFunction<EffectState, RuleEngine.Context, ProjectileFlight.Launch> prepare = (state, context) -> {
+                        var e = scopedEvaluation(state, context, previous, previousSlots); var spec = projectile.spec();
+                        var captured = new LinkedHashMap<String, RuleEngine.ActionResult>();
+                        capturedSlots.forEach((name, slot) -> captured.put(slot, e.context().bindings().get(name)));
+                        var op = context.operation(); String id = "projectile/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
+                        var pending = new EffectContinuations.Pending(id, definition, program.version(), e.context().scope(), e.context().event(), captured, Optional.empty());
+                        return new ProjectileFlight.Launch(previous.get(spec.position()).position(e.context().bindings().get(spec.position())),
+                                previous.get(spec.direction()).direction(e.context().bindings().get(spec.direction())), spec.resolve(e), e.origin().owner(), pending, impactSlot,
+                                projectile.shot().map(m -> m.resolve(e)));
+                    };
+                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>((state, context) -> {
+                        var launch = prepare.apply(state, context);
+                        return new RuleEngine.Local<>(ShotGroups.reserve(state, launch.member().orElseThrow()), new ShotActions.Prepared(launch), List.of());
+                    }, preparedSlot));
                     output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
                         @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
-                            var e = scopedEvaluation(state, context, previous, previousSlots); var spec = projectile.spec();
-                            var captured = new LinkedHashMap<String, RuleEngine.ActionResult>();
-                            capturedSlots.forEach((name, slot) -> captured.put(slot, e.context().bindings().get(name)));
-                            var op = context.operation(); String id = "projectile/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
-                            var pending = new EffectContinuations.Pending(id, definition, program.version(), e.context().scope(), e.context().event(), captured, Optional.empty());
-                            return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch(
-                                    previous.get(spec.position()).position(e.context().bindings().get(spec.position())),
-                                    previous.get(spec.direction()).direction(e.context().bindings().get(spec.direction())), spec.resolve(e), e.origin().owner(), pending, impactSlot));
+                            return new RuleEngine.Await<>(projectile.shot().isPresent()
+                                    ? ((ShotActions.Prepared) context.bindings().get(preparedSlot)).launch() : prepare.apply(state, context));
                         }
                         @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
-                            var receipt = (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt) result;
-                            if (!receipt.launch().equals(context.command(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
-                            return new RuleEngine.Local<>(state, receipt, List.of());
+                            var receipt = (ProjectileFlight.Receipt) result;
+                            if (!receipt.launch().equals(context.command(ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
+                            return projectile.shot().isPresent() ? ShotGroups.launched(state, receipt) : new RuleEngine.Local<>(state, receipt, List.of());
                         }
                     }, ""));
                 }
@@ -701,7 +719,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
-        if (event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
+        if (event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));

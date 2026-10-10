@@ -89,7 +89,10 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt launch(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch) {
         var outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.LAUNCHED;
         var id = Optional.<String>empty();
-        if (launch.position().isEmpty()) outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.MISSING_POSITION;
+        if (launch.member().isPresent() && !com.imdomestic.chorus.effect.projectile.ShotGroups.active(
+                MinecraftEffectRuntime.installed(level).orElseThrow().state().engine().domain(), launch.member().orElseThrow()))
+            outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.EXPIRED_SHOT;
+        else if (launch.position().isEmpty()) outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.MISSING_POSITION;
         else if (launch.direction().isEmpty()) outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.MISSING_DIRECTION;
         else {
             var point = launch.position().orElseThrow(); var direction = launch.direction().orElseThrow();

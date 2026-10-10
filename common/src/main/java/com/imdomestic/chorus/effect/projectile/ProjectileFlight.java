@@ -35,19 +35,22 @@ public final class ProjectileFlight {
         }
     }
     public record Launch(Optional<WorldPosition> position, Optional<WorldDirection> direction, Parameters parameters,
-            String owner, EffectContinuations.Pending continuation, String impactSlot) implements RuleEngine.WorldCommand {
+            String owner, EffectContinuations.Pending continuation, String impactSlot, Optional<ShotGroups.Member> member) implements RuleEngine.WorldCommand {
+        public Launch(Optional<WorldPosition> position, Optional<WorldDirection> direction, Parameters parameters,
+                String owner, EffectContinuations.Pending continuation, String impactSlot) { this(position, direction, parameters, owner, continuation, impactSlot, Optional.empty()); }
         public Launch {
             Objects.requireNonNull(position); Objects.requireNonNull(direction); Objects.requireNonNull(parameters); Objects.requireNonNull(owner);
-            Objects.requireNonNull(continuation); Objects.requireNonNull(impactSlot);
+            Objects.requireNonNull(continuation); Objects.requireNonNull(impactSlot); Objects.requireNonNull(member);
+            if (member.filter(m -> !m.shot().origin().owner().equals(owner)).isPresent()) throw new IllegalArgumentException("Pellet owner differs from shot");
             if (impactSlot.isBlank() || continuation.bindings().containsKey(impactSlot) || continuation.owner().isPresent()) throw new IllegalArgumentException("Projectile needs a fresh contact slot and detached continuation");
         }
         public RuleEngine.Signal finish(Impact impact) {
             if (!position.orElseThrow().dimension().equals(impact.point().dimension())) throw new IllegalArgumentException("Projectile impact changed dimension");
-            var bindings = new HashMap<>(continuation.bindings()); bindings.put(impactSlot, impact);
+            var bindings = new HashMap<>(continuation.bindings()); bindings.put(impactSlot, impact.withMember(member));
             return new RuleEngine.Signal(EVENT, new EffectContinuations.Pending(continuation.id() + "/contact/" + impact.sequence(), continuation.definition(), continuation.version(), continuation.scope(), continuation.cause(), bindings, Optional.empty()));
         }
     }
-    public enum Outcome { LAUNCHED, MISSING_POSITION, MISSING_DIRECTION, WRONG_DIMENSION, UNLOADED, REJECTED }
+    public enum Outcome { LAUNCHED, MISSING_POSITION, MISSING_DIRECTION, WRONG_DIMENSION, UNLOADED, REJECTED, EXPIRED_SHOT }
     public record Receipt(Launch launch, Outcome outcome, Optional<String> entity) implements RuleEngine.ActionResult {
         public Receipt {
             Objects.requireNonNull(launch); Objects.requireNonNull(outcome); Objects.requireNonNull(entity);
@@ -86,12 +89,19 @@ public final class ProjectileFlight {
     }
     /** Only ENTITY contains a living target; all outcomes have an exact observed position. */
     public record Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
-            long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal) implements PositionResult, Targets.Collection {
+            long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member) implements PositionResult, Targets.Collection {
+        public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
+                long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal) {
+            this(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, Optional.empty());
+        }
+        public Impact withMember(Optional<ShotGroups.Member> value) {
+            return new Impact(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, value);
+        }
         public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ, long ageMicros) {
             this(end, point, target, normalX, normalY, normalZ, ageMicros, 1, 0, end == End.ENTITY ? 1 : 0, end == End.ENTITY ? 1 : 0, true);
         }
         public Impact {
-            Objects.requireNonNull(end); Objects.requireNonNull(point); Objects.requireNonNull(target);
+            Objects.requireNonNull(end); Objects.requireNonNull(point); Objects.requireNonNull(target); Objects.requireNonNull(member);
             Numbers.finite(normalX, "normal x"); Numbers.finite(normalY, "normal y"); Numbers.finite(normalZ, "normal z");
             if (ageMicros < 0 || (end == End.ENTITY) != target.isPresent() || target.filter(String::isBlank).isPresent()) throw new IllegalArgumentException("Invalid projectile impact");
             double normal = Math.hypot(Math.hypot(normalX, normalY), normalZ);

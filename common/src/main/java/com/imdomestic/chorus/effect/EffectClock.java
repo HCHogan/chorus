@@ -100,6 +100,6 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
             var batch = Recovery.integrate(recovery.apply(state), time(state), until, signals);
             if (!batch.allocations().isEmpty()) signals = new ArrayList<>(List.of(new RuleEngine.Signal(Recovery.EVENT, batch)));
         }
-        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random()), RuleEngine.Empty.INSTANCE, signals);
+        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups()), RuleEngine.Empty.INSTANCE, signals);
     }
 }

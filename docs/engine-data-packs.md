@@ -521,7 +521,47 @@ fire_accepted 的 actor 是持有者，victim 为空；source.owner 为接受时
 
 weapon_damage / weapon_kill 由伤害动作的 tags / kill_tags 明确声明；仅有武器来源不会自动获得武器击杀信用。双加载器已验证：实际容器命令 → 物理投射物击杀 → 手动换弹 → Kill Clip → 下一发实际 12.5 点伤害，且发射后收枪仍保留攻击快照。另验证取消武器击杀标签后，真实击杀不触发 Kill Clip。
 
-当前是一触发一次动作体的服务端入口。客户端按键 / 长按、hitscan、精准区域、弹丸 / burst 聚合与一次性 shot_resolved、蓄力 / 射击模式、未命中 / 弹匣耗尽的内容资格、射击手感和 HUD 仍需扩展，不能据此把相关 Compendium 词条标为已覆盖。
+当前是一触发一次动作体的服务端入口。客户端按键 / 长按、hitscan、精准区域、自动 burst 控制、蓄力 / 射击模式、未命中 / 弹匣耗尽的内容资格、射击手感和 HUD 仍需扩展，不能据此把相关 Compendium 词条标为已覆盖。
+
+### 整枪与弹丸结算
+
+`chorus:begin_shot` 声明一组射击的预期弹丸数与有限攻击寿命，返回类型化 handle。普通 `projectile` 增加可选 `shot`，用 handle 和零起始整数索引关联一颗弹丸。`damage_snapshot.pellet` 显式指向该成员的当前 impact：只有匹配目标、owner / weapon / source / ability 的实际伤害回执才参与计数。普通投射物保持原有行为。
+
+```json
+[
+  {"action":{"type":"chorus:begin_shot",
+    "pellets":{"type":"chorus:constant","value":3,"unit":"count"},
+    "lifetime":{"type":"chorus:constant","value":2,"unit":"second"}},"as":"group"},
+  {"projectile":{"position":"muzzle","direction":"aim",
+    "speed":{"type":"chorus:constant","value":20,"unit":"meter_per_second"},
+    "gravity":{"type":"chorus:constant","value":0,"unit":"meter_per_second_squared"},
+    "drag":{"type":"chorus:constant","value":1,"unit":"multiplier"},
+    "lifetime":{"type":"chorus:constant","value":1,"unit":"second"}},
+    "shot":{"binding":"group","pellet":{"type":"chorus:constant","value":0,"unit":"count"}},
+    "as":"impact","do":[{"for_each":"impact","as":"victim","do":[
+      {"type":"chorus:damage_snapshot","snapshot":"attack","target":{"binding":"victim"},"pellet":"impact"}
+    ]}]}
+]
+```
+
+这是片段：前文需要已捕获的 muzzle / aim / attack，并且还需要索引 1、2 的两个 projectile；完整可运行夹具是 [shot_weapon.json](../common/src/test/resources/effects/shot_weapon.json)。该夹具的三颗弹丸与数值是合成参数，不是 D2 霰弹枪原型。多个显式组可以属于同一次 fire_accepted，以表达未来连发控制的每个逻辑射击；触发身份 `origin.source=shot/<token>` 与整枪组身份 `references.shot=shot-group/...` 不同。
+
+| shot_resolved 字段 | 含义 |
+| --- | --- |
+| pellets_total / pellets_hit / pellets_effective | 预期弹丸数 / 至少有一次合格 hit 回执的唯一弹丸数 / 至少有一次 HP、护盾或吸收损失的唯一弹丸数 |
+| pellets_missed / pellets_rejected / pellets_unresolved | 已结束且没有 hit 的弹丸 / 世界明确拒绝生成的弹丸 / 未发射、仍飞行或丢失结束观察的弹丸 |
+| targets_hit | 收到合格 hit 的目标数 |
+| max_pellets_on_target / max_effective_pellets_on_target | 同一目标上的最大唯一命中 / 有效伤害弹丸数；两个最大值可能来自不同目标 |
+| flags.complete / flags.all_hit | 所有预期槽位都已有终态 / 完整且每颗弹丸都曾 hit；all_hit 允许分散目标，不等于集中全中 |
+| references.shot | 稳定的本次整枪组身份；成员伤害事实另外带 pellet 索引与 contact 序号 |
+
+计数值单位均为 COUNT。类型化 `ShotGroups.Summary` 额外保留两个每目标计数表；公共事件 victim 选择命中数最多的目标，同分按身份字符串排序，没有 hit 时为空。贯穿可计入多个目标；同一弹丸对同一目标的多次接触 / 多条伤害命令只计一次。免疫和格挡遵从现有 hit 契约，计入 hit 但不计入有效伤害；CANCELLED / FAILED 与纯几何接触不计入 hit。需要集中命中的内容应使用 `complete && max_pellets_on_target >= 阈值`，不要只检查 pellets_hit。
+
+局部状态先保留索引，再等待物理发射回执；终止接触的动作体与实际伤害回执完成后才封闭该弹丸。所有槽位结束时发布一次 summary 并取消截止计时器；明确发射拒绝仍是已知终态，不会自动退还已接受的弹药 / 间隔。重复接触、已结算后的回调均不重放动作体。未知世界结果保留已提交状态与待确认操作，停止运行，不推断为 miss / failure 或自动重试。
+
+攻击寿命为半开区间 `[startedAt, dueAt)`，精确到期的延迟发射也不能重新打开组。超时发布 complete=false 与未结算数量，清理组并停止仍存活的成员；这是一条内容声明的攻击寿命，不是事件循环限制。索引可以在寿命内通过 detached after 延迟发射，但 `damage_snapshot.pellet` 只能在对应接触的同步动作体中使用：编译器不向 after 或嵌套 projectile 传播当前接触的记账资格。延迟爆炸仍可沿用几何与伤害快照，需作为独立伤害或新组建模。
+
+目前只提供显式成员 projectile 与 damage_snapshot 记账。原版命中、hitscan、精准命中分类、自动连发控制、跨组 / 多弹丸“下一击”消费事务、完整 One-Two Punch / Rewind Rounds 内容、活跃组与飞行实体的存档 / 重载恢复尚未实现。
 
 ### 动态基础容量与数值快照
 

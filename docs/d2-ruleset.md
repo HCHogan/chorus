@@ -24,7 +24,7 @@
 
 [weapon_fire.json](../common/src/test/resources/effects/weapon_fire.json) 与 Kill Clip 片段链接，已在双加载器完成真实武器输入 → 投射物击杀 → 服务器换弹完成 → 下一发 25% 增伤；发射后收枪移除 Buff 仍保留已捕获攻击的增伤和原武器身份。对照场景从伤害声明中去掉 weapon_kill 标签，真实击杀仍携带武器来源，却不会触发 Kill Clip 窗口。因此信用不能仅凭背后存在武器来推断。
 
-Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 发容量、0.15 秒射击间隔、0.2 秒换弹与 10 点基础伤害均为合成测试参数，不是 D2 原型数值。fire_accepted 仅指请求已接受；发射成功看世界回执，命中 / 击杀看实际伤害回执，One-Two Punch 等所需的 shot_resolved 尚未实现。
+Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 发容量、0.15 秒射击间隔、0.2 秒换弹与 10 点基础伤害均为合成测试参数，不是 D2 原型数值。fire_accepted 仅指请求已接受；发射成功看世界回执，命中 / 击杀看实际伤害回执，显式 begin_shot 与成员投射物现已提供基于回执的 shot_resolved，包含每目标唯一弹丸数与 complete；One-Two Punch 的完整内容、近战资格 / 消耗与数值组合仍未实现，不能把通用能力算作该词条已验收。
 
 ## 弹药生成、补充与换弹
 
@@ -379,7 +379,7 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
         督军印记 → 闪电带 melee 标签时 +1 层
 
 [包] 喷子一枪 12 颗全中
-  → shot_resolved{pellets_hit=12} → 雪上加霜：挂 one_two_punch（3 秒，下一次近战命中消耗）
+  → shot_resolved{complete=true, max_pellets_on_target=12} → 雪上加霜：挂 one_two_punch（3 秒，下一次近战命中消耗）
 [包] 近战（不在滑铲）→ 神秘织针 → 命中（查询）：
      归一化基础分量 × Melee 属性乘区 × (1 + 督军增伤 + 合格的雪上加霜 150% + …) × 外部组
   → hit → Unravel；消耗 one_two_punch

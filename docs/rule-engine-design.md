@@ -126,7 +126,7 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:death_prevented` | damage id、被救活者及真正生效的保护来源 | 图腾等不死保护实际成功；不算 death / kill。当前原版适配器记录实际消耗物品 ID；其他模组的保护来源仍待接入 |
 | `chorus:hit` | 同上，加 damage id、分量结果、命名伤害投影、immune / lethal；effective 明确指实际扣除的护盾与生命之和，不含溢出 | Upon dealing Melee Damage |
 | `chorus:fire_accepted` | 服务端接受的持有者 / 物品实例 / shot 标识、已提交成本及间隔；不等于实际发射或命中 | 已接实际容器的单次开火，执行 on_fire 并保留真实伤害来源 |
-| `chorus:shot_resolved` | 计划中的整枪聚合：哪把武器、命中的弹丸数；一枪只发一次；尚未实现 | One-Two Punch（12 颗弹丸全中） |
+| `chorus:shot_resolved` | 显式 begin_shot + 成员投射物已实现：各目标的唯一命中弹丸数、有效伤害数与完整性；一组只结算一次；内容需检查 complete 和目标计数 | One-Two Punch（12 颗弹丸全中） |
 | `chorus:damage_taken` | 攻击者、伤害类型、数值 | Feedback |
 | `chorus:heal` / `chorus:health_restored` / `chorus:overheal` | heal id、来源、目标、requested / offered / effective / overheal；分别代表接受的正治疗、实际回血、容量溢出 | 当前已接显式 heal 动作；满血不发 health_restored，取消不算 overheal；自然治疗观察尚未接入 |
 | `chorus:ability_used` | 槽位、技能 id | On Class Ability Usage（29 条）、On Super Cast |
@@ -294,7 +294,7 @@ magazine 可以超过有效基础容量；每次补弹另有 ceiling，只限制
 
 已实现 `initialize_ammo / observe_ammo / spend_ammo / refill_magazine / grant_ammo`。初始化幂等、来源解绑不重置弹数；spend 余额不足不部分扣款；refill 从储备守恒转移；grant 明确生成弹药。结果包含 requested / applied / unfulfilled 和变化后账户，用实际 applied 驱动后续动作。无限储备显式表示，不暴露虚假的有限弹数；未初始化账户也不按零处理。小数请求必须先用 `round` Value 明确 floor / ceiling / half_up。
 
-实际应用后发布 ammo_spent / ammo_refilled / ammo_generated，状态改变另发 ammo_changed；不会从转移弹药自动推断开火、弹匣打空或合格换弹。已新增武器定义，将实际容器的稳定实例与账户绑定；服务端接受整弹匣手动换弹，在固定时长到期后重新校验持握 / 存活等资格，按当前容量和储备转移弹药，实际装入后才发布 `reload_finished`。切枪 / 改装取消，重复装备不补弹。同一运行时的持有者移交保留余额并更新容量修饰归属。服务端单次开火已提交扣弹与每实例间隔，接受时中断换弹并执行 on_fire；实际投射物保留 owner / weapon / shot 与攻击快照。精准 / 多弹丸整枪结算、逐发装填、技能换弹、弹药存档 / 跨维度迁移和 HUD 仍待实现。协议、字段与边界见 [弹药数据包示例](engine-data-packs.md#整数弹药与弹匣转移)。
+实际应用后发布 ammo_spent / ammo_refilled / ammo_generated，状态改变另发 ammo_changed；不会从转移弹药自动推断开火、弹匣打空或合格换弹。已新增武器定义，将实际容器的稳定实例与账户绑定；服务端接受整弹匣手动换弹，在固定时长到期后重新校验持握 / 存活等资格，按当前容量和储备转移弹药，实际装入后才发布 `reload_finished`。切枪 / 改装取消，重复装备不补弹。同一运行时的持有者移交保留余额并更新容量修饰归属。服务端单次开火已提交扣弹与每实例间隔，接受时中断换弹并执行 on_fire；实际投射物保留 owner / weapon / shot 与攻击快照。显式多弹丸结算已接入实际伤害回执，区分总命中数与每个目标的唯一弹丸数；超时会发布不完整结算并停止成员飞行。精准区域、连发控制、逐发装填、技能换弹、弹药存档 / 跨维度迁移和 HUD 仍待实现。协议、字段与边界见 [弹药数据包示例](engine-data-packs.md#整数弹药与弹匣转移)。
 
 ## 属性与数值管线
 
@@ -1131,7 +1131,7 @@ buff 仍是统一的效果载体，但实例不再只有层数和剩余时间。
 
 Buff 规则定义固定在规则集版本内，分发时按实例 generation 绑定。普通事件读取当前实例状态；一个尚未开始的规则发现该 generation 已被移除时跳过。已开始的动作帧继续执行并可等待世界回执，不因来源被自身动作消耗而丢失后续动作。`ended` 显式带入已移除来源的规则，并通过最终快照读取结束时的组件；新获得的同键实例使用新的 generation，不能冒充旧实例。
 
-金标准案例已经依赖、要随对应案例一起实现的入口：武器拿出与收起（Frame of Reference）、长按输入（Getaway Artist）、buff 刷新（狡诈严冬）。弹药逻辑动作已发布带实际数量和原因的 ammo_spent / ammo_refilled / ammo_generated / ammo_changed，整弹匣手动换弹已由实际容器和服务端命令接线；单次开火已从实际容器接受并执行数据声明的物理投射物，fire_accepted 不证明成功发射或命中；未命中 / 整枪聚合、弹匣耗尽、技能换弹及逐发装填的真实输入仍待接线。其余以后按需添加，属于加种类：冠军眩晕；构造物摧毁；技能开始、提交、结束、取消。显式治疗已发布实际量与过量治疗事实，自然治疗观察另待实现。
+金标准案例已经依赖、要随对应案例一起实现的入口：武器拿出与收起（Frame of Reference）、长按输入（Getaway Artist）、buff 刷新（狡诈严冬）。弹药逻辑动作已发布带实际数量和原因的 ammo_spent / ammo_refilled / ammo_generated / ammo_changed，整弹匣手动换弹已由实际容器和服务端命令接线；单次开火已从实际容器接受并执行数据声明的物理投射物，fire_accepted 不证明成功发射或命中；显式成员投射物已有一次性整枪聚合，依据实际伤害回执并报告命中、有效伤害、拒绝、无命中终态与不完整截止；弹匣耗尽的内容资格、技能换弹及逐发装填的真实输入仍待接线。其余以后按需添加，属于加种类：冠军眩晕；构造物摧毁；技能开始、提交、结束、取消。显式治疗已发布实际量与过量治疗事实，自然治疗观察另待实现。
 
 ### 动作执行
 

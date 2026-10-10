@@ -1,0 +1,409 @@
+{
+  "version": "test-1",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "effects": {
+          "observe": {
+            "bundle": "test:reload_observer"
+          }
+        },
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 1,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        },
+        "profile": "test:reload_time"
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "interval_profile": "test:fire_time",
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "action": {
+              "type": "chorus:begin_shot",
+              "pellets": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "count"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "second"
+              }
+            },
+            "as": "group"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    },
+                    "pellet": "impact"
+                  }
+                ]
+              }
+            ],
+            "shot": {
+              "binding": "group",
+              "pellet": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            }
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    },
+                    "pellet": "impact"
+                  }
+                ]
+              }
+            ],
+            "shot": {
+              "binding": "group",
+              "pellet": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              }
+            }
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    },
+                    "pellet": "impact"
+                  }
+                ]
+              }
+            ],
+            "shot": {
+              "binding": "group",
+              "pellet": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "count"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:reload_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:magazine",
+      "version": "test-1",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "multiply",
+          "group": {
+            "name": "capacity",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "integer",
+          "rounding": "ceil"
+        }
+      ]
+    },
+    {
+      "id": "test:fire_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "damage",
+          "operation": "multiply",
+          "group": {
+            "name": "damage",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:reload_observer",
+      "rules": [
+        {
+          "id": "summary",
+          "on": "chorus:shot_resolved",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_resolved"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "max_pellets_on_target",
+                  "unit": "count"
+                },
+                "factor": 1,
+                "from": "count",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:pellet_hit"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

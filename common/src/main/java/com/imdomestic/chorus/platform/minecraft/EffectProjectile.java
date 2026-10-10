@@ -49,7 +49,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         if (level() instanceof ServerLevel server) {
             if (launch == null || MinecraftEffectRuntime.installed(server).orElse(null) != runtime || runtime.failure().isPresent()) { abandon(); return; }
             runtime.prepare();
-            if (isRemoved() || runtime.failure().isPresent()) { abandon(); return; }
+            if (isRemoved() || runtime.failure().isPresent() || launch.member().filter(member ->
+                    !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), member)).isPresent()) { abandon(); return; }
         }
         super.tick();
         // Semi-implicit Euler: gravity, then per-tick drag, then movement. Units are blocks and 50 ms ticks.

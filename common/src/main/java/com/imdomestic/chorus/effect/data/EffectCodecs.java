@@ -202,6 +202,8 @@ public final class EffectCodecs {
                         finite -> DataResult.success(new AmmoActions.ReserveSpec(java.util.Optional.of(finite)))),
                 value -> DataResult.success(value.finite().<Either<String, AmmoActions.FiniteReserve>>map(Either::right).orElseGet(() -> Either.left("unlimited"))));
         return new TypeRegistry<Action>()
+                .register("chorus:begin_shot", ShotActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        values.fieldOf("pellets").forGetter(ShotActions.Begin::pellets), values.fieldOf("lifetime").forGetter(ShotActions.Begin::lifetime)).apply(i, ShotActions.Begin::new)))
                 .register("chorus:sample_random", RandomActions.Sample.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         enumeration(com.imdomestic.chorus.effect.random.RandomState.Distribution.class).fieldOf("distribution").forGetter(RandomActions.Sample::distribution),
                         values.fieldOf("lower").forGetter(RandomActions.Sample::lower), values.fieldOf("upper").forGetter(RandomActions.Sample::upper)).apply(i, RandomActions.Sample::new)))
@@ -274,7 +276,8 @@ public final class EffectCodecs {
                 .register("chorus:damage_snapshot", Action.DamageCaptured.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
-                        Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact)).apply(i, Action.DamageCaptured::new)))
+                        Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
+                        Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet)).apply(i, Action.DamageCaptured::new)))
                 .register("chorus:heal", Action.Heal.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Heal::target), values.fieldOf("amount").forGetter(Action.Heal::amount),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Heal::tags),
@@ -400,10 +403,13 @@ public final class EffectCodecs {
                     collisions.optionalFieldOf("collision", ProjectileSpec.Collisions.STOP).forGetter(ProjectileSpec::collision),
                     tracking.optionalFieldOf("tracking").forGetter(ProjectileSpec::tracking)
             ).apply(i, ProjectileSpec::new)), Set.of("position", "direction", "speed", "gravity", "drag", "lifetime", "collision", "tracking"));
+            Codec<ShotActions.Membership> membership = strict(RecordCodecBuilder.create(i -> i.group(
+                    Codec.STRING.fieldOf("binding").forGetter(ShotActions.Membership::binding), values.fieldOf("pellet").forGetter(ShotActions.Membership::pellet)
+            ).apply(i, ShotActions.Membership::new)), Set.of("binding", "pellet"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
-                    self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body)
-            ).apply(i, EffectProgram.Projectile::new)), Set.of("projectile", "as", "do"));
+                    self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot)
+            ).apply(i, EffectProgram.Projectile::new)), Set.of("projectile", "as", "do", "shot"));
             return Codec.either(projectile, Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p, nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {

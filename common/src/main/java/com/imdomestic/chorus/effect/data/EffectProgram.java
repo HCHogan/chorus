@@ -57,8 +57,9 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Rule { actions = List.copyOf(actions); }
     }
     public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile {}
-    public record Projectile(ProjectileSpec spec, String bind, List<Step> body) implements Step {
-        public Projectile { java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }
+    public record Projectile(ProjectileSpec spec, String bind, List<Step> body, Optional<ShotActions.Membership> shot) implements Step {
+        public Projectile(ProjectileSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty()); }
+        public Projectile { java.util.Objects.requireNonNull(shot); java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); }
     }
     public record After(Value delay, com.imdomestic.chorus.effect.EffectContinuations.Lifetime lifetime, List<Step> body) implements Step {
         public After { java.util.Objects.requireNonNull(delay); java.util.Objects.requireNonNull(lifetime); body = List.copyOf(body); }
