@@ -768,6 +768,8 @@ UI 操作 → 类型化请求 → 服务端校验并更新装配 → 效果包�
 
 美术全部放在 assets（客户端资源包）里。玩法数据只引用表现 id（cue），客户端按 id 解析成粒子、音效、模型和动画。优先使用原版已经数据驱动的能力，自定义渲染代码放到最后：26.x 的渲染层正在变动（`GuiGraphics` 改名为 `GuiGraphicsExtractor`、实验性的 Vulkan 后端），自定义渲染最容易随版本更新失效。
 
+`chorus_d2` 的技能 / perk 图标可从用户提供的 Compendium 在线原表提取。首批已导入 Clown Cartridge、Kill Clip、Overflow、Voltshot、Marksman's Dodge、Healing Rift 六张 PNG，位于 `assets/chorus_d2/textures/gui/`；完整 HUD / 技能页与这些图标的绑定仍待实现。图标引用使用资源 id，运行时不访问在线表。素材单独记录抓取时间、原表坐标、尺寸与哈希，保留可离线核对的来源 HTML；网页预览图不视为最高分辨率原图。导入流程与清单见 [Compendium 来源说明](../data/compendium/README.md#在线原表与图标)。在线素材更新不会自动更新既有数值快照或效果验收状态。
+
 ### 表现 id（cue）
 
 ```json

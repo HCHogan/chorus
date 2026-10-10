@@ -1,0 +1,10 @@
+{
+  "entries": [
+    { "id": "perks/clown_cartridge", "sheet": "Weapon Perks", "gid": "1662574278", "label": "Clown Cartridge", "label_cell": "A48", "image_cell": "B48" },
+    { "id": "perks/kill_clip", "sheet": "Weapon Perks", "gid": "1662574278", "label": "Kill Clip", "label_cell": "A133", "image_cell": "B133" },
+    { "id": "perks/overflow", "sheet": "Weapon Perks", "gid": "1662574278", "label": "Overflow", "label_cell": "A161", "image_cell": "B161" },
+    { "id": "perks/voltshot", "sheet": "Weapon Perks", "gid": "1662574278", "label": "Voltshot", "label_cell": "A244", "image_cell": "B244" },
+    { "id": "abilities/marksman_dodge", "sheet": "Class Abilities", "gid": "527596209", "label": "Marksman's Dodge", "label_cell": "B9", "image_cell": "C9" },
+    { "id": "abilities/healing_rift", "sheet": "Class Abilities", "gid": "527596209", "label": "Healing Rift", "label_cell": "B43", "image_cell": "C43" }
+  ]
+}

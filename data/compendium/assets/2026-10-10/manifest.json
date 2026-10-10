@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-10T00:46:45.677025+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "24b96b9f28b40a66297f05c4cb129a92907df6b7b0c963965c033f37b4572013"
+    },
+    {
+      "gid": "527596209",
+      "sheet": "Class Abilities",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+      "retrieved_at": "2026-10-10T00:46:50.870188+00:00",
+      "file": "sheets/527596209.html.gz",
+      "html_sha256": "ab792cdd0b15f7b36b566b4961c47758f77ae69bd670b15272ed263701d19691"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/clown_cartridge",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Clown Cartridge",
+      "label_cell": "A48",
+      "image_cell": "B48",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B48",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLaZZ4iKYJDdJ3d9_tDt9iSzD-WrR3AdoyBuI-LpdhjVLXgD9qV5uCbEwYX2dCQdGq4DKH2lJp3yIhiAjx9wmlQyJNbfHtqjUIHx1Q-dtPz5AU9W-HhS9RFYozTrhp5ghknWkqHvrCD0g-3VqX0Hu3MmCFsdP2ZBHA=w70-h89",
+      "retrieved_at": "2026-10-10T00:46:46.890287+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/clown_cartridge.png",
+      "texture": "chorus_d2:textures/gui/perks/clown_cartridge.png",
+      "sha256": "eb90cf650ddb1b517503544ccdd3fa2c56f3710a1713885c7d2f7475d6abac7d",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/kill_clip",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Kill Clip",
+      "label_cell": "A133",
+      "image_cell": "B133",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B133",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLYsfDbVjlWuXquyWXVhf8iPyf2vkXOq1Iio_80vFd5zD06wCKrVOyR5cT31LjJj7OfsVirUj9AOD-pkG_6ovD6e-RRhCsrZKMOZ0zRQF02wXVgoxpkN1J8E2cPsZS7tGRGK9bNpLeeCh_ZuwSOj4cOZ4A1n0P3RI4nD=w70-h104",
+      "retrieved_at": "2026-10-10T00:46:47.950730+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/kill_clip.png",
+      "texture": "chorus_d2:textures/gui/perks/kill_clip.png",
+      "sha256": "c84b30bf08ed9f7641f18cf3de5716b61a02f84e911414ce5abac59f056be5ed",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/overflow",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Overflow",
+      "label_cell": "A161",
+      "image_cell": "B161",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B161",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLafO3gMkAerQC-CxxiDm2WX82GkZkkMmN9Cc-9mG2egqFN4Q3TAGLzKKFns1GHZ0CdSLWUoj_QR5tK29_eZAOc_aAHm4KiK93qdXxytGQpcRAJTZfNruxlZRR6TPOB5VAqjmNID_AP8TZsjBykzl4lzctWKs_acfA=w70-h104",
+      "retrieved_at": "2026-10-10T00:46:49.026655+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/overflow.png",
+      "texture": "chorus_d2:textures/gui/perks/overflow.png",
+      "sha256": "a2b3e2308cfc743dd81e3c58444569bd29e5eeaf5404be5061acd6e2ef811b6d",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/voltshot",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Voltshot",
+      "label_cell": "A244",
+      "image_cell": "B244",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B244",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLYnIg-0wPvnju___7TaUb_WvT4LxCGLq8NiJAnT3bg8eX52RnTMSZ_TFV18zgK059XJCa85zHcQtVFgN4K9B8sXIX-iHcx3lYENEw9qzN0DGfYFTAOTXll-mXPTTHkMdsIJxeisiR-URv6q6NExSLuR5Q01zJpOIQRj=w70-h89",
+      "retrieved_at": "2026-10-10T00:46:50.089264+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/voltshot.png",
+      "texture": "chorus_d2:textures/gui/perks/voltshot.png",
+      "sha256": "fc64115e8a231504e03aca97ffa3bbf67c0834303a590f1ff1c1694b07b70386",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "abilities/marksman_dodge",
+      "sheet": "Class Abilities",
+      "gid": "527596209",
+      "label": "Marksman's Dodge",
+      "label_cell": "B9",
+      "image_cell": "C9",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=527596209&range=C9",
+      "image_url": "https://lh3.googleusercontent.com/docsubipk/AP9E6xWH7naYp2TK21WRYWnh_o75Jq1EI3BLcO9tCNO9M48SSILXRYAZ2UN863qh9oCmMpf3zO0tLCRRqne-4DzKhGBI_YXXEaG5JhChJzlZgbw10xKI8_q_ceythaeleA0h98nHh9olA_yD9OV82a0i4zt45E9-cGk1JsYzQDAV=s74-w64-h74",
+      "retrieved_at": "2026-10-10T00:46:51.210474+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/abilities/marksman_dodge.png",
+      "texture": "chorus_d2:textures/gui/abilities/marksman_dodge.png",
+      "sha256": "e92705f26dc70eda6c024bd7fac1d5baeb4ce6ddcfa2a1a63a520a118d3e74ae",
+      "size": [
+        64,
+        64
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "abilities/healing_rift",
+      "sheet": "Class Abilities",
+      "gid": "527596209",
+      "label": "Healing Rift",
+      "label_cell": "B43",
+      "image_cell": "C43",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=527596209&range=C43",
+      "image_url": "https://lh3.googleusercontent.com/docsubipk/AP9E6xU76jqoCCrDG9xEBAmkFFXOKcS1_cvQEgs5JTVMkYBVORyzKy2V0bKMGyH_9pHXNXbsaD_zRUDQlfaNqXFdDJV_3SPcEi56k9YoVtUlIafNcRsvznJVfcTDV7pU49OeAHhaUgD_6ThpZaN_Pekd1ijbOZW1duNjkGvdnhz0=s119-w64-h119",
+      "retrieved_at": "2026-10-10T00:46:51.564593+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/abilities/healing_rift.png",
+      "texture": "chorus_d2:textures/gui/abilities/healing_rift.png",
+      "sha256": "25a3158d11878d0b8823823e542f24ab2d4a599a066fe802108d9f37b49e7f0a",
+      "size": [
+        64,
+        64
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}
