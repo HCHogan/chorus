@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
@@ -45,6 +45,17 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "unloaded", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.UNLOADED,
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
                     "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()), false, Reference.PROJECTILE_IMPACT);
+    public void requireRetainedCost() { if (reference != Reference.RETAINED_COST) throw new IllegalArgumentException("Result is not a retained cost handle"); }
+    public static final ResultShape RETAINED_COST = new ResultShape(Map.of(), Map.of(), false, Reference.RETAINED_COST);
+    private static java.util.Optional<Resources.RefundResult> retainedRefund(RuleEngine.ActionResult result) {
+        return ((com.imdomestic.chorus.effect.resource.RetainedCosts.Refunded) result).refund();
+    }
+    public static final ResultShape RETAINED_REFUND = new ResultShape(Map.of(
+            "requested", new Field(Unit.CHARGE, r -> retainedRefund(r).map(x -> x.grant().requested()).orElse(0.0)),
+            "allowed", new Field(Unit.CHARGE, r -> retainedRefund(r).map(x -> x.grant().scaled()).orElse(0.0)),
+            "credited", new Field(Unit.CHARGE, r -> retainedRefund(r).map(x -> x.grant().credited()).orElse(0.0)),
+            "overflow", new Field(Unit.CHARGE, r -> retainedRefund(r).map(x -> x.grant().overflow()).orElse(0.0))),
+            Map.of("available", r -> retainedRefund(r).isPresent(), "changed", r -> retainedRefund(r).map(x -> x.grant().credited() > 0).orElse(false)));
     public void requireDamageGroup() { if (reference != Reference.DAMAGE_GROUP) throw new IllegalArgumentException("Result is not a damage group"); }
     public static final ResultShape DAMAGE_GROUP = new ResultShape(Map.of(), Map.of(), false, Reference.DAMAGE_GROUP);
     public void requireDamageBatch() { if (reference != Reference.DAMAGE_BATCH) throw new IllegalArgumentException("Result is not a damage batch"); }

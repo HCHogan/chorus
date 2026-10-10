@@ -316,6 +316,15 @@ public final class EffectCodecs {
                         ID.fieldOf("resource").forGetter(Action.SpendResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.SpendResource::target),
                         values.fieldOf("amount").forGetter(Action.SpendResource::amount), Codec.STRING.fieldOf("payment").forGetter(Action.SpendResource::payment)
                 ).apply(i, Action.SpendResource::new)))
+                .register("chorus:retain_cost", Action.RetainCost.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("cost").forGetter(Action.RetainCost::cost), values.fieldOf("duration").forGetter(Action.RetainCost::duration)
+                ).apply(i, Action.RetainCost::new)))
+                .register("chorus:refund_retained_cost", Action.RefundRetainedCost.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("cost").forGetter(Action.RefundRetainedCost::cost), values.fieldOf("fraction").forGetter(Action.RefundRetainedCost::fraction)
+                ).apply(i, Action.RefundRetainedCost::new)))
+                .register("chorus:close_retained_cost", Action.CloseRetainedCost.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("cost").forGetter(Action.CloseRetainedCost::cost)
+                ).apply(i, Action.CloseRetainedCost::new)))
                 .register("chorus:refund_cost", Action.RefundCost.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("cost").forGetter(Action.RefundCost::cost), values.fieldOf("fraction").forGetter(Action.RefundCost::fraction)
                 ).apply(i, Action.RefundCost::new)))

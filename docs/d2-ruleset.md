@@ -549,4 +549,4 @@ transcendence（20 秒）
 
 Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38），状态均为 unimplemented：尚无完整内容数据定义。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
 
-Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。Threaded Spike 的返回、接回、按命中次数返还资源、按击杀授予 Woven Mail，以及来源效果 / 技能输入仍需实现；同序列退款额度不能直接跨物理飞行帧引用。完整验收要求和明确缺口保存在 `data/compendium/review.json`。
+Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义，当前墙面与实体预算独立。Threaded Spike 的返回、接回、按命中次数返还资源、按击杀授予 Woven Mail，以及来源效果 / 技能输入仍需实现；普通成本回执不能直接跨物理飞行帧引用，现可用 retain_cost 把剩余额度转交到有限期共享账本。该通用机制已通过真实技能 / 飞行 / 延迟验收，但没有装配 Threaded Spike 的返回和命中档位；原表的 Melee % 不自动等同于实际成本百分比，固定充能比例仍应使用 grant_resource。完整验收要求和明确缺口保存在 `data/compendium/review.json`。

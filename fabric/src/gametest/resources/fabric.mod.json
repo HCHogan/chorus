@@ -16,6 +16,7 @@
       "com.imdomestic.chorus.EffectProgramsGameTest",
       "com.imdomestic.chorus.ProgramImportsGameTest",
       "com.imdomestic.chorus.ResourceRefundGameTest",
+      "com.imdomestic.chorus.RetainedCostGameTest",
       "com.imdomestic.chorus.AmmoGameTest",
       "com.imdomestic.chorus.AmmoCapacityGameTest",
       "com.imdomestic.chorus.WeaponReloadGameTest",

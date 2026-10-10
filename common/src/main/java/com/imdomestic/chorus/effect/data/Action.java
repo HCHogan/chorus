@@ -379,6 +379,45 @@ public interface Action {
             return new RuleEngine.Local<>(e.state().withResource(result.grant().after()), result, facts);
         }
     }
+    /** Move the remaining local claim into a bounded handle; the old cost is sealed by retention. */
+    record RetainCost(String cost, Value duration) implements Action {
+        @Override public ResultShape validate(Validation v) { v.result(cost).requireCost(); validateDuration(duration, v); return ResultShape.RETAINED_COST; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var operation = e.context().operation();
+            String id = "retained-cost/" + operation.frame() + "/" + operation.pc() + "/" + operation.invocation();
+            return RetainedCosts.retain(e.state(), id, e.cost(cost), Math.addExact(e.state().buffs().timeMicros(), micros(duration, e)));
+        }
+    }
+    private static RetainedCosts.Handle retainedCost(Evaluation e, String name) {
+        var shape = e.results().get(name); if (shape == null) throw new IllegalArgumentException("Unbound retained cost: " + name);
+        shape.requireRetainedCost(); return (RetainedCosts.Handle) e.context().bindings().get(name);
+    }
+    record RefundRetainedCost(String cost, Value fraction) implements Action {
+        @Override public ResultShape validate(Validation v) {
+            v.result(cost).requireRetainedCost(); Validation.same(fraction.unit(v), Unit.MULTIPLIER);
+            if (fraction instanceof Value.Constant c) com.imdomestic.chorus.stat.Numbers.fraction(c.value(), "refund fraction");
+            return ResultShape.RETAINED_REFUND;
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var handle = retainedCost(e, cost); var account = e.state().resources().get(handle.receipt().account());
+            if (account != null) e.resourceDefinition(account.key().resource()).validate(account);
+            var value = fraction.evaluate(e); Validation.same(value.unit(), Unit.MULTIPLIER);
+            var transition = RetainedCosts.refund(e.state(), handle, value.value());
+            var refund = ((RetainedCosts.Refunded) transition.result()).refund();
+            if (refund.isEmpty()) return transition;
+            var result = refund.orElseThrow(); var event = ResourceFacts.refunded(result, e.origin()); var facts = new java.util.ArrayList<RuleEngine.Signal>();
+            facts.add(new RuleEngine.Signal("chorus:resource_refunded", event));
+            if (result.grant().credited() > 0) facts.add(new RuleEngine.Signal("chorus:resource_changed", event));
+            return new RuleEngine.Local<>(transition.state(), transition.result(), facts);
+        }
+    }
+    record CloseRetainedCost(String cost) implements Action {
+        @Override public ResultShape validate(Validation v) {
+            v.result(cost).requireRetainedCost();
+            return new ResultShape(java.util.Map.of(), java.util.Map.of("removed", r -> ((RetainedCosts.Closed) r).removed()));
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return RetainedCosts.close(e.state(), retainedCost(e, cost)); }
+    }
     record GrantFullCharge(String resource, Evaluation.Target target, Value charges) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target);
             v.resource(resource); Validation.same(charges.unit(v), Unit.COUNT);

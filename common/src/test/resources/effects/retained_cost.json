@@ -1,0 +1,197 @@
+{
+  "version": "test-retained-cost-v1",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 2,
+      "initial": 2
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:return",
+      "slot": "test:melee",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:retain_cost",
+            "cost": "cast_cost",
+            "duration": {
+              "type": "chorus:constant",
+              "value": 0.7,
+              "unit": "second"
+            }
+          },
+          "as": "right"
+        },
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "multiplier"
+          }
+        },
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:constant",
+              "value": 0.6,
+              "unit": "second"
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "entity"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:refund_retained_cost",
+                    "cost": "right",
+                    "fraction": {
+                      "type": "chorus:constant",
+                      "value": 0.7,
+                      "unit": "multiplier"
+                    }
+                  },
+                  "as": "refund"
+                },
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "factor": 10,
+                    "from": "charge_fraction",
+                    "to": "damage",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "refund",
+                      "field": "credited"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "after": {
+            "type": "chorus:constant",
+            "value": 0.4,
+            "unit": "second"
+          },
+          "lifetime": "detached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refund_retained_cost",
+                "cost": "right",
+                "fraction": {
+                  "type": "chorus:constant",
+                  "value": 0.7,
+                  "unit": "multiplier"
+                }
+              },
+              "as": "refund"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "factor": 10,
+                "from": "charge_fraction",
+                "to": "damage",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "refund",
+                  "field": "credited"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "after": {
+            "type": "chorus:constant",
+            "value": 0.8,
+            "unit": "second"
+          },
+          "lifetime": "detached",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:refund_retained_cost",
+                "cost": "right",
+                "fraction": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                }
+              },
+              "as": "refund"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "factor": 10,
+                "from": "charge_fraction",
+                "to": "damage",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "refund",
+                  "field": "credited"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

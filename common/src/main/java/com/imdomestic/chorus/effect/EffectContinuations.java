@@ -20,7 +20,8 @@ public final class EffectContinuations {
             owner.ifPresent(value -> {
                 if (!value.equals(EffectTimers.Owner.of(scope))) throw new IllegalArgumentException("Continuation owner differs from captured scope");
             });
-            if (bindings.values().stream().anyMatch(value -> value instanceof RuleEngine.RetainedResult)) {
+            if (bindings.values().stream().anyMatch(value -> value instanceof RuleEngine.RetainedResult
+                    && !(value instanceof com.imdomestic.chorus.effect.resource.RetainedCosts.Handle))) {
                 throw new IllegalArgumentException("Retained accounting receipts cannot cross continuation frames");
             }
         }

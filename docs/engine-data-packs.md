@@ -409,11 +409,39 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 - 每次 requested = paid × fraction，再由剩余成本额度限制 allowed，最后由资源容量限制 credited；overflow = allowed − credited。返还结果提供 requested / allowed / credited / overflow / paid / claimed / remaining，全部为 charge_fraction，另有 changed 标志。claimed 为这笔成本累计已认领额度，包括因容量不足而溢出的部分。
 - 多次引用原始 cost 或上一次 refund 都引用同一笔支付；分支退出、循环推进、未使用 `as` 的返还、世界等待都不会重置额度。例如实付 1，第一次返还 70% 时完全溢出，之后能量被消耗，再请求 70% 也最多只给 0.3。免费或支付失败时 paid = 0，任何比例返还都为 0。
-- 成本记录保留在当前规则 Frame 中，完成后释放；`as` 的普通词法作用域不变，分支结果不能向外引用。当前支持同一动作序列内跨世界等待的返还；跨后续事件、定时回调或 Buff 生命周期保存成本引用，以及跨重启恢复尚未实现。不要把 payment 字符串当成可以在任意未来事件中查询的全局账本键。
+- 成本记录保留在当前规则 Frame 中，完成后释放；`as` 的普通词法作用域不变，分支结果不能向外引用。当前支持同一动作序列内跨世界等待的返还；延迟体 / 投射物须先显式转交为下节的有限期凭据。任意事件 / Buff 引用组件和跨重启恢复尚未实现。不要把 payment 字符串当成可以在任意未来事件中查询的全局账本键。
 - 每次显式返还发布 `chorus:resource_refunded`，即使 credited = 0 也带完整原因测量。它具有通用资源测量以及 requested / scaled / allowed / credited / overflow / paid / claimed / remaining，scaled 与 allowed 相同；payment 引用为实际支付身份。值变化时另发 resource_changed，返还不重复发 resource_granted。
 - `grant_full_charge` 使用 resource、target（默认 self）、charges（默认 count = 1）。charges 必须是非负整数；增加指定份数并保留已有部分进度，例如 capacity = 2 时 0.4 + 1 → 1.4。它不经过普通 chunk 的缩放，也不把账户设置为满值。结果与 grant_resource 相同，resource_granted 的 reason 为 full_charge。是否属于免费施放仍由实际支付规则决定，不由充能动作倒改成本回执。
 
 上述场景在 [resource_refund.json](../common/src/test/resources/effects/resource_refund.json) 中完整可执行，并有双加载器的实际治疗与资源断言。这是通用合成机制测试，不代表某个 Compendium 效果的全部触发、归因和数值已经验收。
+
+### 跨延迟与飞行的有限期退款凭据
+
+`retain_cost` 将当前成本的**剩余退款额度转交**到 EffectState 账本，返回类型化句柄。duration 是必须声明的有限正 second，精确到微秒；不支持永久凭据。以下片段放在已有 cost 的技能 on_use 中：
+
+```json
+[
+  {"action": {"type": "chorus:retain_cost", "cost": "cast_cost",
+    "duration": {"type": "chorus:constant", "value": 2, "unit": "second"}}, "as": "right"},
+  {"after": {"type": "chorus:constant", "value": 0.2, "unit": "second"}, "lifetime": "detached", "do": [
+    {"type": "chorus:refund_retained_cost", "cost": "right",
+      "fraction": {"type": "chorus:constant", "value": 0.7, "unit": "multiplier"}}
+  ]},
+  {"after": {"type": "chorus:constant", "value": 0.4, "unit": "second"}, "lifetime": "detached", "do": [
+    {"type": "chorus:refund_retained_cost", "cost": "right",
+      "fraction": {"type": "chorus:constant", "value": 0.7, "unit": "multiplier"}},
+    {"type": "chorus:close_retained_cost", "cost": "right"}
+  ]}
+]
+```
+
+- 原 cost 及其旧 refund 别名在本帧内已封存，不能再认领已转交的额度；再次 retain 原 cost 得到的额度为零。转交本身不修改能量，也不发布退款事实。
+- 句柄可由 after / projectile 捕获；所有副本、不同接触和嵌套延迟读取同一账本。每次仍按原始 paid × fraction 申请，受已认领总额约束。上述两个 70% 请求合计最多返还实际支付的 100%；转交之前已经返还的部分也计入总额。
+- `refund_retained_cost` 返回 available / changed，以及 requested / allowed / credited / overflow（charge_fraction）。活跃凭据的零收益仍发布 resource_refunded；值改变才发布 resource_changed。它固定返到原付款账户，不接受 target / resource 重定向。免费或失败支付不能创造退款，容量溢出也消耗额度。
+- 有效期使用半开区间，到期先于同刻回调清除账本。`close_retained_cost` 提前关闭，返回 removed；关闭或到期后所有旧句柄返回 available=false、四个数值为 0，不发布资源事实、不重建额度，也不会因正常的迟到回调停止运行时。同 id 却内容冲突的句柄仍明确拒绝。
+- 凭据期限独立于来源、技能选择和投射物存活；即使未命中、来源取消而没有回调，逻辑时钟也会清理。关闭不会取消飞行或延迟任务，只撤销后续退款资格。账本和余额先于依赖它的世界动作提交，世界结果未知时不回滚或重放。
+
+完整合成示例 [retained_cost.json](../common/src/test/resources/effects/retained_cost.json) 使用真实技能支付、物理命中和独立延迟回调共享额度，再按实际 credited 治疗。普通 paid 数字或 payment 字符串不具备此权利。当前只支持同一运行时内通过词法捕获传递；向 Buff 引用组件保存、独立后续事件按施放查找、跨维度迁移和跨重启恢复仍未实现。固定充能比例的收益继续使用 grant_resource，不能因为发生在返回阶段便自动改为按实际成本退款。
 
 ## 整数弹药与弹匣转移
 
@@ -887,7 +915,7 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 普通 Value 默认在动作执行时求值。需要保留释放时的某个数值时，在 after 前执行 `{ "action": { "type": "chorus:capture_value", "value": 数值表达式 }, "as": "saved" }`，之后通过 `{ "type": "chorus:result", "binding": "saved", "field": "value" }` 读取。其单位保持原样；例如 Buff 规则可先捕获 by_buff_tier，再于 Buff 结束后进行延迟治疗。攻击修饰的冻结使用 capture_damage，不必手工逐项捕获。
 
-付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
+普通付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。需要延迟退款时，先通过 retain_cost 转交有限期凭据，再在未来使用 refund_retained_cost。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
 
 ## 读取事件武器与 Buff 获得回执
 
@@ -1185,7 +1213,7 @@ use 只接受真实玩家和槽位，校验维度、存活、非旁观及运行�
 
 ability_used 的 source.owner 是施放者，source.source 是独立 cast 身份，source.ability 是最终定义 id；标签来自定义和可信宿主输入。references 提供 ability / base_ability / ability_slot / cast，numbers 提供 paid 与 param.<name>，flags.free 表示未实际支付。on_use 持有本次解析结果，不因资源事件反应、切换选择或后续卸下来源而重新解析技能。
 
-有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。它不能跨后续事件或 after 保存成本引用，其他规则可观察 paid 但尚无可跨事件的退款权。即时技能没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
+有 cost 的 on_use 可通过隐式绑定 `cast_cost` 使用 refund_cost，遵循实际支付额和同一执行帧内累计认领上限；免费施放不能由退款制造能量。也可用 retain_cost 把剩余额度转交给有限期句柄，由 after / projectile 捕获；其他独立事件仍不能仅凭 paid 或 cast 字符串取得退款权。即时技能没有持久来源寿命；命名 timer / cancel_timer 与 source 生命周期 after 在编译时拒绝，延迟动作必须明确 detached，或先建立拥有寿命的 Buff。已接受的世界操作失败保留扣费和待确认操作，不自动回滚或重试。
 
 最小命令：
 
@@ -1269,7 +1297,7 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 这些是合成参数。完整可编译程序见 [projectile.json](../common/src/test/resources/effects/projectile.json)，同时包含带成本的技能入口、落地范围动作和到期分支。
 
-`as` 只在每次接触 / 终止动作体里引入绑定，不会向发射后的外层步骤泄漏。此前可复制的结果会保留，实际施放来源 / self 和原程序动作定义固定；来源卸下不会取消已发射物。未预先捕获的状态读数仍在该次接触时求值。`cast_cost` 等付款 / 退款结果不可复制到该帧，捕获 paid 数字也不会获得退款权。
+`as` 只在每次接触 / 终止动作体里引入绑定，不会向发射后的外层步骤泄漏。此前可复制的结果会保留，实际施放来源 / self 和原程序动作定义固定；来源卸下不会取消已发射物。未预先捕获的状态读数仍在该次接触时求值。`cast_cost` 等普通付款 / 退款结果不可复制到该帧；先 retain_cost 得到的有限期句柄可以共享账本，捕获 paid 数字不会获得退款权。
 
 | 接触结果的用途 | 行为 |
 | --- | --- |
