@@ -32,10 +32,10 @@ public final class MinecraftNativeActions {
         var tags=new HashSet<>(actor.entityTags());
         actor.getType().builtInRegistryHolder().tags().forEach(tag->tags.add(tag.location().toString()));
         if(actor instanceof Player)tags.add("chorus:guardian");else if(actor instanceof Mob)tags.add("chorus:combatant");
-        String tag=switch(kind){case RANGED_ATTACK->"chorus:native_ranged_attack";case MELEE_ATTACK->"chorus:native_melee_attack";case MOVEMENT_INPUT->"chorus:native_movement_input";case JUMP->"chorus:native_jump";default->throw new IllegalArgumentException("Unsupported native action: "+kind);};
+        String tag=switch(kind){case RANGED_ATTACK->"chorus:native_ranged_attack";case MELEE_ATTACK->"chorus:native_melee_attack";case MOVEMENT_INPUT->"chorus:native_movement_input";case JUMP->"chorus:native_jump";case HORIZONTAL_MOTION->"chorus:native_horizontal_motion";case VERTICAL_MOTION->"chorus:native_vertical_motion";default->throw new IllegalArgumentException("Unsupported native action: "+kind);};
         var origin=new BuffInstance.Origin(actor.getUUID().toString(),attack,"","",tags);
         return new EffectEvent(actor.getUUID().toString(),victim==null?"":victim.getUUID().toString(),origin,Set.of(tag),Map.of(),
                 Map.of("on_ground",actor.onGround(),"sprinting",actor.isSprinting(),"crouching",actor.isCrouching()),
-                Map.of(kind==ActionGate.Kind.MOVEMENT_INPUT||kind==ActionGate.Kind.JUMP?"native_input":"native_attack",attack,"entity_type",BuiltInRegistries.ENTITY_TYPE.getKey(actor.getType()).toString()));
+                Map.of(kind==ActionGate.Kind.HORIZONTAL_MOTION||kind==ActionGate.Kind.VERTICAL_MOTION?"native_motion":MinecraftMovementInput.KINDS.contains(kind)?"native_input":"native_attack",attack,"entity_type",BuiltInRegistries.ENTITY_TYPE.getKey(actor.getType()).toString()));
     }
 }

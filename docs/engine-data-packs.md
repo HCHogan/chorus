@@ -1501,7 +1501,7 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump / horizontal_motion / vertical_motion`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
 查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
@@ -1539,11 +1539,29 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 
 服务端在状态提交、时间推进及原版输入读取边界归约两种资格。movement_input 查询使用 continue，jump 查询使用 start；标签分别为 chorus:native_movement_input / chorus:native_jump，actor 为实际持有者，victim 为空，references 包含 native_input=minecraft:movement_input 与 entity_type；当前实体 / 类型标签、guardian / combatant 角色及 on_ground / sprinting / crouching 与原版攻击入口相同。weapon / ability 为空。查询不发布事件，不改变效果链。
 
-`MinecraftMovementProjection` 保存最近一批每持有者的完整 Decision / 失败证据，Chorus 的 S2C movement_input 消息只同步维度、实体 ID、UUID 和两位输入掩码；只发送给支持此通道的区块观察者及玩家本人，开始追踪和玩家加载完成时另发当前快照。客户端核对维度 / UUID，实体卸载自然丢弃状态，不保留全局实体 ID 缓存。查询异常拒绝对应输入、保存 QUERY_FAILED 且不伪造 Decision，再停止运行时；已提交的限制保留到显式清理。关闭 / 卸载只清除这个运行时仍持有的掩码；跨维度的新运行时接管后，旧运行时不能清除新值。标记不写 NBT，不代表 Buff 持久化。
+`MinecraftMovementProjection` 保存最近一批每持有者的完整 Decision / 失败证据，Chorus 的 S2C movement_input_v2 消息同步维度、实体 ID、UUID 和四位掩码；输入使用低两位，下面的轴约束使用高两位，存在轴约束时另带固定位置；只发送给支持此通道的区块观察者及玩家本人，开始追踪和玩家加载完成时另发当前快照。客户端核对维度 / UUID，实体卸载自然丢弃状态，不保留全局实体 ID 缓存。查询异常拒绝对应输入、保存 QUERY_FAILED 且不伪造 Decision，再停止运行时；已提交的限制保留到显式清理。关闭 / 卸载只清除这个运行时仍持有的掩码；跨维度的新运行时接管后，旧运行时不能清除新值。标记不写 NBT，不代表 Buff 持久化。
 
 客户端在键盘 tick 后、自动跳跃后和读取上一帧边缘前过滤输入。movement_input 清除方向、冲刺及 shift 输入（包括飞行下降 / 水中下潜）；jump 清除跳跃输入（包括飞行上升 / 自动跳跃），并清除尚未释放的骑乘跳跃蓄力，避免把禁用误作释放按键。服务端同时过滤已持有及新到达的普通输入包。原版 moveRelative 在两侧过滤加速，地面 / 液体跳跃入口涵盖原版 Rabbit、Sniffer、Cube、MagmaCube、Mob、Bee 的重写，保留重力和碰撞流程。
 
-这是输入控制，不是完全定身。游泳朝向产生的竖直加速、鞘翅滑翔、特殊 AI 直接写速度、长跳 / 冲撞 / 传送、完整骑乘运动与其他模组自定义移动仍需自己的动作或运动约束；玩家位置包沿用原版验证，尚无针对修改客户端的服务端定身位置校正。同步期间已在途的输入和惯性也不会追溯撤销。Freeze 的完全定身、Suspend 的高度约束 / 有限横移、Slow 的比例减速与效果资格不能只靠这两个布尔门槛完成。[native_movement.json](../common/src/test/resources/effects/native_movement.json) 是合成验收，未增加 Compendium 完成数。
+这两个输入门槛不约束游泳朝向、鞘翅滑翔、特殊 AI 直接写速度或玩家位置包；这些路径的实际坐标 / 速度约束见下节。同步期间已在途的输入和惯性不会因输入门槛而追溯撤销。Freeze、Suspend 和 Slow 的内容资格及数值仍须另行声明。[native_movement.json](../common/src/test/resources/effects/native_movement.json) 是合成验收，未增加 Compendium 完成数。
+
+## 水平与垂直运动约束
+
+`horizontal_motion` 拒绝时固定 X / Z，`vertical_motion` 拒绝时固定 Y；同时拒绝则固定全部坐标。二者与 movement_input / jump、技能和攻击资格独立。可由 SOURCE 或受影响者身上的 BUFF 声明，任意有效拒绝继续保持该轴。新受限轴取当前原版位置作为锚点，其他已受限轴保留自己的锚点；重授予 / 加入第二来源不会重置位置。解除一个来源不能释放另一个来源仍禁止的轴。
+
+查询使用 continue，事件标签分别为 chorus:native_horizontal_motion / chorus:native_vertical_motion，references 提供 native_motion=minecraft:motion_constraint；其余 actor、来源、姿态与原版行动门槛相同。位置锚点由宿主投影保存，不是纯规则解释器再模拟一次物理。当前锚点不写 NBT，不代表跨运行时恢复或控制状态持久化已经实现。
+
+受限轴的已有速度在生效时清零，之后原版 setDeltaMovement、move 和 setPosRaw 都受约束，包含重力、AI 直接加速、碰撞推力和普通坐标写入。被拦截的冲量不会积累到解除时释放；未受限轴继续使用原版重力、速度与碰撞。固定高度时 maxUpStep 临时返回 0，防止先算出跨台阶的水平位移，再钳住高度造成穿墙。投影不设置 NoAI、不停其他规则队列或世界效果。
+
+`apply_impulse` 在原版实际速度写入后重新读取 Change。所有请求分量都被约束时返回 UNCHANGED，不发送速度包、不延长冲量宽限期、不发布 applied 事实；只挡住部分轴时返回 APPLIED，回执和规则可读 delta 只包含实际接受的分量。输入限制本身仍不拦截外部冲量。
+
+玩家位置包先保留原版非法数值检查，再以受限轴锚点替换该轴请求；自由轴仍走原版距离、速度、碰撞与状态验证。若请求越过受限轴，发送玩家实际被接受的位置作纠正，不直接传送到客户端提供的自由轴坐标。垂直约束期间仅清除浮空计数，保留其他移动校验；解除后恢复正常浮空检查。服务器可以因此约束未提供正确客户端输入的位移请求。
+
+明确的宿主 teleportTo / teleport / 玩家连接 teleport 可以改变固定位置，完成后在新的位置继续约束；它们是受信的服务端迁移边界，普通 move / setPos 不享有此例外。相对传送先按原版发包，随后发锚点，客户端立即处理受限实体的授权传送，避免先套新锚点再重复加一次相对偏移。跨维度状态迁移和各种原版 / 模组瞬移技能的施放资格仍应由对应能力处理，坐标约束不等于已经禁止所有瞬移技能。
+
+新施加轴约束时，宿主先让目标下坐骑，再固定当时位置；约束期间拒绝重新骑乘，解除后允许但不自动恢复旧骑乘关系。这是明确的 Chorus 宿主控制政策，不是 Compendium 的原作数值结论。受限实体本身作为坐骑、载具乘客的完整技能规则仍需内容装配。
+
+该接口可以固定当前高度，但不会自动抬升目标；Suspend 还需碰撞感知的升空 / 高度选择与有限水平速度，Freeze 还需目标等级、攻击 / 技能禁用、挣脱、碎冰和伤害规则。[native_motion.json](../common/src/test/resources/effects/native_motion.json) 为合成机制验收，不增加 Compendium 完成数。
 
 ## 按标签批量结束 Buff
 

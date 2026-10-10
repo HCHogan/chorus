@@ -8,7 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 /** No subscription cache: native chunk viewers receive changes, pairing/load sends a current snapshot. */
 public final class MovementInputNetwork {
     private MovementInputNetwork() {}
-    private static MovementInputPayload payload(LivingEntity actor){return new MovementInputPayload(actor.level().dimension().identifier().toString(),actor.getId(),actor.getUUID(),((MinecraftMovementInput.Synced)actor).chorus$movementRestrictions());}
+    private static MovementInputPayload payload(LivingEntity actor){return new MovementInputPayload(actor.level().dimension().identifier().toString(),actor.getId(),actor.getUUID(),((MinecraftMovementInput.Synced)actor).chorus$movementRestrictions(),((MinecraftMovementInput.Synced)actor).chorus$movementAnchor());}
     public static void changed(LivingEntity actor){
         if(!(actor.level() instanceof ServerLevel level))return;
         var payload=payload(actor);

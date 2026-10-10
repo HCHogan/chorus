@@ -26,11 +26,13 @@ final class MinecraftImpulseExecutor {
         var change=new Impulse.Change(velocity(previous),velocity(proposed));
         if(!change.changed())return new Impulse.Receipt(command,Impulse.Outcome.UNCHANGED,Optional.of(change));
         target.setDeltaMovement(proposed);
+        var actual=new Impulse.Change(change.before(),velocity(target.getDeltaMovement()));
+        if(!actual.changed())return new Impulse.Receipt(command,Impulse.Outcome.UNCHANGED,Optional.of(actual));
         if(target instanceof ServerPlayer player){
             player.connection.send(new ClientboundSetEntityMotionPacket(player));target.syncVelocity=false;
         }else target.syncVelocity=true;
         target.applyPostImpulseGraceTime(10);
-        return new Impulse.Receipt(command,Impulse.Outcome.APPLIED,Optional.of(new Impulse.Change(change.before(),velocity(target.getDeltaMovement()))));
+        return new Impulse.Receipt(command,Impulse.Outcome.APPLIED,Optional.of(actual));
     }
     private static Impulse.Velocity velocity(Vec3 v){return new Impulse.Velocity(v.x*20,v.y*20,v.z*20);}
 }

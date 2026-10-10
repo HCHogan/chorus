@@ -30,12 +30,15 @@
     "GroundJumpMixin",
     "LiquidJumpMixin",
     "ServerMovementInputMixin",
-    "MovementTrackingMixin"
+    "MovementTrackingMixin",
+    "EntityMotionConstraintMixin",
+    "ServerMotionConstraintMixin"
   ],
   "client": [
     "MixinMinecraft",
     "ClientInputAccessor",
-    "LocalMovementInputMixin"
+    "LocalMovementInputMixin",
+    "ClientMotionConstraintMixin"
   ],
   "server": [],
   "injectors": {

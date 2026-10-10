@@ -12,6 +12,6 @@ public final class MovementInputClient {
     public static void accept(MovementInputPayload payload){
         var client=Minecraft.getInstance();if(client.level==null||!client.level.dimension().identifier().toString().equals(payload.dimension()))return;
         var entity=client.level.getEntity(payload.entityId());
-        if(entity instanceof LivingEntity living&&entity.getUUID().equals(payload.uuid()))((MinecraftMovementInput.Synced)living).chorus$movementRestrictions(OWNER,payload.mask());
+        if(entity instanceof LivingEntity living&&entity.getUUID().equals(payload.uuid()))((MinecraftMovementInput.Synced)living).chorus$movementProjection(OWNER,payload.mask(),payload.anchor());
     }
 }

@@ -1,0 +1,11 @@
+{
+  "version":"test-1",
+  "buffs":[{"definition":{"id":"test:motion_lock","version":"test-1","duration":0.3,"attach":"target"},"bundle":"test:motion_lock"}],
+  "bundles":[
+    {"id":"test:horizontal","action_gates":[{"id":"horizontal","action":"horizontal_motion"}]},
+    {"id":"test:vertical","action_gates":[{"id":"vertical","action":"vertical_motion"}]},
+    {"id":"test:motion","action_gates":[{"id":"horizontal","action":"horizontal_motion"},{"id":"vertical","action":"vertical_motion"}]},
+    {"id":"test:motion_lock","scope":"buff","action_gates":[{"id":"horizontal","action":"horizontal_motion"},{"id":"vertical","action":"vertical_motion"}]},
+    {"id":"test:motion_inputs","rules":[{"id":"grant","on":"test:lock","if":{"type":"chorus:source_is","source":"owner"},"do":[{"type":"chorus:grant_buff","buff":"test:motion_lock","target":"victim"}]}]}
+  ]
+}

@@ -7,7 +7,7 @@ import java.util.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 
-/** Server queries decide; a server-to-client payload carries only the resulting input mask to tracking clients and the owner. */
+/** Server queries decide; the host owns axis anchors and synchronizes the resulting restrictions. */
 public final class MinecraftMovementProjection implements AutoCloseable {
     public record Report(String holder,MinecraftNativeActions.Report query) {}
     private final ServerLevel level;private final CompiledEffects program;
@@ -21,17 +21,17 @@ public final class MinecraftMovementProjection implements AutoCloseable {
     }
     public void reconcile(EffectState state){
         if(!level.getServer().isSameThread())throw new IllegalStateException("Movement projection requires the server thread");
-        if(!program.hasActionGates(ActionGate.Kind.MOVEMENT_INPUT)&&!program.hasActionGates(ActionGate.Kind.JUMP))return;
+        if(!MinecraftMovementInput.hasGates(program))return;
         var holders=new TreeSet<String>();state.sources().values().forEach(s->holders.add(s.holder()));state.buffs().instances().values().forEach(b->holders.add(b.key().holder()));
         var desired=new LinkedHashMap<LivingEntity,Integer>();var observations=new ArrayList<Report>();RuntimeException failure=null;
         for(String holder:holders){
             var actor=resolve(holder);if(actor==null||actor.isRemoved()||!actor.isAlive()||actor.level()!=level||actor.isSpectator())continue;
             int mask=0;
-            for(var kind:List.of(ActionGate.Kind.MOVEMENT_INPUT,ActionGate.Kind.JUMP)){
+            for(var kind:MinecraftMovementInput.KINDS){
                 if(!program.hasActionGates(kind))continue;
-                var input=MinecraftNativeActions.input(actor,null,"minecraft:movement_input",kind);
-                var phase=kind==ActionGate.Kind.MOVEMENT_INPUT?ActionGate.Phase.CONTINUE:ActionGate.Phase.START;
-                int bit=kind==ActionGate.Kind.MOVEMENT_INPUT?MinecraftMovementInput.MOVE:MinecraftMovementInput.JUMP;
+                var input=MinecraftNativeActions.input(actor,null,(MinecraftMovementInput.bit(kind)&MinecraftMovementInput.MOTION)!=0?"minecraft:motion_constraint":"minecraft:movement_input",kind);
+                var phase=kind==ActionGate.Kind.JUMP?ActionGate.Phase.START:ActionGate.Phase.CONTINUE;
+                int bit=MinecraftMovementInput.bit(kind);
                 MinecraftNativeActions.Report report;
                 try{
                     var decision=program.checkAction(state,kind,phase,input);if(!decision.allowed())mask|=bit;
