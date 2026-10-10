@@ -1,0 +1,11 @@
+{
+  "insert": {
+    "rounds": {"type": "chorus:constant", "value": 1, "unit": "round"},
+    "repeat": {"value": {"type": "chorus:constant", "value": 0.1, "unit": "second"}, "profile": "test:reload_time"}
+  },
+  "fire": {
+    "cost": {"type": "chorus:constant", "value": 1, "unit": "round"},
+    "interval": {"type": "chorus:constant", "value": 0.1, "unit": "second"},
+    "on_fire": []
+  }
+}

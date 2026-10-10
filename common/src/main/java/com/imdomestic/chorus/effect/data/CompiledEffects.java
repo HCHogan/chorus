@@ -202,8 +202,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 List.of(new RuleEngine.Instruction<>((state, context) -> changeEquipment(state, (EquipmentChange) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.REQUEST, WeaponReload.REQUEST, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> reload(state, (WeaponReload.Request) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponReload.NEXT, WeaponReload.NEXT, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> weapons.next(state, (WeaponReload.Plan) context.event().signal().payload(), this), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.DUE, WeaponReload.DUE, (state, context) -> {
-                    var plan = (WeaponReload.Plan) context.event().signal().payload(); return plan.equals(state.reloads().get(plan.holder()));
+                    var plan = (WeaponReload.Plan) context.event().signal().payload(); return plan.phase() == WeaponReload.Phase.WAITING && plan.equals(state.reloads().get(plan.holder()));
                 }, List.of(new RuleEngine.Instruction<>((_, context) -> new RuleEngine.Await<EffectState>(new WeaponReload.Verify((WeaponReload.Plan) context.event().signal().payload())), "reload_host"),
                         new RuleEngine.Instruction<>((state, context) -> weapons.finish(state, (WeaponReload.Plan) context.event().signal().payload(),
                                 (WeaponReload.Verified) context.bindings().get("reload_host"), this), ""))));
@@ -828,7 +830,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
-        if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE))
+        if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE) || event.signal().type().equals(WeaponReload.NEXT))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));

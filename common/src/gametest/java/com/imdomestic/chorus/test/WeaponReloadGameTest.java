@@ -36,10 +36,12 @@ public class WeaponReloadGameTest {
         final GameTestHelper h; final List<ServerPlayer> players = new ArrayList<>();
         final MinecraftEffectRuntime runtime; final List<HealingCommand> heals = new ArrayList<>();
         final List<EffectState> beforeHeals = new ArrayList<>(); boolean failHeal;
-        Harness(GameTestHelper h) throws Exception {
+        Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
+        Harness(GameTestHelper h, java.util.function.Consumer<com.google.gson.JsonObject> edit) throws Exception {
             this.h = h; var fragments = new ArrayList<EffectProgram>();
             for (String fixture : List.of("weapons", "kill_clip")) try (var reader = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
-                fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).getOrThrow());
+                var data = JsonParser.parseReader(reader).getAsJsonObject(); if (fixture.equals("weapons")) edit.accept(data);
+                fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow());
             }
             var program = CompiledEffects.link(fragments);
             var world = new MinecraftWorldActions(h.getLevel(), id -> players.stream().filter(p -> p.getUUID().toString().equals(id)).findFirst().orElse(null),
@@ -77,6 +79,42 @@ public class WeaponReloadGameTest {
         }
         void settled() { h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "reload runtime failed: " + runtime.failure()); }
         @Override public void close() { runtime.close(); players.forEach(ServerPlayer::discard); }
+    }
+    private static void incremental(com.google.gson.JsonObject data) {
+        var weapon = data.getAsJsonArray("weapons").get(0).getAsJsonObject(); var settings = ThreadedSpikeGameTest.json("incremental_reload_settings");
+        weapon.getAsJsonObject("reload").add("insert", settings.get("insert")); weapon.add("fire", settings.get("fire"));
+    }
+    @GameCase(environment = "chorus_gametest:weapon_reload_incremental", maxTicks = 25)
+    public void ordinaryReloadCommandLoadsOneRoundPerDeadlineAndActivatesPerkOnFirstInsertion(GameTestHelper h) throws Exception {
+        var t = new Harness(h, WeaponReloadGameTest::incremental);
+        try {
+            var player = t.player("insert-"); t.killFact(player, "insert-a"); t.command(player, "chorus weapon reload");
+            h.runAfterDelay(5, () -> { try {
+                t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("insert-a"), 2, "only the first insertion committed");
+                h.assertTrue(t.state().reloads().containsKey(player.getUUID().toString()), "incremental reload stopped early");
+                h.assertTrue(t.state().buffs().instances().values().stream().anyMatch(b -> b.definition().id().equals("chorus_d2:kill_clip") && b.origin().weapon().equals("insert-a")), "first insertion did not activate reload perk");
+            } catch (Exception | Error error) { t.close(); throw error; } });
+            h.runAfterDelay(12, () -> { try (t) {
+                t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("insert-a"), 5, "four timed insertions reached full");
+                h.assertValueEqual(t.reserve("insert-a"), 8, "finite reserves conserved"); h.assertValueEqual(t.heals.size(), 4, "one completion reaction per actual insertion");
+                near(h, player.getHealth(), 14, "world reactions use committed rounds"); h.assertTrue(t.state().reloads().isEmpty(), "full reload retained a plan"); h.succeed();
+            } });
+        } catch (Exception | Error error) { t.close(); throw error; }
+    }
+    @GameCase(environment = "chorus_gametest:weapon_reload_insert_fire", maxTicks = 25)
+    public void ordinaryFireCommandInterruptsRemainingInsertionsAndKeepsTransferredAmmunition(GameTestHelper h) throws Exception {
+        var t = new Harness(h, WeaponReloadGameTest::incremental);
+        try {
+            var player = t.player("interrupt-"); t.command(player, "chorus weapon reload");
+            h.runAfterDelay(5, () -> { try {
+                t.runtime.prepare(); t.command(player, "chorus weapon fire"); t.settled();
+                h.assertValueEqual(t.magazine("interrupt-a"), 1, "one loaded round minus accepted shot"); h.assertTrue(t.state().reloads().isEmpty(), "accepted fire kept reload plan");
+            } catch (Exception error) { t.close(); throw new RuntimeException(error); } catch (Error error) { t.close(); throw error; } });
+            h.runAfterDelay(12, () -> { try (t) {
+                t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("interrupt-a"), 1, "cancelled future insertion transferred ammunition");
+                h.assertValueEqual(t.reserve("interrupt-a"), 11, "the committed insertion was preserved"); h.assertValueEqual(t.heals.size(), 1, "future reload completion did not run"); h.succeed();
+            } });
+        } catch (Exception | Error error) { t.close(); throw error; }
     }
     @GameCase(environment = "chorus_gametest:weapon_reload_complete", maxTicks = 14)
     public void ordinaryPlayerCommandCompletesOwnedWeaponReloadAndActivatesItsPerk(GameTestHelper h) throws Exception {

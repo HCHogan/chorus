@@ -118,7 +118,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/rolling_storm_weapon.json'
         include 'effects/proc_jolt_observer.json'
         include 'effects/one_two_punch_weapon.json'
-        include 'effects/weapons.json'
+        include 'effects/weapons.json', 'effects/incremental_reload_settings.json'
         include 'effects/clown_cartridge.json'
         include 'effects/clown_weapon.json'
         include 'effects/kill_clip.json'

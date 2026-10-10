@@ -2,7 +2,7 @@
 
 当前服务端已注册可重载的 `chorus:effect_program` 注册表。Fabric 与 NeoForge 均从 `data/<namespace>/chorus/effect_program/<path>.json` 加载程序模块，条目 id 为 `<namespace>:<path>`。完整程序保持原有格式，也可通过 imports 组合多个片段。高优先级数据包覆盖同路径的整个模块，不合并内部 bundle / Buff / Profile。格式仍使用 [实现记录](engine-implementation.md) 中已经落地的 DSL。
 
-这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页、最小技能命令、单次开火与整弹匣手动换弹命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
+这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页、最小技能命令、单次开火与整弹匣 / 逐次装填的手动换弹命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
 
 ## 最小可运行数据包
 
@@ -668,7 +668,33 @@ reload.value 是接受请求时求值的 Value。没有 Profile 时单位必须�
 
 三类事实的 actor 为持有者，victim 为武器实例，source 带物品标签和 `chorus:manual_reload`。引用包含 weapon / item / reload（请求标识）/ reason，manual 标志为 true，duration 是接受的秒数，scheduled_duration 是向上取整后的秒数。完成事实另带 requested / applied / unfulfilled、前后弹数、有效 / 未修饰容量及有限储备差值；不把它伪装成原版实体目标。
 
-[weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣手动换弹，尚无冲刺中断、逐发装填、排热、闪身 / Dragon's Shadow 自动换弹、按键 / 动画 / HUD、跨运行时保存恢复。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
+[weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣与逐次装填，尚无冲刺中断、排热、闪身 / Dragon's Shadow 自动换弹、按键 / 动画 / HUD、跨运行时保存恢复。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
+
+#### 逐次装填
+
+reload 默认整弹匣模式。可选 insert 开启逐次装填；外层 value / profile(s) 是首次插入的时长，repeat 单独声明后续插入的时长及有序 Profile 管线。例子的秒数为合成输入：
+
+```json
+"reload": {
+  "value": {"type":"chorus:constant","value":0.4,"unit":"second"},
+  "insert": {
+    "rounds": {"type":"chorus:constant","value":1,"unit":"round"},
+    "rounds_profile": "example:rounds_per_insertion",
+    "repeat": {"value":{"type":"chorus:constant","value":0.2,"unit":"second"}}
+  }
+}
+```
+
+rounds_profile 可省略；存在时接收 rounds 的单位并输出 round，输出必须为正整数且不超过 int 上限。repeat 沿用 profile / profiles 互斥规则。每一步开始时从当前状态计算时长和弹数，保存输入与计算轨迹；该步到期前的 Buff 改变不改写已接受值。首次无弹匣缺口或无储备仍拒绝请求。
+
+每次到期都重新确认实际物品、持握与玩家资格，再按当前容量 / 储备裁剪转移。实际装入才发布 ammo_refilled、ammo_changed、reload_finished；因此第一发装入即可触发配置在 reload_finished 的效果，不需要整段装填结束。事实带 incremental 布尔值、从 0 开始的 reload_step、planned_rounds 以及既有 applied 弹数；duration / scheduled_duration 是当前步骤的时长。需要仅在整段结束触发的内容监听 reload_ended，不能把两个事件混用。
+
+完成事实的规则执行后，内部 NEXT 事件才计算下一步，已提交的 Buff / 弹药改变会影响下一步。满弹匣或储备空时移除计划，发布 reload_ended（reason 为 full / no_reserves）；否则发布 reload_continued 并创建有独立步号的定时器。NEXT 不等待未来 detached 动作。零转移不伪造完成，沿用 reload_cancelled；accepted fire、切枪 / 卸装 / 改装中断未来步骤，保留已提交弹药，拒绝的开火不取消。
+
+状态以 WAITING / BETWEEN_INSERTS 区分尚未装入和已经装入、等待完成反应的边界。旧 DUE / NEXT 重提不会重复转移。后续计算失败或完成反应的世界结果未知时，已装入的弹药保留，运行时停止继续推导，不回滚、补发或自动重试。每步必须正时长，不添加有限步骤次数来限制合法持续装填。
+
+这套协议已用实际玩家容器和普通 reload / fire 命令验证；按键、动画起止帧、不同武器的退出动画与原作逐发触发资格仍需内容侧校准。通用 refill_magazine 仍不产生 reload_finished。
+
 
 ### 显式随机抽样
 

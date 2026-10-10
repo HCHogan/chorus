@@ -39,7 +39,7 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                 throw new IllegalArgumentException("Continuation differs from its one-shot timer identity/lifetime");
             }
             if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Plan plan
-                    && (!signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponReload.DUE) || !plan.timerId().equals(id)
+                    && (plan.phase() != com.imdomestic.chorus.effect.weapon.WeaponReload.Phase.WAITING || !signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponReload.DUE) || !plan.timerId().equals(id)
                     || dueAt != plan.dueAt() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Reload differs from its one-shot timer");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.projectile.ShotGroups.Handle shot

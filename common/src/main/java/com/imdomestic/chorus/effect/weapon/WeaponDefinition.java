@@ -36,9 +36,17 @@ public record WeaponDefinition(String item, Ammunition ammunition, Reload reload
         }
     }
     /** The optional ordered pipeline starts with value's unit and must finish in seconds. */
-    public record Reload(Value value, List<String> profiles) {
-        public Reload { Objects.requireNonNull(value); profiles = List.copyOf(profiles); profiles.forEach(WeaponDefinition::id); }
+    public record Reload(Value value, List<String> profiles, Optional<Insert> insert) {
+        public Reload { Objects.requireNonNull(value); profiles = List.copyOf(profiles); profiles.forEach(WeaponDefinition::id); Objects.requireNonNull(insert); }
+        public Reload(Value value, List<String> profiles) { this(value, profiles, Optional.empty()); }
         public Reload(Value value, Optional<String> profile) { this(value, profile.stream().toList()); }
+    }
+    /** Each insertion is its own accepted timed operation. Repeat timing is separate from the first insertion. */
+    public record Insert(Value rounds, Optional<String> roundsProfile, Timing repeat) {
+        public Insert { Objects.requireNonNull(rounds); Objects.requireNonNull(roundsProfile); roundsProfile.ifPresent(WeaponDefinition::id); Objects.requireNonNull(repeat); }
+    }
+    public record Timing(Value value, List<String> profiles) {
+        public Timing { Objects.requireNonNull(value); profiles = List.copyOf(profiles); profiles.forEach(WeaponDefinition::id); }
     }
     private static void id(String id) {
         if (id == null || !id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid weapon definition id");

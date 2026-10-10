@@ -635,15 +635,28 @@ public final class EffectCodecs {
                 Codec.INT.fieldOf("capacity").forGetter(WeaponDefinition.Ammunition::capacity), Codec.INT.fieldOf("magazine").forGetter(WeaponDefinition.Ammunition::magazine),
                 reserves.fieldOf("reserves").forGetter(WeaponDefinition.Ammunition::reserves), ID.optionalFieldOf("capacity_profile").forGetter(WeaponDefinition.Ammunition::capacityProfile)
         ).apply(i, WeaponDefinition.Ammunition::new)), Set.of("capacity", "magazine", "reserves", "capacity_profile"));
-        record ReloadData(Value value, java.util.Optional<String> profile, java.util.Optional<List<String>> profiles) {}
-        Codec<WeaponDefinition.Reload> weaponReload = strict(RecordCodecBuilder.<ReloadData>create(i -> i.group(
-                values.fieldOf("value").forGetter(ReloadData::value), ID.optionalFieldOf("profile").forGetter(ReloadData::profile),
-                ID.listOf().optionalFieldOf("profiles").forGetter(ReloadData::profiles)
-        ).apply(i, ReloadData::new)), Set.of("value", "profile", "profiles")).flatXmap(d -> safe(() -> {
+        record TimingData(Value value, java.util.Optional<String> profile, java.util.Optional<List<String>> profiles) {}
+        Codec<WeaponDefinition.Timing> reloadTiming = strict(RecordCodecBuilder.<TimingData>create(i -> i.group(
+                values.fieldOf("value").forGetter(TimingData::value), ID.optionalFieldOf("profile").forGetter(TimingData::profile),
+                ID.listOf().optionalFieldOf("profiles").forGetter(TimingData::profiles)
+        ).apply(i, TimingData::new)), Set.of("value", "profile", "profiles")).flatXmap(d -> safe(() -> {
             if (d.profile().isPresent() && d.profiles().isPresent()) throw new IllegalArgumentException("Declare profile or profiles, not both");
             if (d.profiles().filter(List::isEmpty).isPresent()) throw new IllegalArgumentException("Explicit reload profiles cannot be empty");
-            return new WeaponDefinition.Reload(d.value(), d.profile().map(List::of).orElseGet(() -> d.profiles().orElse(List.of())));
-        }), r -> DataResult.success(new ReloadData(r.value(), java.util.Optional.empty(), r.profiles().isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(r.profiles()))));
+            return new WeaponDefinition.Timing(d.value(), d.profile().map(List::of).orElseGet(() -> d.profiles().orElse(List.of())));
+        }), r -> DataResult.success(new TimingData(r.value(), java.util.Optional.empty(), r.profiles().isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(r.profiles()))));
+        Codec<WeaponDefinition.Insert> reloadInsert = strict(RecordCodecBuilder.create(i -> i.group(
+                values.fieldOf("rounds").forGetter(WeaponDefinition.Insert::rounds), ID.optionalFieldOf("rounds_profile").forGetter(WeaponDefinition.Insert::roundsProfile),
+                reloadTiming.fieldOf("repeat").forGetter(WeaponDefinition.Insert::repeat)
+        ).apply(i, WeaponDefinition.Insert::new)), Set.of("rounds", "rounds_profile", "repeat"));
+        record ReloadData(Value value, java.util.Optional<String> profile, java.util.Optional<List<String>> profiles, java.util.Optional<WeaponDefinition.Insert> insert) {}
+        Codec<WeaponDefinition.Reload> weaponReload = strict(RecordCodecBuilder.<ReloadData>create(i -> i.group(
+                values.fieldOf("value").forGetter(ReloadData::value), ID.optionalFieldOf("profile").forGetter(ReloadData::profile),
+                ID.listOf().optionalFieldOf("profiles").forGetter(ReloadData::profiles), reloadInsert.optionalFieldOf("insert").forGetter(ReloadData::insert)
+        ).apply(i, ReloadData::new)), Set.of("value", "profile", "profiles", "insert")).flatXmap(d -> safe(() -> {
+            if (d.profile().isPresent() && d.profiles().isPresent()) throw new IllegalArgumentException("Declare profile or profiles, not both");
+            if (d.profiles().filter(List::isEmpty).isPresent()) throw new IllegalArgumentException("Explicit reload profiles cannot be empty");
+            return new WeaponDefinition.Reload(d.value(), d.profile().map(List::of).orElseGet(() -> d.profiles().orElse(List.of())), d.insert());
+        }), r -> DataResult.success(new ReloadData(r.value(), java.util.Optional.empty(), r.profiles().isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(r.profiles()), r.insert())));
         Codec<WeaponDefinition.Fire> weaponFire = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("cost").forGetter(WeaponDefinition.Fire::cost), values.fieldOf("interval").forGetter(WeaponDefinition.Fire::interval),
                 ID.optionalFieldOf("interval_profile").forGetter(WeaponDefinition.Fire::intervalProfile), conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Fire::condition),
