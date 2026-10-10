@@ -659,6 +659,8 @@ fire_accepted 的 actor 是持有者，victim 为空；source.owner 为接受时
 
 weapon_damage / weapon_kill 由伤害动作的 tags / kill_tags 明确声明；仅有武器来源不会自动获得武器击杀信用。双加载器已验证：实际容器命令 → 物理投射物击杀 → 手动换弹 → Kill Clip → 下一发实际 12.5 点伤害，且发射后收枪仍保留攻击快照。另验证取消武器击杀标签后，真实击杀不触发 Kill Clip。
 
+Rampage 的可执行例子见 [rampage.json](../common/src/test/resources/effects/rampage.json) 与 [rampage_weapon.json](../common/src/test/resources/effects/rampage_weapon.json)：词条片段引用消费者的 test:weapon_damage / perks / weapon_perk，链接时检查存在性；普通与强化 Buff 使用独立静态 duration / decay_interval 并共享数值 bundle。仅覆盖 grant_buff.duration 不会改变定义的 decay_interval，因此两者不同的变体须分别声明。微秒计时、收枪保留、真实击杀和发射快照的具体政策见 [Rampage 规则集](d2-ruleset.md#rampage)。
+
 当前是一触发一次动作体的服务端入口。客户端按键 / 长按、hitscan、精准区域、自动 burst 控制、蓄力 / 射击模式、未命中 / 弹匣耗尽的内容资格、射击手感和 HUD 仍需扩展，不能据此把相关 Compendium 词条标为已覆盖。
 
 ### 整枪与弹丸结算

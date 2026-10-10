@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "effect": "Rampage",
+  "reviewed_at": "2026-10-10",
+  "sources": [
+    {
+      "kind": "compendium_csv_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "sheet": "Weapon Perks",
+      "cells": [
+        "A172",
+        "C172"
+      ],
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    },
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=C173",
+      "cells": [
+        "A173",
+        "C173"
+      ],
+      "html_manifest": "data/compendium/assets/2026-10-10-rampage/manifest.json",
+      "retrieved_at": "2026-10-10T08:39:43.795635+00:00",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "section": "Weapons / Perks / Rampage",
+      "claim": "Timer expiration removes one stack rather than the whole buff."
+    },
+    {
+      "kind": "bungie_preview",
+      "url": "https://www.bungie.net/7/en/News/Article/dev_insight_renegades_weapons",
+      "section": "Rampage",
+      "claim": "Announces one stack lost at timer expiry; includes Huckleberry. This does not establish Huckleberry damage values."
+    }
+  ],
+  "numbers": {
+    "damage_bonus_by_stacks": [
+      0.1,
+      0.21,
+      0.331
+    ],
+    "maximum_stacks": 3,
+    "initial_duration_seconds": {
+      "normal": 4.5,
+      "enhanced": 5
+    },
+    "origin": "Compendium C172"
+  },
+  "timer_policy": {
+    "mode": "shared",
+    "refresh": "reset",
+    "decay": "one_by_one",
+    "interval_seconds": {
+      "normal": 4.5,
+      "enhanced": 5
+    },
+    "confidence": "inferred_from_timer_expiry_wording_and_compendium_duration_not_independently_measured",
+    "note": "The source gives the buff duration and one-stack expiration, not a separate measured post-first-decay interval. This template repeats the corresponding normal/enhanced timer after each decay. Full x3 expiration is therefore 13.5 / 15 seconds from the last refresh."
+  },
+  "content_policies": [
+    "Only a confirmed kill with owner, weapon instance and explicit weapon_kill credit grants a stack.",
+    "Stowed equipped weapons keep counting down and may finish an in-flight kill; detaching the perk clears both variant buffs.",
+    "Normal and enhanced use two timer definitions with one shared damage bundle. A socket change first removes the old source and its buff.",
+    "Direct weapon damage samples the tier at on_use; explosive_perk_damage is excluded. Flying attacks retain their earlier snapshot after decay or source removal.",
+    "Deadline processing precedes a kill at that timestamp. These lifecycle and sampling choices still need game-specific edge-case calibration."
+  ],
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/rampage_weapon.json",
+    "base_damage": 10,
+    "magazine": 5,
+    "reload_seconds": 0.2,
+    "shot_interval_seconds": 0.15,
+    "projectile_speed_m_per_s": 20,
+    "confidence": "synthetic_test_weapon_not_a_measured_D2_archetype"
+  },
+  "gaps": [
+    "Independent timing verification for each post-first-decay interval and enhancement.",
+    "Exotic-specific Rampage variants, damage credit exceptions, real D2 weapon taxonomy and archetype calibration.",
+    "Automatic player content assembly, persistence across restart and HUD binding."
+  ]
+}

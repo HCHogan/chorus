@@ -1,0 +1,45 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {"definition": {
+      "id": "chorus_d2:rampage", "version": "compendium-2026-10-05", "duration": 4.5,
+      "max_stacks": 3, "refresh": "reset", "decay": "one_by_one", "decay_interval": 4.5,
+      "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep",
+      "tags": ["chorus_d2:rampage"]
+    }, "bundle": "chorus_d2:rampage_active"},
+    {"definition": {
+      "id": "chorus_d2:rampage_enhanced", "version": "compendium-2026-10-05", "duration": 5,
+      "max_stacks": 3, "refresh": "reset", "decay": "one_by_one", "decay_interval": 5,
+      "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep",
+      "tags": ["chorus_d2:rampage"]
+    }, "bundle": "chorus_d2:rampage_active"}
+  ],
+  "bundles": [
+    {"id": "chorus_d2:rampage", "rules": [
+      {"id": "kill", "on": "chorus:kill", "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:source_is", "source": "owner"},
+        {"type": "chorus:source_is", "source": "this_weapon"},
+        {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"}
+      ]}, "do": [
+        {"if": {"type": "chorus:source_tag", "tag": "chorus:enhanced"},
+         "then": [{"type": "chorus:grant_buff", "buff": "chorus_d2:rampage_enhanced"}],
+         "else": [{"type": "chorus:grant_buff", "buff": "chorus_d2:rampage"}]}
+      ]},
+      {"id": "detach", "on": "chorus:source_detached", "if": {"type": "chorus:own_source"}, "do": [
+        {"type": "chorus:remove_buff", "buff": "chorus_d2:rampage"},
+        {"type": "chorus:remove_buff", "buff": "chorus_d2:rampage_enhanced"}
+      ]}
+    ]},
+    {"id": "chorus_d2:rampage_active", "scope": "buff", "modifiers": [{
+      "id": "damage", "profile": "test:weapon_damage", "stage": "perks", "group": "weapon_perk", "op": "multiply",
+      "stacking_key": "chorus_d2:rampage", "evaluate": "on_use",
+      "value": {"type": "chorus:by_stacks", "values": [0.10, 0.21, 0.331], "unit": "delta"},
+      "if": {"type": "chorus:all", "of": [
+        {"type": "chorus:event_tag", "tag": "chorus:weapon_damage"},
+        {"type": "chorus:not", "of": {"type": "chorus:event_tag", "tag": "chorus:explosive_perk_damage"}}
+      ]},
+      "reference": "Compendium 2026-10-05 Weapon Perks C172; timer interpretation and lifecycle policies: data/d2-research/2026-10-10/rampage.json",
+      "confidence": "measured"
+    }]}
+  ]
+}

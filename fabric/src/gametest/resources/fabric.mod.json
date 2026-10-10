@@ -72,7 +72,8 @@
       "com.imdomestic.chorus.DemolitionistGameTest",
       "com.imdomestic.chorus.WellspringGameTest",
       "com.imdomestic.chorus.SurplusGameTest",
-      "com.imdomestic.chorus.ProfilePipelineGameTest"
+      "com.imdomestic.chorus.ProfilePipelineGameTest",
+      "com.imdomestic.chorus.RampageGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

@@ -160,7 +160,7 @@ class BuffsTest {
     }
 
     @Test void sequentialDecayUsesExplicitIntervalsAndConsumptionKeepsDeadline() {
-        // Generic policy test. Rampage's subsequent decay interval is not established by C172.
+        // Generic one-second interval; RampageTest separately covers its explicit content policy.
         var definition = definition("test:sequential", 3, 4_500_000, TimerMode.SHARED, Decay.ONE_BY_ONE, Refresh.RESET, OnStow.KEEP, false, false);
         var store = grant(BuffStore.empty(), definition, A, 3).store();
         var first = Buffs.advanceStep(store, 20 * SECOND);

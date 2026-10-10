@@ -831,7 +831,7 @@
       "name": "Rampage",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -844,18 +844,89 @@
           "text_sha256": "ce84e4ddc7beb6c9512642f217e2a1ea0443c3636787c591c698e45b0bd57385"
         }
       ],
-      "scope": "文档草稿；核心有逐层衰减能力",
+      "scope": "普通/强化的独立武器层数、刷新、逐层衰减与收枪计时；真实装备/开火/击杀、下一发伤害与过期后的飞行快照；后续周期按4.5/5秒重复是明确研究推断",
       "acceptance": [
         "10/21/33.1%伤害",
         "4.5/5秒与逐层衰减",
         "再次击杀刷新",
-        "收枪保留且武器隔离"
+        "收枪保留且武器隔离",
+        "取消/免疫/未致死或缺少武器信用不授予，换perk/卸下清除旧实例",
+        "发射快照跨衰减与卸装保留，未知世界回执不伪造击杀或重放"
       ],
-      "evidence": [],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/rampage.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/rampage_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "threeDamageTiersCapAndEveryKillRefreshesForBothModesAndVariants"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "sharedTimerDropsExactlyOneStackAtEachExplicitNormalAndEnhancedInterval"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "killAtDecayBoundaryAddsAfterExpiryAndRestartsTheWholeSharedTimer"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "creditOwnerAndWeaponStayIndependentAndUnconfirmedDeathsDoNotGrant"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "stowKeepsBothIndependentTimersButRemovingOrReplacingAPerkClearsItsVariant"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "capturedDamageRetainsTheOldTierThroughDecayAndPerkRemovalWithoutLiveDoubleCounting"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RampageTest.java",
+          "symbol": "definitionsLinkInEitherOrderAndRoundTripWithoutImplicitDecayDefaults"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RampageGameTest.java",
+          "symbol": "physicalKillsBuildBothVariantsAndRealTicksDecayEachLayerWhileStowed"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RampageGameTest.java",
+          "symbol": "shotLaunchedBeforeExpiryKeepsItsTierWhenImpactArrivesAfterStowAndExpiry"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RampageGameTest.java",
+          "symbol": "actualUncreditedKillAndPerkRemovedInFlightDoNotGrantStacks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RampageGameTest.java",
+          "symbol": "unknownLethalReceiptKeepsSpentAmmoAndDoesNotInventOrReplayAKillGrant"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
       "gaps": [
-        "后续逐层掉层间隔需明确",
-        "可执行内容与时间线",
-        "实际武器装配"
+        "官方9.5.0确认只掉一层，但后续每层重复4.5/5秒来自计时器解释，未独立实测；保留显式decay_interval和研究记录",
+        "发射取样、飞行中收枪仍触发、卸下清理、截止点先过期和特殊伤害资格为内容政策，需原作边界校准",
+        "测试武器的基础伤害/弹量/射速/换弹/物理弹道是合成值；Huckleberry等异域特例、完整原型和信用分类未完成",
+        "玩家自动装配、状态持久化、HUD图标绑定未完成"
       ]
     },
     {

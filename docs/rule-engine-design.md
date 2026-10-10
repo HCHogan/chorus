@@ -1262,11 +1262,11 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 
 ## 金标准测试集
 
-下面是持续扩展的首批金标准。每条都要能用 DSL 编码，并通过带时间线的预期结果测试，才说明其纯核心行为被覆盖；涉及游戏世界的条目还需要游戏接线测试。Target Lock（按弹匣百分比逐步增伤）、Ager's Scepter（切换射击模式）这类预期交给 Java 自定义类型，但存在扩展入口不等于已实现对应效果。Kill Clip、Adrenaline Junkie 已有可编译 JSON，Rampage 仍为表下草稿；完整表格目标不缩减为这批用例。全快照来源、首批人工验收要求与缺口映射见 [Compendium 覆盖清单](compendium-coverage.md)；未审阅来源保持未知，不以导入行数充当效果覆盖数。
+下面是持续扩展的首批金标准。每条都要能用 DSL 编码，并通过带时间线的预期结果测试，才说明其纯核心行为被覆盖；涉及游戏世界的条目还需要游戏接线测试。Target Lock（按弹匣百分比逐步增伤）、Ager's Scepter（切换射击模式）这类预期交给 Java 自定义类型，但存在扩展入口不等于已实现对应效果。Kill Clip、Adrenaline Junkie、Rampage 已有可编译 JSON 与世界证据，仍分别保留内容校准缺口；完整表格目标不缩减为这批用例。全快照来源、首批人工验收要求与缺口映射见 [Compendium 覆盖清单](compendium-coverage.md)；未审阅来源保持未知，不以导入行数充当效果覆盖数。
 
 | 条目 | 类别 | 检验什么 | 状态 |
 | --- | --- | --- | --- |
-| Rampage | 武器词条 | 层数、刷新、一层层衰减、收起后保留 | 草稿 |
+| Rampage | 武器词条 | 层数、刷新、一层层衰减、收起后保留 | JSON / 7 项纯核心 / 4 项共享世界场景；实际容器开火、击杀、下一发增伤与飞行快照已验；后续 4.5 / 5 秒周期为明确推断，原作边界与异域特例待校准 |
 | Adrenaline Junkie | 武器词条 | 武器实例击杀叠层、手雷击杀五层、收枪触发/保留、普通/强化时长、伤害表与固定操控 | JSON / 时间线 / 查询通过；两端真实死亡驱动下一击伤害；武器/手雷归因由测试宿主提供，实际装备、手雷物体与操控动作未接入 |
 | Outlaw | 武器词条 | 精准击杀、武器属性修饰、切枪移除 | 未写 |
 | Kill Clip | 武器词条 | 用隐藏 buff 实现时间窗口 | JSON / 时间线 / 数值查询通过；双加载器通过预置 Buff 的实际伤害修饰；实际容器开火 → 物理击杀 → 手动换弹 → 下一发真实增伤及收枪后快照已验；窗口收枪保留待校准 |
@@ -1342,24 +1342,20 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 
 表里的定义是：武器击杀后增伤 10% / 21% / 33.1%（1～3 层），持续 4.5 秒（强化 5 秒），再次击杀刷新，层数逐层衰减，收起武器后保留。
 
-该片段仍为目标语法示意。当前 Codec 的 one_by_one 要求明确 decay_interval；快照 C172 未单列后续掉层间隔，因此不能靠省略字段得到隐含数值并声称验收通过。该缺口已经记入覆盖清单。
+可执行定义见 [rampage.json](../common/src/test/resources/effects/rampage.json)，合成武器消费者见 [rampage_weapon.json](../common/src/test/resources/effects/rampage_weapon.json)。已有 one_by_one 机制足以表达，不新增专用 Rampage 动作；Codec 仍要求明确 decay_interval。
 
-```
-// 效果包 chorus:rampage（挂在武器上）
-{ "rules": [ { "on": "chorus:kill",
-               "if": { "type": "chorus:source_is", "source": "this_weapon" },
-               "do": [ { "type": "chorus:grant_buff", "buff": "chorus:rampage", "stacks": 1, "key": "this_weapon" } ] } ] }
+普通与强化共享一个伤害 bundle，使用两份固定计时定义，以免只覆盖首次 duration 而使后续衰减仍使用普通间隔。普通定义片段如下；强化定义把 duration 与 decay_interval 都改为 5，实例身份另用 rampage_enhanced。
 
-// buff chorus:rampage：挂在玩家身上，按武器区分实例，只给那把武器增伤，收起后保留
-{ "duration": { "type": "chorus:enhanced", "base": 4.5, "enhanced": 5 },
-  "max_stacks": 3, "refresh": "reset", "decay": "one_by_one",
-  "attach": "holder", "instanced_by": "weapon", "affects": "instance_weapon", "on_stow": "keep",
-  "bundle": { "modifiers": [ {
-    "stat": "chorus:weapon_damage", "op": "multiply", "group": "weapon_perk",
-    "value": { "type": "chorus:by_stacks", "values": [0.10, 0.21, 0.331] } } ] } }
+```json
+{"id":"chorus_d2:rampage","version":"compendium-2026-10-05",
+ "duration":4.5,"decay_interval":4.5,"decay":"one_by_one",
+ "max_stacks":3,"refresh":"reset",
+ "attach":"holder","instanced_by":"weapon","affects":"instance_weapon","on_stow":"keep"}
 ```
 
-这里有一个细节：buff 挂在玩家身上（所以收起武器不会丢），但增伤只作用于来源那把武器。所以挂在哪（`attach`）和作用于谁（`affects`）是两个独立字段。
+击杀规则同时要求 owner、this_weapon 与 weapon_kill 信用，再按来源的 enhanced 标签选择定义。满层击杀仍刷新；计时到期先掉一层，再处理相同时刻的新击杀。收枪继续计时，卸下或替换词条清理旧定义，避免普通与强化同时修饰同一武器。伤害 bundle 按当前层数产生一次 10 / 21 / 33.1% 贡献，发射时快照在后续衰减、收枪或卸装后保留。
+
+[官方 9.5.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0) 已确认计时结束只丢一层。每次后续衰减重复原表的普通 4.5 / 强化 5 秒，是当前内容对计时器的明确解释，不是独立实测；满三层无新击杀时分别在 13.5 / 15 秒清空。该项及发射取样、卸装清理和特殊伤害资格仍标为待校准，见 [规则集](d2-ruleset.md#rampage) 和 [研究记录](../data/d2-research/2026-10-10/rampage.json)。Buff 挂在哪（attach）和修饰谁（affects）继续独立表达。
 
 ## 开放问题与下一步
 
