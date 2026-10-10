@@ -858,6 +858,14 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
 
+## 读取事件武器与 Buff 获得回执
+
+Target `event_weapon` 读取触发事件 source.weapon；`this_weapon` 仍读取当前规则绑定来源的 weapon。例如全局 Arc 状态统计武器命中时，`{"type":"chorus:ammo","weapon":"event_weapon","field":"capacity"}` 才会读取正在计数的攻击武器。缺少事件武器或弹药账户时明确报错，内容应先检查武器伤害资格。条件 `event_source_tag` 读取事件 source.tags；它与事件本身的 event_tag、绑定来源的 source_tag 分开。上述来源输入在 on_use 数值快照中固定，命中期输入仍按现有 on_hit 规则求值。
+
+Buff 生命周期事实现提供通用 EffectEvent 投影。numbers 的 `requested`、`credited`、`stored_delta`、`stacks_before`、`stacks_after` 均为 count；flags.applied 来自实际回执；references 包含 buff_definition、buff_generation 与 reason。actor / source 使用该 Buff 实例保留的 origin，victim 为持有者，不把它当成每次新增层的独立施加者记录。数值来自该次已提交的变化，后续层数改变或实例消失不会改写它。
+
+每次成功 grant 都有 `chorus:buff_gained`，包含封顶但 credit_overflow=true 的获得；stack_changed / refreshed 等事实可以来自同一笔操作，回能规则应明确只监听 gained，避免重复。跨来源统一的获得收益可由持有者的静态系统规则监听 gained，并检查 buff_definition 与 victim=self。这样其他 perk 直接 grant_buff 时也能回复能量，且不会因旧实例随后被消费而丢失已经取得的收益。Bolt Charge 的 credited × 0.025 即使用此协议。
+
 ## 显式伤害批次
 
 `begin_damage_batch` 创建有类型的逻辑批次句柄；`damage` 和 `damage_snapshot` 的可选 `batch` 字段引用它。句柄按动作帧、指令位置和循环执行次数生成，因此同一循环体为不同目标创建的批次也不同。默认归属为 `bound`，可用 `origin: "event"` 选择触发事件的所有者；批次与伤害的所有者必须相同。

@@ -27,9 +27,9 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public sealed interface Target extends Center permits BuiltinTarget, BoundTarget {
         Target SELF = BuiltinTarget.SELF, VICTIM = BuiltinTarget.VICTIM, EVENT_ACTOR = BuiltinTarget.EVENT_ACTOR,
-                SOURCE_OWNER = BuiltinTarget.SOURCE_OWNER, THIS_WEAPON = BuiltinTarget.THIS_WEAPON;
+                SOURCE_OWNER = BuiltinTarget.SOURCE_OWNER, THIS_WEAPON = BuiltinTarget.THIS_WEAPON, EVENT_WEAPON = BuiltinTarget.EVENT_WEAPON;
     }
-    public enum BuiltinTarget implements Target { SELF, VICTIM, EVENT_ACTOR, SOURCE_OWNER, THIS_WEAPON }
+    public enum BuiltinTarget implements Target { SELF, VICTIM, EVENT_ACTOR, SOURCE_OWNER, THIS_WEAPON, EVENT_WEAPON }
     public record BoundTarget(String binding) implements Target {
         public BoundTarget { EffectTimers.localName(binding); }
     }
@@ -66,7 +66,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         String value = switch (target) {
             case BuiltinTarget builtin -> switch (builtin) {
                 case SELF -> self(); case VICTIM -> event().victim(); case EVENT_ACTOR -> event().actor();
-                case SOURCE_OWNER -> origin().owner(); case THIS_WEAPON -> origin().weapon();
+                case SOURCE_OWNER -> origin().owner(); case THIS_WEAPON -> origin().weapon(); case EVENT_WEAPON -> event().source().weapon();
             };
             case BoundTarget bound -> {
                 var shape = results.get(bound.binding()); var result = context.bindings().get(bound.binding());

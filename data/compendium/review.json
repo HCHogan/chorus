@@ -754,7 +754,7 @@
         "当前超额清零，冷却内伤害丢弃但去重，阈值不含 Absorption，刷新保留首次来源；这些选择缺少完整原作证据",
         "阵营暂依赖仍在同维度的原施加者；离线/跨维度关系快照、真实技能/武器施加及正式伤害类型未装配",
         "首次致死施加不创建状态或放电，来源特例由 test 标签显式选序，完整原作时序仍须按目标版本验收",
-        "Bolt Charge放电排除使用同proc_key接收探针验收；完整满层资格、武器命中计数、延迟、回能和真实放电尚未实现"
+        "Bolt Charge放电排除使用同proc_key接收探针验收；Bolt Charge已有独立partial内容与中心放电验收，完整范围/分类仍未实现，见arc/bolt_charge"
       ]
     },
     {
@@ -2407,6 +2407,112 @@
         "冻结比较值50%/200%与其他40%只验证算法；冰冻非Boss的真实被动来源、数值和完整伤害Profile未装配",
         "当前只接受管damage/damage_snapshot回执消费；原版观察入口自动消费、嵌套伤害预留和同一次多分量攻击共享资格仍未实现；double_melee为两次独立打击",
         "免疫/格挡计作hit并消费、更高冰冻增益下仍消费、新枪刷新与词条替换清除均为明确内容策略，原表未说明的边界仍待校准"
+      ]
+    },
+    {
+      "id": "arc/bolt_charge",
+      "name": "Bolt Charge",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Arc",
+          "cell": "B5",
+          "text_sha256": "59317db9b9399642f384296d75f509ab1941bc09c0082da408f406d6d1d92b38"
+        },
+        {
+          "sheet": "Arc",
+          "cell": "D5",
+          "text_sha256": "88fb6b3b914d27f1de4e549d1a075c2ebbd2ac104dbf381bf53256aa4f791ae3"
+        }
+      ],
+      "scope": "独立 JSON：已有状态下按实际事件武器容量计数、下一次任意伤害加层、同批最多一层、换枪与五秒窗口、封顶溢出回能、十层消费与半秒后中心两段伤害；放电空间范围尚未实现",
+      "acceptance": [
+        "至少一层才能通过武器伤害积累；floor(0.15 × 弹匣容量) + 1 次后由下一次任意来源伤害获得一层",
+        "剑和榴弹发射器阈值为2，三发弹匣狙击为1；五秒连续伤害窗口，换枪清计数，每同时伤害批次最多获得一层",
+        "每个收益层回复2.5%近战能量；存储最多十层，九层获得四层仍回复10%能量",
+        "十层后的技能命中或造成伤害的普通近战触发放电，延迟0.5秒",
+        "PvE中心405 + 270，PvP中心36 + 30 Arc伤害；范围半径原表为问号",
+        "放电属于通用Arc，非技能伤害；明确的元素触发列表和Jolt等排除策略独立于数值"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bolt_charge.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "magazineThresholdArmsOnlyTheFollowingDamageAndReadsTheActualEventWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "thresholdUsesCapacityNotOverflowRoundsOrTheOriginalGrantSourcesTags"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "simultaneousComponentsGrantAtMostOneStackButIndependentBatchesInTheSameRootStillProgress"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "cappedStorageStillReturnsEnergyForEveryCreditedStackIncludingFurtherGainsAtTen"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "anyGrantBuffProducerUsesCommittedLifecycleCreditAndDoesNotNeedToReimplementEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "hitThatGrantsTheTenthStackDoesNotAlsoDischargeIt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "documentedNonAbilityTriggersCanDischargeAndPlainWeaponDamageCannot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoltChargeTest.java",
+          "symbol": "lifecycleFactsExposeReceiptCreditAndBeforeAfterEvenWhenStateIsAlreadyGone"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
+          "symbol": "actualWeaponDamageArmsTheNextHitAndSharedComponentsGrantOnlyOneStack"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
+          "symbol": "overflowGainsUseCreditedStacksRatherThanTheCappedStoredDifference"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
+          "symbol": "pveReadyChargeDischargesOnceAfterHalfASecondWithExplicitProcExclusions"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
+          "symbol": "pvpReadyChargeUsesBothGuardianCenterDamageComponents"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
+          "symbol": "failureAfterRealBoltDamageKeepsSpentChargeAndDoesNotReplayTheHit"
+        }
+      ],
+      "gaps": [
+        "当前放电只作用于原始受击目标；未知半径、两段空间覆盖与衰减未实现，不能当作完整范围放电",
+        "伤害采用0.1合成世界单位映射；PvP由活动模式选择，混合目标类别缩放未接入",
+        "容量在每次计入武器伤害时读取当前capacity；五秒窗口半开、下一任意伤害需正有效损失、同批后续分量可完成阈值但最多加一层，均为待原作校准的明确内容策略",
+        "武器/技能/元素标签与批次划分由宿主声明；Storms Keep、相关片段/装备、完整技能回能修正与原版装备自动分类尚未接入",
+        "外部获得可直接grant_buff或使用grant_bolt_charge事件；子职业自动安装、状态持久化和跨目录迁移尚未实现"
       ]
     }
   ]

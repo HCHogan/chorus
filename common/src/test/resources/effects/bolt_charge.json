@@ -1,0 +1,659 @@
+{
+  "version": "test-bolt-v1",
+  "resources": [
+    {
+      "id": "chorus_d2:melee",
+      "capacity": 1,
+      "initial": 0
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:bolt_charge",
+        "version": "test-bolt-v1",
+        "duration": "permanent",
+        "max_stacks": 10,
+        "credit_overflow": true,
+        "components": {
+          "numbers": {
+            "weapon_gains": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "gain_batches"
+          ]
+        }
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:bolt_charge_counter",
+        "version": "test-bolt-v1",
+        "duration": 5,
+        "refresh": "reset",
+        "components": {
+          "numbers": {
+            "hits": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "threshold": {
+              "initial": 1,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "seen_damage"
+          ]
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:bolt_charge_system",
+      "rules": [
+        {
+          "id": "energy",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_reference",
+                "name": "buff_definition",
+                "is": "chorus_d2:bolt_charge"
+              },
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:melee"
+            },
+            {
+              "type": "chorus:grant_resource",
+              "resource": "chorus_d2:melee",
+              "requested": {
+                "type": "chorus:scale",
+                "factor": 0.025,
+                "from": "count",
+                "to": "charge_fraction",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "credited",
+                  "unit": "count"
+                }
+              }
+            },
+            {
+              "type": "chorus:emit",
+              "event": "chorus_d2:bolt_charge_gained"
+            }
+          ]
+        },
+        {
+          "id": "gain",
+          "on": "chorus_d2:grant_bolt_charge",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:bolt_charge",
+                  "minimum": 1
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:bolt_charge_counter"
+                }
+              ],
+              "else": []
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:bolt_charge",
+              "stacks": {
+                "type": "chorus:event_number",
+                "name": "stacks",
+                "unit": "count"
+              }
+            }
+          ]
+        },
+        {
+          "id": "discharge",
+          "on": "chorus:hit",
+          "proc_key": "chorus_d2:bolt_discharge",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:bolt_charge",
+                "minimum": 10
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:ability_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:volatile_explosion"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:freeze_shatter"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:tangle_explosion"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:threadling"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:unravel_thread"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:suspend_boss_snap"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:forerunner_rock"
+                  },
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_tag",
+                        "tag": "chorus:unpowered_melee"
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:event_number",
+                          "name": "effective_with_absorption",
+                          "unit": "damage"
+                        },
+                        "op": "gt",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "damage"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:boss_auto_shatter"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:consume_buff",
+                "buff": "chorus_d2:bolt_charge",
+                "stacks": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "count"
+                }
+              },
+              "as": "spent"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "spent",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:bolt_charge_counter"
+                },
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:bolt_charge_discharged"
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 0.5,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:begin_damage_batch"
+                      },
+                      "as": "bolt"
+                    },
+                    {
+                      "type": "chorus:damage",
+                      "batch": "bolt",
+                      "damage_type": "chorus_gametest:delayed",
+                      "amount": {
+                        "type": "chorus:pvp",
+                        "pve": {
+                          "type": "chorus:constant",
+                          "value": 40.5,
+                          "unit": "damage"
+                        },
+                        "pvp": {
+                          "type": "chorus:constant",
+                          "value": 3.6,
+                          "unit": "damage"
+                        }
+                      },
+                      "tags": [
+                        "chorus:arc",
+                        "chorus_d2:bolt_charge_damage",
+                        "chorus_d2:bolt_splash"
+                      ]
+                    },
+                    {
+                      "type": "chorus:damage",
+                      "batch": "bolt",
+                      "damage_type": "chorus_gametest:delayed",
+                      "amount": {
+                        "type": "chorus:pvp",
+                        "pve": {
+                          "type": "chorus:constant",
+                          "value": 27.0,
+                          "unit": "damage"
+                        },
+                        "pvp": {
+                          "type": "chorus:constant",
+                          "value": 3.0,
+                          "unit": "damage"
+                        }
+                      },
+                      "tags": [
+                        "chorus:arc",
+                        "chorus_d2:bolt_charge_damage",
+                        "chorus_d2:ground_splash"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        {
+          "id": "count",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:bolt_charge",
+                "minimum": 1
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:bolt_charge",
+                  "minimum": 10
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "effective_with_absorption",
+                  "unit": "damage"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:has_buff",
+                    "buff": "chorus_d2:bolt_charge_counter",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:bolt_charge_counter",
+                      "minimum": 1
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:bolt_charge_counter"
+                    }
+                  ],
+                  "else": []
+                },
+                {
+                  "action": {
+                    "type": "chorus:update_component",
+                    "buff": "chorus_d2:bolt_charge_counter",
+                    "component": "hits",
+                    "op": "add",
+                    "value": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    },
+                    "once_set": "seen_damage",
+                    "event_reference": "damage_id"
+                  },
+                  "as": "seen"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "seen",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bolt_charge_counter",
+                          "component": "hits"
+                        },
+                        "op": "ge",
+                        "right": {
+                          "type": "chorus:component",
+                          "buff": "chorus_d2:bolt_charge_counter",
+                          "component": "threshold"
+                        }
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:update_component",
+                            "buff": "chorus_d2:bolt_charge",
+                            "component": "weapon_gains",
+                            "op": "add",
+                            "value": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "once_set": "gain_batches",
+                            "event_reference": "batch_id"
+                          },
+                          "as": "batch_gain"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "batch_gain",
+                            "field": "applied"
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:bolt_charge",
+                                  "minimum": 1
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:remove_buff",
+                                  "buff": "chorus_d2:bolt_charge_counter"
+                                }
+                              ],
+                              "else": []
+                            },
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:bolt_charge",
+                              "stacks": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:remove_buff",
+                              "buff": "chorus_d2:bolt_charge_counter"
+                            }
+                          ],
+                          "else": []
+                        }
+                      ],
+                      "else": [
+                        {
+                          "if": {
+                            "type": "chorus:event_tag",
+                            "tag": "chorus:weapon_damage"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:refresh_buff",
+                              "buff": "chorus_d2:bolt_charge_counter",
+                              "duration": {
+                                "type": "chorus:constant",
+                                "value": 5,
+                                "unit": "second"
+                              }
+                            },
+                            {
+                              "type": "chorus:update_component",
+                              "buff": "chorus_d2:bolt_charge_counter",
+                              "component": "hits",
+                              "op": "add",
+                              "value": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:update_component",
+                              "buff": "chorus_d2:bolt_charge_counter",
+                              "component": "threshold",
+                              "op": "set",
+                              "value": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:any",
+                                  "of": [
+                                    {
+                                      "type": "chorus:event_source_tag",
+                                      "tag": "chorus:sword"
+                                    },
+                                    {
+                                      "type": "chorus:event_source_tag",
+                                      "tag": "chorus:grenade_launcher"
+                                    }
+                                  ]
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 2,
+                                  "unit": "count"
+                                },
+                                "else": {
+                                  "type": "chorus:choose",
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:event_source_tag",
+                                        "tag": "chorus:sniper"
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:ammo",
+                                          "weapon": "event_weapon",
+                                          "field": "capacity"
+                                        },
+                                        "op": "eq",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 3,
+                                          "unit": "round"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  },
+                                  "else": {
+                                    "type": "chorus:arithmetic",
+                                    "op": "add",
+                                    "of": [
+                                      {
+                                        "type": "chorus:scale",
+                                        "factor": 1,
+                                        "from": "round",
+                                        "to": "count",
+                                        "of": {
+                                          "type": "chorus:round",
+                                          "mode": "floor",
+                                          "input": {
+                                            "type": "chorus:arithmetic",
+                                            "op": "mul",
+                                            "of": [
+                                              {
+                                                "type": "chorus:ammo",
+                                                "weapon": "event_weapon",
+                                                "field": "capacity"
+                                              },
+                                              {
+                                                "type": "chorus:constant",
+                                                "value": 0.15,
+                                                "unit": "multiplier"
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "count"
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ],
+                          "else": []
+                        }
+                      ]
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        {
+          "id": "swap",
+          "on": "chorus:weapon_stowed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:bolt_charge_counter"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:bolt_charge"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:bolt_charge_counter"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

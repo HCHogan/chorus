@@ -19,13 +19,27 @@ public final class Buffs {
     public enum Reason { APPLIED, EXPIRED, CONSUMED, REMOVED, STOWED, DRAWN, EXTENDED }
     public record Receipt(int requested, int credited, int storedDelta, boolean applied) implements RuleEngine.ActionResult {}
     public record Change(long timeMicros, Kind kind, Reason reason, Optional<BuffInstance> before,
-            Optional<BuffInstance> after, Receipt receipt) implements RuleEngine.Payload {
+            Optional<BuffInstance> after, Receipt receipt) implements com.imdomestic.chorus.effect.EffectEvent.Carrier {
         public Change {
             Objects.requireNonNull(kind); Objects.requireNonNull(reason); Objects.requireNonNull(receipt);
             Objects.requireNonNull(before); Objects.requireNonNull(after);
             if (before.isEmpty() && after.isEmpty()) throw new IllegalArgumentException("A lifecycle change needs an instance");
         }
         public BuffInstance instance() { return after.orElseGet(before::orElseThrow); }
+        /** Lifecycle measurements are the committed receipt, not a later read of the live stack count. */
+        @Override public com.imdomestic.chorus.effect.EffectEvent event() {
+            var value = instance();
+            return new com.imdomestic.chorus.effect.EffectEvent(value.origin().owner(), value.key().holder(), value.origin(), value.definition().tags(),
+                    java.util.Map.of("requested", count(receipt.requested()), "credited", count(receipt.credited()),
+                            "stored_delta", count(receipt.storedDelta()), "stacks_before", count(before.map(BuffInstance::count).orElse(0)),
+                            "stacks_after", count(after.map(BuffInstance::count).orElse(0))),
+                    java.util.Map.of("applied", receipt.applied()),
+                    java.util.Map.of("buff_definition", value.definition().id(), "buff_generation", Long.toString(value.generation()),
+                            "reason", reason.name().toLowerCase(java.util.Locale.ROOT)));
+        }
+        private static com.imdomestic.chorus.stat.Measure count(int value) {
+            return new com.imdomestic.chorus.stat.Measure(value, com.imdomestic.chorus.stat.Unit.COUNT);
+        }
     }
     public record Result(BuffStore store, Receipt receipt, List<Change> changes) {
         public Result { changes = List.copyOf(changes); }

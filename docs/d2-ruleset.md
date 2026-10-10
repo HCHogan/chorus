@@ -249,6 +249,20 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 当前只消费宿主明确的 test:fists_start / test:fists_end，尚未实现真实装备 / 超能施放、2–3 次 Arc 击杀的等级门槛与 Surge、击杀延长超能、结束后 30 [PvP 6] 秒增伤。完整 Precious Scars 与 Shielded Bane 也尚未装配；通用 shield.recovery 能表达其持续回充，不代表其范围、破坏与来源联动已经验收。
 
+## Bolt Charge 的计数与中心放电
+
+独立内容投影：[bolt_charge.json](../common/src/test/resources/effects/bolt_charge.json)。来源为固定快照 Arc B5 / D5；2026-10-10 重新读取 [在线原表 Arc D7](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=618967225&range=D7)，相关文本一致。[Bungie 的机制说明](https://www.bungie.net/7/en/News/Article/twid-01-16-25)确认先取得至少一层、武器伤害继续积累、每层回近战能量和十层后技能触发；该历史公告不替代当前数值表。
+
+状态存储上限 10 层，外部效果可直接 `grant_buff: chorus_d2:bolt_charge`，或由宿主发送 `chorus_d2:grant_bolt_charge`，在 numbers.stacks 提供 count。系统监听自己的 buff_gained 事实，按回执 credited × 0.025 回复 `chorus_d2:melee`；不是按实际存储增量计算。因此 x9 获得 x4 存到 x10，但回能 10%；已经满层时再获得收益层仍有回能。这里使用基础一格近战账户，未加入完整技能回能修正。
+
+至少有一层且未满层时，武器实际伤害先累计 `floor(0.15 × capacity) + 1` 次，然后由下一次任意来源的有效伤害加一层。剑与榴弹发射器阈值为 2，三发弹匣狙击为 1。容量从该事件实际武器读取，不用状态初始来源的武器，也不用当前弹数或溢出弹数；类别读取事件 source.tags。当前明确选择在每次计入武器伤害时更新容量阈值，支持已有容量 Profile。计数窗口在每次武器进度后续到五秒，区间半开，换枪清计数而保留 Bolt Charge。按 damage_id 避免窗口内重复累计，按 batch_id 限制每批最多一次加层。
+
+放电规则先检查命中前是否已有十层，再消费并安排 0.5 秒后的两段中心伤害；刚获得第十层的那次命中不同时放电。技能 hit 与造成实际损失的普通近战可触发；表列的 Volatile、非 Boss 自动碎裂的 Freeze Shatter、Tangle、Threadling、Unravel、Boss Suspend Snap 和 Forerunner's The Rock 使用明确事件标签。`proc_key: chorus_d2:bolt_discharge` 单独接受派生伤害排除，不阻止已经备妥的普通加层逻辑。消费后其他同批命中不会重复安排放电。
+
+合成世界中 D2 伤害采用 0.1 比例映射：PvE 中心两段 40.5 + 27，PvP 两段 3.6 + 3，属于同一逻辑批次的通用 Arc 伤害，不带技能 / 武器伤害或击杀信用。16 项纯核心测试和 5 项共享 GameTest 覆盖实际原版命中、溢出回能、两模式真实 tick / 扣血、显式排除、未知世界结果保留已消费层数及不重放。
+
+**仍为 partial。** 原表半径为 `?`，当前只作用于原始受击目标，尚无周围目标覆盖、两段空间分布或衰减。下一任意伤害要求正有效损失（含 Absorption）、同批后续分量可完成阈值但最多加一层、五秒窗口也约束备妥后的下一击，均是待原作校准的当前策略。触发标签和同时批次由宿主明确声明；Boss 自动碎裂用单独标记排除，非技能 Scorch / Ignition、Crystal 与其他明确禁用来源须保留正确分类 / proc 策略。Storms Keep、片段、装备实际授予、子职业装配、跨重启恢复和活动迁移尚未接入。它不能被当成完整 Bolt Charge 范围效果。
+
 ## Jolt 的归属与施加顺序
 
 本地快照 `Arc!D8` 给出：状态持续 10 [PvP 5] 秒，重施加刷新；累计伤害阈值 115 [45]，放电伤害 119 [51]，范围 12 米，放电间隔至少 0.8 秒。一般施加击计入阈值；Guardian 作为放电中心时，只有该次连锁对其他 Guardian 造成伤害才会受连锁伤害；Jolt 伤害可眩晕 Overload。冷却期伤害是否储存、超过阈值后的余量如何处理，在该单元格中没有明确说明，仍待校准。
@@ -274,9 +288,9 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 Jolt 链伤另声明 `proc.deny: ["chorus_d2:bolt_discharge"]`，只排除 Bolt Charge 的放电反应，不抹除真实伤害、一般命中事实或其他合格效果。依据为固定 CSV 快照 Arc D5；2026-10-10 核对 [在线原表 Arc D7](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=618967225&range=D7)，排除列表相同。该列表也区分非技能来源的灼烧 / 点燃与水晶碎裂，不能泛化为所有元素派生伤害都禁止后续触发。
 
-新增纯核心与双加载器场景用相同 proc_key 的接收探针验证：原生触发击能进入放电探针，两次实际 Jolt 链伤只进入其他探针；两种活动模式的实际扣血保持原值。探针不是完整 Bolt Charge，满层资格、弹匣相关命中计数、0.5 秒延迟、回能和放电伤害仍待接入。Jolt 继续标 partial。
+新增纯核心与双加载器场景用相同 proc_key 的接收探针验证：原生触发击能进入放电探针，两次实际 Jolt 链伤只进入其他探针；两种活动模式的实际扣血保持原值。探针本身不是完整 Bolt Charge；后续已加入独立 Bolt Charge 内容与中心放电验收，空间范围仍缺失，见上节。Jolt 继续标 partial。
 
-Bolt Charge 的“每个同时伤害批次最多获得一层”已有基础表达能力：伤害动作显式绑定批次，接收规则可按 batch_id 记账。合成夹具已区分多个伤害实例、独立批次、逐目标批次及原版 / 投射物入口，但未据此把 Bolt Charge 标成已实现。仍须确定各武器与技能如何划分同时命中、弹匣阈值的取值时机、达到阈值后“下一次任意伤害”与同批后续分量的顺序；原表未给出放电半径，不能猜值。批次身份不自动改变 Jolt 的按 damage_id 累积规则，也不改变 One-Two Punch 的逐命中消费。
+Bolt Charge 已实际使用 batch_id 限制每批加层，范围与分量边界仍按上节标记为 partial。批次身份不改变 Jolt 的按 damage_id 累积规则，也不改变 One-Two Punch 的逐命中消费。
 
 **0.1 单位缩放、触发后累计清零 / 不保留超额、冷却内伤害丢弃但记录身份、刷新保留首次来源，均为当前明确的内容选择。** 阈值暂计实际 HP + Chorus 护盾损失，不含 Absorption；玩家链伤资格则包括实际 Absorption 损失。关系过滤暂依赖仍在本维度的原施加者；来源缺失或跨维度导致查询 unavailable 时，本次不发出任何链伤，但已启动的冷却保留。查询无视线过滤，按原版 not_allied 处理阵营。
 

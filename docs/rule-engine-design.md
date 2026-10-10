@@ -1044,7 +1044,7 @@ record DamageSnapshot(
 
 上例仅展示字段形状，具体状态选用自己的继承配置。basis 可以是 fresh_definition 或 named_projection。后者要声明投影已包含的倍率，子动作只应用尚未包含且允许的项；用命名投影表达分享 / 转换伤害，不能从已暴击的最终数字粗暴除一次暴击倍率代替定义。proc 默认允许，只有效果原文明确的排除才加入 deny。
 
-其中 proc 已有独立实现：规则声明 proc_key，damage / capture_damage 声明 `proc: {"deny":[...], "inherit":"fresh"|"event"}`；默认 fresh，只保留本动作排除，event 则与触发事件的排除取并集。实际命中事实携带策略，当前来源、已捕获来源和 Buff 规则在求值条件前筛选，其他规则照常执行。数值快照固定策略，命中时不可改写；归属与信用不因排除改变。Jolt 已声明禁止 Bolt Charge 放电，并用真实链伤与接收探针验收；完整 Bolt Charge 尚未实现。更广的来源 / 数值 / Buff 继承与 lose_on 仍是目标协议。字段见 [proc 说明](engine-data-packs.md#显式排除后续触发)。
+其中 proc 已有独立实现：规则声明 proc_key，damage / capture_damage 声明 `proc: {"deny":[...], "inherit":"fresh"|"event"}`；默认 fresh，只保留本动作排除，event 则与触发事件的排除取并集。实际命中事实携带策略，当前来源、已捕获来源和 Buff 规则在求值条件前筛选，其他规则照常执行。数值快照固定策略，命中时不可改写；归属与信用不因排除改变。Jolt 已声明禁止 Bolt Charge 放电，并用真实链伤与接收探针验收；Bolt Charge 已有独立计数、回能与中心放电投影，但完整范围仍未实现。更广的来源 / 数值 / Buff 继承与 lose_on 仍是目标协议。字段见 [proc 说明](engine-data-packs.md#显式排除后续触发)。
 
 ### 伤害结算结果
 
@@ -1129,7 +1129,7 @@ buff 仍是统一的效果载体，但实例不再只有层数和剩余时间。
 
 - 层数变化和实例结束是两种事件：`stacks_changed` 在实例仍存在时发出；`ended`（到期、被消耗、被移除）在实例消失时发出。两者都携带 before / after / reason。
 - `ended` 携带被移除实例的最终状态，分发时把它自己的规则显式加进去；`stacks_changed` 的实例还在当前集合里，不再额外加入。同一事件中，同一实例的同一规则最多执行一次。
-- 获得事件分三个量：请求数量、计入收益的数量、实际存储变化。Bolt Charge 在 x9 时获得 x4，只存到 x10，但能量按 x4 计算（`Arc!D5`）。
+- 获得事件分三个量：请求数量、计入收益的数量、实际存储变化。Bolt Charge 在 x9 时获得 x4，只存到 x10，但能量按 x4 计算（`Arc!D5`）。当前生命周期事实已向 DSL 暴露 requested / credited / stored_delta 及变化前后层数；Bolt Charge 使用 gained 回执按 credited 回复近战能量。全局状态也可用 event_weapon / event_source_tag 读取实际触发武器，不会误读最初施加状态的来源。
 - 刷新单独发事件，满层刷新也能被监听：狡诈严冬达到或刷新 10 层时进入督军之怒就绪（`Exotic Armors!I92`）。
 
 当前纯核心以 `chorus:buff_gained`、`chorus:buff_stacks_changed`、`chorus:buff_refreshed`、`chorus:buff_ended` 等信号表达这些事实。`gained` 记录每次接受的施加请求，包括满层时实际变化为零的请求；规则按 requested / credited / storedDelta 选择口径。消耗最后一层只产生 `ended`，其 before 是最终实例快照、after 为空，不再另发一个零层的 `stacks_changed`。共享计时器按策略刷新；每层独立计时不会刷新已有层。
@@ -1259,7 +1259,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | Volatile | 元素状态 | 排除施加击、后续阈值 / 致死引爆、目标共享冷却、首次致死施加、范围连锁与来源保留 | JSON / 11 项纯核心 / 5 项共享世界测试通过；真实技能来源、伤害投影与部分内容策略未校准，仍为部分实现 |
 | Healing Rift | 职业技能 / 范围场 | 固定位置、成员进出、来源隔离、连续恢复与满血护盾 | 部分 JSON / 11 项内容单测 / 8 项共享世界场景：5 米 / 15 秒、两种恢复率、重叠与结束清理、满血补盾 / Void 阻止 / 空容量资格；脉冲与层生命周期校准、施放 / 地形 / 技能成本及阵营失联策略仍待完成 |
 | Eternal Warrior | 金装 | 自有护盾、精准因子排除、停伤延迟、连续回充与破盾终止 | 部分 JSON / 世界验收：75 HP、5 秒延迟、7 秒满量回充及明确精准因子抑制；自动弱点判定 / 跨层校准、Arc 增伤、超能延长和真实装备 / 技能输入未完成 |
-| Bolt Charge | 元素状态 | 按弹匣比例计数（可能需要 Java） | 未写 |
+| Bolt Charge | 元素状态 | JSON 按实际事件武器容量计数、按批限层、溢出回能、延迟中心放电 | partial；范围与完整分类未校准 |
 | Recharge | 碎片 | 修改能量回复速度 | 未写 |
 | Getaway Artist | 金装 | 改参数 + 长按替换 + 返能规则（每次爆发最多一次、吞食期间禁止） | 未写 |
 | Athrys's Embrace | 金装 | 给技能加行为 + 规则 | 未写 |

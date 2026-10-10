@@ -60,6 +60,7 @@ public final class SnapshotExpressions {
             case Condition.EventTag c -> new Condition.Constant(c.test(e));
             case Condition.LayerTag ignored -> condition;
             case Condition.SourceTag c -> new Condition.Constant(c.test(e));
+            case Condition.EventSourceTag c -> new Condition.Constant(c.test(e));
             case Condition.EventReference c -> new Condition.Constant(c.test(e));
             case Condition.EventFlag c -> new Condition.Constant(c.test(e));
             case Condition.OwnSource c -> new Condition.Constant(c.test(e));

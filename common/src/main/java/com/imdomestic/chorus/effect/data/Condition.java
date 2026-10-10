@@ -73,6 +73,12 @@ public interface Condition {
         @Override public void validate(Validation v) {}
         @Override public boolean test(Evaluation e) { return e.origin().tags().contains(tag); }
     }
+    record EventSourceTag(String tag) implements Condition {
+        @Override public void validate(Validation v) {}
+        @Override public boolean test(Evaluation e) {
+            return EffectTimers.event(e.context().event().signal().payload()).filter(event -> event.source().tags().contains(tag)).isPresent();
+        }
+    }
     record EventReference(String name, String expected) implements Condition {
         public EventReference {
             if (name == null || name.isBlank() || expected == null || expected.isBlank()) throw new IllegalArgumentException("Missing event reference comparison");

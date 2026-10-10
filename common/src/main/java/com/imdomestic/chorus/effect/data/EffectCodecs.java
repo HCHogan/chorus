@@ -130,6 +130,8 @@ public final class EffectCodecs {
                         ID.fieldOf("tag").forGetter(Condition.LayerTag::tag)).apply(i, Condition.LayerTag::new)))
                 .register("chorus:source_tag", Condition.SourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.SourceTag::tag)).apply(i, Condition.SourceTag::new)))
+                .register("chorus:event_source_tag", Condition.EventSourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("tag").forGetter(Condition.EventSourceTag::tag)).apply(i, Condition.EventSourceTag::new)))
                 .register("chorus:event_reference", Condition.EventReference.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("name").forGetter(Condition.EventReference::name), Codec.STRING.fieldOf("is").forGetter(Condition.EventReference::expected)
                 ).apply(i, Condition.EventReference::new)))
