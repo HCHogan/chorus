@@ -26,6 +26,7 @@
       "com.imdomestic.chorus.ProcPolicyGameTest",
       "com.imdomestic.chorus.DamageBatchGameTest",
       "com.imdomestic.chorus.BoltChargeGameTest",
+      "com.imdomestic.chorus.RollingStormGameTest",
       "com.imdomestic.chorus.ClownCartridgeGameTest",
       "com.imdomestic.chorus.AdrenalineJunkieGameTest",
       "com.imdomestic.chorus.TargetIterationGameTest",

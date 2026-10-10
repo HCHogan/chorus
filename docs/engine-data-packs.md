@@ -866,6 +866,8 @@ Buff 生命周期事实现提供通用 EffectEvent 投影。numbers 的 `request
 
 每次成功 grant 都有 `chorus:buff_gained`，包含封顶但 credit_overflow=true 的获得；stack_changed / refreshed 等事实可以来自同一笔操作，回能规则应明确只监听 gained，避免重复。跨来源统一的获得收益可由持有者的静态系统规则监听 gained，并检查 buff_definition 与 victim=self。这样其他 perk 直接 grant_buff 时也能回复能量，且不会因旧实例随后被消费而丢失已经取得的收益。Bolt Charge 的 credited × 0.025 即使用此协议。
 
+[rolling_storm.json](../common/src/test/resources/effects/rolling_storm.json) 演示独立生产者组合：同武器击杀时，使用 has_buff_tag 判断持有者当前 Amplified，以 choose 选择基础 1 / 2 层，再用 enhanced 与 has_buff 增加“强化且 Bolt Charge 未激活”时的一层。只执行一次 grant_buff，不自行 grant_resource；状态消费者统一负责收益。片段须与 bolt_charge.json 同版本链接，装备驱动见 rolling_storm_weapon.json。Amplified 标记与武器参数是测试输入，实际内容边界见 [Rolling Storm](d2-ruleset.md#rolling-storm-与-bolt-charge-联动)。
+
 ## 显式伤害批次
 
 `begin_damage_batch` 创建有类型的逻辑批次句柄；`damage` 和 `damage_snapshot` 的可选 `batch` 字段引用它。句柄按动作帧、指令位置和循环执行次数生成，因此同一循环体为不同目标创建的批次也不同。默认归属为 `bound`，可用 `origin: "event"` 选择触发事件的所有者；批次与伤害的所有者必须相同。

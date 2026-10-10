@@ -1,0 +1,234 @@
+{
+  "version": "test-bolt-v1",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:rolling_storm"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:rolling_storm",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 30
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "test-bolt-v1",
+      "input_unit": "damage",
+      "steps": []
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:amplified",
+        "version": "test-bolt-v1",
+        "duration": 1,
+        "tags": [
+          "chorus:amplified"
+        ]
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:melee",
+      "slot": "test:melee",
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:select_targets",
+            "center": "self",
+            "radius": {
+              "type": "chorus:constant",
+              "value": 3,
+              "unit": "meter"
+            },
+            "relation": "any",
+            "include_center": false,
+            "order": "nearest",
+            "limit": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          },
+          "as": "victims"
+        },
+        {
+          "for_each": "victims",
+          "as": "victim",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": {
+                "binding": "victim"
+              },
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:unpowered_melee"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

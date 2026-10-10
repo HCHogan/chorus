@@ -261,7 +261,26 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 合成世界中 D2 伤害采用 0.1 比例映射：PvE 中心两段 40.5 + 27，PvP 两段 3.6 + 3，属于同一逻辑批次的通用 Arc 伤害，不带技能 / 武器伤害或击杀信用。16 项纯核心测试和 5 项共享 GameTest 覆盖实际原版命中、溢出回能、两模式真实 tick / 扣血、显式排除、未知世界结果保留已消费层数及不重放。
 
-**仍为 partial。** 原表半径为 `?`，当前只作用于原始受击目标，尚无周围目标覆盖、两段空间分布或衰减。下一任意伤害要求正有效损失（含 Absorption）、同批后续分量可完成阈值但最多加一层、五秒窗口也约束备妥后的下一击，均是待原作校准的当前策略。触发标签和同时批次由宿主明确声明；Boss 自动碎裂用单独标记排除，非技能 Scorch / Ignition、Crystal 与其他明确禁用来源须保留正确分类 / proc 策略。Storms Keep、片段、装备实际授予、子职业装配、跨重启恢复和活动迁移尚未接入。它不能被当成完整 Bolt Charge 范围效果。
+**仍为 partial。** 原表半径为 `?`，当前只作用于原始受击目标，尚无周围目标覆盖、两段空间分布或衰减。下一任意伤害要求正有效损失（含 Absorption）、同批后续分量可完成阈值但最多加一层、五秒窗口也约束备妥后的下一击，均是待原作校准的当前策略。触发标签和同时批次由宿主明确声明；Boss 自动碎裂用单独标记排除，非技能 Scorch / Ignition、Crystal 与其他明确禁用来源须保留正确分类 / proc 策略。Rolling Storm 已作为装备词条接入下述真实流程；Storms Keep、其他片段和装备授予、子职业装配、跨重启恢复和活动迁移尚未接入。它不能被当成完整 Bolt Charge 范围效果。
+
+## Rolling Storm 与 Bolt Charge 联动
+
+[rolling_storm.json](../common/src/test/resources/effects/rolling_storm.json) 与 Bolt Charge 片段链接，复用现有条件、计数表达式和 grant_buff；核心未增加词条专用分支。固定快照为 Weapon Perks A190 / C190；2026-10-10 读取[公开原表 A191 / C191](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1662574278&range=C191)，文本一致。
+
+| 击杀时的状态 | 普通版获得 | 强化版获得 |
+| --- | --- | --- |
+| 无 Bolt Charge，无 Amplified | 1 | 2 |
+| 无 Bolt Charge，有 Amplified | 2 | 3 |
+| 已有 Bolt Charge，无 Amplified | 1 | 1 |
+| 已有 Bolt Charge，有 Amplified | 2 | 2 |
+
+只处理自己这把武器的 weapon_kill，不能仅凭伤害来源中保留的 weapon 字段授予。Amplified 读取持有者当前 Buff 标签；强化读装备来源标签。所有武器向持有者的同一个 Bolt Charge 状态授予层数，回能只由系统的 buff_gained 监听器结算，因此武器击杀和命中计数可以各自贡献，但同一次获得不会回能两遍。满层继续获得仍按 credited 回能，强化版不会把满层视为“未激活”。
+
+当前声明 equipped 激活和默认 current_owner_bundle 策略：飞行过程中收枪仍可由原武器击杀触发，卸下词条则不再响应。两者及读取命中时 Amplified 的时机，是显式内容选择，仍需原作边界校准。没有额外增加 Arc 子职业限制。
+
+7 项 RollingStormTest 验证条件矩阵、Amplified 精确到期、外来来源隔离、另一把武器、收枪 / 卸装、溢出回能、先 hit 后 kill 的组合顺序，以及放电后重新开始下一轮。3 项共享 RollingStormGameTest 使用真实玩家容器、普通 fire / reload / ability 命令和实体死亡，验证七次合成武器击杀达到十层、普通近战消费后延迟放电击杀，以及收枪期间强化 Amplified 击杀和无 weapon_kill 信用的反例。
+
+**仍为 partial。** `rolling_storm_weapon.json` 中五发弹匣、10 点伤害、射速 / 换弹时间及一秒 test:amplified 均为验收输入。Amplified 的实际获得、完整持续时间和其他收益未实现；系统来源由测试宿主显式安装，尚无玩家系统自动装配。Bolt Charge 的空间范围、数值映射与迁移缺口仍适用。这些测试资源未进入发布 jar。
 
 ## Jolt 的归属与施加顺序
 

@@ -1,0 +1,85 @@
+{
+  "version": "test-bolt-v1",
+  "bundles": [
+    {
+      "id": "chorus_d2:rolling_storm",
+      "rules": [
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:bolt_charge",
+              "stacks": {
+                "type": "chorus:arithmetic",
+                "op": "add",
+                "of": [
+                  {
+                    "type": "chorus:choose",
+                    "if": {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus:amplified"
+                    },
+                    "then": {
+                      "type": "chorus:constant",
+                      "value": 2,
+                      "unit": "count"
+                    },
+                    "else": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    },
+                    "enhanced": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:has_buff",
+                        "buff": "chorus_d2:bolt_charge"
+                      },
+                      "then": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      },
+                      "else": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "count"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2427,7 +2427,7 @@
           "text_sha256": "88fb6b3b914d27f1de4e549d1a075c2ebbd2ac104dbf381bf53256aa4f791ae3"
         }
       ],
-      "scope": "独立 JSON：已有状态下按实际事件武器容量计数、下一次任意伤害加层、同批最多一层、换枪与五秒窗口、封顶溢出回能、十层消费与半秒后中心两段伤害；放电空间范围尚未实现",
+      "scope": "独立 JSON：已有状态下按实际事件武器容量计数、下一次任意伤害加层、同批最多一层、换枪与五秒窗口、封顶溢出回能、十层消费与半秒后中心两段伤害；放电空间范围尚未实现；已与 Rolling Storm 真实装备/开火/近战链路联动",
       "acceptance": [
         "至少一层才能通过武器伤害积累；floor(0.15 × 弹匣容量) + 1 次后由下一次任意来源伤害获得一层",
         "剑和榴弹发射器阈值为2，三发弹匣狙击为1；五秒连续伤害窗口，换枪清计数，每同时伤害批次最多获得一层",
@@ -2505,14 +2505,111 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoltChargeGameTest.java",
           "symbol": "failureAfterRealBoltDamageKeepsSpentChargeAndDoesNotReplayTheHit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RollingStormGameTest.java",
+          "symbol": "actualWeaponKillsFillChargeAndOrdinaryMeleeDischargeKillCannotRegrantThePerk"
         }
       ],
       "gaps": [
         "当前放电只作用于原始受击目标；未知半径、两段空间覆盖与衰减未实现，不能当作完整范围放电",
         "伤害采用0.1合成世界单位映射；PvP由活动模式选择，混合目标类别缩放未接入",
         "容量在每次计入武器伤害时读取当前capacity；五秒窗口半开、下一任意伤害需正有效损失、同批后续分量可完成阈值但最多加一层，均为待原作校准的明确内容策略",
-        "武器/技能/元素标签与批次划分由宿主声明；Storms Keep、相关片段/装备、完整技能回能修正与原版装备自动分类尚未接入",
+        "武器/技能/元素标签与批次划分由宿主声明；Rolling Storm 已作为实际装备词条接入，Storms Keep、其他片段/装备、完整技能回能修正与原版装备自动分类尚未接入",
         "外部获得可直接grant_buff或使用grant_bolt_charge事件；子职业自动安装、状态持久化和跨目录迁移尚未实现"
+      ]
+    },
+    {
+      "id": "weapon/rolling_storm",
+      "name": "Rolling Storm",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A190",
+          "text_sha256": "cf173473eec0c7f248bd807c5d69fe2ed9367e16fd5e0d206a285eb7f2e527d1"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C190",
+          "text_sha256": "c5752a52775f72f5c0a93fcdf80d73328fed0a9b70e77b3a4bf85ad0e867fd48"
+        }
+      ],
+      "scope": "独立 JSON 词条：同武器击杀、普通/强化与当前 Amplified 条件、首次额外层数及统一 Bolt Charge 回能；真实装备开火、换弹到近战延迟放电链路",
+      "acceptance": [
+        "普通无/有 Amplified 时击杀授予1/2层，强化只在无 Bolt Charge 时额外1层",
+        "同持有者与物理武器隔离；武器归属不等于 weapon_kill 信用",
+        "封顶时仍按 credited 回能，不按存储变化；放电击杀不回授武器词条",
+        "实际玩家容器与普通命令驱动开火、击杀、换弹及满层普通近战放电"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/rolling_storm.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/rolling_storm_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "firstAndSubsequentKillsUseEnhancementAndLiveAmplifiedStateInEitherLinkOrder"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "ownerWeaponAndExplicitWeaponKillCreditAllRemainRequired"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "stowedEquippedWeaponCanFinishItsKillWithoutGrantingForBothWeapons"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "existingChargeFromAnotherProducerSuppressesEnhancedFirstStackAndOverflowStillReturnsEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "killThatBootstrapsChargeDoesNotCountItsEarlierHitAndLaterKillsCombineBothSystems"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "dischargeKillsDoNotRegrantWeaponPerkButNewWeaponKillCanStartAnotherCycle"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RollingStormTest.java",
+          "symbol": "removingThePerkBeforeImpactUsesCurrentOwnerBundlePolicy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RollingStormGameTest.java",
+          "symbol": "actualWeaponKillsFillChargeAndOrdinaryMeleeDischargeKillCannotRegrantThePerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RollingStormGameTest.java",
+          "symbol": "enhancedAmplifiedKillAfterStowGrantsThreeStacksToTheOwner"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RollingStormGameTest.java",
+          "symbol": "actualKillWithWeaponOriginButNoWeaponKillCreditCannotBootstrapCharge"
+        }
+      ],
+      "gaps": [
+        "Amplified 条件使用当前持有者 Buff 标签；测试一秒标记不代表完整 Amplified 的获得、持续时间或其他收益",
+        "飞行中收枪保留、卸下词条失效、命中时读取 Amplified 使用当前内容策略，尚需原作边界校准",
+        "武器容量、伤害、射速、换弹与近战参数为合成验收输入；系统由测试宿主显式安装，玩家自动装配未实现",
+        "Bolt Charge 的未知空间范围、0.1数值投影、完整技能回能修正、保存及迁移缺口仍适用；见arc/bolt_charge"
       ]
     }
   ]
