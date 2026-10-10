@@ -120,6 +120,27 @@ public class StrandDefenseGameTest {
         } catch (Throwable error) { t.close(); throw error; }
     }
 
+    @GameCase(environment = "chorus_gametest:strand_refresh", maxTicks = 16)
+    public void shortReapplicationKeepsLongMailThroughRealTicks(GameTestHelper h) throws Exception {
+        var t = new Harness(h, EffectState.Mode.PVE);
+        try {
+            t.send("woven", t.target);
+            long deadline = t.runtime.state().engine().domain().buffs().nextDeadline();
+            h.runAfterDelay(2, () -> {
+                try {
+                    t.send("short", t.target);
+                    h.assertValueEqual(t.runtime.state().engine().domain().buffs().nextDeadline(), deadline, "short grant moved the long deadline");
+                    h.runAfterDelay(4, () -> {
+                        try {
+                            t.settled(); h.assertTrue(t.woven(t.target), "short source ended a longer active grant");
+                            near(h, t.hurt(), 55, "mail still protects after short source duration"); h.succeed();
+                        } finally { t.close(); }
+                    });
+                } catch (Throwable error) { t.close(); throw error; }
+            });
+        } catch (Throwable error) { t.close(); throw error; }
+    }
+
     @GameCase public void superBodyTakesUnprotectedDamageThenKeepsItsNewMail(GameTestHelper h) throws Exception {
         try (var t = new Harness(h, EffectState.Mode.PVE)) {
             t.runtime.abilities(new AbilityChange(Harness.id(t.recipient), AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("test:super", "test:renewing_super"))));

@@ -87,16 +87,19 @@ class StrandDefenseTest {
         }
     }
 
-    @Test void repeatedGrantsUseOneInstanceAndExplicitDurationOverridesExpireExactly() throws Exception {
+    @Test void repeatedGrantsKeepTheLongerRemainingDurationAndExpireExactly() throws Exception {
         var p = load("strand_defense"); var s = grant(p, EffectState.empty(), WOVEN, "target", 10_000_000);
         s = s.withBuffs(Buffs.advanceStep(s.buffs(), 2_000_000).store());
         s = grant(p, s, WOVEN, "target", 3_000_000);
         assertEquals(1, s.buffs().instances().size());
-        assertEquals(5_000_000, s.buffs().instances().values().iterator().next().stacks().getFirst().expiresAt());
+        assertEquals(10_000_000, s.buffs().nextDeadline()); // Eight remaining beats a new three-second source.
+        s = s.withBuffs(Buffs.advanceStep(s.buffs(), 9_000_000).store());
+        s = grant(p, s, WOVEN, "target", 3_000_000);
+        assertEquals(12_000_000, s.buffs().nextDeadline()); // Three beats one remaining; never restore the old ten.
         assertEquals(55, incoming(p, s, attack("attacker", false, Set.of()), 100), 1e-10);
-        var later = s.withBuffs(Buffs.advanceStep(s.buffs(), 4_999_999).store());
+        var later = s.withBuffs(Buffs.advanceStep(s.buffs(), 11_999_999).store());
         assertEquals(55, incoming(p, later, attack("attacker", false, Set.of()), 100), 1e-10);
-        later = later.withBuffs(Buffs.advanceStep(later.buffs(), 5_000_000).store());
+        later = later.withBuffs(Buffs.advanceStep(later.buffs(), 12_000_000).store());
         assertEquals(100, incoming(p, later, attack("attacker", false, Set.of()), 100));
     }
 

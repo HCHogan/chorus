@@ -8,7 +8,7 @@ public record BuffDefinition(String id, String version, int maximumStacks, Timer
         StackMode stackMode, boolean keepHighestTier, boolean creditOverflow, Set<String> tags, BuffSchema components) {
     public enum TimerMode { SHARED, PER_STACK }
     public enum Decay { ALL, ONE_BY_ONE }
-    public enum Refresh { NONE, RESET, EXTEND, HISTORIC_MAX }
+    public enum Refresh { NONE, RESET, EXTEND, HISTORIC_MAX, MAX_REMAINING }
     public enum StackMode { ADD, MAX, REPLACE }
     public enum Attach { HOLDER, WEAPON, TARGET }
     public enum InstanceBy { NONE, SOURCE, WEAPON }

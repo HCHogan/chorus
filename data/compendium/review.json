@@ -467,14 +467,14 @@
           "text_sha256": "fe00d1538f22a402f42e59bc38448988ea8a1809125dc0de87b3a4b6b937dd97"
         }
       ],
-      "scope": "共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予",
+      "scope": "共享 45% / 25% 减伤、Guardian 精准/近战绕过、10 秒基础时长及来源覆盖、受益者超能开始移除旧状态并允许动作体重新授予；max_remaining 按官方规则保留较长剩余时长",
       "acceptance": [
         "PvE 45% / PvP 25% 在受击者防御侧计算，与攻击者 Sever 分开",
         "只由 Guardian 的精准或近战绕过这一项减伤，保留其他减伤",
-        "基础 10 秒及具体来源时间覆盖、精确到期与刷新政策",
+        "基础 10 秒及具体来源时间覆盖；重新授予取当前剩余与新时长的较大值，精确到期",
         "队友授予仍由受益者的成功超能移除，普通/拒绝/别人施放不移除",
         "旧 Woven Mail 在超能动作体前移除，动作体新授予的同名状态保留",
-        "具体授予来源、混合模式分类及原作刷新关系校准"
+        "具体授予来源、混合模式分类及原作组合关系校准"
       ],
       "evidence": [
         {
@@ -489,7 +489,7 @@
         {
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/StrandDefenseTest.java",
-          "symbol": "repeatedGrantsUseOneInstanceAndExplicitDurationOverridesExpireExactly"
+          "symbol": "repeatedGrantsKeepTheLongerRemainingDurationAndExpireExactly"
         },
         {
           "kind": "unit_test",
@@ -532,13 +532,18 @@
           "symbol": "realTicksRemoveShortMailBeforeTheNextNativeHit"
         },
         {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/StrandDefenseGameTest.java",
+          "symbol": "shortReapplicationKeepsLongMailThroughRealTicks"
+        },
+        {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
         }
       ],
       "gaps": [
         "Guardian/精准/近战标签与 super_ability 分类由宿主显式提供；真实子职业、各授予来源与混合交战分类尚未自动装配",
-        "单实例 refresh:reset、独立减伤组合及 Under-Over 分组为显式验证政策；跨来源短/长刷新优先级和盾层叠加仍待原作校准",
+        "独立减伤组合、Under-Over 分组及盾层叠加仍待原作校准；max_remaining 刷新已有官方依据及短/长来源回归，详见 d2-ruleset",
         "Threaded Spike 按击杀时长、Warding、Into the Fray 等具体生产者还未装配；合成测试超能不代表真实技能实现"
       ]
     },

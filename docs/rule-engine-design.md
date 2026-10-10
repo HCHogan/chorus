@@ -229,7 +229,7 @@ Outcome step(RuleState state, Frame frame, RuleContext ctx);
 | --- | --- | --- |
 | `duration` | 数值表达式 | for N seconds（35%） |
 | `max_stacks` | 整数 | stacks、up to xN（17.5%） |
-| `refresh` | `reset` 重置 / `extend`（加多少、上限）/ `historic_max` 恢复历史最长时间 / `none` 到期前不可刷新 | refresh / extend（13%）；Restoration 的历史时间 |
+| `refresh` | `reset` 重置 / `extend`（加多少、上限）/ `historic_max` 恢复历史最长时间 / `max_remaining` 取当前剩余与新时长的较大值 / `none` 到期前不可刷新 | refresh / extend（13%）；Restoration 的历史时间；Woven Mail 保留较长剩余时间 |
 | `decay` | `all` 一次全掉 / `one_by_one`（可带延迟） | Stacks decay one at a time |
 | `scope` | 已拆成 `attach`、`instanced_by`、`affects`、`on_stow` 四个字段，见「核心语义 v0.3」 | removed on stow / persists through stow（16.5%） |
 | `per_source` | 并入 instanced\_by | Kinetic Tremors、Deadfall 拴住 |

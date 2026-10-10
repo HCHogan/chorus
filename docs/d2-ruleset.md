@@ -249,7 +249,9 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 100 点 PvE 输入在攻击者 Sever 和目标 Woven Mail 下为 100 × 0.6 × 0.55 = 33；PvP 为 100 × 0.85 × 0.75 = 63.75。原版实际扣血、来源解绑后的状态、精确到期、受益者 / 施加者隔离，以及超能清理先于动作体均有测试。
 
-覆盖仍为 partial。上述数值的 PvE / PvP 分支沿用 EffectState.mode；Guardian / 精准 / 近战标签和攻击 Profile 由可信宿主显式提供，尚未做真实玩家子职业装配或 Gambit 混合交战分类。Sever 采用 on_hit，使发射后新增或到期的状态影响延迟命中，这是显式内容政策，尚无原作快照时机验收。两个 Buff 均采用单实例、refresh:reset；短时重新授予可缩短旧时长，已测试该契约，但原作各授予来源之间的刷新优先级仍待校准。分组和组合也保留 assumed 贡献标记。
+覆盖仍为 partial。上述数值的 PvE / PvP 分支沿用 EffectState.mode；Guardian / 精准 / 近战标签和攻击 Profile 由可信宿主显式提供，尚未做真实玩家子职业装配或 Gambit 混合交战分类。Sever 采用 on_hit，使发射后新增或到期的状态影响延迟命中，这是显式内容政策，尚无原作快照时机验收。两个 Buff 均为单实例。Sever 仍采用显式的 refresh:reset 政策；Woven Mail 使用 refresh:max_remaining，取当前剩余时间与新来源授予时长的较大值。分组和组合也保留 assumed 贡献标记。
+
+Woven Mail 的刷新依据为 Bungie [Ash & Iron 数值预览](https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron)（2025-09-03），其中明确比较当前剩余时间和新来源时长；[9.1.0 正式补丁](https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0)（2025-09-09）确认修复刷新回原始时长的问题。这条规则补充固定快照，不改写 CSV 来源摘要。例如旧效果余 8 秒时授予 2 秒仍余 8 秒，余 1 秒时授予 2 秒变为 2 秒；不会恢复历史曾有的 10 秒，也不会相加到 3 秒。短来源到期后仍承受实际减伤已有双端世界回归。
 
 Continuity 在 CSV Strand D15 / 在线第 18 行说明通常延长 Strand 减益 50%；当前 Slice 已按下节查询施加者配装，支持 D8 的 10+5 / 5+2.5 秒。完整子职业装配和全部来源特例尚未完成。Threaded Spike 的 D38 特别把 Sever 时长标为未知，不自动套用全局默认值。Threaded Spike 按击杀授予 Woven Mail 的收益规则也尚未接到该共享定义，不能由这里推断完整技能已经支持。
 

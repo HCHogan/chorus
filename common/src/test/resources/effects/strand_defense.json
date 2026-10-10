@@ -17,7 +17,7 @@
     }, "bundle": "chorus_d2:sever_active"},
     {"definition": {
       "id": "chorus_d2:woven_mail", "version": "compendium-2026-10-05", "duration": 10,
-      "attach": "target", "refresh": "reset", "tags": ["chorus_d2:woven_mail"]
+      "attach": "target", "refresh": "max_remaining", "tags": ["chorus_d2:woven_mail"]
     }, "bundle": "chorus_d2:woven_mail_active"}
   ],
   "bundles": [

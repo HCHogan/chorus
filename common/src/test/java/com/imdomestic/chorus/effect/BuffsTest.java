@@ -95,6 +95,52 @@ class BuffsTest {
         assertTrue(reapplied.changes().stream().anyMatch(change -> change.kind() == Buffs.Kind.REFRESHED));
     }
 
+    @Test void maxRemainingComparesCurrentTimeNotHistoricDurationForGrantsAndRefreshes() {
+        var d = definition("test:max_remaining", 1, 10 * SECOND, TimerMode.SHARED, Decay.ALL, Refresh.MAX_REMAINING, OnStow.KEEP, false, false);
+        var first = grant(BuffStore.empty(), d, A, 1).store();
+        var atTwo = Buffs.advanceStep(first, 2 * SECOND).store();
+        var reapplied = Buffs.grant(atTwo, d, "player", "target", A, 1, 1, 2 * SECOND);
+        assertEquals(10 * SECOND, reapplied.store().nextDeadline());
+        assertEquals(0, reapplied.receipt().storedDelta());
+        assertTrue(reapplied.changes().stream().anyMatch(c -> c.kind() == Buffs.Kind.REFRESHED));
+        var refreshed = Buffs.refresh(atTwo, key(d, A), 2 * SECOND);
+        assertEquals(10 * SECOND, refreshed.store().nextDeadline());
+        assertEquals(java.util.List.of(Buffs.Kind.REFRESHED), refreshed.changes().stream().map(Buffs.Change::kind).toList());
+        var atNine = Buffs.advanceStep(reapplied.store(), 9 * SECOND).store();
+        assertEquals(11 * SECOND, Buffs.grant(atNine, d, "player", "target", A, 1, 1, 2 * SECOND).store().nextDeadline());
+        assertEquals(11 * SECOND, Buffs.refresh(atNine, key(d, A), 2 * SECOND).store().nextDeadline());
+        assertEquals(10 * SECOND, instance(atNine, d, A).longestDurationMicros());
+        assertEquals(10 * SECOND, first.nextDeadline()); // All operations preserve their input.
+    }
+
+    @Test void maxRemainingUsesThePausedClockForBothWaysToRefresh() {
+        var d = definition("test:paused_max", 1, 10 * SECOND, TimerMode.SHARED, Decay.ALL, Refresh.MAX_REMAINING, OnStow.PAUSE, false, false);
+        var atTwo = Buffs.advanceStep(grant(BuffStore.empty(), d, A, 1).store(), 2 * SECOND).store();
+        var paused = Buffs.weaponState(atTwo, "player", "weapon-a", true).store();
+        var atHundred = Buffs.advanceStep(paused, 100 * SECOND).store();
+        for (long duration : new long[] {2 * SECOND, 12 * SECOND}) {
+            for (var result : java.util.List.of(Buffs.grant(atHundred, d, "player", "target", A, 1, 1, duration),
+                    Buffs.refresh(atHundred, key(d, A), duration))) {
+                assertEquals(FOREVER, result.store().nextDeadline());
+                var resumed = Buffs.weaponState(result.store(), "player", "weapon-a", false).store();
+                assertEquals(100 * SECOND + Math.max(8 * SECOND, duration), resumed.nextDeadline());
+            }
+        }
+    }
+
+    @Test void maxRemainingDoesNotCarryExpiredHistoryAndPreservesPermanentLifetimes() {
+        var d = definition("test:max_expiry", 1, 10 * SECOND, TimerMode.SHARED, Decay.ALL, Refresh.MAX_REMAINING, OnStow.KEEP, false, false);
+        var first = grant(BuffStore.empty(), d, A, 1).store();
+        var expired = Buffs.advanceStep(first, 10 * SECOND).store();
+        assertTrue(Buffs.refresh(expired, key(d, A), SECOND).store().instances().isEmpty());
+        var fresh = Buffs.grant(expired, d, "player", "target", A, 1, 1, 2 * SECOND).store();
+        assertEquals(12 * SECOND, fresh.nextDeadline());
+        assertEquals(2 * SECOND, instance(fresh, d, A).longestDurationMicros());
+        var permanent = Buffs.refresh(first, key(d, A), FOREVER).store();
+        assertEquals(FOREVER, Buffs.refresh(permanent, key(d, A), SECOND).store().nextDeadline());
+        assertEquals(FOREVER, Buffs.grant(permanent, d, "player", "target", A, 1, 1, SECOND).store().nextDeadline());
+    }
+
     @Test void overflowCreditIsIndependentOfStoredStacks() {
         var definition = definition("test:bolt_charge", 10, FOREVER, TimerMode.SHARED, Decay.ALL, Refresh.NONE, OnStow.KEEP, true, false);
         var store = grant(BuffStore.empty(), definition, A, 9).store();

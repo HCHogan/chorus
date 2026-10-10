@@ -1472,6 +1472,10 @@ Sever 通过受影响持有者的 outgoing Profile 修饰输出。伤害命令�
 Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 event_source_tag:chorus:guardian，精准 / 近战用 event_tag:chorus:precision / chorus:melee_damage，不能把原施加者的 source_tag 当成当前攻击者。移除规则监听 chorus:ability_started，并以 target_is(self, event_actor) 匹配受益者；source_is:owner 在 Buff 上匹配的是施加者，队友授予时会选错人。旧状态先移除，on_use 重新授予的同名状态可保留。数值基线、刷新策略及待校准项见 [D2 规则集](d2-ruleset.md#sever-与-woven-mail)。
 
 
+### 共享计时器的 max_remaining 刷新
+
+`refresh: "max_remaining"` 将共享截止时间设为 `max(旧截止时间, 当前时间 + 新授予时长)`。`grant_buff` 与 `refresh_buff` 都遵守此策略；后者不增加层数或制造获得事件。暂停时使用暂停逻辑时钟，恢复时再平移截止时间；永久效果不会被有限时长缩短，到期后重新授予从新时长开始。每层独立计时仍只接受 `none`。它与 `historic_max` 不同：旧 10 秒效果余 1 秒时，新的 2 秒只留下 2 秒，不恢复成 10 秒。共享 Woven Mail 已采用此策略；Sever 和 Restoration 原有策略不变。
+
 ## 动作序列中的数值 Profile 查询
 
 `chorus:calculate` 在当前已提交状态上执行一次只读查询，返回带类型的 `input` / `value` 字段。它不消费资源、不修改 Buff、不产生事件或世界请求。Java 的 `CalculationActions.Result` 保留被查询持有者、最终查询上下文与完整 `CalculationProfile.Result`，可检查各阶段、贡献来源、版本和置信度。

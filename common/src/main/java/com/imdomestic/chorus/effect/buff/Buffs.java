@@ -93,6 +93,7 @@ public final class Buffs {
             deadline = switch (definition.timer().refresh()) {
                 case NONE -> previous;
                 case RESET -> deadline;
+                case MAX_REMAINING -> Math.max(previous, deadline);
                 case HISTORIC_MAX -> at(clock, history);
                 case EXTEND -> at(clock, extendRemaining(remaining(previous, clock), durationMicros, definition.timer().extensionCapMicros()));
             };
@@ -173,6 +174,7 @@ public final class Buffs {
         long history = Math.max(before.longestDurationMicros(), duration);
         long nextDuration = switch (before.definition().timer().refresh()) {
             case RESET -> duration;
+            case MAX_REMAINING -> Math.max(remaining(before.stacks().getFirst().expiresAt(), clock), duration);
             case HISTORIC_MAX -> history;
             case EXTEND -> extendRemaining(remaining(before.stacks().getFirst().expiresAt(), clock), duration, before.definition().timer().extensionCapMicros());
             case NONE -> throw new IllegalStateException("Unreachable refresh policy");

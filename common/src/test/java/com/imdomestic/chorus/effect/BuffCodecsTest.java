@@ -26,6 +26,18 @@ class BuffCodecsTest {
         }
     }
 
+    @Test void maxRemainingRoundTripsAndRejectsPerStackTimers() {
+        var json = JsonParser.parseString("""
+            {"id":"test:mail","version":"1","duration":10,"refresh":"max_remaining"}
+            """);
+        var d = BuffCodecs.DEFINITION.parse(JsonOps.INSTANCE, json).getOrThrow();
+        assertEquals(BuffDefinition.Refresh.MAX_REMAINING, d.timer().refresh());
+        assertEquals(d, BuffCodecs.DEFINITION.parse(JsonOps.INSTANCE,
+                BuffCodecs.DEFINITION.encodeStart(JsonOps.INSTANCE, d).getOrThrow()).getOrThrow());
+        json.getAsJsonObject().addProperty("timer_mode", "per_stack");
+        assertTrue(BuffCodecs.DEFINITION.parse(JsonOps.INSTANCE, json).error().isPresent());
+    }
+
     @Test void invalidTimersReturnLoadErrorsAndNeverDefaultToZero() {
         for (String fields : List.of(
                 "\"duration\": 0", "\"duration\": -1", "\"duration\": 0.0000001", "\"duration\": \"unknown\"",
