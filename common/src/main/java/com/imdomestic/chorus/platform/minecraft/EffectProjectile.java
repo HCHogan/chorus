@@ -102,7 +102,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 remaining = remainingAfter(remaining, from, end, movement);
                 var normal = block.getDirection(); var n = new Vec3(normal.getStepX(), normal.getStepY(), normal.getStepZ());
                 boolean embedded = block.isInside() || getDeltaMovement().dot(n) >= 0;
-                if (!embedded && launch.parameters().collision().blockBounces().allows(progress.bounces())) {
+                if (progress.canBounce(launch.parameters().collision(),embedded)) {
                     var v = getDeltaMovement(); setDeltaMovement(v.subtract(n.scale(2 * v.dot(n))).scale(launch.parameters().collision().restitution()));
                     updateRotation();
                 }

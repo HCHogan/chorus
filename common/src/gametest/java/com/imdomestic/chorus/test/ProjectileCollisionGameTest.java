@@ -18,6 +18,22 @@ public class ProjectileCollisionGameTest {
     private static void ceiling(ProjectileGameTest.Harness t, int y) {
         var p = t.h.absolutePos(new BlockPos(2, y, 3)); t.blocks.putIfAbsent(p, t.h.getLevel().getBlockState(p)); t.h.getLevel().setBlockAndUpdate(p, Blocks.STONE.defaultBlockState());
     }
+    @GameCase public void wallAndEntityContactsShareOneContinuationBudgetWithoutSkippingFinalDamage(GameTestHelper h) throws Exception {
+        try(var t=new ProjectileGameTest.Harness(h,"projectile_collisions",data->limit(spec(data),"total_continuations",2))) {
+            var first=t.cow(2.5,43,3.5);var beyond=t.cow(2.5,39,3.5);ceiling(t,46);t.fire();var p=t.projectiles.getFirst();p.tick();
+            h.assertValueEqual(t.hits.stream().map(d->d.target()).toList(),List.of(id(first),id(first)),"entity, wall, entity contact order");
+            h.assertValueEqual(p.progress().sequence(),3L,"shared budget counts both contact kinds");h.assertValueEqual(p.progress().bounces(),1L,"one real reflection");h.assertValueEqual(p.progress().entityContacts(),2L,"terminal entity still receives contact body");
+            near(h,first.getHealth(),70,"captured 20 outbound plus 10 reflected final hit");near(h,beyond.getHealth(),100,"no travel beyond terminal contact");h.assertTrue(p.isRemoved(),"shared budget must consume projectile");
+        }h.succeed();
+    }
+    @GameCase public void zeroSharedBudgetStopsOnFirstEntityOrWallAndNeverReflectsAtAnExhaustedWall(GameTestHelper h) throws Exception {
+        for(boolean wall:List.of(false,true))try(var t=new ProjectileGameTest.Harness(h,"projectile_collisions",data->limit(spec(data),"total_continuations",0))) {
+            var victim=wall?null:t.cow(2.5,43,3.5);if(wall)ceiling(t,45);t.fire();var p=t.projectiles.getFirst();
+            if(wall){var b=h.absolutePos(new BlockPos(2,45,3));p.setPos(b.getX()+.5,b.getY()-.25,b.getZ()+.5);p.setDeltaMovement(0,.25,0);}p.tick();
+            h.assertTrue(p.isRemoved()&&p.progress().terminal(),"zero means stop after first contact");h.assertValueEqual(p.progress().sequence(),1L,"one final contact");h.assertValueEqual(p.progress().bounces(),0L,"no reflection credit");
+            if(wall)near(h,p.getDeltaMovement().y,.25,"exhausted wall must not reverse native velocity");else near(h,victim.getHealth(),80,"terminal first hit still deals damage");
+        }h.succeed();
+    }
     @GameCase public void exactEndpointAndNearFaceContactsBounceButEmbeddedLaunchTerminates(GameTestHelper h) throws Exception {
         for (double gap : new double[] {0.25, 0.0001, 0, -0.5}) {
             try (var t = new ProjectileGameTest.Harness(h, "projectile_collisions", _ -> {})) {

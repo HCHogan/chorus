@@ -16,10 +16,11 @@ public final class ProjectileFlight {
         public Limit(int maximum) { this(OptionalInt.of(maximum)); }
         public boolean allows(long completed) { return maximum.isEmpty() || completed < maximum.getAsInt(); }
     }
-    public record Collision(Limit blockBounces, Limit entityPierces, Limit hitsPerTarget, double restitution) {
+    public record Collision(Limit blockBounces, Limit entityPierces, Limit hitsPerTarget, double restitution, Limit totalContinuations) {
+        public Collision(Limit blockBounces, Limit entityPierces, Limit hitsPerTarget, double restitution) { this(blockBounces,entityPierces,hitsPerTarget,restitution,Limit.UNLIMITED); }
         public static final Collision STOP = new Collision(new Limit(0), new Limit(0), new Limit(1), 1);
         public Collision {
-            Objects.requireNonNull(blockBounces); Objects.requireNonNull(entityPierces); Objects.requireNonNull(hitsPerTarget);
+            Objects.requireNonNull(blockBounces); Objects.requireNonNull(entityPierces); Objects.requireNonNull(hitsPerTarget); Objects.requireNonNull(totalContinuations);
             Numbers.nonnegative(restitution, "bounce restitution");
             if (!hitsPerTarget.allows(0) || restitution > 1) throw new IllegalArgumentException("Invalid projectile collision policy");
         }
@@ -79,6 +80,9 @@ public final class ProjectileFlight {
         }
         public Progress abandon() { return terminal ? this : new Progress(sequence, bounces, entityContacts, hits, true); }
         public boolean canHit(String target, Collision policy) { return !terminal && policy.hitsPerTarget().allows(hits.getOrDefault(target, 0L)); }
+        public boolean canBounce(Collision policy, boolean embedded) {
+            return !terminal && !embedded && policy.blockBounces().allows(bounces) && policy.totalContinuations().allows(sequence);
+        }
         public Progress contact(Collision policy, End end, Optional<String> target, boolean embedded) {
             if (terminal) throw new IllegalStateException("Consumed projectile cannot observe another contact");
             if (end.hasTarget() != target.isPresent()) throw new IllegalArgumentException("Contact target does not match kind");
@@ -87,8 +91,8 @@ public final class ProjectileFlight {
             if (end == End.ENTITY) {
                 String id = target.orElseThrow(); if (!canHit(id, policy)) throw new IllegalArgumentException("Target contact limit exhausted");
                 nextContacts = Math.addExact(entityContacts, 1); nextHits.put(id, Math.addExact(hits.getOrDefault(id, 0L), 1));
-                done = !policy.entityPierces().allows(entityContacts);
-            } else if (end == End.BLOCK && !embedded && policy.blockBounces().allows(bounces)) { nextBounces = Math.addExact(bounces, 1); done = false; }
+                done = !policy.entityPierces().allows(entityContacts) || !policy.totalContinuations().allows(sequence);
+            } else if (end == End.BLOCK && canBounce(policy,embedded)) { nextBounces = Math.addExact(bounces, 1); done = false; }
             return new Progress(nextSequence, nextBounces, nextContacts, nextHits, done);
         }
     }

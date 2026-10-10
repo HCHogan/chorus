@@ -4,6 +4,10 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class ProjectileCollisionGameTest extends com.imdomestic.chorus.test.ProjectileCollisionGameTest {
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void wallAndEntityContactsShareOneContinuationBudgetWithoutSkippingFinalDamage(GameTestHelper h)throws Exception{super.wallAndEntityContactsShareOneContinuationBudgetWithoutSkippingFinalDamage(h);}
+    @GameTest(structure="chorus_gametest:empty") @Override
+    public void zeroSharedBudgetStopsOnFirstEntityOrWallAndNeverReflectsAtAnExhaustedWall(GameTestHelper h)throws Exception{super.zeroSharedBudgetStopsOnFirstEntityOrWallAndNeverReflectsAtAnExhaustedWall(h);}
     @GameTest(structure = "chorus_gametest:empty") @Override
     public void exactEndpointAndNearFaceContactsBounceButEmbeddedLaunchTerminates(GameTestHelper h) throws Exception { super.exactEndpointAndNearFaceContactsBounceButEmbeddedLaunchTerminates(h); }
     @GameTest(structure = "chorus_gametest:empty") @Override

@@ -12,6 +12,31 @@ import org.junit.jupiter.api.Test;
 
 class ProjectileCollisionTest {
     private static Progress hit(Progress state, Collision policy, String id) { return state.contact(policy, End.ENTITY, Optional.of(id), false); }
+    @Test void sharedContinuationBudgetCountsMixedContactsAndStillDeliversTheFinalHit() {
+        var policy=new Collision(Limit.UNLIMITED,Limit.UNLIMITED,Limit.UNLIMITED,1,new Limit(3));var state=Progress.EMPTY;
+        state=hit(state,policy,"a");state=state.contact(policy,End.BLOCK,Optional.empty(),false);state=hit(state,policy,"b");
+        assertFalse(state.terminal());assertFalse(state.canBounce(policy,false));assertEquals(1,state.bounces());
+        var stopped=hit(state,policy,"c");assertTrue(stopped.terminal());assertEquals(3,stopped.entityContacts());assertEquals(4,stopped.sequence());assertEquals(1,stopped.hits().get("c"));
+        var wall=state.contact(policy,End.BLOCK,Optional.empty(),false);assertTrue(wall.terminal());assertEquals(1,wall.bounces(),"exhausted contact is not a successful reflection");
+    }
+    @Test void sharedZeroStopsAtFirstContactAndIndependentBudgetsCanStopEarlier() {
+        var zero=new Collision(Limit.UNLIMITED,Limit.UNLIMITED,Limit.UNLIMITED,1,new Limit(0));
+        assertTrue(hit(Progress.EMPTY,zero,"a").terminal());assertFalse(Progress.EMPTY.canBounce(zero,false));assertEquals(0,Progress.EMPTY.contact(zero,End.BLOCK,Optional.empty(),false).bounces());
+        var noPierce=new Collision(Limit.UNLIMITED,new Limit(0),Limit.UNLIMITED,1,new Limit(5));assertTrue(hit(Progress.EMPTY,noPierce,"a").terminal());
+        var noBounce=new Collision(new Limit(0),Limit.UNLIMITED,Limit.UNLIMITED,1,new Limit(5));assertTrue(Progress.EMPTY.contact(noBounce,End.BLOCK,Optional.empty(),false).terminal());
+        assertTrue(Progress.EMPTY.contact(noPierce,End.BLOCK,Optional.empty(),true).terminal());
+    }
+    @Test void sharedLimitIsOptionalTypedAndCapturedAtLaunch()throws Exception {
+        for(int n:List.of(0,3)) {
+            var data=json("projectile_collisions");var collision=data.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonArray("do").get(3).getAsJsonObject().getAsJsonObject("projectile").getAsJsonObject("collision");
+            collision.add("total_continuations",com.google.gson.JsonParser.parseString("{\"type\":\"chorus:constant\",\"value\":"+n+",\"unit\":\"count\"}"));
+            var p=compile(data);var h=new ProjectileTest.Harness(p);h.fire();assertEquals(n,h.launches.getFirst().parameters().collision().totalContinuations().maximum().orElseThrow());
+            assertEquals(p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,p.program()).getOrThrow()).getOrThrow());
+            for(double invalid:List.of(-1d,.5,Double.MAX_VALUE)){collision.getAsJsonObject("total_continuations").addProperty("value",invalid);assertThrows(RuntimeException.class,()->compile(data));}
+            collision.getAsJsonObject("total_continuations").addProperty("value",3);collision.getAsJsonObject("total_continuations").addProperty("unit","damage");assertThrows(RuntimeException.class,()->compile(data));
+        }
+        var old=new ProjectileTest.Harness(load("projectile_collisions"));old.fire();assertEquals(Limit.UNLIMITED,old.launches.getFirst().parameters().collision().totalContinuations());
+    }
     @Test void piercingCountsAdditionalContactsAndBlockBouncesHaveAnIndependentBudget() {
         var policy = new Collision(new Limit(2), new Limit(1), new Limit(1), 0.7); var state = Progress.EMPTY;
         state = hit(state, policy, "a"); assertFalse(state.terminal());

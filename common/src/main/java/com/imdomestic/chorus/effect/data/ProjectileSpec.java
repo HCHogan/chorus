@@ -61,13 +61,14 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
         void validate(Validation v, boolean positive) { value.ifPresent(n -> { Validation.same(n.unit(v), Unit.COUNT); if (n instanceof Value.Constant c && count(c.value()) == 0 && positive) throw new IllegalArgumentException("Per-target collision limit must be positive"); }); }
         ProjectileFlight.Limit resolve(Evaluation e) { return value.map(n -> new ProjectileFlight.Limit(count(measure(n, Unit.COUNT, e)))).orElse(ProjectileFlight.Limit.UNLIMITED); }
     }
-    public record Collisions(LimitSpec blockBounces, LimitSpec entityPierces, LimitSpec hitsPerTarget, Value restitution) {
+    public record Collisions(LimitSpec blockBounces, LimitSpec entityPierces, LimitSpec hitsPerTarget, Value restitution, LimitSpec totalContinuations) {
+        public Collisions(LimitSpec blockBounces, LimitSpec entityPierces, LimitSpec hitsPerTarget, Value restitution) { this(blockBounces,entityPierces,hitsPerTarget,restitution,LimitSpec.UNLIMITED); }
         public static final Collisions STOP = new Collisions(LimitSpec.ZERO, LimitSpec.ZERO, LimitSpec.ONE, new Value.Constant(1, Unit.MULTIPLIER));
         void validate(Validation v) {
-            blockBounces.validate(v, false); entityPierces.validate(v, false); hitsPerTarget.validate(v, true); Validation.same(restitution.unit(v), Unit.MULTIPLIER);
+            blockBounces.validate(v, false); entityPierces.validate(v, false); hitsPerTarget.validate(v, true); totalContinuations.validate(v,false); Validation.same(restitution.unit(v), Unit.MULTIPLIER);
             if (restitution instanceof Value.Constant c) new ProjectileFlight.Collision(new ProjectileFlight.Limit(0), new ProjectileFlight.Limit(0), new ProjectileFlight.Limit(1), c.value());
         }
-        ProjectileFlight.Collision resolve(Evaluation e) { return new ProjectileFlight.Collision(blockBounces.resolve(e), entityPierces.resolve(e), hitsPerTarget.resolve(e), measure(restitution, Unit.MULTIPLIER, e)); }
+        ProjectileFlight.Collision resolve(Evaluation e) { return new ProjectileFlight.Collision(blockBounces.resolve(e), entityPierces.resolve(e), hitsPerTarget.resolve(e), measure(restitution, Unit.MULTIPLIER, e), totalContinuations.resolve(e)); }
     }
     public void validate(Validation v) {
         collision.validate(v);

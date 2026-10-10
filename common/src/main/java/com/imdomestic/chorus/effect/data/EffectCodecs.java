@@ -564,8 +564,9 @@ public final class EffectCodecs {
                     collisionLimit.optionalFieldOf("block_bounces", ProjectileSpec.LimitSpec.ZERO).forGetter(ProjectileSpec.Collisions::blockBounces),
                     collisionLimit.optionalFieldOf("entity_pierces", ProjectileSpec.LimitSpec.ZERO).forGetter(ProjectileSpec.Collisions::entityPierces),
                     collisionLimit.optionalFieldOf("max_hits_per_target", ProjectileSpec.LimitSpec.ONE).forGetter(ProjectileSpec.Collisions::hitsPerTarget),
-                    values.optionalFieldOf("restitution", new Value.Constant(1, Unit.MULTIPLIER)).forGetter(ProjectileSpec.Collisions::restitution)
-            ).apply(i, ProjectileSpec.Collisions::new)), Set.of("block_bounces", "entity_pierces", "max_hits_per_target", "restitution"));
+                    values.optionalFieldOf("restitution", new Value.Constant(1, Unit.MULTIPLIER)).forGetter(ProjectileSpec.Collisions::restitution),
+                    collisionLimit.optionalFieldOf("total_continuations", ProjectileSpec.LimitSpec.UNLIMITED).forGetter(ProjectileSpec.Collisions::totalContinuations)
+            ).apply(i, ProjectileSpec.Collisions::new)), Set.of("block_bounces", "entity_pierces", "max_hits_per_target", "restitution", "total_continuations"));
             Codec<ProjectileSpec.Tracking> tracking = strict(RecordCodecBuilder.create(i -> i.group(
                     values.fieldOf("radius").forGetter(ProjectileSpec.Tracking::radius), values.fieldOf("turn_rate").forGetter(ProjectileSpec.Tracking::turnRate),
                     values.optionalFieldOf("acquisition_angle", new Value.Constant(180, ProjectileSpec.ANGLE)).forGetter(ProjectileSpec.Tracking::acquisitionAngle),
