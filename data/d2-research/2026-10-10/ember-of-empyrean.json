@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-10",
+  "effect": "Ember of Empyrean",
+  "implementation_status": "partial; confirmed Solar damage kills extend existing shared Radiant and Restoration",
+  "sources": [
+    {
+      "kind": "compendium_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet",
+      "cells": [
+        "Solar B18",
+        "Solar D18",
+        "Solar N18"
+      ]
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "file": "data/d2-research/2026-10-10/firesprite-solar-source.html.gz",
+      "retrieved_at": "2026-10-10T11:13:58.663075+00:00",
+      "html_sha256": "8a9e5d3f4220df4991465d8f9f10ec6817bef380314f32cc7c588734ff834298",
+      "mapping": [
+        {
+          "original": "B21",
+          "snapshot": "B18",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "D21",
+          "snapshot": "D18",
+          "normalized_text_matches_snapshot": true
+        },
+        {
+          "original": "N21",
+          "snapshot": "N18",
+          "normalized_text_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "official_historical_patch",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5",
+      "support": "15-second extension limit and variable extension based on defeated combatant tier; not a current exhaustive tier catalogue."
+    }
+  ],
+  "compendium_values": {
+    "tier_1_seconds": 1.5,
+    "tier_2_seconds": 2.25,
+    "tier_3_seconds": 3,
+    "tier_4_seconds": 6,
+    "guardian_seconds": 3,
+    "cap_seconds": 15,
+    "health_stat": -10
+  },
+  "current_policy": {
+    "qualification": "Confirmed kill actor currently owns fragment, actual damage fact has chorus:solar_damage, and at least one effect remains active at reaction processing. Solar origin tags alone do not qualify non-Solar damage.",
+    "classification": "Player observation selects Guardian. Otherwise exactly one distinct combatant_tier_1..4 across entity/type tags is required. Same tier in both namespaces counts once; boss/champion rank is not a tier mapping.",
+    "unknown": "Missing/ambiguous classification emits empyrean_unclassified and does not invent an extension amount or alter timers. No retroactive repayment.",
+    "extension": "Independently extend existing Radiant and Restoration, no creation, no inferred cooldown. Cap remaining time at 15 even if currently longer, preserving source, tier and historic maximum. Exact expiry stays expired.",
+    "solace": "Use the quoted tier table unchanged; Solace is queried by application sources and Mercy. Solar D18 has no base-plus-Solace notation; Empyrean interaction remains a documented interpretation pending direct timing measurement.",
+    "status_kills": "Scorch periodic damage carries Solar damage identity and attributed killer; physical test validates it alongside actual Solar weapon kills.",
+    "health": "Current source modifier -10 query only."
+  },
+  "remaining": [
+    "Complete D2 tier catalogue and assist/kill attribution policy",
+    "Classification unavailable after corpse removal; receipt-time entity metadata could remove this dependency",
+    "Current source-specific timing, Solace interaction and simultaneous-grant ordering calibration",
+    "All Solar attack producers need canonical damage tags; source element alone is insufficient",
+    "Full production subclass assembly, death/respawn policy, native Health stat, HUD and persistence"
+  ]
+}

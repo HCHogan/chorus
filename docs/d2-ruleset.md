@@ -818,7 +818,7 @@ Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4
 
 [ember_of_mercy.json](../common/src/test/resources/effects/ember_of_mercy.json) 监听已确认的 chorus:pickup，以 pickup_kind 和实际收集者判断资格。收集时没有 Restoration 则授予 x1 2 秒；已有恢复则仅延长 2 秒，不重置历史时长、层级或恢复来源。上限是当前剩余 15 秒，已有 20 秒也会降到 15 秒。以后真正重新施加时，historic_max 仍可恢复到已达到的 20 秒；到期后再拾取则作为新 x1 开始。碎片 +10 Health 暂为属性查询。
 
-[ember_of_solace.json](../common/src/test/resources/effects/ember_of_solace.json) 对 solar_effect_duration 提供 +50% 修饰。Mercy 在收集时查询当前受益者，因此变为每次 3 秒；外部施加来源也可查询目标，使基础 4 秒成为 6 秒。施加者装了碎片并不让未装碎片的受益者多得时间。卸下碎片不会追溯改写既有倒计时；下一次查询读取新装配。这是显式的来源调用协议，尚未自动覆盖全部 Solar Buff；Radiant 与完整 Empyrean 尚未接入。
+[ember_of_solace.json](../common/src/test/resources/effects/ember_of_solace.json) 对 solar_effect_duration 提供 +50% 修饰。Mercy 在收集时查询当前受益者，因此变为每次 3 秒；外部施加来源也可查询目标，使基础 4 秒成为 6 秒。施加者装了碎片并不让未装碎片的受益者多得时间。卸下碎片不会追溯改写既有倒计时；下一次查询读取新装配。这是显式的来源调用协议，尚未自动覆盖全部 Solar Buff；Radiant 的显式施加入口已接入；Empyrean 按独立敌人等级表延长，不经过该 Profile。
 
 [restoration_effect.json](../common/src/test/resources/effects/restoration_effect.json) 将共享恢复定义独立出来，原始速率为快照的 PvE 35/50、PvP 17.5/25 HP/s，要求 restoration_rate Profile 校准到世界生命单位。测试校准仍为 0.1；没有把该值当成实测比例。与旧 restoration.json 是同一 ID 的两套装配示例，不能同时链接；旧文件继续保留 Rift 及低层回归测试入口。新定义沿用 restoration_or_rift 通道，也保留 historic_max / keep_highest_tier。非致死伤害不打断恢复，碎片卸下后已授予的 Buff 正常计时。
 
@@ -838,3 +838,16 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 攻击可在开火时保存 Radiant 是否有效；radiant_champion 则是每次命中的 count 输入，必须精确为 0 或 1。新武器夹具在实际射弹接触时 inspect_entity，从 entity / type 标记选择该输入，再调用 damage_snapshot。缺观察、单位错误或非二值不会悄悄按普通敌人算；原版未标记实体按普通目标处理是这份内容的分类协议，不代表已有全部 D2 敌人目录。开火后过期 / 收枪仍保留之前射弹的增益，是当前可验证的 Chorus 时序政策，不是对原作全部武器快照行为的完成声明。
 
 官方 [2026-06-04 技能预览](https://www.bungie.net/7/en/News/Article/dev_insights_abilities_armor_preview) 调整了对勇士加成并移除 Radiant 武器伤害的屏障晕眩；数值使用 Compendium 的绝对 30%，不在其上重复乘 1.1。[9.5.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0) 还让 Well 内开火的 Golden Gun 获得 Radiant 资格；[2026-02-19 已知问题](https://www.bungie.net/7/en/News/Article/twid_02_19_2026) 列过 Lumina 覆盖 Golden Gun 的 Radiant 增益，不能据此推断已修复或所有来源同样互斥。完整来源、混合交战模式、非射弹宿主接线、死亡清理、UI 与存档仍待实现。[来源记录](../data/d2-research/2026-10-10/radiant.json) 保留上述边界与坐标映射。
+
+
+## Ember of Empyrean 的按击杀延长
+
+[ember_of_empyrean.json](../common/src/test/resources/effects/ember_of_empyrean.json) 对应 CSV Solar B18/D18/N18、原表 B21/D21/N21。原表给 T1/T2/T3/T4 各 +1.5/+2.25/+3/+6 秒，Guardian +3 秒，Health -10。官方 [7.3.5](https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5) 支持 15 秒上限及按敌人等级区分延长量；该历史公告不能代替当前完整敌人目录。[来源与政策](../data/d2-research/2026-10-10/ember-of-empyrean.json) 保存原表映射与缺口。
+
+资格读取确认 kill 的实际 actor、chorus:solar_damage 和当前碎片来源，并要求至少一个相关状态仍在。武器来源带 Solar 标签不足以把 Arc 派生伤害算成 Solar；伤害生产者须声明规范元素标签。没有推断击杀冷却，多个合格击杀各自延长。Scorch 周期伤害保留 Solar 身份和击杀归属，已进入同一规则。
+
+观察到玩家时使用 Guardian 分支；非玩家须在 entity / type 标签中恰有一个不同的 combatant_tier_1..4。两处出现同一个 Tier 不算冲突。缺失、冲突、仅有 boss 等 Rank 或尸体已不可查询时，发 empyrean_unclassified，保持现有计时；不猜延长量，不把 Rank 当 Tier，也不事后补发。
+
+两种状态分别 extend_buff，缺失的一种保持缺失。现有 20/25 秒可以被压回剩余 15 秒，但历史最长值和恢复层级 / 来源保留；之后真正重新施加仍按 historic_max。精确到期后击杀不使状态重新出现。Solace 增加显式施加与 Mercy 的时长，此处按原表没有附加 Solace 数字的等级表执行，不再次乘 1.5；这个交互解释仍需直接计时校准。
+
+世界组合已使用实际武器、物理击杀、Tempering → Firesprite → Mercy 与当前 Solace 验证：T1/T4 击杀延长两种状态，随后的 Mercy 拾取只延长恢复；恢复 x2 保留。另验证 >15 秒上限 / 历史值、未知分类诊断，以及实际 Scorch tick 死亡。Health 仍为查询属性；完整子职业装配、敌人目录、助攻与同击授予时序、死亡生命周期、HUD 和持久化未完成。

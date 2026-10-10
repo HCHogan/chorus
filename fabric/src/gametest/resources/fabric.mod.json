@@ -84,7 +84,8 @@
       "com.imdomestic.chorus.EventBuffObservationGameTest",
       "com.imdomestic.chorus.EmberOfSearingGameTest",
       "com.imdomestic.chorus.EmberOfMercyGameTest",
-      "com.imdomestic.chorus.RadiantGameTest"
+      "com.imdomestic.chorus.RadiantGameTest",
+      "com.imdomestic.chorus.EmberOfEmpyreanGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

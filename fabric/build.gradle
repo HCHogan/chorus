@@ -166,6 +166,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/solar_effect_duration.json'
         include 'effects/ember_of_mercy.json'
         include 'effects/radiant.json'
+        include 'effects/ember_of_empyrean.json'
+        include 'effects/empyrean_inputs.json'
         include 'effects/empowering_damage.json'
         include 'effects/radiant_inputs.json'
         include 'effects/radiant_weapon.json'

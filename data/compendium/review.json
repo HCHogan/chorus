@@ -651,7 +651,7 @@
       "gaps": [
         "HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile",
         "与 Healing Rift 不叠加时的当前优先级未完整校准",
-        "Phoenix Dive 等真实技能来源、Empyrean、死亡生命周期与生产装配待实现"
+        "Phoenix Dive 等真实技能来源、死亡生命周期与生产装配待实现；Mercy / Empyrean 已接延长"
       ]
     },
     {
@@ -4552,7 +4552,7 @@
         }
       ],
       "gaps": [
-        "Radiant 与全部真实施加来源尚未接入该 Profile",
+        "Radiant 显式输入已接 Profile；全部真实施加来源仍待接入",
         "完整装配与原作动态卸装行为仍需验证"
       ]
     },
@@ -4620,6 +4620,68 @@
         "开火时增益/命中时分类为内容政策，仍需原作时序校准",
         "完整 Well、Lumina、Golden Gun 与特殊变种及互斥仍未实现；合成 Well 仅验证数值优先级",
         "真实授予来源、完整勇士目录、混合活动模式、其他伤害宿主接线、死亡清理、HUD 和持久化未完成"
+      ]
+    },
+    {
+      "id": "solar/ember_of_empyrean",
+      "name": "Ember of Empyrean",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B18",
+          "text_sha256": "0c64a1ff680833bd562181f802861884fd4b163cbc0ed586aa6243d11574cadf"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D18",
+          "text_sha256": "0aacc7241142ac183077e06b4e57dcfced795e7ab1155fef572cf414a1e269c7"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N18",
+          "text_sha256": "47c2df798d13fe4c7b86876c1c9d18b8a6a8db4c4527af8add78ca743d121478"
+        }
+      ],
+      "scope": "实际 Solar 击杀按 T1–T4/Guardian 延长已有 Radiant 与 Restoration；独立 15 秒上限与 -10 Health 查询",
+      "acceptance": [
+        "四档 1.5/2.25/3/6 秒与 Guardian 3 秒",
+        "不创建缺失状态，延长不重置历史或强度，大于 15 秒也压回上限",
+        "没有推断击杀冷却；真实武器与 Scorch 周期死亡资格",
+        "与 Tempering Firesprite、Mercy、Solace 组合"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_empyrean.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEmpyreanTest.java",
+          "symbol": "confirmedSolarKillsUseAllFourDistinctTiersAndGuardianAndExtendBothStates"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/EmberOfEmpyreanTest.java",
+          "symbol": "unknownOrAmbiguousTierReportsGapAndDuplicateSameTierAcrossNamespacesIsOneTier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfEmpyreanGameTest.java",
+          "symbol": "solarWeaponKillsExtendBothEffectsAndSubsequentMercyPickupOnlyExtendsRestoration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfEmpyreanGameTest.java",
+          "symbol": "actualScorchPeriodicDeathExtendsBothStatesForItsAttributedKiller"
+        }
+      ],
+      "gaps": [
+        "完整敌人 Tier 目录、尸体已移除时的分类与助攻归属尚待补齐",
+        "Solace 不乘该延长表是当前原表解释，需直接计时校准；同击激活及其他特殊时序待核对",
+        "所有 Solar 伤害生产者的规范标签、完整子职业装配、死亡策略、Health 游戏投影、HUD 与存档未完成"
       ]
     }
   ]

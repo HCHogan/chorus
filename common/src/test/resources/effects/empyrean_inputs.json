@@ -1,0 +1,77 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:empyrean_inputs",
+      "rules": [
+        {
+          "id": "strike",
+          "on": "test:empyrean_strike",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "tags": [
+                "test:empyrean",
+                "chorus:solar_damage"
+              ],
+              "origin": "event"
+            }
+          ]
+        },
+        {
+          "id": "arc",
+          "on": "test:empyrean_arc",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "damage_type": "minecraft:generic",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "tags": [
+                "test:empyrean",
+                "chorus:arc_damage"
+              ],
+              "origin": "event"
+            }
+          ]
+        },
+        {
+          "id": "unknown",
+          "on": "chorus_d2:empyrean_unclassified",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:empyrean_unclassified"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

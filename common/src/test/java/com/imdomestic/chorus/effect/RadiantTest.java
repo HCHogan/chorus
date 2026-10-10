@@ -17,10 +17,12 @@ class RadiantTest {
     static class Harness {
         final CompiledEffects program;final EffectSession session;
         StatusResult.Decision decision=StatusResult.Decision.ALLOWED;
-        Harness(EffectState.Mode mode)throws Exception{
-            program=program();session=new EffectSession(engine(program),EffectState.empty().withMode(mode),r->{var q=(StatusResult.Check)r.command();return new StatusResult.Checked(q,decision);});
+        Harness(EffectState.Mode mode)throws Exception{this(program(),mode);}
+        Harness(CompiledEffects program,EffectState.Mode mode){
+            this.program=program;session=new EffectSession(engine(program),EffectState.empty().withMode(mode),this::execute);
             bind("player","test:radiant_inputs");bind("ally","test:radiant_inputs");
         }
+        RuleEngine.ActionResult execute(RuleEngine.WorldRequest r){var q=(StatusResult.Check)r.command();return new StatusResult.Checked(q,decision);}
         static EffectSource source(String owner,String bundle){return new EffectSource(owner+"/"+bundle,bundle,owner,new BuffInstance.Origin(owner,bundle,"",""),Set.of());}
         EffectState state(){return session.state().engine().domain();}long now(){return state().buffs().timeMicros();}
         void healthy(){assertTrue(session.state().idle(),()->session.state().engine().failure().toString());}
