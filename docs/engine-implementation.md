@@ -1016,4 +1016,6 @@ python3 -m unittest discover -s tools -p 'test_compendium.py'
 GameTest 使用独立测试源集和临时测试世界；NeoForge 普通 client / server / data 配置只加载主模组，`gameTestServer` 才加载测试模组。Fabric 配置参考 [Fabric 自动化测试文档](https://docs.fabricmc.net/develop/automatic-testing)，具体 API 与运行结果以本仓库固定的 26.3 依赖为准。另运行 Fabric 的 EquipmentClientGameTest：真实集成服务器、按键入口、实际按钮输入与双向 payload，验证组件 / 物品身份保留、交换、持握和取回。已检查 1280×720 与 640×480 的实际渲染截图，文件位于 fabric/build/run/clientGameTest/screenshots/；该测试源集与资源不进入发布 jar。NeoForge 图形客户端另已完成启动 / 客户端注册检查，尚未做同等页面交互验收；独立远程服务器、多个真实客户端、跨重启恢复及全 Compendium 内容覆盖仍未验收。
 
 
-2026-10-10 Strand 回归记录：最终 JUnit 587 项通过，Fabric 全量 255 项通过，NeoForge 全量复跑 265 项通过，两个发布 jar 构建成功。一次 NeoForge 全量运行中的既有 `sphereUsesFeetDistanceIncludesBoundaryAndFiltersDeadAndRemovedTargets` 遗漏了半径边界目标；新增中心/边界坐标、距离平方和实体可解析性诊断后复跑通过，根因未复现，尚未声称已修复。Strand 的全部新场景在该失败轮也通过。日志为 `/tmp/chorus-strand-gate-final.log`（含 Fabric 成功及这次 NeoForge 失败）与 `/tmp/chorus-strand-neoforge-recheck.log`（NeoForge 与发布包成功）。
+2026-10-10 Strand 回归记录：最终 JUnit 587 项通过，Fabric 全量 255 项通过，NeoForge 全量复跑 265 项通过，两个发布 jar 构建成功。一次 NeoForge 全量运行中的既有 `sphereUsesFeetDistanceIncludesBoundaryAndFiltersDeadAndRemovedTargets` 遗漏了半径边界目标；新增中心/边界坐标、距离平方和实体可解析性诊断后复跑通过，当时根因未复现。Strand 的全部新场景在该失败轮也通过。日志为 `/tmp/chorus-strand-gate-final.log`（含 Fabric 成功及这次 NeoForge 失败）与 `/tmp/chorus-strand-neoforge-recheck.log`（NeoForge 与发布包成功）。
+
+后续快照组件回归再次复现该范围查询失败，诊断确认边界目标距离平方为 25，但实体位于未加载相邻区块，UUID 查询无法解析；见 `/tmp/chorus-stored-snapshot-world.log`。测试现将所有目标平移到中心所在区块内，保留 3-4-5 半径边界、对角线 / 高度排除、死亡 / 移除及零半径语义，并先断言边界实体已加载。生产查询仍只选择当前已加载实体。

@@ -37,8 +37,17 @@ public class TargetIterationGameTest {
         var inside = helper.spawnWithNoFreeWill(EntityTypes.COW, 5, 2, 4);
         var diagonal = helper.spawnWithNoFreeWill(EntityTypes.COW, 8, 2, 8);
         var above = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 8, 4);
-        var dead = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 5); dead.setHealth(0);
-        var removed = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 6); removed.discard();
+        var dead = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 5);
+        var removed = helper.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 6);
+        // Randomized GameTest origins can put this 3-4-5 boundary in an unloaded adjacent chunk.
+        // Keep the same geometry entirely inside the center's loaded chunk.
+        double x = center.chunkPosition().getMinBlockX() + 4.5;
+        double y = center.getY(), z = center.chunkPosition().getMinBlockZ() + 4.5;
+        center.setPos(x, y, z); boundary.setPos(x + 3, y, z + 4);
+        inside.setPos(x + 1, y, z); diagonal.setPos(x + 4, y, z + 4);
+        above.setPos(x, y + 6, z); dead.setPos(x, y, z + 1); removed.setPos(x, y, z + 2);
+        helper.assertTrue(helper.getLevel().getEntity(boundary.getUUID()) == boundary, "Boundary fixture must be loaded");
+        dead.setHealth(0); removed.discard();
         var executor = world(helper); var result = select(executor, center, 5, TargetQuery.Relation.ANY, id(center), false);
         helper.assertValueEqual(ids(result), List.of(id(inside), id(boundary)).stream().sorted().toList(),
                 "sphere selection by sorted identity; center=" + center.position() + "; boundary=" + boundary.position()
