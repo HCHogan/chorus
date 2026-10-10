@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
@@ -45,6 +45,8 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "unloaded", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.UNLOADED,
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
                     "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()), false, Reference.PROJECTILE_IMPACT);
+    public void requireDamageBatch() { if (reference != Reference.DAMAGE_BATCH) throw new IllegalArgumentException("Result is not a damage batch"); }
+    public static final ResultShape DAMAGE_BATCH = new ResultShape(Map.of(), Map.of(), false, Reference.DAMAGE_BATCH);
     public static final ResultShape SHOT = new ResultShape(Map.of("pellets", new Field(Unit.COUNT,
             r -> ((com.imdomestic.chorus.effect.projectile.ShotGroups.Handle) r).pellets())), Map.of(), false, Reference.SHOT);
     public static final ResultShape SHOT_IMPACT = new ResultShape(PROJECTILE_IMPACT.fields(), PROJECTILE_IMPACT.flags(), false, Reference.SHOT_IMPACT);

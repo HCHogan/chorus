@@ -142,7 +142,9 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:grapple_attached` / `grapple_end` | 钩住了什么 | Grappling a Tangle |
 | `chorus:tick` | 周期 | 周期性效果 |
 
-事件分别携带 event id、attack id、component id、batch id、cast id、root / parent。attack 表示一次攻击，batch 表示效果定义指定的同时发生批次，不能混为一谈。规则声明自己按分量、射击、批次还是目标计数。毒池、丝线、闪电可以保留背后的武器或技能来源；是否算武器伤害、能否触发词条仍由 credit 和 proc_policy 决定，不能仅凭 via 判断。
+目标协议区分 event id、attack id、component id、batch id、cast id、root / parent。attack 表示一次攻击，batch 表示效果定义指定的同时发生批次，不能混为一谈。规则声明自己按分量、射击、批次还是目标计数。毒池、丝线、闪电可以保留背后的武器或技能来源；是否算武器伤害、能否触发词条仍由 credit 和 proc_policy 决定，不能仅凭 via 判断。
+
+当前已实现 event / root / parent、每个世界伤害回执的 damage_id、物理 shot / pellet / contact，以及显式 batch_id。`begin_damage_batch` 生成类型化句柄，由 `damage` / `damage_snapshot` 明确绑定，未绑定时每个回执各算一批。数值快照本身不冻结批次；派生伤害也不自动继承。同 root 或同 tick 不合并，规则可以分别按 damage_id 或 batch_id 更新自己的组件集合。句柄可跨延迟显式保留逻辑关系，但引擎不据此推断物理同时性。通用 attack / component / cast 关联、批次完成聚合和多分量共享一次性增益资格仍未完成，见 [数据包批次协议](engine-data-packs.md#显式伤害批次)。
 
 death / kill 来自同一次已确认死亡，共享 death id。Fabric 的 `ALLOW_DEATH` 在图腾检查之前，不能作为死亡事实；`AFTER_DEATH` 才确认死亡。图腾成功救活时该击仍可有受伤事实，但 lethal=false，不发 death / kill；救命效果联动监听 death_prevented。不能仅凭伤害超过当前 HP 或扣血过程中曾经归零判定死亡。世界物体的销毁、卸载与生物死亡是不同事件。
 
@@ -394,7 +396,7 @@ Attack
 
 当前单分量世界接线已实现：`chorus:damage.scaling_profile` 显式选择攻击 Profile，外层原版 `hurtServer` 前仅计算一次；规则集顶层 `defense_profile` 选择目标全局承伤 Profile，在原版取消 / 免疫 / 格挡 / 无敌帧处理之后、Chorus 护盾之前计算。两者必须已定义且输入输出均为 damage。攻击端收集 source.owner 的修饰，防御端收集 target 的修饰；易伤在目标防御 Profile 中归组，不能把两个持有者的所有 Buff 混在一起。未指定 scaling_profile 时不猜测武器 / 技能缩放，但目标防御仍可生效。原版 `NativeSource` 适配器可显式声明攻击 Profile，默认保持缺省。
 
-回执保留两阶段完整计算轨迹，未到达的阶段保持缺席。无敌帧差额以已经缩放的攻击输入计算，父类委托不重复乘倍率；正输入经防御降为零时视为 blocked，不扣盾。完全格挡后的零输入不再进入防御 Profile，防止加值或替换步骤重新制造伤害。双加载器已验证此顺序及嵌套命中。攻击贡献快照已实现，物理 projectile 步骤已绑定伤害快照；完整攻击上下文、反应规则继承与多分量聚合仍待实现。
+回执保留两阶段完整计算轨迹，未到达的阶段保持缺席。无敌帧差额以已经缩放的攻击输入计算，父类委托不重复乘倍率；正输入经防御降为零时视为 blocked，不扣盾。完全格挡后的零输入不再进入防御 Profile，防止加值或替换步骤重新制造伤害。双加载器已验证此顺序及嵌套命中。攻击贡献快照已实现，物理 projectile 步骤已绑定伤害快照；来源反应规则选择已可在释放时固定，逻辑批次已有显式身份；完整攻击上下文、多分量完成聚合与共享资格仍待实现。
 
 ### 防御与分层血池
 

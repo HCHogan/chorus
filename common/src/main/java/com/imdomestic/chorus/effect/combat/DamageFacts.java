@@ -19,6 +19,7 @@ public final class DamageFacts {
     public static List<RuleEngine.Signal> from(DamageCommand command, DamageReceipt receipt, Map<String, String> attribution) {
         if (receipt.outcome() == DamageReceipt.Outcome.CANCELLED || receipt.outcome() == DamageReceipt.Outcome.FAILED) return List.of();
         var references = new HashMap<String, String>(attribution); references.put("damage_id", receipt.damageId()); references.put("damage_type", command.damageType());
+        references.put("batch_id", DamageBatch.reference(command, receipt));
         receipt.deathId().ifPresent(value -> references.put("death_id", value));
         receipt.protectionSource().ifPresent(value -> references.put("protection_source", value));
         var numbers = Map.of("effective_damage", new Measure(receipt.effective(false), Unit.DAMAGE),

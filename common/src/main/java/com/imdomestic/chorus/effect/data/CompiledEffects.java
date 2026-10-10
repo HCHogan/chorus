@@ -889,6 +889,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public DamageSnapshot captureDamage(EffectState state, DamageCommand attack) {
         settled(state);
         if (attack.snapshot().isPresent()) throw new IllegalArgumentException("Cannot capture an already captured attack");
+        if (attack.batch().isPresent()) throw new IllegalArgumentException("Assign a damage batch at impact, not to a reusable snapshot");
         if (!attack.impact().numbers().isEmpty()) throw new IllegalArgumentException("Capture requires an attack without impact measurements");
         String profileId = attack.scalingProfile().orElseThrow(() -> new IllegalArgumentException("Snapshot requires an explicit damage profile"));
         new Validation(buffs, Map.of(), false, profiles).damageProfile(profileId);

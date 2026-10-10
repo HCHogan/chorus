@@ -259,6 +259,8 @@ public final class EffectCodecs {
                         values.optionalFieldOf("stacks", ONE).forGetter(Action.CheckStatus::stacks), values.optionalFieldOf("tier", ONE).forGetter(Action.CheckStatus::tier),
                         values.optionalFieldOf("duration").forGetter(Action.CheckStatus::duration), Codec.BOOL.optionalFieldOf("allow_dead", false).forGetter(Action.CheckStatus::allowDead)
                 ).apply(i, Action.CheckStatus::new)))
+                .register("chorus:begin_damage_batch", BatchActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(BatchActions.Begin::origin)).apply(i, BatchActions.Begin::new)))
                 .register("chorus:damage", Action.Damage.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.Damage::target), values.fieldOf("amount").forGetter(Action.Damage::amount),
                         ID.fieldOf("damage_type").forGetter(Action.Damage::damageType), ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Damage::tags),
@@ -268,7 +270,8 @@ public final class EffectCodecs {
                         Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.Damage::impact),
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.Damage::origin),
                         ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.Damage::shieldScalingProfile),
-                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.Damage::proc)).apply(i, Action.Damage::new)))
+                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.Damage::proc),
+                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.Damage::batch)).apply(i, Action.Damage::new)))
                 .register("chorus:capture_value", Action.CaptureValue.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("value").forGetter(Action.CaptureValue::value)).apply(i, Action.CaptureValue::new)))
                 .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -284,7 +287,8 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
                         Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
-                        Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet)).apply(i, Action.DamageCaptured::new)))
+                        Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet),
+                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch)).apply(i, Action.DamageCaptured::new)))
                 .register("chorus:heal", Action.Heal.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Heal::target), values.fieldOf("amount").forGetter(Action.Heal::amount),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Heal::tags),

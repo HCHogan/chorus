@@ -17,7 +17,7 @@ public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageComma
         Objects.requireNonNull(mode); Objects.requireNonNull(attack); Objects.requireNonNull(profile);
         buffs = Map.copyOf(buffs); resources = Map.copyOf(resources); contributions = List.copyOf(contributions);
         Objects.requireNonNull(shieldScaling);
-        if (capturedAt < 0 || !attack.consumptions().isEmpty() || attack.snapshot().isPresent() || !attack.impact().numbers().isEmpty() || !attack.scalingProfile().equals(Optional.of(profile.id()))) {
+        if (capturedAt < 0 || attack.batch().isPresent() || !attack.consumptions().isEmpty() || attack.snapshot().isPresent() || !attack.impact().numbers().isEmpty() || !attack.scalingProfile().equals(Optional.of(profile.id()))) {
             throw new IllegalArgumentException("Invalid damage snapshot input");
         }
         if (!attack.shieldScalingProfile().equals(shieldScaling.map(value -> value.profile().id()))) throw new IllegalArgumentException("Snapshot shield profile differs from attack");

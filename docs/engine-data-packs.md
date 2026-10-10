@@ -858,6 +858,28 @@ after 保存调度时可见的结果、来源及事件内容，在未来创建�
 
 付款 / 退款结果不能跨 after 帧引用，编译器会拒绝；新的延迟帧可独立付款。捕获 paid 的数值不等于保留退款权。任务保留当前程序版本，尚无活动迁移、持久化、detached 单独取消句柄；物理飞行可用文末 projectile 步骤。
 
+## 显式伤害批次
+
+`begin_damage_batch` 创建有类型的逻辑批次句柄；`damage` 和 `damage_snapshot` 的可选 `batch` 字段引用它。句柄按动作帧、指令位置和循环执行次数生成，因此同一循环体为不同目标创建的批次也不同。默认归属为 `bound`，可用 `origin: "event"` 选择触发事件的所有者；批次与伤害的所有者必须相同。
+
+```json
+[
+  {"action":{"type":"chorus:begin_damage_batch"},"as":"strike"},
+  {"type":"chorus:damage","batch":"strike","damage_type":"minecraft:generic",
+   "amount":{"type":"chorus:constant","value":2,"unit":"damage"}},
+  {"type":"chorus:damage","batch":"strike","damage_type":"minecraft:generic",
+   "amount":{"type":"chorus:constant","value":3,"unit":"damage"}}
+]
+```
+
+上例是同一批的两个分量。每个已确认的伤害回执仍有独立 `references.damage_id`；由该回执产生的 hit / damage_taken / shield / death / kill 事实共用 `references.batch_id`。未声明 batch 的伤害以自己的 damage_id 生成单独批次；原版观察入口也遵循此默认值。Java 宿主明确知道分量关系时，可对各 DamageCommand 使用同一个 `withBatch(DamageBatch)`。批次引用是不可解析的内部身份，不应依赖其字符串格式或跨运行时重用。
+
+规则可用现有 `update_component` 的 `once_set` 与 `event_reference: "batch_id"` 按批计数，改用 `damage_id` 则按实例计数。集合属于指定 Buff 实例，生命周期由该 Buff 管理；长期存活的累计集合仍需内容提供重建 / 到期策略。需要按有效伤害计数时，再检查 effective_damage 等实测字段；免疫 / 格挡可以有 hit 事实，取消 / 失败没有命中事实。
+
+`capture_damage` 不接受 batch。可复用数值快照不会冻结“未来所有命中属于一批”；应在 `damage_snapshot` 上绑定批次。物理投射物可以在 impact body 内创建批次，再让直击 / 爆炸等多个分量引用；同一 shot 的多个接触是否共享批次须由内容决定。句柄可像其他不可变结果一样显式传入 after / projectile；这只表达内容声明的逻辑关系，不证明两个回执在现实时间同时发生。延迟脉冲若应分批，就在每次延迟体内创建新句柄。
+
+root、shot、服务器 tick 和批次之间不做自动映射；派生伤害默认创建自己的单例批次，正常循环与事件传播保持原行为。该机制仅提供身份及按批记账，不提供最终 batch_resolved 事件、全批原子结算或多分量共用一次性 Buff 资格。受管伤害仍逐分量完成现有消费流程。完整合成夹具见 [damage_batch.json](../common/src/test/resources/effects/damage_batch.json)，它不是完整 Bolt Charge。
+
 ## 保留攻击释放时的反应规则
 
 来源规则可声明 `binding: "origin_bundle"`，默认值是 `current_owner_bundle`。默认规则在处理事件时使用仍绑定的来源；origin_bundle 只从该攻击保存的来源选择中执行。两者共用既有广度优先队列，同一来源的同一规则不会重复加入。
