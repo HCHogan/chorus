@@ -1,0 +1,21 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [{
+    "id": "chorus_d2:dual_loader",
+    "modifiers": [{
+      "id": "extra_rounds",
+      "profile": "chorus_d2:reload_insert_rounds",
+      "stage": "extra_rounds",
+      "group": "extra_rounds",
+      "op": "add",
+      "stacking_key": "chorus_d2:dual_loader",
+      "if": {"type": "chorus:source_is", "source": "this_weapon"},
+      "value": {"type": "chorus:enhanced",
+        "base": {"type": "chorus:constant", "value": 1, "unit": "round"},
+        "enhanced": {"type": "chorus:constant", "value": 2, "unit": "round"}
+      },
+      "reference": "Compendium CSV Weapon Perks C74; original C75 checked 2026-10-11. Extra rounds per insertion; no timing penalty in the current description. Sampling and stacking policy require original-game calibration.",
+      "confidence": "assumed"
+    }]
+  }]
+}

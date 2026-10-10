@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "retrieved_at": "2026-10-10T14:29:07.803219+00:00",
+  "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+  "coordinate_system": "original_google_sheet",
+  "file": "data/d2-research/2026-10-11/dual-loader-source.html.gz",
+  "html_sha256": "1349d50ee3ea0a112df32673130b9e2fba03e64c10a30f3863555971a31698ba",
+  "cells": {
+    "A75": "Dual Loader",
+    "C75": "Reloading refills an extra 1 ↑2 Ammo at a time."
+  },
+  "implementation": {
+    "ordinary_extra_rounds": 1,
+    "enhanced_extra_rounds": 2,
+    "profile": "chorus_d2:reload_insert_rounds",
+    "bundle": "chorus_d2:dual_loader",
+    "eligibility": "this_weapon, through equipment roll source; consumes reload.insert.rounds_profile only",
+    "sample": "Each insertion captures its count at acceptance; the next insertion samples after prior reload_finished rules. Explicit Chorus policy, not original-game timing measurement.",
+    "grouping": "Extra-round contributions use MAX; interaction with other shell-count effects still needs original-game calibration."
+  },
+  "limits": [
+    "Synthetic test weapon uses base one round per insertion, five-round magazine, 0.2s first insertion and 0.1s repeats; these are not Destiny shotgun stats.",
+    "Original description supplies extra rounds only. No former reload-speed penalty is added, and no new animation timing claim is made.",
+    "Full weapon catalogue, item eligibility, ammunition persistence, reload animation/input and interactions with Timelost Magazine and other shell-count effects remain incomplete.",
+    "Per-insertion reload_finished behavior is the configurable host protocol, not complete original-game validation for all reload-triggered perks.",
+    "Whole-magazine refill and skill-based reload remain distinct paths; Dual Loader does not increase the capacity or generate ammunition."
+  ]
+}

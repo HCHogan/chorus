@@ -884,3 +884,12 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 两种状态分别 extend_buff，缺失的一种保持缺失。现有 20/25 秒可以被压回剩余 15 秒，但历史最长值和恢复层级 / 来源保留；之后真正重新施加仍按 historic_max。精确到期后击杀不使状态重新出现。Solace 增加显式施加与 Mercy 的时长，此处按原表没有附加 Solace 数字的等级表执行，不再次乘 1.5；这个交互解释仍需直接计时校准。
 
 世界组合已使用实际武器、物理击杀、Tempering → Firesprite → Mercy 与当前 Solace 验证：T1/T4 击杀延长两种状态，随后的 Mercy 拾取只延长恢复；恢复 x2 保留。另验证 >15 秒上限 / 历史值、未知分类诊断，以及实际 Scorch tick 死亡。Health 仍为查询属性；完整子职业装配、敌人目录、助攻与同击授予时序、死亡生命周期、HUD 和持久化未完成。
+
+
+## Dual Loader
+
+固定 CSV `Weapon Perks!A74/C74` 与 2026-10-11 重新读取的原表 `A75/C75` 均说明普通版每次换弹额外装入 1 发，强化版额外 2 发；[原表来源与保存哈希](../data/d2-research/2026-10-11/dual-loader.json) 保留了坐标体系。当前描述没有旧式换弹速度惩罚，本定义不另加该惩罚，也不据此推断动画秒数。
+
+[dual_loader.json](../common/src/test/resources/effects/dual_loader.json) 为 this_weapon 提供 round 加值，经 [reload_insert_rounds.json](../common/src/test/resources/effects/reload_insert_rounds.json) 的独立 Profile 供 reload.insert 查询。基础一次一发时，普通 / 强化分别计划装入 2 / 3 发；到期仍按当前弹匣缺口和储备裁剪，例如剩余一发空间时只转移一发。它不增加容量、不生成弹药，不修改整弹匣 refill 或技能换弹资格。
+
+每步接受时取样、下一步在上一步完成反应后读取，以及额外弹数组采用 MAX，均是明确的 Chorus 内容策略；与 Timelost Magazine 等其他装填数量效果的原作组合待校准。验收用真实装备词条、普通手动换弹命令及两名玩家，武器基础一发 / 五发容量 / 0.2 秒首次 / 0.1 秒重复都是合成参数。完整武器目录、动画 / 按键、弹药持久化和所有 reload perk 的原作逐发资格仍未完成。

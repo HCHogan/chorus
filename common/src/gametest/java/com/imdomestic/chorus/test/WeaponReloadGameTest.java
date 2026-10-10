@@ -53,7 +53,8 @@ public class WeaponReloadGameTest {
                 return receipt;
             }, MinecraftEffectRuntime::nativeSource);
         }
-        ServerPlayer player(String prefix) {
+        ServerPlayer player(String prefix) { return player(prefix, Map.of("perk", "kill_clip")); }
+        ServerPlayer player(String prefix, Map<String, String> choices) {
             // GameTestHelper's deprecated mock overrides gameMode() to CREATIVE even after setGameMode.
             var cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "reload-test"), false);
             var player = new ServerPlayer(h.getLevel().getServer(), h.getLevel(), cookie.gameProfile(), cookie.clientInformation());
@@ -63,7 +64,7 @@ public class WeaponReloadGameTest {
             player.setPos(h.absoluteVec(new Vec3(3, 2, 3))); player.setNoGravity(true); player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); player.setHealth(10); players.add(player);
             var equipment = PlayerEquipment.get(player);
             for (String suffix : List.of("a", "b")) {
-                var stack = new ItemStack(Items.DIAMOND_SWORD); stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(prefix + suffix, "test:rifle", Map.of("perk", "kill_clip")));
+                var stack = new ItemStack(Items.DIAMOND_SWORD); stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(prefix + suffix, "test:rifle", choices));
                 player.getInventory().setItem(0, stack); equipment.swap(player, suffix.equals("a") ? "test:primary" : "test:secondary", 0, equipment.revision());
             }
             equipment.draw(player, Optional.of("test:primary"), equipment.revision()); return player;
@@ -113,6 +114,36 @@ public class WeaponReloadGameTest {
             h.runAfterDelay(12, () -> { try (t) {
                 t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("interrupt-a"), 1, "cancelled future insertion transferred ammunition");
                 h.assertValueEqual(t.reserve("interrupt-a"), 11, "the committed insertion was preserved"); h.assertValueEqual(t.heals.size(), 1, "future reload completion did not run"); h.succeed();
+            } });
+        } catch (Exception | Error error) { t.close(); throw error; }
+    }
+    @GameCase(environment = "chorus_gametest:dual_loader", maxTicks = 25)
+    public void physicalDualLoaderRollsInsertTwoOrThreeRoundsAndClipTheLastInsertion(GameTestHelper h) throws Exception {
+        var t = new Harness(h, data -> {
+            incremental(data);
+            data.getAsJsonArray("weapons").get(0).getAsJsonObject().getAsJsonObject("reload").getAsJsonObject("insert").addProperty("rounds_profile", "chorus_d2:reload_insert_rounds");
+            data.getAsJsonObject("equipment").getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonObject("sockets").add("loader", ThreadedSpikeGameTest.json("dual_loader_options"));
+            // Keep the older synthetic weapon harness version; the content file retains its Compendium version.
+            var profile = ThreadedSpikeGameTest.json("reload_insert_rounds").getAsJsonArray("profiles").get(0).getAsJsonObject(); profile.addProperty("version", "test-1");
+            data.getAsJsonArray("profiles").add(profile);
+            ThreadedSpikeGameTest.json("dual_loader").getAsJsonArray("bundles").forEach(v -> data.getAsJsonArray("bundles").add(v));
+        });
+        try {
+            var base = t.player("dual-base-", Map.of("perk","kill_clip","loader","base"));
+            var enhanced = t.player("dual-enhanced-", Map.of("perk","kill_clip","loader","enhanced"));
+            t.command(base, "chorus weapon reload"); t.command(enhanced, "chorus weapon reload");
+            h.runAfterDelay(5, () -> { try {
+                t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("dual-base-a"), 3, "normal roll inserts two");
+                h.assertValueEqual(t.magazine("dual-enhanced-a"), 4, "enhanced roll inserts three");
+                h.assertValueEqual(t.magazine("dual-base-b"), 1, "stowed instance unchanged");
+            } catch (Exception | Error error) { t.close(); throw error; } });
+            h.runAfterDelay(9, () -> { try (t) {
+                t.runtime.prepare(); t.settled(); h.assertValueEqual(t.magazine("dual-base-a"), 5, "normal second insertion");
+                h.assertValueEqual(t.magazine("dual-enhanced-a"), 5, "enhanced final insertion clipped to capacity");
+                h.assertValueEqual(t.reserve("dual-base-a"), 8, "base total conservation"); h.assertValueEqual(t.reserve("dual-enhanced-a"), 8, "enhanced total conservation");
+                h.assertValueEqual(t.heals.stream().filter(x -> x.target().equals(base.getUUID().toString())).map(HealingCommand::amount).toList(), List.of(2.,2.), "base actual transferred rounds");
+                h.assertValueEqual(t.heals.stream().filter(x -> x.target().equals(enhanced.getUUID().toString())).map(HealingCommand::amount).toList(), List.of(3.,1.), "enhanced actual transferred rounds");
+                h.assertTrue(t.state().reloads().isEmpty(), "full weapons retained insertion plans"); h.succeed();
             } });
         } catch (Exception | Error error) { t.close(); throw error; }
     }

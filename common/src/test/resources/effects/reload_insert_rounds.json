@@ -1,0 +1,7 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [{
+    "id": "chorus_d2:reload_insert_rounds", "version": "compendium-2026-10-05", "input_unit": "round",
+    "steps": [{"type":"chorus:apply", "id":"extra_rounds", "operation":"add", "group":{"name":"extra_rounds", "reduction":"max"}}]
+  }]
+}

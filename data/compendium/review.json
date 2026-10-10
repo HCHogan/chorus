@@ -5075,6 +5075,67 @@
         "抓钩双信用、全部近战加算组、Super/Class、状态伤害、目标/等级与混合模式资格仍需专用内容和实测",
         "Arcbolt目前仍由宿主提供落点事件，未串成完整投掷/能量技能；状态持久化和HUD未完成"
       ]
+    },
+    {
+      "id": "weapon/dual_loader",
+      "name": "Dual Loader",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A74",
+          "text_sha256": "70c0928091de780ba869c1407de392e68ef012c344f72d43d84d5bb649af5737"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C74",
+          "text_sha256": "7f6c55bc5a49f3071f0b17a4943e51e275293dd5d53f8d220d2eb52ab135ea88"
+        }
+      ],
+      "scope": "普通每次额外装入1发，强化额外2发；独立武器归属的插入数量Profile、逐次手动装填、容量/储备裁剪及双玩家实际装备命令验收",
+      "acceptance": [
+        "基础每次1发时普通/强化计划2/3发，不额外施加当前表中未记载的速度惩罚",
+        "仅查询正在装填的武器和对应持有者，收起的其他武器不提供加成",
+        "最终一次按当前缺口/储备转移，守恒且不生成弹药；整弹匣路径保持独立",
+        "真实玩家容器保存普通/强化词条，普通reload命令使两名玩家分别按2+2和3+1完成装填"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/dual_loader.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/reload_insert_rounds.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DualLoaderTest.java",
+          "symbol": "normalAndEnhancedAddRoundsPerInsertionWithoutChangingTheAcceptedTiming"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DualLoaderTest.java",
+          "symbol": "onlyTheReloadedWeaponAndItsHolderProvideTheExtraRounds"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DualLoaderTest.java",
+          "symbol": "finalInsertionClipsToReservesAndWholeMagazineReloadRemainsASeparatePolicy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponReloadGameTest.java",
+          "symbol": "physicalDualLoaderRollsInsertTwoOrThreeRoundsAndClipTheLastInsertion"
+        }
+      ],
+      "gaps": [
+        "逐次取样、MAX分组及各reload perk逐发触发时机为明确内容策略；与Timelost Magazine等其他装填数量效果的组合需原作校准",
+        "验收武器使用合成一发基础、五发容量和首次/重复秒数，不是正式D2武器目录或实测动画",
+        "按键/动作表现、冲刺取消、技能换弹、弹药持久化仍未完成"
+      ]
     }
   ]
 }

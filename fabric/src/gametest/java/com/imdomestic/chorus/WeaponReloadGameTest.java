@@ -4,6 +4,9 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class WeaponReloadGameTest extends com.imdomestic.chorus.test.WeaponReloadGameTest {
+    @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:dual_loader", maxTicks=25) @Override
+    public void physicalDualLoaderRollsInsertTwoOrThreeRoundsAndClipTheLastInsertion(GameTestHelper h) throws Exception { super.physicalDualLoaderRollsInsertTwoOrThreeRoundsAndClipTheLastInsertion(h); }
+
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:weapon_reload_incremental", maxTicks=25) @Override
     public void ordinaryReloadCommandLoadsOneRoundPerDeadlineAndActivatesPerkOnFirstInsertion(GameTestHelper h) throws Exception { super.ordinaryReloadCommandLoadsOneRoundPerDeadlineAndActivatesPerkOnFirstInsertion(h); }
     @GameTest(structure="chorus_gametest:empty", environment="chorus_gametest:weapon_reload_insert_fire", maxTicks=25) @Override

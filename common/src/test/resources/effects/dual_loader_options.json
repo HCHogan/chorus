@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "options": {
+    "none": {"bundle":"test:empty"},
+    "base": {"bundle":"chorus_d2:dual_loader"},
+    "enhanced": {"bundle":"chorus_d2:dual_loader", "tags":["chorus:enhanced"]}
+  }
+}
