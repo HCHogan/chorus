@@ -20,9 +20,13 @@ public class BundleInvocationGameTest {
     @GameCase(environment="chorus_gametest:invocation_flight",maxTicks=60)
     public void realProjectileAfterUnequipInvokesSlowWithCapturedCreditAndCurrentDurance(GameTestHelper h){
         var t=new FreezeGameTest.Harness(h,program(),EffectState.empty());try {
-            var caster=t.player(2);caster.setYRot(-90);caster.setXRot(0);var victim=t.mob(EntityTypes.SKELETON,8,2,"elite");var s=source("projectile",caster);t.runtime.bind(s);
+            var caster=t.player(2);caster.setYRot(0);caster.setXRot(-90);var victim=t.mob(EntityTypes.SKELETON,2,2,"elite");
+            // Keep the entire flight in the player's simulated column, independent of the test area's chunk boundary.
+            victim.setPos(caster.getX(),caster.getY()+6,caster.getZ());
+            h.assertTrue(h.getLevel().isPositionEntityTicking(victim.blockPosition())&&t.resolve(victim.getUUID().toString())==victim,"invocation target must remain available in a simulated column");
+            var s=source("projectile",caster);t.runtime.bind(s);
             send(t,s,victim,"throw_slow",40);t.runtime.unbind(s.instance());t.runtime.bind(DuranceGameTest.fragment("durance",caster));
-            h.runAfterDelay(30,()->{try(t){t.runtime.prepare();var slow=SlowGameTest.slow(t,victim).orElseThrow();h.assertValueEqual(slow.count(),40,"invocation failed to override incoming measurement");h.assertValueEqual(slow.origin(),s.origin(),"unequipping lost original projectile attribution");h.assertValueEqual(t.checks.getLast().duration(),4_000_000L,"Durance must be queried at actual contact");
+            h.runAfterDelay(30,()->{try(t){t.settled();var applied=SlowGameTest.slow(t,victim);h.assertTrue(applied.isPresent(),"physical invocation never applied Slow; status checks="+t.checks.size()+", target ticking="+h.getLevel().isPositionEntityTicking(victim.blockPosition()));var slow=applied.orElseThrow();h.assertValueEqual(slow.count(),40,"invocation failed to override incoming measurement");h.assertValueEqual(slow.origin(),s.origin(),"unequipping lost original projectile attribution");h.assertValueEqual(t.checks.getLast().duration(),4_000_000L,"Durance must be queried at actual contact");
                 h.assertTrue(t.runtime.state().engine().domain().sources().values().stream().noneMatch(v->v.bundle().equals("chorus_d2:slow_application")||v.instance().equals(s.instance())),"invocation leaked a live source");t.settled();h.succeed();}});
         }catch(Exception|Error e){t.close();throw e;}
     }
