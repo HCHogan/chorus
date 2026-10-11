@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+服务器级保存汇总的门禁 `/tmp/chorus-world-save-gate.log` BUILD SUCCESSFUL，1 分 36 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 655 项、NeoForge 670 项及两端发布 jar 通过，共享场景为654项。10 项 Compendium 审计、76条报告一致性及差异检查通过。两端发布包包含汇总入口 / 路径接口 / 三项访问器和必需 Mixin 注册，不含效果 / 存储测试夹具或 GameTest。此阶段没有客户端协议 / 输入变更或新增图形客户端验收。
+
+`MinecraftWorldSave.save(server)` 已提供显式服务端保存入口：从实际玩家存储取得在线玩家 NBT 路径，枚举 level.dat、各维度的地形 / 实体 / POI 存储及全局 / 维度 SavedData；调用原版完整保存，再补充各区域 flush 与附加数据批次等待，汇总各实例当前证据。外层编码观察覆盖本次 level.dat 构建；前后核对维度、存储对象、玩家集合与世界 tick。错误线程、重入、禁用保存和已有历史失败在写入前拒绝，原版保存设置不被改写。
+
+3 项共享 WorldSaveGameTest 核验真实存储身份、跨线程拒绝、禁用维度不调度写入，以及真实服务器保存后的玩家生命、实体区域、level.dat 和全局 SavedData 读回。保存中重入被拒绝；受控玩家备份目录障碍保留旧文件，期间新增玩家使范围校验失败，该报告不能确认检查点。移除障碍后，新一轮完整保存包含新增玩家并写入最新生命。
+
+这个入口尚未安装自动保存 / 关闭 / 启动钩子，也不自动提交 WorldCheckpointStore。调用方仍负责冻结游戏变化、建立规则检查点边界及等待关闭结果；同 tick / 同对象检查不能发现任意同 tick 状态变化。统计 / 进度旁文件与任意模组自定义存储未纳入结果证明；短命状态引用、离线 / 崩溃对账和迁移继续待完成。Compendium 保持76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[服务器级保存协议](engine-data-packs.md#服务器级原版保存汇总)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 上层保存序列化的最终门禁 `/tmp/chorus-save-serialization-final-gate.log` BUILD SUCCESSFUL，1 分 23 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 652 项、NeoForge 667 项及两端发布 jar 全部通过，共享场景为651项。10 项 Compendium 审计、76条报告一致性与差异检查通过。发布包包含序列化捕获、准确存储访问及五项必需 Mixin / 注册，不含效果 / 存储测试夹具或 GameTest；没有客户端协议 / 输入变更或新增图形客户端验收。开发期修正了夹具对26.3类型的引用，并按两端实际字节码将实体调用钩子绑定到静态 lambda$storeEntities$0，强制注入检查保留。
 
 ChunkMap.save、EntityStorage.storeEntities、SectionStorage.writeChunk 已通过 `MinecraftSaveSerialization` 进入准确区域 worker 的 ENCODE 观察范围。范围内异常、ScopedCollector 报告与 SectionStorage 的 DataResult 部分 / 缺失结果保留为失败；NeoForge 原本捕获并丢弃实体 / 方块实体的行为不变，异常在被捕获之前被观察。ChunkMap 的同步 catch 上报也接入，异步编码异常仍走已有 worker supplier 证据。`MinecraftRegionStorageAccess` 暴露实体 / section 实例真实的底层存储，为完整宿主枚举提供入口。
@@ -310,7 +320,8 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 原版玩家与 level.dat 同步保存证据 | 3 项纯测试与双加载器 6 项共享真实文件场景通过 | `MinecraftSaveCapture` 与保存入口 / 替换 Mixin；准确路径、写入前 / 替换失败与缺失文件、完整窗口与失败保留；区域任务另用独立 Journal，自动生命周期待接入 |
 | 区域文件异步保存证据 | 6 项纯测试与双加载器 5 项共享真实区域文件场景通过 | `RegionSaveJournal / MinecraftRegionSaveAccess / RegionSaveCaptureMixin`；pending、flush 覆盖最后写入、失败不被后来成功掩盖、吞掉的关闭错误与 supplier 不结束；上层编码已接 ENCODE，完整生命周期协调仍待接入 |
 | 写入前的实体 / section / 区块序列化 | 4 项纯测试与双加载器 6 项共享真实存储场景通过 | `SaveSerializationCapture / MinecraftSaveSerialization`；部分结果、报告字段问题、提交前异常与 NeoForge 吞错 / 丢弃，正常跳过不误报；全部对象保存范围与自动生命周期待接入 |
-| 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；全部存储实例协调和自动生命周期待接入 |
+| 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；全局 / 维度实例已接服务器级入口，自动生命周期待接入 |
+| 服务器级原版保存汇总 | 双加载器 3 项共享世界场景通过 | `MinecraftWorldSave / MinecraftPlayerSaveAccess`；实际存储 / 玩家范围、原版保存、补充 flush / 批次等待、前后身份检查和各项结果；无自动冻结 / 检查点提交 / 关闭 / 重启，统计 / 进度旁文件不在证明范围 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |
