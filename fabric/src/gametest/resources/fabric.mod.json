@@ -102,6 +102,7 @@
       "com.imdomestic.chorus.EmberOfEmpyreanGameTest",
       "com.imdomestic.chorus.ImpulseGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
+      "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",
       "com.imdomestic.chorus.NativeRangedGameTest",

@@ -6,7 +6,17 @@
 
 ## 当前证据
 
-Minecraft 运行时恢复门禁 `/tmp/chorus-runtime-restore-gate.log` BUILD SUCCESSFUL，1 分 18 秒：1278 项 JUnit（无失败 / 错误 / 跳过）、Fabric 623 项、NeoForge 638 项与两端发布 jar 全部通过，共享场景增至 622 项。10 项 Compendium 审计、76 条报告一致性与差异检查通过。两端发布包包含宿主 Checkpoint，不含效果 / 存储测试夹具或 GameTest。本阶段未更改客户端协议 / 输入，没有新增图形客户端验收。
+实体 NBT 属性恢复的最终门禁 `/tmp/chorus-attribute-load-final-gate-2.log` BUILD SUCCESSFUL，1 分 14 秒：1278 项 JUnit、Fabric 628 项、NeoForge 643 项及两端发布 jar 全部通过，共享场景为 627 项。10 项 Compendium 审计、76 条报告一致性及差异检查通过；发布包包含 LivingAttributeLoadMixin 与配置，不含测试效果 / GameTest。本阶段没有客户端输入 / 协议变更，未新增图形客户端验收。
+
+原版先加载 UUID 与永久属性，再用当前上限裁剪 NBT 中的 Health；Chorus 临时 modifier 不写入实体文件，因此仅在实体加入世界以后刷新属性会丢失额外生命。`LivingAttributeLoadMixin` 现在在原版 setHealth 前调用目标属性重建，支持尚未索引的新玩家 / 生物；只处理该 holder，并根据即将读取的生命判断存活。没有规则执行、治疗、时间推进或永久 modifier 拷贝。恢复目录必须先于实体加载安装，过期 Buff 不从 NBT 复活。失败运行时不能为自身 holder 推导有效上限，其他未登记实体仍可正常加载。
+
+新增 5 项共享 AttributeLoadGameTest：生物 NBT 对照在无运行时时从32裁到22，恢复目录后保留32，且 NBT 不含临时 modifier；未登录 / 索引的 ServerPlayer 保留30生命；重复读入与保存零生命不叠加、不治疗，当前零生命对象可读取有效的存活数据；实际 tick 过期后载入不恢复旧上限；单目标载入不修改其他实体，被外部改写的 modifier 仍由正常刷新检测，失败后相关加载拒绝而无关加载继续。
+
+首轮 `/tmp/chorus-attribute-load-gate.log` 已通过两端完整集成；补充失败运行时隔离后的 `/tmp/chorus-attribute-load-final-gate.log` 出现既有 LightweightKnife 的 Ophidia 命中场景一次失败（预期1次伤害，实际0次，tick 0），新增 NBT 场景通过。已为该飞行断言加入位置、步数、接触进度、终止 cue 和运行时失败信息；最终完整门禁通过但未复现该偶发，尚未证明其原因或修复，不把重跑通过作为缺陷已解决的证据。
+
+继续核对原版保存路径发现 PlayerDataStorage.save 与 LevelStorageAccess.saveLevelData 会捕获写入异常并记录日志。后续世界 / 玩家保存协调不能只检查顶层方法返回，需要实际写入成功的证据。自动保存 / 启动安装、宿主元数据文件、短命物体遗留状态、离线与崩溃一致性仍未完成；本阶段只解决真实 Entity.load 中的属性 / 生命读取次序，不声称服务器重启验收。Compendium 仍为76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。
+
+上一阶段 Minecraft 运行时恢复门禁 `/tmp/chorus-runtime-restore-gate.log` BUILD SUCCESSFUL，1 分 18 秒：1278 项 JUnit（无失败 / 错误 / 跳过）、Fabric 623 项、NeoForge 638 项与两端发布 jar 全部通过，共享场景增至 622 项。10 项 Compendium 审计、76 条报告一致性与差异检查通过。两端发布包包含宿主 Checkpoint，不含效果 / 存储测试夹具或 GameTest。本阶段未更改客户端协议 / 输入，没有新增图形客户端验收。
 
 `MinecraftEffectRuntime.checkpoint / restore` 在纯会话检查点外保留维度、世界 tick 与实际 PlayerEquipment 持有者。捕获会先正常结算到当前世界时钟，伤害描述 / 原版结算 / 世界动作 / 物品转移等未完成边界拒绝。恢复校验世界身份与完整目录，安装前比较在线玩家的实际装备容器，再重建原版伤害观察器和属性 / 移动投影；不会重放初始化、世界动作或补满已付费资源。已登记的空装备容器仍能在后续刷新解除保存的配装，外部可信装备宿主不被强制替换为 PlayerEquipment。
 
@@ -249,6 +259,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 成功边界检查点与会话恢复 | 纯核心及双加载器世界测试通过 | `TimelineEngine.Checkpoint / EffectSession.Checkpoint`；完整目录匹配、时钟 / 序号与全部领域状态保留、旧操作退休、未知结果拒绝；已有 JSON，Minecraft 存档与重启恢复未实现 |
 | 检查点 JSON 与单文件原子替换 | 纯核心文件 / 类型审计及双端世界场景通过 | `EffectCheckpointCodec / RecordTreeCodec`；215 份定义与全部领域字段的格式、500 种内置数据类型固定 schema、大整数 / 空值语义、复杂快照 / 聚合 / 换弹；完整世界保存一致性与自动重启恢复未接入 |
 | Minecraft 运行时检查点与恢复 | 双加载器 8 项共享世界场景通过 | `MinecraftEffectRuntime.Checkpoint / EffectPrograms.restore`；时钟 / 目录与实际配装预检、原版投影与观察器重建、结算边界拒绝、短命实体不重生；宿主元数据文件、完整保存一致性及重启验收待接入 |
+| 实体 NBT 与临时最大生命恢复 | 双加载器 5 项共享世界场景通过 | `LivingAttributeLoadMixin / MinecraftAttributeProjection`；索引前目标属性重建、永久修饰与保存生命保留、过期 / 死亡 / 重复加载 / 失败隔离；启动安装先于实体载入仍由后续宿主保存协调负责 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

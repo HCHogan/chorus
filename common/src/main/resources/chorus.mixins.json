@@ -8,6 +8,7 @@
     "PlayerDamageMixin",
     "ServerPlayerDeathMixin",
     "LivingHealingMixin",
+    "LivingAttributeLoadMixin",
     "PlayerEquipmentMixin",
     "ServerPlayerEquipmentMixin",
     "EffectProgramReloadMixin",

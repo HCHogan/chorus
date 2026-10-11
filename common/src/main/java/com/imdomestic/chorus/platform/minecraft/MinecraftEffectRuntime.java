@@ -239,6 +239,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public List<MinecraftMovementProjection.Report> nativeMovementReport() { return nativeMovement.reports(); }
     public List<MinecraftHorizontalSpeedProjection.Report> nativeHorizontalSpeedReport() { return nativeHorizontalSpeed.reports(); }
     private void refreshProjections() { if(!closed&&failure.isEmpty()){nativeAttributes.reconcile(view());nativeMovement.reconcile(view());nativeHorizontalSpeed.reconcile(view());} }
+    /** Called after native attributes/UUID load, before vanilla clamps saved Health. No rules or world actions run here. */
+    public static void beforeLoadedHealth(LivingEntity entity,float health) {
+        if(!(entity.level() instanceof ServerLevel level))return;
+        var runtime=LIVE.get(level);if(runtime==null)return;
+        runtime.thread();
+        if(!runtime.nativeAttributes.tracks(runtime.view(),entity))return;
+        if(runtime.failure.isPresent())throw new IllegalStateException("Cannot load projected attributes from a failed runtime");
+        try { runtime.nativeAttributes.beforeLoadedHealth(runtime.view(),entity,health); }
+        catch(RuntimeException error){runtime.failed(error,List.of());throw error;}
+    }
     /** Capture before a host launches its projectile or detached delayed attack. The host retains the returned immutable data. */
     public com.imdomestic.chorus.effect.data.DamageSnapshot captureDamage(DamageCommand attack) {
         thread(); prepare();
