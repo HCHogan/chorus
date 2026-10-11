@@ -1188,6 +1188,14 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 [独立验收输入](../common/src/test/resources/effects/ophidia_spathe_inputs.json)与[校准文件](../common/src/test/resources/effects/ophidia_spathe_test_calibration.json)使用0.2秒近期窗口、11/22/33% PvP增伤、1秒周期、0.5 CES和10点伤害，技能体治疗1HP仅用于观察支付后世界动作。它们不是 Solar 飞刀 / 赌徒闪身的完整实现，也不是原作测量；Lightweight Knife 已有下节的独立物理生产者。15项核心测试和6项双端共享场景覆盖实际装备替换、自然tick、真实死亡 / 保护及后续增伤、加算和未知结果保留。完整刀种、物理飞刀 / 精准 / 爆炸信用、闪身位移 / 附近敌人资格、职业 / 子职业正式装配、时序校准、HUD和状态持久化仍未完成。
 
+## Gambler's Dodge 的多充能前置需求
+
+2026-10-11 抓取原表 Class Abilities B7 / D7 / N7，与固定 CSV B5 / D5 / N5 核对并保存 [来源、哈希和未确定项](../data/d2-research/2026-10-11/gamblers-dodge.json)。[Bungie 的能力调整说明](https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron)明确 100 Melee 且附近有敌人时，多充能近战能恢复两次；这要求一次能量输入能跨越多个周期，不能先把收益裁剪到一条容量为 1 的进度条。
+
+引擎现提供显式 recharge_yield_profile，在一次迁移中恢复次数、保存下一轮剩余进度，接收者缩放只执行一次，完成周期的收益政策对整笔输入固定。实际原作交互是否需要不同的取样时点，仍由内容校准；协议与合成验收见 [多周期回能](engine-data-packs.md#一次回能跨越多个充能周期)。本阶段未新增真实 Gambler's Dodge，也尚未把 Lightweight Knife 配置接入该字段，原 Ophidia 测试中的闪身仍是合成触发。
+
+闪身位移 / 动画、回能帧、附近敌人取样、完整 Class 属性曲线、追踪 / 辅助瞄准移除、金装和 Aspect 组合、生产装配与 HUD 均待完成。该前置能力不新增 Compendium 已实现条目，也不把已知数值与合成时间参数混为完整技能。
+
 ## Lightweight Knife 的物理飞行与精准命中
 
 2026-10-11 抓取[在线原表 Solar B66 / D66 / N66](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1186062409#gid=1186062409)，与 CSV B46 / D46 / N46 归一化一致：[记录及原 HTML](../data/d2-research/2026-10-11/lightweight-knife.json)。[lightweight_knife.json](../common/src/test/resources/effects/lightweight_knife.json) 使用40米/秒实际投射物，固有两次充能、145.2秒基础冷却和0.8 CES，直接组合共享 Solar 可用次数 / 进度及当前近战属性曲线。装备 Ophidia 不增加到三次；真实飞刀击杀授予其增伤，下一刀在命中时读取当前层数。

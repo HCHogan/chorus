@@ -269,6 +269,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 validateAbilityProfile(cost.profile(), Unit.CHARGE);
             });
             ability.rechargeResource().ifPresent(validation::resource);
+            ability.rechargeYieldProfile().ifPresent(profile -> {
+                var meter = validation.resource(ability.rechargeResource().orElseThrow());
+                if (meter.resizable() || meter.capacity() != 1 || meter.id().equals(ability.cost().orElseThrow().resource()))
+                    throw new IllegalArgumentException("Cyclic recharge needs a separate fixed one-unit progress resource");
+                validateAbilityProfile(Optional.of(profile), Unit.CHARGE);
+            });
             ability.parameters().values().forEach(parameter -> validateAbilityProfile(parameter.profile(), parameter.value().unit(validation)));
             validateInstantSteps(ability.onUse()); validatePayments(ability.onUse(), new HashSet<>());
             var actions = new ArrayList<RuleEngine.Instruction<EffectState>>();

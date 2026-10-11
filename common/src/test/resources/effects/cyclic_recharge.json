@@ -1,0 +1,304 @@
+{
+  "version": "test-cyclic-v1",
+  "resources": [
+    {
+      "id": "test:uses",
+      "capacity": 3,
+      "initial": 0,
+      "resizable": true
+    },
+    {
+      "id": "test:meter",
+      "capacity": 1,
+      "initial": 0,
+      "base_rate": 0,
+      "gain_profile": "test:gain",
+      "gain_scalar": 0.5,
+      "rate_profile": "test:rate"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:gain",
+      "version": "test-cyclic-v1",
+      "input_unit": "charge_fraction",
+      "steps": []
+    },
+    {
+      "id": "test:yield",
+      "version": "test-cyclic-v1",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "yield",
+          "operation": "replace",
+          "group": {
+            "name": "yield",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:rate",
+      "version": "test-cyclic-v1",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "rate",
+          "operation": "replace",
+          "group": {
+            "name": "rate",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:cyclic",
+      "slot": "test:melee",
+      "cost": {
+        "resource": "test:uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "test:meter",
+      "recharge_yield_profile": "test:yield",
+      "effects": {
+        "cycle": {
+          "bundle": "test:cycle"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:cycle",
+      "rules": [
+        {
+          "id": "passive",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "test:meter",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "test:yield",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "yield"
+            },
+            {
+              "type": "chorus:complete_recharge",
+              "progress": "test:meter",
+              "resource": "test:uses",
+              "amount": {
+                "type": "chorus:result",
+                "binding": "yield",
+                "field": "value"
+              }
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:rate",
+          "stage": "rate",
+          "group": "rate",
+          "op": "replace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "test:uses",
+              "field": "missing"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "stacking_key": "test:rate",
+          "reference": "Synthetic one-second cycle for server tick acceptance",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:yield_override",
+      "parameters": {
+        "amount": "charge_fraction"
+      },
+      "modifiers": [
+        {
+          "id": "yield",
+          "profile": "test:yield",
+          "stage": "yield",
+          "group": "yield",
+          "op": "replace",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "amount"
+          },
+          "stacking_key": "test:yield",
+          "reference": "Synthetic configurable cycle yield",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:input",
+      "rules": [
+        {
+          "id": "fixed",
+          "on": "test:fixed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ability_energy",
+                "slot": "test:melee",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "fixed"
+              },
+              "as": "gain"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "gain",
+                "field": "cyclic"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "target": "victim",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "gain",
+                      "field": "uses_credited"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  },
+                  "tags": [
+                    "test:packet"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:base",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:grant_ability_energy",
+                "slot": "test:melee",
+                "target": "victim",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "base"
+              },
+              "as": "gain"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "gain",
+                "field": "cyclic"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "target": "victim",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "gain",
+                      "field": "uses_credited"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  },
+                  "tags": [
+                    "test:packet"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "on": "chorus:recharge_completed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "uses_credited",
+                  "unit": "charge_fraction"
+                },
+                "factor": 1,
+                "from": "charge_fraction",
+                "to": "damage"
+              },
+              "tags": [
+                "test:completed"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

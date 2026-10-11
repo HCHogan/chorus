@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Source research and cyclic-energy engine prerequisite; actual Gambler ability is not implemented by this record",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+    "path": "data/d2-research/2026-10-11/gamblers-dodge-source.html.gz",
+    "html_sha256": "f7619eaf55728b6fd9d11cbebf3181805f9c24ac47f466853655d1b0ea5282aa",
+    "gzip_sha256": "b454efc53763f6888e21086c5095dc6e14793d94c0c1959d727a9d6963c65836"
+  },
+  "cells": [
+    {
+      "original_cell": "B7",
+      "snapshot_cell": "B5",
+      "snapshot_text_sha256": "a96b4a7e6326309f34f702bcbf067b2fc929b625f5f7fbfa75191eea328f5159",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D7",
+      "snapshot_cell": "D5",
+      "snapshot_text_sha256": "0c9bf57887309481aa7fb15db8dd09ac4f3f47877062a27ff0214153b4c06fd5",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N7",
+      "snapshot_cell": "N5",
+      "snapshot_text_sha256": "621a528dd763b2f8ae83e9de5b587f4fba5c46207566ce412e3902f83c2439fa",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "known": {
+    "melee_stat_cap": 100,
+    "pve_energy_per_stat": 0.01,
+    "pvp_energy_per_stat": 0.0035,
+    "near_enemy_radius_m": 15,
+    "near_enemy_multiplier": 2,
+    "base_cooldown_seconds": 56,
+    "chunk_scalar": 0.8,
+    "melee_return_basis": "fixed; no recipient chunk or additional stat scalar"
+  },
+  "primary_sources": [
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron",
+      "finding": "100 Melee with a nearby enemy restores two charges for multi-charge abilities; 50 Melee near an enemy restores one."
+    },
+    {
+      "url": "https://static01.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "excerpt": "In PvP only, reduced melee energy gain from 50% to 35%."
+    }
+  ],
+  "engine_requirement": "One instantaneous energy packet can complete multiple cycles, preserving the next partial meter and discarding only the remainder after usable capacity fills. Pure core must not cap every incoming packet to one progress bar.",
+  "unresolved": [
+    "Actual dodge displacement, animation duration and energy-return frame require calibration.",
+    "Proximity origin/anchor, visibility, sampling time, mixed-mode enemy eligibility and selection changes during the dodge require original-game verification.",
+    "Dodge tracking/aim-assist removal, enhanced Class-stat shield, full Class passive/chunk curves, Aspect conversions, equipment combinations and production assembly remain incomplete."
+  ]
+}

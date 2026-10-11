@@ -6,17 +6,24 @@ import java.util.*;
 /** Instant action kind. The chosen definition and numeric parameters are pinned at acceptance. */
 public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
         Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
-        Optional<String> rechargeResource) {
+        Optional<String> rechargeResource, Optional<String> rechargeYieldProfile) {
     /** Only the final resolved definition chooses the payment policy; BASE_SELECTION reads its original selection's declared cost. */
     public enum CostFrom { DEFINITION, BASE_SELECTION }
     public AbilityDefinition {
         id(id); id(slot); Objects.requireNonNull(cost); Objects.requireNonNull(condition); Objects.requireNonNull(costFrom);
         Objects.requireNonNull(rechargeResource); rechargeResource.ifPresent(AbilityDefinition::id);
+        Objects.requireNonNull(rechargeYieldProfile); rechargeYieldProfile.ifPresent(AbilityDefinition::id);
         if (rechargeResource.isPresent() && cost.isEmpty()) throw new IllegalArgumentException("An explicit recharge resource requires a declared cost account");
+        if (rechargeYieldProfile.isPresent() && rechargeResource.isEmpty()) throw new IllegalArgumentException("Cyclic recharge requires an explicit progress resource");
         tags = Set.copyOf(tags); tags.forEach(AbilityDefinition::id);
         parameters = Collections.unmodifiableMap(new TreeMap<>(parameters)); parameters.keySet().forEach(com.imdomestic.chorus.effect.EffectTimers::localName);
         onUse = List.copyOf(onUse);
         effects = com.imdomestic.chorus.effect.EffectParameters.copy(effects);
+    }
+    public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
+            Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
+            Optional<String> rechargeResource) {
+        this(id, slot, cost, condition, tags, parameters, onUse, effects, costFrom, rechargeResource, Optional.empty());
     }
     public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
             Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom) {

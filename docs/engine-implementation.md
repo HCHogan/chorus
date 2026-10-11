@@ -6,11 +6,17 @@
 
 ## 当前证据
 
+最新门禁 `/tmp/chorus-cyclic-gate-2.log` BUILD SUCCESSFUL，1 分 17 秒：1212 项 JUnit、Fabric 566 项、NeoForge 576 项及两端发布 jar 通过，共享 Chorus 场景为 565 项。新增 12 项 CyclicRechargeTest、4 项共享回能世界场景及下述投射物边界场景。10 项 Compendium 审计、报告一致性、原表归档 / 三组单元格哈希与差异检查通过；发布包包含通用回能实现，不含效果夹具或 GameTest。此阶段没有客户端行为改动或新增图形验收。
+
+通用多周期回能通过技能的可选 recharge_yield_profile 启用：一次输入在同一次状态迁移中更新可用次数与下一轮进度，接收者缩放只执行一次；周期收益只在足够完成时查询，并对本次全部周期固定。没有进度达到 1 的中间事实，完成反应使用一次聚合 recharge_completed。纯核心覆盖小数 / 大能量、联动收益、溢出、当前持有者、重复来源、未知查询、原子失败与编解码；两端世界场景验证两次实际施放、继续自然恢复、实际治疗看到最终余额和未知结果不回滚 / 重放。
+
+该能力来自 Gambler's Dodge 在多充能近战上的需求，来源见 [研究记录](../data/d2-research/2026-10-11/gamblers-dodge.json)。此阶段只完成通用前置能力，尚未新增真实闪身定义，也未将现有 Lightweight Knife 选择配置接入该字段。Compendium 仍为 74 条审阅：60 partial、12 unimplemented、2 not_applicable、0 verified。技能位移 / 回能时点、正式职业属性曲线、追踪移除、生产装配、HUD 和持久化继续保留为缺口。
+
 投射物补充回归发现：整步终点进入不可模拟区块时，旧路径检查会提前放弃边界前的有效命中。路径现在返回首个障碍 / 不可用边界及可用性证据，先结算可用路段中的实体接触，实际墙面仍执行方块动作；只有继续飞行到不可用边界才结束为 unloaded。拾取物吸引的调用点同步适配，仍不跨越未知路段。新增共享场景在真实模拟边界验证实体命中、无目标终止位置和更近墙面的先后关系。
 
-该场景修复前在 `/tmp/chorus-boundary-before.log` 稳定失败，修复后定向运行通过；完整集成回归 `/tmp/chorus-cyclic-gate-2.log` 亦通过。此日志同时包含下一阶段的多周期回能工作，边界修复与回能功能分别提交，不把测试总数当作本修复新增的效果覆盖。
+该场景修复前在 `/tmp/chorus-boundary-before.log` 稳定失败，修复后定向运行通过；完整集成回归 `/tmp/chorus-cyclic-gate-2.log` 亦通过。此日志同时包含同批的多周期回能工作，边界修复与回能功能分别提交，不把测试总数当作本修复新增的效果覆盖。
 
-最新门禁 `/tmp/chorus-lightweight-gate-4.log` BUILD SUCCESSFUL，5 分 48 秒：1200 项 JUnit、Fabric 561 项、NeoForge 571 项及两端发布 jar 通过，共享 Chorus 场景为 560 项。新增 10 项 LightweightKnifeTest、3 项 ProjectileGeometryTest、7 项轻量飞刀世界场景和 3 项投射物生命周期世界场景。10 项 Compendium 审计、报告一致性及来源归档哈希通过；发布包不含效果夹具 / GameTest。本轮没有新增图形客户端验收。
+上一阶段门禁 `/tmp/chorus-lightweight-gate-4.log` BUILD SUCCESSFUL，5 分 48 秒：1200 项 JUnit、Fabric 561 项、NeoForge 571 项及两端发布 jar 通过，共享 Chorus 场景为 560 项。新增 10 项 LightweightKnifeTest、3 项 ProjectileGeometryTest、7 项轻量飞刀世界场景和 3 项投射物生命周期世界场景。10 项 Compendium 审计、报告一致性及来源归档哈希通过；发布包不含效果夹具 / GameTest。本轮没有新增图形客户端验收。
 
 Lightweight Knife 新增 partial 内容：40米/秒实体飞刀、两次充能、145.2秒基础周期、0.8 CES、408 / 100 基础伤害、1.5精准倍率与成功精准命中后的十秒 Radiant。实际飞刀击杀连接 Ophidia Spathe，下一刀读取当前增伤层数；固有第二次充能与金装扩容取高。依赖的物理参数、目标精准区域和 PvP 金装参数仍要求显式校准，不能把合成夹具当作完整生产装配。审阅为74条：60 partial、12 unimplemented、2 not_applicable、0 verified，详见 [D2 内容与缺口](d2-ruleset.md#lightweight-knife-的物理飞行与精准命中)。
 

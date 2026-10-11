@@ -1,6 +1,7 @@
 package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.*;
+import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
@@ -11,12 +12,36 @@ public final class EnergyActions {
     public record RecipientScaling(double base, double value, Optional<CalculationProfile.Result> calculation) {
         public RecipientScaling { Numbers.nonnegative(base, "base gain scalar"); Numbers.nonnegative(value, "effective gain scalar"); Objects.requireNonNull(calculation); }
     }
+    public record Scaling(EnergyGains.Normalized normalized, Optional<RecipientScaling> recipient,
+            Optional<CalculationProfile.Result> calculation, double scaled) {}
+    public sealed interface Gain extends RuleEngine.ActionResult permits Result, CyclicResult {
+        EnergyGains.Normalized normalized(); Optional<RecipientScaling> recipient(); Optional<CalculationProfile.Result> calculation();
+        double scaled(); double credited(); double overflow(); double after();
+    }
     public record Result(EnergyGains.Normalized normalized, Optional<RecipientScaling> recipient, Optional<CalculationProfile.Result> calculation,
-            ResourceResult grant) implements RuleEngine.ActionResult {}
+            ResourceResult grant) implements Gain {
+        @Override public double scaled() { return grant.scaled(); }
+        @Override public double credited() { return grant.credited(); }
+        @Override public double overflow() { return grant.overflow(); }
+        @Override public double after() { return grant.after().value(); }
+    }
+    public record CyclicResult(Scaling scaling, CyclicRecharge.Result recharge, Optional<CalculationProfile.Result> yieldCalculation) implements Gain {
+        public double observedYield() { return yieldCalculation.orElseThrow(() -> new IllegalArgumentException("Partial packet did not query a cycle yield")).output().value(); }
+        @Override public EnergyGains.Normalized normalized() { return scaling.normalized(); }
+        @Override public Optional<RecipientScaling> recipient() { return scaling.recipient(); }
+        @Override public Optional<CalculationProfile.Result> calculation() { return scaling.calculation(); }
+        @Override public double scaled() { return scaling.scaled(); }
+        @Override public double credited() { return recharge.credited(); }
+        @Override public double overflow() { return recharge.overflow(); }
+        @Override public double after() { return recharge.progressAfter().value(); }
+    }
     public enum AbilityOutcome { GRANTED, NO_SELECTION, NO_RESOURCE, ALREADY_FULL }
     public record AbilityResult(String holder, String slot, Optional<String> ability, AbilityOutcome outcome,
-            Optional<Result> gain) implements RuleEngine.ActionResult {
-        public Result granted() { return gain.orElseThrow(() -> new IllegalArgumentException("No ability energy grant: " + outcome)); }
+            Optional<Gain> gain) implements RuleEngine.ActionResult {
+        public Gain received() { return gain.orElseThrow(() -> new IllegalArgumentException("No ability energy grant: " + outcome)); }
+        /** Legacy single-account receipt; cyclic grants expose their two-account result explicitly. */
+        public Result granted() { if (received() instanceof Result result) return result; throw new IllegalArgumentException("Cyclic energy has a two-account receipt"); }
+        public CyclicResult cyclic() { if (received() instanceof CyclicResult result) return result; throw new IllegalArgumentException("Not a cyclic energy grant"); }
     }
     /** Immutable observation of the selected base skill's usable energy and recharge destination. */
     public record AbilityObservation(String holder, String slot, Optional<String> ability,
@@ -84,18 +109,24 @@ public final class EnergyActions {
         numbers.values().forEach(value -> value.unit(v));
     }
     private static final ResultShape GAIN = new ResultShape(Map.of(
-            "requested", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().requested()),
-            "normalized", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).normalized().base()),
-            "recipient_scalar", new ResultShape.Field(Unit.MULTIPLIER, r -> ((Result) r).recipient().orElseThrow(() -> new IllegalArgumentException("Fixed gains have no recipient scaling")).value()),
-            "scaled", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().scaled()),
-            "credited", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().credited()),
-            "overflow", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().overflow()),
-            "after", new ResultShape.Field(Unit.CHARGE, r -> ((Result) r).grant().after().value())));
+            "requested", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).normalized().requested()),
+            "normalized", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).normalized().base()),
+            "recipient_scalar", new ResultShape.Field(Unit.MULTIPLIER, r -> ((Gain) r).recipient().orElseThrow(() -> new IllegalArgumentException("Fixed gains have no recipient scaling")).value()),
+            "scaled", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).scaled()),
+            "credited", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).credited()),
+            "overflow", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).overflow()),
+            "after", new ResultShape.Field(Unit.CHARGE, r -> ((Gain) r).after())));
     private static final ResultShape ABILITY_GAIN;
     static {
         var fields = new HashMap<String, ResultShape.Field>();
-        GAIN.fields().forEach((name, field) -> fields.put(name, new ResultShape.Field(field.unit(), r -> field.read().applyAsDouble(((AbilityResult) r).granted()))));
+        GAIN.fields().forEach((name, field) -> fields.put(name, new ResultShape.Field(field.unit(), r -> field.read().applyAsDouble(((AbilityResult) r).received()))));
+        fields.put("cycles", new ResultShape.Field(Unit.COUNT, r -> ((AbilityResult) r).cyclic().recharge().cycles()));
+        fields.put("uses_credited", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityResult) r).cyclic().recharge().uses().credited()));
+        fields.put("uses_after", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityResult) r).cyclic().recharge().uses().after().value()));
+        fields.put("yield", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityResult) r).cyclic().observedYield()));
         ABILITY_GAIN = new ResultShape(fields, Map.of(
+                "cyclic", r -> ((AbilityResult) r).gain().filter(g -> g instanceof CyclicResult).isPresent(),
+                "yield_observed", r -> ((AbilityResult) r).gain().filter(g -> g instanceof CyclicResult c && c.yieldCalculation().isPresent()).isPresent(),
                 "granted", r -> ((AbilityResult) r).outcome() == AbilityOutcome.GRANTED,
                 "no_selection", r -> ((AbilityResult) r).outcome() == AbilityOutcome.NO_SELECTION,
                 "no_resource", r -> ((AbilityResult) r).outcome() == AbilityOutcome.NO_RESOURCE,
@@ -122,9 +153,32 @@ public final class EnergyActions {
             // Direct resource grants remain explicit content operations; legacy single-account grants keep their receipts.
             if (observed.separateRecharge() && observed.observed().value() == observed.observed().capacity())
                 return new RuleEngine.Local<>(e.state(), new AbilityResult(holder, slot, ability, AbilityOutcome.ALREADY_FULL, Optional.empty()), List.of());
+            var definition = e.program().orElseThrow().selectedAbility(e.state(), holder, slot).orElseThrow();
+            if (definition.rechargeYieldProfile().isPresent()) {
+                var scaling = scale(e, observed.rechargeObserved().key().resource(), target, amount, basis, referenceFactors, tags, numbers);
+                Optional<CalculationProfile.Result> yield = Optional.empty();
+                var query = ResourceFacts.change(observed.rechargeObserved(), observed.rechargeObserved(), e.origin(), "grant");
+                if (CyclicRecharge.completes(observed.rechargeObserved(), scaling.scaled()))
+                    yield = Optional.of(e.program().orElseThrow().calculate(e.state(), holder, query, definition.rechargeYieldProfile().orElseThrow(), new Measure(1, Unit.CHARGE), List.of()));
+                yield.ifPresent(r -> Validation.same(r.output().unit(), Unit.CHARGE));
+                var recharge = CyclicRecharge.grant(observed.rechargeObserved(), observed.observed(), scaling.scaled(), yield.map(r -> r.output().value()).orElse(0.0));
+                var receipt = new CyclicResult(scaling, recharge, yield);
+                var after = e.state().withResource(recharge.progressAfter()).withResource(recharge.uses().after());
+                var fact = cyclicFact(receipt, e.origin());
+                var signals = new ArrayList<RuleEngine.Signal>();
+                signals.add(new RuleEngine.Signal("chorus:resource_granted", fact));
+                if (recharge.progressBefore().value() != recharge.progressAfter().value()) signals.add(new RuleEngine.Signal("chorus:resource_changed", fact));
+                if (recharge.cycles() > 0) {
+                    signals.add(new RuleEngine.Signal("chorus:recharge_completed", fact));
+                    var uses = ResourceFacts.granted(recharge.uses(), e.origin(), "cyclic_recharge");
+                    signals.add(new RuleEngine.Signal("chorus:resource_granted", uses));
+                    if (recharge.uses().credited() > 0) signals.add(new RuleEngine.Signal("chorus:resource_changed", uses));
+                }
+                return new RuleEngine.Local<>(after, new AbilityResult(holder, slot, ability, AbilityOutcome.GRANTED, Optional.of(receipt)), signals);
+            }
             var result = (RuleEngine.Local<EffectState>) new Grant(observed.rechargeObserved().key().resource(), target, amount, basis, referenceFactors, tags, numbers).execute(e);
             return new RuleEngine.Local<>(result.state(), new AbilityResult(holder, slot, ability, AbilityOutcome.GRANTED,
-                    Optional.of((Result) result.result())), result.emitted());
+                    Optional.of((Gain) result.result())), result.emitted());
         }
     }
     public record Grant(String resource, Evaluation.Target target, Value amount, EnergyGains.Basis basis,
@@ -146,37 +200,61 @@ public final class EnergyActions {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var account = e.resource(resource, target);
-            var requested = amount.evaluate(e); Validation.same(requested.unit(), Unit.CHARGE);
-            var factors = new TreeMap<String, Double>();
-            referenceFactors.forEach((name, value) -> {
-                var factor = value.evaluate(e); Validation.same(factor.unit(), Unit.MULTIPLIER); factors.put(name, factor.value());
-            });
-            var normalized = EnergyGains.normalize(basis, requested.value(), factors);
-            Optional<CalculationProfile.Result> calculation = Optional.empty();
-            Optional<RecipientScaling> recipient = Optional.empty();
-            double scaled = normalized.base();
-            if (basis != EnergyGains.Basis.FIXED) {
-                var definition = e.resourceDefinition(resource);
-                var profile = definition.gainProfile().orElseThrow(() -> new IllegalArgumentException("Energy gain requires resource gain_profile: " + resource));
-                var context = e.timerEvent(); var measurements = new HashMap<>(context.numbers());
-                numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
-                var refs = new HashMap<>(context.references()); refs.put("resource", resource);
-                var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
-                var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, id,
-                        new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of()));
-                scalarCalculation.ifPresent(result -> Validation.same(result.output().unit(), Unit.MULTIPLIER));
-                var scalar = new RecipientScaling(definition.gainScalar(), scalarCalculation.map(result -> result.output().value()).orElse(definition.gainScalar()), scalarCalculation);
-                recipient = Optional.of(scalar);
-                var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
-                        new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of());
-                Validation.same(result.output().unit(), Unit.CHARGE);
-                calculation = Optional.of(result); scaled = result.output().value();
-            }
-            var grant = Resources.grant(account, requested.value(), scaled);
+            var scaling = scale(e, resource, target, amount, basis, referenceFactors, tags, numbers);
+            var normalized = scaling.normalized(); var recipient = scaling.recipient(); var calculation = scaling.calculation();
+            var grant = Resources.grant(account, normalized.requested(), scaling.scaled());
             var payload = new Action.ResourceGranted(grant, e.origin());
             var signals = new ArrayList<RuleEngine.Signal>(); signals.add(new RuleEngine.Signal("chorus:resource_granted", payload));
             if (grant.after().value() != account.value()) signals.add(new RuleEngine.Signal("chorus:resource_changed", payload));
             return new RuleEngine.Local<>(e.state().withResource(grant.after()), new Result(normalized, recipient, calculation, grant), signals);
         }
     }
+    private static Scaling scale(Evaluation e, String resource, Evaluation.Target target, Value amount, EnergyGains.Basis basis,
+            Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers) {
+        var account = e.resource(resource, target);
+        var requested = amount.evaluate(e); Validation.same(requested.unit(), Unit.CHARGE);
+        var factors = new TreeMap<String, Double>();
+        referenceFactors.forEach((name, value) -> {
+            var factor = value.evaluate(e); Validation.same(factor.unit(), Unit.MULTIPLIER); factors.put(name, factor.value());
+        });
+        var normalized = EnergyGains.normalize(basis, requested.value(), factors);
+        Optional<CalculationProfile.Result> calculation = Optional.empty();
+        Optional<RecipientScaling> recipient = Optional.empty();
+        double scaled = normalized.base();
+        if (basis != EnergyGains.Basis.FIXED) {
+            var definition = e.resourceDefinition(resource);
+            var profile = definition.gainProfile().orElseThrow(() -> new IllegalArgumentException("Energy gain requires resource gain_profile: " + resource));
+            var context = e.timerEvent(); var measurements = new HashMap<>(context.numbers());
+            numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
+            var refs = new HashMap<>(context.references()); refs.put("resource", resource);
+            var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
+            var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, id,
+                    new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of()));
+            scalarCalculation.ifPresent(result -> Validation.same(result.output().unit(), Unit.MULTIPLIER));
+            var scalar = new RecipientScaling(definition.gainScalar(), scalarCalculation.map(result -> result.output().value()).orElse(definition.gainScalar()), scalarCalculation);
+            recipient = Optional.of(scalar);
+            var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
+                    new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of());
+            Validation.same(result.output().unit(), Unit.CHARGE);
+            calculation = Optional.of(result); scaled = result.output().value();
+        }
+        Numbers.nonnegative(scaled, "scaled recharge energy");
+        return new Scaling(normalized, recipient, calculation, scaled);
+    }
+    private static EffectEvent cyclicFact(CyclicResult result, BuffInstance.Origin origin) {
+        var r = result.recharge(); var base = ResourceFacts.change(r.progressBefore(), r.progressAfter(), origin, "cyclic_recharge");
+        var numbers = new HashMap<>(base.numbers());
+        numbers.put("requested", new Measure(result.normalized().requested(), Unit.CHARGE));
+        numbers.put("scaled", new Measure(result.scaled(), Unit.CHARGE));
+        numbers.put("credited", new Measure(r.credited(), Unit.CHARGE));
+        numbers.put("overflow", new Measure(r.overflow(), Unit.CHARGE));
+        numbers.put("cycles", new Measure(r.cycles(), Unit.COUNT));
+        if (result.yieldCalculation().isPresent()) numbers.put("yield", new Measure(result.observedYield(), Unit.CHARGE));
+        numbers.put("uses_credited", new Measure(r.uses().credited(), Unit.CHARGE));
+        numbers.put("uses_after", new Measure(r.uses().after().value(), Unit.CHARGE));
+        var refs = new HashMap<>(base.references()); refs.put("uses_resource", r.uses().after().key().resource());
+        var flags = new HashMap<>(base.flags()); flags.put("yield_observed", result.yieldCalculation().isPresent());
+        return new EffectEvent(base.actor(), base.victim(), origin, base.tags(), numbers, flags, refs);
+    }
+
 }

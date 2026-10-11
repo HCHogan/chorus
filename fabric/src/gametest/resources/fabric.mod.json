@@ -127,7 +127,8 @@
       "com.imdomestic.chorus.OphidiaSpatheGameTest",
       "com.imdomestic.chorus.LightweightKnifeGameTest",
       "com.imdomestic.chorus.IcarusDashGameTest",
-      "com.imdomestic.chorus.IcarusCureGameTest"
+      "com.imdomestic.chorus.IcarusCureGameTest",
+      "com.imdomestic.chorus.CyclicRechargeGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

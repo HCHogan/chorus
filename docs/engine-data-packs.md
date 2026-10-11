@@ -628,7 +628,7 @@ progress 必须声明为固定容量 1，禁止 resizable；两账户必须已�
  "recharge_resource":"example:melee_cycle","on_use":[]}
 ```
 
-recharge_resource 必须引用目录中已声明的资源，并要求技能自身声明 cost；不能只靠 cost_from:base_selection 补造基础选择的回能含义。两者可以指向相同资源，这时沿用旧行为。指向不同账户时，按槽收益进入进度，可用次数只由相应完成规则恢复。首次选择初始化该槽候选技能涉及的扣费和回充账户，重新选择只校验已有状态，不重置余额或进度。周期规则可通过选择期 effects 自动装卸，暂停 / 恢复率仍由内容声明。
+recharge_resource 必须引用目录中已声明的资源，并要求技能自身声明 cost；不能只靠 cost_from:base_selection 补造基础选择的回能含义。两者可以指向相同资源，这时沿用旧行为。指向不同账户时，默认按槽收益进入进度、由相应完成规则恢复可用次数；显式 recharge_yield_profile 可启用下述单次回能跨多周期的结算。首次选择初始化该槽候选技能涉及的扣费和回充账户，重新选择只校验已有状态，不重置余额或进度。周期规则可通过选择期 effects 自动装卸，暂停 / 恢复率仍由内容声明。
 
 未选择该槽时返回 no_selection，已选技能未声明 cost 时返回 no_resource，两者均不求值 amount、不写状态、不发资源事实。声明 cost 且 amount 为零仍有资源账户，不等同于未声明 cost。缺失已选定义、未初始化账户、无 gain_profile 的普通收益等属于配置错误，求值失败，不能伪装成不符合资格。
 
@@ -646,6 +646,34 @@ recharge_resource 必须引用目录中已声明的资源，并要求技能自�
 发射后换技能时，以击杀收益执行时的选择为准。选择变化不会把旧池能量转移到新池，也不会自动重配共享池的容量 / CES；内容可以让同槽技能支付同一资源，并以选择期 effects 提供恢复率和收益系数，D2 手雷片段现采用这一方式。无选中技能时的跳过、基础技能归属和当前时点路由都是显式宿主政策，不能据此宣称已校准全部原作换装行为。独立账户的合成候选示例见 [ability_energy_targets.json](../common/src/test/resources/effects/ability_energy_targets.json)。
 
 [demolitionist.json](../common/src/test/resources/effects/demolitionist.json) 进一步组合两个独立分支：weapon_kill 使用 grant_ability_energy 指向 grenade 槽；已接受的 ability_started 用 grenade_ability、weapon_drawn 和无冷却条件筛选，再执行 refill_magazine。只有结果 applied > 0 才授予 3 秒冷却，不从请求量推测实际补弹。底层不发布 reload_finished，冷却也不限制另一条击杀回能规则。技能原型、数据基准及待校准政策见 [Demolitionist](d2-ruleset.md#demolitionist)。
+
+### 一次回能跨越多个充能周期
+
+技能可显式声明 `recharge_yield_profile`，使 grant_ability_energy 在一次状态迁移内将整笔能量转换为可用次数及下一轮进度，避免先写入容量为 1 的进度账户而丢掉第二轮能量：
+
+```json
+{"id":"example:cyclic_melee","slot":"example:melee",
+ "cost":{"resource":"example:melee_uses","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+ "recharge_resource":"example:melee_cycle",
+ "recharge_yield_profile":"example:cycle_yield","on_use":[]}
+```
+
+该字段要求独立的 recharge_resource：固定容量 1、禁止 resizable、与 cost.resource 身份不同；Profile 的输入 / 输出均须为 charge_fraction，缺失或不兼容在链接时拒绝。没有此字段的已有技能、直接 grant_energy / grant_resource、自然恢复和 complete_recharge 保持原协议，不自动迁移内容定义。自然周期仍由内容明确完成，若要与外部回能共享收益政策，应查询同一 Profile。
+
+整笔请求先归一化，再应用一次接收者系数和收益 Profile；fixed 跳过这两项缩放，但仍使用周期收益政策。仅当原进度加缩放后能量达到 1 时，以 1 charge_fraction 为输入查询一次 recharge_yield_profile：持有者为接收者，状态为入账前状态，事件为该进度账户 before=after 的资源事实，reason=grant，origin 保留动作来源。结果表示每个完整周期恢复的可用次数，本次所有周期共用该结果；中间不发布可触发换装或修改收益的事件。负数或非有限收益在两个账户写入前失败；零收益仍消耗完整周期，小数收益允许保存但不保证能支付技能。
+
+例如原进度 0.7、收到 1.8、每轮恢复一次且容量足够，结果为两次可用充能和 0.5 进度。可用次数达到当前容量时清零进度，剩余输入才算能量 overflow；一次周期产生的次数超过缺口时，超额次数另记录在 Java 的 uses 回执中。核心用十进制算术直接求周期数，没有逐周期循环，也没有人为限制能量或游戏反应次数。两个账户在同一次 Local 中提交，后续规则和世界动作只能看到最终状态；未知世界结果不回滚、不重放已确认收益。
+
+granted 回执新增 cyclic 和 yield_observed 标志。cyclic 时额外提供 cycles（count）、uses_credited / uses_after / yield（charge_fraction）。不够完成一轮时 yield_observed=false，yield 缺席且读取报错，不能把未查询当成零收益。原有 credited 表示实际接受的整笔输入能量，包含已转换成次数的部分；after 表示最终进度，不是可用次数。Java 用 received() 读取共同收益、cyclic() 读取双账户回执；旧 granted() 只适用于原单账户回执。
+
+事实按以下顺序发布，均观察已提交的最终状态：
+
+1. 进度账户 resource_granted；只有净进度变化才发 resource_changed。reason=cyclic_recharge，保留 before / after / delta / capacity，追加 requested / scaled / credited / overflow / cycles / uses_credited / uses_after，以及 yield_observed 和仅在已查询时存在的 yield；uses_resource 引用可用账户。
+2. 有完整周期时发布一次聚合 `chorus:recharge_completed`，携带同一进度事实，然后发布可用账户的 resource_granted，实际补入大于零时再发其 resource_changed。
+
+不会逐轮发布进度达到 1 的中间事实，因此原有阈值完成规则不会再次消费本次周期；需要对外部回能完成周期做反应的内容应读取聚合事实的 cycles / uses_credited，而非猜测一次事件只完成一轮。已满可用账户仍返回 already_full，不查询 amount 或收益 Profile。
+
+[cyclic_recharge.json](../common/src/test/resources/effects/cyclic_recharge.json) 是合成验收：容量 3、一秒自然周期、0.5 接收系数和治疗观察不代表任何 D2 技能。纯核心与两加载器验证一次恢复两次实际施放、保留下一轮进度并继续自然恢复、当前持有者收益、重复完成来源、完整入账后观察、容量溢出与未知世界结果。此接口已实现，实际 Gambler's Dodge 及现有飞刀定义的选择装配另行接入。
 
 ### 观察当前技能槽能量
 

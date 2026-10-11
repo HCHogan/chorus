@@ -701,8 +701,9 @@ public final class EffectCodecs {
                 Codec.unboundedMap(Codec.STRING, parameter).optionalFieldOf("parameters", Map.of()).forGetter(AbilityDefinition::parameters), step.listOf().fieldOf("on_use").forGetter(AbilityDefinition::onUse),
                 Codec.unboundedMap(Codec.STRING, abilityEffect).optionalFieldOf("effects", Map.of()).forGetter(AbilityDefinition::effects),
                 enumeration(AbilityDefinition.CostFrom.class).optionalFieldOf("cost_from", AbilityDefinition.CostFrom.DEFINITION).forGetter(AbilityDefinition::costFrom),
-                ID.optionalFieldOf("recharge_resource").forGetter(AbilityDefinition::rechargeResource)
-        ).apply(i, AbilityDefinition::new)), Set.of("id", "slot", "cost", "if", "tags", "parameters", "on_use", "effects", "cost_from", "recharge_resource"));
+                ID.optionalFieldOf("recharge_resource").forGetter(AbilityDefinition::rechargeResource),
+                ID.optionalFieldOf("recharge_yield_profile").forGetter(AbilityDefinition::rechargeYieldProfile)
+        ).apply(i, AbilityDefinition::new)), Set.of("id", "slot", "cost", "if", "tags", "parameters", "on_use", "effects", "cost_from", "recharge_resource", "recharge_yield_profile"));
         Codec<AmmoState.Reserve> weaponReserve = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.INT.fieldOf("rounds").forGetter(AmmoState.Reserve::rounds), Codec.INT.fieldOf("capacity").forGetter(AmmoState.Reserve::capacity)
         ).apply(i, AmmoState.Reserve::new)), Set.of("rounds", "capacity"));
