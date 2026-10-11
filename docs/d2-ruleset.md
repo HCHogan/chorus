@@ -1342,10 +1342,27 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 
 死亡回执的 feet 位置固定爆炸中心。来源增益在确认击杀时捕获；正 delay 保存 detached 续体，零 delay 直接执行。爆炸时重新查询非盟友，排除来源玩家和原死者，逐目标确认可用 / 存活。距离取自此次查询；全伤平台内固定1，最远边界固定0且不提交零伤害动作。内部区间经 ratio 归一化后交给必需的 chain_reaction_falloff Profile；输出不在0～1时发布未解决诊断。
 
-伤害通过独立 chain_reaction_outgoing Profile 结算，保留单一元素和 weapon_damage / weapon_kill 信用；完整的当前敌人等级缩放留在统一目标阶段。派生爆炸击杀可以再次触发，不设代数或次数上限。这里的连锁、间接信用、队友过滤、取样与卸装行为是当前内容政策，不能把它们外推为已核对全部原作组合。收枪保留触发资格；击杀前卸下 perk 不触发，已捕获的爆炸在来源卸下后仍完成。
+伤害通过独立 chain_reaction_outgoing Profile 结算，capture_tagged_damage 只继承单一元素，并显式标记 weapon_damage / explosive_perk_damage，保留 weapon_kill 信用；完整的当前敌人等级缩放留在统一目标阶段。派生爆炸击杀可以再次触发，不设代数或次数上限。这里的连锁、间接信用、队友过滤、取样与卸装行为是当前内容政策，不能把它们外推为已核对全部原作组合。收枪保留触发资格；击杀前卸下 perk 不触发，已捕获的爆炸在来源卸下后仍完成。
 
 ### 验证边界
 
 纯测试涵盖六元素、两模式、普通 / 强化、全伤 / 中点 / 零边界、诊断、Threadling排除、真实射击信用、收枪 / 替换、历史中心、冻结增益、连续12次派生击杀、死亡 / 缺失 / 免疫目标、未知世界结果不重放和排队爆炸的检查点恢复。共享世界场景通过真实玩家独立装备容器、低权限开火命令、物理击杀、实际扣血、队友过滤、尸体移除、来源替换、三代爆炸与未知伤害回执。
 
 线性内部曲线、0 / 0.1秒延迟、0.1世界伤害映射、武器容量 / 射速 / 弹道均为合成输入。完整敌人等级与活动数值、主弹药 / 异域特例、原作全部派生触发资格、剑格挡消耗、正式内容 / HUD 和实体跨重启仍未完成；覆盖保持 partial。纯会话恢复不能替代物理武器重启验证。
+
+
+## Dragonfly 的精准击杀与爆炸信用
+
+已加入独立 [dragonfly.json](../common/src/test/resources/effects/dragonfly.json)、[武器 / 弱点夹具](../common/src/test/resources/effects/dragonfly_weapon.json) 和 [显式校准](../common/src/test/resources/effects/dragonfly_test_calibration.json)。当前仍为测试内容，未加入正式武器目录。[研究记录](../data/d2-research/2026-10-11/dragonfly.json) 保留原表、公开资料及冲突。
+
+[原表 A73 / C73](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278&range=A73:C73) 与固定 A72 / C72 按空白规范化一致：精准击杀、武器元素爆炸、8米零伤害边界，以及按弹药类别分列的332 / 433 / 397等值。[9.0.0.1](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1) 已改为统一 perk 缩放；[9.1.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0) 与[官方前瞻](https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron) 将强化版旧装填收益替换为10%爆炸增伤。
+
+[light.gg 可访问研究索引](https://www.light.gg/db/items/2848615171/dragonfly/?_=714) 标注2025-12-27更新，给出 PvE 123.89 / PvP 95.3 和4.5米范围。它没有说明4.5与原表8米的关系，也没有完整衰减曲线；目前不能把它们直接拼接成“4.5米内全伤、8米到零”的已知原作规则。定义要求显式 pve_damage / pvp_damage、full_radius / radius 和 delay。测试分别采用8米与4.5米外边界、0米平台和线性内部曲线，证明两种配置均可表达，不据此解决资料冲突。原表332 / 433 / 397也只作为独立参数输入验收，不叠加旧武器原型倍率。
+
+触发要求来源持有者和武器匹配，并同时具有 weapon_kill 与 precision。测试武器发射真实投射物；目标自身声明弱点区域，接触回执中的包围盒和相对命中坐标决定使用身体或精准伤害快照。未声明区域的目标不会被猜成头部命中。弱点形状、10 / 15点身体 / 精准伤害、弹量 / 射速 / 弹道均是合成参数，完整命运2敌人弱点及护盾特例仍待装配。
+
+爆炸通过通用 capture_tagged_damage 只继承事实中的唯一元素。新攻击显式包含 weapon_damage、explosive_perk_damage 和 dragonfly_damage，kill_tags 为 weapon_kill；不继承 precision。后续爆炸击杀仍可以被其他合格武器击杀规则消费，但不能凭空触发另一次 Dragonfly；这是精确的触发资格，不是全局 proc 禁用或次数限制。[9.7.0](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0) 中对这类击杀爆炸的排除属于 Blastwave Striders 的局部条件，该异域本身尚未接入。
+
+确认击杀时捕获来源增益、活动模式和死亡回执 feet 位置；正延迟使用 detached 续体，零延迟立即结算。目标在爆炸时重新查询，排除来源玩家 / 原死者 / 队友，使用查询距离、当前存活与防御。收枪保留来源资格；击杀前卸下 perk 不触发，已经捕获的爆炸不会因稍后卸装或移除尸体而丢失。唯一元素缺失 / 冲突、死亡位置缺失和无效范围发布 dragonfly_unresolved。时序、间接信用与卸装政策仍须原作校准。
+
+八项纯内容测试覆盖六元素、两模式、普通 / 强化、身体与未分类击杀 / 非致死精准、继承边界、来源替换、显式范围与基值、冻结增益、待执行爆炸的检查点和未知结果。五项共享世界场景验证实际接触几何、原版死亡 / 扣血、队友过滤、原始中心、来源替换、派生击杀资格及未知回执不重放。完整当前数值 / 距离曲线、敌人等级 / 活动 / 弹药原型目录、精准 / 护盾 / 异域特例、正式装配、HUD和实体跨重启仍未完成，覆盖保持 partial。

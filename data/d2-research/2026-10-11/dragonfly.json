@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "effect": "Dragonfly",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "cells": [
+        {
+          "original_cell": "A73",
+          "snapshot_cell": "A72",
+          "normalized_text": "Dragonfly",
+          "snapshot_text_sha256": "8670f2333e6a938ce5f1a7fd56a9064ab2b27e293db64fb5e84e7bc5a1f6409c",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C73",
+          "snapshot_cell": "C72",
+          "normalized_text": "On Precision Kill: Target explodes, dealing Ammo-Type Based [95.3] Weapon-Matching Damage over a 8 meter radius, down to a minimum of 0% Damage at the farthest point. Primary Ammo = 332 ↑365 Special Ammo = 433 ↑477 Heavy Ammo = 397 ↑438",
+          "snapshot_text_sha256": "3609aebe26c926a1f0ac5993d2c529a85040fb603df150c47f213da2db381c78",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        }
+      ]
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "finding": "Chain Reaction、Dragonfly、Firefly 不再采用旧武器原型对战斗人员的伤害缩放，改用统一 perk 缩放。"
+    },
+    {
+      "kind": "official_patch_search_index",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0",
+      "published_at": "2025-09-09",
+      "finding": "强化 Dragonfly 移除旧 +5 装填属性，增加10%爆炸伤害。本次正文查找失败，官方搜索索引和官方前瞻均可核对。"
+    },
+    {
+      "kind": "official_preview_search_index",
+      "url": "https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron",
+      "published_at": "2025-09-03",
+      "finding": "强化 Dragonfly 的变更与9.1.0补丁一致。"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/2848615171/dragonfly/?_=714",
+      "source_last_updated": "2025-12-27",
+      "finding": "索引给出 PvE 123.89 / PvP 95.3 和4.5米范围；没有完整衰减曲线，不能据此断言4.5米是全伤半径、把它与原表8米自动拼接，也没有独立原作实测。"
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+      "published_at": "2026-06-09",
+      "finding": "Blastwave Striders 排除 Dragonfly / Firefly 这类击杀触发爆炸，仍接收 Explosive Payload 等被动爆炸；这是该异域的局部资格变化，不是全局禁止爆炸连锁。"
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/dragonfly.json",
+    "consumer": "common/src/test/resources/effects/dragonfly_weapon.json",
+    "calibration": "common/src/test/resources/effects/dragonfly_test_calibration.json",
+    "required_parameters": {
+      "pve_damage": "damage",
+      "pvp_damage": "damage",
+      "full_radius": "meter",
+      "radius": "meter",
+      "delay": "second"
+    },
+    "enhancement_multiplier": 1.1,
+    "qualification": "Owner and weapon must match; confirmed weapon_kill with precision tag. Physical test weapons select body/head snapshots through observed contact geometry and explicit target-owned weakpoint regions.",
+    "inheritance": "Whitelist copies only a single recognized element from the kill fact before snapshot modifiers evaluate. Explosion explicitly adds weapon_damage and explosive_perk_damage, retains weapon_kill, and never inherits precision.",
+    "timing": "Attack and original kill feet position are captured; positive delays are detached, zero is immediate. Removal before kill prevents proc, removal after capture does not cancel pending damage.",
+    "falloff": "Known configured plateau and zero edge; normalized interior uses required external curve profile. Tests use full_radius=0 with radius=8 or4.5 as separate explicit calibrations, not a resolved original-game curve.",
+    "world_units": "Synthetic 0.1 absolute damage conversion; 10/15 body/head hits, weakpoint geometry, weapon capacity, fire rate and trajectory are test inputs.",
+    "numeric_baseline": "Current accessible research base 123.89/95.3 is a provisional input. Tests also use original 332/433/397 to prove per-weapon parameter selection, not to claim current ammo/rank scaling."
+  },
+  "validation": {
+    "status": "passed",
+    "full_gate_log": "/tmp/chorus-dragonfly-gate.log",
+    "duration": "5m36s",
+    "unit_tests": 1400,
+    "fabric_world_tests": 707,
+    "neoforge_world_tests": 722,
+    "shared_world_scenarios": 706,
+    "targeted_logs": [
+      "/tmp/chorus-tagged-unit.log",
+      "/tmp/chorus-dragonfly-unit.log"
+    ],
+    "new_cases": "5 generic action tests, 8 Dragonfly unit tests, 5 shared Dragonfly world tests; existing Chain Reaction unit/world regression retained.",
+    "audits": "10 Compendium tool tests, original cell hashes, 76-entry report, old checkpoint record shapes unchanged, both release jars contain CaptureTaggedDamage with no test fixtures.",
+    "first_full_gate": "passed"
+  },
+  "remaining": [
+    "原表与公开研究的伤害基准、4.5/8米范围含义和真实衰减曲线未独立实测；两个范围保留为分开的显式校准。",
+    "全部弹药 / 武器 / 敌人等级及活动缩放、真实敌人弱点目录、护盾 / 异域 / 精准特例仍需校准。",
+    "收枪 / 卸装 / 延迟 / 元素采样是当前内容政策，未证明所有原作组合；精准标签必须由实际宿主正确赋予。",
+    "正式内容装配、HUD、完整状态保存及物理武器跨重启未完成。"
+  ]
+}

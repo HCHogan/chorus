@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Dragonfly 与标签选择快照的完整门禁 `/tmp/chorus-dragonfly-gate.log` BUILD SUCCESSFUL，5分36秒：1400项 JUnit（无失败 / 错误 / 跳过）、Fabric 707项、NeoForge 722项及两端发布 jar通过，共享场景为706项。新增5项通用动作纯测试、8项 Dragonfly纯测试和5项共享世界场景；当前完整门禁首次通过。10项 Compendium审计、76条报告一致性、原表与快照哈希及差异检查通过。发布包包含 CaptureTaggedDamage，未混入效果 / GameTest / 持久化夹具；没有客户端协议或图形变化。
+
+新增通用 `capture_tagged_damage`：将事实 tags 与显式白名单求交集，再合并到静态伤害标签，之后才捕获攻击修饰。来源身份、kill_tags、proc和护盾等策略仍由内部 CaptureDamage显式决定；内部对象没有type且保持严格字段检查。空交集不继承来源标签，集合合并去重，精确标签可影响on_use修饰；快照和待执行攻击均可经检查点恢复。新增独立记录类型，全部既有v1字段形状不变。
+
+Chain Reaction改用该动作合并六套重复元素动作分支，并显式标为 explosive_perk_damage；原12代连锁、元素 / 归属、衰减与世界场景保持通过。Dragonfly独立规则要求同持有者 / 同武器的 weapon_kill + precision，继承唯一元素但不继承precision。后续爆炸杀敌仍有weapon_kill信用，不能凭空形成另一精准击杀；没有增加全局连锁限制。
+
+Dragonfly纯测试覆盖六元素 × PvE/PvP × 普通/强化、身体 / 未分类 / 非致死精准、来源替换、历史中心、冻结增益、待执行爆炸的检查点、未知结果及显式基值 / 半径配置。世界测试使用真实玩家容器、低权限开火、物理弹丸接触几何与目标自身弱点区域来决定精准资格，验收真实扣血 / 死亡、队友过滤、收枪 / 卸装、移除尸体后的原中心、爆炸击杀信用以及未知回执不重放。
+
+原表8米边界与当前公开索引4.5米范围的含义尚未独立校准，不能拼接为已知平台 / 边界。公开研究123.89/95.3和原表332/433/397作为分开的显式输入，强化10%来自官方9.1.0；线性曲线、0/0.1秒延迟、0.1世界伤害映射及武器 / 弱点参数仍为合成。完整等级 / 活动 / 弹药原型、精准与护盾 / 异域特例、正式装配 / HUD和实体跨重启仍待完成。Compendium更新为76条审阅、70 partial、4 unimplemented、2 not_applicable、0 verified。[规则及来源边界](d2-ruleset.md#dragonfly-的精准击杀与爆炸信用)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Chain Reaction 的完整门禁 `/tmp/chorus-chain-gate.log` BUILD SUCCESSFUL，2分37秒：1387项 JUnit（无失败 / 错误 / 跳过）、Fabric 702项、NeoForge 717项及两端发布 jar通过，共享场景为701项。随后仅扩展纯测试的弹药类别 × 普通 / 强化矩阵，`/tmp/chorus-chain-final-unit.log` 再次完整通过1387项；之后仅压缩 JSON 排版并验证解析对象一致。10项 Compendium审计、76条报告一致性及差异检查通过。发布包包含 Ratio，未混入效果 / GameTest / 持久化夹具。
 
 通用 `chorus:ratio` 接受同单位分子 / 分母并输出 multiplier，使用规范十进制 DECIMAL128 运算；异单位、零分母和溢出明确失败。快照递归冻结来源操作数，保留每个目标的 impact / victim 表达式；新增独立检查点类型，全部既有v1字段形状不变。四项纯测试覆盖精度、单位 / 数值错误、混合来源 / impact快照和双Codec往返。

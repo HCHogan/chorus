@@ -1284,7 +1284,7 @@
           "text_sha256": "e6b0371f605b7252c4547e442fee09cf5fc3a0446f0bdaf620cb1e580b078c3e"
         }
       ],
-      "scope": "独立 JSON：同持有者 / 同武器击杀、单一伤害元素继承、强化 +10%、死亡位置快照、延迟范围衰减与持续派生击杀；显式数值校准和实际装备 / 弹丸 / 世界伤害验收",
+      "scope": "独立 JSON：同持有者 / 同武器击杀、单一伤害元素继承、强化 +10%、死亡位置快照、延迟范围衰减与持续派生击杀；显式数值校准和实际装备 / 弹丸 / 世界伤害验收；元素继承改用通用白名单快照动作，增加 explosive_perk_damage 分类，保留合法连锁",
       "acceptance": [
         "武器击杀触发与武器元素继承",
         "显式 PvE / PvP 基础值与强化 +10%；9.0.0.1 统一 perk 缩放，原表按武器原型分列的值保留为冲突资料",
@@ -1362,7 +1362,7 @@
       "name": "Dragonfly",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -1375,7 +1375,7 @@
           "text_sha256": "3609aebe26c926a1f0ac5993d2c529a85040fb603df150c47f213da2db381c78"
         }
       ],
-      "scope": "已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现",
+      "scope": "独立 JSON：同武器精准击杀、单一元素继承、强化 +10%、历史中心 / 延迟 / 显式范围曲线；实际目标弱点与物理弹丸决定精准，爆炸击杀保留武器信用但不继承精准",
       "acceptance": [
         "精准击杀触发并继承武器元素",
         "按弹药类别与强化状态选择伤害",
@@ -1395,13 +1395,42 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetSelectionGameTest.java",
           "symbol": "radialCurveChangesActualDamageUsingCapturedDistancesAfterTargetsMove"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/dragonfly.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/dragonfly_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DragonflyTest.java",
+          "symbol": "precisionGeometrySelectsSixElementsBothModesAndBothVariantsWithoutPrecisionLeakage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DragonflyTest.java",
+          "symbol": "explosionKillsKeepWeaponCreditWithoutInventingAnotherPrecisionKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DragonflyGameTest.java",
+          "symbol": "realPrecisionKillsSelectNormalAndEnhancedElementalExplosions"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DragonflyGameTest.java",
+          "symbol": "actualExplosionKillDoesNotBecomeAPrecisionKillOrTriggerAnotherDragonfly"
         }
       ],
       "gaps": [
-        "具体 perk 数据定义与精准击杀接线",
-        "完整距离曲线和基础伤害所用基准/目标缩放",
-        "武器元素与弹药类别自动装配",
-        "9.0.0.1 官方已改为统一 perk 缩放；原表旧武器原型缩放不能直接作为当前公式。见 data/d2-research/2026-10-11/chain-reaction.json。"
+        "原表与公开研究的伤害基准、4.5/8米范围含义和真实衰减曲线未独立实测；两个范围保留为分开的显式校准。",
+        "全部弹药 / 武器 / 敌人等级及活动缩放、真实敌人弱点目录、护盾 / 异域 / 精准特例仍需校准。",
+        "收枪 / 卸装 / 延迟 / 元素采样是当前内容政策，未证明所有原作组合；精准标签必须由实际宿主正确赋予。",
+        "正式内容装配、HUD、完整状态保存及物理武器跨重启未完成。",
+        "完整统一 perk 缩放未校准；测试采用123.89/95.3及原表332/433/397作为显式输入，不混算旧武器原型倍率；线性曲线、0/0.1秒延迟、0.1世界映射和具体武器 / 弱点均为合成。"
       ]
     },
     {
