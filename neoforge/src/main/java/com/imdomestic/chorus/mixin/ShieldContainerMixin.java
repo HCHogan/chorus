@@ -19,4 +19,12 @@ abstract class ShieldContainerMixin {
         if (remaining != incoming) container.setNewDamage(remaining);
         return remaining;
     }
+    /** The fourth read is the remaining HP budget, after Pre hooks and the absorption reduction. */
+    @WrapOperation(method = "actuallyHurt", at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/damagesource/DamageContainer;getNewDamage()F", ordinal = 3))
+    private float chorus$health(DamageContainer container, Operation<Float> original) {
+        float incoming = original.call(container);
+        float remaining = DamageCapture.healthDamage((LivingEntity) (Object) this, incoming);
+        if (remaining != incoming) container.setNewDamage(remaining);
+        return remaining;
+    }
 }

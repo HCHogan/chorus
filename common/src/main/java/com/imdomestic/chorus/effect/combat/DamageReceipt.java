@@ -13,7 +13,7 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
         Optional<String> protectionSource, List<ShieldDamage.LayerHit> shields,
         Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense, Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts,
         Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observedBuffs,
-        Optional<com.imdomestic.chorus.effect.target.EntityObservation> observedEntities)
+        Optional<com.imdomestic.chorus.effect.target.EntityObservation> observedEntities, Optional<CalculationProfile.Result> health)
         implements com.imdomestic.chorus.rule.RuleEngine.ActionResult {
     public enum Outcome { APPLIED, IMMUNE, BLOCKED, CANCELLED, FAILED }
 
@@ -26,8 +26,8 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
         deathId = Objects.requireNonNull(deathId);
         protectionSource = Objects.requireNonNull(protectionSource);
         shields = List.copyOf(shields);
-        outgoing = Objects.requireNonNull(outgoing); defense = Objects.requireNonNull(defense);
-        java.util.stream.Stream.concat(outgoing.stream(), defense.stream()).forEach(result -> {
+        outgoing = Objects.requireNonNull(outgoing); defense = Objects.requireNonNull(defense); health = Objects.requireNonNull(health);
+        java.util.stream.Stream.of(outgoing, defense, health).flatMap(Optional::stream).forEach(result -> {
             if (!result.output().unit().equals(Unit.DAMAGE)) throw new IllegalArgumentException("Non-damage combat trace");
             Numbers.nonnegative(result.output().value(), "damage profile output");
         });
@@ -53,13 +53,22 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
             double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
             List<ShieldDamage.LayerHit> shields, Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense,
             Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts,
+            Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observedBuffs,
+            Optional<com.imdomestic.chorus.effect.target.EntityObservation> observedEntities) {
+        this(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented, protectionSource,
+                shields, outgoing, defense, consumptionFacts, observedBuffs, observedEntities, Optional.empty());
+    }
+    public DamageReceipt(String damageId, Outcome outcome, double shieldLoss, double absorptionLoss,
+            double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
+            List<ShieldDamage.LayerHit> shields, Optional<CalculationProfile.Result> outgoing, Optional<CalculationProfile.Result> defense,
+            Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> consumptionFacts,
             Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observedBuffs) {
         this(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented, protectionSource, shields, outgoing, defense, consumptionFacts, observedBuffs, Optional.empty());
     }
     public DamageReceipt withObservedEntities(com.imdomestic.chorus.effect.target.EntityObservation observation) {
         if (observedEntities.isPresent() && !observedEntities.orElseThrow().equals(observation)) throw new IllegalArgumentException("Cannot replace a receipt's entity observation");
         return new DamageReceipt(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented,
-                protectionSource, shields, outgoing, defense, consumptionFacts, observedBuffs, Optional.of(observation));
+                protectionSource, shields, outgoing, defense, consumptionFacts, observedBuffs, Optional.of(observation), health);
     }
     public DamageReceipt(String damageId, Outcome outcome, double shieldLoss, double absorptionLoss,
             double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
@@ -70,7 +79,7 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
     public DamageReceipt withObservedBuffs(com.imdomestic.chorus.effect.buff.BuffObservation observation) {
         if (observedBuffs.isPresent() && !observedBuffs.orElseThrow().equals(observation)) throw new IllegalArgumentException("Cannot replace a receipt's buff observation");
         return new DamageReceipt(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented,
-                protectionSource, shields, outgoing, defense, consumptionFacts, Optional.of(observation), observedEntities);
+                protectionSource, shields, outgoing, defense, consumptionFacts, Optional.of(observation), observedEntities, health);
     }
     public DamageReceipt(String damageId, Outcome outcome, double shieldLoss, double absorptionLoss,
             double healthLoss, Optional<String> deathId, boolean deathPrevented, Optional<String> protectionSource,
@@ -97,7 +106,7 @@ public record DamageReceipt(String damageId, Outcome outcome, double shieldLoss,
     public boolean consumptionSettled() { return consumptionFacts.isPresent(); }
     public DamageReceipt withConsumptionFacts(List<com.imdomestic.chorus.rule.RuleEngine.Signal> facts) {
         return new DamageReceipt(damageId, outcome, shieldLoss, absorptionLoss, healthLoss, deathId, deathPrevented,
-                protectionSource, shields, outgoing, defense, Optional.of(facts), observedBuffs, observedEntities);
+                protectionSource, shields, outgoing, defense, Optional.of(facts), observedBuffs, observedEntities, health);
     }
     public boolean lethal() { return deathId.isPresent(); }
     public double effective(boolean includeAbsorption) {

@@ -803,8 +803,9 @@ public final class EffectCodecs {
                 com.imdomestic.chorus.effect.equipment.EquipmentCodecs.SCHEMA.optionalFieldOf("equipment", com.imdomestic.chorus.effect.equipment.EquipmentSchema.EMPTY).forGetter(EffectProgram::equipment),
                 ability.listOf().optionalFieldOf("abilities", List.of()).forGetter(EffectProgram::abilities),
                 weapon.listOf().optionalFieldOf("weapons", List.of()).forGetter(EffectProgram::weapons),
-                nativeAttribute.listOf().optionalFieldOf("native_attributes", List.of()).forGetter(EffectProgram::nativeAttributes)
-        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities", "weapons", "native_attributes"));
+                nativeAttribute.listOf().optionalFieldOf("native_attributes", List.of()).forGetter(EffectProgram::nativeAttributes),
+                ID.optionalFieldOf("health_profile").forGetter(EffectProgram::healthProfile)
+        ).apply(i, EffectProgram::new)), Set.of("version", "buffs", "bundles", "profiles", "defense_profile", "resources", "equipment", "abilities", "weapons", "native_attributes", "health_profile"));
     }
     public static final Codec<EffectProgram> PROGRAM = program(VALUE, CONDITION, ACTION, StatCodecs.PROFILE);
     public static Codec<CompiledEffects> compiled(Codec<EffectProgram> program) {

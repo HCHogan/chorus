@@ -287,7 +287,7 @@ CompiledEffects program = CompiledEffects.link(List.of(jolt, voltshot));
 JsonElement flattened = EffectCodecs.COMPILED.encodeStart(JsonOps.INSTANCE, program).getOrThrow();
 ```
 
-`joltJson` / `voltshotJson` 是调用方已经读取的 JSON。链接会连接各片段的 Buff、bundle、Profile、资源与装备声明，再执行全部引用、作用域和单位检查；不会复制或改写版本，也不会按片段顺序覆盖同名定义。所有片段及内部带版本的定义须使用同一个 ruleset version；各目录中的重复 id 均拒绝，即使内容相同。装备槽位、物品原型和 limit 各自检查重复，装备效果可引用其他片段的 source bundle。最多一个片段声明全局 defense_profile，它可引用其他片段定义的 Profile。空目录、混合版本、重复防御选择及缺失依赖均报错。
+`joltJson` / `voltshotJson` 是调用方已经读取的 JSON。链接会连接各片段的 Buff、bundle、Profile、资源与装备声明，再执行全部引用、作用域和单位检查；不会复制或改写版本，也不会按片段顺序覆盖同名定义。所有片段及内部带版本的定义须使用同一个 ruleset version；各目录中的重复 id 均拒绝，即使内容相同。装备槽位、物品原型和 limit 各自检查重复，装备效果可引用其他片段的 source bundle。最多一个片段声明全局 defense_profile，另最多一个片段声明 health_profile；两者可引用其他片段定义的 Profile。空目录、混合版本、重复的同类 Profile 选择及缺失依赖均报错。
 
 链接不修改输入片段，结果可直接安装到运行时，也可编码为 flattened 完整程序。数据包另支持模块级 `imports`（默认空数组）和 `fragment`（默认 false）；其余字段仍是现有 EffectProgram。下面三个文件均位于 `data/example/chorus/effect_program/`。
 
@@ -410,6 +410,22 @@ Rift 内容将这两个概念分开：presence 带 `chorus:counts_as_overshield`
 
 这是一份明确的离散脉冲实现。刚在该 tick 恢复满血时会补完整一次脉冲，不计算此前不足 50 ms 的满血时长；首次脉冲、离场是否残留护盾、空层的 FIFO 年龄及多来源共享池保留首次归属仍需原作校准。下文的连续回充只读取引擎状态，没有自动替代这个世界满血观测策略。可运行示例见 healing_rift.json；shield_restoration.json 中的 Void 标签测试层只有合成的 1 点容量，不是完整 Void Overshield 定义。
 
+### 生命层专属伤害 Profile
+
+程序顶层可选 `health_profile: "example:health_damage"`，所引用 Profile 的输入、输出单位都必须为 `damage`。它与 `defense_profile` 独立；组合程序最多选择一个生命 Profile。省略时保持原版生命结算，未知引用、错误单位及重复选择在编译 / 链接时拒绝。
+
+实际单分量顺序：攻击 Profile → 原版准入、格挡与无敌帧差额 → 全局防御 → Chorus 护盾逐层预算 → 原版护甲 / 魔法减伤 → 原版 Absorption → **生命 Profile** → 原版战斗记录、生命写入和死亡保护。这里的生命指 Minecraft 的实际 HP；D2 基础护盾、生命容量、护盾门槛和恢复规则须由内容另行建模，不能把原版 Absorption 直接等同于 D2 基础护盾。
+
+生命查询以伤害目标为 holder，仍保留原攻击的 actor / victim、来源、标签、组身份和 impact。它读取命中时的当前规则视图，包括前面已消耗的 Chorus 护盾写集；来源侧攻击快照不会冻结目标的生命防御。Profile 内仍可使用已有分组、条件、Buff / 装备参数和数值阶段，查询本身没有效果动作。只有最终到达生命的正预算才求值：零预算不运行固定加值、替换或曲线，避免完全格挡、吸收或后置清零之后重新产生生命伤害。
+
+`DamageReceipt.health` 保存可选完整计算轨迹，`healthLoss` 仍来自实际生命写入，不能以 Profile 输出替代。非致死下限、过量伤害和死亡保护均由既有原版路径结算。生命 Profile 将正预算降为零且没有任何其他实际损失时，回执为 BLOCKED；此前盾或吸收已经损失时仍为 APPLIED。
+
+Fabric 在吸收量和统计量已经计算后、生命分支前改变伤害参数；NeoForge 在 `LivingDamageEvent.Pre` 与吸收修饰之后读取容器的生命预算，并写回最终值，使 Post 的 healthDamage 保持一致。不会回写已消耗的盾 / 吸收量，亦不改写 NeoForge 早前捕获的 inflictedDamage。玩家与普通生物各自的原版路径、嵌套受击和父类委托都只执行自己的查询一次。
+
+本次查询出现未知 / 非法结果时异常交给伤害边界，不继续用原始预算扣血，不伪造成功回执，也不自动重放。已发生的世界吸收扣除保留，Chorus 护盾写集保留在失败记录等待显式恢复；不能把失败前领域快照误读为盾已恢复。运行时停止后的后续原版伤害沿用既有政策，停止规则推导并继续原版处理。
+
+可执行示例为 [health_layer.json](../common/src/test/resources/effects/health_layer.json)。全部比例均为合成验收输入：40 × 攻击 2 × 全局 0.5 = 40，扣 10 盾后原版护甲将 30 降至 24，吸收 4 后生命输入 20，再乘 0.25，实际扣 5 HP。这只证明通用表达和宿主顺序，不将任一 Compendium 条目标为完整实现。
+
 ### 连续回充与受击延迟
 
 护盾声明可另加 `recovery`，rate 使用 damage_per_second 单位，if 为可选条件，默认 true。例如下面的 shield 片段用于已有容量组件和数值 ready 组件的护盾：
@@ -459,7 +475,7 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 
 `capture_damage` 同时固定护盾 Profile 和 on_use 来源操作数，保留 layer_tag、目标条件及 impact_number 到命中时。来源解绑也不丢失已捕获贡献；当前 on_hit 贡献与它们一起进入原分组，MAX 不会被提前折成两个相乘的倍率。`damage_snapshot` 使用快照中的选择，不能在命中时更换护盾 Profile。逐层回执的 `attackScaling` 保存独立计算轨迹；跨版本仍要求阶段与分组结构相容，目标 has_shield 使用当前规则目录查询。
 
-[under_over.json](../common/src/test/resources/effects/under_over.json) 与 [shield_scaling.json](../common/src/test/resources/effects/shield_scaling.json) 可链接为测试程序，分别提供词条与合成盾 / 输入。元素盾、勇士屏障、战员和 Guardian overshield 的标签由内容明确声明，宿主还须提供武器身份、直击 / 爆炸词条和 Guardian / bodyshot 标签。精准因子抑制另见下节；生命层专属 Profile、穿透和自动盾分类尚未提供；测试的 MAX 分组和跨层预算仍需按具体原作组合校准。
+[under_over.json](../common/src/test/resources/effects/under_over.json) 与 [shield_scaling.json](../common/src/test/resources/effects/shield_scaling.json) 可链接为测试程序，分别提供词条与合成盾 / 输入。元素盾、勇士屏障、战员和 Guardian overshield 的标签由内容明确声明，宿主还须提供武器身份、直击 / 爆炸词条和 Guardian / bodyshot 标签。精准因子抑制另见下节；生命层专属 Profile 已接入，穿透和自动盾分类尚未提供；测试的 MAX 分组和跨层预算仍需按具体原作组合校准。
 
 ### 护盾排除已经应用的攻击因子
 

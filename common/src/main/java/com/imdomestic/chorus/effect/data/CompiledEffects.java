@@ -61,12 +61,16 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var nativeAttributes = new ArrayList<NativeAttributeBinding>();
         var profiles = new ArrayList<CalculationProfile>(); var resources = new ArrayList<ResourceDefinition>();
         var slots = new ArrayList<EquipmentSchema.Slot>(); var items = new ArrayList<EquipmentSchema.Item>(); var limits = new ArrayList<EquipmentSchema.Limit>();
-        Optional<String> defense = Optional.empty(), presentation = Optional.empty();
+        Optional<String> defense = Optional.empty(), health = Optional.empty(), presentation = Optional.empty();
         for (var fragment : fragments) {
             if (!version.equals(fragment.version())) throw new IllegalArgumentException("Mixed fragment ruleset versions");
             if (fragment.defenseProfile().isPresent()) {
                 if (defense.isPresent()) throw new IllegalArgumentException("Multiple fragments select a defense profile");
                 defense = fragment.defenseProfile();
+            }
+            if (fragment.healthProfile().isPresent()) {
+                if (health.isPresent()) throw new IllegalArgumentException("Multiple fragments select a health profile");
+                health = fragment.healthProfile();
             }
             buffs.addAll(fragment.buffs()); bundles.addAll(fragment.bundles());
             abilities.addAll(fragment.abilities());
@@ -79,7 +83,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 presentation = fragment.equipment().presentation();
             }
         }
-        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons, nativeAttributes));
+        return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons, nativeAttributes, health));
     }
 
     public CompiledEffects(EffectProgram program) {
@@ -114,6 +118,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             Validation.same(profile.inputUnit(), Unit.MULTIPLIER); Validation.same(profile.outputUnit(), Unit.MULTIPLIER);
         });
         program.defenseProfile().ifPresent(id -> new Validation(buffs, Map.of(), false, profiles).damageProfile(id));
+        program.healthProfile().ifPresent(id -> new Validation(buffs, Map.of(), false, profiles).damageProfile(id));
         var shieldDefinitions = new HashMap<String, EffectProgram.Shield>();
         program.buffs().forEach(buff -> buff.shield().ifPresent(shield -> shieldDefinitions.put(buff.definition().id(), shield)));
         this.shields = Map.copyOf(shieldDefinitions);
@@ -542,6 +547,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** Global target-side profile runs after native attack gates and before per-layer shield multipliers. */
     public Optional<CalculationProfile.Result> defense(EffectState state, DamageCommand command, double input) {
         return damageCalculation(state, command, command.target(), program.defenseProfile(), input);
+    }
+    /** Only the positive budget reaching health is eligible; flat stages cannot resurrect absorbed damage. */
+    public Optional<CalculationProfile.Result> health(EffectState state, DamageCommand command, double input) {
+        Numbers.nonnegative(input, "health profile input");
+        return input == 0 ? Optional.empty() : damageCalculation(state, command, command.target(), program.healthProfile(), input);
     }
     private Optional<CalculationProfile.Result> damageCalculation(EffectState state, DamageCommand command,
             String holder, Optional<String> profile, double input) {

@@ -6,7 +6,17 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-void-shield-gate-3.log` BUILD SUCCESSFUL，1 分 14 秒：1242 项 JUnit（无失败 / 错误 / 跳过）、Fabric 601 项、NeoForge 611 项及两端发布 jar 全部通过，共享 Chorus 场景为600项。10项 Compendium 审计、76条报告一致性、原表五个单元格与HTML / gzip哈希核对通过。发布包包含原版来源标签与failed回执标志，不包含验收效果 / GameTest。未新增客户端输入或协议，本轮没有新的图形客户端验收。
+最新门禁 `/tmp/chorus-health-layer-gate-2.log` BUILD SUCCESSFUL，1 分 12 秒：1248 项 JUnit（无失败 / 错误 / 跳过）、Fabric 608 项、NeoForge 620 项与两端发布 jar 全部通过，共享 Chorus 场景为 607 项。10 项 Compendium 审计和 76 条报告一致性检查通过。发布包包含 healthProfile 实现，不含效果夹具 / GameTest；本阶段未更改客户端协议或输入，没有新增图形客户端验收。
+
+生命层专属 Profile 已接入：程序可选 health_profile，按当前受害者修饰独立计算原版护甲 / 魔法 / Absorption 之后的正生命预算。零输入跳过全部步骤，前面已经消耗的盾和吸收不会因生命层倍率改变。DamageReceipt.health 保存独立轨迹，healthLoss 仍取真实写入；非致死下限、死亡保护、过量伤害与实际死亡继续走原版路径。Fabric 与 NeoForge 分别适配其吸收结算位置，NeoForge 同步最终容器值供 Post 查询，不回写先前捕获的 inflictedDamage。
+
+新增 6 项 HealthLayerTest、7 项共享 HealthLayerGameTest、2 项 NeoForge 专项场景。覆盖编解码 / 跨片段链接 / 单位、目标与来源隔离、分层预算、固定值不复活零伤害、实际玩家与普通生物、原版护甲 / 吸收、取消 / 免疫 / 无敌帧差额、嵌套归属、非致死 / 保护 / 致死，以及后置伤害和吸收修饰。未知生命查询停止该伤害，不使用未经确认的原预算扣血；原版已扣吸收保留，待对账盾写集保存在失败记录，不自动重放。停止后的后续原版伤害遵循既有继续执行、停止规则推导的政策。
+
+开发回归曾发现新入口错误阻断已经失败的运行时后续原版伤害，现已修正；失败写集测试也改为检查既有 Failure.committedShields 契约。首次完整门禁中既有 BundleInvocation 飞行场景一次未取到 Slow（`/tmp/chorus-health-layer-gate.log`）；该场景及其夹具未修改，后续完整门禁通过，偶发原因尚未定位。没有调整其断言或将该次失败记为通过。
+
+此阶段补通用表达和宿主结算，不新增原作效果覆盖：仍为 76 条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。示例比例均为合成输入；D2 基础护盾 / 生命容量映射、生命自然恢复、穿透策略、完整生产装配、HUD 与活动状态存档仍待继续。[字段与算法边界](engine-data-packs.md#生命层专属伤害-profile)。
+
+上一阶段门禁 `/tmp/chorus-void-shield-gate-3.log` BUILD SUCCESSFUL，1 分 14 秒：1242 项 JUnit（无失败 / 错误 / 跳过）、Fabric 601 项、NeoForge 611 项及两端发布 jar 全部通过，共享 Chorus 场景为600项。10项 Compendium 审计、76条报告一致性、原表五个单元格与HTML / gzip哈希核对通过。发布包包含原版来源标签与failed回执标志，不包含验收效果 / GameTest。未新增客户端输入或协议，本轮没有新的图形客户端验收。
 
 Void Overshield共享45 HP层已由数据声明实现，增量补盾保留FIFO与首来源，破盾清理后重授创建新代；70%减伤仅作用于Combatant攻击命中的该盾层，余量继续进入后续盾 / 生命。原版nativeSource捕获实际owner的实体 / 类型标签及Player/Mob分类，不猜测武器/技能。新增failed伤害结果标志区分已知FAILED与实际接触后的immune/blocked/cancelled以及未知执行。
 
@@ -136,6 +146,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 明确因子与护盾按层排除精准增伤 | 纯核心及双加载器 GameTest 通过 | `Apply.factor / DamageBasis / excluded_attack_factors`；已求值贡献重放、固定加值 / 上限、快照、原版准入预算及层内轨迹；自动弱点判定和原作跨层校准未完成 |
 | 有上限的护盾补充、正容量与 Buff 资格查询 | 纯核心及双加载器 GameTest 通过 | `ShieldRestoration / restore_shield`；现有层写回、容量上限、溢出不储存、动态上限作用域、去重、Rift 满血脉冲与 Void 阻止；连续回充另见下行，Rift 精细时序待校准 |
 | 护盾层连续回充与受击延迟规则 | 纯核心及双加载器 GameTest 通过 | `ShieldRecovery / shield.recovery / own_shield`；段首积分、容量微秒边界、到期残段、来源保留、停伤重置和破盾终止；恢复 Profile 与基础生命自然恢复待完成 |
+| 生命层专属伤害 Profile | 纯核心、双加载器共享与 NeoForge 阶段测试通过 | `health_profile / DamageReceipt.health`；实际原版护甲与 Absorption 后求值、零预算跳过、目标当前修饰和独立轨迹；原作基础血池与恢复规则仍未完成 |
 | 实际损失、原版 Absorption、确认死亡、死亡保护 | 纯核心及双加载器 GameTest 通过 | `effect/combat/DamageReceipt`、`DamageFacts`、`platform/minecraft/DamageCapture`；真实图腾成功无 death / kill，实际 death / kill 共享 ID |
 | 顺序充能、收益裁剪、已支付成本返还、分段积分 | 已有纯核心测试 | `effect/resource/Resources`；parallel 及完整 linked 技能接线未实现 |
 | 联动回充的独立进度与原子完成 | 纯核心及双加载器 GameTest 通过 | `LinkedRecharge / complete_recharge`；两个账户同次提交、一次完整周期补满当前上限、非退款、重复完成无效；具体金装政策未完成 |

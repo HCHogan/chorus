@@ -523,6 +523,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         catch (RuntimeException error) { failed(error, List.of()); return Optional.empty(); }
     }
     private CombatCommit combatCommit() { return new CombatCommit(state().engine().domain(), view()); }
+    @Override public Optional<CalculationProfile.Result> health(DamageCommand command, double amount) {
+        thread();
+        if (failure.isPresent()) return Optional.empty();
+        // Let the outer native boundary settle prior shield writes before reporting an unknown HP result.
+        return program.health(view(), command, amount);
+    }
     private CombatCommit takeWrites() {
         var result = combatCommit(); shieldWrites.clear(); combatView = null; completedDamage.clear(); return result;
     }

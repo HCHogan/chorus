@@ -1,0 +1,179 @@
+{
+  "version": "test-1",
+  "defense_profile": "test:global",
+  "health_profile": "test:health",
+  "profiles": [
+    {
+      "id": "test:outgoing",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "scale",
+          "operation": "multiply",
+          "group": {
+            "name": "factors",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:global",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "scale",
+          "operation": "resist",
+          "group": {
+            "name": "factors",
+            "reduction": "resist"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:health",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "scale",
+          "operation": "resist",
+          "group": {
+            "name": "factors",
+            "reduction": "resist"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:global",
+        "version": "test-1",
+        "duration": 30,
+        "attach": "target"
+      },
+      "bundle": "test:global_active"
+    },
+    {
+      "definition": {
+        "id": "test:health",
+        "version": "test-1",
+        "duration": 30,
+        "attach": "target"
+      },
+      "bundle": "test:health_active"
+    },
+    {
+      "definition": {
+        "id": "test:shield",
+        "version": "test-1",
+        "duration": 30,
+        "attach": "target",
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 10,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:global_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "scale",
+          "profile": "test:global",
+          "stage": "scale",
+          "group": "factors",
+          "op": "resist",
+          "stacking_key": "test:global",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "resistance"
+          },
+          "evaluate": "on_hit",
+          "reference": "Synthetic health-layer acceptance input; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:health_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "scale",
+          "profile": "test:health",
+          "stage": "scale",
+          "group": "factors",
+          "op": "resist",
+          "stacking_key": "test:health",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.75,
+            "unit": "resistance"
+          },
+          "evaluate": "on_hit",
+          "reference": "Synthetic health-layer acceptance input; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:attack",
+      "modifiers": [
+        {
+          "id": "scale",
+          "profile": "test:outgoing",
+          "stage": "scale",
+          "group": "factors",
+          "op": "multiply",
+          "stacking_key": "test:outgoing",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "evaluate": "on_hit",
+          "reference": "Synthetic health-layer acceptance input; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "attack",
+          "on": "test:attack",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 40,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:mob_attack",
+              "scaling_profile": "test:outgoing"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -22,6 +22,55 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /** Loader-specific mutation points must preserve the same shield budget and actual-loss contract. */
 public class NeoForgeDamagePipelineGameTest {
+    @GameCase public void healthProfileRunsAfterLateMutationAndReportsFinalContainerDamage(GameTestHelper h) {
+        String tag = "chorus_health_pre_" + UUID.randomUUID();
+        var finalDamage = new java.util.ArrayList<Float>();
+        NeoForge.EVENT_BUS.addListener((LivingDamageEvent.Pre event) -> {
+            if (event.getEntity().entityTags().contains(tag)) event.setNewDamage(20);
+        });
+        NeoForge.EVENT_BUS.addListener((LivingDamageEvent.Post event) -> {
+            if (event.getEntity().entityTags().contains(tag)) finalDamage.add(event.getHealthDamage());
+        });
+        for (boolean player : List.of(false, true)) {
+            try (var t = new HealthLayerGameTest.Harness(h, player, java.util.Set.of("health", "shield"), _ -> {})) {
+                t.target.addTag(tag); t.absorption(4);
+                var r = t.hit(50, false);
+                near(h, r.shieldLoss(), 10, "shield spent before Pre");
+                near(h, r.absorptionLoss(), 4, "absorption after Pre");
+                near(h, r.health().orElseThrow().trace().stages().get("base").value(), 16, "HP budget after Pre and absorption");
+                near(h, r.healthLoss(), 4, "transformed HP loss");
+                near(h, finalDamage.getLast(), 4, "Post sees final container damage");
+                h.assertTrue(t.runtime.failure().isEmpty(), "late mutation failed health query");
+            }
+        }
+        h.assertValueEqual(finalDamage.size(), 2, "one Post per native hurt"); h.succeed();
+    }
+    @GameCase public void healthProfileHonorsAbsorptionReductionHooksAndLateZeroDamage(GameTestHelper h) {
+        String reduction = "chorus_health_absorption_" + UUID.randomUUID(), zero = "chorus_health_zero_" + UUID.randomUUID();
+        NeoForge.EVENT_BUS.addListener((LivingIncomingDamageEvent event) -> {
+            if (event.getEntity().entityTags().contains(reduction)) event.addReductionModifier(DamageContainer.Reduction.ABSORPTION, (_, amount) -> amount / 2);
+        });
+        NeoForge.EVENT_BUS.addListener((LivingDamageEvent.Pre event) -> {
+            if (event.getEntity().entityTags().contains(zero)) event.setNewDamage(0);
+        });
+        for (boolean player : List.of(false, true)) {
+            try (var t = new HealthLayerGameTest.Harness(h, player, java.util.Set.of("health"), _ -> {})) {
+                t.target.addTag(reduction); t.absorption(4); var r = t.hit(20, false);
+                near(h, r.absorptionLoss(), 2, "modified absorption split");
+                near(h, r.health().orElseThrow().trace().stages().get("base").value(), 18, "modified HP split");
+                near(h, r.healthLoss(), 4.5, "HP only scaled after modified absorption");
+                near(h, t.target.getAbsorptionAmount(), 2, "remaining native absorption");
+            }
+            try (var t = new HealthLayerGameTest.Harness(h, player, java.util.Set.of("shield"), d -> HealthLayerGameTest.flat(d, 7))) {
+                t.target.addTag(zero); t.absorption(4); var r = t.hit(20, false);
+                near(h, r.shieldLoss(), 10, "late zero retains shield expenditure");
+                near(h, r.absorptionLoss(), 0, "late zero does not spend absorption");
+                near(h, r.healthLoss(), 0, "flat stage does not resurrect late-zero damage");
+                h.assertTrue(r.health().isEmpty(), "zeroed budget evaluated HP profile");
+            }
+        }
+        h.succeed();
+    }
     private record Shielded(MinecraftEffectRuntime runtime, LivingEntity target, LivingEntity attacker) implements AutoCloseable {
         @Override public void close() { runtime.close(); }
         double capacity(String definition) {

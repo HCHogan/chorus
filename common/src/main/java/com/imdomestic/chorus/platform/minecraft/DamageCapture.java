@@ -37,6 +37,7 @@ public final class DamageCapture {
         default Optional<com.imdomestic.chorus.effect.target.EntityObservation> observeEntities(DamageCommand command, LivingEntity target, DamageSource source) { return Optional.empty(); }
         Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount);
         Optional<CalculationProfile.Result> defense(DamageCommand command, double amount);
+        default Optional<CalculationProfile.Result> health(DamageCommand command, double amount) { return Optional.empty(); }
         ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis);
         void committed(List<Observed> observations);
         void failed(Throwable error, List<Observed> committedBeforeFailure);
@@ -96,9 +97,9 @@ public final class DamageCapture {
         final boolean nonLethal;
         double healthLoss, absorptionLoss;
         boolean immune, blocked, dead;
-        boolean shieldsProcessed, defenseBlocked;
+        boolean shieldsProcessed, healthProcessed, defenseBlocked, healthBlocked;
         List<ShieldDamage.LayerHit> shields = List.of();
-        Optional<CalculationProfile.Result> outgoing = Optional.empty(), defense = Optional.empty();
+        Optional<CalculationProfile.Result> outgoing = Optional.empty(), defense = Optional.empty(), health = Optional.empty();
         Optional<String> protection = Optional.empty();
         int layer;
         Boundary boundary;
@@ -114,12 +115,12 @@ public final class DamageCapture {
         }
         DamageReceipt receipt(boolean accepted) {
             double shieldLoss = shields.stream().mapToDouble(hit -> hit.trace().capacityLoss()).sum();
-            boolean shieldBlocked = defenseBlocked || shields.stream().anyMatch(hit -> hit.trace().blocked());
+            boolean shieldBlocked = defenseBlocked || healthBlocked || shields.stream().anyMatch(hit -> hit.trace().blocked());
             var outcome = shieldLoss + healthLoss + absorptionLoss > 0 || dead || protection.isPresent() || accepted && !shieldBlocked
                     ? DamageReceipt.Outcome.APPLIED : immune ? DamageReceipt.Outcome.IMMUNE
                     : blocked || shieldBlocked ? DamageReceipt.Outcome.BLOCKED : DamageReceipt.Outcome.CANCELLED;
             return new DamageReceipt(id, outcome, shieldLoss, absorptionLoss, healthLoss,
-                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts, observedBuffs, observedEntities);
+                    dead ? Optional.of(id + "/death") : Optional.empty(), protection.isPresent(), protection, shields, outgoing, defense, consumptionFacts, observedBuffs, observedEntities, health);
         }
     }
     public static final class Scope implements AutoCloseable {
@@ -220,6 +221,18 @@ public final class DamageCapture {
         var plan = call.observer.shields(call.command, amount, new DamageBasis(call.outgoing, call.defense));
         call.shields = plan.layers();
         return (float) plan.budget().toVanilla();
+    }
+    /** Called after native armor, magic and absorption, before combat tracking and the HP write. */
+    public static float healthDamage(LivingEntity target, float amount) {
+        var call = current(target);
+        if (call == null || call.observer == null || call.healthProcessed) return amount;
+        call.healthProcessed = true;
+        if (amount <= 0) return amount;
+        call.health = call.observer.health(call.command, amount);
+        if (call.health.isEmpty()) return amount;
+        float modified = nativeAmount(call.health.orElseThrow().output().value());
+        call.healthBlocked = modified == 0;
+        return modified;
     }
     private static float nativeAmount(double amount) {
         Numbers.nonnegative(amount, "native damage");
