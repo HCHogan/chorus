@@ -1,0 +1,61 @@
+{
+  "note": "Synthetic 3-meter collision-resolved relocation and 0.2-second return delay, not a measured Destiny dodge animation; Class-stat scaling is neutral in both fixtures, preserving the known 56-second baseline without claiming a calibrated Class curve.",
+  "parameters": {
+    "distance": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "meter"
+    },
+    "return_delay": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "second"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:gamblers_dodge_regeneration",
+        "version": "compendium-2026-10-05",
+        "input_unit": "charge_fraction_per_second",
+        "steps": [
+          {
+            "type": "chorus:apply",
+            "id": "baseline",
+            "operation": "replace",
+            "group": {
+              "name": "baseline",
+              "reduction": "max"
+            }
+          },
+          {
+            "type": "chorus:apply",
+            "id": "stat",
+            "operation": "multiply",
+            "group": {
+              "name": "stat",
+              "reduction": "max"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:class_gain",
+        "version": "compendium-2026-10-05",
+        "input_unit": "charge_fraction",
+        "steps": [
+          {
+            "type": "chorus:apply",
+            "id": "stat",
+            "operation": "multiply",
+            "group": {
+              "name": "stat",
+              "reduction": "max"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

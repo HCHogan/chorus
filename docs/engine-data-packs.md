@@ -673,7 +673,7 @@ granted 回执新增 cyclic 和 yield_observed 标志。cyclic 时额外提供 c
 
 不会逐轮发布进度达到 1 的中间事实，因此原有阈值完成规则不会再次消费本次周期；需要对外部回能完成周期做反应的内容应读取聚合事实的 cycles / uses_credited，而非猜测一次事件只完成一轮。已满可用账户仍返回 already_full，不查询 amount 或收益 Profile。
 
-[cyclic_recharge.json](../common/src/test/resources/effects/cyclic_recharge.json) 是合成验收：容量 3、一秒自然周期、0.5 接收系数和治疗观察不代表任何 D2 技能。纯核心与两加载器验证一次恢复两次实际施放、保留下一轮进度并继续自然恢复、当前持有者收益、重复完成来源、完整入账后观察、容量溢出与未知世界结果。此接口已实现，实际 Gambler's Dodge 及现有飞刀定义的选择装配另行接入。
+[cyclic_recharge.json](../common/src/test/resources/effects/cyclic_recharge.json) 是合成验收：容量 3、一秒自然周期、0.5 接收系数和治疗观察不代表任何 D2 技能。纯核心与两加载器验证一次恢复两次实际施放、保留下一轮进度并继续自然恢复、当前持有者收益、重复完成来源、完整入账后观察、容量溢出与未知世界结果。Lightweight Knife 已通过该字段接入共享 Solar 周期收益，并组合真实 Gambler's Dodge 的近战回能；技能仍需显式时序 / 位移 / 职业曲线校准，内容边界见 [规则集](d2-ruleset.md#gamblers-dodge-的位移与多充能回能)。
 
 ### 观察当前技能槽能量
 

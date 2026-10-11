@@ -452,7 +452,8 @@
             }
           ]
         }
-      ]
+      ],
+      "recharge_yield_profile": "chorus_d2:solar_melee_cycle_yield"
     }
   ],
   "bundles": [

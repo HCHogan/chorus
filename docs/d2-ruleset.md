@@ -1188,13 +1188,19 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 [独立验收输入](../common/src/test/resources/effects/ophidia_spathe_inputs.json)与[校准文件](../common/src/test/resources/effects/ophidia_spathe_test_calibration.json)使用0.2秒近期窗口、11/22/33% PvP增伤、1秒周期、0.5 CES和10点伤害，技能体治疗1HP仅用于观察支付后世界动作。它们不是 Solar 飞刀 / 赌徒闪身的完整实现，也不是原作测量；Lightweight Knife 已有下节的独立物理生产者。15项核心测试和6项双端共享场景覆盖实际装备替换、自然tick、真实死亡 / 保护及后续增伤、加算和未知结果保留。完整刀种、物理飞刀 / 精准 / 爆炸信用、闪身位移 / 附近敌人资格、职业 / 子职业正式装配、时序校准、HUD和状态持久化仍未完成。
 
-## Gambler's Dodge 的多充能前置需求
+## Gambler's Dodge 的位移与多充能回能
 
 2026-10-11 抓取原表 Class Abilities B7 / D7 / N7，与固定 CSV B5 / D5 / N5 核对并保存 [来源、哈希和未确定项](../data/d2-research/2026-10-11/gamblers-dodge.json)。[Bungie 的能力调整说明](https://www.bungie.net/7/en/News/Article/weapon_tuning_preview_ashiron)明确 100 Melee 且附近有敌人时，多充能近战能恢复两次；这要求一次能量输入能跨越多个周期，不能先把收益裁剪到一条容量为 1 的进度条。
 
-引擎现提供显式 recharge_yield_profile，在一次迁移中恢复次数、保存下一轮剩余进度，接收者缩放只执行一次，完成周期的收益政策对整笔输入固定。实际原作交互是否需要不同的取样时点，仍由内容校准；协议与合成验收见 [多周期回能](engine-data-packs.md#一次回能跨越多个充能周期)。本阶段未新增真实 Gambler's Dodge，也尚未把 Lightweight Knife 配置接入该字段，原 Ophidia 测试中的闪身仍是合成触发。
+现有 [gamblers_dodge.json](../common/src/test/resources/effects/gamblers_dodge.json) 为 partial 技能定义，直接组合既有 DSL。原生 on_ground 资格通过后支付一份职业能量，捕获服务器水平视角，执行实际碰撞位移；墙体可裁剪路程，已观察的零位移仍接受后续回能，明确拒绝的世界移动则跳过。位移距离和回能延迟必须显式校准；[测试文件](../common/src/test/resources/effects/gamblers_dodge_test_calibration.json) 的3米、0.2秒不是原作测量。当前使用碰撞解析后的单次位置同步，尚无完整翻滚轨迹、输入方向选择与动画。
 
-闪身位移 / 动画、回能帧、附近敌人取样、完整 Class 属性曲线、追踪 / 辅助瞄准移除、金装和 Aspect 组合、生产装配与 HUD 均待完成。该前置能力不新增 Compendium 已实现条目，也不把已知数值与合成时间参数混为完整技能。
+回能帧确认施放者仍存活 / 可用，然后查询当前位置15米内的非友方存活实体，双方按body锚点测距，包含边界、排除自己、不要求视线，找到一个即足够。当前 Melee 属性在0–100间限幅，每点提供1% / 0.35% PvE / PvP近战能量，存在附近敌人时翻倍；模式来自运行时，不按附近怪物或Guardian猜测。按执行时的基础近战选择以 fixed 授予，不再乘CES或属性回能倍率。[官方9.5.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_5_0)明确PvP的上限从50%改为35%。查询不可用与“已知没有敌人”分开，前者不猜测基础收益。
+
+Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一次迁移中恢复两把并清空满账户后的进度；不足填满时保留下一轮进度。Ophidia 的当前周期收益仍参与这次转换，真实闪身刷新已有 Scissor Fingers，且不创建或增加层数。已接受的延迟回能在取消职业技能选择后继续，但重新读取当前近战选择和属性；死亡 / 缺失施放者跳过，未知世界结果保留已付款与已移动的位置，不重放。这些时点、资格与换装政策均是当前明确实现，仍需原作交互校准。
+
+职业账户初始一份，CES为0.8；选中技能的常驻来源提供1/56的基础秒回能，取消选择暂停并保留余额。完整 `chorus_d2:gamblers_dodge_regeneration`（baseline replace阶段）与 `chorus_d2:class_gain` 必须由外部Profile链接，缺失则拒绝编译；测试只保留已知基础值、不给Class属性额外缩放。这不是完整职业属性曲线，也不是把56秒设为所有属性下的实测冷却。当前技能拥有独立职业账户，其他职业技能的共享池迁移、换装能量惩罚和额外充能金装仍待装配。
+
+9项核心验收和6项双端共享场景覆盖属性 / 模式 / 范围、当前选择、原生位移和墙体、实际恢复两把飞刀后的物理伤害、队友排除、装备Ophidia的真实飞刀击杀与刷新、空中拒绝及未知世界结果。仍缺原作移动 / 回能时序、附近资格与换装政策校准、完整Class曲线 / 增强护盾、追踪 / 辅助瞄准移除、其他近战和金装 / Aspect转换、正式生产装配、HUD与存档；覆盖新增partial，不能将这些验收当作完整技能复现。
 
 ## Lightweight Knife 的物理飞行与精准命中
 

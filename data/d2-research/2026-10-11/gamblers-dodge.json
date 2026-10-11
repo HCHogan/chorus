@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Source research and cyclic-energy engine prerequisite; actual Gambler ability is not implemented by this record",
+  "status": "Partial executable ability composed from generic motion, observation, current-slot energy and cyclic recharge; explicit calibration and production gaps remain",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
     "path": "data/d2-research/2026-10-11/gamblers-dodge-source.html.gz",
@@ -53,5 +53,28 @@
     "Actual dodge displacement, animation duration and energy-return frame require calibration.",
     "Proximity origin/anchor, visibility, sampling time, mixed-mode enemy eligibility and selection changes during the dodge require original-game verification.",
     "Dodge tracking/aim-assist removal, enhanced Class-stat shield, full Class passive/chunk curves, Aspect conversions, equipment combinations and production assembly remain incomplete."
-  ]
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/gamblers_dodge.json",
+    "calibration": "common/src/test/resources/effects/gamblers_dodge_test_calibration.json",
+    "unit_tests": "common/src/test/java/com/imdomestic/chorus/effect/GamblersDodgeTest.java",
+    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersDodgeGameTest.java",
+    "consumer": "Lightweight Knife explicitly opts into solar_melee_cycle_yield for current-slot packets"
+  },
+  "policies": {
+    "activation": "Native on_ground gate; one class charge is paid before horizontal collision-resolved displacement.",
+    "sampling": "After the explicitly calibrated return delay: living caster, current Melee stat capped at 100, current mode, current melee selection, and current enemy membership.",
+    "proximity": "Inclusive body-to-body 15-meter sphere; current not_allied relation, excludes self, no line-of-sight requirement, nearest one eligible target is sufficient.",
+    "movement_result": "Applied and unchanged collision-resolved movement schedule the return; known rejection does not. Unknown world observations retain payment and motion without replay.",
+    "lifecycle": "Paid detached return survives class deselection; dead/missing caster or unavailable target query skips return. Runtime closure discards pending work.",
+    "recharge": "56-second baseline is supplied only by the selected ability source; the full gamblers_dodge_regeneration and class_gain profiles must be linked externally. Test profiles do not supply a measured Class-stat curve.",
+    "ophidia": "Accepted real dodge refreshes existing Scissor Fingers without creating stacks; the current Solar cycle-yield policy applies when the packet completes cycles.",
+    "class_account": "This ability currently owns one independent class account; switching to other class abilities does not migrate balances or implement original-game swap penalties."
+  },
+  "synthetic_inputs": {
+    "displacement_m": 3,
+    "return_delay_seconds": 0.2,
+    "class_stat_scaling": "neutral fixture, not a measured Class curve",
+    "ophidia": "existing separate 0.2-second recent-use/PvP calibration fixture"
+  }
 }

@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-cyclic-gate-2.log` BUILD SUCCESSFUL，1 分 17 秒：1212 项 JUnit、Fabric 566 项、NeoForge 576 项及两端发布 jar 通过，共享 Chorus 场景为 565 项。新增 12 项 CyclicRechargeTest、4 项共享回能世界场景及下述投射物边界场景。10 项 Compendium 审计、报告一致性、原表归档 / 三组单元格哈希与差异检查通过；发布包包含通用回能实现，不含效果夹具或 GameTest。此阶段没有客户端行为改动或新增图形验收。
+最新门禁 `/tmp/chorus-gambler-gate.log` BUILD SUCCESSFUL，8 分 36 秒：1221 项 JUnit、Fabric 572 项、NeoForge 582 项及两端发布 jar 全部通过，共享 Chorus 场景为 571 项。新增 9 项 GamblersDodgeTest 和 6 项共享世界场景；10 项 Compendium 审计、75 条审阅报告、原表 HTML / gzip 与三组对应单元格哈希核对通过。发布包仍不包含效果验收夹具 / GameTest；此轮没有客户端协议或输入变化，未新增图形客户端验收。
+
+Gambler's Dodge 直接组合既有地面资格、付费、水平碰撞位移、延迟、实体 / 范围观察和按当前近战槽回能，没有新增技能专用 Java 分支。当前属性在0–100间限幅，按PvE/PvP的1%/0.35%每点计算，15米内非友方加倍，fixed不重复应用CES或属性回能倍率。Lightweight Knife 已接入多周期协议，实际闪身可恢复两把并再次物理发射造成伤害；已装备Ophidia的真实飞刀击杀与闪身刷新、每轮条件联动收益亦完成组合验收。
+
+世界场景另覆盖原生空中拒绝、墙体裁剪、包含15米边界、队友 / 范围外排除、取消职业选择后完成已支付回能，以及未知位移观察保留移动 / 成本且不重放。回能时读取当前近战选择与属性，死者 / 缺失施放者或不可用范围查询跳过；这些取样、换装与生命周期政策仍需原作校准。
+
+本阶段保留显式缺口：3米与0.2秒为合成位移 / 时序；完整职业回充和收益Profile要求外部链接，验收仅保留56秒基础值与中性属性缩放。翻滚曲线 / 动画、追踪 / 辅助瞄准移除、增强Class护盾、其他技能 / 金装 / Aspect组合、共享职业能量迁移、生产配装、HUD和持久化尚未完成。新增Gambler条目仍为partial：当前75条审阅，61 partial、12 unimplemented、2 not_applicable、0 verified。实际测试与校准边界见 [规则集](d2-ruleset.md#gamblers-dodge-的位移与多充能回能)。
+
+上一阶段门禁 `/tmp/chorus-cyclic-gate-2.log` BUILD SUCCESSFUL，1 分 17 秒：1212 项 JUnit、Fabric 566 项、NeoForge 576 项及两端发布 jar 通过，共享 Chorus 场景为 565 项。新增 12 项 CyclicRechargeTest、4 项共享回能世界场景及下述投射物边界场景。10 项 Compendium 审计、报告一致性、原表归档 / 三组单元格哈希与差异检查通过；发布包包含通用回能实现，不含效果夹具或 GameTest。此阶段没有客户端行为改动或新增图形验收。
 
 通用多周期回能通过技能的可选 recharge_yield_profile 启用：一次输入在同一次状态迁移中更新可用次数与下一轮进度，接收者缩放只执行一次；周期收益只在足够完成时查询，并对本次全部周期固定。没有进度达到 1 的中间事实，完成反应使用一次聚合 recharge_completed。纯核心覆盖小数 / 大能量、联动收益、溢出、当前持有者、重复来源、未知查询、原子失败与编解码；两端世界场景验证两次实际施放、继续自然恢复、实际治疗看到最终余额和未知结果不回滚 / 重放。
 
