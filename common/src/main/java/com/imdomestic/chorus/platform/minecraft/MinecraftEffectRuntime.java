@@ -120,6 +120,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public static MinecraftEffectRuntime install(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
+        MinecraftCheckpointBoundary.changingRuntime(level.getServer());
         var runtime = new MinecraftEffectRuntime(level, program, initial, clock, world, sources, Optional.empty());
         return attach(runtime);
     }
@@ -134,6 +135,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public Checkpoint checkpoint() {
         checkpointBoundary();
         prepare(); // Settle the current world tick before pinning the relationship between the two clocks.
+        return settledCheckpoint();
+    }
+    /** The server-wide boundary settles every dimension before capturing any final snapshot. */
+    Checkpoint settledCheckpoint() {
         checkpointBoundary();
         return new Checkpoint(level.dimension().identifier().toString(), level.getGameTime(), session.checkpoint(), equipmentOwnerIds);
     }
@@ -146,9 +151,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public static MinecraftEffectRuntime restore(ServerLevel level, CompiledEffects program, Checkpoint checkpoint, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
+        MinecraftCheckpointBoundary.changingRuntime(level.getServer());
         if (!level.dimension().identifier().toString().equals(checkpoint.dimension()) || level.getGameTime() != checkpoint.gameTime())
             throw new IllegalArgumentException("Checkpoint belongs to a different dimension or world save clock");
         if (!program.program().equals(checkpoint.effects().program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
+        validateCheckpointEquipment(level, program, checkpoint);
+        var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()));
+        runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
+        return attach(runtime);
+    }
+    static void validateCheckpointEquipment(ServerLevel level, CompiledEffects program, Checkpoint checkpoint) {
         // A mismatch with an already-present player's physical container is not an equipment-change event to replay.
         for (var player : level.players()) {
             if (!checkpoint.equipmentOwners().contains(player.getUUID()) && PlayerEquipment.get(player).isEmpty()) continue;
@@ -156,9 +168,6 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             if (!saved.equals(PlayerEquipment.get(player).projection(program.equipment())))
                 throw new IllegalArgumentException("Checkpoint equipment differs from the current player container: " + player.getUUID());
         }
-        var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()));
-        runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
-        return attach(runtime);
     }
     private static MinecraftEffectRuntime attach(MinecraftEffectRuntime runtime) {
         var level = runtime.level;
@@ -243,7 +252,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public static void beforeLoadedHealth(LivingEntity entity,float health) {
         if(!(entity.level() instanceof ServerLevel level))return;
         var runtime=LIVE.get(level);if(runtime==null)return;
-        runtime.thread();
+        runtime.ownerThread(); // Loading NBT may need the already-pinned projection while a native save drains chunk work.
         if(!runtime.nativeAttributes.tracks(runtime.view(),entity))return;
         if(runtime.failure.isPresent())throw new IllegalStateException("Cannot load projected attributes from a failed runtime");
         try { runtime.nativeAttributes.beforeLoadedHealth(runtime.view(),entity,health); }
@@ -454,8 +463,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         } finally { refreshingEquipment = false; }
     }
     public Optional<Failure> failure() { return failure; }
-    private void thread() {
+    private void ownerThread() {
         if (closed || transferringEquipment || !level.getServer().isSameThread()) throw new IllegalStateException("Runtime is closed, transferring items, or accessed off its server thread");
+    }
+    private void thread() {
+        ownerThread();
+        MinecraftCheckpointBoundary.enteringRuntime(level.getServer(), this);
     }
     public long nowMicros() {
         return Math.addExact(originMicros, Math.multiplyExact(Math.subtractExact(level.getGameTime(), originTick), 50_000));

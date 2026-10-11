@@ -1,0 +1,23 @@
+{
+  "version": "checkpoint-fixture-1",
+  "native_attributes": [{
+    "id": "test:health", "attribute": "minecraft:max_health", "operation": "add_value",
+    "profile": "test:health", "input": {"value": 0, "unit": "damage"}, "output_unit": "damage"
+  }],
+  "profiles": [{
+    "id": "test:health", "version": "checkpoint-fixture-1", "input_unit": "damage",
+    "steps": [{"type": "chorus:apply", "id": "contributions", "operation": "add", "group": {"name": "contributions", "reduction": "sum"}}]
+  }],
+  "equipment": {
+    "slots": [{"id": "test:arms", "accepts": ["test:arms"], "weapon": false}],
+    "items": [{"id": "test:arms", "tags": ["test:arms"], "effects": {"passive": {"bundle": "test:capacity"}}}]
+  },
+  "bundles": [{
+    "id": "test:capacity",
+    "modifiers": [{
+      "id": "health", "profile": "test:health", "stage": "contributions", "group": "contributions",
+      "op": "add", "stacking_key": "test:health", "value": {"type": "chorus:constant", "value": 10, "unit": "damage"},
+      "reference": "Synthetic checkpoint and NBT projection acceptance, not Destiny calibration", "confidence": "assumed"
+    }]
+  }]
+}

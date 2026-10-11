@@ -52,11 +52,16 @@ public final class EffectPrograms {
     /** Capture a catalogue-backed runtime with the metadata required by the host archive. */
     public static com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry checkpoint(ServerLevel level, Identifier id) {
         var runtime = MinecraftEffectRuntime.installed(level).orElseThrow(() -> new IllegalStateException("No Chorus runtime in this dimension"));
-        if (!id.equals(DEFAULT_HOSTS.get(runtime))) throw new IllegalArgumentException("Runtime is not the named default catalogue host");
-        var current = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
-        if (!runtime.program().program().equals(current.program())) throw new IllegalArgumentException("Runtime differs from the named catalogue entry");
+        if (!id.equals(catalogueId(level, runtime))) throw new IllegalArgumentException("Runtime is not the named default catalogue host");
         var saved = runtime.checkpoint();
         return new com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry(id.toString(), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners());
+    }
+    static Identifier catalogueId(ServerLevel level, MinecraftEffectRuntime runtime) {
+        var id = DEFAULT_HOSTS.get(runtime);
+        if (id == null) throw new IllegalArgumentException("Runtime is not a default catalogue host");
+        var current = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
+        if (!runtime.program().program().equals(current.program())) throw new IllegalArgumentException("Runtime differs from the named catalogue entry");
+        return id;
     }
     public static MinecraftEffectRuntime restore(ServerLevel level, com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry saved) {
         return restore(level, Identifier.parse(saved.program()), new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners()));
