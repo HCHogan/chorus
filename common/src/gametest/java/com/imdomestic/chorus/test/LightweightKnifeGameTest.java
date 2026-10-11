@@ -71,7 +71,11 @@ public class LightweightKnifeGameTest {
     }
     @GameCase public void contactGeometrySurvivesTargetMovementAndIntrinsicPrecisionSurvivesDeselection(GameTestHelper h)throws Exception{
         try(var t=open(h,true)){
-            var enemy=target(t,.9,1024);region(t,enemy);cast(t);select(t,false);t.onCue=cue->{if(cue.cue().equals("test:contact"))enemy.setPos(enemy.position().add(8,8,0));};hit(t,0);
+            var enemy=target(t,.9,1024);region(t,enemy);cast(t);select(t,false);t.onCue=cue->{if(cue.cue().equals("test:contact")){
+                // Keep the target in its loaded column; moving across a chunk boundary tests availability instead of captured geometry.
+                enemy.setPos(enemy.position().add(0,8,0));
+                h.assertTrue(h.getLevel().isPositionEntityTicking(enemy.blockPosition())&&t.resolve(enemy.getUUID().toString())==enemy,"moved geometry target must remain available");
+            }};hit(t,0);
             near(h,enemy.getHealth(),412,"contact read a moved target box or lost its captured intrinsic factor");h.assertTrue(buff(t,"radiant").isPresent(),"accepted precision hit lost Radiant after selection change");
         }h.succeed();
     }
