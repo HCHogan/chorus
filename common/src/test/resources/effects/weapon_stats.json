@@ -79,7 +79,8 @@
           "operation": "add",
           "group": {
             "name": "reload",
-            "reduction": "sum"
+            "reduction": "sum",
+            "families": {"chorus_d2:explosive_payload": {"kind": "max"}}
           }
         },
         {

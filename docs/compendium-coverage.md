@@ -9,7 +9,7 @@
 | 来源表 | 历史 | 文本单元格 | 已引用审阅 | 待审阅 |
 | --- | --- | ---: | ---: | ---: |
 | Landing | 否 | 37 | 0 | 37 |
-| Weapon Perks | 否 | 831 | 64 | 767 |
+| Weapon Perks | 否 | 831 | 66 | 765 |
 | Armor Perks | 否 | 171 | 0 | 171 |
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 40 | 246 |
@@ -146,6 +146,7 @@
 | Weapons attribute | partial | Game Mechanics C48; Game Mechanics E48 | 真实护甲与Font汇总后按0–100/101–200区间计算武器增伤；三种弹药原始归因、实际Guardian/等级分类、来源快照与逐目标结算；共享Radiant/Surge/Rampage及Incandescent派生Solar；Weapons换弹时长乘数已在原型曲线之后接入，真实护甲/Font变化保留当前计划并影响下一次装填；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限；缺口：Weapons换弹和操控时长已接真实服务端阶段；增强弹药砖、ADS、全部原型/金装曲线与动画窗口仍未实现或校准。当前两种操控曲线是固定Foundry社区模型；与角色倍率共用最终下限是明确来源组合推断，非独立原作实测。武器基础Handling、射速、弹量、换弹曲线及护甲输入仍是合成验收值。；低阶Heavy当前15%与官方9.0.0.1历史10%冲突，已标记conflict，尚无独立原作实测；等级细分依据作者预览解释；on_use与初始Scorch采样、混合交战分类为显式内容政策，原作换装/命中/来源特例仍待校准；完整武器/异域伤害资格、正式敌人目录、New Gear/活动Surge/Overcharge、生产装配、HUD与物理世界恢复未完成 |
 | Box Breathing | partial | Weapon Perks A35; Weapon Perks C35 | Accepted held-aim timer, next-shot snapshot and consumption, per-impact natural weakspot distinction, separate precision shield suppression and numerical aim-assist falloff contribution; normal/enhanced on real owned weapons.；缺口：Production weapon, perk and target region catalog; consumer damage/precision/flight/ammo/ADS values and geometry remain synthetic.；Continuous empty-magazine restart, source-attachment and all original-game cancellation/sampling boundaries are explicit Chorus policies, not fully calibrated.；Aim assist is a numeric contribution, not physical magnetism; no actual Divinity bubble producer.；D2 mouse interaction mapping, FOV/animation/HUD, NeoForge graphical acceptance and production loadout integration.；Physical world restart and full exceptional source/target combinations. |
 | Snapshot Sights | partial | Weapon Perks A203; Weapon Perks C203 | 普通/强化的本武器开镜时长倍率、独立 +5 Stability 查询；17 条 Foundry ADS 参考曲线进入实际服务端期限，组合 Surplus / Amplified、装备参数、检查点和 Box Breathing 实际伤害。；缺口：Power? 原表疑问与 Foundry 非 Special 的通用 ×0.5 分支尚未消解；合成测试的 ×0.8 是显式假设。；17 条拟合对应 43 个来源分类，不等于完整武器/异域目录；偃月零值及 test/zero 占位排除，仍需校准。；原作取消/反转/中途取样窗口、退出时间与实际后坐力尚未校准；0.1 秒退出、基础 Handling 10、弹量/伤害/几何及 perk 组合是测试输入。；正式内容装配、FOV/动画/HUD、物理世界整体重启与全部客户端输入组合仍未完成。 |
+| Explosive Payload | partial | Weapon Perks A90; Weapon Perks C90 | 实际开火捕获50%直击/爆炸分量，独立距离衰减、精确补偿、3米范围、传奇手炮PvP爆炸-7%；真实碰撞/护盾/击杀与同攻击共享消费；缺口：径向线性曲线、基础伤害10/精确2与射速/弹量为合成校准；主目标满额爆炸、取样/顺序/队伍和无视线要求为明确内容政策，需原作实测；完整命中几何、PvP精确舍入、硬直/抖动、原作护盾特例未校准；活动模式选择尚未接入混合目标分类；共享D2增伤目录、各proc实际资格、生产装配/HUD未接入；强化+5已入装填属性，实际换弹时长消费者仍待接线；领域检查点与独立Launch编码不代表物理世界跨重启；Timed Payload移动附着/延迟/未知半径与Explosive Head仍未实现 |
 
 ## 使用
 

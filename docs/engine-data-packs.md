@@ -3312,3 +3312,14 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 `weapon_range_test_calibration` 显式选择 0–1 线性插值并在区间外保持端点；它是测试校准，没有把插值当作 Foundry 已独立测量的部分。消费者当前在 AIMED 为真时用原型 ADS 距离倍率，过渡中使用 hip 端点；此取样政策仍待原作校准。`weapon_range_curves` 保存两个普通家族的四条参考曲线，特殊原型必须另选正确声明，不能从默认家族推断金装例外。
 
 存储只新增 `chorus:effect/data/value/position_distance`，字段 from / to 均为 String。旧 550 个 ID 和字段形状不变，两份历史检查点保持原始字节。既有位置、CalculationPipeline.Result 与 projectile continuation 承载数值和快照，无新实体持久化承诺。验收包括带位置 / 端点的发射对象编码和领域恢复，不代表跨完整物理世界重启恢复弹丸。[数值来源与缺口](d2-ruleset.md#range-属性与真实弹丸距离衰减)。
+
+
+## 同次命中的直击与被动爆炸
+
+`explosive_payload.json` 提供三个显式查询 Profile：`chorus_d2:payload_fraction`、`payload_radius`、`payload_blast_scale`，输入单位依次为 multiplier / meter / multiplier。消费者以 0 / 0 / 1 为输入，使用真实 event_weapon、BOUND 来源及 `chorus_d2:payload_query` 标签。匹配 owner 与 this_weapon 后查询到比例、半径和模式倍率；分量比例限制为 [0,0.99]，拒绝令补偿分母为零的输入。合法武器品质和家族由宿主声明，不能从武器显示名称猜测。
+
+参考消费者在开火前捕获三个完整查询结果，再分别捕获直击和爆炸 DamageSnapshot。直击保留命名 precision 与 distance_falloff 因子；爆炸使用独立 Profile，不包含这两个因子，只接受外部 `chorus_d2:payload_radial_shape` 的径向结果。该必需 Profile 输入为距离/半径，输出契约为 [0,1] 的倍率；示例 provider 的线性曲线仅供验收，不可当作原作曲线。无 perk 的比例为零，仍按原直击结算，不发出零伤害爆炸命令或范围查询。
+
+实体/方块接触各自开启显式 damage_group，直击、主目标爆炸、邻近目标爆炸加入同一组，随后关闭。消费策略声明 sharing=group 的一次性 Buff 因而能覆盖两个分量，下一次独立攻击重新读取资格。这个组不等于 damage_batch，也不会自动屏蔽同根事件或游戏预期循环。爆炸带 weapon_damage、explosive_perk_damage、passive_explosive_perk_damage、explosive_payload_damage 及明确元素标签；不继承 precision。上述标签仍需具体 proc 消费者主动声明，不能凭“爆炸”一词统一决定触发资格。
+
+主目标从原 impact 读取身份，伤害后重新检查存活，再发一次满额爆炸；邻近列表排除主目标和持有者，查询 BODY 锚点、not_allied、nearest。直接击杀不会取消周围爆炸。攻击来源、两份快照和原碰撞点保持不变；未知物理回执遵循现有停机和不重放契约，不宣称两份宿主伤害能原子回滚。参考程序只覆盖 Kinetic 来源、指定合成武器与显式活动模式，不包含完整 D2 元素/武器/敌人目录。

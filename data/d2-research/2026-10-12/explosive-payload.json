@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "scope": "Explosive Payload split physical attack; Timed Payload source conflict recorded for following work",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/payload-source.html.gz",
+      "raw_sha256": "adbecb049149ebd3ff9b3002f6d5db430a94ad5815fa88fea96630ddfa92de1e",
+      "gzip_sha256": "c6e4db3b1f66b8aad523eec481d2b0956e8f2550d9923285b5863c86ca969d23",
+      "notes": "Original EP A91/C91 and TP A229/C229; snapshot A90/C90 and A228/C228. Blue #a4c2f4 is PvE; red #ea9999 is PvP. HTML preserves spans absent in CSV."
+    },
+    {
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_1_perks.rs",
+      "path": "data/d2-research/2026-10-12/payload-foundry-perks.rs.gz",
+      "raw_sha256": "cdc4b39592c28fc727f88ef5f617195a5ad458c993c619db9ab8cefa8362cdd8",
+      "gzip_sha256": "01af841b2a375d1e5f4b192ceb5b745e2f4db31773f6a0be8f82f74ef9f3e300",
+      "notes": "EP .5, PvE 1.3, PvP HC .93; TP .5 conflicts with Compendium/Clarity .55, delay .6. Source licence: handling-foundry-UNLICENSE.txt."
+    },
+    {
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+      "path": "data/d2-research/2026-10-12/payload-foundry-stat-calc.rs.gz",
+      "raw_sha256": "5662ee9dea9e59547d73f81cd7c02872046266acb7b24017d2d09c123f31e5c2",
+      "gzip_sha256": "497c50ef1bcbf68b0cbf45bf52fc46a1a80b6749f0db02da7efe7630bb0267a0",
+      "notes": "get_damage_profile keeps base precision total by increasing only direct crit multiplier."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "path": "data/d2-research/2026-10-12/payload-clarity-039cfbc.json",
+      "sha256": "23aac9b2fa0d46efc288e9cf1216a0aea79b7a05e90ee49ef8ecf4ca76092887",
+      "notes": "Selected normal and enhanced EP/TP records, including original lastUpload metadata. Revision 039cfbc4732c33573568b28cc6335dd3332a9296."
+    },
+    {
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/twid-11-14-24",
+      "published": "2024-11-14",
+      "notes": "PvP splash -7% applies only to Legendary Hand Cannons; exotic exceptions must not inherit an unconditional hand-cannon penalty."
+    }
+  ],
+  "selected": {
+    "explosive_payload_fraction": 0.5,
+    "explosive_payload_radius_m": 3,
+    "pve_payload_multiplier": 1.3,
+    "pvp_legendary_hand_cannon_payload_multiplier": 0.93,
+    "other_pvp_payload_multiplier": 1,
+    "enhanced_reload_stat": 5,
+    "timed_payload_fraction_for_future_consumer": 0.55,
+    "timed_payload_delay_s": 0.6
+  },
+  "policies": [
+    "B is unsplit bodyshot damage and P is unsplit precision ratio. Direct body B(1-s), direct precision B(P-s); blast B*s*k. Apply weapon-travel falloff only to direct and independent radial falloff only to splash neighbors.",
+    "Primary survivor receives full splash once; exclude it from the neighborhood. Lethal direct still explodes at captured impact, skips a second damage to the dead primary. Entity and block contacts explode, expiry/unload do not.",
+    "Fire captures fraction, radius, mode scale and both source damage snapshots. Target geometry and live target state are evaluated at impact. Weapon source removal cannot erase accepted projectile components.",
+    "One explicit damage_group covers direct and splash commands at the contact; this does not invent a batch or universal proc deduplication.",
+    "Synthetic consumer uses kinetic damage, base10, precision2, automatic-rifle/hand-cannon range fixtures and linear radial shape. These are test inputs, not valid Destiny roll/archetype claims.",
+    "Travel falloff exemption, full primary splash, damage ordering, team/LOS policies and snapshot timing are explicit reconstruction policies pending dedicated original-game measurements.",
+    "The consumer selects scale by explicit activity mode; mixed target classes inside one mode still require live Guardian/combatant classification.",
+    "The reference projectile stops at its first contact. Damage grouping is explicit per contact; multi-contact/piercing payload grouping is not calibrated."
+  ],
+  "conflicts": [
+    "Timed Payload share .55 in Compendium and Clarity versus .5 in pinned Foundry; prefer original table .55 when implementing TP.",
+    "Compendium PvP summary says body damage unchanged, but its explicit HC splash -7% and official patch imply .965 body total for Legendary HC. Preserve explicit formula; do not silently compensate direct damage.",
+    "Foundry and Clarity say Hand Cannons without the official Legendary qualifier. Preserve the narrower official scope."
+  ],
+  "remaining": [
+    "Timed Payload physical delayed attachment/center/lifecycle and unknown radius not implemented by this stage.",
+    "Explosive Head separate distance fuse and bow rules.",
+    "Exact radial curve, flinch/stagger, all precision ratios/PvP rounding and shield special cases; actual range calibration and official latest-patch completeness remain unverified.",
+    "Shared D2 outgoing factor catalogue, proc consumer eligibility, enhanced real reload duration integration, production content/HUD, physical-world restart."
+  ],
+  "source_heads_rechecked": {
+    "Foundry": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "Clarity": "039cfbc4732c33573568b28cc6335dd3332a9296"
+  }
+}

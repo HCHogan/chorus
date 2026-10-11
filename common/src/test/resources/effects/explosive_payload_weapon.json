@@ -1,0 +1,3043 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:auto_rifle",
+          "chorus_d2:primary_ammo",
+          "chorus_d2:legendary"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:explosive_payload"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:explosive_payload",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "precision": {
+            "bundle": "test:weapon_precision_bonus"
+          },
+          "falloff": {
+            "bundle": "test:weapon_falloff"
+          },
+          "ads_range": {
+            "bundle": "test:auto_rifle_ads_range"
+          },
+          "blast": {
+            "bundle": "test:payload_falloff"
+          }
+        }
+      },
+      {
+        "id": "test:hand_cannon",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:hand_cannon",
+          "chorus_d2:primary_ammo",
+          "chorus_d2:legendary"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:explosive_payload"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:explosive_payload",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "precision": {
+            "bundle": "test:weapon_precision_bonus"
+          },
+          "falloff": {
+            "bundle": "test:weapon_falloff"
+          },
+          "ads_range": {
+            "bundle": "test:hand_cannon_ads_range"
+          },
+          "blast": {
+            "bundle": "test:payload_falloff"
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 10,
+        "magazine": 10,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 50
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate_pipeline",
+              "profiles": [
+                "chorus_d2:weapon_range",
+                "chorus_d2:auto_rifle_falloff_start",
+                "test:range_distance"
+              ],
+              "input": {
+                "type": "chorus:constant",
+                "value": 50,
+                "unit": "stat_point"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "test:range_query"
+              ]
+            },
+            "as": "range_start"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate_pipeline",
+              "profiles": [
+                "chorus_d2:weapon_range",
+                "chorus_d2:auto_rifle_falloff_end",
+                "test:range_distance"
+              ],
+              "input": {
+                "type": "chorus:constant",
+                "value": 50,
+                "unit": "stat_point"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "test:range_query"
+              ]
+            },
+            "as": "range_end"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "test:stored_scalar",
+              "input": {
+                "type": "chorus:pvp",
+                "pve": {
+                  "type": "chorus:constant",
+                  "value": 0.5,
+                  "unit": "multiplier"
+                },
+                "pvp": {
+                  "type": "chorus:constant",
+                  "value": 0.5,
+                  "unit": "multiplier"
+                }
+              }
+            },
+            "as": "range_floor"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_fraction",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "multiplier"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_fraction"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_radius",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_radius"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_blast_scale",
+              "input": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_scale"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      },
+                      {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "payload_fraction",
+                          "field": "value"
+                        },
+                        "factor": -1,
+                        "from": "multiplier",
+                        "to": "multiplier"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus_d2:kinetic_damage",
+                "chorus_d2:direct_impact"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      },
+                      {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "payload_fraction",
+                          "field": "value"
+                        },
+                        "factor": -1,
+                        "from": "multiplier",
+                        "to": "multiplier"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:precision",
+                "chorus_d2:kinetic_damage",
+                "chorus_d2:direct_impact"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "head"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:result",
+                    "binding": "payload_fraction",
+                    "field": "value"
+                  },
+                  {
+                    "type": "chorus:result",
+                    "binding": "payload_scale",
+                    "field": "value"
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:payload_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:explosive_perk_damage",
+                "chorus:passive_explosive_perk_damage",
+                "chorus_d2:explosive_payload_damage",
+                "chorus_d2:kinetic_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "payload"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:result_flag",
+                      "binding": "impact",
+                      "field": "entity"
+                    },
+                    {
+                      "type": "chorus:result_flag",
+                      "binding": "impact",
+                      "field": "block"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "action": {
+                      "type": "chorus:begin_damage_group",
+                      "lifetime": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "second"
+                      }
+                    },
+                    "as": "attack_group"
+                  },
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "chorus_d2:weapon_falloff_shape",
+                      "input": {
+                        "type": "chorus:ratio",
+                        "numerator": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:position_distance",
+                              "from": "muzzle",
+                              "to": "impact"
+                            },
+                            {
+                              "type": "chorus:scale",
+                              "of": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "factor": -1,
+                              "from": "meter",
+                              "to": "meter"
+                            }
+                          ]
+                        },
+                        "denominator": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:result",
+                              "binding": "range_end",
+                              "field": "value"
+                            },
+                            {
+                              "type": "chorus:scale",
+                              "of": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "factor": -1,
+                              "from": "meter",
+                              "to": "meter"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "as": "range_fraction"
+                  },
+                  {
+                    "for_each": "impact",
+                    "as": "victim",
+                    "do": [
+                      {
+                        "action": {
+                          "type": "chorus:calculate",
+                          "profile": "test:weapon_precision",
+                          "target": {
+                            "binding": "victim"
+                          },
+                          "victim": {
+                            "binding": "victim"
+                          },
+                          "input": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          },
+                          "tags": [
+                            "test:weapon_geometry"
+                          ],
+                          "numbers": {
+                            "x": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_x"
+                            },
+                            "y": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_y"
+                            },
+                            "z": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_z"
+                            }
+                          }
+                        },
+                        "as": "precision"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "gt",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "delta"
+                              },
+                              "op": "gt",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "delta"
+                              }
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "head",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "impact": {
+                              "weakspot": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "precision",
+                                    "field": "value"
+                                  },
+                                  "op": "eq",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  }
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                },
+                                "else": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "precision_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:ratio",
+                                  "numerator": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "multiplier"
+                                  },
+                                  "denominator": {
+                                    "type": "chorus:arithmetic",
+                                    "op": "add",
+                                    "of": [
+                                      {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "multiplier"
+                                      },
+                                      {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:result",
+                                          "binding": "payload_fraction",
+                                          "field": "value"
+                                        },
+                                        "factor": -1,
+                                        "from": "multiplier",
+                                        "to": "multiplier"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "factor": 1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              },
+                              "distance": {
+                                "type": "chorus:position_distance",
+                                "from": "muzzle",
+                                "to": "impact"
+                              },
+                              "range_start": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "range_end": {
+                                "type": "chorus:result",
+                                "binding": "range_end",
+                                "field": "value"
+                              },
+                              "range_floor": {
+                                "type": "chorus:result",
+                                "binding": "range_floor",
+                                "field": "value"
+                              },
+                              "falloff_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result",
+                                      "binding": "range_fraction",
+                                      "field": "value"
+                                    },
+                                    {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:scale",
+                                          "of": {
+                                            "type": "chorus:result",
+                                            "binding": "range_floor",
+                                            "field": "value"
+                                          },
+                                          "factor": -1,
+                                          "from": "multiplier",
+                                          "to": "multiplier"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "factor": -1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              }
+                            },
+                            "group": "attack_group"
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "body",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "impact": {
+                              "weakspot": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "precision",
+                                    "field": "value"
+                                  },
+                                  "op": "eq",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  }
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                },
+                                "else": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "precision_delta": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "delta"
+                              },
+                              "distance": {
+                                "type": "chorus:position_distance",
+                                "from": "muzzle",
+                                "to": "impact"
+                              },
+                              "range_start": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "range_end": {
+                                "type": "chorus:result",
+                                "binding": "range_end",
+                                "field": "value"
+                              },
+                              "range_floor": {
+                                "type": "chorus:result",
+                                "binding": "range_floor",
+                                "field": "value"
+                              },
+                              "falloff_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result",
+                                      "binding": "range_fraction",
+                                      "field": "value"
+                                    },
+                                    {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:scale",
+                                          "of": {
+                                            "type": "chorus:result",
+                                            "binding": "range_floor",
+                                            "field": "value"
+                                          },
+                                          "factor": -1,
+                                          "from": "multiplier",
+                                          "to": "multiplier"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "factor": -1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              }
+                            },
+                            "group": "attack_group"
+                          }
+                        ]
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "payload_fraction",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "multiplier"
+                          }
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:inspect_entity",
+                              "target": {
+                                "binding": "victim"
+                              }
+                            },
+                            "as": "victim_observed"
+                          },
+                          {
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "victim_observed",
+                                  "field": "available"
+                                },
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "victim_observed",
+                                  "field": "alive"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "type": "chorus:damage_snapshot",
+                                "snapshot": "payload",
+                                "target": {
+                                  "binding": "victim"
+                                },
+                                "group": "attack_group",
+                                "impact": {
+                                  "radial_delta": {
+                                    "type": "chorus:scale",
+                                    "of": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": -1,
+                                          "unit": "multiplier"
+                                        }
+                                      ]
+                                    },
+                                    "factor": 1,
+                                    "from": "multiplier",
+                                    "to": "delta"
+                                  },
+                                  "blast_distance": {
+                                    "type": "chorus:constant",
+                                    "value": 0,
+                                    "unit": "meter"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:select_targets",
+                              "center": {
+                                "position": "impact"
+                              },
+                              "radius": {
+                                "type": "chorus:result",
+                                "binding": "payload_radius",
+                                "field": "value"
+                              },
+                              "relation": "not_allied",
+                              "relative_to": "source_owner",
+                              "exclude": [
+                                "source_owner",
+                                {
+                                  "binding": "victim"
+                                }
+                              ],
+                              "order": "nearest",
+                              "target_anchor": "body"
+                            },
+                            "as": "nearby"
+                          },
+                          {
+                            "for_each": "nearby",
+                            "as": "neighbor",
+                            "do": [
+                              {
+                                "action": {
+                                  "type": "chorus:inspect_entity",
+                                  "target": {
+                                    "binding": "neighbor"
+                                  }
+                                },
+                                "as": "neighbor_observed"
+                              },
+                              {
+                                "if": {
+                                  "type": "chorus:all",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result_flag",
+                                      "binding": "neighbor_observed",
+                                      "field": "available"
+                                    },
+                                    {
+                                      "type": "chorus:result_flag",
+                                      "binding": "neighbor_observed",
+                                      "field": "alive"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "action": {
+                                      "type": "chorus:calculate",
+                                      "profile": "chorus_d2:payload_radial_shape",
+                                      "input": {
+                                        "type": "chorus:ratio",
+                                        "numerator": {
+                                          "type": "chorus:result",
+                                          "binding": "neighbor",
+                                          "field": "distance"
+                                        },
+                                        "denominator": {
+                                          "type": "chorus:result",
+                                          "binding": "payload_radius",
+                                          "field": "value"
+                                        }
+                                      },
+                                      "victim": "event_weapon",
+                                      "tags": [
+                                        "chorus_d2:payload_query"
+                                      ]
+                                    },
+                                    "as": "radial"
+                                  },
+                                  {
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {
+                                        "type": "chorus:result",
+                                        "binding": "radial",
+                                        "field": "value"
+                                      },
+                                      "op": "gt",
+                                      "right": {
+                                        "type": "chorus:constant",
+                                        "value": 0,
+                                        "unit": "multiplier"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "type": "chorus:damage_snapshot",
+                                        "snapshot": "payload",
+                                        "target": {
+                                          "binding": "neighbor"
+                                        },
+                                        "group": "attack_group",
+                                        "impact": {
+                                          "radial_delta": {
+                                            "type": "chorus:scale",
+                                            "of": {
+                                              "type": "chorus:arithmetic",
+                                              "op": "add",
+                                              "of": [
+                                                {
+                                                  "type": "chorus:result",
+                                                  "binding": "radial",
+                                                  "field": "value"
+                                                },
+                                                {
+                                                  "type": "chorus:constant",
+                                                  "value": -1,
+                                                  "unit": "multiplier"
+                                                }
+                                              ]
+                                            },
+                                            "factor": 1,
+                                            "from": "multiplier",
+                                            "to": "delta"
+                                          },
+                                          "blast_distance": {
+                                            "type": "chorus:result",
+                                            "binding": "neighbor",
+                                            "field": "distance"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:result_flag",
+                          "binding": "impact",
+                          "field": "block"
+                        },
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "payload_fraction",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "multiplier"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:select_targets",
+                          "center": {
+                            "position": "impact"
+                          },
+                          "radius": {
+                            "type": "chorus:result",
+                            "binding": "payload_radius",
+                            "field": "value"
+                          },
+                          "relation": "not_allied",
+                          "relative_to": "source_owner",
+                          "exclude": [
+                            "source_owner"
+                          ],
+                          "order": "nearest",
+                          "target_anchor": "body"
+                        },
+                        "as": "nearby"
+                      },
+                      {
+                        "for_each": "nearby",
+                        "as": "neighbor",
+                        "do": [
+                          {
+                            "action": {
+                              "type": "chorus:inspect_entity",
+                              "target": {
+                                "binding": "neighbor"
+                              }
+                            },
+                            "as": "neighbor_observed"
+                          },
+                          {
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "neighbor_observed",
+                                  "field": "available"
+                                },
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "neighbor_observed",
+                                  "field": "alive"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "action": {
+                                  "type": "chorus:calculate",
+                                  "profile": "chorus_d2:payload_radial_shape",
+                                  "input": {
+                                    "type": "chorus:ratio",
+                                    "numerator": {
+                                      "type": "chorus:result",
+                                      "binding": "neighbor",
+                                      "field": "distance"
+                                    },
+                                    "denominator": {
+                                      "type": "chorus:result",
+                                      "binding": "payload_radius",
+                                      "field": "value"
+                                    }
+                                  },
+                                  "victim": "event_weapon",
+                                  "tags": [
+                                    "chorus_d2:payload_query"
+                                  ]
+                                },
+                                "as": "radial"
+                              },
+                              {
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "radial",
+                                    "field": "value"
+                                  },
+                                  "op": "gt",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 0,
+                                    "unit": "multiplier"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "payload",
+                                    "target": {
+                                      "binding": "neighbor"
+                                    },
+                                    "group": "attack_group",
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "radial",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "neighbor",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:end_damage_group",
+                    "group": "attack_group"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "aiming": {
+        "enter": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "second"
+          }
+        },
+        "exit": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          }
+        }
+      }
+    },
+    {
+      "item": "test:hand_cannon",
+      "ammunition": {
+        "capacity": 10,
+        "magazine": 10,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 50
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate_pipeline",
+              "profiles": [
+                "chorus_d2:weapon_range",
+                "chorus_d2:hand_cannon_falloff_start",
+                "test:range_distance"
+              ],
+              "input": {
+                "type": "chorus:constant",
+                "value": 50,
+                "unit": "stat_point"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "test:range_query"
+              ]
+            },
+            "as": "range_start"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate_pipeline",
+              "profiles": [
+                "chorus_d2:weapon_range",
+                "chorus_d2:hand_cannon_falloff_end",
+                "test:range_distance"
+              ],
+              "input": {
+                "type": "chorus:constant",
+                "value": 50,
+                "unit": "stat_point"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "test:range_query"
+              ]
+            },
+            "as": "range_end"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "test:stored_scalar",
+              "input": {
+                "type": "chorus:pvp",
+                "pve": {
+                  "type": "chorus:constant",
+                  "value": 0.33,
+                  "unit": "multiplier"
+                },
+                "pvp": {
+                  "type": "chorus:constant",
+                  "value": 0.33,
+                  "unit": "multiplier"
+                }
+              }
+            },
+            "as": "range_floor"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_fraction",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "multiplier"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_fraction"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_radius",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_radius"
+          },
+          {
+            "action": {
+              "type": "chorus:calculate",
+              "profile": "chorus_d2:payload_blast_scale",
+              "input": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "victim": "event_weapon",
+              "tags": [
+                "chorus_d2:payload_query"
+              ]
+            },
+            "as": "payload_scale"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      },
+                      {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "payload_fraction",
+                          "field": "value"
+                        },
+                        "factor": -1,
+                        "from": "multiplier",
+                        "to": "multiplier"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus_d2:kinetic_damage",
+                "chorus_d2:direct_impact"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      },
+                      {
+                        "type": "chorus:scale",
+                        "of": {
+                          "type": "chorus:result",
+                          "binding": "payload_fraction",
+                          "field": "value"
+                        },
+                        "factor": -1,
+                        "from": "multiplier",
+                        "to": "multiplier"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:precision",
+                "chorus_d2:kinetic_damage",
+                "chorus_d2:direct_impact"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "head"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:arithmetic",
+                "op": "mul",
+                "of": [
+                  {
+                    "type": "chorus:constant",
+                    "value": 10,
+                    "unit": "damage"
+                  },
+                  {
+                    "type": "chorus:result",
+                    "binding": "payload_fraction",
+                    "field": "value"
+                  },
+                  {
+                    "type": "chorus:result",
+                    "binding": "payload_scale",
+                    "field": "value"
+                  }
+                ]
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:payload_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:explosive_perk_damage",
+                "chorus:passive_explosive_perk_damage",
+                "chorus_d2:explosive_payload_damage",
+                "chorus_d2:kinetic_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "payload"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 3,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:result_flag",
+                      "binding": "impact",
+                      "field": "entity"
+                    },
+                    {
+                      "type": "chorus:result_flag",
+                      "binding": "impact",
+                      "field": "block"
+                    }
+                  ]
+                },
+                "then": [
+                  {
+                    "action": {
+                      "type": "chorus:begin_damage_group",
+                      "lifetime": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "second"
+                      }
+                    },
+                    "as": "attack_group"
+                  },
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "chorus_d2:weapon_falloff_shape",
+                      "input": {
+                        "type": "chorus:ratio",
+                        "numerator": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:position_distance",
+                              "from": "muzzle",
+                              "to": "impact"
+                            },
+                            {
+                              "type": "chorus:scale",
+                              "of": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "factor": -1,
+                              "from": "meter",
+                              "to": "meter"
+                            }
+                          ]
+                        },
+                        "denominator": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:result",
+                              "binding": "range_end",
+                              "field": "value"
+                            },
+                            {
+                              "type": "chorus:scale",
+                              "of": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "factor": -1,
+                              "from": "meter",
+                              "to": "meter"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "as": "range_fraction"
+                  },
+                  {
+                    "for_each": "impact",
+                    "as": "victim",
+                    "do": [
+                      {
+                        "action": {
+                          "type": "chorus:calculate",
+                          "profile": "test:weapon_precision",
+                          "target": {
+                            "binding": "victim"
+                          },
+                          "victim": {
+                            "binding": "victim"
+                          },
+                          "input": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          },
+                          "tags": [
+                            "test:weapon_geometry"
+                          ],
+                          "numbers": {
+                            "x": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_x"
+                            },
+                            "y": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_y"
+                            },
+                            "z": {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "relative_z"
+                            }
+                          }
+                        },
+                        "as": "precision"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "gt",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            },
+                            {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "delta"
+                              },
+                              "op": "gt",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "delta"
+                              }
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "head",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "impact": {
+                              "weakspot": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "precision",
+                                    "field": "value"
+                                  },
+                                  "op": "eq",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  }
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                },
+                                "else": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "precision_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:ratio",
+                                  "numerator": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "multiplier"
+                                  },
+                                  "denominator": {
+                                    "type": "chorus:arithmetic",
+                                    "op": "add",
+                                    "of": [
+                                      {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "multiplier"
+                                      },
+                                      {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:result",
+                                          "binding": "payload_fraction",
+                                          "field": "value"
+                                        },
+                                        "factor": -1,
+                                        "from": "multiplier",
+                                        "to": "multiplier"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "factor": 1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              },
+                              "distance": {
+                                "type": "chorus:position_distance",
+                                "from": "muzzle",
+                                "to": "impact"
+                              },
+                              "range_start": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "range_end": {
+                                "type": "chorus:result",
+                                "binding": "range_end",
+                                "field": "value"
+                              },
+                              "range_floor": {
+                                "type": "chorus:result",
+                                "binding": "range_floor",
+                                "field": "value"
+                              },
+                              "falloff_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result",
+                                      "binding": "range_fraction",
+                                      "field": "value"
+                                    },
+                                    {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:scale",
+                                          "of": {
+                                            "type": "chorus:result",
+                                            "binding": "range_floor",
+                                            "field": "value"
+                                          },
+                                          "factor": -1,
+                                          "from": "multiplier",
+                                          "to": "multiplier"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "factor": -1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              }
+                            },
+                            "group": "attack_group"
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "body",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "impact": {
+                              "weakspot": {
+                                "type": "chorus:choose",
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "precision",
+                                    "field": "value"
+                                  },
+                                  "op": "eq",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  }
+                                },
+                                "then": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                },
+                                "else": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              },
+                              "precision_delta": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "delta"
+                              },
+                              "distance": {
+                                "type": "chorus:position_distance",
+                                "from": "muzzle",
+                                "to": "impact"
+                              },
+                              "range_start": {
+                                "type": "chorus:result",
+                                "binding": "range_start",
+                                "field": "value"
+                              },
+                              "range_end": {
+                                "type": "chorus:result",
+                                "binding": "range_end",
+                                "field": "value"
+                              },
+                              "range_floor": {
+                                "type": "chorus:result",
+                                "binding": "range_floor",
+                                "field": "value"
+                              },
+                              "falloff_delta": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result",
+                                      "binding": "range_fraction",
+                                      "field": "value"
+                                    },
+                                    {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:scale",
+                                          "of": {
+                                            "type": "chorus:result",
+                                            "binding": "range_floor",
+                                            "field": "value"
+                                          },
+                                          "factor": -1,
+                                          "from": "multiplier",
+                                          "to": "multiplier"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "factor": -1,
+                                "from": "multiplier",
+                                "to": "delta"
+                              }
+                            },
+                            "group": "attack_group"
+                          }
+                        ]
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "payload_fraction",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "multiplier"
+                          }
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:inspect_entity",
+                              "target": {
+                                "binding": "victim"
+                              }
+                            },
+                            "as": "victim_observed"
+                          },
+                          {
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "victim_observed",
+                                  "field": "available"
+                                },
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "victim_observed",
+                                  "field": "alive"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "type": "chorus:damage_snapshot",
+                                "snapshot": "payload",
+                                "target": {
+                                  "binding": "victim"
+                                },
+                                "group": "attack_group",
+                                "impact": {
+                                  "radial_delta": {
+                                    "type": "chorus:scale",
+                                    "of": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "multiplier"
+                                        },
+                                        {
+                                          "type": "chorus:constant",
+                                          "value": -1,
+                                          "unit": "multiplier"
+                                        }
+                                      ]
+                                    },
+                                    "factor": 1,
+                                    "from": "multiplier",
+                                    "to": "delta"
+                                  },
+                                  "blast_distance": {
+                                    "type": "chorus:constant",
+                                    "value": 0,
+                                    "unit": "meter"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:select_targets",
+                              "center": {
+                                "position": "impact"
+                              },
+                              "radius": {
+                                "type": "chorus:result",
+                                "binding": "payload_radius",
+                                "field": "value"
+                              },
+                              "relation": "not_allied",
+                              "relative_to": "source_owner",
+                              "exclude": [
+                                "source_owner",
+                                {
+                                  "binding": "victim"
+                                }
+                              ],
+                              "order": "nearest",
+                              "target_anchor": "body"
+                            },
+                            "as": "nearby"
+                          },
+                          {
+                            "for_each": "nearby",
+                            "as": "neighbor",
+                            "do": [
+                              {
+                                "action": {
+                                  "type": "chorus:inspect_entity",
+                                  "target": {
+                                    "binding": "neighbor"
+                                  }
+                                },
+                                "as": "neighbor_observed"
+                              },
+                              {
+                                "if": {
+                                  "type": "chorus:all",
+                                  "of": [
+                                    {
+                                      "type": "chorus:result_flag",
+                                      "binding": "neighbor_observed",
+                                      "field": "available"
+                                    },
+                                    {
+                                      "type": "chorus:result_flag",
+                                      "binding": "neighbor_observed",
+                                      "field": "alive"
+                                    }
+                                  ]
+                                },
+                                "then": [
+                                  {
+                                    "action": {
+                                      "type": "chorus:calculate",
+                                      "profile": "chorus_d2:payload_radial_shape",
+                                      "input": {
+                                        "type": "chorus:ratio",
+                                        "numerator": {
+                                          "type": "chorus:result",
+                                          "binding": "neighbor",
+                                          "field": "distance"
+                                        },
+                                        "denominator": {
+                                          "type": "chorus:result",
+                                          "binding": "payload_radius",
+                                          "field": "value"
+                                        }
+                                      },
+                                      "victim": "event_weapon",
+                                      "tags": [
+                                        "chorus_d2:payload_query"
+                                      ]
+                                    },
+                                    "as": "radial"
+                                  },
+                                  {
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {
+                                        "type": "chorus:result",
+                                        "binding": "radial",
+                                        "field": "value"
+                                      },
+                                      "op": "gt",
+                                      "right": {
+                                        "type": "chorus:constant",
+                                        "value": 0,
+                                        "unit": "multiplier"
+                                      }
+                                    },
+                                    "then": [
+                                      {
+                                        "type": "chorus:damage_snapshot",
+                                        "snapshot": "payload",
+                                        "target": {
+                                          "binding": "neighbor"
+                                        },
+                                        "group": "attack_group",
+                                        "impact": {
+                                          "radial_delta": {
+                                            "type": "chorus:scale",
+                                            "of": {
+                                              "type": "chorus:arithmetic",
+                                              "op": "add",
+                                              "of": [
+                                                {
+                                                  "type": "chorus:result",
+                                                  "binding": "radial",
+                                                  "field": "value"
+                                                },
+                                                {
+                                                  "type": "chorus:constant",
+                                                  "value": -1,
+                                                  "unit": "multiplier"
+                                                }
+                                              ]
+                                            },
+                                            "factor": 1,
+                                            "from": "multiplier",
+                                            "to": "delta"
+                                          },
+                                          "blast_distance": {
+                                            "type": "chorus:result",
+                                            "binding": "neighbor",
+                                            "field": "distance"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:result_flag",
+                          "binding": "impact",
+                          "field": "block"
+                        },
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "payload_fraction",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "multiplier"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:select_targets",
+                          "center": {
+                            "position": "impact"
+                          },
+                          "radius": {
+                            "type": "chorus:result",
+                            "binding": "payload_radius",
+                            "field": "value"
+                          },
+                          "relation": "not_allied",
+                          "relative_to": "source_owner",
+                          "exclude": [
+                            "source_owner"
+                          ],
+                          "order": "nearest",
+                          "target_anchor": "body"
+                        },
+                        "as": "nearby"
+                      },
+                      {
+                        "for_each": "nearby",
+                        "as": "neighbor",
+                        "do": [
+                          {
+                            "action": {
+                              "type": "chorus:inspect_entity",
+                              "target": {
+                                "binding": "neighbor"
+                              }
+                            },
+                            "as": "neighbor_observed"
+                          },
+                          {
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "neighbor_observed",
+                                  "field": "available"
+                                },
+                                {
+                                  "type": "chorus:result_flag",
+                                  "binding": "neighbor_observed",
+                                  "field": "alive"
+                                }
+                              ]
+                            },
+                            "then": [
+                              {
+                                "action": {
+                                  "type": "chorus:calculate",
+                                  "profile": "chorus_d2:payload_radial_shape",
+                                  "input": {
+                                    "type": "chorus:ratio",
+                                    "numerator": {
+                                      "type": "chorus:result",
+                                      "binding": "neighbor",
+                                      "field": "distance"
+                                    },
+                                    "denominator": {
+                                      "type": "chorus:result",
+                                      "binding": "payload_radius",
+                                      "field": "value"
+                                    }
+                                  },
+                                  "victim": "event_weapon",
+                                  "tags": [
+                                    "chorus_d2:payload_query"
+                                  ]
+                                },
+                                "as": "radial"
+                              },
+                              {
+                                "if": {
+                                  "type": "chorus:compare",
+                                  "left": {
+                                    "type": "chorus:result",
+                                    "binding": "radial",
+                                    "field": "value"
+                                  },
+                                  "op": "gt",
+                                  "right": {
+                                    "type": "chorus:constant",
+                                    "value": 0,
+                                    "unit": "multiplier"
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "payload",
+                                    "target": {
+                                      "binding": "neighbor"
+                                    },
+                                    "group": "attack_group",
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "radial",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "neighbor",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:end_damage_group",
+                    "group": "attack_group"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "aiming": {
+        "enter": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "second"
+          }
+        },
+        "exit": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          }
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "precision",
+          "operation": "multiply",
+          "factor": "chorus:precision",
+          "group": {
+            "name": "precision",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "falloff",
+          "operation": "multiply",
+          "factor": "chorus_d2:distance_falloff",
+          "group": {
+            "name": "falloff",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_precision",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "region",
+          "operation": "replace",
+          "group": {
+            "name": "regions",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "boolean_region",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0
+              },
+              {
+                "input": 1,
+                "output": 1
+              },
+              {
+                "input": 2,
+                "output": 2
+              }
+            ],
+            "interpolation": "exact",
+            "boundary": "error"
+          },
+          "output_unit": "count"
+        }
+      ]
+    },
+    {
+      "id": "test:stored_scalar",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "identity",
+          "operation": "add",
+          "group": {
+            "name": "unused",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:range_distance",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "distance_scale",
+          "operation": "multiply",
+          "factor": "test:distance_scale",
+          "group": {
+            "name": "range_scale",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:payload_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "radial",
+          "operation": "multiply",
+          "group": {
+            "name": "radial",
+            "reduction": "max"
+          },
+          "factor": "chorus_d2:radial_falloff"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:weapon_region",
+      "parameters": {
+        "min_x": "multiplier",
+        "max_x": "multiplier",
+        "min_y": "multiplier",
+        "max_y": "multiplier",
+        "min_z": "multiplier",
+        "max_z": "multiplier"
+      },
+      "modifiers": [
+        {
+          "id": "region",
+          "profile": "test:weapon_precision",
+          "stage": "region",
+          "group": "regions",
+          "op": "replace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "test:region",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:weapon_geometry"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_z"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_z"
+                }
+              }
+            ]
+          },
+          "reference": "Synthetic target-owned axis-aligned hit region; no D2 enemy weakpoint catalogue or Minecraft default head claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "arm",
+          "on": "test:arm",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:payload_one_use"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_precision_bonus",
+      "modifiers": [
+        {
+          "id": "precision",
+          "profile": "test:weapon_damage",
+          "stage": "precision",
+          "group": "precision",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "precision_delta",
+            "unit": "delta"
+          },
+          "stacking_key": "test:weapon_precision",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic explicit per-impact precision multiplier, not measured Destiny calibration.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_observer",
+      "rules": [
+        {
+          "id": "started",
+          "on": "chorus:weapon_aim_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_started"
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus:weapon_aim_ready",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ready"
+            }
+          ]
+        },
+        {
+          "id": "released",
+          "on": "chorus:weapon_aim_released",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_released"
+            }
+          ]
+        },
+        {
+          "id": "ended",
+          "on": "chorus:weapon_aim_ended",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ended"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_falloff",
+      "modifiers": [
+        {
+          "profile": "test:weapon_damage",
+          "id": "range_falloff",
+          "stage": "falloff",
+          "op": "multiply",
+          "group": "falloff",
+          "stacking_key": "test:weapon_falloff",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "falloff_delta",
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Synthetic distance interpolation acceptance; endpoints from pinned Foundry source",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:auto_rifle_ads_range",
+      "modifiers": [
+        {
+          "profile": "test:range_distance",
+          "id": "ads_distance",
+          "stage": "distance_scale",
+          "op": "multiply",
+          "group": "range_scale",
+          "stacking_key": "test:ads_range",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.6000000000000001,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:range_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "target": "self",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Foundry get_ads_multiplier at dcd0c7d; ready-only sampling is a Chorus policy",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "test:hand_cannon_ads_range",
+      "modifiers": [
+        {
+          "profile": "test:range_distance",
+          "id": "ads_distance",
+          "stage": "distance_scale",
+          "op": "multiply",
+          "group": "range_scale",
+          "stacking_key": "test:ads_range",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:range_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "target": "self",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Foundry get_ads_multiplier at dcd0c7d; ready-only sampling is a Chorus policy",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "test:payload_falloff",
+      "modifiers": [
+        {
+          "id": "radial",
+          "profile": "test:payload_damage",
+          "stage": "radial",
+          "op": "multiply",
+          "group": "radial",
+          "stacking_key": "test:payload_falloff",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "radial_delta",
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Required external radial calibration; no D2 interpolation claim.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:payload_bonus",
+      "modifiers": [
+        {
+          "id": "0",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "op": "multiply",
+          "group": "weapon_perk",
+          "stacking_key": "test:payload_bonus",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Synthetic +50% source-snapshot acceptance.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "1",
+          "profile": "test:payload_damage",
+          "stage": "perks",
+          "op": "multiply",
+          "group": "weapon_perk",
+          "stacking_key": "test:payload_bonus",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Synthetic +50% source-snapshot acceptance.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:payload_shield",
+      "rules": [
+        {
+          "id": "shield",
+          "on": "test:shield",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:payload_shield",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:payload_one_use",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "0",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "test:payload_one_use",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "evaluate": "on_hit",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          },
+          "reference": "Synthetic group-shared one-use bonus; not a Destiny perk claim.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "1",
+          "profile": "test:payload_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "test:payload_one_use",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "evaluate": "on_hit",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          },
+          "reference": "Synthetic group-shared one-use bonus; not a Destiny perk claim.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:payload_shield",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 100,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "excluded_attack_factors": [
+          "chorus:precision"
+        ]
+      }
+    },
+    {
+      "definition": {
+        "id": "test:payload_one_use",
+        "version": "compendium-2026-10-05",
+        "duration": 3
+      },
+      "bundle": "test:payload_one_use",
+      "consume_on_damage": {
+        "when": "hit",
+        "if": {
+          "type": "chorus:event_tag",
+          "tag": "chorus:weapon_damage"
+        },
+        "sharing": "group"
+      }
+    }
+  ]
+}

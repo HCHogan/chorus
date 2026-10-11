@@ -11438,6 +11438,73 @@
         "原作取消/反转/中途取样窗口、退出时间与实际后坐力尚未校准；0.1 秒退出、基础 Handling 10、弹量/伤害/几何及 perk 组合是测试输入。",
         "正式内容装配、FOV/动画/HUD、物理世界整体重启与全部客户端输入组合仍未完成。"
       ]
+    },
+    {
+      "id": "weapon/explosive_payload",
+      "name": "Explosive Payload",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "实际开火捕获50%直击/爆炸分量，独立距离衰减、精确补偿、3米范围、传奇手炮PvP爆炸-7%；真实碰撞/护盾/击杀与同攻击共享消费",
+      "acceptance": [
+        "两模式、身体/精确、近距/中距/远距拆分；传奇手炮资格与强化+5 Reload查询",
+        "主目标只吃一次满额爆炸，直接致死仍爆炸；邻近距离、队伍和存活过滤",
+        "撞墙爆炸、到期/卸载不爆炸；卸装/移动/领域恢复保留已接受攻击",
+        "真实双分量掉血、精确因子护盾排除、一次性增益共享、未知第二回执不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/explosive_payload.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/explosive_payload_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosivePayloadTest.java",
+          "symbol": "twoModesPrecisionAndRangeKeepBlastIndependentFromTravelAndCrit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosivePayloadTest.java",
+          "symbol": "unequippedCapturedShotAndCheckpointKeepBothSourceMultipliersAndWeaponCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosivePayloadGameTest.java",
+          "symbol": "actualBodyAndPrecisionContactsHaveSeparateTravelAndBlastDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosivePayloadGameTest.java",
+          "symbol": "shieldExcludesOnlyAdjustedPrecisionAndOneUseBuffCoversBothComponents"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosivePayloadGameTest.java",
+          "symbol": "unknownSecondDamageRetainsBothAppliedLossesWithoutReplayingContact"
+        }
+      ],
+      "gaps": [
+        "径向线性曲线、基础伤害10/精确2与射速/弹量为合成校准；主目标满额爆炸、取样/顺序/队伍和无视线要求为明确内容政策，需原作实测",
+        "完整命中几何、PvP精确舍入、硬直/抖动、原作护盾特例未校准；活动模式选择尚未接入混合目标分类",
+        "共享D2增伤目录、各proc实际资格、生产装配/HUD未接入；强化+5已入装填属性，实际换弹时长消费者仍待接线",
+        "领域检查点与独立Launch编码不代表物理世界跨重启；Timed Payload移动附着/延迟/未知半径与Explosive Head仍未实现"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A90",
+          "text_sha256": "cc5076c923b3f04b082075b9bd599713c81cab53631304f157bec441209b9e72"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C90",
+          "text_sha256": "e36757e4cd9662726d2946797abc4296663b92f5c4dbad700b86dd9c13780408"
+        }
+      ]
     }
   ]
 }

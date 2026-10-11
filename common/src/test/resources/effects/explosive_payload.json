@@ -1,0 +1,252 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:payload_fraction",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "payload",
+          "operation": "replace",
+          "group": {
+            "name": "payload",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "valid_fraction",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 0.99,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:payload_radius",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "payload",
+          "operation": "replace",
+          "group": {
+            "name": "payload",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:payload_blast_scale",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "payload",
+          "operation": "multiply",
+          "group": {
+            "name": "payload",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:explosive_payload",
+      "modifiers": [
+        {
+          "id": "fraction",
+          "profile": "chorus_d2:payload_fraction",
+          "stage": "payload",
+          "op": "replace",
+          "group": "payload",
+          "stacking_key": "chorus_d2:explosive_payload",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "multiplier"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:payload_query"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C91 / snapshot C90; Bungie 2024-11-14 limits PvP -7% to Legendary Hand Cannons. See data/d2-research/2026-10-12/explosive-payload.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "radius",
+          "profile": "chorus_d2:payload_radius",
+          "stage": "payload",
+          "op": "replace",
+          "group": "payload",
+          "stacking_key": "chorus_d2:explosive_payload",
+          "value": {
+            "type": "chorus:constant",
+            "value": 3,
+            "unit": "meter"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:payload_query"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C91 / snapshot C90; Bungie 2024-11-14 limits PvP -7% to Legendary Hand Cannons. See data/d2-research/2026-10-12/explosive-payload.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "blast_scale",
+          "profile": "chorus_d2:payload_blast_scale",
+          "stage": "payload",
+          "op": "multiply",
+          "group": "payload",
+          "stacking_key": "chorus_d2:explosive_payload",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.3,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:hand_cannon"
+                  },
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:legendary"
+                  }
+                ]
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": -0.07,
+                "unit": "delta"
+              },
+              "else": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "delta"
+              }
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:payload_query"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C91 / snapshot C90; Bungie 2024-11-14 limits PvP -7% to Legendary Hand Cannons. See data/d2-research/2026-10-12/explosive-payload.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "enhanced_reload",
+          "profile": "chorus_d2:weapon_reload",
+          "stage": "perks",
+          "op": "add",
+          "group": "reload",
+          "stacking_key": "chorus_d2:explosive_payload",
+          "value": {
+            "type": "chorus:constant",
+            "value": 5,
+            "unit": "stat_point"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:source_tag",
+                "tag": "chorus:enhanced"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C91 / snapshot C90; Bungie 2024-11-14 limits PvP -7% to Legendary Hand Cannons. See data/d2-research/2026-10-12/explosive-payload.json.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}
