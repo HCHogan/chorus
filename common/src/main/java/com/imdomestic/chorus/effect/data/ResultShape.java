@@ -255,10 +255,13 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "insufficient",r->((com.imdomestic.chorus.effect.combat.HealthPayment.Receipt)r).outcome()==com.imdomestic.chorus.effect.combat.HealthPayment.Outcome.INSUFFICIENT));
     public static final ResultShape HEALING = new ResultShape(Map.of(
             "requested", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).requested()),
+            "maximum_health", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).maximumHealth().orElseThrow(() -> new IllegalArgumentException("Healing target maximum health was not observed"))),
             "offered", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).offered()),
             "effective", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).effective()),
             "overheal", new Field(Unit.DAMAGE, result -> ((HealingReceipt) result).overheal())),
-            Map.of("applied", result -> ((HealingReceipt) result).applied(), "changed", result -> ((HealingReceipt) result).effective() > 0,
+            Map.of("amount_resolved", result -> ((HealingReceipt) result).amountResolved(),
+                    "observed_maximum", result -> ((HealingReceipt) result).maximumHealth().isPresent(),
+                    "applied", result -> ((HealingReceipt) result).applied(), "changed", result -> ((HealingReceipt) result).effective() > 0,
                     "overhealed", result -> ((HealingReceipt) result).overheal() > 0));
     public static final ResultShape DAMAGE = new ResultShape(Map.of(
             "effective", new Field(Unit.DAMAGE, result -> ((DamageReceipt) result).effective(false)),

@@ -59,6 +59,16 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 }
                 yield MinecraftHealingExecutor.execute(id, target, healing);
             }
+            case com.imdomestic.chorus.effect.combat.Recovery.Selection selection -> {
+                String id = sessionId + "/" + request.id().frame() + "/" + request.id().pc() + "/" + request.id().invocation();
+                var target = entities.apply(selection.target());
+                if (target == null || target.isRemoved() || target.level() != level) yield new com.imdomestic.chorus.effect.combat.Recovery.SelectionReceipt(selection, HealingReceipt.Outcome.MISSING, Optional.empty());
+                if (!target.isAlive()) yield new com.imdomestic.chorus.effect.combat.Recovery.SelectionReceipt(selection, HealingReceipt.Outcome.DEAD, Optional.empty());
+                double maximumHealth = target.getMaxHealth();
+                var winner = selection.winner(maximumHealth);
+                var receipt = MinecraftHealingExecutor.execute(id, target, selection.command(winner), maximumHealth);
+                yield new com.imdomestic.chorus.effect.combat.Recovery.SelectionReceipt(selection, receipt.outcome(), Optional.of(new com.imdomestic.chorus.effect.combat.Recovery.Selected(winner, maximumHealth, receipt)));
+            }
             case com.imdomestic.chorus.effect.combat.HealthPayment.Command payment -> {
                 String id=sessionId+"/"+request.id().frame()+"/"+request.id().pc()+"/"+request.id().invocation();
                 var target=entities.apply(payment.target());

@@ -6,7 +6,17 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-health-layer-gate-2.log` BUILD SUCCESSFUL，1 分 12 秒：1248 项 JUnit（无失败 / 错误 / 跳过）、Fabric 608 项、NeoForge 620 项与两端发布 jar 全部通过，共享 Chorus 场景为 607 项。10 项 Compendium 审计和 76 条报告一致性检查通过。发布包包含 healthProfile 实现，不含效果夹具 / GameTest；本阶段未更改客户端协议或输入，没有新增图形客户端验收。
+最新门禁 `/tmp/chorus-fractional-healing-gate.log` BUILD SUCCESSFUL，2 分 46 秒：1254 项 JUnit（无失败 / 错误 / 跳过）、Fabric 613 项、NeoForge 628 项和两端发布 jar 全部通过，共享 Chorus 场景为 612 项。10 项 Compendium 审计、76 条报告一致性、7 个原表单元格与 HTML / gzip 哈希核对通过。发布包含最大生命比例治疗与混合恢复选择，不含测试效果 / GameTest；没有客户端输入 / 协议变更，本阶段没有新增图形客户端验收。
+
+heal 和 health_recovery 新增可选 basis:max_health，分别使用 health_fraction、health_fraction_per_second；默认 absolute 保持现有单位与行为。来源速率及 Profile 仍由纯核心按段计算，世界执行时一次采样实际最大生命，将比例额度换算成 HP 再走原版治疗。回执保留原比例 / basis、最大生命观察、已解析 requested 与实际 offered / effective / overheal。目标不可用时没有可推导的比例 HP 量，结果标记未解析，读取时拒绝伪造零值；死亡目标不复活。
+
+同一恢复通道中，优先级相同的固定与比例速率通过 Recovery.Selection 保留候选并延后到世界边界换算取高。只执行胜者，保留其原始归属与标签；最大生命改变后下一段重新选择，取消胜者不回退到其他候选。适配器回执校验选择命令、胜者与最大生命一致；重复操作保持原选择和观察，未知世界结果不重放。相同 basis 的通道仍在纯核心选择，不同目标 / 通道仍独立。
+
+新增 6 项 FractionalHealingTest、5 项共享 FractionalHealingGameTest、3 项 NeoForge 钩子测试。覆盖单位 / Profile / 编解码、缺失观察、混合取高 / 优先级 / 来源 / 通道隔离、真实玩家与生物、动态最大生命、满血溢出、到期残段、重复 / 未知操作；实际 tick 另验证仅盾损失不触发示例恢复延迟，实际生命损失暂停并经定时器恢复。NeoForge 验证治疗钩子改变生命上限 / 治疗量、嵌套独立采样，以及取消后不执行备选治疗。既有 BundleInvocation 飞行场景在本次开发与完整门禁均通过，上一阶段偶发原因仍未定位。
+
+原表 Game Mechanics C157 / K224 / E278 对应固定快照 C9 / K66 / E97，包含生命恢复、过载勇士和治疗祸患的百分比需求；相邻 C160 / C161 / C163 / C165 也已核对。原表基础恢复摘要与速率 / 延迟表存在数值出入，故本阶段没有选定新的原作恢复常数。所有新增夹具比例 / 时长均为合成验收值，不宣称完整 Guardian、Champion 或 Healing Bane 内容。仍为 76 条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。正式基础血池、恢复策略、内容装配、HUD 与存档继续保留缺口。[数据协议](engine-data-packs.md#按当前最大生命比例治疗与恢复)；[来源与限制](../data/d2-research/2026-10-11/fractional-healing.json)。
+
+上一阶段门禁 `/tmp/chorus-health-layer-gate-2.log` BUILD SUCCESSFUL，1 分 12 秒：1248 项 JUnit（无失败 / 错误 / 跳过）、Fabric 608 项、NeoForge 620 项与两端发布 jar 全部通过，共享 Chorus 场景为 607 项。10 项 Compendium 审计和 76 条报告一致性检查通过。发布包包含 healthProfile 实现，不含效果夹具 / GameTest；本阶段未更改客户端协议或输入，没有新增图形客户端验收。
 
 生命层专属 Profile 已接入：程序可选 health_profile，按当前受害者修饰独立计算原版护甲 / 魔法 / Absorption 之后的正生命预算。零输入跳过全部步骤，前面已经消耗的盾和吸收不会因生命层倍率改变。DamageReceipt.health 保存独立轨迹，healthLoss 仍取真实写入；非致死下限、死亡保护、过量伤害与实际死亡继续走原版路径。Fabric 与 NeoForge 分别适配其吸收结算位置，NeoForge 同步最终容器值供 Post 查询，不回写先前捕获的 inflictedDamage。
 
@@ -146,6 +156,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 明确因子与护盾按层排除精准增伤 | 纯核心及双加载器 GameTest 通过 | `Apply.factor / DamageBasis / excluded_attack_factors`；已求值贡献重放、固定加值 / 上限、快照、原版准入预算及层内轨迹；自动弱点判定和原作跨层校准未完成 |
 | 有上限的护盾补充、正容量与 Buff 资格查询 | 纯核心及双加载器 GameTest 通过 | `ShieldRestoration / restore_shield`；现有层写回、容量上限、溢出不储存、动态上限作用域、去重、Rift 满血脉冲与 Void 阻止；连续回充另见下行，Rift 精细时序待校准 |
 | 护盾层连续回充与受击延迟规则 | 纯核心及双加载器 GameTest 通过 | `ShieldRecovery / shield.recovery / own_shield`；段首积分、容量微秒边界、到期残段、来源保留、停伤重置和破盾终止；恢复 Profile 与基础生命自然恢复待完成 |
+| 按最大生命比例治疗与恢复、混合单位通道取高 | 纯核心、双加载器世界与 NeoForge 治疗钩子测试通过 | `HealingCommand.Basis / Recovery.Selection`；世界执行时采样最大生命，独立 requested / offered / actual，保留获胜来源、未解析观察与未知结果；原作血池 / 时序仍须装配校准 |
 | 生命层专属伤害 Profile | 纯核心、双加载器共享与 NeoForge 阶段测试通过 | `health_profile / DamageReceipt.health`；实际原版护甲与 Absorption 后求值、零预算跳过、目标当前修饰和独立轨迹；原作基础血池与恢复规则仍未完成 |
 | 实际损失、原版 Absorption、确认死亡、死亡保护 | 纯核心及双加载器 GameTest 通过 | `effect/combat/DamageReceipt`、`DamageFacts`、`platform/minecraft/DamageCapture`；真实图腾成功无 death / kill，实际 death / kill 共享 ID |
 | 顺序充能、收益裁剪、已支付成本返还、分段积分 | 已有纯核心测试 | `effect/resource/Resources`；parallel 及完整 linked 技能接线未实现 |

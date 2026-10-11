@@ -21,23 +21,25 @@ public final class HealingCapture {
     public static final class Request implements AutoCloseable {
         final String id;
         final HealingCommand command;
+        final java.util.OptionalDouble maximumHealth;
         final Call call;
         boolean entered;
-        private Request(String id, LivingEntity target, HealingCommand command) {
+        private Request(String id, LivingEntity target, HealingCommand command, java.util.OptionalDouble maximumHealth) {
+            this.maximumHealth = maximumHealth;
             this.id = id; this.command = command; this.call = new Call(target); REQUESTS.get().push(this);
         }
         public HealingReceipt receipt() {
             if (!entered || !call.complete) throw new IllegalStateException("Healing did not complete through the captured vanilla path");
             if (call.writes == 0) return HealingReceipt.unapplied(id, command,
-                    call.target.isAlive() ? HealingReceipt.Outcome.REJECTED : HealingReceipt.Outcome.DEAD);
-            return new HealingReceipt(id, command, HealingReceipt.Outcome.APPLIED, call.offered, call.effective, call.overheal);
+                    call.target.isAlive() ? HealingReceipt.Outcome.REJECTED : HealingReceipt.Outcome.DEAD, maximumHealth);
+            return new HealingReceipt(id, command, HealingReceipt.Outcome.APPLIED, call.offered, call.effective, call.overheal, maximumHealth);
         }
         @Override public void close() {
             if (REQUESTS.get().peek() != this) throw new IllegalStateException("Healing request scopes closed out of order");
             REQUESTS.get().pop(); if (REQUESTS.get().isEmpty()) REQUESTS.remove();
         }
     }
-    public static Request request(String id, LivingEntity target, HealingCommand command) { return new Request(id, target, command); }
+    public static Request request(String id, LivingEntity target, HealingCommand command, double maximumHealth) { return new Request(id, target, command, java.util.OptionalDouble.of(maximumHealth)); }
     public static void heal(LivingEntity target, Runnable original) {
         var request = REQUESTS.get().peek();
         if (request == null && CALLS.get().isEmpty()) { REQUESTS.remove(); CALLS.remove(); original.run(); return; }

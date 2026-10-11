@@ -79,8 +79,11 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers, List<HealthRecovery> recovery) { this(id, scope, rules, modifiers, recovery, List.of()); }
         public Bundle(String id, Scope scope, List<Rule> rules, List<Modifier> modifiers) { this(id, scope, rules, modifiers, List.of()); }
     }
-    public record HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags, Optional<String> profile) {
-        public HealthRecovery { tags = java.util.Set.copyOf(tags); java.util.Objects.requireNonNull(profile); }
+    public record HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags, Optional<String> profile, com.imdomestic.chorus.effect.combat.HealingCommand.Basis basis) {
+        public HealthRecovery { tags = java.util.Set.copyOf(tags); java.util.Objects.requireNonNull(profile); java.util.Objects.requireNonNull(basis); }
+        public HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags, Optional<String> profile) {
+            this(id, channel, rate, priority, condition, tags, profile, com.imdomestic.chorus.effect.combat.HealingCommand.Basis.ABSOLUTE);
+        }
         public HealthRecovery(String id, String channel, Value rate, int priority, Condition condition, java.util.Set<String> tags) {
             this(id, channel, rate, priority, condition, tags, Optional.empty());
         }

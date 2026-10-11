@@ -1,0 +1,211 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:fraction_rate",
+      "version": "test-1",
+      "input_unit": "health_fraction_per_second",
+      "steps": []
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:fraction",
+        "version": "test-1",
+        "duration": 0.12,
+        "attach": "target",
+        "components": {
+          "numbers": {
+            "ready": {
+              "initial": 1,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "bundle": "test:fraction_active"
+    },
+    {
+      "definition": {
+        "id": "test:absolute",
+        "version": "test-1",
+        "duration": 0.12,
+        "attach": "target"
+      },
+      "bundle": "test:absolute_active"
+    },
+    {
+      "definition": {
+        "id": "test:shield",
+        "version": "test-1",
+        "duration": 30,
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 10,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:fraction_active",
+      "scope": "buff",
+      "health_recovery": [
+        {
+          "id": "heal",
+          "channel": "test:shared",
+          "rate": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "health_fraction_per_second"
+          },
+          "basis": "max_health",
+          "tags": [
+            "test:fraction"
+          ],
+          "profile": "test:fraction_rate",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:component",
+              "buff": "test:fraction",
+              "component": "ready"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          }
+        }
+      ],
+      "rules": [
+        {
+          "id": "pause",
+          "on": "chorus:damage_taken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "victim",
+                "right": "self"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "health_loss",
+                  "unit": "damage"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "test:fraction",
+              "component": "ready",
+              "op": "set",
+              "value": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "restart",
+              "event": "test:restart",
+              "policy": "replace",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.2,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "resume",
+          "on": "test:restart",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "restart"
+          },
+          "do": [
+            {
+              "type": "chorus:update_component",
+              "buff": "test:fraction",
+              "component": "ready",
+              "op": "set",
+              "value": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:absolute_active",
+      "scope": "buff",
+      "health_recovery": [
+        {
+          "id": "heal",
+          "channel": "test:shared",
+          "rate": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "damage_per_second"
+          },
+          "basis": "absolute",
+          "tags": [
+            "test:absolute"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:inputs",
+      "rules": [
+        {
+          "id": "heal",
+          "on": "test:heal",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:heal",
+                "target": "victim",
+                "basis": "max_health",
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "fraction",
+                  "unit": "health_fraction"
+                }
+              },
+              "as": "healed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

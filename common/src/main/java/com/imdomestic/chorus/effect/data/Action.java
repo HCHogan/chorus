@@ -268,17 +268,18 @@ public interface Action {
             return finishDamage(e.state(), e.context().command(DamageCommand.class), damage, java.util.Map.of());
         }
     }
-    record Heal(Evaluation.Target target, Value amount, Set<String> tags, ActionOrigin origin) implements Action {
-        public Heal { tags = Set.copyOf(tags); java.util.Objects.requireNonNull(origin); }
+    record Heal(Evaluation.Target target, Value amount, Set<String> tags, ActionOrigin origin, HealingCommand.Basis basis) implements Action {
+        public Heal { tags = Set.copyOf(tags); java.util.Objects.requireNonNull(origin); java.util.Objects.requireNonNull(basis); }
+        public Heal(Evaluation.Target target, Value amount, Set<String> tags, ActionOrigin origin) { this(target, amount, tags, origin, HealingCommand.Basis.ABSOLUTE); }
         public Heal(Evaluation.Target target, Value amount, Set<String> tags) { this(target, amount, tags, ActionOrigin.BOUND); }
         @Override public ResultShape validate(Validation v) { v.target(target);
-            Validation.same(amount.unit(v), Unit.DAMAGE);
+            Validation.same(amount.unit(v), basis.amountUnit());
             if (amount instanceof Value.Constant c) com.imdomestic.chorus.stat.Numbers.nonnegative(c.value(), "healing");
             return ResultShape.HEALING;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
-            return new RuleEngine.Await<>(new HealingCommand(e.target(target), origin.resolve(e), value.value(), tags));
+            var value = amount.evaluate(e); Validation.same(value.unit(), basis.amountUnit());
+            return new RuleEngine.Await<>(new HealingCommand(e.target(target), origin.resolve(e), value.value(), tags, basis));
         }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var healing = (HealingReceipt) receipt;

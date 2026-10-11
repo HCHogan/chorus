@@ -188,12 +188,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 localId(recovery.id()); namespaced(recovery.channel());
                 if (!ids.add(recovery.id())) throw new IllegalArgumentException("Duplicate recovery: " + recovery.id());
                 var validation = validation(bundle, Map.of()); recovery.condition().validate(validation);
-                Validation.same(recovery.rate().unit(validation), Unit.DAMAGE_PER_SECOND);
+                Validation.same(recovery.rate().unit(validation), recovery.basis().rateUnit());
                 recovery.profile().ifPresent(id -> {
                     var profile = profiles.get(id);
                     if (profile == null) throw new IllegalArgumentException("Unknown health recovery profile: " + id);
-                    Validation.same(profile.inputUnit(), Unit.DAMAGE_PER_SECOND);
-                    Validation.same(profile.outputUnit(), Unit.DAMAGE_PER_SECOND);
+                    Validation.same(profile.inputUnit(), recovery.basis().rateUnit());
+                    Validation.same(profile.outputUnit(), recovery.basis().rateUnit());
                 });
                 if (recovery.rate() instanceof Value.Constant constant) Numbers.nonnegative(constant.value(), "health recovery rate");
                 recovery.tags().forEach(CompiledEffects::namespaced);
@@ -610,14 +610,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of());
         for (var declaration : bundle.recovery()) {
             if (!declaration.condition().test(evaluation)) continue;
-            var rate = declaration.rate().evaluate(evaluation); Validation.same(rate.unit(), Unit.DAMAGE_PER_SECOND);
+            var rate = declaration.rate().evaluate(evaluation); Validation.same(rate.unit(), declaration.basis().rateUnit());
             if (declaration.profile().isPresent()) {
                 var query = new EffectEvent(holder, holder, evaluation.origin(), declaration.tags(),
                         Map.of("recovery_rate", rate), Map.of(), Map.of("recovery_channel", declaration.channel()));
                 rate = calculate(state, holder, query, declaration.profile().orElseThrow(), rate, List.of()).output();
             }
             offers.add(new Recovery.Offer(instanceId + "/recovery/" + declaration.id(), holder, declaration.channel(), declaration.priority(),
-                    rate.value(), evaluation.origin(), declaration.tags()));
+                    rate.value(), evaluation.origin(), declaration.tags(), declaration.basis()));
         }
     }
     /** Layers are queried only when reached, in priority / FIFO order. Layer bonuses consume budget locally. */

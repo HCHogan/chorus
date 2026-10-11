@@ -88,10 +88,10 @@ class RecoveryTest {
         var independent = new Recovery.Offer("d", "one", "test:independent", 0, 10, owner, Set.of());
         var batch = Recovery.integrate(List.of(low, independent, other, high), 0, 10_001, List.of());
         assertEquals(List.of(low), batch.suppressed()); assertEquals(3, batch.allocations().size());
-        assertEquals(60 * .010001, batch.allocations().stream().mapToDouble(value -> value.command().amount()).sum(), 1e-12);
-        assertTrue(batch.allocations().stream().allMatch(value -> value.command().source().equals(owner)));
+        assertEquals(60 * .010001, batch.allocations().stream().mapToDouble(value -> ((HealingCommand) value.command()).amount()).sum(), 1e-12);
+        assertTrue(batch.allocations().stream().allMatch(value -> ((HealingCommand) value.command()).source().equals(owner)));
         var tie = new Recovery.Offer("0", "one", "test:shared", 1, 20, owner, Set.of());
-        assertEquals(tie, Recovery.integrate(List.of(high, tie), 0, 1, List.of()).allocations().getFirst().offer());
+        assertEquals(tie.id(), Recovery.integrate(List.of(high, tie), 0, 1, List.of()).allocations().getFirst().id());
         assertThrows(IllegalArgumentException.class, () -> Recovery.integrate(List.of(low, low), 0, 1, List.of()));
     }
     @Test void receiptReplayCannotDuplicateFinalIntervalAndWrongReceiptStopsTheBoundary() throws Exception {

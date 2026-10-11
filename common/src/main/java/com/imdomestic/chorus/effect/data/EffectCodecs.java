@@ -377,7 +377,8 @@ public final class EffectCodecs {
                 .register("chorus:heal", Action.Heal.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.Heal::target), values.fieldOf("amount").forGetter(Action.Heal::amount),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.Heal::tags),
-                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.Heal::origin)
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.Heal::origin),
+                        enumeration(com.imdomestic.chorus.effect.combat.HealingCommand.Basis.class).optionalFieldOf("basis", com.imdomestic.chorus.effect.combat.HealingCommand.Basis.ABSOLUTE).forGetter(Action.Heal::basis)
                 ).apply(i, Action.Heal::new)))
                 .register("chorus:update_component", Action.UpdateComponent.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Action.UpdateComponent::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.UpdateComponent::target),
@@ -676,8 +677,9 @@ public final class EffectCodecs {
                 values.fieldOf("rate").forGetter(EffectProgram.HealthRecovery::rate), Codec.INT.optionalFieldOf("priority", 0).forGetter(EffectProgram.HealthRecovery::priority),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(EffectProgram.HealthRecovery::condition),
                 ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(EffectProgram.HealthRecovery::tags),
-                ID.optionalFieldOf("profile").forGetter(EffectProgram.HealthRecovery::profile)
-        ).apply(i, EffectProgram.HealthRecovery::new)), Set.of("id", "channel", "rate", "priority", "if", "tags", "profile"));
+                ID.optionalFieldOf("profile").forGetter(EffectProgram.HealthRecovery::profile),
+                enumeration(com.imdomestic.chorus.effect.combat.HealingCommand.Basis.class).optionalFieldOf("basis", com.imdomestic.chorus.effect.combat.HealingCommand.Basis.ABSOLUTE).forGetter(EffectProgram.HealthRecovery::basis)
+        ).apply(i, EffectProgram.HealthRecovery::new)), Set.of("id", "channel", "rate", "priority", "if", "tags", "profile", "basis"));
         Codec<AbilityDefinition.Replacement> replacement = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(AbilityDefinition.Replacement::id), ID.fieldOf("slot").forGetter(AbilityDefinition.Replacement::slot),
                 ID.optionalFieldOf("ability").forGetter(AbilityDefinition.Replacement::ability), ID.fieldOf("replace_with").forGetter(AbilityDefinition.Replacement::replaceWith),

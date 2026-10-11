@@ -2370,9 +2370,36 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 
 ## 连续生命恢复的数值 Profile
 
-`bundle.health_recovery[]` 可选 `profile`。未声明时沿用 rate 的直接值；声明后必须引用输入、输出均为 damage_per_second 的 Profile，缺失或单位不符在链接时拒绝。先在恢复来源作用域求 rate，再用受益者当前的来源 / Buff 修饰计算最终速率，之后才参与 channel 的优先级与速率选择、区间积分；负数或非有限结果不能成为治疗额度。
+`bundle.health_recovery[]` 可选 `profile`。未声明时沿用 rate 的直接值；声明后输入、输出必须匹配 basis 对应的速率单位：默认 absolute 为 damage_per_second，max_health 为 health_fraction_per_second。缺失引用或单位不符在链接时拒绝。先在恢复来源作用域求 rate，再用受益者当前的来源 / Buff 修饰计算最终速率，之后才参与 channel 的优先级与速率选择、区间积分；负数或非有限结果不能成为治疗额度。
 
-查询的 actor / victim 均为受益者，source 保留恢复来源，tags 为声明的 tags，numbers.recovery_rate 为原始速率，references.recovery_channel 为通道。查询不继承历史施加事件，不伪造事件 Buff 观察。来源变化前先积分旧区间，下一段使用新修饰；Profile 不改写治疗归因，不存储被取消或溢出的治疗。该入口可把 D2 HP/s 与 Minecraft HP/s 的校准从效果定义中分离，也能表达当前受益者的恢复倍率。护盾回充与离散 heal 仍使用各自既有入口。
+查询的 actor / victim 均为受益者，source 保留恢复来源，tags 为声明的 tags，numbers.recovery_rate 为原始速率，references.recovery_channel 为通道。查询不继承历史施加事件，不伪造事件 Buff 观察。来源变化前先积分旧区间，下一段使用新修饰；Profile 不改写治疗归因，不存储被取消或溢出的治疗。该入口可把 D2 HP/s 与 Minecraft HP/s 的校准从效果定义中分离，也能表达当前受益者的恢复倍率。护盾回充使用自己的入口；离散 heal 不经过这个恢复 Profile，但同样支持下述最大生命比例。
+
+
+### 按当前最大生命比例治疗与恢复
+
+离散 `chorus:heal` 与 `bundle.health_recovery[]` 均接受 `basis: absolute | max_health`，默认 absolute 保留已有行为。两种 basis 使用不同单位，不能把 0.2 HP 与 20% 生命混用：
+
+```json
+{"type":"chorus:heal","target":"victim","basis":"max_health",
+ "amount":{"type":"chorus:constant","value":0.2,"unit":"health_fraction"}}
+```
+
+```json
+{"id":"regenerate","channel":"example:natural_regeneration","basis":"max_health",
+ "rate":{"type":"chorus:constant","value":0.2,"unit":"health_fraction_per_second"}}
+```
+
+第一段请求目标当前最大生命的 20%；第二段声明每秒 20%，仍由既有时间轴按段积分。比例允许超过 1，实际生命上限、取消 / 改量和溢出继续交给原版治疗路径；负数、非有限数、乘算溢出与超出原版 float 范围的输入拒绝。它不修复 Chorus 护盾，也不把 Absorption 加入最大生命基数。
+
+来源速率、条件与 Profile 在区间开始时确定，比例额度为 `rate × elapsedSeconds`。**最大生命在对应世界治疗操作执行时采样一次**，先将比例换算成 HP，再进入原版 heal；不是效果授予时的缓存，也不是区间内最大生命的连续积分。治疗钩子随后改变最大生命或治疗量，不会重算这次请求；下一次操作读取新上限。不同通道是顺序执行的独立操作，不承诺跨通道共享同一次世界观察。
+
+同一 holder / channel 仍先按 priority 取高，再取最大恢复速率。最高优先级候选的 basis 相同时可在纯核心选择；同时包含固定 HP/s 和比例/s 时生成 `Recovery.Selection` 世界命令，保留候选、来源、标签和已积分区间，用一次最大生命观察把速率换成 HP/s 后选择。相同有效速率以稳定 id 决胜，只执行胜者的一次原版治疗。例：10 HP/s 与 20%/s，在 40 最大生命时前者胜出，在 100 最大生命时后者胜出。取消胜者不会改用次优来源，也不保存未生效额度。不同 target / channel 仍独立处理。
+
+`HealingCommand` 保留原始比例和 basis；`HealingReceipt.maximumHealth` 保存可选观察。回执和事实中的 requested 始终是换算后的 HP，offered / effective / overheal 仍是原版实际写入的观察。HEALING 结果新增 `amount_resolved`、`observed_maximum` 标志与 `maximum_health` 数值；读取最大生命须先检查 observed_maximum，读取缺失目标的比例 requested 须先检查 amount_resolved。没有目标时比例请求的 HP 量未知，不伪造为零；已有绝对请求即使目标不可用，requested 仍然已知。未生效的治疗不产生恢复事实。
+
+混合候选的 `SelectionReceipt` 保存原选择命令、胜者、最大生命和实际 HealingReceipt；校验来源、命令与观察必须一致。已完成操作的重放返回原结果，不因后续最大生命变化而重新选源；未知结果保留已发生的世界写入，不重新治疗。适配器须实现 Selection，不能擅自比较不同单位或挑第一项；Minecraft 宿主已提供该实现。
+
+[fractional_healing.json](../common/src/test/resources/effects/fractional_healing.json) 是合成验收示例：当前最大生命变化、0.12 秒到期残段，以及实际 health_loss 后用定时器暂停 / 重启。仅盾损失不触发该示例的生命延迟；它尚未提供正式 D2 基础盾分类、完整自然恢复或勇士 / 治疗祸患行为。原表需求与数值矛盾已保存于[研究记录](../data/d2-research/2026-10-11/fractional-healing.json)。
 
 
 ## 事实携带的实体观察值

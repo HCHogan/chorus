@@ -11,6 +11,62 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 
 public class NeoForgeHealingGameTest {
+    @GameCase public void fractionResolvesBeforeLoaderMutationAndKeepsItsMaximumObservation(GameTestHelper h) {
+        String tag = "chorus_fraction_modify_" + UUID.randomUUID();
+        NeoForge.EVENT_BUS.addListener((LivingHealEvent event) -> {
+            if (!event.getEntity().entityTags().contains(tag)) return;
+            event.getEntity().removeTag(tag);
+            event.getEntity().getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(200);
+            event.setAmount(3);
+        });
+        var target = FractionalHealingGameTest.target(h);
+        try {
+            target.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(100); target.addTag(tag);
+            var command = FractionalHealingGameTest.fraction(target, .2);
+            var first = MinecraftHealingExecutor.execute("fraction-modified", target, command);
+            near(h, first.requested(), 20, "resolved before hook"); near(h, first.maximumHealth().orElseThrow(), 100, "pre-hook maximum");
+            near(h, first.offered(), 3, "loader-modified amount"); near(h, first.effective(), 3, "actual write"); near(h, first.overheal(), 0, "reduction is not overheal");
+            var next = MinecraftHealingExecutor.execute("fraction-next", target, command);
+            near(h, next.requested(), 40, "next operation uses changed maximum"); near(h, target.getHealth(), 44, "two native writes");
+        } finally { target.discard(); }
+        h.succeed();
+    }
+    @GameCase public void nestedFractionalHealingHasSeparateMaximumSnapshotsAndActualLossBoundaries(GameTestHelper h) {
+        String tag = "chorus_fraction_nested_" + UUID.randomUUID(); var children = new ArrayList<HealingReceipt>();
+        NeoForge.EVENT_BUS.addListener((LivingHealEvent event) -> {
+            var target = event.getEntity(); if (!target.entityTags().contains(tag)) return;
+            target.removeTag(tag); target.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(200);
+            children.add(MinecraftHealingExecutor.execute("fraction-child", target, FractionalHealingGameTest.fraction(target, .1)));
+            target.heal(1);
+        });
+        var target = FractionalHealingGameTest.target(h);
+        try {
+            target.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(100); target.addTag(tag);
+            var parent = MinecraftHealingExecutor.execute("fraction-parent", target, FractionalHealingGameTest.fraction(target, .25));
+            near(h, parent.maximumHealth().orElseThrow(), 100, "parent snapshot"); near(h, parent.effective(), 25, "parent isolated write");
+            h.assertValueEqual(children.size(), 1, "one child"); near(h, children.getFirst().maximumHealth().orElseThrow(), 200, "child snapshot");
+            near(h, children.getFirst().effective(), 20, "child isolated write"); near(h, target.getHealth(), 47, "all actual writes");
+        } finally { target.discard(); }
+        h.succeed();
+    }
+    @GameCase public void cancelledMixedRecoveryDoesNotFallBackToTheLosingSource(GameTestHelper h) {
+        String tag = "chorus_fraction_cancel_" + UUID.randomUUID(); var calls = new java.util.concurrent.atomic.AtomicInteger();
+        NeoForge.EVENT_BUS.addListener((LivingHealEvent event) -> {
+            if (event.getEntity().entityTags().contains(tag)) { calls.incrementAndGet(); event.setCanceled(true); }
+        });
+        var target = FractionalHealingGameTest.target(h);
+        try {
+            target.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(100); target.addTag(tag);
+            var p = FractionalHealingGameTest.program(); var offers = p.recoveryOffers(FractionalHealingGameTest.armed(p, target, 1_000_000, "fraction", "absolute"));
+            var selection = Recovery.integrate(offers, 0, 50_000, List.of()).allocations().getFirst().command();
+            var r = (Recovery.SelectionReceipt) FractionalHealingGameTest.world(h, target).apply(new RuleEngine.WorldRequest(new RuleEngine.OperationId(1, 0, 0), selection));
+            h.assertValueEqual(r.outcome(), HealingReceipt.Outcome.REJECTED, "cancelled selected heal");
+            h.assertValueEqual(r.selected().orElseThrow().offer().source().owner(), "giver/fraction", "retained winner");
+            near(h, r.selected().orElseThrow().receipt().requested(), 1, "resolved cancelled request");
+            h.assertValueEqual(calls.get(), 1, "no fallback source execution"); near(h, target.getHealth(), 1, "cancelled recovery leaves HP");
+        } finally { target.discard(); }
+        h.succeed();
+    }
     @GameCase public void loaderReductionIsNotReportedAsOverheal(GameTestHelper helper) {
         String tag = "chorus_heal_reduced_" + UUID.randomUUID();
         NeoForge.EVENT_BUS.addListener((LivingHealEvent event) -> { if (event.getEntity().entityTags().contains(tag)) event.setAmount(2); });
