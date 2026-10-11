@@ -9,6 +9,8 @@
     "ServerPlayerDeathMixin",
     "LivingHealingMixin",
     "LivingAttributeLoadMixin",
+    "LivingEntityLifeMixin",
+    "ServerPlayerLifeMixin",
     "PlayerSaveCaptureMixin",
     "LevelSaveCaptureMixin",
     "SaveReplacementMixin",

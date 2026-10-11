@@ -270,6 +270,14 @@ public final class EffectCodecs {
                 Codec.BOOL.optionalFieldOf("line_of_sight", false).forGetter(SelectionData::lineOfSight)
         ).apply(i, SelectionData::new)).flatXmap(data -> safe(data::action), action -> DataResult.success(SelectionData.of(action)));
     }
+    private static MapCodec<Action.DamageCaptured> damageSnapshot(Codec<Value> values) {
+        return RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
+                        Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
+                        Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet),
+                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.DamageCaptured::group)).apply(i, Action.DamageCaptured::new));
+    }
     private static MapCodec<Action.CaptureDamage> captureDamage(Codec<Value> values) {
         return RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("amount").forGetter(Action.CaptureDamage::amount), ID.fieldOf("damage_type").forGetter(Action.CaptureDamage::damageType),
@@ -421,12 +429,10 @@ public final class EffectCodecs {
                                 .fieldOf("damage").forGetter(Action.CaptureTaggedDamage::damage),
                         ID.listOf().xmap(Set::copyOf, tags -> tags.stream().sorted().toList()).fieldOf("inherit_event_tags").forGetter(Action.CaptureTaggedDamage::inheritEventTags)
                 ).apply(i, Action.CaptureTaggedDamage::new)))
-                .register("chorus:damage_snapshot", Action.DamageCaptured.class, RecordCodecBuilder.mapCodec(i -> i.group(
-                        Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
-                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),
-                        Codec.unboundedMap(Codec.STRING, values).optionalFieldOf("impact", Map.of()).forGetter(Action.DamageCaptured::impact),
-                        Codec.STRING.optionalFieldOf("pellet").forGetter(Action.DamageCaptured::pellet),
-                        Codec.STRING.optionalFieldOf("batch").forGetter(Action.DamageCaptured::batch), Codec.STRING.optionalFieldOf("group").forGetter(Action.DamageCaptured::group)).apply(i, Action.DamageCaptured::new)))
+                .register("chorus:damage_snapshot", Action.DamageCaptured.class, damageSnapshot(values))
+                .register("chorus:damage_entity_snapshot", EntityAnchorActions.Damage.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("reference").forGetter(EntityAnchorActions.Damage::reference), damageSnapshot(values).forGetter(EntityAnchorActions.Damage::damage)
+                ).apply(i, EntityAnchorActions.Damage::new)))
                 .register("chorus:spend_health", Action.SpendHealth.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.SpendHealth::target), values.fieldOf("amount").forGetter(Action.SpendHealth::amount),
                         values.fieldOf("minimum").forGetter(Action.SpendHealth::minimum), enumeration(com.imdomestic.chorus.effect.combat.HealthPayment.Mode.class).fieldOf("mode").forGetter(Action.SpendHealth::mode),
@@ -555,6 +561,13 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventPosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.ReadEventPosition::anchor)
                 ).apply(i, Action.ReadEventPosition::new)))
+                .register("chorus:capture_entity_anchor", EntityAnchorActions.Capture.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(EntityAnchorActions.Capture::target),
+                        enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(EntityAnchorActions.Capture::anchor)
+                ).apply(i, EntityAnchorActions.Capture::new)))
+                .register("chorus:resolve_entity_anchor", EntityAnchorActions.Resolve.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("reference").forGetter(EntityAnchorActions.Resolve::reference)
+                ).apply(i, EntityAnchorActions.Resolve::new)))
                 .register("chorus:rebase_position", Action.RebasePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("position").forGetter(Action.RebasePosition::position),
                         Codec.STRING.fieldOf("from").forGetter(Action.RebasePosition::from), Codec.STRING.fieldOf("to").forGetter(Action.RebasePosition::to)

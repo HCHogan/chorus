@@ -3329,8 +3329,33 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 
 新增普通动作 `{"type":"chorus:rebase_position","position":"impact","from":"anchor_start","to":"anchor_now"}`，返回可绑定的位置结果。它计算 position + (to − from)，不进行世界查询，不读取实体引用，也不处理旋转/缩放。三个输入必须是已绑定的位置形状，ProjectileFlight.Impact 也可提供位置。未绑定/错误形状、缺失位置、跨维度和非有限结果拒绝，不补零或猜测替代中心。需要允许缺失的内容必须先使用位置结果的 available/missing 条件显式分支。
 
-Timed Payload 参考程序在命中时 capture_position 保存目标 FEET，在 detached after 续体到期时再次 capture_position，再调用 rebase_position。这里的“附着”是按目标身份的平移追踪，不等同完整物理挂点。目标不可用分支明确 play_cue 并 end_damage_group，活体/尸体、消失的方块和同 UUID 新生命的边界见规则集。
+Timed Payload 参考程序在命中时 capture_entity_anchor 保存目标 FEET 和生命引用，在 detached after 续体到期时 resolve_entity_anchor 校验同一生命，再调用 rebase_position。这里的“附着”是同一生命的平移追踪，不等同完整物理挂点。目标不可用分支明确 play_cue 并 end_damage_group；活体/尸体、消失的方块和附着终止的边界见规则集。
 
 `timed_payload.json` 提供 payload_delay 秒数查询，并复用前述 payload_fraction / payload_radius / payload_blast_scale Profile；链接时也需要这些 Profile 的提供者。参考组合通过 explosive_payload 片段提供公共查询定义，没有因此自动安装 Explosive Payload 词条。参数 payload_radius 必填；外部 payload_radial_shape 仍需提供。强化稳定性家族取高，独立于爆炸弹头强化装填家族。
 
-存储仅新增 `chorus:effect/data/action/rebase_position`，字段为 position/from/to 三个字符串；原 551 个存储类型形状保持不变。结果复用 PositionResult.Stored，领域续体可编码并保持原截止时间和目标绑定。它不保存 Minecraft 物理弹体，也没有引入实体生命代际身份。
+存储仅新增 `chorus:effect/data/action/rebase_position`，字段为 position/from/to 三个字符串；原 551 个存储类型形状保持不变。结果复用 PositionResult.Stored，领域续体可编码并保持原截止时间和目标绑定。rebase_position 本身不保存 Minecraft 物理弹体；生命绑定由下一节的独立动作提供。
+
+
+## 实体生命引用与受保护的快照伤害
+
+三个通用动作组合出可保存的生命绑定，未改动旧 PositionQuery、DamageCommand 或 ProjectileFlight.Impact 的存储形状：
+
+```json
+[
+  {"action":{"type":"chorus:capture_entity_anchor","target":{"binding":"victim"},"anchor":"feet"},"as":"initial"},
+  {"if":{"type":"chorus:result_flag","binding":"initial","field":"available"},"then":[
+    {"action":{"type":"chorus:resolve_entity_anchor","reference":"initial"},"as":"current"},
+    {"if":{"type":"chorus:result_flag","binding":"current","field":"available"},"then":[
+      {"type":"chorus:damage_entity_snapshot","reference":"initial","snapshot":"payload","target":{"binding":"victim"}}
+    ]}
+  ]}
+]
+```
+
+示例要求外层已有 victim 目标和 payload 伤害快照；延迟、不可用分支和攻击组由内容显式添加。capture_entity_anchor 默认 target=victim、anchor=feet，可选 feet/body/eyes。其结果冻结引用、位置、anchor、alive；resolve_entity_anchor 只接受先前生命引用结果，沿用同一目标、生命、世界和 anchor。结果标志为 available/missing/replaced/wrong_dimension/alive；后三种失败不提供位置或生命观察。编译器拒绝把普通位置结果当生命引用，但生命观察可以供 rebase_position 与 position_distance 使用。引用不可用时继续 resolve 或 damage 明确报错，所以内容必须先分支。
+
+damage_entity_snapshot 与 damage_snapshot 使用相同 snapshot/target/impact/pellet/batch/group 字段，另外要求 reference。目标必须匹配引用。它包装原 DamageCommand，宿主在实际提交前检查目标仍存在、同世界、同生命；不满足则返回无损失的 FAILED 回执。失败不产生伤害事实或 Buff 消费，正常与失败结果都经普通快照完成逻辑处理，包括攻击组、分量与弹丸进度。该操作只保护这一份写入，不保证观察、所有邻近伤害或整个攻击组原子执行。
+
+Minecraft 26.3 使用 LivingEntity NBT 字符串 chorus:entity_life 保存随机 UUID。旧存档缺键时分配新值并在下次保存写入；已存在但类型错误或非法 UUID 的值拒绝加载，不静默换一条生命。原版玩家 restoreFrom(false) 是新生命，restoreFrom(true) 保留旧生命；普通实体保存/载入及原版跨维度 restoreFrom 保留生命。死亡但尚未移除的尸体仍可观测位置，保命后的实体不换生命。这不是所有模组自定义复活/复制机制的自动适配。
+
+此阶段新增 EntityAnchor 的六个记录/枚举和 EntityAnchorActions 的三个动作存储 ID，总数从 552 增至 561，旧类型形状与历史检查点不变。生命引用和结果可随领域检查点恢复，但这不等于物理弹体已能跨世界重启。引用只在查询/写入时校验；没有订阅移除事件、记录最后位置或永久终止附着，同一生命回到原维度可再次使用旧引用。

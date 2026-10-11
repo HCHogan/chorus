@@ -8,6 +8,15 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/target/entity_anchor/reference", com.imdomestic.chorus.effect.target.EntityAnchor.Reference.class);
+        types.put("chorus:effect/target/entity_anchor/query", com.imdomestic.chorus.effect.target.EntityAnchor.Query.class);
+        types.put("chorus:effect/target/entity_anchor/observation", com.imdomestic.chorus.effect.target.EntityAnchor.Observation.class);
+        types.put("chorus:effect/target/entity_anchor/outcome", com.imdomestic.chorus.effect.target.EntityAnchor.Outcome.class);
+        types.put("chorus:effect/target/entity_anchor/result", com.imdomestic.chorus.effect.target.EntityAnchor.Result.class);
+        types.put("chorus:effect/target/entity_anchor/guarded_damage", com.imdomestic.chorus.effect.target.EntityAnchor.GuardedDamage.class);
+        types.put("chorus:effect/data/entity_anchor_actions/capture", com.imdomestic.chorus.effect.data.EntityAnchorActions.Capture.class);
+        types.put("chorus:effect/data/entity_anchor_actions/resolve", com.imdomestic.chorus.effect.data.EntityAnchorActions.Resolve.class);
+        types.put("chorus:effect/data/entity_anchor_actions/damage", com.imdomestic.chorus.effect.data.EntityAnchorActions.Damage.class);
         types.put("chorus:effect/data/finisher_actions/cancel", com.imdomestic.chorus.effect.data.FinisherActions.Cancel.class);
         types.put("chorus:effect/finisher/finisher/policy", com.imdomestic.chorus.effect.finisher.Finisher.Policy.class);
         types.put("chorus:effect/finisher/finisher/decision", com.imdomestic.chorus.effect.finisher.Finisher.Decision.class);

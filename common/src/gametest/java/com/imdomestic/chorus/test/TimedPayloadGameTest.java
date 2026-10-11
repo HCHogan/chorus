@@ -80,4 +80,25 @@ public class TimedPayloadGameTest {
             at(t,12,()->{try(t){t.runtime.prepare();h.assertTrue(t.runtime.failure().isPresent(),"unknown delayed receipt must stop runtime");near(h,target.getHealth(),88.35,"already applied delayed damage remains");int count=t.operations.size();t.runtime.prepare();h.assertValueEqual(t.operations.size(),count,"consumed continuation replayed");h.succeed();}});
         }catch(Exception|Error error){t.close();throw error;}
     }
+    static net.minecraft.world.entity.LivingEntity replace(ProjectileGameTest.Harness t, net.minecraft.world.entity.LivingEntity old){
+        var next=net.minecraft.world.entity.EntityTypes.COW.create(t.h.getLevel(),net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+        next.setUUID(old.getUUID());next.setId(old.getId());next.setPos(old.position());next.setNoGravity(true);next.setNoAi(true);next.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(100);next.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);next.setHealth(100);
+        old.discard();t.h.getLevel().addFreshEntity(next);t.entities.add(next);return next;
+    }
+    @GameCase(environment="chorus_gametest:timed_new_life",maxTicks=35)
+    public void sameUuidReplacementRetiresTheOldAttachmentBeforeQueryingBlastNeighbors(GameTestHelper h)throws Exception{
+        var t=openTimed(h);try{
+            var shot=PugilistGameTest.fire(t);var target=primary(t,shot,5);var next=neighbor(t,point(shot,5),1.5);contact(t,shot);var replacement=replace(t,target);
+            at(t,12,()->{try(t){settled(t);near(h,replacement.getHealth(),100,"old attachment must not move to replacement");near(h,next.getHealth(),100,"retired attachment has no invented blast");h.assertTrue(t.queries.isEmpty(),"replacement position was used as explosion center");h.assertTrue(t.cues.stream().anyMatch(c->c.cue().equals("test:timed_payload_target_unavailable")),"unavailable diagnostic");h.assertTrue(state(t).damageGroups().isEmpty(),"retired attack group");h.succeed();}});
+        }catch(Exception|Error error){t.close();throw error;}
+    }
+    @GameCase(environment="chorus_gametest:timed_damage_guard",maxTicks=35)
+    public void replacementAfterPositionResolutionIsRejectedAtTheNativeDamageBoundary(GameTestHelper h)throws Exception{
+        var t=openTimed(h);try{
+            var shot=PugilistGameTest.fire(t);var target=primary(t,shot,5);contact(t,shot);var replacement=new net.minecraft.world.entity.LivingEntity[1];
+            t.beforeWorld=request->{if(request.command() instanceof EntityAnchor.GuardedDamage guarded&&guarded.damage().tags().contains("chorus_d2:timed_payload_damage"))replacement[0]=replace(t,target);};
+            at(t,12,()->{try(t){settled(t);h.assertTrue(replacement[0]!=null,"replacement boundary not reached");near(h,replacement[0].getHealth(),100,"write guard must reject newly resolved life");h.assertValueEqual(t.receipts.getLast().outcome(),com.imdomestic.chorus.effect.combat.DamageReceipt.Outcome.FAILED,"known rejected outcome");h.assertTrue(t.receipts.getLast().deathId().isEmpty(),"no fabricated kill");h.assertTrue(state(t).damageGroups().isEmpty(),"rejected component still closes group");h.succeed();}});
+        }catch(Exception|Error error){t.close();throw error;}
+    }
+
 }

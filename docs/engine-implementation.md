@@ -6,6 +6,22 @@
 
 ## 当前证据
 
+### 2026-10-12：持久化生命引用与延时载荷伤害校验
+
+新增 EntityAnchor.Reference(target/life/dimension)、不可变位置/存活观察及 capture_entity_anchor / resolve_entity_anchor。解析明确区分 AVAILABLE / MISSING / REPLACED / WRONG_DIMENSION；失败没有位置，不猜测回退目标。观察仍实现 PositionResult，能进入距离与平移表达式，但普通位置不能作为生命引用。新增九个存储 ID，目录从 552 增至 561；原有 DamageCommand / PositionQuery / Impact 及全部旧类型形状、两份历史检查点保持不变。
+
+MinecraftEntityLife 通过 LivingEntity NBT 的 chorus:entity_life 保存随机 UUID；旧存档缺键时分配，已存在但错误类型/非法 UUID 时拒绝加载。原版保存重载和跨维度实体复制保留生命，玩家 restoreFrom(false) 分配新生命，keep-all 替换保留。实际 PlayerList.respawn 测试确认实体 UUID 和数字 ID 都会复用，不能作为生命身份。死亡但仍存在的尸体保留观测，原版保命不换生命。
+
+damage_entity_snapshot 包装既有快照伤害，在实际世界写入前再次校验目标存在、维度和生命。错配返回无损失 FAILED，经普通伤害完成逻辑处理，不产生命中/击杀或消费 Buff；正常路径复用计算、攻击组、分量/弹丸进度及未知回执策略。查询并不锁定世界，整个攻击也没有被伪装成原子事务。
+
+Timed Payload 参考消费者在直击前捕获生命，初始缺失立即诊断并关闭组；引信到期解析原生命，使用同一观察的 alive 决定主目标爆炸。直击和主目标爆炸均使用上述写入校验；邻近目标仍在引爆时选择。保存/领域检查点保留原生命引用，不能把旧附着转移到同 UUID 的新生命。若替换发生在位置解析之后，主目标伤害拒绝，已捕获中心的邻近爆炸仍按内容继续。
+
+新增六项 EntityAnchorTest 与三项 TimedPayloadTest，覆盖引用/结果约束、类型校验、双编码、快照完成语义、恢复后换生命、初始缺失及实际写入前替换不扣血/不消费。六项共享 EntityAnchorGameTest 覆盖原生保存重载、尸体、旧/坏存档、同 UUID/数字 ID 替换、真实玩家死亡复生与 keep-all、保命及真实跨维度实体复制；新增两项共享 Timed Payload 场景验证引信期间换生命及查询后才替换的实际伤害边界。
+
+开发门禁的 1748 项 JUnit 与 Fabric 950 项通过；随后将新增通用场景加入 Fabric 入口，首轮完整门禁因适配器误用不存在的 default 环境而在启动前失败。改用既有默认环境写法后，最终 /tmp/chorus-anchor-gate2.log BUILD SUCCESSFUL，2 分 6 秒：1748 项 JUnit（无失败/错误/跳过）、Fabric 956 项 / NeoForge 971 项世界测试及双端发布 jar 通过，共享 Chorus 场景 955 项。公共 LivingEntity / ServerPlayer Mixin 改动另经客户端回归：/tmp/chorus-anchor-client.log BUILD SUCCESSFUL，2 分 1 秒，全部 20 个已注册 Fabric 客户端场景通过。该证据验证当前客户端集成与加载，不代表新增 HUD 或 NeoForge 图形客户端验收。
+
+发布 jar 含生命引用、受保护伤害与两项原生 Mixin；Fabric 1121 项 / NeoForge 1115 项均不含效果/校准/persistence 测试资源、GameTest 或测试 Mixin。10 项 Compendium 工具测试、111 条审阅/报告一致性、旧 schema 逐键与历史检查点原字节检查通过；审阅仍为 109 partial、2 not_applicable、0 verified。新增生命语义是宿主策略，未新增 D2 数值结论。完整附着的死亡/移除最后位置与永久终止通知、区块卸载协调、骨骼旋转/缩放、同对象自定义复活和物理世界重启仍未完成；同一生命返回原世界仍可重新解析旧引用。既有全局 Buff/技能/投射物 UUID 绑定没有自动迁移。下一项工作继续完善附着终止与最后位置，而不是把查询不可用一律当作原作效果取消。[声明契约](engine-data-packs.md#实体生命引用与受保护的快照伤害)、[Timed Payload 策略](d2-ruleset.md#timed-payload-的延迟附着)。
+
 ### 2026-10-12：Timed Payload 的延迟与平移附着
 
 新增通用 rebase_position：读取三个已绑定的位置，返回 position + (to − from)，不访问世界、不保留实体引用，也不隐式处理旋转/缩放。编译验证位置形状，运行时拒绝缺失/跨维度/非有限结果；新增 action/rebase_position 存储 ID，原 551 个类型形状及两份历史检查点不变，目录总数 552。

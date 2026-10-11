@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.imdomestic.chorus.effect.EffectTestSupport.*;
 import com.google.gson.JsonObject;
 import com.imdomestic.chorus.effect.data.*;
+import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec;
@@ -21,9 +22,28 @@ class TimedPayloadTest {
         for(String n:ExplosivePayloadTest.PARTS)parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json(n)).getOrThrow());parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json("timed_payload")).getOrThrow());return CompiledEffects.link(parts);
     }
     static class Harness extends ExplosivePayloadTest.Harness {
+        final Map<String,String> lives=new HashMap<>();
+        java.util.function.Consumer<EntityAnchor.GuardedDamage> beforeGuard = _ -> {};
+        final List<DamageReceipt> guardedReceipts=new ArrayList<>();
         Harness(boolean pvp)throws Exception{super(program(json("timed_payload_weapon")),TAG,pvp);}
         @Override void equip(String a,String b,String drawn){equip(new Loadout.Gear("a","test:hand_cannon",Map.of("perk",a),Map.of("payload_radius",new Measure(3,Unit.METER))),new Loadout.Gear("b","test:rifle",Map.of("perk",b),Map.of("payload_radius",new Measure(3,Unit.METER))),drawn);}
-        @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){if(r.command() instanceof PositionQuery q&&missing.contains(q.target()))return new PositionQuery.Result(q,Optional.empty());return super.world(r);}
+        @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){
+            if(r.command() instanceof EntityAnchor.Query q){
+                if(q.expected().filter(x->!x.dimension().equals("test:world")).isPresent())return new EntityAnchor.Result(q,EntityAnchor.Outcome.WRONG_DIMENSION,Optional.empty());
+                if(missing.contains(q.target())||!positions.containsKey(q.target()))return new EntityAnchor.Result(q,EntityAnchor.Outcome.MISSING,Optional.empty());
+                var ref=new EntityAnchor.Reference(q.target(),lives.computeIfAbsent(q.target(),_->UUID.randomUUID().toString()),"test:world");
+                if(q.expected().filter(x->!x.equals(ref)).isPresent())return new EntityAnchor.Result(q,EntityAnchor.Outcome.REPLACED,Optional.empty());
+                return new EntityAnchor.Result(q,EntityAnchor.Outcome.AVAILABLE,Optional.of(new EntityAnchor.Observation(ref,positions.get(q.target()),q.anchor(),health.get(q.target())>0)));
+            }
+            if(r.command() instanceof EntityAnchor.GuardedDamage g){
+                beforeGuard.accept(g);
+                var ref=g.reference();DamageReceipt receipt;
+                if(missing.contains(ref.target())||!ref.life().equals(lives.get(ref.target()))||!ref.dimension().equals("test:world"))receipt=new DamageReceipt(r.id().toString(),DamageReceipt.Outcome.FAILED,0,0,0,Optional.empty(),false);
+                else receipt=(DamageReceipt)super.world(new RuleEngine.WorldRequest(r.id(),g.damage()));
+                guardedReceipts.add(receipt);return receipt;
+            }
+            if(r.command() instanceof PositionQuery q&&missing.contains(q.target()))return new PositionQuery.Result(q,Optional.empty());return super.world(r);
+        }
     }
     @Test void fiftyFivePercentSplitWaitsExactlySixTenthsAndHasNoLegendaryHandCannonPenalty()throws Exception{
         for(boolean pvp:List.of(false,true))for(boolean head:List.of(false,true)){
@@ -52,6 +72,22 @@ class TimedPayloadTest {
     }
     @Test void unknownRadiusRequiresAnExplicitItemParameterMapping()throws Exception{
         var data=json("timed_payload_weapon");data.getAsJsonObject("equipment").getAsJsonArray("items").get(0).getAsJsonObject().getAsJsonObject("parameters").remove("payload_radius");assertThrows(IllegalArgumentException.class,()->program(data));
+    }
+
+    @Test void sameIdentityWithANewLifeRetiresTheRestoredAttachment()throws Exception{
+        var h=new Harness(false);h.fire();h.hit(5,false);h.until(200_000);h.restore();h.lives.put("target","new-life");h.entity("target",1000,15);h.entity("near",1000,16.5);h.until(600_000);
+        assertEquals(1000,h.health.get("target"));assertEquals(1000,h.health.get("near"));assertTrue(h.bursts().isEmpty());assertEquals(List.of("test:timed_payload_target_unavailable"),h.cues);assertTrue(h.state().damageGroups().isEmpty());
+    }
+    @Test void missingInitialAnchorRetiresWithoutIssuingDirectOrDelayedDamage()throws Exception{
+        var h=new Harness(false);h.missing.add("target");h.fire();h.hit(5,false);h.until(600_000);assertTrue(h.hits.isEmpty());assertEquals(List.of("test:timed_payload_target_unavailable"),h.cues);assertTrue(h.state().damageGroups().isEmpty());
+    }
+    @Test void replacementAtActualDamageBoundaryDoesNotHitTheNewLifeOrConsumeItsBonus()throws Exception{
+        for(boolean delayed:List.of(false,true)){
+            var h=new Harness(false);h.session.start(h.now(),new RuleEngine.Signal("test:arm",new EffectEvent("player","player",new com.imdomestic.chorus.effect.buff.BuffInstance.Origin("player","arm","a",""),Set.of(),Map.of())));h.healthy();
+            h.beforeGuard=g->{if(g.damage().tags().contains(TAG)==delayed){h.lives.put("target","replacement");h.health.put("target",1000d);}};
+            h.fire();h.hit(5,false);h.until(600_000);assertEquals(1000,h.health.get("target"));assertEquals(DamageReceipt.Outcome.FAILED,h.guardedReceipts.getLast().outcome());assertTrue(h.bursts().isEmpty());assertTrue(h.state().damageGroups().isEmpty());
+            assertEquals(!delayed,!h.state().buffs().instances().isEmpty());
+        }
     }
 
 }

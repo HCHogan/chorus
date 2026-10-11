@@ -40,6 +40,7 @@ public class ProjectileGameTest {
         final List<DamageCommand> hits = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<TargetQuery> queries = new ArrayList<>();
         final List<Action.CueCommand> cues = new ArrayList<>(); final List<RuleEngine.OperationId> operations = new ArrayList<>();
         Consumer<Action.CueCommand> onCue = _ -> {};
+        Consumer<RuleEngine.WorldRequest> beforeWorld = _ -> {};
         final Set<String> deniedStatusTargets = new HashSet<>();
         java.util.function.BiConsumer<DamageCommand, DamageReceipt> afterDamageReceipt = (_, _) -> {};
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue, failAfterDisplacement, failAfterPickup;
@@ -67,13 +68,13 @@ public class ProjectileGameTest {
             var source = new EffectSource("launch", "test:projectile", id(owner), new BuffInstance.Origin(id(owner), "source", "", "test:bolt"), Set.of());
             var boost = new EffectSource("boost", "test:power", id(owner), source.origin(), Set.of());
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withSource(source).withSource(boost), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
-                operations.add(request.id()); var result = world.apply(request);
+                operations.add(request.id()); beforeWorld.accept(request); var result = world.apply(request);
                 if (request.command() instanceof com.imdomestic.chorus.effect.motion.Displacement.Command && failAfterDisplacement) throw new IllegalStateException("Injected unknown displacement outcome");
                 if (result instanceof ProjectileFlight.Receipt receipt && receipt.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (result instanceof WorldPickup.Receipt receipt && receipt.entity().isPresent()) pickups.add((EffectObject) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (request.command() instanceof WorldPickup.Spawn && failAfterPickup) throw new IllegalStateException("Injected unknown pickup creation outcome");
                 if (request.command() instanceof Action.CueCommand && failAfterCue) throw new IllegalStateException("Injected unknown pickup cue outcome");
-                if (result instanceof DamageReceipt receipt) { var damage = (DamageCommand) request.command(); hits.add(damage); receipts.add(receipt); afterDamageReceipt.accept(damage, receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
+                if (result instanceof DamageReceipt receipt) { var damage = request.command() instanceof com.imdomestic.chorus.effect.target.EntityAnchor.GuardedDamage guarded ? guarded.damage() : (DamageCommand) request.command(); hits.add(damage); receipts.add(receipt); afterDamageReceipt.accept(damage, receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
                 if (request.command() instanceof HealingCommand && failAfterHealing) throw new IllegalStateException("Injected unknown projectile healing outcome");
                 if (request.command() instanceof TargetQuery q) queries.add(q);
                 return result;

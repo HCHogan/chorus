@@ -13,6 +13,7 @@ import com.imdomestic.chorus.effect.target.DirectionQuery;
 import com.imdomestic.chorus.effect.target.PositionQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.target.EntityQuery;
+import com.imdomestic.chorus.effect.target.EntityAnchor;
 import com.imdomestic.chorus.effect.target.RelationQuery;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.Objects;
@@ -43,6 +44,15 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     @Override public RuleEngine.ActionResult apply(RuleEngine.WorldRequest request) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("World actions require the server thread");
         return switch (request.command()) {
+            case EntityAnchor.GuardedDamage guarded -> {
+                var damage = guarded.damage(); var reference = guarded.reference();
+                String id = sessionId + "/" + request.id().frame() + "/" + request.id().pc() + "/" + request.id().invocation();
+                var target = entities.apply(damage.target());
+                if (!present(target) || !level.dimension().identifier().toString().equals(reference.dimension())
+                        || !MinecraftEntityLife.get(target).id().equals(reference.life()))
+                    yield new DamageReceipt(id, DamageReceipt.Outcome.FAILED, 0, 0, 0, Optional.empty(), false);
+                yield MinecraftDamageExecutor.executeManaged(id, target, Objects.requireNonNull(damageSources.apply(damage)), damage);
+            }
             case DamageCommand damage -> {
                 String id = sessionId + "/" + request.id().frame() + "/" + request.id().pc() + "/" + request.id().invocation();
                 var target = entities.apply(damage.target());
@@ -86,6 +96,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case Action.CueCommand cue -> { cues.accept(cue); yield RuleEngine.Empty.INSTANCE; }
             case com.imdomestic.chorus.effect.motion.Impulse.Command impulse -> MinecraftImpulseExecutor.execute(level, entities.apply(impulse.target()), impulse);
             case com.imdomestic.chorus.effect.motion.Displacement.Command displacement -> MinecraftDisplacementExecutor.execute(level, entities.apply(displacement.target()), displacement);
+            case EntityAnchor.Query query -> entityAnchor(query);
             case PositionQuery query -> {
                 var target = entities.apply(query.target());
                 yield new PositionQuery.Result(query, present(target) ? Optional.of(position(target, query.anchor())) : Optional.empty());
@@ -216,6 +227,18 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
         selected.sort(query.comparator());
         var targets = query.limit().isPresent() ? selected.subList(0, Math.min(query.limit().getAsInt(), selected.size())) : selected;
         return new TargetQuery.Result(query, TargetQuery.Outcome.AVAILABLE, targets);
+    }
+    private EntityAnchor.Result entityAnchor(EntityAnchor.Query query) {
+        var dimension = level.dimension().identifier().toString();
+        if (query.expected().filter(r -> !r.dimension().equals(dimension)).isPresent())
+            return new EntityAnchor.Result(query, EntityAnchor.Outcome.WRONG_DIMENSION, Optional.empty());
+        var target = entities.apply(query.target());
+        if (!present(target)) return new EntityAnchor.Result(query, EntityAnchor.Outcome.MISSING, Optional.empty());
+        var reference = new EntityAnchor.Reference(query.target(), MinecraftEntityLife.get(target).id(), dimension);
+        if (query.expected().filter(r -> !r.equals(reference)).isPresent())
+            return new EntityAnchor.Result(query, EntityAnchor.Outcome.REPLACED, Optional.empty());
+        var observation = new EntityAnchor.Observation(reference, position(target, query.anchor()), query.anchor(), target.isAlive());
+        return new EntityAnchor.Result(query, EntityAnchor.Outcome.AVAILABLE, Optional.of(observation));
     }
     private WorldPosition position(LivingEntity entity) { return position(entity, TargetQuery.Anchor.FEET); }
     private WorldPosition position(LivingEntity entity, TargetQuery.Anchor anchor) {
