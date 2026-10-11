@@ -1,0 +1,473 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:yield_uses",
+      "capacity": 2,
+      "initial": 2,
+      "resizable": true
+    },
+    {
+      "id": "test:yield_progress",
+      "capacity": 1,
+      "initial": 0,
+      "base_rate": 0,
+      "rate_profile": "test:yield_rate",
+      "gain_profile": "test:yield_gain",
+      "gain_scalar": 0.5
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:yield_rate",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "baseline",
+          "operation": "replace",
+          "group": {
+            "name": "base",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:yield_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": []
+    },
+    {
+      "id": "test:cycle_yield",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "output",
+          "operation": "replace",
+          "group": {
+            "name": "output",
+            "reduction": "max",
+            "families": {
+              "test:yield_policy": {
+                "kind": "priority"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:single_cycle",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:single_cycle"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:yield_cycle",
+      "rules": [
+        {
+          "id": "init",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "test:yield_uses"
+            },
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "test:yield_progress"
+            }
+          ]
+        },
+        {
+          "id": "cycle",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "test:yield_progress",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "test:cycle_yield",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "yield"
+            },
+            {
+              "action": {
+                "type": "chorus:complete_recharge",
+                "progress": "test:yield_progress",
+                "resource": "test:yield_uses",
+                "amount": {
+                  "type": "chorus:result",
+                  "binding": "yield",
+                  "field": "value"
+                }
+              },
+              "as": "cycle"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "cycle",
+                    "field": "completed"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "charge_fraction"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:completed"
+                  ],
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "start",
+          "on": "chorus:resource_spent",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_reference",
+                "name": "resource",
+                "is": "test:yield_uses"
+              },
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "before",
+                  "unit": "charge_fraction"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:event_number",
+                  "name": "capacity",
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "test:yield_progress",
+              "amount": {
+                "type": "chorus:resource",
+                "resource": "test:yield_progress",
+                "field": "value"
+              },
+              "payment": "start_cycle"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:yield_rate",
+          "stage": "baseline",
+          "group": "base",
+          "op": "replace",
+          "stacking_key": "test:cycle",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "test:yield_uses",
+              "field": "missing"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "reference": "Synthetic linked cycle calibration; no D2 cooldown claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:yield_inputs",
+      "rules": [
+        {
+          "id": "resize",
+          "on": "test:resize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "test:yield_uses",
+              "capacity": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:resource",
+                  "resource": "test:yield_uses",
+                  "field": "missing"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:yield_progress",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:base",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:resource",
+                  "resource": "test:yield_uses",
+                  "field": "missing"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:yield_progress",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "single",
+          "on": "test:single",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:single_cycle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:all_cycle",
+      "modifiers": [
+        {
+          "id": "all_missing",
+          "profile": "test:cycle_yield",
+          "stage": "output",
+          "group": "output",
+          "op": "replace",
+          "stacking_key": "test:yield_policy",
+          "priority": 10,
+          "value": {
+            "type": "chorus:resource",
+            "resource": "test:yield_uses",
+            "field": "missing"
+          },
+          "reference": "Synthetic cycle-output policy; no original Ophidia Spathe equip, cooldown or recent-use claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:single_cycle",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "single",
+          "profile": "test:cycle_yield",
+          "stage": "output",
+          "group": "output",
+          "op": "replace",
+          "stacking_key": "test:yield_policy",
+          "priority": 20,
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "reference": "Synthetic cycle-output policy; no original Ophidia Spathe equip, cooldown or recent-use claim",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:yield_ability",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:yield_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "recharge_resource": "test:yield_progress",
+      "effects": {
+        "cycle": {
+          "bundle": "test:yield_cycle"
+        }
+      }
+    }
+  ],
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:armor",
+        "accepts": [
+          "test:armor"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:linked_armor",
+        "tags": [
+          "test:armor"
+        ],
+        "effects": {
+          "cycle": {
+            "bundle": "test:all_cycle"
+          }
+        }
+      }
+    ]
+  }
+}

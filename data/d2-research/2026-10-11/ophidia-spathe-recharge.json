@@ -41,7 +41,17 @@
       "cycle_recipient_scalar": 0.5,
       "boost_duration_seconds": 0.5
     },
-    "ability_route": "AbilityDefinition.recharge_resource now separates slot-based gains from usable cost energy; original Pugilist, Wellspring and Surplus definitions compose with the synthetic linked ability. Already-full usable accounts reject further routed progress."
+    "ability_route": "AbilityDefinition.recharge_resource now separates slot-based gains from usable cost energy; original Pugilist, Wellspring and Surplus definitions compose with the synthetic linked ability. Already-full usable accounts reject further routed progress.",
+    "equipment_cycle_yield": {
+      "definition": "common/src/test/resources/effects/resource_cycle_yield.json",
+      "policy": "One persistent uses/progress pair supports both sequential and linked completion. A completion-time Profile changes optional complete_recharge.amount from one to the current missing uses; physical equipment changes retain progress. Capacity is independent.",
+      "synthetic_parameters": {
+        "cycle_seconds": 1,
+        "cycle_recipient_scalar": 0.5,
+        "single_yield_buff_seconds": 1
+      },
+      "boundary": "Generic source/Buff composition and actual equipment proof only. Does not establish original Ophidia equip/reset or recent-use behavior; no automatic migration of legacy single-account abilities."
+    }
   },
   "unresolved": [
     "Recent-use exception duration and exact original-game cycle/reset behavior remain uncalibrated.",

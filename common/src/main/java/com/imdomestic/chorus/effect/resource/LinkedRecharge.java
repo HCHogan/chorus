@@ -3,7 +3,7 @@ package com.imdomestic.chorus.effect.resource;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.Objects;
 
-/** A completed one-unit cycle fills a separate account. Partial cycle energy is never spendable uses. */
+/** A completed one-unit cycle credits a separate account. Partial cycle energy is never spendable uses. */
 public final class LinkedRecharge {
     private LinkedRecharge() {}
 
@@ -14,8 +14,8 @@ public final class LinkedRecharge {
             validate(progressBefore, charges.before());
             boolean ready = progressBefore.value() == 1;
             var expectedProgress = ready ? reset(progressBefore) : progressBefore;
-            var expectedCharges = Resources.grant(charges.before(), ready ? missing(charges.before()) : 0,
-                    ready ? missing(charges.before()) : 0);
+            double requested = ready ? charges.requested() : 0;
+            var expectedCharges = Resources.grant(charges.before(), requested, requested);
             if (completed != ready || !progressAfter.equals(expectedProgress) || !charges.equals(expectedCharges))
                 throw new IllegalArgumentException("Invalid linked recharge receipt");
         }
@@ -35,9 +35,14 @@ public final class LinkedRecharge {
 
     /** All validation occurs before either account is committed. This conversion is not a refundable cost. */
     public static Result complete(ResourceState progress, ResourceState charges) {
+        return complete(progress, charges, missing(charges));
+    }
+    /** Explicit cycle yield, independent of the meter's gain scaling; overflow is discarded at the current ceiling. */
+    public static Result complete(ResourceState progress, ResourceState charges, double amount) {
         validate(progress, charges);
+        com.imdomestic.chorus.stat.Numbers.nonnegative(amount, "recharge cycle yield");
         boolean ready = progress.value() == 1;
-        double amount = ready ? missing(charges) : 0;
-        return new Result(progress, ready ? reset(progress) : progress, Resources.grant(charges, amount, amount), ready);
+        double creditedRequest = ready ? amount : 0;
+        return new Result(progress, ready ? reset(progress) : progress, Resources.grant(charges, creditedRequest, creditedRequest), ready);
     }
 }

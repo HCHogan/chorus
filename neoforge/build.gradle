@@ -103,6 +103,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/resource_regeneration.json'
         include 'effects/resource_capacity.json'
         include 'effects/linked_recharge.json'
+        include 'effects/resource_cycle_yield.json'
         include 'effects/ability_recharge_inputs.json'
         include 'effects/resource_refund.json'
         include 'effects/retained_cost.json'

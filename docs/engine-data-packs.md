@@ -556,13 +556,23 @@ D2 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.jso
   "target":"self"},"as":"cycle"}
 ```
 
-progress 必须声明为固定容量 1，禁止 resizable；两账户必须已初始化、属于同一目标、处于同一逻辑时间，且身份不同。进度不足 1 时返回 completed=false，状态和事实均不变。进度满时，在一次 Local 迁移中把进度清零，并将可用账户补到其**当前**容量；target 默认 self。它不经过 CES / 收益 Profile，因为进度收到能量时已经完成对应缩放。补入量为当前缺口，不因原有可用次数或后来扩容而重复缩放进度。
+progress 必须声明为固定容量 1，禁止 resizable；两账户必须已初始化、属于同一目标、处于同一逻辑时间，且身份不同。进度不足 1 时返回 completed=false，状态和事实均不变，也不求值可选的 amount。进度满时，在一次 Local 迁移中把进度清零并增加可用次数；省略 amount 保持原行为，补满可用账户的**当前**容量。target 默认 self。转换不经过 CES / 收益 Profile，因为进度收到能量时已经完成对应缩放，不因可用次数上限而再乘一次。
 
-结果字段 progress_before / progress_after、before / after、capacity / credited 均为 charge_fraction，另有 completed 标志。先发进度账户的 resource_changed（reason=recharge_completed），再发可用账户的 resource_granted（reason=linked_recharge）；有正补入时再发其 resource_changed。所有观察者看到的两个账户均已提交。转换不发布 resource_spent，不生成可退款的 CostResult；重复执行看到清零后的进度，不会重复补入。可用账户已满时仍可显式消费一个完成周期，此时 credited=0。
+可选 amount 是 charge_fraction 表达式，表示这一轮申请恢复的次数；允许有限的非负数，包括零和小数，超出当前缺口的部分作为 overflow 丢弃。负数、非有限结果或单位不符在两账户写入前失败。amount=0 仍会消费完整周期；小数收益会保存在可用账户，但不能支付超出余额的技能成本。若需要由装备 / Buff 决定收益，可在完成动作前用 calculate 查询一个 Profile，再引用其 value；不必替换技能定义或迁移资源账户。
+
+```json
+{"type":"chorus:complete_recharge",
+ "progress":"example:melee_cycle","resource":"example:melee_uses",
+ "amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}}
+```
+
+结果字段 progress_before / progress_after、before / after、capacity / requested / credited / overflow 均为 charge_fraction，另有 completed 标志。未完成时 requested / credited / overflow 均为零。先发进度账户的 resource_changed（reason=recharge_completed），再发可用账户的 resource_granted（reason=linked_recharge）；有正补入时再发其 resource_changed。所有观察者看到的两个账户均已提交。转换不发布 resource_spent，不生成可退款的 CostResult；重复执行看到清零后的进度，不会重复补入。可用账户已满时仍可显式消费一个完成周期，此时 credited=0。
 
 `chorus:resource` 表达式新增可选 field：value（默认，兼容原读法）、capacity、missing，单位均为 charge_fraction。capacity 读取已调整后的上限，missing 用当前上限减余额；缺失账户仍报错，不默认为零。快照中的 self 读取冻结为常量，victim 读取保留到命中期。这些字段可用于“可用账户未满才让进度继续恢复”等速率条件。
 
 [linked_recharge.json](../common/src/test/resources/effects/linked_recharge.json) 是完整可执行的合成示例。技能只从可用账户支付一份，外部能量送入进度账户；资源越过进度 1 的规则显式完成一轮。示例选择首次从满次数使用时清空旧进度，中途再次使用保留本轮进度，满次数不积存时间或外部回能；解绑提供恢复率的来源会暂停，重挂保留账户。2 秒周期、0.5 CES、0.5 秒加速 Buff 和治疗动作体均是测试校准。联动完成只是一个动作，父帧会先执行完再处理派生事实；需要在同一帧中立即使用新次数时，应在进度入账后显式执行 complete_recharge。
+
+[resource_cycle_yield.json](../common/src/test/resources/effects/resource_cycle_yield.json) 进一步演示同一双账户技能的模式切换：默认每轮恢复一份；装备来源将完成时的收益替换为当前缺口；高优先级 Buff 可临时替换回一份。两种模式从始至终共用同一可用账户与进度账户，换装只改变完成时查询到的修饰，不重置已有进度、不产生新账户或免费次数。容量变化仍由 resize_resource 独立处理。一秒周期和这些换装 / Buff 政策均为合成配置；这不是把任意旧单账户自动迁移成双账户的功能。纯核心测试验证优先级、精确到期、重复来源、其他持有者隔离和当前上限；双加载器还验证真实容器替换 / 卸装、自然回充、实际施放和未知世界观察结果保留。
 
 技能现可通过 recharge_resource 将按槽收益指向独立进度，观察接口同时保留可用次数与进度，见下文。示例把核心周期规则放在 test:linked，由技能的选择期 effects 自动绑定；合成输入另在 test:linked_inputs，避免相同核心来源重复绑定时把一次输入也执行多遍。Pugilist、Wellspring、Surplus 无需改写定义即可组合这类账户。任意分组、每格 parallel 进度、原作时窗、生产金装装配、保存恢复和专用 HUD 仍未实现，这一组合不代表 Ophidia Spathe 的完整行为已验收。
 

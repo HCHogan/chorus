@@ -1178,4 +1178,6 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 技能的 recharge_resource 已接通独立进度路由；原 Pugilist 定义通过真实装备、扣弹和投射物击杀将收益写入进度，完成一轮后可再次施放两次。施放中途改变基础选择时，后来的击杀使用新进度账户及其 CES；临时技能替换不改变外部回能路由，退款仍退实际支付的可用次数账户。Surplus 继续按可用次数计算，Wellspring 按可用账户资格分配后把收益送到进度；这两项已有组合单元测试。
 
+通用完成动作进一步支持可选 amount，由完成时查询的 Profile 决定一轮恢复一份或当前全部缺口。[周期收益合成示例](../common/src/test/resources/effects/resource_cycle_yield.json) 从一开始共用两个账户，让装备 / Buff 改变产出；真实装备中途装卸不重置进度，等效物品替换不赠送能量。纯核心验证当前容量、重复来源、Buff 优先级和精确到期，两端世界验证实际施放、自然回充与未知观察结果保留。它证明这类模式切换无需制造备用技能账户；一秒周期、装卸保留进度和临时 Buff 都不是 Ophidia Spathe 的原作参数。
+
 这些验证使用合成联动技能。Ophidia Spathe 的近期使用时窗、精确重置规则、Gambler's Dodge、飞刀击杀增伤与刷新、职业 / 近战资格及与 Lightweight Knife 的装配尚未实现。满可用次数时按槽回能返回 already_full，是当前防止隐藏储能的 Chorus 路由政策；不能据此宣称复现全部原作换装、重置或特殊退款行为。此阶段增加通用能力和已有 perk 的组合证据，不增加该金装的已实现或 partial 覆盖声明。

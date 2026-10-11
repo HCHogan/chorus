@@ -121,7 +121,8 @@
       "com.imdomestic.chorus.ResourceCapacityGameTest",
       "com.imdomestic.chorus.SpiritArmamentariumGameTest",
       "com.imdomestic.chorus.LinkedRechargeGameTest",
-      "com.imdomestic.chorus.AbilityRechargeGameTest"
+      "com.imdomestic.chorus.AbilityRechargeGameTest",
+      "com.imdomestic.chorus.ResourceCycleYieldGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

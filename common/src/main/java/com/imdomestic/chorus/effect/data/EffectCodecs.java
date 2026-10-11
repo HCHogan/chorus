@@ -397,7 +397,8 @@ public final class EffectCodecs {
                         values.fieldOf("capacity").forGetter(ResourceCapacityActions.Resize::capacity)).apply(i, ResourceCapacityActions.Resize::new)))
                 .register("chorus:complete_recharge", LinkedRechargeActions.Complete.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("progress").forGetter(LinkedRechargeActions.Complete::progress), ID.fieldOf("resource").forGetter(LinkedRechargeActions.Complete::resource),
-                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(LinkedRechargeActions.Complete::target)).apply(i, LinkedRechargeActions.Complete::new)))
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(LinkedRechargeActions.Complete::target),
+                        values.optionalFieldOf("amount").forGetter(LinkedRechargeActions.Complete::amount)).apply(i, LinkedRechargeActions.Complete::new)))
                 .register("chorus:initialize_resource", Action.InitializeResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.InitializeResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.InitializeResource::target)
                 ).apply(i, Action.InitializeResource::new)))
