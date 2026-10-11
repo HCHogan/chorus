@@ -851,7 +851,7 @@ transcendence（20 秒）
 墙面反弹、直线穿透、每目标命中上限与逐接触计数已接入通用 DSL。需求参考快照 `Weapon Perks!C20/C188`（穿甲弹一次穿透、Ricochet Rounds 反弹）、`Exotic Weapons!D27/D83`（Khvostov 同目标两次、Hard Light 墙面反弹）、`Void!D57`、`Stasis!D38`、`Strand!D38`（技能弹跳 / 追踪 / 回能）。通用限速追踪与接触后目标间转向也已接入；这些内容仍依赖各自数值、资格、计数语义及技能装配，合成夹具不将它们标为已实现。
 
 
-Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。Shield Throw 仍为 unimplemented；后两者已有下节的 partial 模板。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
+Shield Throw、Withering Blade、Threaded Spike 的名称 / 机制 / 冷却单元格已逐项纳入覆盖清单（Void B/D/N57、Stasis B/D/N38、Strand B/D/N38）。三者现均有独立 partial 模板；Shield Throw另见[共享虚空护盾与投盾](#共享-void-overshield-与-shield-throw)。已有追踪策略能够表达半径、扫描半角、速率限制、当前关系 / 视线过滤和接触后转向，但这些宿主策略不是原作校准结论。Withering Blade 的 12 [8] 米是固定来源值；Threaded Spike 的追踪半径与 Sever 持续时间仍为未知，不以测试值代替。
 
 Shield Throw 的“4 次弹跳”和 Withering Blade 的“3 次表面 / 最多4敌人”还需确认共享次数语义。核心已有独立预算和可选 `total_continuations` 共享继续次数；具备表达能力不等于已确认原作混合接触顺序。通用 destination 能返回移动中的施放者，ARRIVED 与伤害命中分开；catch 提供接收者、半径 / 时间 / 视线验证与 CAUGHT 分支。Threaded Spike 现用 damage_tally 共享去程已确认的命中 / 击杀，在回程结算；原表的 Melee % 使用 grant_energy 的 fixed 表达固定充能比例，不能替换为实际支付成本的退款。retain_cost 仍专用于共享实付成本预算。完整验收要求和缺口保存在 `data/compendium/review.json`。
 
@@ -1249,3 +1249,18 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 进度与死亡回执去重分开保存。接收者共享的回执桶按 `death_id` 拒绝同一次死亡被重复来源再次计数，达到阈值后也不丢失当前死亡身份；桶从创建开始固定五秒到期，击杀不延长它。它用于同次分发的去重，不是任意历史事件的永久重放账本，也不会因持续连杀而永久积存 ID。五秒进度仍由相邻合格击杀独立刷新。
 
 新增11项单元测试和6项共享世界场景验证权重、混合击杀、PvE/PvP恢复、五秒间隔、缺失证据、重复来源、装卸 / 死亡、共享冷却及未知治疗结果。Cure沿用50/100ms两次等量脉冲和0.1生命缩放，完整原作恢复曲线与全局生命标尺仍未校准。
+
+
+## 共享 Void Overshield 与 Shield Throw
+
+2026-10-11 核对在线原表 Void B8 / D8、B92 / D92 / N92，与固定 CSV B6 / D6、B57 / D57 / N57 归一化一致，已保存[原 HTML、坐标、哈希与实现政策](../data/d2-research/2026-10-11/void-overshield.json)。[Bungie 8.1.0](https://www.bungie.net/7/en/News/article/destiny_update_8_1_0)明确将 Void Overshield 的 PvE 减伤提高至70%，45 HP对应150有效HP。之后的[9.7.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0)仍有金装对防御Buff的延长/补盾交互；这些额外生产者未由此自动实现。
+
+[void_overshield.json](../common/src/test/resources/effects/void_overshield.json) 声明受益者共享的45 HP层，不按授予者拆实例。`void_overshield_application` 接收 amount / duration，经实际受益者存活观察后查询其 `void_overshield_duration` Profile，再授予 / 刷新与补盾。跨来源金额相加至上限，补盾保持FIFO年龄和首来源信用；时长按max_remaining保留较长剩余窗口。全破后移除Buff，重授则创建新代；已确认死亡和自然到期也清理。零额度、缺失或死亡受益者不创建空盾。该刷新与信用政策仍须原作校准，不能泛化为所有特殊来源的刷新规则。
+
+盾层的taken_multiplier仅对攻击源带`chorus:combatant`的输入为0.3，其余为1，不把当前活动模式作为攻击者分类。Minecraft原版伤害描述器捕获实际owner的实体/类型标签，并按Player/Mob添加guardian/combatant；不猜测武器、技能、敌人等级或构造物控制者。45盾承受170 Combatant输入时，盾消耗150预算，余下20继续进入后续盾层或生命；余量不再乘0.3。其他盾仍按现有FIFO结算，重授Void盾排到较早的其他盾之后。
+
+[shield_throw.json](../common/src/test/resources/effects/shield_throw.json) 已提供实际单充能施放、131.7秒基础周期、0.9接收系数及现有近战属性曲线。发射前必须提供物理校准和独立接触伤害Profile；碰撞后读取实际玩家类别，基础400战斗人员/70 Guardian伤害进入现有outgoing管线。每个存活实体接触完成已知非FAILED伤害回执后，向仍存活的thrower调用共享15 HP、10秒授盾；包括致命命中，不要求目标损失生命。当前免疫/阻挡/取消回执也视为已知实体接触，原作这些资格尚待验证。目标不可用的FAILED回执不授盾；未知伤害结果保留已支付能量和实际伤害、停止后续，不能猜测授盾或重放。
+
+[物理夹具](../common/src/test/resources/effects/shield_throw_test_calibration.json) 的20m/s、4m/s²、两秒寿命、12米扫描、3600度/秒、180度角、每目标一次和四次共享继续预算均为合成参数。后者允许五次接触，专门验证引擎计数，不能声称原作固定打五个敌人；原表四次ricochet是否包含首次命中、是否与墙面共享仍不明确。每类独立反弹/穿透预算设置为4，具体共享预算由显式校准给出。接触伤害夹具为恒等，不代表没有原作距离/弹跳衰减。
+
+5项ShieldThrowTest、4项VoidOvershieldTest和7项双端共享世界场景覆盖真实付费投掷、连续接触、实际400/70伤害、15至45的补盾、来源卸下后命中、原版Mob/Player/环境伤害、破盾溢出/FIFO、重力/墙面不授盾、实际到期和未知结果。测试用50%受益者时长修饰只证明扩展入口，不代表已完成Echo of Persistence及其职业属性代价。盾HP当前与引擎damage同单位，最终D2生命到Minecraft的缩放、自然恢复与盾伤不打断恢复、其他来源/金装、共享近战能量迁移、正式子职业装配、界面与活动状态存档仍未完成。两项均保持partial，定义仍是验收资源，尚未作为生产内容随发布jar提供。

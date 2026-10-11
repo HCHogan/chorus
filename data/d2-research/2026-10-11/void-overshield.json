@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+    "path": "data/d2-research/2026-10-11/void-overshield-source.html.gz",
+    "html_sha256": "9f4e40e99a24e5d4112b671e6e2bc66a0116419d7312c33985e4aeeea4fbb3a5",
+    "gzip_sha256": "4872de5d90a5375a3d11638fab4f4dc789c19a4f4389141f51c27258f6356b4c"
+  },
+  "cells": [
+    {
+      "original_cell": "B8",
+      "snapshot_cell": "B6",
+      "snapshot_text_sha256": "700cb3c06a16bfd7b030b529c8b7ad93be9cd14e16f68fa0046f469ad1511853",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D8",
+      "snapshot_cell": "D6",
+      "snapshot_text_sha256": "830882e2609fa64c0d40c6d225f540eb8e419092188996547f83c3f1680d769e",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "B92",
+      "snapshot_cell": "B57",
+      "snapshot_text_sha256": "cf70b33a5834ba3f1e2c1ccfb717ba4e2dc5753fe55f434fd19010fa38d013f4",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D92",
+      "snapshot_cell": "D57",
+      "snapshot_text_sha256": "5ff8880322b4017101dc233e0c0696229339581fde66023200bfca7b9f9967ae",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N92",
+      "snapshot_cell": "N57",
+      "snapshot_text_sha256": "452bc210163924ce14a880a0d20915213adfc7f7337d28e8ec6b13fecde52c29",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_8_1_0",
+      "date": "2024-10-08",
+      "excerpt": "Increased Void Overshield PvE damage resistance from 50% to 70%.",
+      "interpretation": "Applied to the overshield budget only; 45 HP is 150 effective HP against combatants."
+    },
+    {
+      "url": "https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+      "date": "2026-06-09",
+      "review": "Reviewed the later ability/exotic changes, including defensive-buff extension from No Backup Plans; that producer is outside this implementation."
+    }
+  ],
+  "implementation": {
+    "shield": "common/src/test/resources/effects/void_overshield.json",
+    "producer": "common/src/test/resources/effects/shield_throw.json",
+    "energy": "common/src/test/resources/effects/shield_throw_energy.json",
+    "calibration": "common/src/test/resources/effects/shield_throw_test_calibration.json",
+    "unit_tests": [
+      "common/src/test/java/com/imdomestic/chorus/effect/VoidOvershieldTest.java",
+      "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java"
+    ],
+    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java"
+  },
+  "policies": {
+    "pool": "Recipient-shared pool, no grantor instancing. Grants add up to 45; longer remaining duration wins; refill preserves FIFO age and first-layer origin. Full depletion removes the Buff, a later grant creates a new generation. These refresh/ownership choices require original-game interaction calibration.",
+    "credit": "70% resistance requires the attack source combatant tag; native Minecraft source descriptors snapshot owner entity/type tags and player/mob classification, without weapon/ability guesses. Missing/environmental owner does not gain combatant qualification.",
+    "contact": "After an actual living entity contact, any known non-FAILED damage receipt may grant 15 HP to the still-living thrower, including lethal/immune/blocked/cancelled outcomes. No minimum health-loss condition. FAILED means no grant; unknown world results stop the continuation without replay. Immune/cancelled original-game behavior remains a calibration question.",
+    "units": "Shield HP uses the engine damage unit directly. No final global Destiny-to-Minecraft health scale is claimed.",
+    "duration": "Caller provides base duration; a recipient-owned duration profile allows extensions. Shield Throw uses 10 seconds; the test-only 50% modifier is not a complete Echo of Persistence implementation.",
+    "physics": "20 m/s, 4 m/s^2 gravity, 2 second lifetime, 12 m scan, 3600 degree/s turn, 180 degree cone, one hit per target, and four shared continuations are synthetic acceptance parameters. Four continuations allow five contacts. The meaning of the Compendium four ricochets and any shared wall/entity budget remain unresolved.",
+    "stats": "131.7-second baseline and .9 chunk scalar come from Void N57. Existing fitted melee-stat profiles are reused; per-contact outgoing damage reads current modifiers. All hit/stack/attribute sampling is explicit content policy."
+  },
+  "unresolved": [
+    "All producer interactions, full Echo of Persistence, original duration refresh/FIFO/attribution edge cases.",
+    "Shield Throw flight/ricochet interpretation, repeated-target eligibility, immune/cancelled-hit eligibility, contact falloff and source/target damage scaling.",
+    "Health regeneration, full Void/Prismatic subclass and exotic assembly, shared melee-pool migration, production content packaging, HUD/art and active-state persistence."
+  ]
+}

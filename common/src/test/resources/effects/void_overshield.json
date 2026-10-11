@@ -1,0 +1,219 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:void_overshield_duration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "duration",
+          "operation": "multiply",
+          "group": {
+            "name": "duration",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:void_overshield",
+        "version": "compendium-2026-10-05",
+        "duration": 10,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "tags": [
+          "chorus:overshield",
+          "chorus_d2:void_overshield",
+          "chorus_d2:void_buff"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 0,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "maximum": {
+          "type": "chorus:constant",
+          "value": 45,
+          "unit": "damage"
+        },
+        "taken_multiplier": {
+          "type": "chorus:choose",
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "chorus:combatant"
+          },
+          "then": {
+            "type": "chorus:constant",
+            "value": 0.3,
+            "unit": "multiplier"
+          },
+          "else": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "multiplier"
+          }
+        }
+      },
+      "bundle": "chorus_d2:void_overshield_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:void_overshield_application",
+      "parameters": {
+        "amount": "damage",
+        "duration": "second"
+      },
+      "rules": [
+        {
+          "id": "grant",
+          "on": "chorus_d2:grant_void_overshield",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "amount"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "recipient"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "recipient",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "recipient",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:void_overshield_duration",
+                    "target": "victim",
+                    "input": {
+                      "type": "chorus:source_parameter",
+                      "name": "duration"
+                    }
+                  },
+                  "as": "duration"
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:void_overshield",
+                  "target": "victim",
+                  "duration": {
+                    "type": "chorus:result",
+                    "binding": "duration",
+                    "field": "value"
+                  }
+                },
+                {
+                  "type": "chorus:restore_shield",
+                  "buff": "chorus_d2:void_overshield",
+                  "target": "victim",
+                  "amount": {
+                    "type": "chorus:source_parameter",
+                    "name": "amount"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:void_overshield_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "broken",
+          "on": "chorus:shield_broken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_shield"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:void_overshield",
+                  "component": "capacity"
+                },
+                "op": "le",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:void_overshield"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:void_overshield"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

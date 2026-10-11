@@ -1,0 +1,50 @@
+{
+  "note": "Synthetic flight, bounce budget and repeat-target policy, not measured Destiny physics; raw damage and shield HP share the engine damage unit.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 4,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "turn_rate": {
+      "type": "chorus:constant",
+      "value": 3600,
+      "unit": "degree_per_second"
+    },
+    "acquisition_angle": {
+      "type": "chorus:constant",
+      "value": 180,
+      "unit": "degree"
+    },
+    "total_continuations": {
+      "type": "chorus:constant",
+      "value": 4,
+      "unit": "count"
+    },
+    "max_hits_per_target": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "count"
+    },
+    "tracking_radius": {
+      "type": "chorus:constant",
+      "value": 12,
+      "unit": "meter"
+    }
+  }
+}

@@ -128,7 +128,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         String type = source.typeHolder().unwrapKey().map(key -> key.identifier().toString()).orElse("chorus:unregistered_native_damage");
         String via = source.getDirectEntity() == null ? type : source.getDirectEntity().getUUID().toString();
         double requested = Float.isFinite(amount) ? Math.max(0, amount) : Float.MAX_VALUE;
-        return new DamageCommand(target.getUUID().toString(), new BuffInstance.Origin(owner, via, "", ""), requested,
+        return new DamageCommand(target.getUUID().toString(), new BuffInstance.Origin(owner, via, "", "", MinecraftNativeActions.sourceTags(source.getEntity())), requested,
                 type, Set.of("chorus:native_damage"), Set.of(), false);
     }
     public TimelineEngine.State<EffectState> state() { return session.state(); }

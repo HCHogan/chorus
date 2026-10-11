@@ -2169,7 +2169,7 @@
       "name": "Shield Throw",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Void",
@@ -2187,7 +2187,7 @@
           "text_sha256": "452bc210163924ce14a880a0d20915213adfc7f7337d28e8ec6b13fecde52c29"
         }
       ],
-      "scope": "需求已审阅；通用物理追踪、接触转向和命中计数有机制验收，尚无此技能的完整内容定义",
+      "scope": "实际付费投盾、重力/追踪/接触预算与400/70目标分类伤害；逐次实体命中调用共享15 HP虚空护盾，45上限；131.7秒基础周期与0.9接收系数及现有近战属性曲线",
       "acceptance": [
         "向前投掷、重力、尝试追踪与最多4次弹跳；明确墙面和实体是否共用次数预算",
         "400 [PvP 70]命中伤害、每次命中给予15 HP Void Overshield，并接通实际伤害/护盾资格",
@@ -2195,24 +2195,63 @@
       ],
       "evidence": [
         {
-          "kind": "design",
-          "path": "docs/d2-ruleset.md"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/shield_throw.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/void_overshield.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileTrackingTest.java",
-          "symbol": "boundedShortestArcPreservesNormalizedDirectionsAndCanSnapOrRemainBallistic"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java",
+          "symbol": "missingPhysicsOrContactCalibrationRejectsBeforePaymentAndDefinitionsRoundtrip"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java",
+          "symbol": "realTargetKindSelectsDamageWhileEachContactFillsTheSharedShieldUpToFortyFive"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java",
+          "symbol": "knownPhysicalContactCanGrantOnLethalOrImmuneReceiptsButMissingDeadOwnerCannotReceive"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java",
+          "symbol": "unknownDamageKeepsTheSpentChargeAndCannotInventShieldOrReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ShieldThrowTest.java",
+          "symbol": "oneChargeRechargesAtItsOwnBaselineAndExternalEnergyUsesPointNineRecipientScalar"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProjectileTrackingGameTest.java",
-          "symbol": "contactRedirectVisitsThreeDistinctEnemiesInOneTickAndHonorsPierceBudget"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "actualPaidThrowHitsFiveTargetsUnderExplicitContinuationCalibrationAndCapsSharedShield"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "actualGuardianReceivesSeventyDamageAndThrowerReceivesFifteenShield"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "actualWallBounceAndGravityDoNotCountAsAHitGrant"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "unknownRealDamageRetainsPaymentAndHealthLossWithoutGrantingShieldOrRepeating"
         }
       ],
       "gaps": [
-        "尚未提供此技能的数据定义；泛用追踪/转向夹具使用合成数值，不能当作Shield Throw实现",
-        "真实速度、重力、转向率、扫描半径/角度、追踪与弹跳资格未校准；当前宿主的墙面反弹和实体穿透预算独立，未确认原作4次是否为共享预算",
-        "Void Overshield的15 HP逐命中授予/叠加、技能资源、标签/免疫、正式伤害缩放和表现未装配"
+        "真实速度/重力/转向/扫描、目标重访、接触衰减与原作4次弹跳含义仍未校准；测试4次共享继续预算允许5次接触，不作原作断言",
+        "已观察的免疫/取消/阻挡接触仍授盾，FAILED或未知结果不授予；这些原作资格与命中期属性取样仍需校准",
+        "完整伤害/生命单位投影、共享近战账户迁移/换装惩罚、Echo of Persistence及其他金装/Aspect交互、生产子职业装配、技能输入/HUD/美术和状态持久化仍未完成"
       ]
     },
     {
@@ -7138,6 +7177,79 @@
         "追踪限制已接Chorus实体及原版潜影贝；其他原版/模组追踪弹、AI、Guardian辅助瞄准中断、增强Class护盾和伤害收益未实现，原版mob到Combatant映射及构造物信用仍依赖生产宿主",
         "body锚点/无视线/回能时取样、死亡/取消选择/碰撞拒绝的政策仍需原作校准，混合PvE/PvP模式不从附近目标自动猜测",
         "其他多充能近战、完整金装/Aspect转换、共享职业能量迁移/换装惩罚、正式职业与子职业装配、按键/HUD/素材和活动状态持久化仍未完成"
+      ]
+    },
+    {
+      "id": "void/overshield",
+      "name": "Void Overshield",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B6",
+          "text_sha256": "700cb3c06a16bfd7b030b529c8b7ad93be9cd14e16f68fa0046f469ad1511853"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D6",
+          "text_sha256": "830882e2609fa64c0d40c6d225f540eb8e419092188996547f83c3f1680d769e"
+        }
+      ],
+      "scope": "持有者共享45 HP护盾池、逐来源增量补充、战斗人员伤害只在盾层乘0.3、FIFO叠层/破盾清理/死亡与到期；Shield Throw每击15已接实际世界",
+      "acceptance": [
+        "不同来源共用受益者护盾池，增量补充最多45，其他受益者独立；补充保留原FIFO年龄与首来源信用",
+        "只有Combatant信用伤害在该层得到70%减免，Guardian/环境不享受，150输入消耗45盾且破盾余量不继承该减伤",
+        "调用者提供时长并查询受益者当前时长Profile；保留较长剩余时间，移除授予来源不撤回已授盾",
+        "完全破盾及确认死亡清理，到期清理，重建取得新的FIFO年龄；真实多层伤害结算"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/void_overshield.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoidOvershieldTest.java",
+          "symbol": "independentGrantorsShareOneCappedPoolWhileRecipientsRemainIndependent"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoidOvershieldTest.java",
+          "symbol": "combatantReductionOnlySpendsShieldBudgetAndNeverReducesHealthOverflow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoidOvershieldTest.java",
+          "symbol": "recipientDurationModifiersDoNotReadTheGiversBuildAndShorterGrantsDoNotShortenTheWindow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/VoidOvershieldTest.java",
+          "symbol": "zeroMissingAndDeadRecipientsCannotCreateEmptyDefensiveBuffs"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "nativeDamageClassifiesActualCreditOwnerAndOnlyCombatantShieldBudgetGetsReduction"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "otherShieldLayersKeepFifoOrderAndRecreatedVoidPoolGetsANewAge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ShieldThrowGameTest.java",
+          "symbol": "realTicksExpireASourceProvidedWindowAfterItsGrantorIsUnbound"
+        }
+      ],
+      "gaps": [
+        "所有授予来源/刷新/FIFO/首来源信用边界仍需原作校准；当前max_remaining为明确内容政策，不覆盖Soul Siphon等特殊刷新规则",
+        "完整Echo of Persistence/金装/Aspect装配、Health自然恢复及盾伤不打断恢复的消费者尚未完成",
+        "70%资格需要可信Combatant信用；原版原始owner按Mob/Player映射，构造物与离线来源信用须由对应生产宿主提供",
+        "45/15 HP使用引擎damage单位，尚无最终全局D2到Minecraft生命缩放；生产规则包、HUD/美术和活动状态持久化未完成"
       ]
     }
   ]

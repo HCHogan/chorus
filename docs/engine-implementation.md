@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-native-tracking-gate-2.log` BUILD SUCCESSFUL，1 分 29 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 594 项、NeoForge 604 项及两端发布 jar 全部通过，共享 Chorus 场景为 593 项。10 项 Compendium 审计与75条报告一致性通过；发布 jar 包含原版追踪适配，未包含效果夹具 / GameTest。本轮没有客户端协议或输入变化，未新增图形客户端验收。首轮 Fabric 已通过；NeoForge 因新环境同时由 JSON 和代码注册而拒绝启动，移除重复 JSON 后完整重跑通过。
+最新门禁 `/tmp/chorus-void-shield-gate-3.log` BUILD SUCCESSFUL，1 分 14 秒：1242 项 JUnit（无失败 / 错误 / 跳过）、Fabric 601 项、NeoForge 611 项及两端发布 jar 全部通过，共享 Chorus 场景为600项。10项 Compendium 审计、76条报告一致性、原表五个单元格与HTML / gzip哈希核对通过。发布包包含原版来源标签与failed回执标志，不包含验收效果 / GameTest。未新增客户端输入或协议，本轮没有新的图形客户端验收。
+
+Void Overshield共享45 HP层已由数据声明实现，增量补盾保留FIFO与首来源，破盾清理后重授创建新代；70%减伤仅作用于Combatant攻击命中的该盾层，余量继续进入后续盾 / 生命。原版nativeSource捕获实际owner的实体 / 类型标签及Player/Mob分类，不猜测武器/技能。新增failed伤害结果标志区分已知FAILED与实际接触后的immune/blocked/cancelled以及未知执行。
+
+Shield Throw新增单充能的实际物理生产者，使用131.7秒基础周期、0.9接收系数及现有近战属性曲线；400/70按实际目标身份选择，逐个实体接触完成已知非FAILED回执后向仍存活的投掷者授予15盾。5项ShieldThrowTest、4项VoidOvershieldTest及7项共享世界场景覆盖实际付款 / 飞行 / 重力 / 墙面 / 多目标伤害、容量上限、原版来源区别、FIFO与溢出、到期和失败不重放。首轮修正新测试的访问器名称及输入来源引用；世界回归发现受击测试玩家仍为创造模式，改为生存模式后原版盾层与生命溢出断言通过，未更改伤害算法或降低断言。
+
+物理参数和接触伤害Profile须显式校准；测试四次共享继续预算允许五次接触，不当作原作四次ricochet含义。刷新、免疫/取消命中资格、HP投影、Echo of Persistence、完整来源 / 子职业 / HUD和活动存档仍有缺口。新增Void Overshield为partial，Shield Throw由unimplemented转为partial；当前76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。来源和剩余边界见[共享虚空护盾与投盾](d2-ruleset.md#共享-void-overshield-与-shield-throw)。
+
+上一阶段门禁 `/tmp/chorus-native-tracking-gate-2.log` BUILD SUCCESSFUL，1 分 29 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 594 项、NeoForge 604 项及两端发布 jar 全部通过，共享 Chorus 场景为 593 项。10 项 Compendium 审计与75条报告一致性通过；发布 jar 包含原版追踪适配，未包含效果夹具 / GameTest。本轮没有客户端协议或输入变化，未新增图形客户端验收。首轮 Fabric 已通过；NeoForge 因新环境同时由 JSON 和代码注册而拒绝启动，移除重复 JSON 后完整重跑通过。
 
 原版 ShulkerBullet 已复用目标 / 发起者两侧的 projectile_tracking 资格，仍使用原版既定目标及其转向。临时拒绝保留真实目标引用，进入原版无目标的重力 / 飞行 / 碰撞分支，不获得伤害免疫；释放后重新使用 start。owner 分类与来源标签首次解析后捕获，来源消失仍保留，重新指定 owner 则更新。信用与已模拟飞行年龄随原版 NBT 保存，旧信用须与 Owner UUID 匹配；原版 owner 不被猜作物理 emitter 或武器 / 技能信用。未知查询移除当前弹体并停止运行时，其他受影响的原版弹体在下次查询时停止，不重放命中。
 
@@ -957,7 +965,7 @@ Fabric 的真实集成客户端验收还验证原版实体跟踪协议中的出�
 
 `ProjectileTracking.Policy` 保存半径、转向速率、扫描半角、目标取样点、关系、视线和接触重选策略。`EffectProjectile` 每 tick 从已加载实体选择并保持身份锁定，持续转向保留速度大小；接触后可重新选敌并立即转向，继续余下扫掠。选敌沿用当前施加者阵营；命中后排除尚未离开的碰撞箱和耗尽的每目标额度。动作体失败仍在重定向前停止飞行。
 
-6 项 ProjectileTrackingTest 验证最短弧角度预算、零转向、反向 / 近反向、随机方向性质、类型与编解码，以及来源卸下后的捕获策略。8 项共享 ProjectileTrackingGameTest 验证实际转向角、锁定移动目标、扫描锥 / 半径、同 tick 三目标转向、墙面反弹后伤害、实时阵营 / 遮挡 / 失去施加者、any 和目标死亡重选、关闭重定向，以及真实 tick 下来源卸下后命中移动目标。此处只验收通用机制；Shield Throw 仍为 unimplemented；Threaded Spike 和 Withering Blade 后续已有独立 partial 模板，见各自阶段。
+6 项 ProjectileTrackingTest 验证最短弧角度预算、零转向、反向 / 近反向、随机方向性质、类型与编解码，以及来源卸下后的捕获策略。8 项共享 ProjectileTrackingGameTest 验证实际转向角、锁定移动目标、扫描锥 / 半径、同 tick 三目标转向、墙面反弹后伤害、实时阵营 / 遮挡 / 失去施加者、any 和目标死亡重选、关闭重定向，以及真实 tick 下来源卸下后命中移动目标。此处只验收通用机制；Shield Throw、Threaded Spike 和 Withering Blade 后续均已有独立 partial 模板，见各自阶段。
 
 ### 指定实体目的地与抵达动作
 

@@ -268,5 +268,6 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "absorption_loss", new Field(Unit.DAMAGE, result -> ((DamageReceipt) result).absorptionLoss())),
             Map.of("lethal", result -> ((DamageReceipt) result).lethal(), "death_prevented", result -> ((DamageReceipt) result).deathPrevented(),
                     "immune", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.IMMUNE,
+                    "failed", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.FAILED,
                     "applied", result -> ((DamageReceipt) result).outcome() == DamageReceipt.Outcome.APPLIED), false, Reference.DAMAGE_RECEIPT);
 }

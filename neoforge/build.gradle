@@ -180,6 +180,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/projectile_catch.json'
         include 'effects/tally_return.json'
         include 'effects/threaded_spike.json'
+        include 'effects/void_overshield.json', 'effects/void_overshield_inputs.json', 'effects/shield_throw.json', 'effects/shield_throw_energy.json', 'effects/shield_throw_test_calibration.json', 'effects/shield_throw_damage_test_calibration.json'
         include 'effects/withering_blade.json'
         include 'effects/duskfield.json'
         include 'effects/bleak_watcher.json'

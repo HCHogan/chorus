@@ -2493,3 +2493,12 @@ Profile 必须仅输出 Chorus 贡献。输入是绑定中的固定 Measure，�
 投射物 / 散弹接触结果新增 `geometry_observed` 标志；数值 `relative_x / relative_y / relative_z` 为 multiplier，`bounds_width / bounds_height / bounds_depth / collision_inflation` 为 meter。读取不存在的几何数值会失败，内容必须先检查标志。归一化值按 `(接触点 − 当时包围盒最小坐标) / 当时尺寸` 计算，不裁剪到0–1；例如膨胀碰撞箱前表面的相对坐标可以为负。尺寸须为有限正数，膨胀半径为有限非负数，同次观察必须在同一维度。
 
 这组接口提供事实，不定义全局头部或精准命中。Lightweight Knife 的数据模板把三轴数值交给目标侧外部 Profile；验收目标显式绑定区域，精准结果决定哪份攻击快照执行。宿主仍需提供正式目标区域 / 模型映射，轴对齐包围盒并不能替代朝向和动画骨骼。接触后目标移动不会改变已保存的坐标，原来的原子碰撞计数与未知世界结果不重放语义保持一致。
+
+
+### 原版伤害来源分类与共享虚空护盾内容
+
+默认 `MinecraftEffectRuntime.nativeSource` 现在从原版 DamageSource 的实际owner捕获entityTags与typeTags，并为Player添加`chorus:guardian`、为Mob添加`chorus:combatant`。owner不存在时不补造这些资格；source仍是直接伤害实体UUID或伤害类型，weapon / ability仍为空。托管伤害继续使用显式DamageCommand的来源，不用当前持枪覆盖信用。此标签只是宿主映射，不等于D2敌人等级、阵营、构造物控制者或历史发射信用的完整目录。
+
+伤害结果的 `result_flag` 增加 `failed`，当且仅当回执Outcome为FAILED；它与applied/immune等已知结果和运行时未知故障分开。Minecraft世界动作在目标缺失/已移除/维度错误时可返回FAILED。未知执行不会伪造FAILED回执，仍停止等待并保留已提交世界效果。内容若要按已知物理接触触发、而非只按实际扣血，可显式组合这个标志和实体/投射物观察。
+
+共享Void Overshield内容直接组合grant_buff与restore_shield及有上限的层声明，没有新增金装或技能专用Java分支；各来源调用时显式提供额度、时长及目标。原版分类支持仅在Combatant攻击的护盾预算中乘0.3，仍按FIFO传递未经该层重复减免的余量。具体取样、刷新、物理校准和生产边界见[D2规则集](d2-ruleset.md#共享-void-overshield-与-shield-throw)。

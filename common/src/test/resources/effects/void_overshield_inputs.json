@@ -1,0 +1,59 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:void_granter",
+      "parameters": {
+        "amount": "damage",
+        "duration": "second"
+      },
+      "rules": [
+        {
+          "id": "grant",
+          "on": "test:grant_void",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:void_overshield_application",
+              "event": "chorus_d2:grant_void_overshield",
+              "target": "victim",
+              "parameters": {
+                "amount": {
+                  "type": "chorus:source_parameter",
+                  "name": "amount"
+                },
+                "duration": {
+                  "type": "chorus:source_parameter",
+                  "name": "duration"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:void_duration",
+      "modifiers": [
+        {
+          "id": "extension",
+          "profile": "chorus_d2:void_overshield_duration",
+          "stage": "duration",
+          "group": "duration",
+          "op": "multiply",
+          "stacking_key": "test:persistence",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic recipient duration extension, not a complete Echo of Persistence definition",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

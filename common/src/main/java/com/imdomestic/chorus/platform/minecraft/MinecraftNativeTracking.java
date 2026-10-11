@@ -41,12 +41,8 @@ public final class MinecraftNativeTracking {
             if (reference == null) return EMPTY;
             Entity entity = EntityReference.getEntity(reference, level);
             if (entity == null) return new Credit(Optional.of(reference.getUUID()), OwnerKind.UNAVAILABLE, Set.of());
-            var tags = new HashSet<>(entity.entityTags());
-            entity.getType().builtInRegistryHolder().tags().forEach(t -> tags.add(t.location().toString()));
             OwnerKind kind = entity instanceof Player ? OwnerKind.PLAYER : entity instanceof Mob ? OwnerKind.MOB : OwnerKind.OTHER;
-            if (kind == OwnerKind.PLAYER) tags.add("chorus:guardian");
-            if (kind == OwnerKind.MOB) tags.add("chorus:combatant");
-            return new Credit(Optional.of(reference.getUUID()), kind, tags);
+            return new Credit(Optional.of(reference.getUUID()), kind, MinecraftNativeActions.sourceTags(entity));
         }
         public Credit reconcile(EntityReference<Entity> reference, Level level) {
             return matches(reference) && kind != OwnerKind.UNAVAILABLE ? this : capture(reference, level);
