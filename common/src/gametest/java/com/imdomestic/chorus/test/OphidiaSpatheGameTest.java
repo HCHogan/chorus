@@ -29,7 +29,11 @@ public class OphidiaSpatheGameTest {
     static int stacks(BleakWatcherGameTest.Harness t){return t.buff(SC,t.owner).map(BuffInstance::count).orElse(0);}
     static void grant(BleakWatcherGameTest.Harness t,double n){String owner=BleakWatcherGameTest.id(t.owner);t.runtime.start(new RuleEngine.Signal("test:fixed",new EffectEvent(owner,owner,new BuffInstance.Origin(owner,"energy","",""),Set.of(),Map.of("amount",new Measure(n,Unit.CHARGE)))));}
     static void use(GameTestHelper h,BleakWatcherGameTest.Harness t,String slot){h.assertValueEqual(t.runtime.useAbility(t.owner,slot).outcome(),AbilityUse.Outcome.ACCEPTED,"synthetic producer rejected");}
-    static void hit(BleakWatcherGameTest.Harness t,LivingEntity target,String kind){String owner=BleakWatcherGameTest.id(t.owner);t.runtime.start(new RuleEngine.Signal("test:"+kind,new EffectEvent(owner,BleakWatcherGameTest.id(target),new BuffInstance.Origin(owner,"knife","","test:solar_knife"),Set.of(),Map.of())));}
+    static void hit(BleakWatcherGameTest.Harness t,LivingEntity target,String kind){
+        String owner=BleakWatcherGameTest.id(t.owner), victim=BleakWatcherGameTest.id(target);
+        t.h.assertTrue(t.resolve(victim)==target,"Knife fixture target is absent from server entity lookup at "+target.position()+", loaded="+t.h.getLevel().hasChunkAt(target.blockPosition()));
+        t.runtime.start(new RuleEngine.Signal("test:"+kind,new EffectEvent(owner,victim,new BuffInstance.Origin(owner,"knife","","test:solar_knife"),Set.of(),Map.of())));
+    }
     static void kill(GameTestHelper h,BleakWatcherGameTest.Harness t){var target=t.mob(4);target.setHealth(5);hit(t,target,"knife");h.assertTrue(target.isDeadOrDying(),"actual knife-credit damage did not kill");}
     @GameCase public void equipmentReplacementAndSolarSelectionRecomputeCapacityWithoutFreeCharges(GameTestHelper h){
         try(var t=open(h)){
