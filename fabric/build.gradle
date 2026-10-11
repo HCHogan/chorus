@@ -224,6 +224,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/echo_of_starvation.json'
         include 'effects/echo_of_harvest.json'
         include 'effects/status_application.json'
+        include 'effects/drawn_weapon.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'
         include 'effects/starvation_inputs.json'

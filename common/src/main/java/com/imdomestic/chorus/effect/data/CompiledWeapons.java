@@ -216,6 +216,16 @@ final class CompiledWeapons {
         return new RuleEngine.Local<>(updated, new AmmoActions.Change(transfer, view.after(transfer.after())), facts);
     }
     WeaponDefinition definition(String item) { return definitions.get(item); }
+    /** Current authoritative drawn instance only; missing or unconfigured selections are empty. */
+    com.imdomestic.chorus.effect.target.Targets.Identities drawn(EffectState state, String holder) {
+        var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
+        equipment.validate(loadout);
+        var gear = WeaponReload.drawn(loadout).filter(g -> definitions.containsKey(g.definition()));
+        if (gear.isEmpty()) return com.imdomestic.chorus.effect.target.Targets.Identities.of(List.of());
+        String instance = gear.orElseThrow().instance();
+        if (!state.ammunition().containsKey(instance)) throw new IllegalArgumentException("Drawn weapon has no ammunition account: " + instance);
+        return com.imdomestic.chorus.effect.target.Targets.Identities.of(List.of(instance));
+    }
     /** Equipped, including stowed, configured weapon instances; only item-definition tags participate. */
     com.imdomestic.chorus.effect.target.Targets.Identities equipped(EffectState state, String holder, Set<String> tags) {
         var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);

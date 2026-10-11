@@ -6,6 +6,14 @@
 
 ## 当前证据
 
+持握武器查询门禁 `/tmp/chorus-drawn-gate-2.log` BUILD SUCCESSFUL，2分4秒：1513项JUnit（无失败/错误/跳过）、Fabric779项、NeoForge794项及两端发布jar通过，共享Chorus场景778项。新增7项规则测试和3项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过；发布jar包含ObserveDrawnWeapon且不含效果/GameTest/持久化夹具。
+
+新增通用observe_drawn_weapon动作，从holder当前独立装备容器返回零或一个已配置武器身份，供for_each与refill_magazine等已有动作使用。来源/触发事件携带的武器不代替当前选择，空手或未配置武器行为返回空集合，已配置武器缺少弹药账户则报错。补弹遵守当前容量、溢出保留与有限/无限储备规则，不产生reload_finished；实际容器测试验证切枪、其他持有者隔离及Kill Clip窗口不被消费。延迟后查询与延迟前保存身份分别采用当前或原先选择，来源解绑及纯会话检查点保留其区别。
+
+首次完整门禁因新增动作遗漏检查点结构基线而停止于规则测试。补齐唯一新增类型后确认既有存储结构全部保持不变，随后完整双端回归通过。该动作只观察引擎装备状态，不隐含世界操作资格检查，也不创建账户。Compendium审阅仍为83条；Domineering的四秒冷却、十秒属性/前移收益、击杀裂口及正式Fragment装配尚未完成，不能把查询接口计作完整效果覆盖。[动作及查询时机](engine-data-packs.md#整数弹药与弹匣转移)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 状态施加事实门禁 `/tmp/chorus-status-application-gate-3.log` BUILD SUCCESSFUL，1分59秒：1506项JUnit（无失败/错误/跳过）、Fabric776项、NeoForge791项及两端发布jar通过，共享Chorus场景775项。新增9项规则测试和4项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过，发布jar包含StatusFacts且不含效果/GameTest/持久化夹具。
 
 通用apply_status现在在世界授权通过、状态提交后发出chorus:status_applied。本次actor/source来自当前授权请求，和目标共享Buff保留的最初origin分开；同一目标被其他来源再次施加、满层或截止点未变时也有独立status_id。事件带Buff身份、前后层数和可选damage_id，不补造世界历史观察。拒绝、死亡、目标缺失、纯授予、只读授权和单独续时不发此事实。规则测试还验证先前生命周期反应移除状态不会抹掉已发生的施加信用、检查点操作身份及未知结果不重放；世界测试用实际目标授权和真实HP奖励验证当前施加者。

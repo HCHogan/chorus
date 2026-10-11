@@ -1,0 +1,21 @@
+{
+  "version":"test-1",
+  "bundles":[{"id":"test:drawn_weapon","rules":[
+    {"id":"now","on":"test:refill_drawn","if":{"type":"chorus:target_is","left":"self","right":"event_actor"},"do":[
+      {"action":{"type":"chorus:observe_drawn_weapon"},"as":"selected"},
+      {"for_each":"selected","as":"gun","do":[{"type":"chorus:refill_magazine","weapon":{"binding":"gun"}}]}
+    ]},
+    {"id":"later","on":"test:later_drawn","if":{"type":"chorus:target_is","left":"self","right":"event_actor"},"do":[
+      {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+        {"action":{"type":"chorus:observe_drawn_weapon"},"as":"selected"},
+        {"for_each":"selected","as":"gun","do":[{"type":"chorus:refill_magazine","weapon":{"binding":"gun"}}]}
+      ]}
+    ]},
+    {"id":"captured","on":"test:captured_drawn","if":{"type":"chorus:target_is","left":"self","right":"event_actor"},"do":[
+      {"action":{"type":"chorus:observe_drawn_weapon"},"as":"selected"},
+      {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+        {"for_each":"selected","as":"gun","do":[{"type":"chorus:refill_magazine","weapon":{"binding":"gun"}}]}
+      ]}
+    ]}
+  ]}]
+}

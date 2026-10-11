@@ -294,6 +294,8 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.Initialize::holder)).apply(i, AmmoActions.Initialize::new)))
                 .register("chorus:observe_ammo", AmmoActions.Observe.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Observe::weapon)).apply(i, AmmoActions.Observe::new)))
+                .register("chorus:observe_drawn_weapon", AmmoActions.ObserveDrawnWeapon.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.ObserveDrawnWeapon::holder)).apply(i, AmmoActions.ObserveDrawnWeapon::new)))
                 .register("chorus:observe_equipped_weapons", AmmoActions.ObserveEquippedWeapons.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.ObserveEquippedWeapons::holder),
                         ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AmmoActions.ObserveEquippedWeapons::tags)).apply(i, AmmoActions.ObserveEquippedWeapons::new)))

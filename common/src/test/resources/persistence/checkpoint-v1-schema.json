@@ -158,6 +158,7 @@
   "chorus:effect/data/ammo_actions/initialize": ["weapon:com.imdomestic.chorus.effect.data.Evaluation$Target", "capacity:com.imdomestic.chorus.effect.data.Value", "magazine:com.imdomestic.chorus.effect.data.Value", "reserves:com.imdomestic.chorus.effect.data.AmmoActions$ReserveSpec", "capacityProfile:java.util.Optional<java.lang.String>", "holder:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/ammo_actions/observation": ["view:java.util.Optional<com.imdomestic.chorus.effect.ammo.AmmoCapacity$View>", "created:boolean"],
   "chorus:effect/data/ammo_actions/observe": ["weapon:com.imdomestic.chorus.effect.data.Evaluation$Target"],
+  "chorus:effect/data/ammo_actions/observe_drawn_weapon": ["holder:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/ammo_actions/observe_equipped_weapons": ["holder:com.imdomestic.chorus.effect.data.Evaluation$Target", "tags:java.util.Set<java.lang.String>"],
   "chorus:effect/data/ammo_actions/refill": ["weapon:com.imdomestic.chorus.effect.data.Evaluation$Target", "amount:java.util.Optional<com.imdomestic.chorus.effect.data.Value>", "ceiling:java.util.Optional<com.imdomestic.chorus.effect.data.Value>"],
   "chorus:effect/data/ammo_actions/reserve_spec": ["finite:java.util.Optional<com.imdomestic.chorus.effect.data.AmmoActions$FiniteReserve>"],

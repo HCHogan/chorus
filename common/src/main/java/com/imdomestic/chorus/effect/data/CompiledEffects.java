@@ -509,6 +509,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public com.imdomestic.chorus.effect.target.Targets.Identities equippedWeapons(EffectState state, String holder, java.util.Set<String> tags) {
         return weapons.equipped(state, holder, tags);
     }
+    public com.imdomestic.chorus.effect.target.Targets.Identities drawnWeapon(EffectState state, String holder) {
+        return weapons.drawn(state, holder);
+    }
     public Optional<InstantReload.Check> instantReload(EffectState state, String holder, InstantReload.Selection selection,
             InstantReload.Completion completion, String reason, BuffInstance.Origin cause, RuleEngine.OperationId operation) {
         settled(state); return weapons.instant(state, holder, selection, completion, reason, cause, operation);

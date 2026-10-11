@@ -801,12 +801,15 @@ Java 结果保留 holder / slot / ability、account 与 rechargeAccount，两个
 | `initialize_ammo` | capacity / magazine / reserves 必填；reserves 为上例的有限账户或字符串 `unlimited`。容量输入须为正，初始弹匣允许溢出，有限储备须在容量内。可选 capacity_profile 和 holder（默认 self）见下文。重复初始化保留现值，容量输入、Profile / holder 或储备种类 / 容量不一致则拒绝。初始化不发布弹药变化事实 |
 | `observe_ammo` | 返回 available / created / infinite_reserves / finite_reserves。观察不会创建账户，created 恒为 false；initialize 的新建结果 created 为 true。未初始化时 available 为 false，不能直接读其弹数 |
 | `observe_equipped_weapons` | holder 默认 self，tags 默认空集合。返回当前装备中有 WeaponDefinition 的武器实例身份集合，包含收起的武器，按实例 ID 排序去重，可 for_each 后把 binding 用作 weapon。tags 必须全部匹配物品定义标签；不读取 socket / perk 的来源标签。未装备的库存 / 遗留账户、护甲及没有武器行为的物品不参与；已装备匹配武器缺少弹药账户则报错 |
+| `observe_drawn_weapon` | holder 默认 self，返回当前独立装备容器中持握且有WeaponDefinition的零或一个武器身份，可for_each后用于refill_magazine等动作。空手、未装备或未配置武器行为返回空集合；已配置的持握武器缺失弹药账户则报错。查询不会使用来源或触发事件中的weapon替代当前选择，也不会创建账户或触发换弹 |
 | `spend_ammo` | amount 必填，pool 为 magazine（默认）或 reserves；全部足额才扣除，失败 applied = 0。零请求可 complete，但不会产生实际弹药或开火事实 |
 | `refill_magazine` | amount / ceiling 均可省略；实际量受请求、弹匣空间和储备限制。从有限储备扣除同量；无限储备无需保存一个虚构的大数 |
 | `grant_ammo` | amount 必填，pool 默认 magazine，ceiling 可省略。给弹匣不会扣储备；给有限储备最多到储备容量；给无限储备 applied = 0。弹匣默认 ceiling 为基础容量，已有溢出不被删除 |
 | `ammo` Value | weapon 默认 this_weapon，field 为 magazine / capacity / unmodified_capacity / missing / reserves / reserve_capacity；单位 round。capacity 为当前有效基础容量，unmodified_capacity 为固定输入，missing = max(0, capacity − magazine)。不存在账户或读取无限储备的有限数值均报错 |
 | `equipped_reserve_space` Value | holder / tags 与上述装备查询相同，单位 round。累计当前匹配武器的有限储备 capacity − rounds；无限储备和没有匹配武器贡献零。不会把缺失账户当成无限或零，也不根据弹匣缺弹推断储备缺口。普通读取随当前装备 / 弹数变化；on_use 快照固定来源侧数值，victim 查询仍保留到命中时 |
 | `round` Value | input 为任意同单位数值，mode 必填 floor / ceiling / half_up。保留单位；half_up 在恰好半数时远离零。它不自动将 charge_fraction 或 count 换成 round |
+
+`observe_drawn_weapon` 在动作执行时读取当前选择。在延迟前保存结果会固定该武器身份；需要执行时持握的武器，应把查询放在延迟动作内部。结果只表示引擎装备状态中的选择，不隐含存活、距离等世界资格检查；来源解绑不会自动撤销已经接受的 detached 延迟动作。将结果逐项交给 `refill_magazine` 只会转移弹药，不会发布 `reload_finished` 或触发 Kill Clip 等换弹词条。
 
 实际弹数、容量、请求和 ceiling 都须为 0 至 2³¹−1 的整数（基础容量至少为 1）。常量在加载时校验，动态值在写状态前校验；不隐式截断小数。按基础容量的 60% 上取整可写为：
 

@@ -515,6 +515,7 @@ final class CheckpointTypes {
         types.put("chorus:stat/reduction", com.imdomestic.chorus.stat.Reduction.class);
         types.put("chorus:stat/unit", com.imdomestic.chorus.stat.Unit.class);
         types.put("chorus:effect/data/ammo_actions/observe_equipped_weapons", com.imdomestic.chorus.effect.data.AmmoActions.ObserveEquippedWeapons.class);
+        types.put("chorus:effect/data/ammo_actions/observe_drawn_weapon", com.imdomestic.chorus.effect.data.AmmoActions.ObserveDrawnWeapon.class);
         types.put("chorus:effect/data/value/equipped_reserve_space", com.imdomestic.chorus.effect.data.Value.EquippedReserveSpace.class);
         return new RecordTreeCodec(types);
     }

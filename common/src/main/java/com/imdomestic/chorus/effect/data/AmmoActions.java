@@ -90,6 +90,15 @@ public final class AmmoActions {
             return new RuleEngine.Local<>(e.state(), result, List.of());
         }
     }
+    public record ObserveDrawnWeapon(Evaluation.Target holder) implements Action {
+        public ObserveDrawnWeapon { Objects.requireNonNull(holder); }
+        @Override public ResultShape validate(Validation v) { v.target(holder); return ResultShape.TARGET_IDENTITIES; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var result = e.program().orElseThrow(() -> new IllegalArgumentException("Drawn weapon requires a compiled program"))
+                    .drawnWeapon(e.state(), e.target(holder));
+            return new RuleEngine.Local<>(e.state(), result, List.of());
+        }
+    }
     public record Spend(Evaluation.Target weapon, Ammunition.Pool pool, Value amount) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(weapon); validateRounds(amount, v); return CHANGE; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { var view = e.ammoView(weapon); return commit(e, view, Ammunition.spend(view.account(), pool, rounds(amount, e))); }
