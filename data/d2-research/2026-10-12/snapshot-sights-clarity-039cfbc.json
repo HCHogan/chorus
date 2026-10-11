@@ -1,0 +1,116 @@
+{
+  "957782887": {
+    "hash": 957782887,
+    "name": "Snapshot Sights",
+    "lastUpload": 1712883202187,
+    "type": "Weapon Trait",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Passively decreases the ADS Animation Duration:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• 50% decrease on "
+            },
+            {
+              "classNames": [
+                "primary"
+              ]
+            },
+            {
+              "text": "Primary Weapons"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• 20% decrease on "
+            },
+            {
+              "classNames": [
+                "special"
+              ]
+            },
+            {
+              "text": "Special Weapons"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "4116820839": {
+    "hash": 4116820839,
+    "name": "Snapshot Sights",
+    "lastUpload": 1709252348445,
+    "type": "Weapon Trait Enhanced",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Passively decreases the ADS Animation Duration:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• 50% decrease on "
+            },
+            {
+              "classNames": [
+                "primary"
+              ]
+            },
+            {
+              "text": "Primary Weapons"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• 20% decrease on "
+            },
+            {
+              "classNames": [
+                "special"
+              ]
+            },
+            {
+              "text": "Special Weapons"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "🡅",
+              "classNames": [
+                "enhancedArrow"
+              ]
+            },
+            {
+              "text": " Passively grants 5 Stability."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

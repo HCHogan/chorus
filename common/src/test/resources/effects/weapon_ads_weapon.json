@@ -1,0 +1,1485 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:primary_ammo",
+          "chorus_d2:auto_rifle"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:box_breathing"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:box_breathing",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "snapshot": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:snapshot_sights"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:snapshot_sights",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "surplus": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:surplus"
+              }
+            }
+          }
+        },
+        "effects": {
+          "precision": {
+            "bundle": "test:weapon_precision_bonus"
+          }
+        }
+      },
+      {
+        "id": "test:special_rifle",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:special_ammo",
+          "chorus_d2:sniper_rifle"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:box_breathing"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:box_breathing",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "snapshot": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:snapshot_sights"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:snapshot_sights",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "surplus": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:surplus"
+              }
+            }
+          }
+        },
+        "effects": {
+          "precision": {
+            "bundle": "test:weapon_precision_bonus"
+          }
+        }
+      },
+      {
+        "id": "test:heavy_rifle",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:heavy_ammo",
+          "chorus_d2:sniper_rifle"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:box_breathing"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:box_breathing",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          },
+          "snapshot": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:snapshot_sights_power",
+                "parameters": {
+                  "ads_delta": "snapshot_ads_delta"
+                }
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:snapshot_sights_power",
+                "tags": [
+                  "chorus:enhanced"
+                ],
+                "parameters": {
+                  "ads_delta": "snapshot_ads_delta"
+                }
+              }
+            }
+          },
+          "surplus": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:surplus"
+              }
+            }
+          }
+        },
+        "effects": {
+          "precision": {
+            "bundle": "test:weapon_precision_bonus"
+          }
+        },
+        "parameters": {
+          "snapshot_ads_delta": {
+            "unit": "delta",
+            "minimum": -1,
+            "maximum": 0
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:precision"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "head"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "test:weapon_precision",
+                      "target": {
+                        "binding": "victim"
+                      },
+                      "victim": {
+                        "binding": "victim"
+                      },
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      },
+                      "tags": [
+                        "test:weapon_geometry"
+                      ],
+                      "numbers": {
+                        "x": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_x"
+                        },
+                        "y": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_y"
+                        },
+                        "z": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_z"
+                        }
+                      }
+                    },
+                    "as": "precision"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "precision",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "head",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "body",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "aiming": {
+        "enter": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "profiles": [
+            "chorus_d2:weapon_handling",
+            "chorus_d2:auto_rifle_ads_time",
+            "chorus_d2:handling_animation",
+            "chorus_d2:ads_duration"
+          ]
+        },
+        "exit": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          }
+        }
+      }
+    },
+    {
+      "item": "test:special_rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:precision"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "head"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "test:weapon_precision",
+                      "target": {
+                        "binding": "victim"
+                      },
+                      "victim": {
+                        "binding": "victim"
+                      },
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      },
+                      "tags": [
+                        "test:weapon_geometry"
+                      ],
+                      "numbers": {
+                        "x": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_x"
+                        },
+                        "y": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_y"
+                        },
+                        "z": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_z"
+                        }
+                      }
+                    },
+                    "as": "precision"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "precision",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "head",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "body",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "aiming": {
+        "enter": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "profiles": [
+            "chorus_d2:weapon_handling",
+            "chorus_d2:sniper_rifle_ads_time",
+            "chorus_d2:handling_animation",
+            "chorus_d2:ads_duration"
+          ]
+        },
+        "exit": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          }
+        }
+      }
+    },
+    {
+      "item": "test:heavy_rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:precision"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "head"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "test:weapon_precision",
+                      "target": {
+                        "binding": "victim"
+                      },
+                      "victim": {
+                        "binding": "victim"
+                      },
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      },
+                      "tags": [
+                        "test:weapon_geometry"
+                      ],
+                      "numbers": {
+                        "x": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_x"
+                        },
+                        "y": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_y"
+                        },
+                        "z": {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "relative_z"
+                        }
+                      }
+                    },
+                    "as": "precision"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:result",
+                            "binding": "precision",
+                            "field": "value"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:compare",
+                          "left": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          },
+                          "op": "gt",
+                          "right": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "head",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "body",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "weakspot": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:compare",
+                              "left": {
+                                "type": "chorus:result",
+                                "binding": "precision",
+                                "field": "value"
+                              },
+                              "op": "eq",
+                              "right": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "precision_delta": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "delta"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "aiming": {
+        "enter": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 10,
+            "unit": "stat_point"
+          },
+          "profiles": [
+            "chorus_d2:weapon_handling",
+            "chorus_d2:sniper_rifle_ads_time",
+            "chorus_d2:handling_animation",
+            "chorus_d2:ads_duration"
+          ]
+        },
+        "exit": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          }
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "precision",
+          "operation": "multiply",
+          "factor": "chorus:precision",
+          "group": {
+            "name": "precision",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_precision",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "region",
+          "operation": "replace",
+          "group": {
+            "name": "regions",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "boolean_region",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0
+              },
+              {
+                "input": 1,
+                "output": 1
+              },
+              {
+                "input": 2,
+                "output": 2
+              }
+            ],
+            "interpolation": "exact",
+            "boundary": "error"
+          },
+          "output_unit": "count"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:weapon_region",
+      "parameters": {
+        "min_x": "multiplier",
+        "max_x": "multiplier",
+        "min_y": "multiplier",
+        "max_y": "multiplier",
+        "min_z": "multiplier",
+        "max_z": "multiplier"
+      },
+      "modifiers": [
+        {
+          "id": "region",
+          "profile": "test:weapon_precision",
+          "stage": "region",
+          "group": "regions",
+          "op": "replace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "test:region",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "test:weapon_geometry"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_z"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_z"
+                }
+              }
+            ]
+          },
+          "reference": "Synthetic target-owned axis-aligned hit region; no D2 enemy weakpoint catalogue or Minecraft default head claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:weapon_precision_bonus",
+      "modifiers": [
+        {
+          "id": "precision",
+          "profile": "test:weapon_damage",
+          "stage": "precision",
+          "group": "precision",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "precision_delta",
+            "unit": "delta"
+          },
+          "stacking_key": "test:weapon_precision",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic explicit per-impact precision multiplier, not measured Destiny calibration.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:box_inputs",
+      "rules": [
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "weapon": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "weapon": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:box_shield",
+      "rules": [
+        {
+          "id": "shield",
+          "on": "test:shield",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:box_shield",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:box_bubble",
+      "modifiers": [
+        {
+          "id": "region",
+          "profile": "test:weapon_precision",
+          "stage": "region",
+          "group": "regions",
+          "op": "replace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "count"
+          },
+          "stacking_key": "test:bubble",
+          "reference": "Synthetic precision region without a natural weakspot, not a Divinity entity implementation.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_observer",
+      "rules": [
+        {
+          "id": "started",
+          "on": "chorus:weapon_aim_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_started"
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus:weapon_aim_ready",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ready"
+            }
+          ]
+        },
+        {
+          "id": "released",
+          "on": "chorus:weapon_aim_released",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_released"
+            }
+          ]
+        },
+        {
+          "id": "ended",
+          "on": "chorus:weapon_aim_ended",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ended"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:box_shield",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 100,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "excluded_attack_factors": [
+          "chorus:precision"
+        ]
+      }
+    }
+  ]
+}

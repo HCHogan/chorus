@@ -4387,7 +4387,7 @@
           "text_sha256": "3c8dbd6005f504936b52ae9d66ec02e53d43b2f4cf55c0fbfd2ec97ba9a255f3"
         }
       ],
-      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度；装填属性、两种原型曲线和动画倍率分段组合并保留全部轨迹；真实Surplus装填属性先入武器曲线，再与Weapons属性时长乘数独立组合；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限",
+      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度；装填属性、两种原型曲线和动画倍率分段组合并保留全部轨迹；真实Surplus装填属性先入武器曲线，再与Weapons属性时长乘数独立组合；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限；Handling 同样进入已接受 ADS 期限，与 Snapshot 时长乘数及 Amplified 组合。",
       "acceptance": [
         "普通稳定性5/15/25、操控5/25/60、装填10/25/60；零档无加值",
         "各槽完整份数相加并封顶3，额外充能独立计数，Super和缺失槽不计入",
@@ -4524,6 +4524,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
           "symbol": "actualSurplusSwitchKeepsStowTimeAndUsesCurrentArmorForTheOtherWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "surplusAmplifiedAndSnapshotComposeButCharacterWeaponsDoesNotSpeedAds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "ChargedSurplusAndAmplifiedComposeWhileArmorWeaponsLeavesAdsUnchanged"
         }
       ],
       "gaps": [
@@ -4531,7 +4541,7 @@
         "额外份数和3档上限有历史第一手研究支持，当前全部异域/替换能力/共享池/并行充能仍需校准",
         "装填2−0.01×属性和3−0.02×属性、0.75装填动画倍率、弹数和射速仍为合成测试原型；操控已接自动步枪/霰弹枪的Foundry参考曲线，完整武器曲线与原作实测尚未完成。",
         "已接受换弹保持时长是Chorus政策，原作中途技能变化是否重新采样待校准",
-        "操控点数已进入真实举枪/收枪截止点；后坐力、开镜、动画、HUD与完整子职业/存档装配仍未完成。"
+        "操控点数已进入真实举枪/收枪截止点；ADS 点数已接线；后坐力、动画、HUD与完整子职业/存档装配仍未完成。"
       ]
     },
     {
@@ -11273,6 +11283,141 @@
         "Aim assist is a numeric contribution, not physical magnetism; no actual Divinity bubble producer.",
         "D2 mouse interaction mapping, FOV/animation/HUD, NeoForge graphical acceptance and production loadout integration.",
         "Physical world restart and full exceptional source/target combinations."
+      ]
+    },
+    {
+      "id": "weapon-perks/snapshot-sights",
+      "name": "Snapshot Sights",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A203",
+          "text_sha256": "3cc561903f2fdfb4a24c457d3b68cde0cf306dede2c853472e2f08f68d9ad2bf"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C203",
+          "text_sha256": "e81a690db8a3001764e1513c3aa6262b70bc5c82a9ac61f5a210b566fcf91c4e"
+        }
+      ],
+      "scope": "普通/强化的本武器开镜时长倍率、独立 +5 Stability 查询；17 条 Foundry ADS 参考曲线进入实际服务端期限，组合 Surplus / Amplified、装备参数、检查点和 Box Breathing 实际伤害。",
+      "acceptance": [
+        "Primary ×0.5、Special ×0.8；增强不再缩短 ADS，独立提供 +5 Stability。Special 保留与历史官方 ×0.75 的冲突；Power 必须显式提供参数，不默认采用疑问值。",
+        "Handling 点数先加值并限幅 0–100，再进入武器 ADS 秒数曲线和时长倍率；ADS 不套用收枪下限或角色 Weapons 的举枪/收枪倍率。",
+        "来源持有者、武器、进入阶段与唯一弹药类型同时匹配；重复 Snapshot 来源不重复乘算或叠加稳定性。",
+        "已接受期限与全部计算轨迹不因增益到期或无关换装改变，保存/恢复不重启；新的进入重新读取当前来源。",
+        "更快完成 ADS 不提前 Box Breathing 的按下计时，真实下一发捕获增伤后不因松开而丢失。",
+        "重弹参数缺失在装备转移前拒绝；显式修改参数取消旧阶段，新输入使用新数值。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/snapshot_sights.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_ads_curves.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_ads_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "ammoClassificationAndEnhancementProduceAcceptedPhasesInBothModes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "everyPublishedNonzeroCurveUsesClampedHandlingBeforeTheScalarWithoutAStowFloor"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "surplusAmplifiedAndSnapshotComposeButCharacterWeaponsDoesNotSpeedAds"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "duplicateProvidersDoNotDoubleAdsOrEnhancedStability"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "queryIsolationRejectsForeignWeaponsOwnersAndAmbiguousAmmoAndLeavesOtherPhasesAlone"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "acceptedDeadlineAndTraceSurviveBuffExpiryAndCheckpointWhileNewEntryResamples"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "powerNeedsAnExplicitValidParameterAndChangingItCancelsTheOldPlan"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SnapshotSightsTest.java",
+          "symbol": "fasterReadinessDoesNotAdvanceBoxBreathingAndActualFireStillCapturesItsOwnBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "NormalPrimaryUsesThePublishedCurveAndOnlyTheEnterScalar"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "EnhancedPrimaryKeepsAdsTimeAndAddsFiveStability"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "SpecialWeaponUsesPointEightWithItsOwnSniperCurve"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "PowerParameterIsExplicitAndMissingCalibrationCannotTransferOwnership"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "ChargedSurplusAndAmplifiedComposeWhileArmorWeaponsLeavesAdsUnchanged"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "RestoredStatPointPipelineFinishesAtItsOriginalMicrosecondDeadline"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SnapshotSightsGameTest.java",
+          "symbol": "FasterAdsDoesNotShortenBoxBreathingAndTheRealProjectileKeepsItsCapturedBonus"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-12/snapshot-sights.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "design",
+          "path": "docs/engine-data-packs.md"
+        }
+      ],
+      "gaps": [
+        "Power? 原表疑问与 Foundry 非 Special 的通用 ×0.5 分支尚未消解；合成测试的 ×0.8 是显式假设。",
+        "17 条拟合对应 43 个来源分类，不等于完整武器/异域目录；偃月零值及 test/zero 占位排除，仍需校准。",
+        "原作取消/反转/中途取样窗口、退出时间与实际后坐力尚未校准；0.1 秒退出、基础 Handling 10、弹量/伤害/几何及 perk 组合是测试输入。",
+        "正式内容装配、FOV/动画/HUD、物理世界整体重启与全部客户端输入组合仍未完成。"
       ]
     }
   ]

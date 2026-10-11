@@ -1,0 +1,284 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:ads_duration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "ads",
+            "reduction": "product",
+            "families": {
+              "chorus_d2:snapshot_sights": {
+                "kind": "max"
+              }
+            }
+          },
+          "factor": "chorus_d2:ads_perks"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:snapshot_sights",
+      "modifiers": [
+        {
+          "id": "primary_ammo",
+          "profile": "chorus_d2:ads_duration",
+          "stage": "perks",
+          "group": "ads",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:snapshot_sights",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:weapon_aim_enter"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:primary_ammo"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:special_ammo"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:heavy_ammo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C204 / snapshot C203; Clarity 039cfbc Snapshot. Special .8 differs from Bungie 2022 .75; Power .8 remains provisional (original question mark, Foundry fallback .5). See data/d2-research/2026-10-12/snapshot-sights.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "special_ammo",
+          "profile": "chorus_d2:ads_duration",
+          "stage": "perks",
+          "group": "ads",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:snapshot_sights",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.19999999999999996,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:weapon_aim_enter"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:special_ammo"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:primary_ammo"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:heavy_ammo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C204 / snapshot C203; Clarity 039cfbc Snapshot. Special .8 differs from Bungie 2022 .75; Power .8 remains provisional (original question mark, Foundry fallback .5). See data/d2-research/2026-10-12/snapshot-sights.json.",
+          "confidence": "conflict"
+        },
+        {
+          "id": "stability",
+          "profile": "chorus_d2:weapon_stability",
+          "stage": "perks",
+          "group": "stability",
+          "op": "add",
+          "stacking_key": "chorus_d2:snapshot_sights_stability",
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "stat_point"
+            },
+            "enhanced": {
+              "type": "chorus:constant",
+              "value": 5,
+              "unit": "stat_point"
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C204 / snapshot C203; Clarity 039cfbc enhanced Snapshot: +5 Stability, same ADS scalar.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:snapshot_sights_power",
+      "parameters": {
+        "ads_delta": "delta"
+      },
+      "modifiers": [
+        {
+          "id": "heavy_ammo",
+          "profile": "chorus_d2:ads_duration",
+          "stage": "perks",
+          "group": "ads",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:snapshot_sights",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "ads_delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:weapon_aim_enter"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:heavy_ammo"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:primary_ammo"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:special_ammo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "reference": "Compendium original C204 leaves Power .8 uncertain; caller must supply an explicit calibrated delta, no implicit fallback. See data/d2-research/2026-10-12/snapshot-sights.json.",
+          "confidence": "conflict"
+        },
+        {
+          "id": "stability",
+          "profile": "chorus_d2:weapon_stability",
+          "stage": "perks",
+          "group": "stability",
+          "op": "add",
+          "stacking_key": "chorus_d2:snapshot_sights_stability",
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "stat_point"
+            },
+            "enhanced": {
+              "type": "chorus:constant",
+              "value": 5,
+              "unit": "stat_point"
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C204 / snapshot C203; Clarity 039cfbc enhanced Snapshot: +5 Stability, same ADS scalar.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

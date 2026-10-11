@@ -1,0 +1,68 @@
+{
+  "test:rifle": {
+    "enter": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:auto_rifle_ads_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:ads_duration"
+      ]
+    },
+    "exit": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 0.1,
+        "unit": "second"
+      }
+    }
+  },
+  "test:special_rifle": {
+    "enter": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:sniper_rifle_ads_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:ads_duration"
+      ]
+    },
+    "exit": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 0.1,
+        "unit": "second"
+      }
+    }
+  },
+  "test:heavy_rifle": {
+    "enter": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:sniper_rifle_ads_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:ads_duration"
+      ]
+    },
+    "exit": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 0.1,
+        "unit": "second"
+      }
+    }
+  }
+}

@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effect": "Snapshot Sights and ADS duration curves",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/snapshot-sights-source.html.gz",
+      "raw_sha256": "15f54092264dbfd3603902e58019773c060e403752835e03c2d9dd7242537926",
+      "gzip_sha256": "9545f0f3a706cfc46c9b9d3e89cc98f772b311e5b22e22f17d8a01c3bdbf4db1",
+      "cells": [
+        {
+          "original_cell": "A204",
+          "snapshot_cell": "A203",
+          "normalized_text": "Snapshot Sights",
+          "snapshot_text_sha256": "3cc561903f2fdfb4a24c457d3b68cde0cf306dede2c853472e2f08f68d9ad2bf",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C204",
+          "snapshot_cell": "C203",
+          "normalized_text": "0.5x ADS Duration Multiplier on Primary Weapons 0.8x ADS Duration Multiplier on Special and Power? Weapons ↑Passively grants +5 Stability.",
+          "snapshot_text_sha256": "e81a690db8a3001764e1513c3aa6262b70bc5c82a9ac61f5a210b566fcf91c4e",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "community_maintainer_database",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "head_rechecked": true,
+      "path": "data/d2-research/2026-10-12/snapshot-sights-clarity-039cfbc.json",
+      "sha256": "5ad7e2743171de36bfcba778c97a7a1a48c20ec2f3755af5086fab41abc044e0",
+      "entries": [
+        "957782887",
+        "4116820839"
+      ]
+    },
+    {
+      "kind": "upstream_calculation_source",
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_1_perks.rs",
+      "revision": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+      "head_rechecked": true,
+      "path": "data/d2-research/2026-10-12/snapshot-foundry-perks.rs.gz",
+      "raw_sha256": "cdc4b39592c28fc727f88ef5f617195a5ad458c993c619db9ab8cefa8362cdd8",
+      "gzip_sha256": "01af841b2a375d1e5f4b192ceb5b745e2f4db31773f6a0be8f82f74ef9f3e300"
+    },
+    {
+      "kind": "bungie_historical_preview",
+      "url": "https://www.bungie.net/7/en/News/Article/51250",
+      "published_at": "2022-04-21",
+      "claim": "Preview announced special-ammo ADS multiplier changing from 0.5 to 0.75; primary unchanged. Current Compendium, Clarity and Foundry use 0.8 for special. Preserve discrepancy; this historical announcement is not a present-day measurement."
+    }
+  ],
+  "reused_archives": "data/d2-research/2026-10-12/weapons-stat-handling.json",
+  "upstream_license": "data/d2-research/2026-10-12/handling-foundry-UNLICENSE.txt",
+  "curve_mapping": [
+    {
+      "family": "Auto Rifle",
+      "category": "default",
+      "profile": "chorus_d2:auto_rifle_ads_time",
+      "coefficients": [
+        0.38975,
+        -0.001875,
+        0
+      ]
+    },
+    {
+      "family": "Auto Rifle",
+      "category": "Cerberus",
+      "profile": "chorus_d2:auto_rifle_ads_time",
+      "coefficients": [
+        0.38975,
+        -0.001875,
+        0
+      ]
+    },
+    {
+      "family": "Auto Rifle",
+      "category": "hard_light",
+      "profile": "chorus_d2:auto_rifle_ads_time",
+      "coefficients": [
+        0.38975,
+        -0.001875,
+        0
+      ]
+    },
+    {
+      "family": "Combat Bow",
+      "category": "default",
+      "profile": "chorus_d2:combat_bow_ads_time",
+      "coefficients": [
+        0.5293778291,
+        -0.001855658199,
+        0
+      ]
+    },
+    {
+      "family": "Combat Bow",
+      "category": "exotic",
+      "profile": "chorus_d2:combat_bow_ads_time",
+      "coefficients": [
+        0.5293778291,
+        -0.001855658199,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "default",
+      "profile": "chorus_d2:fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "aggressive",
+      "profile": "chorus_d2:fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "1KV",
+      "profile": "chorus_d2:fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "Telesto",
+      "profile": "chorus_d2:fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "Jotunn",
+      "profile": "chorus_d2:fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Fusion Rifle",
+      "category": "Vex",
+      "profile": "chorus_d2:fusion_rifle_vex_ads_time",
+      "coefficients": [
+        0.38975,
+        -0.001875,
+        0
+      ]
+    },
+    {
+      "family": "Grenade Launcher",
+      "category": "special",
+      "profile": "chorus_d2:grenade_launcher_ads_time",
+      "coefficients": [
+        0.50019128,
+        -0.00187072,
+        0
+      ]
+    },
+    {
+      "family": "Grenade Launcher",
+      "category": "heavy",
+      "profile": "chorus_d2:grenade_launcher_ads_time",
+      "coefficients": [
+        0.50019128,
+        -0.00187072,
+        0
+      ]
+    },
+    {
+      "family": "Grenade Launcher",
+      "category": "anarchy",
+      "profile": "chorus_d2:grenade_launcher_ads_time",
+      "coefficients": [
+        0.50019128,
+        -0.00187072,
+        0
+      ]
+    },
+    {
+      "family": "Grenade Launcher",
+      "category": "parasite",
+      "profile": "chorus_d2:grenade_launcher_ads_time",
+      "coefficients": [
+        0.50019128,
+        -0.00187072,
+        0
+      ]
+    },
+    {
+      "family": "Hand Cannon",
+      "category": "default",
+      "profile": "chorus_d2:hand_cannon_ads_time",
+      "coefficients": [
+        0.3316666667,
+        -0.001666666667,
+        0
+      ]
+    },
+    {
+      "family": "Hand Cannon",
+      "category": "120 RPM",
+      "profile": "chorus_d2:hand_cannon_ads_time",
+      "coefficients": [
+        0.3316666667,
+        -0.001666666667,
+        0
+      ]
+    },
+    {
+      "family": "Hand Cannon",
+      "category": "Eriana",
+      "profile": "chorus_d2:hand_cannon_ads_time",
+      "coefficients": [
+        0.3316666667,
+        -0.001666666667,
+        0
+      ]
+    },
+    {
+      "family": "Hand Cannon",
+      "category": "LastWord",
+      "profile": "chorus_d2:hand_cannon_ads_time",
+      "coefficients": [
+        0.3316666667,
+        -0.001666666667,
+        0
+      ]
+    },
+    {
+      "family": "Linear Fusion Rifle",
+      "category": "default",
+      "profile": "chorus_d2:linear_fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Linear Fusion Rifle",
+      "category": "exotic",
+      "profile": "chorus_d2:linear_fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Linear Fusion Rifle",
+      "category": "arbalest",
+      "profile": "chorus_d2:linear_fusion_rifle_ads_time",
+      "coefficients": [
+        0.4112330226,
+        -0.001693741678,
+        0
+      ]
+    },
+    {
+      "family": "Machine Gun",
+      "category": "default",
+      "profile": "chorus_d2:machine_gun_ads_time",
+      "coefficients": [
+        0.4574687027,
+        -0.001234477537,
+        0
+      ]
+    },
+    {
+      "family": "Machine Gun",
+      "category": "Xenophage",
+      "profile": "chorus_d2:machine_gun_ads_time",
+      "coefficients": [
+        0.4574687027,
+        -0.001234477537,
+        0
+      ]
+    },
+    {
+      "family": "Machine Gun",
+      "category": "Overture",
+      "profile": "chorus_d2:machine_gun_overture_ads_time",
+      "coefficients": [
+        0.4584687027,
+        -0.001234477537,
+        0
+      ]
+    },
+    {
+      "family": "Pulse Rifle",
+      "category": "default",
+      "profile": "chorus_d2:pulse_rifle_ads_time",
+      "coefficients": [
+        0.4574687,
+        -0.00196208,
+        0
+      ]
+    },
+    {
+      "family": "Pulse Rifle",
+      "category": "revisionZero",
+      "profile": "chorus_d2:pulse_rifle_ads_time",
+      "coefficients": [
+        0.4574687,
+        -0.00196208,
+        0
+      ]
+    },
+    {
+      "family": "Rocket Launcher",
+      "category": "default",
+      "profile": "chorus_d2:rocket_launcher_ads_time",
+      "coefficients": [
+        0.528984167,
+        -0.002139258726,
+        0
+      ]
+    },
+    {
+      "family": "Rocket Launcher",
+      "category": "wardcliff",
+      "profile": "chorus_d2:rocket_launcher_ads_time",
+      "coefficients": [
+        0.528984167,
+        -0.002139258726,
+        0
+      ]
+    },
+    {
+      "family": "Rocket Launcher",
+      "category": "eyestmrw",
+      "profile": "chorus_d2:rocket_launcher_ads_time",
+      "coefficients": [
+        0.528984167,
+        -0.002139258726,
+        0
+      ]
+    },
+    {
+      "family": "Scout Rifle",
+      "category": "default",
+      "profile": "chorus_d2:scout_rifle_ads_time",
+      "coefficients": [
+        0.4114236019,
+        -0.001693527081,
+        0
+      ]
+    },
+    {
+      "family": "Scout Rifle",
+      "category": "aggresive",
+      "profile": "chorus_d2:scout_rifle_ads_time",
+      "coefficients": [
+        0.4114236019,
+        -0.001693527081,
+        0
+      ]
+    },
+    {
+      "family": "Shotgun",
+      "category": "default",
+      "profile": "chorus_d2:shotgun_ads_time",
+      "coefficients": [
+        0.451194332,
+        -0.00233805668,
+        0
+      ]
+    },
+    {
+      "family": "Shotgun",
+      "category": "slug",
+      "profile": "chorus_d2:shotgun_ads_time",
+      "coefficients": [
+        0.451194332,
+        -0.00233805668,
+        0
+      ]
+    },
+    {
+      "family": "Shotgun",
+      "category": "LoW",
+      "profile": "chorus_d2:shotgun_ads_time",
+      "coefficients": [
+        0.451194332,
+        -0.00233805668,
+        0
+      ]
+    },
+    {
+      "family": "Shotgun",
+      "category": "Duality",
+      "profile": "chorus_d2:shotgun_ads_time",
+      "coefficients": [
+        0.451194332,
+        -0.00233805668,
+        0
+      ]
+    },
+    {
+      "family": "Shotgun",
+      "category": "Tractor",
+      "profile": "chorus_d2:shotgun_ads_time",
+      "coefficients": [
+        0.451194332,
+        -0.00233805668,
+        0
+      ]
+    },
+    {
+      "family": "Sidearm",
+      "category": "default",
+      "profile": "chorus_d2:sidearm_ads_time",
+      "coefficients": [
+        0.3435796703,
+        -0.0022293956,
+        0
+      ]
+    },
+    {
+      "family": "Sidearm",
+      "category": "Forerunner",
+      "profile": "chorus_d2:sidearm_ads_time",
+      "coefficients": [
+        0.3435796703,
+        -0.0022293956,
+        0
+      ]
+    },
+    {
+      "family": "Sniper Rifle",
+      "category": "default",
+      "profile": "chorus_d2:sniper_rifle_ads_time",
+      "coefficients": [
+        0.5021325414,
+        -0.00194998437,
+        0
+      ]
+    },
+    {
+      "family": "Submachine Gun",
+      "category": "default",
+      "profile": "chorus_d2:submachine_gun_ads_time",
+      "coefficients": [
+        0.3581576422,
+        -0.001873200822,
+        0
+      ]
+    },
+    {
+      "family": "Submachine Gun",
+      "category": "striga",
+      "profile": "chorus_d2:submachine_gun_ads_time",
+      "coefficients": [
+        0.3581576422,
+        -0.001873200822,
+        0
+      ]
+    },
+    {
+      "family": "Trace Rifle",
+      "category": "default",
+      "profile": "chorus_d2:trace_rifle_ads_time",
+      "coefficients": [
+        0.38975,
+        -0.001875,
+        0
+      ]
+    }
+  ],
+  "excluded": [
+    "Glaive default ADS is zero in the source; treat it as uncalibrated, not evidence of an instantaneous original-game animation.",
+    "Explicit upstream test/zero placeholder categories."
+  ],
+  "formula": {
+    "H": "clamp(base Handling + qualified contributions, 0, 100)",
+    "ads": "ADS_curve(H) * handling_animation_multipliers * qualified_ADS_multipliers",
+    "floor": "No stow minimum is applied to ADS.",
+    "weapons_attribute": "Not included; the Compendium character Weapons handling bonus specifies ready/stow, not ADS."
+  },
+  "snapshot": {
+    "primary": 0.5,
+    "special": 0.8,
+    "power_test_hypothesis": 0.8,
+    "power_binding": "Caller supplies required ads_delta source parameter; there is no implicit multiplier.",
+    "enhanced_stability": 5,
+    "enhanced_ads_scalar": "unchanged"
+  },
+  "confidence_policy": "Primary and enhanced +5 use the agreeing community descriptions. Special retains CONFLICT due to historical .75. Power requires a caller-supplied source parameter with CONFLICT against the uncertain Compendium .8 and Foundry generic .5 fallback; Clarity does not state a power value. Only the synthetic consumer fixture supplies -.2 (x.8) explicitly.",
+  "policies": [
+    "Exactly one primary_ammo / special_ammo / heavy_ammo tag is required for an ADS contribution. Conflicting or absent ammo tags do not silently choose a class.",
+    "Snapshot applies only to the source weapon and its accepted enter phase; it does not change exit, ready, stow or another weapon. Enhanced stability is a separate permanent query contribution, not an ADS-only bonus.",
+    "Duplicate Snapshot providers share a family and do not multiply or double stability. Other ADS families may multiply.",
+    "Accepted deadlines and traces freeze; subsequent edges read current Handling, buffs and equipment. This is Chorus sampling policy, not an original-game cancellation-window measurement.",
+    "Synthetic consumer base Handling 10, exit .1 seconds and damage/ammo/geometry are test inputs. Curves are published community fits; no claim of complete production catalog or visual animation calibration."
+  ],
+  "remaining": [
+    "Power multiplier confirmation and original-game sampling/exit/cancel windows",
+    "Actual recoil response to Stability; target/weapon family and exotic completeness",
+    "Glaive ADS calibration and all unsupported/new archetypes",
+    "Production loadout assembly, FOV/animation/HUD and physical-world restart"
+  ]
+}

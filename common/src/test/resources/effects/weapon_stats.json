@@ -12,7 +12,12 @@
           "operation": "add",
           "group": {
             "name": "stability",
-            "reduction": "sum"
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:snapshot_sights_stability": {
+                "kind": "max"
+              }
+            }
           }
         },
         {

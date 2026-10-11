@@ -464,7 +464,7 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 真实服务端换弹保存每段 Profile、版本、贡献和阶段轨迹。换弹开始后消费技能或移除动画来源只改变下一次请求，当前 Plan 保留原时长；这是 Chorus 接受时采样政策，原作是否中途重新取值仍需校准。对保存结果移除命名动画因子或更换数学基础值会重新经过所有下游阶段，但不读取改变后的技能状态。
 
-8 项 SurplusTest 与 3 项共享世界场景覆盖档位 / 额外充能、武器隔离、空槽 / 换选择、缺失强化输入、加值→限幅→曲线，以及实际扣费和两次服务器 tick 换弹。真实 Wellspring 击杀填满技能后，同武器的 Surplus 装填属性立即提高。另有 4 项 ReloadPipelineTest 与 3 项 ProfilePipelineGameTest 验证两种曲线共用属性、动画后乘、非法链与未调度失败、保存轨迹重算以及真实延迟治疗消费查询结果。稳定性与操控目前只有数值输出，尚未连接后坐力、举枪 / 开镜动画；全部武器曲线、强化版装配与原作边界仍未完成，覆盖保持 partial。
+8 项 SurplusTest 与 3 项共享世界场景覆盖档位 / 额外充能、武器隔离、空槽 / 换选择、缺失强化输入、加值→限幅→曲线，以及实际扣费和两次服务器 tick 换弹。真实 Wellspring 击杀填满技能后，同武器的 Surplus 装填属性立即提高。另有 4 项 ReloadPipelineTest 与 3 项 ProfilePipelineGameTest 验证两种曲线共用属性、动画后乘、非法链与未调度失败、保存轨迹重算以及真实延迟治疗消费查询结果。操控点数已进入后文的实际举枪 / 收枪和 ADS 期限；稳定性仍只有数值输出，后坐力与动画尚未校准。全部武器曲线、强化版装配与原作边界仍未完成，覆盖保持 partial。
 
 ## Cure 恢复与冷却
 
@@ -1707,7 +1707,7 @@ Weapons 属性伤害已按下一节接入；New Gear Bonus、活动 Surge / Over
 
 七项规则测试覆盖两模式 / 九属性点 / 两武器的 36 组时间查询、曲线与动画分层、重复与异主来源、已接受截止点、逐发重采样、切枪取消和计划序列化。五项共享世界场景使用真实护甲容器、低权限换弹命令、服务器 tick、储备转移和实际 Orb / Font。正式武器原型曲线、换弹动画 / 取消窗口与 HUD 仍未完成。
 
-通用引擎已有实际举枪 / 收枪阶段和可开火边界。D2 操控数值已按下节接入两种参考武器；完整生产目录、ADS、原作取消窗口、增强弹药砖概率和完整产弹策略仍未完成，Weapons 条目保持 partial。
+通用引擎已有实际举枪 / 收枪阶段和可开火边界。D2 操控数值已按下节接入两种参考切枪武器，ADS 曲线见 Snapshot Sights 小节；完整生产目录、原作取消窗口、增强弹药砖概率和完整产弹策略仍未完成，Weapons 条目保持 partial。
 
 ### Weapons、Amplified 与 Surplus 的实际操控时长
 
@@ -1732,13 +1732,27 @@ stow  = max(stowCurve(100), stowCurve(H) × A × W)
 
 每段接受时固定当前护甲 / Font、技能充能、Buff、原型及完整轨迹。收枪结束事实处理后再取样新枪的 Ready；中途消耗技能、支付 Armor Charge、换护甲、Amplified 到期均不重排已接受阶段。服务器按微秒向上取整并由真实 tick 完成物理持握变化，随后才允许实际开火。此取样和取消政策仍是 Chorus 约定，不能据执行测试宣称已经校准原作动画窗口。
 
-规则验收覆盖两模式 × 九个角色属性点 × 两原型 × 两阶段 × 三个基础 Handling 值的 216 组组合，以及 Surplus / Amplified、异主隔离、重复系统来源、阶段重取样、到期、两阶段检查点与缺失强化校准。双端世界场景覆盖真实装备、物理 Orb / Font、技能付款、切枪限制、实际发射及完成后未知回执。武器的基础 Handling 10、射速、弹量和换弹等仍为合成验收输入；数值曲线之外的动画、美术、ADS、全部原型与金装、完整来源资格、正式生产装配 / HUD 和物理世界重启未完成。
+规则验收覆盖两模式 × 九个角色属性点 × 两原型 × 两阶段 × 三个基础 Handling 值的 216 组组合，以及 Surplus / Amplified、异主隔离、重复系统来源、阶段重取样、到期、两阶段检查点与缺失强化校准。双端世界场景覆盖真实装备、物理 Orb / Font、技能付款、切枪限制、实际发射及完成后未知回执。武器的基础 Handling 10、射速、弹量和换弹等仍为合成验收输入；数值曲线之外的动画、美术、全部原型与金装、完整来源资格、正式生产装配 / HUD 和物理世界重启未完成；ADS 内容接线见下文。
 
 ### ADS 的输入与取样边界
 
 通用引擎现有服务端 ENTERING / AIMED / EXITING 阶段，内容可分别监听按下、完成瞄准、松开与结束，并查询 held / ready。持续瞄准计时应按具体 perk 从正确事实起算，不能把开始按键和完成动画视为同一个时刻。每个边沿接受时固定本段时间，反向输入接受完整新阶段；切枪、手动换弹被接受时取消。来源侧瞄准条件随攻击发射快照保存，目标侧条件保留到实际命中。
 
-这些是可验证的 Chorus 执行契约，尚未宣称与原作的取消窗口、反转动画进度及所有 perk 取样点一致。当前 0.2 / 0.1 秒与 0.5 倍只用于通用验收，未将 Foundry ADS 拟合曲线接入，也未完成正式子职业 / perk 装配、FOV 或 HUD。现有键盘 / 可重绑定鼠标输入及服务器阶段同步；网络意图持续检查 CONTINUE，控制状态可中断已完成瞄准。按住时切枪 / 换弹结束或控制解除后接受新开镜并重新计时；该 Chorus 政策仍需对原作具体取消窗口校准，不据此将 Freeze 升级为完整效果。Compendium 审阅数与 partial 状态保持不变。[接口与内容契约](engine-data-packs.md#服务端开镜输入与阶段)。
+这些是可验证的 Chorus 执行契约，尚未宣称与原作的取消窗口、反转动画进度及所有 perk 取样点一致。通用验收的 0.2 / 0.1 秒与 0.5 倍仍为合成输入；D2 内容已另接下述 Foundry ADS 曲线，正式子职业 / perk 装配、FOV 和 HUD 仍未完成。现有键盘 / 可重绑定鼠标输入及服务器阶段同步；网络意图持续检查 CONTINUE，控制状态可中断已完成瞄准。按住时切枪 / 换弹结束或控制解除后接受新开镜并重新计时；该 Chorus 政策仍需对原作具体取消窗口校准，不据此将 Freeze 升级为完整效果。[接口与内容契约](engine-data-packs.md#服务端开镜输入与阶段)。
+
+### Snapshot Sights 与 ADS 时间曲线
+
+2026-10-12 核对原表 Weapon Perks A204 / C204，对应固定快照 A203 / C203：Primary 开镜时长 ×0.5，Special ×0.8，强化额外 +5 Stability、ADS 倍率不变。原表 Power 后带问号；Clarity 只列 Primary / Special，Foundry 对非 Special 的统一回退为 ×0.5，不能将其当作重弹专门测量。重弹因此要求内容显式提供倍率参数；合成测试使用 ×0.8，并另用 ×0.5 验证参数替换，不默认认定任何一个已校准。[原表与存档](../data/d2-research/2026-10-12/snapshot-sights.json)、[Clarity 固定版本](https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json)、[Foundry Snapshot 实现](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_1_perks.rs)。
+
+Bungie 2022-04-21 预览曾写 Special 从 ×0.5 调整为 ×0.75，当前三份社区来源采用 ×0.8。这里保留历史分歧，以当前 Compendium 为规则值，Special / Power 贡献标记 CONFLICT。核对仓库当前提交不等于新的游戏内实测；Clarity 条目仍有自己的旧更新时间。[历史官方预览](https://www.bungie.net/7/en/News/Article/51250)。
+
+开镜计算沿用通用单位管线：`H = clamp(基础 Handling + 合资格点数, 0, 100)`，再计算 `ADS = ADS_curve(H) × handling_animation × ADS_perks`。从 Foundry 固定提交提取 17 条非零曲线，映射 43 个来源分类；完整映射、系数和原始文件哈希保存在上述来源记录中。偃月的零系数及显式 test / zero 分类排除，不把占位值解释为瞬时开镜。原型及异域的完整生产映射仍未完成。[曲线原文](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build_resources/weapon_formulas.json)、[计算顺序](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs)。
+
+Surplus 点数和 Amplified 的 +40 Handling 先进入限幅，Amplified 的 ×0.95 与 Snapshot 在曲线之后乘算。ADS 没有收枪的 100 Handling 最终时长下限，也不包含角色 Weapons 的举枪 / 收枪时长乘数。例如合成自动步枪基础 Handling 10，普通 Snapshot 为 `(0.38975 − 0.001875 × 10) × 0.5 = 0.1855 秒`；Surplus 三份和 Amplified 达到 100 Handling 后为 `0.20225 × 0.95 × 0.5 = 0.09606875 秒`。
+
+已接受阶段固定其时间和轨迹；期间 Amplified 到期、无关护甲变化和检查点恢复不重算，下一次进入才读取新值。缩短完成开镜的时间不改变 Box Breathing 从按下起算的 1.5 / 1.4 秒。Snapshot 必须匹配持有者、本武器、进入阶段和唯一弹药分类；同词条重复来源取同族值，增强稳定性也不重复叠加。稳定性仍只有数值查询，未校准实际后坐力。
+
+合成消费者的基础 Handling 10、退出 0.1 秒、弹量、伤害、几何和可组合 perk 均为测试输入，不声明真实掉落组合或反转动画。原作中途取样 / 取消窗口、重弹倍率、偃月和未覆盖原型、正式内容装配 / FOV / 动画 / HUD 及物理世界整体重启仍是缺口，条目保持 partial。[内容契约](engine-data-packs.md#snapshot-sights-与开镜时间管线)。
 
 ### Box Breathing 的输入计时与弱点收益
 

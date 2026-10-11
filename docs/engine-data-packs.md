@@ -3182,7 +3182,7 @@ on_use 保留来源属性和弹药，impact 条件逐目标计算。重建带快
 
 新增 `weapon_handling_started` / `weapon_handling_finished` / `weapon_switch_finished` / `weapon_switch_cancelled` 事实，均以 `chorus:` 为前缀，保留阶段计划；DSL 可读 `weapon`、`item`、`switch`、`handling_phase`、`reason`、`duration` 和 `scheduled_duration`。`handling_phase` 为 stow 或 ready。开始与取消不是 `weapon_stowed` / `weapon_drawn` 的替代品；后两者只随真实持握变化发布。未知物理回执停止运行时且不重放，无法推断成功；若已提交持握后下游反应失败，物理状态和纯状态都保留完成结果。
 
-EffectState.handling 以 holder 为键保存当前计划，与计时器及装备状态一起进入检查点。旧 effect_state 形状经显式迁移补空表；旧 record 字段不改写。正常停服的整体世界保存仍要求原有宿主保存证据，纯会话恢复不等同于崩溃恢复。ADS、切枪动画 / 进度 HUD、专属切枪行动限制及全部异常打断政策尚未实现；D2 两种参考时间曲线的接线见下文。现有同步协议仅在接受请求和持握边界更新 revision / drawn。
+EffectState.handling 以 holder 为键保存当前计划，与计时器及装备状态一起进入检查点。旧 effect_state 形状经显式迁移补空表；旧 record 字段不改写。正常停服的整体世界保存仍要求原有宿主保存证据，纯会话恢复不等同于崩溃恢复。ADS 阶段及其独立同步通道见下文；切枪动画 / 进度 HUD、专属切枪行动限制及全部异常打断政策仍有缺口。D2 两种参考切枪时间曲线的接线见下文。装备同步在接受请求和持握边界更新 revision / drawn。
 
 ## Weapons 属性对已接受换弹的时间贡献
 
@@ -3256,7 +3256,7 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 
 到期时通过 WeaponAim.Verify 查询实际玩家的同维度、存活、非旁观资格、当前 Plan 和物理容器。明确拒绝发布 ended；未知宿主结果停住会话，不重放。ready 状态提交之后的提示或反应失败保留已完成状态。运行时保存和恢复不重放阶段事实，恢复后的第一个 tick 即可核验已登记的在线容器。
 
-[pre-aim-handling-v2.json](../common/src/test/resources/persistence/pre-aim-handling-v2.json) 是扩展类型前真实会话的原始检查点，包含旧枚举、两把武器、0.5 时长来源和正在执行的 STOW。迁移补空瞄准状态并保留 100 ms 的收枪 / 250 ms 的举枪期限；外层仍为 format 1，旧 wire shape 全部冻结。[来源与哈希](../common/src/test/resources/persistence/pre-aim-handling-v2.md)。D2 ADS 曲线、连续瞄准 perk 的正式配置、原作反转 / 取消窗口及物理世界整体重启仍待校准和验收。
+[pre-aim-handling-v2.json](../common/src/test/resources/persistence/pre-aim-handling-v2.json) 是扩展类型前真实会话的原始检查点，包含旧枚举、两把武器、0.5 时长来源和正在执行的 STOW。迁移补空瞄准状态并保留 100 ms 的收枪 / 250 ms 的举枪期限；外层仍为 format 1，旧 wire shape 全部冻结。[来源与哈希](../common/src/test/resources/persistence/pre-aim-handling-v2.md)。下文的 Snapshot / Box Breathing 提供参考 ADS 曲线和连续瞄准消费者；正式内容装配、原作反转 / 取消窗口及物理世界整体重启仍待校准和验收。
 
 ### 客户端开镜意图与阶段回传
 
@@ -3285,3 +3285,15 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 `precision_delta` 是消费者的独立命中输入。弱点可以在其为零时仍取得 Box Breathing 收益；护盾可排除 `chorus:precision` 而保留该收益；合成精确区域可以有精确倍率，却传 weakspot=0。消费者的实际弹体接触读取目标相对几何区域后分别提供这两个输入。测试采用明确的 Minecraft 区域，未实现 Divinity 实体或全部 D2 目标模型。
 
 另提供 `chorus_d2:aim_assist_falloff_distance` 的 1.1 倍距离贡献，只适用于已激活且仍 held 的对应武器。当前只验证数值 Profile，没有接入弹道吸附 / 准星。`box_breathing_weapon` 是完整合成消费目录，基础伤害 10、精确倍率 2、弹量、射速、ADS 过渡和几何均不是原作校准；规则数值与来源分歧见[规则集](d2-ruleset.md#box-breathing-的输入计时与弱点收益)。
+
+### Snapshot Sights 与开镜时间管线
+
+`snapshot_sights` 提供 `chorus_d2:ads_duration` 秒数 Profile 和普通 / 强化 Bundle；增强来源带 `chorus:enhanced`。Primary / Special 分别为 −0.5 / −0.2 DELTA。必须同时匹配来源持有者、本武器、`chorus:weapon_aim_enter` 及唯一的 primary_ammo / special_ammo / heavy_ammo 标签；缺失或多种弹药标签不会静默选择分支。增强 +5 Stability 单独贡献到 weapon_stability，不限于进入阶段。
+
+`ads_duration` 的 ads 组为 PRODUCT；Snapshot 的 family 为 MAX，所以不同 ADS 家族可以相乘，同词条来自武器特性和内置特性时不会平方。稳定性 Profile 中同样为 `chorus_d2:snapshot_sights_stability` 配置 MAX，防止重复 +5。绑定到别的持有者或武器的来源不能借用资格。
+
+重弹使用独立 `snapshot_sights_power`，要求来源参数 `ads_delta: delta`。`weapon_ads_weapon` 合成重弹原型要求装备参数 `snapshot_ads_delta`，边界为 −1 到 0，由 socket 映射给 Bundle；缺失参数在转移物理装备前拒绝。测试显式给 −0.2，另验证 −0.5 替换，两者均不代表重弹倍率已确认。正式内容应先获得校准证据再选择参数。
+
+`weapon_ads_curves` 提供 17 个 stat_point → second Profile；消费者的 enter timing 依次使用 `weapon_handling`、对应 `<family>_ads_time`、`handling_animation` 和 `ads_duration`。Handling Profile 已限幅 0–100；曲线输入超界拒绝，避免跳过限幅。ADS 不使用 stow 最终下限，也不拼接角色 Weapons 的切枪时长 Profile。计时的完整 Result 随已接受 WeaponAimPlan 保存，后续 Buff / 护甲变化不会改写期限，新边沿读取当前来源。
+
+`weapon_ads_weapon` 链接 Box Breathing 的实际弹体消费者，三种合成原型可选 Snapshot / Surplus。`weapon_ads_test_calibration` 仅保存三种测试 timing 映射，不是可直接加载的独立 Program。测试固定的退出 0.1 秒与基础 Handling 10、伤害 / 弹量 / 几何均非原作校准；更快达到 AIMED 不提前从输入开始的 Box Breathing 计时。该阶段无新 Java 执行器或检查点类型。曲线来源、特殊弹 ×0.75 / ×0.8 历史分歧及重弹疑问见[规则集](d2-ruleset.md#snapshot-sights-与-ads-时间曲线)。
