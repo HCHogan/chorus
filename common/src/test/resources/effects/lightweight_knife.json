@@ -1,0 +1,494 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "chorus_d2:lightweight_knife",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus_d2:solar_melee",
+        "chorus_d2:solar"
+      ],
+      "cost": {
+        "resource": "chorus_d2:solar_melee_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:solar_melee_progress",
+      "parameters": {
+        "gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.drag",
+            "unit": "multiplier"
+          }
+        },
+        "lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lifetime",
+            "unit": "second"
+          }
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:solar_melee_cycle",
+          "parameters": {
+            "base_rate": {
+              "value": 0.006887052341597796,
+              "unit": "charge_fraction_per_second"
+            },
+            "chunk_scalar": {
+              "value": 0.8,
+              "unit": "multiplier"
+            },
+            "intrinsic_extra": {
+              "value": 1,
+              "unit": "charge_fraction"
+            }
+          }
+        },
+        "precision": {
+          "bundle": "chorus_d2:lightweight_knife_intrinsic"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 408,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar",
+              "chorus_d2:solar",
+              "chorus_d2:throwing_knife_damage",
+              "chorus_d2:lightweight_knife_damage"
+            ],
+            "kill_tags": [
+              "chorus:melee_kill",
+              "chorus_d2:throwing_knife_kill"
+            ],
+            "scaling_profile": "chorus_d2:outgoing"
+          },
+          "as": "combatant_body"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 408,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar",
+              "chorus_d2:solar",
+              "chorus_d2:throwing_knife_damage",
+              "chorus_d2:lightweight_knife_damage",
+              "chorus:precision"
+            ],
+            "kill_tags": [
+              "chorus:melee_kill",
+              "chorus_d2:throwing_knife_kill"
+            ],
+            "scaling_profile": "chorus_d2:outgoing"
+          },
+          "as": "combatant_precision"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 100,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar",
+              "chorus_d2:solar",
+              "chorus_d2:throwing_knife_damage",
+              "chorus_d2:lightweight_knife_damage"
+            ],
+            "kill_tags": [
+              "chorus:melee_kill",
+              "chorus_d2:throwing_knife_kill"
+            ],
+            "scaling_profile": "chorus_d2:outgoing"
+          },
+          "as": "guardian_body"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 100,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar",
+              "chorus_d2:solar",
+              "chorus_d2:throwing_knife_damage",
+              "chorus_d2:lightweight_knife_damage",
+              "chorus:precision"
+            ],
+            "kill_tags": [
+              "chorus:melee_kill",
+              "chorus_d2:throwing_knife_kill"
+            ],
+            "scaling_profile": "chorus_d2:outgoing"
+          },
+          "as": "guardian_precision"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 40,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "entity"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "geometry_observed"
+                  },
+                  "then": [
+                    {
+                      "for_each": "impact",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "target"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "target",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "target",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:inspect_relation",
+                                "right": {
+                                  "binding": "victim"
+                                }
+                              },
+                              "as": "relation"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "relation",
+                                "field": "not_allied"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:calculate",
+                                    "profile": "chorus_d2:lightweight_knife_precision",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "victim": {
+                                      "binding": "victim"
+                                    },
+                                    "input": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "count"
+                                    },
+                                    "tags": [
+                                      "chorus_d2:lightweight_knife_geometry"
+                                    ],
+                                    "numbers": {
+                                      "x": {
+                                        "type": "chorus:result",
+                                        "binding": "impact",
+                                        "field": "relative_x"
+                                      },
+                                      "y": {
+                                        "type": "chorus:result",
+                                        "binding": "impact",
+                                        "field": "relative_y"
+                                      },
+                                      "z": {
+                                        "type": "chorus:result",
+                                        "binding": "impact",
+                                        "field": "relative_z"
+                                      }
+                                    }
+                                  },
+                                  "as": "precision"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "target",
+                                    "field": "player"
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "op": "eq",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "precision",
+                                          "field": "value"
+                                        },
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:damage_snapshot",
+                                            "snapshot": "guardian_precision",
+                                            "target": {
+                                              "binding": "victim"
+                                            }
+                                          },
+                                          "as": "hit"
+                                        },
+                                        {
+                                          "if": {
+                                            "type": "chorus:result_flag",
+                                            "binding": "hit",
+                                            "field": "applied"
+                                          },
+                                          "then": [
+                                            {
+                                              "type": "chorus:grant_buff",
+                                              "buff": "chorus_d2:radiant",
+                                              "target": "source_owner",
+                                              "duration": {
+                                                "type": "chorus:constant",
+                                                "value": 10,
+                                                "unit": "second"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ],
+                                      "else": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:damage_snapshot",
+                                            "snapshot": "guardian_body",
+                                            "target": {
+                                              "binding": "victim"
+                                            }
+                                          },
+                                          "as": "hit"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "else": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "op": "eq",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "precision",
+                                          "field": "value"
+                                        },
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:damage_snapshot",
+                                            "snapshot": "combatant_precision",
+                                            "target": {
+                                              "binding": "victim"
+                                            }
+                                          },
+                                          "as": "hit"
+                                        },
+                                        {
+                                          "if": {
+                                            "type": "chorus:result_flag",
+                                            "binding": "hit",
+                                            "field": "applied"
+                                          },
+                                          "then": [
+                                            {
+                                              "type": "chorus:grant_buff",
+                                              "buff": "chorus_d2:radiant",
+                                              "target": "source_owner",
+                                              "duration": {
+                                                "type": "chorus:constant",
+                                                "value": 10,
+                                                "unit": "second"
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ],
+                                      "else": [
+                                        {
+                                          "action": {
+                                            "type": "chorus:damage_snapshot",
+                                            "snapshot": "combatant_body",
+                                            "target": {
+                                              "binding": "victim"
+                                            }
+                                          },
+                                          "as": "hit"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "chorus_d2:unobserved_knife_contact"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:lightweight_knife_intrinsic",
+      "modifiers": [
+        {
+          "id": "precision",
+          "profile": "chorus_d2:outgoing",
+          "stage": "precision",
+          "group": "precision",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:lightweight_precision",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:lightweight_knife_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:precision"
+              }
+            ]
+          },
+          "reference": "Compendium Solar CSV D46, original D66 reconfirmed 2026-10-11; intrinsic 1.5x precision factor frozen on cast, precision region selected at physical contact",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

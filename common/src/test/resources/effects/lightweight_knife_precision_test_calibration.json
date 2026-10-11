@@ -1,0 +1,158 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:lightweight_knife_precision",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "region",
+          "operation": "replace",
+          "group": {
+            "name": "regions",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "boolean_region",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0
+              },
+              {
+                "input": 1,
+                "output": 1
+              }
+            ],
+            "interpolation": "exact",
+            "boundary": "error"
+          },
+          "output_unit": "count"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:knife_region",
+      "parameters": {
+        "min_x": "multiplier",
+        "max_x": "multiplier",
+        "min_y": "multiplier",
+        "max_y": "multiplier",
+        "min_z": "multiplier",
+        "max_z": "multiplier"
+      },
+      "modifiers": [
+        {
+          "id": "region",
+          "profile": "chorus_d2:lightweight_knife_precision",
+          "stage": "region",
+          "group": "regions",
+          "op": "replace",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "test:region",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:lightweight_knife_geometry"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "x",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_x"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "y",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_y"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "min_z"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "z",
+                  "unit": "multiplier"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "max_z"
+                }
+              }
+            ]
+          },
+          "reference": "Synthetic target-owned axis-aligned hit region; no D2 enemy weakpoint catalogue or Minecraft default head claim",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

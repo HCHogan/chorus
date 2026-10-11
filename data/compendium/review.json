@@ -6808,7 +6808,7 @@
           "text_sha256": "ba24f6262081e0f3f14b7f0b23566aa88fe74e0f2f11017b6ec8c23156305102"
         }
       ],
-      "scope": "Solar近战额外容量与固有第二次充能取高；共享进度的条件联动回充；确认飞刀击杀三层五秒增伤，赌徒闪身仅刷新已有层；真实装备、死亡/伤害与tick验收，技能生产者仍为合成输入",
+      "scope": "Solar近战额外容量与固有第二次充能取高；共享进度的条件联动回充；确认飞刀击杀三层五秒增伤，赌徒闪身仅刷新已有层；真实装备、死亡/伤害与tick验收，Lightweight Knife 已接真实飞行/击杀，闪身仍为合成输入",
       "acceptance": [
         "当前Solar选择限定额外充能，普通一格变两格，固有两格不变三格；扩容不赠能",
         "同一双账户普通逐次/金装联动恢复，近期使用边界与外部按槽回能、当前属性和CES组合",
@@ -6865,14 +6865,106 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java",
           "symbol": "knifeBonusAddsToExistingMeleeFamilyOnActualDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+          "symbol": "physicalKnifeKillsFeedEquippedOphidiaAndNextKnifeUsesItsCurrentBonus"
         }
       ],
       "gaps": [
         "原表近期使用时窗为?秒；近期仅恢复一份、首次使用重置、初始化/换装/切换政策仍需校准，测试0.2秒不是D2默认值",
         "当前PvP增伤未知，必须显式提供三档delta；合成11/22/33%不作原作结论",
-        "Solar飞刀与闪身是独立合成生产者，完整刀种/弹体/精准/爆炸信用、闪身位移与附近敌人资格、正式职业与子职业装配未实现",
+        "Lightweight Knife已接实际投射物、显式目标精准区域及击杀信用；其他刀种/爆炸信用、闪身位移与附近敌人资格、正式职业与子职业装配未实现",
         "on_hit当前来源取样、飞行期间换装及延迟死亡信用未按原作校准；五秒回执桶不是永久去重",
         "HUD/素材绑定、活动状态持久化、任意linked分组和parallel独立进度尚未完成"
+      ]
+    },
+    {
+      "id": "solar/lightweight_knife",
+      "name": "Lightweight Knife",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B46",
+          "text_sha256": "0b819b044f1e47461c3b0a39adcefea9568dace73e891eea8c9365385005dd75"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D46",
+          "text_sha256": "532f5a3a99d05228321cc6b187840ff7f7f31c5a3a2c0ee3d15c655bccfd49bb"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N46",
+          "text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498"
+        }
+      ],
+      "scope": "真实40m/s飞刀、固有双充能、145.2秒基础冷却及0.8 CES；目标显式命中区域判定1.5x精准、十秒共享Radiant；使用同一Solar双账户并接Ophidia击杀/命中增伤",
+      "acceptance": [
+        "施放先扣可用次数，物理飞行后首个实体/墙面终止，空飞到期不退款",
+        "碰撞时保存目标原始AABB，归一化坐标不裁剪；目标移动不改写已保存接触几何",
+        "目标自身来源声明精准区域；未配置目标不猜头部，战员408/Guardian100，精准倍率1.5作为独立可排除因子",
+        "APPLIED精准回执授予/刷新共享Radiant十秒；非实体或缺失几何、死亡/缺失目标及未知/友方关系不猜伤害",
+        "施放捕获固有倍率与on_use贡献；取消选择不丢已投掷飞刀，Ophidia按命中时当前来源结算",
+        "实际Ophidia物品不把固有两次充能变成三次，飞刀真实死亡驱动下一刀增伤",
+        "未知世界伤害保留已扣血与充能支付，不重放或提前授予Radiant"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/lightweight_knife.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LightweightKnifeTest.java",
+          "symbol": "twoChargesUseKnownSpeedCooldownAndRecipientScalarWithoutInnateLinkedRecovery"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LightweightKnifeTest.java",
+          "symbol": "configuredPrecisionRegionsGrantTenSecondSharedRadiantAndRefreshOnLaterHits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/LightweightKnifeTest.java",
+          "symbol": "airborneSelectionRemovalRetainsIntrinsicPrecisionButOphidiaIsSampledAtImpact"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProjectileGeometryTest.java",
+          "symbol": "contactCoordinatesUseRecordedUninflatedBoundsAndDoNotClampCollisionMargins"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+          "symbol": "physicalBodyAndConfiguredPrecisionContactsApplyKnownDamageAndRadiant"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+          "symbol": "contactGeometrySurvivesTargetMovementAndIntrinsicPrecisionSurvivesDeselection"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+          "symbol": "physicalKnifeKillsFeedEquippedOphidiaAndNextKnifeUsesItsCurrentBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+          "symbol": "aRealWallConsumesTheKnifeBeforeItsTargetWithoutRefund"
+        }
+      ],
+      "gaps": [
+        "重力、阻力、寿命需显式校准；测试0/1/2秒不是原作参数，完整追踪/辅助瞄准、碰撞政策、飞刀素材与投掷动画未完成",
+        "目标弱点目录、朝向/动画骨骼和膨胀碰撞箱边界政策未校准；测试按目标绑定归一化AABB区域，不给所有原版实体默认头部弱点",
+        "精准资格由外部Profile提供；伤害类别、混合交战和完整等级/护盾特殊缩放仍待校准",
+        "精准免疫/格挡资格、致死/死后Radiant、施放与命中时取样、装卸/选项切换政策是显式Chorus策略，仍待原作交互实测",
+        "完整Solar刀种/子职业/金装限制、赌徒闪身生产者、HUD和活动状态持久化未完成"
       ]
     }
   ]

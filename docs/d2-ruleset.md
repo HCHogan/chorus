@@ -1186,7 +1186,23 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 最后一个金装来源移除或持有者死亡清理增伤、近期使用和回执 Buff；完整来源批次中的等效替换保留它们。来源参数检查存在性和单位，实际装备实例还校验正数时窗 / 非负增伤。绕过装备直接绑定的非法时窗会在动作执行时失败，不声称能在原技能扣费之前检查这类语义值。
 
-[独立验收输入](../common/src/test/resources/effects/ophidia_spathe_inputs.json)与[校准文件](../common/src/test/resources/effects/ophidia_spathe_test_calibration.json)使用0.2秒近期窗口、11/22/33% PvP增伤、1秒周期、0.5 CES和10点伤害，技能体治疗1HP仅用于观察支付后世界动作。它们不是 Solar 飞刀 / 赌徒闪身的完整实现，也不是原作测量。15项核心测试和6项双端共享场景覆盖实际装备替换、自然tick、真实死亡 / 保护及后续增伤、加算和未知结果保留。完整刀种、物理飞刀 / 精准 / 爆炸信用、闪身位移 / 附近敌人资格、职业 / 子职业正式装配、时序校准、HUD和状态持久化仍未完成。
+[独立验收输入](../common/src/test/resources/effects/ophidia_spathe_inputs.json)与[校准文件](../common/src/test/resources/effects/ophidia_spathe_test_calibration.json)使用0.2秒近期窗口、11/22/33% PvP增伤、1秒周期、0.5 CES和10点伤害，技能体治疗1HP仅用于观察支付后世界动作。它们不是 Solar 飞刀 / 赌徒闪身的完整实现，也不是原作测量；Lightweight Knife 已有下节的独立物理生产者。15项核心测试和6项双端共享场景覆盖实际装备替换、自然tick、真实死亡 / 保护及后续增伤、加算和未知结果保留。完整刀种、物理飞刀 / 精准 / 爆炸信用、闪身位移 / 附近敌人资格、职业 / 子职业正式装配、时序校准、HUD和状态持久化仍未完成。
+
+## Lightweight Knife 的物理飞行与精准命中
+
+2026-10-11 抓取[在线原表 Solar B66 / D66 / N66](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1186062409#gid=1186062409)，与 CSV B46 / D46 / N46 归一化一致：[记录及原 HTML](../data/d2-research/2026-10-11/lightweight-knife.json)。[lightweight_knife.json](../common/src/test/resources/effects/lightweight_knife.json) 使用40米/秒实际投射物，固有两次充能、145.2秒基础冷却和0.8 CES，直接组合共享 Solar 可用次数 / 进度及当前近战属性曲线。装备 Ophidia 不增加到三次；真实飞刀击杀授予其增伤，下一刀在命中时读取当前层数。
+
+战员基础伤害408、Guardian为100，目标身份在接触时观察；精准为1.5倍。施放时捕获战员 / Guardian 各自身体 / 精准四份攻击快照，固有0.5 delta 进入 outgoing 的独立 `chorus:precision` 因子；即使飞行期间取消技能选择，固有倍率仍保留，已有护盾系统可以独立排除此因子。其他 on_use 贡献同样在施放捕获，Ophidia 等 on_hit 贡献继续在命中时查询。此取样政策与混合战斗中的目标分类还需原作校准。
+
+服务器在实际碰撞、任何接触反应之前保存目标未膨胀 AABB、接触点及碰撞膨胀半径。`relative_x/y/z` 是世界轴归一化坐标，允许超出0–1，不把膨胀包围盒上的接触强行夹成边界。目标随后移动或移除不会修改这份几何观察；它不是模型骨骼坐标，也不自动推断弱点。
+
+技能要求外部链接 `lightweight_knife_precision` Profile。当前[校准夹具](../common/src/test/resources/effects/lightweight_knife_precision_test_calibration.json)按目标自身来源声明归一化区域，输入接触 x/y/z，输出精确0或1；没有绑定区域的目标视为没有配置精准部位，不默认把身体上方当作头。正式敌人弱点目录、姿态 / 旋转和动画模型映射仍未提供。缺失或退化几何会保留“未观察”状态，技能发出诊断提示并跳过无法判定的伤害，不以0坐标代替。
+
+仅当前可用、存活且明确非友方的实体进入伤害。成功 APPLIED 精准回执授予现有共享 Radiant 十秒，包括致死命中；被取消、失败、免疫或格挡的回执不授予，这项资格是明确待校准政策。普通接触不会触发 Radiant；友方 / 未知阵营、墙面、到期或未加载区域终止不自动退款。未知世界伤害保留已发生扣血与支付，不重放，不提前授予后续 Radiant。
+
+10项技能核心测试、3项接触几何测试和7项双端共享世界场景覆盖实际身体 / 精准 / Guardian伤害、接触后目标移动、取消选择、Ophidia实际装备和飞刀击杀、真实墙面 / tick到期与未知世界结果。原表只给出40米/秒；重力、阻力、寿命必须显式校准，[测试值](../common/src/test/resources/effects/lightweight_knife_test_calibration.json)为0、1、2秒。首个实体 / 墙面停止、无追踪、目标区域及原版生命的验收配置都不视为原作完整复现。完整飞刀目录、辅助瞄准 / 投掷表现、特殊护盾 / 敌人缩放、职业装配、HUD和状态存档仍为缺口，覆盖保持 partial。
+
+空飞验收同时发射水平与垂直两刀：垂直刀完成40个实体tick后到期，水平刀若先离开实体模拟区则以 `unloaded` 结束。两者各恢复一次终止动作，不制造命中或退款。水平刀曾在已加载但不执行实体tick的区块停于第7步；通用宿主现检查模拟资格，并由世界运行时清理失去tick资格的登记飞行物。此处理属于 Minecraft 区块边界策略，不作为命运2弹道参数。
 
 ## Icarus Dash 的条件充能与水平位移
 

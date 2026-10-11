@@ -8,6 +8,16 @@
       "steps": [
         {
           "type": "chorus:apply",
+          "id": "precision",
+          "operation": "multiply",
+          "factor": "chorus:precision",
+          "group": {
+            "name": "precision",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
           "id": "ability_stat",
           "operation": "multiply",
           "group": {

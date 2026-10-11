@@ -63,7 +63,7 @@
   "unresolved": [
     "Recent-use seconds, one-charge exception yield, cycle reset, equip/unequip, shared-account selection and initial-charge policies require original-game calibration.",
     "Current PvP damage table remains unverified. The synthetic 11/22/33 percent values are acceptance inputs, not fallback game values.",
-    "Actual Solar knife catalogue, physical knife flight/precision/explosion producers, full Gambler dodge displacement/near-enemy eligibility and class/subclass restrictions are not implemented by these synthetic producers.",
+    "Lightweight Knife physical flight, explicitly configured precision and kill credit are integrated separately. Full Solar knife/explosion catalogue, real weakpoint/flight calibration, Gambler dodge displacement/near-enemy eligibility and class/subclass restrictions remain incomplete.",
     "Damage on-hit sampling, posthumous/in-flight source swaps, precise throwing-knife kill credit (including secondary explosions) and dedup retention beyond its bounded receipt bucket require original-game interaction review.",
     "Formal production equipment/subclass assembly, arbitrary linked groups, parallel lanes, legacy-account migration, active-state persistence, HUD and visuals remain incomplete."
   ],
@@ -107,6 +107,11 @@
     "tests": [
       "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
       "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java"
-    ]
+    ],
+    "lightweight_integration": {
+      "definition": "common/src/test/resources/effects/lightweight_knife.json",
+      "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java",
+      "scope": "Actual knife payment, physical collision and confirmed death feed Ophidia; next physical precision hit combines intrinsic multiplier with current exotic stacks. Full knife catalogue and original target-region/flight calibration remain incomplete."
+    }
   }
 }

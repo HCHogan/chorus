@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-ophidia-gate.log` BUILD SUCCESSFUL，1 分 34 秒：1187 项 JUnit、Fabric 551 项、NeoForge 561 项及两端发布 jar 通过，共享 Chorus 场景为 550 项。新增 15 项 OphidiaSpatheTest、6 项共享世界场景，验证真实装备 / 选择、条件联动回充、当前属性与 CES、击杀叠层 / 去重、死亡保护、实际加算伤害、闪身刷新、精确到期及未知世界结果保留。10 项 Compendium 审计、报告一致性及原始来源哈希通过；发布包不含测试夹具 / GameTest。没有客户端输入 / 同步变化，此轮没有新增图形客户端验收。
+最新门禁 `/tmp/chorus-lightweight-gate-4.log` BUILD SUCCESSFUL，5 分 48 秒：1200 项 JUnit、Fabric 561 项、NeoForge 571 项及两端发布 jar 通过，共享 Chorus 场景为 560 项。新增 10 项 LightweightKnifeTest、3 项 ProjectileGeometryTest、7 项轻量飞刀世界场景和 3 项投射物生命周期世界场景。10 项 Compendium 审计、报告一致性及来源归档哈希通过；发布包不含效果夹具 / GameTest。本轮没有新增图形客户端验收。
+
+Lightweight Knife 新增 partial 内容：40米/秒实体飞刀、两次充能、145.2秒基础周期、0.8 CES、408 / 100 基础伤害、1.5精准倍率与成功精准命中后的十秒 Radiant。实际飞刀击杀连接 Ophidia Spathe，下一刀读取当前增伤层数；固有第二次充能与金装扩容取高。依赖的物理参数、目标精准区域和 PvP 金装参数仍要求显式校准，不能把合成夹具当作完整生产装配。审阅为74条：60 partial、12 unimplemented、2 not_applicable、0 verified，详见 [D2 内容与缺口](d2-ruleset.md#lightweight-knife-的物理飞行与精准命中)。
+
+通用实体接触结果保存碰撞时未膨胀包围盒、接触点及膨胀半径；归一化三轴位置允许超出0–1。缺失几何有显式标志，读取缺失数值失败，不返回猜测坐标。真实世界测试覆盖接触后目标移动、飞行期间取消选择、身体 / 精准 / Guardian伤害、实际金装装备和飞刀击杀、墙面、空飞与未知世界伤害。精准分类由目标侧 Profile 提供，不硬编码原版实体头部比例。
+
+首轮完整验收暴露水平飞刀停留问题；独立复现确认两把飞刀只执行7个实体tick，其所在区块 `loaded=true / ticking=false`，故依赖实体tick的寿命不再增长。修复在飞行路径检查实体模拟资格，并由运行时登记和清理不再tick的飞行物；区域不可模拟用 unloaded 终止一次，关闭 / 故障立即放弃所属实体及其动作，不加载区块、不补算运动。新增世界场景验证区域失效、运行时替换、未知终止动作及同属飞行物清理；轻量飞刀同时保留水平空飞与垂直40tick到期验证。原版实体的区块卸载续接、跨重启存档和完整动画弱点目录仍未实现。
+
+上一阶段门禁 `/tmp/chorus-ophidia-gate.log` BUILD SUCCESSFUL，1 分 34 秒：1187 项 JUnit、Fabric 551 项、NeoForge 561 项及两端发布 jar 通过，共享 Chorus 场景为 550 项。新增 15 项 OphidiaSpatheTest、6 项共享世界场景，验证真实装备 / 选择、条件联动回充、当前属性与 CES、击杀叠层 / 去重、死亡保护、实际加算伤害、闪身刷新、精确到期及未知世界结果保留。10 项 Compendium 审计、报告一致性及原始来源哈希通过；发布包不含测试夹具 / GameTest。没有客户端输入 / 同步变化，此轮没有新增图形客户端验收。
 
 Ophidia Spathe 新增 partial 数据定义，复用已有双账户、按槽容量、条件 Profile、来源参数和 Buff 组件，不新增金装专用核心分支。额外容量与固有第二次充能取高；自然回充 / 外部回能共享周期，近期使用例外要求显式时窗。本人确认飞刀击杀提供三层五秒增伤，Gambler 闪身仅刷新已有层；等效来源替换保留，最后卸装 / 死亡清理。当前 PvP 数值也要求显式校准；近期仅恢复一次、初始化 / 重置 / 装卸政策及合成技能生产者不作为原作已复现证据。覆盖为73条审阅：59 partial、12 unimplemented、2 not_applicable、0 verified。
 

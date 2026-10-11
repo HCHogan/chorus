@@ -1,0 +1,20 @@
+{
+  "parameters": {
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    }
+  },
+  "note": "Synthetic ballistic calibration. Compendium gives 40m/s, not gravity/drag/lifetime. Target hit regions must be explicitly bound; no native entity receives a guessed head region."
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Partial skill with physical projectile, explicit host precision-region calibration and shared Solar/Ophidia resources",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "retrieved_on": "2026-10-11",
+    "path": "data/d2-research/2026-10-11/lightweight-knife-source.html.gz",
+    "html_sha256": "cdbf6c442b8fae457a181666db429d7de75a40d986c398dafa8f418ec735f6ca",
+    "gzip_sha256": "8db9674bee7fc3202f9ae078d13e192c35276576065cb1f3a99ff81a339dbcb9"
+  },
+  "cells": [
+    {
+      "original_cell": "B66",
+      "snapshot_cell": "B46",
+      "snapshot_text_sha256": "0b819b044f1e47461c3b0a39adcefea9568dace73e891eea8c9365385005dd75",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D66",
+      "snapshot_cell": "D46",
+      "snapshot_text_sha256": "532f5a3a99d05228321cc6b187840ff7f7f31c5a3a2c0ee3d15c655bccfd49bb",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N66",
+      "snapshot_cell": "N46",
+      "snapshot_text_sha256": "0916a33f401f551c68eddc7274b85ef47df96b54812fd5dc065b6417820ff498",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "known": {
+    "charges": 2,
+    "speed_m_per_second": 40,
+    "combatant_damage": 408,
+    "guardian_damage": 100,
+    "precision_multiplier": 1.5,
+    "radiant_seconds": 10,
+    "base_cooldown_seconds": 145.2,
+    "chunk_scalar": 0.8
+  },
+  "definitions": [
+    "common/src/test/resources/effects/lightweight_knife.json",
+    "common/src/test/resources/effects/solar_melee_energy.json"
+  ],
+  "calibration": [
+    "common/src/test/resources/effects/lightweight_knife_test_calibration.json",
+    "common/src/test/resources/effects/lightweight_knife_precision_test_calibration.json"
+  ],
+  "policies": {
+    "geometry": "Server records uninflated target AABB and collision inflation before contact reactions. Relative world-axis x/y/z are not clamped; absent or degenerate geometry is explicit. This is not model-space animated weakpoint data.",
+    "classification": "Skill requires an externally linked target-owned precision classifier Profile. Synthetic target sources define inclusive normalized boxes and output exactly 0/1. No target automatically receives a guessed head region; unconfigured targets in this test classifier are body hits. Profile/unit validation does not itself calibrate real weakpoints.",
+    "snapshot": "Four Guardian/combatant body/precision damage snapshots capture intrinsic precision and on-use modifiers on cast. Current target type chooses the amount at contact. Geometry retains collision-time bounds; region policy is queried at contact. Ophidia on-hit contributions use the current source/Buff state.",
+    "precision_factor": "Outgoing has a named chorus:precision multiply stage. Intrinsic 0.5 delta is captured at cast and remains available after deselection, with existing shield factor exclusion support.",
+    "hits": "Only live observed targets with explicit not-allied relation receive damage. Unknown relation, unavailable/dead targets and absent geometry do not guess damage. Block/expiry/unloaded contacts spend the charge and end without refunds.",
+    "radiant": "An APPLIED precision damage receipt grants the existing shared Radiant for ten seconds, including lethal hits. Blocked/immune/cancelled/failed results do not grant it; this receipt qualification and posthumous/current source behavior require original-game calibration.",
+    "resources": "Uses shared Solar uses/progress pair with intrinsic extra 1, base 1/145.2 and CES .8; ordinary cycles yield one, Ophidia controls linked yield and recent-use exception. No separate full account is created on Solar knife reselection.",
+    "collision": "Synthetic physics calibration gravity 0, drag 1, lifetime 2s; stop at first block/entity contact, no tracking. The known 40m/s is not a proof of original flight, aim assist, friendly interception, clipping or animation.",
+    "unloaded": "Minecraft host ends flights at unavailable entity-simulation regions, even when terrain is loaded. Runtime ownership also cleans up flights that no longer receive native ticks; no chunk tickets or replayed motion. This is distinct from normal physical lifetime expiry and is not an original Destiny ballistic parameter."
+  },
+  "tests": [
+    "common/src/test/java/com/imdomestic/chorus/effect/ProjectileGeometryTest.java",
+    "common/src/test/java/com/imdomestic/chorus/effect/LightweightKnifeTest.java",
+    "common/src/gametest/java/com/imdomestic/chorus/test/LightweightKnifeGameTest.java"
+  ],
+  "gaps": [
+    "Original flight gravity/drag/lifetime, targeting/aim assist and contact policy require calibration; placeholder projectile visual and no throw animation.",
+    "Host weakpoint/hit-region catalogue, entity rotation/animated bones, collision-envelope precision policy and complete shield/target/archetype damage scaling remain incomplete.",
+    "Original on-use versus on-hit stat sampling, current target type across mixed combat and precision-hit immunity/kill/posthumous policies are explicit choices, not independently measured.",
+    "Full Solar knife catalogue, formal subclass/Exotic restrictions, Gambler dodge displacement/near-enemy qualification, HUD and active-state persistence remain incomplete."
+  ]
+}

@@ -125,6 +125,7 @@
       "com.imdomestic.chorus.ResourceCycleYieldGameTest",
       "com.imdomestic.chorus.AbilityCapacityGameTest",
       "com.imdomestic.chorus.OphidiaSpatheGameTest",
+      "com.imdomestic.chorus.LightweightKnifeGameTest",
       "com.imdomestic.chorus.IcarusDashGameTest",
       "com.imdomestic.chorus.IcarusCureGameTest"
     ],
