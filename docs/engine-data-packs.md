@@ -3101,3 +3101,18 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 on_use捕获来源侧查询时，input与查询必须当场可求值，结果固定成常量。victim侧保留表达式，其input的来源侧操作数先冻结，impact_number可保持符号等待实际命中；每次命中读取该目标的当前Profile与来源。来源侧的查询如果需要尚不存在的impact输入，会明确失败，不推测数值。延迟动作中的普通表达式则到执行时重新读取；需要保留接受时结果应先capture_value。
 
 数值依赖仍按实体+Profile身份追踪，与attribute及动态弹匣查询共享同一路径；允许跨实体相同Profile及独立重复查询，拒绝直接或相互自依赖的公式。这里仅检查一次数值求值是否存在未定义递归，不限制游戏效果事件的循环或新施放。持久化只新增Value.ProfileValue类型，NumericQuery及旧record字段不变；纯会话检查点保留表达式、已捕获结果和延迟时间。10项规则测试与真实延迟治疗/原版伤害场景验证此接口；尚不表示Weapon Surge完整内容或正式装备装配已实现。
+
+### Weapon Surge 的计数查询与伤害阶段
+
+链接`weapon_surge`和包含`weapon_surge`阶段的`empowering_damage`，以及已有Armor Charge基础定义/控制器。每个装备副本绑定`chorus_d2:<element>_weapon_surge`，element为kinetic、arc、solar、void、stasis、strand之一。来源贡献enabled/passive配置及同元素copies Profile，伤害Value按以下方式读取当前副本数，再通过带单位的表格转成delta：
+
+```json
+{"type":"chorus:profile_value","profile":"chorus_d2:solar_weapon_surge_copies",
+ "input":{"type":"chorus:constant","value":0,"unit":"count"}}
+```
+
+Profile把副本总数限于0–3，当前source只有在目标共享Armor Charge存在、攻击带weapon_damage和匹配分量元素标签时贡献。完整档位值写入`chorus_d2:empowering_damage`的`weapon_surge`阶段/组，operation=multiply、reduction=MAX；外部同类金装/神器须贡献到同一阶段，而empowering和独立perk继续在其他阶段归约。同元素同档的重复来源不会再次相乘。限幅不能替代正式插槽和预算校验。
+
+被动衰减仍只有Armor Charge控制器的一份计时，涌动不自行创建每元素倒计时、不按命中扣层；移除来源只撤回它的当前数值与被动贡献。独立高档Buff应保留自己的到期时间，不能通过删除/暂停低档来源实现覆盖。当前on_use捕获把profile_value副本查询及充能资格固定进攻击，后续来源/充能变化作用于新攻击；原作时序仍需逐武器校准。
+
+验收武器的六种分量显式选择这个伤害Profile，使用真实容器、服务器开火和物理接触。已有Rampage定义仅映射数值目的地，测试断言其他内容保持一致；合成四档Buff不冒充任何具体金装。其他独立伤害Profile不会因为链接了此模块自动继承涌动，尤其Scorch/Ignition仍需显式适配及来源资格验收。正式数据包装配、三能量成本、特殊伤害例外和HUD未完成。[数值与来源](d2-ruleset.md#weapon-surge-的元素档位与独立计时)。

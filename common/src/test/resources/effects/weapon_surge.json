@@ -1,0 +1,1099 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:kinetic_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:arc_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:void_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:stasis_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:strand_weapon_surge_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:kinetic_weapon_surge",
+      "modifiers": [
+        {
+          "id": "kinetic_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:kinetic_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "kinetic_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:kinetic_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "kinetic_weapon_surge_copies",
+          "profile": "chorus_d2:kinetic_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:kinetic_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_kinetic",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/kinetic",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:kinetic_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:kinetic_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:kinetic_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:arc_weapon_surge",
+      "modifiers": [
+        {
+          "id": "arc_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:arc_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "arc_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:arc_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "arc_weapon_surge_copies",
+          "profile": "chorus_d2:arc_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:arc_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_arc",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/arc",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:arc_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:arc_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:arc_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_weapon_surge",
+      "modifiers": [
+        {
+          "id": "solar_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:solar_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "solar_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:solar_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "solar_weapon_surge_copies",
+          "profile": "chorus_d2:solar_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:solar_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_solar",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/solar",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:solar_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:solar_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:solar_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:void_weapon_surge",
+      "modifiers": [
+        {
+          "id": "void_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:void_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "void_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:void_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "void_weapon_surge_copies",
+          "profile": "chorus_d2:void_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:void_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_void",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/void",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:void_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:void_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:void_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:stasis_weapon_surge",
+      "modifiers": [
+        {
+          "id": "stasis_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:stasis_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "stasis_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:stasis_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "stasis_weapon_surge_copies",
+          "profile": "chorus_d2:stasis_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:stasis_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_stasis",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/stasis",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:stasis_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:stasis_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:stasis_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:strand_weapon_surge",
+      "modifiers": [
+        {
+          "id": "strand_weapon_surge_enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:strand_weapon_surge_enabled",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "strand_weapon_surge_passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:strand_weapon_surge_passive",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "strand_weapon_surge_copies",
+          "profile": "chorus_d2:strand_weapon_surge_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:strand_weapon_surge_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_surge_strand",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapon_surge/strand",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:strand_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.1
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.17
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.22
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            },
+            "pvp": {
+              "type": "chorus:curve",
+              "of": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:strand_weapon_surge_copies",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "curve": {
+                "type": "chorus:table",
+                "points": [
+                  {
+                    "input": 0,
+                    "output": 0
+                  },
+                  {
+                    "input": 1,
+                    "output": 0.03
+                  },
+                  {
+                    "input": 2,
+                    "output": 0.045
+                  },
+                  {
+                    "input": 3,
+                    "output": 0.055
+                  }
+                ],
+                "interpolation": "exact",
+                "boundary": "error"
+              },
+              "from": "count",
+              "to": "delta"
+            }
+          },
+          "reference": "Compendium Armor Mods K15/M15; pinned Clarity Weapon Surge variants. One source per equipped copy.",
+          "confidence": "measured",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:strand_damage"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

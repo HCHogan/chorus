@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "effect": "Weapon Surge",
+  "variants": [
+    "kinetic",
+    "arc",
+    "solar",
+    "void",
+    "stasis",
+    "strand"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mods-source.html.gz",
+      "sha256": "92afd34a1e2d2af6927073f6b063c22813e817621c3daa5a48626054e12ee829",
+      "gzip_sha256": "55a07f055b7c0992012f33327ff0111f6b88f9a1b4dc17517bb0ab08bc37c8d8",
+      "cells": [
+        {
+          "original_cell": "K15",
+          "snapshot_cell": "K15",
+          "snapshot_text_sha256": "09688ba3b3043bf5f5954aa1ddf45635298ddc298d5b512b7c680b880f23cd73",
+          "normalized_text": "Weapon Surge [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "M15",
+          "snapshot_cell": "M15",
+          "snapshot_text_sha256": "77bfe73e19880da5f6bf04057640b475a50d32caef4b2c8fffe9080df96d5b26",
+          "normalized_text": "While Armor Charge is active: Increases Mod-Element Matching Weapon Damage. Damage Increase: 10% | 17% | 22% | 25% 3% | 4.5% | 5.5% | 6% x4 is only obtainable through Artifact or Exotic Armor.",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "clarity",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "selected_entries": "data/d2-research/2026-10-12/weapon-surge-clarity-039cfbc.json",
+      "selected_entries_sha256": "e0c9f9d9c09ecfefeeed9eed2920ed62575c1b0dd30b7117e193bbc1f97b49f3",
+      "hashes": {
+        "kinetic": "14520248",
+        "arc": "1834163303",
+        "solar": "2283894334",
+        "void": "3467460423",
+        "stasis": "2526922422",
+        "strand": "1501094193"
+      },
+      "finding": "Six explicit element variants share both four-tier tables and ten-second base Armor Charge decay. The fourth tier is explicitly restricted to Artifact/Exotic providers, despite abbreviated 1..4 Mods wording."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/season-deep-update-7-1-0",
+      "published_at": "2023-05-23",
+      "finding": "Documents the shared non-stacking weapon bonus used by Surge mods and multiple Exotics; fourth tier 25 percent PvE and 6 percent PvP. Mantle bonus can stack with empowering effects. This historical note does not establish current full Exotic trigger/lifecycle behavior."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/weapon_surge.json",
+    "profile": "common/src/test/resources/effects/empowering_damage.json",
+    "inputs": "common/src/test/resources/effects/weapon_surge_inputs.json",
+    "weapon": "common/src/test/resources/effects/weapon_surge_weapon.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/WeaponSurgeTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponSurgeGameTest.java"
+  },
+  "table": {
+    "tiers": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "pve": [
+      0.1,
+      0.17,
+      0.22,
+      0.25
+    ],
+    "pvp": [
+      0.03,
+      0.045,
+      0.055,
+      0.06
+    ],
+    "mod_copy_limit": 3,
+    "tier_four": "Explicit independent Artifact/Exotic provider, not an extra armor mod."
+  },
+  "rules": [
+    "Each matching element mod contributes to its own count Profile and to Armor Charge enabled/passive configuration. profile_value queries current same-holder copies; count clamps at three. Charge count controls duration, not damage tier.",
+    "Require explicit weapon_damage and matching component element damage tags. Original weapon/source element alone cannot make unrelated ability or differently-elemented damage eligible.",
+    "Each equipped copy contributes the complete table value for the summed count. The weapon_surge MAX group prevents duplicate copies or a stronger external same-element provider from multiplying the shared bonus. Independent empowering/perk stages multiply outside it.",
+    "Surge reuses the single Armor Charge decay schedule and current Time Dilation. Shots do not consume charges individually; Fonts and other passive mods do not introduce additional decay timers.",
+    "Independent higher-tier lifetime does not pause lower-tier decay. Lower benefits return only if still otherwise eligible when the higher provider ends. Synthetic timed tier-four Buffs validate this composition, not actual Exotic/Artifact trigger content.",
+    "Current on_use policy snapshots copy count, Armor Charge eligibility and the chosen bonus at attack capture. Later cost consumption, source removal or provider expiration cannot rewrite that attack; new attacks use the current state.",
+    "Physical weapon/Rampage acceptance fixture adapts only the existing Rampage modifier destination profile/group; an equality assertion protects every other proc, duration, value and lifecycle field."
+  ],
+  "open_questions": [
+    "Formal mod slots, three-energy costs, total legal mod combinations, Manifest wiring, HUD and production content assembly remain incomplete. Injected mixed/fourth-copy tests prove arithmetic boundaries, not valid original loadouts.",
+    "Exact original shot/impact sampling and switching policies remain uncalibrated; on_use is a documented Chorus choice, not an established universal D2 behavior.",
+    "Golden Gun exceptions, Glaive and special weapon components, activity Surge/Overcharge, all Exotic/Artifact triggers and their exact timers still require dedicated eligibility and numerical research.",
+    "The shared empowering_damage profile is used by these weapon consumers. Existing separate Solar Scorch/Ignition and other damage profiles are not automatically linked; explicit weapon/component tags test the qualification contract without claiming those world producers already receive Surge.",
+    "Synthetic weapons use base 10, five-round magazines, a 0.15-second interval and existing calibrated projectiles. PvE/PvP follows the runtime mode; complete mixed-activity classification and full physical world save/restart remain open."
+  ]
+}

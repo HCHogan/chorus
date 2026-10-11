@@ -1,0 +1,489 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:surge_four_kinetic",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_kinetic_active"
+    },
+    {
+      "definition": {
+        "id": "test:surge_four_arc",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_arc_active"
+    },
+    {
+      "definition": {
+        "id": "test:surge_four_solar",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_solar_active"
+    },
+    {
+      "definition": {
+        "id": "test:surge_four_void",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_void_active"
+    },
+    {
+      "definition": {
+        "id": "test:surge_four_stasis",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_stasis_active"
+    },
+    {
+      "definition": {
+        "id": "test:surge_four_strand",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "test:surge_four_strand_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:surge_four_kinetic_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_kinetic",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/kinetic",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:kinetic_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_four_arc_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_arc",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/arc",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:arc_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_four_solar_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_solar",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/solar",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:solar_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_four_void_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_void",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/void",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:void_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_four_stasis_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_stasis",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/stasis",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:stasis_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_four_strand_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "external_surge_strand",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_surge",
+          "group": "weapon_surge",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:external_surge/strand",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "delta"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.06,
+              "unit": "delta"
+            }
+          },
+          "reference": "Synthetic independent tier-four provider for the Compendium 25/6 percent table; not an Exotic or Artifact trigger.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:strand_damage"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:surge_inputs",
+      "rules": [
+        {
+          "id": "four_kinetic",
+          "on": "test:surge_four_kinetic",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_kinetic",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "four_arc",
+          "on": "test:surge_four_arc",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_arc",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "four_solar",
+          "on": "test:surge_four_solar",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_solar",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "four_void",
+          "on": "test:surge_four_void",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_void",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "four_stasis",
+          "on": "test:surge_four_stasis",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_stasis",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "four_strand",
+          "on": "test:surge_four_strand",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:surge_four_strand",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "radiant",
+          "on": "test:surge_radiant",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:radiant",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "duration",
+                "unit": "second"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:surge_perk",
+      "modifiers": [
+        {
+          "id": "independent_perk",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:independent_perk",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic independent perk for pure group multiplication; world combination uses real Rampage rules.",
+          "confidence": "assumed",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:weapon_damage"
+          }
+        }
+      ]
+    }
+  ]
+}

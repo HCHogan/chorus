@@ -22,6 +22,15 @@
         },
         {
           "type": "chorus:apply",
+          "id": "weapon_surge",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_surge",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
           "id": "perks",
           "operation": "multiply",
           "group": {

@@ -1586,7 +1586,7 @@ Orb分支由控制器监听实际`chorus:pickup`，按`pickup_id`有限去重，
 
 这一版明确采用以下换装政策：所有已接入相关模组均开启获得资格，包括Charged Up、Time Dilation、Stacks on Stacks；移除最后一个相关模组清空层数，降低容量立即裁剪；修改Time Dilation后按新周期从变更时重新计时；只移除最后一个被动模组时停止衰减，若还有其他相关模组则保留层数。无关来源变更不重置计时。真实死亡清空层数与计时，装配来源继续由装备生命周期管理。以上边界尚需当前原作校准。
 
-基础层的消费验收使用通用`consume_buff`与充足性条件；下文六种终结技模组与三种Kickstart已有部分组合验收，Surge和其余消费者仍待实现。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
+基础层的消费验收使用通用`consume_buff`与充足性条件；下文六种终结技模组、三种Kickstart及六元素Weapon Surge已有部分组合验收，其余消费者和特殊来源仍待实现。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
 
 [13项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java)覆盖容量、六种Font副本表、获得豁免、第三方给予、10/15/18/20秒、消费、解绑重绑、检查点、死亡与未知观察；[9项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java)覆盖真实Orb碰撞、满Super资格、实际十秒/二十秒计时、来源变更、Starvation组合、玩家真实死亡及消费后未知世界反应。正式模组槽/能量/互斥、全部生产者和消费者、完整数值投影、HUD及物理世界恢复仍为partial。未增加引擎专用Java动作、网络包或检查点类型。
 
@@ -1639,3 +1639,23 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 共享有限`cast`集合先记录所有已观察的匹配接受事实，包括免费、当前无Armor Charge、缺少/已满接收账户或延后资格，再判断收益。重复模组、旧事实、解绑重绑和纯会话检查点在保留窗口内不能再次消费；独立新施放允许继续触发。这不是触发冷却，验收六十秒也不是原作数值。普通资源消费和原版普通拳击不产生模组触发；技能支付失败不发布接受事实。技能主体的世界回执未知时，之前完成的技能成本、Armor Charge付款及回能保持，不自动退款或重放。
 
 当前在`ability_started`即时取样当前副本/选择，缺少接收账户或总容量已满时不付款，成本不足一整份时不触发。这些是明确的Chorus内容政策，原作切换/阶段时序与特殊成本仍待校准。`chorus_d2:defer_kickstart`仅排除即时路径，尚未实现Flechette Storm部分消耗累积与落地结算、Tempest Strike本体，以及Grapple/Tangle/Grappler的免费资格；普通返还也不能倒改已经发布的付费事实。正式三能量成本、合法护甲槽位与副本限制、生产装配、HUD、全部CES/CMS映射及物理世界重启未完成，三条审阅保持partial。
+
+### Weapon Surge 的元素档位与独立计时
+
+[weapon_surge.json](../common/src/test/resources/effects/weapon_surge.json)提供Kinetic、Arc、Solar、Void、Stasis、Strand六种模组来源。每份来源给对应元素副本Profile贡献一份，并启用Armor Charge获取与被动衰减。伤害贡献使用`profile_value`读取本角色当前该元素副本数，不保存一份容易与换装不同步的副本缓存；副本限幅为三。
+
+| 档位 | 1 | 2 | 3 | 4 |
+| --- | ---: | ---: | ---: | ---: |
+| PvE增伤 | 10% | 17% | 22% | 25% |
+| PvP增伤 | 3% | 4.5% | 5.5% | 6% |
+| 提供方式 | 一份模组 | 两份模组 | 三份模组 | 独立金装/神器来源 |
+
+原表Armor Mods K15/M15与固定快照规范化相等；六条固定Clarity记录分别确认元素、相同表格和默认每十秒减少一层Armor Charge。Clarity的简写“1–4 Mods”不能覆盖其明确的四档来源限制，注入第四份模组仍限于三档。[来源与哈希](../data/d2-research/2026-10-12/weapon-surge.json)保留原表及六种变体。[官方7.1.0](https://www.bungie.net/7/en/News/Article/season-deep-update-7-1-0)确认同类金装与模组使用不相乘的涌动增伤，并可与empowering类收益组合；这是乘区依据，不代表其中所有金装今天的完整触发条件已经实现。
+
+[empowering_damage.json](../common/src/test/resources/effects/empowering_damage.json)增加独立`weapon_surge` MAX阶段，位于empowering与perks之间。同一元素各副本提供已经汇总的完整档位值，MAX避免重复副本再次乘算；独立四档来源覆盖低档值。Radiant和武器perk在其他阶段相乘。例如真实世界场景先以武器击杀获得一层Rampage，再得到`10 × 1.2 × 1.22 × 1.1 = 16.104`，四档期间为16.5，四档结束且低档仍有效时恢复16.104。组合夹具只把已有Rampage的Profile/group目的地映射到此Profile，其他规则、数值与生命周期逐项一致。
+
+资格要求显式`chorus:weapon_damage`和对应伤害分量的`chorus:<element>_damage`标签；源武器曾经是什么元素不替代当前分量资格，普通技能不因Solar标签获得涌动。不同元素副本各自汇总，同享一个Armor Charge池；池中有一层还是三层不改变伤害档位。射击不逐发扣层，默认十秒或Time Dilation的十五/十八/二十秒周期由同一个Armor Charge控制器执行，Font与涌动共存不会新增计时器。独立四档覆盖期间，低档的充能衰减继续；四档结束后，只能恢复仍有资格的低档。
+
+当前普通武器使用on_use快照：开火时固定Armor Charge资格、当前副本及贡献，随后消费充能、卸模组/武器或四档到期不重写已发射的弹丸；新攻击查询当前状态。原作各种武器的开火/命中/切换取样边界尚未校准，这是明确的Chorus政策。未知实际伤害回执保留已扣弹药与已经发生的伤害，不重放。
+
+11项规则测试包括六元素×三档×两模式的36组矩阵、同元素MAX、不同元素隔离、满/空充能、独立计时、会话检查点与资格；8项共享世界场景验证真实Orb、装备容器换枪、物理射弹、Radiant/Rampage组合、真实十秒/二十秒周期、Font、Kickstart和未知结果。独立四档目前由合成Buff提供，尚无完整金装/神器触发；活动Surge/Overcharge、Golden Gun/偃月等特殊资格、独立Solar Scorch/Ignition及其他伤害Profile的接线、正式护腿插槽/三能量预算/总副本限制、HUD与物理世界持久化仍待完成。此处合成混合副本组合只验证算术，不代表合法原作配装；整条Weapon Surge审阅仍为partial。

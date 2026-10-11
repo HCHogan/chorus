@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+Weapon Surge完整门禁 `/tmp/chorus-weapon-surge-gate.log` BUILD SUCCESSFUL，2分8秒：1617项JUnit（无失败/错误/跳过）、Fabric862项、NeoForge877项与两端发布jar通过，共享Chorus世界场景861项。新增11项规则测试（含六元素×三档×两模式的36组矩阵）与8项共享世界场景；10项Compendium审计、106条报告一致性、来源哈希及差异检查通过。没有新增Java执行器、客户端协议或检查点类型，发布jar继续排除验证夹具，本轮未重复图形客户端门禁。
+
+六种Weapon Surge来源贡献各自副本及Armor Charge被动配置，通过profile_value直接读取当前副本数，按PvE/PvP表生成10/17/22%或3/4.5/5.5%伤害贡献。独立weapon_surge MAX阶段同时接受四档25/6%的提供者，与empowering/perks分开。充能层数不改变档位，第四份模组被限在三档；攻击要求实际武器信用与对应分量元素。共享充能衰减不按元素/副本重复，也不因外部高档覆盖而暂停。
+
+真实世界用六种装备武器、物理Orb和射弹验证匹配/换枪；真实击杀激活已有Rampage，与Radiant及三档/四档涌动组合为16.104/16.5伤害。时间场景验证十秒充能清空、独立高档十二秒结束、三份Time Dilation二十秒共享衰减及Font共存；付款场景使用真实Kickstart施放消耗共享池，已发射弹丸保留捕获档位而新攻击失去收益。未知伤害回执保留已扣弹药与物理伤害，不重复世界工作。定向测试首先修正测试辅助函数对不存在的withImpact方法调用，按现有DamageCommand构造器提供命中数据后通过；首次完整双端门禁通过，未改动引擎行为或放宽断言。
+
+原表K15/M15与固定快照一致，六条固定Clarity记录和官方共享乘区依据已归档。四档仍是合成独立提供者；完整金装/神器触发、活动Surge、特殊武器/超能资格、独立Scorch/Ignition等伤害Profile接线及正式装备/HUD/物理世界恢复未完成。on_use取样是明确Chorus政策，原作各武器的开火/命中/换装时序尚未校准。六变体按原表一行登记为一条partial，累计106条审阅（104 partial、2 not_applicable、0 verified），不构成全效果覆盖率。[数值与来源](d2-ruleset.md#weapon-surge-的元素档位与独立计时)、[组合协议](engine-data-packs.md#weapon-surge-的计数查询与伤害阶段)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 通用公式数值查询门禁 `/tmp/chorus-profile-value-gate.log` BUILD SUCCESSFUL，2分16秒：1606项JUnit（无失败/错误/跳过）、Fabric854项、NeoForge869项及两端发布jar通过，共享Chorus世界场景853项。新增10项规则测试与2项共享世界场景；10项Compendium审计、105条报告一致性和差异检查通过。没有客户端协议变化，本轮未重复图形客户端门禁。
 
 `chorus:profile_value`允许Value按实际输入单位查询指定实体的任意数值Profile，输出单位从Profile推导，支持count到second等变换。查询隔离外层攻击/击杀上下文，只读取被查询实体的来源及贡献，不维护副本数缓存、不写状态或发布事件。捕获时固定施放者侧读数，目标侧在每次命中查询，输入的来源操作数先冻结；来源查询需要未提供的impact输入时明确失败。与attribute、动态弹匣共享依赖路径，独立重复与跨实体查询合法，自依赖公式报告错误，不对游戏效果循环加限制。

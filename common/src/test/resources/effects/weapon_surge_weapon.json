@@ -1,0 +1,1261 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:surge_kinetic",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:surge_arc",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:surge_solar",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:surge_void",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:surge_stasis",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:surge_strand",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:surge_empty"
+              },
+              "rampage": {
+                "bundle": "chorus_d2:rampage"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:surge_kinetic",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:kinetic"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:kinetic_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:surge_arc",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:arc"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:arc_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:surge_solar",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:solar"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:solar_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:surge_void",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:void"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:void_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:surge_stasis",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:stasis"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:stasis_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:surge_strand",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:surge_fire",
+          "chorus_d2:strand"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "chorus_d2:empowering_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:strand_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:inspect_entity",
+                      "target": {
+                        "binding": "victim"
+                      }
+                    },
+                    "as": "observed"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "observed",
+                      "field": "available"
+                    },
+                    "then": [
+                      {
+                        "type": "chorus:damage_snapshot",
+                        "snapshot": "shot",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "impact": {
+                          "radiant_champion": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:any",
+                              "of": [
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "entity",
+                                  "tag": "chorus_d2:champion"
+                                },
+                                {
+                                  "type": "chorus:observed_entity_tag",
+                                  "binding": "observed",
+                                  "source": "type",
+                                  "tag": "chorus_d2:champion"
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:rampage",
+        "version": "compendium-2026-10-05",
+        "duration": 4.5,
+        "max_stacks": 3,
+        "refresh": "reset",
+        "decay": "one_by_one",
+        "decay_interval": 4.5,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep",
+        "tags": [
+          "chorus_d2:rampage"
+        ]
+      },
+      "bundle": "chorus_d2:rampage_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:rampage_enhanced",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "max_stacks": 3,
+        "refresh": "reset",
+        "decay": "one_by_one",
+        "decay_interval": 5,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep",
+        "tags": [
+          "chorus_d2:rampage"
+        ]
+      },
+      "bundle": "chorus_d2:rampage_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:surge_empty"
+    },
+    {
+      "id": "chorus_d2:rampage",
+      "rules": [
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:source_tag",
+                "tag": "chorus:enhanced"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:rampage_enhanced"
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:rampage"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:rampage"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:rampage_enhanced"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:rampage_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:rampage",
+          "evaluate": "on_use",
+          "value": {
+            "type": "chorus:by_stacks",
+            "values": [
+              0.1,
+              0.21,
+              0.331
+            ],
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:explosive_perk_damage"
+                }
+              }
+            ]
+          },
+          "reference": "Compendium 2026-10-05 Weapon Perks C172; timer interpretation and lifecycle policies: data/d2-research/2026-10-10/rampage.json",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}
