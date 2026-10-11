@@ -1019,7 +1019,7 @@ One-Two Punch 使用 `previous_max_pellets_on_target < 门槛 && max_pellets_on_
 
 攻击寿命为半开区间 `[startedAt, dueAt)`，精确到期的延迟发射也不能重新打开组。超时发布 complete=false 与未结算数量，清理组并停止仍存活的成员；这是一条内容声明的攻击寿命，不是事件循环限制。索引可以在寿命内通过 detached after 延迟发射，但 `damage_snapshot.pellet` 只能在对应接触的同步动作体中使用：编译器不向 after 或嵌套 projectile 传播当前接触的记账资格。延迟爆炸仍可沿用几何与伤害快照，需作为独立伤害或新组建模。
 
-目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。原版命中自动归组、hitscan、精准分类、自动连发、跨组 / 多分量共用一次“下一击”事务、Rewind Rounds 内容和活跃组 / 飞行实体的存档恢复尚未实现。
+目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。原版命中自动归组、hitscan、精准分类、自动连发、跨组 / 多分量共用一次“下一击”事务、活跃组 / 飞行实体的跨进程存档恢复尚未实现。Rewind Rounds 已有独立数据定义及显式组数的结算策略，见 [命中计数与补弹](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
 
 ### 动态基础容量与数值快照
 
@@ -2775,3 +2775,9 @@ RUNNING / PREPARED、未知格式和损坏数据会拒绝下次自动启动，�
 [Reconstruction 示例](../common/src/test/resources/effects/reconstruction.json) 使用来源拥有的命名 `schedule`，首次 delay 与重复 interval 分别按普通 / 强化选取6 / 5.5秒。`chorus:source_attached` 配合 own_source 启动；`chorus:fire_accepted` 配合 owner + this_weapon 以 `policy: replace` 重置同一计时器，持续射击不会不断留下旧任务。这里监听接受事实，不能用 ammo_spent、hit 或 trigger 输入代替：它们分别也可能代表其他扣款、晚到 / 多次命中或被拒绝的射击。
 
 定时事件通过 own_timer 只交给本来源处理；执行时 observe_ammo 获取当前有效基础容量，再将其同时用于补弹量和溢出上限。收枪不卸下来源，卸装则取消该来源任务；已有弹药账户保留。原版 / 数据武器的宿主必须实际发布接受射击事实，只有定时器和弹药账户不等于完整枪械。该组合没有增加引擎专用词条类型；数值和待校准边界见 [D2 规则集](d2-ruleset.md#reconstruction-的停火计时与周期补弹)。
+
+### Rewind Rounds 的关联候选
+
+[Rewind Rounds 示例](../common/src/test/resources/effects/rewind_rounds.json) 组合 fire_accepted 的弹量 / 容量快照、set_contains_event_reference 和现有整数 refill。计数只接受本来源 owner / weapon 的有成本射击与合格伤害；待结算 Buff 保存射空 origin_source、预期组数和冻结的最低发射弹数。shot_resolved 用组 ID 去重并累计 complete 状态，最后一个预期组才可查询当前弹匣并尝试 refill。来源必须提供与实际发射结构一致的 groups 和足够的 settlement_seconds；引擎不从一个组的结束推导全次开火结束。
+
+minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction 是明确校准输入；普通 / 强化60 / 70%使用十进制乘法与向上取整。只有正数转移才清除计数并授予抑制 Buff，零转移不触发；reload_finished 与 source_detached 分别处理重置和清理。凭据窗口 receipt_seconds 独立于命中计数，忽略期也记住回执，使用 source-owned after 逐项清理。具体时间政策、来源证据和正式内容缺口见 [D2规则集](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。

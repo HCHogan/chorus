@@ -2,7 +2,7 @@
   "schema_version": 1,
   "effect": "Rewind Rounds",
   "reviewed_at": "2026-10-11",
-  "status": "researched_not_implemented",
+  "status": "partial",
   "sources": [
     {
       "kind": "original_google_sheet",
@@ -86,14 +86,71 @@
     "Accepted fire exposes immutable before_magazine, magazine, capacity and unmodified_capacity, all in rounds. Zero-cost fire and rejected requests are distinguishable from a paid emptying transition.",
     "Accepted fire and ShotGroups progress/summary expose origin_source while preserving their distinct shot references. Multiple groups may share an origin; one complete group is not proof that every group from that fire has ended.",
     "Set membership conditions can correlate remembered event identities within the declared buff instance. A victim snapshot captures the identity while querying victim membership at impact. Source membership freezes at use.",
-    "These primitives do not implement Rewind Rounds and do not establish its original-game settlement timing."
+    "The data rules below compose these primitives without adding perk-specific Java. Original-game settlement timing remains uncalibrated."
   ],
   "remaining_requirements": [
-    "Declare and validate counters since reload/proc, stow retention, source/weapon isolation, fired-round threshold and decimal ceiling arithmetic.",
-    "Decide and label settlement policy for final misses, multiple bolts, overlapping shots, delayed explosions and incomplete groups; final-group completion is a proposed Chorus policy, not an observed D2 fact.",
-    "Count eligible damage instances rather than assuming unique pellet-target pairs equal the hit ledger. Preserve weapon credit and evaluate indirect damage, immunity, blockage and Divinity behavior explicitly.",
-    "Calibrate post-proc suppression, threshold conflict and enhanced Adaptive Burst rate. Never hide unknown values in a generic hardcoded timer or weapon multiplier.",
-    "Refill from the weapon account, cap at effective base capacity and avoid ordinary reload triggers; define zero-transfer, external refill, manual/ability reload, source removal and owner-transfer behavior.",
-    "Add ordinary/enhanced and multi-bolt rule definitions, unit and physical-world tests, checkpoint behavior and formal content assembly before changing coverage from unimplemented."
-  ]
+    "Resolve 28.5 versus 28.75 percent firing threshold, measure post-proc suppression and verify the provisional enhanced Adaptive Burst rate.",
+    "Calibrate emptying and group settlement timing, final misses, overlapping triggers, delayed explosions, reload/proc resets, zero-transfer and other ammo-perk interactions in the original game.",
+    "Calibrate damage-instance eligibility, immunity/blockage, indirect perk damage, repeated contacts, Divinity cage and special exotic/heat weapons; the current explicit credit policy is not a complete original-game hit taxonomy.",
+    "Bind each production weapon to its exact actual group count and sufficient settlement window; no universal inferred group count is provided.",
+    "Complete formal weapon/subclass/content catalog assembly, hot-swap/death/offline policies, visual assets/HUD and physical-weapon/projectile restart acceptance."
+  ],
+  "definition": "common/src/test/resources/effects/rewind_rounds.json",
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/rewind_weapon.json",
+    "confidence": "synthetic_not_a_measured_D2_weapon",
+    "default_capacity": 10,
+    "default_reserves": 30,
+    "damage": 10,
+    "speed_meters_per_second": 20,
+    "fire_interval_seconds": 0.15,
+    "manual_reload_seconds": 0.2,
+    "projectile_lifetime_seconds": 1,
+    "group_lifetime_seconds": 2
+  },
+  "required_source_parameters": {
+    "minimum_fired_fraction": "multiplier; explicit choice between conflicting observations",
+    "ignore_seconds": "positive seconds; unknown original-game value",
+    "adaptive_fraction": "multiplier; explicit per-variant choice, used only by Adaptive Burst source tag",
+    "groups": "positive integer count; exact settlement groups emitted by the weapon for an accepted trigger",
+    "settlement_seconds": "positive seconds; must accommodate the declared grouped attack",
+    "receipt_seconds": "positive seconds; event identity retention policy, not a gameplay loop limit"
+  },
+  "test_calibration": {
+    "minimum_fired_fraction": [
+      0.285,
+      0.2875
+    ],
+    "ignore_seconds": 0.25,
+    "adaptive_fraction_normal": 0.14,
+    "adaptive_fraction_enhanced_provisional": 0.1633,
+    "groups": [
+      1,
+      2
+    ],
+    "settlement_seconds": 3,
+    "receipt_seconds": 3
+  },
+  "content_policies": [
+    "Each current perk source matches accepted owner and weapon. Paid accepted round costs accumulate; generic ammo spends, rejected fire and zero-cost fire do not create emptying transitions. Threshold uses the accepted effective capacity, exact decimal multiplication and ceiling.",
+    "Applied weapon-credited damage instances increment hits, including explicitly weapon-credited indirect perk damage. Unique damage_id receipts are counted, not unique pellet/target pairs. Immune, blocked, cancelled, failed and wrong-owner/weapon facts are excluded.",
+    "Damage and accepted-fire identities are remembered for receipt_seconds. Ignored-window hits are also remembered so replay after the window cannot count. Per-entry cleanup is source-owned; stow preserves counters, source detachment clears private state and cancels cleanup.",
+    "Paid emptying remembers origin_source and the declared group count. A later paid emptying replaces this pending candidate. Unique group shot IDs accumulate results; only the final expected result can settle, and every result must be complete. Missing or incomplete groups never invent hits or a refill.",
+    "The pending candidate has an explicit finite timeout. Group completion is a Chorus policy, not established original-game projectile timing. Earlier in-flight triggers are not implicitly awaited; hits are attributed to the counter active when their facts are processed.",
+    "Settlement requires the current magazine still be empty, enough paid rounds and a positive hit count. Other refill/generation filling the magazine cancels this candidate without erasing the hit/fired ledger.",
+    "Ordinary/enhanced refill is ceil(hits * 0.6/0.7). Adaptive Burst uses its explicit variant coefficient and every qualified bolt damage instance. Refill uses current base capacity and that weapon reserve, never changes base capacity and emits no ordinary reload completion.",
+    "A positive transfer clears hit/fired counters and grants the configured finite suppression window. Zero transfer clears only the pending candidate; no proc, suppression or immediate replay on later reserve gain is inferred.",
+    "Qualified reload_finished clears counters and pending candidate, while retaining duplicate receipts and any active suppression. Late hits after reload use the new processing-time ledger. Real manual reload is tested; ability reload producers and edge timing still require composition tests.",
+    "Checkpoint round-trip restores pure counters, pending group identities and cooldown without reissuing a transfer. Physical live projectiles across a process restart are not covered by this test.",
+    "Unknown damage or post-transfer world results preserve committed facts and stop execution; they cannot infer a successful missing hit, refund ammunition or replay a refill."
+  ],
+  "validation": {
+    "unit_tests": 15,
+    "shared_world_scenarios": 7,
+    "gate_log": "/tmp/chorus-rewind-gate.log",
+    "junit_total": 1373,
+    "fabric_total": 697,
+    "neoforge_total": 712,
+    "failures": 0
+  }
 }

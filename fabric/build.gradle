@@ -197,6 +197,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/precision_ammo_weapon.json'
         include 'effects/reconstruction.json'
         include 'effects/reconstruction_weapon.json'
+        include 'effects/rewind_rounds.json'
+        include 'effects/rewind_weapon.json'
         include 'effects/overflow.json'
         include 'effects/ammo_pickups.json'
         include 'effects/overflow_weapon.json'

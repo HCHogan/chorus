@@ -218,10 +218,10 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 | Triple Tap，C235 | 三次精准命中、相同 2 / 3 秒窗，生成 1 发，基础弹匣上限 | 对应计数、精准命中与真实枪械接线 |
 | Overflow，C160 | 拾取特殊 / 重型弹药砖后 refill，临时 ceiling 为基础容量的 2 / 强化 2.2 倍；收枪可触发 | partial：独立规则、物理弹药砖、当前装备分配与先储备后 refill；原作弹药经济和完整组合仍待校准 |
 | Reconstruction，C178 | 停火 6 / 强化 5.5 秒后按相同周期 refill 基础容量的 25%，最多溢出到 2 倍；收枪保留 | 已接实际装备、接受射击和服务端计时；向上取整有公开研究依据，装配 / 同刻 / 换装等边界仍为待校准政策，见后文 |
-| Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | 每发 / 每 bolt 计数与射空资格；适应爆发线融为 14%；补弹后计数屏蔽 `1?` 秒仍是未知 |
+| Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | partial：逐伤害实例、逐 bolt与多组射空结算已有数据定义；门槛冲突、强化线融系数及 `1?` 秒抑制仍需显式校准 |
 | Clown Cartridge，C47 | 合格换弹后一次随机取值，以有效基础容量计算溢出上限并上取整，从储备 refill | partial：独立 JSON / 实际装备与换弹 / 随机回执已验；分布与组合顺序仍待校准 |
 
-Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction 与 Overflow 已推进到 partial，具体定义和验收边界见下文；Rewind Rounds 仍为 unimplemented。通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表其余词条已经实现。条件拾取 / 当前装备查询已接入满溢内容，但弹药砖数量、分配政策和原作组合仍待校准；来源有问号的参数保留未知。
+Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction、Overflow 与 Rewind Rounds 已推进到 partial，具体定义和验收边界见下文。通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表其余词条已经实现。条件拾取 / 当前装备查询已接入满溢内容，但弹药砖数量、分配政策和原作组合仍待校准；来源有问号的参数保留未知。
 
 ### Clown Cartridge 的随机溢出与验收边界
 
@@ -237,15 +237,21 @@ Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction 与 Over
 
 覆盖为 partial。除随机分布外，上述基础换弹 / 溢出阶段、容量快照、基础容量不变及多种 on-reload 效果的顺序仍需原作交互验收。技能换弹、完整 D2 原型、弹药存档与 HUD 尚未完成；clown_weapon.json 的 5 发初始容量与 0.2 秒换弹为合成夹具。
 
-### Rewind Rounds 的开火关联与待校准边界
+### Rewind Rounds 的命中计数与射空补弹
 
-Rewind Rounds 仍为 **unimplemented**。[研究记录](../data/d2-research/2026-10-11/rewind-rounds.json) 已逐格核对当天原表 A188 / C188 / C251 与固定 CSV A187 / C187 / C250：普通 / 强化按命中伤害实例的60 / 70%向上取整补弹，收枪保留计数，Adaptive Burst 线融逐 bolt 计数并单列14%。补弹不触发普通换弹效果，有限弹药从对应武器储备转移。
+[rewind_rounds.json](../common/src/test/resources/effects/rewind_rounds.json) 已以通用数据接口实现普通 / 强化与 Adaptive Burst 分支，状态为 **partial**。[研究记录](../data/d2-research/2026-10-11/rewind-rounds.json) 保留原表 A188 / C188 / C251 与固定 CSV A187 / C187 / C250 的逐格核对及来源哈希。普通 / 强化按命中伤害实例的60 / 70%向上取整，从本枪储备补入至当前有效基础容量；不改变基础容量，也不发布普通换弹完成事实。十进制乘法先于取整，强化版100次命中精确得到70发。
 
-原表最低发射比例为28.5%，[公开 Community Research](https://www.light.gg/db/items/1563455254/rewind-rounds/?_=114)的可访问索引为28.75%；后者还把强化 Adaptive Burst 的16.33%标为暂定值。原表和该索引都没有消除补弹后 `1?` 秒禁计数窗口的不确定性。直接打开该页返回402，不能把搜索索引当作当前独立实测。阈值冲突、特殊原型强化系数和抑制时间均需显式内容配置与校准；不静默选一个数字。[7.0.0.1](https://www.bungie.net/7/en/News/Article/update_7_0_0_1)的跨武器重建说明和[6.3.0](https://www.bungie.net/7/en/News/article/destiny2_update_630)的 Divinity 修复只是历史行为证据，不证明这些数值或最终弹丸的结算时机。
+每把武器分别保存已造成的合格伤害次数、已接受射击的实际弹数与待结算的射空来源。收枪保留前两项，普通弹药扣款、拒绝输入和零消耗开火不增加已发射弹数。paid fire_accepted 的 before_magazine > 0 且 magazine == 0 才创建候选；发射门槛使用该次接受时的 capacity 快照计算。随后容量变化不重写这个门槛，实际 refill 仍受结算时的容量和储备约束。
 
-本轮只补齐通用表达能力：fire_accepted 保留扣弹前后弹量、当时有效容量与未修饰容量；接受事件和弹丸组进度 / 结束事件共有 origin_source，可由 Buff 集合记住并查询对应射击。原有 shot 字段继续分别表示请求与组，不混用身份。零成本或拒绝开火不会伪造有成本的射空转换，最后一颗打空也可形成 complete=true 的组结束；超时未完成依旧是 complete=false。
+候选按 origin_source 关联后续 shot_resolved；武器必须声明本次接受射击的 `groups`，按不同组 ID 去重，等所有预期组都报告 complete=true 后才结算。最后一颗打空可以正常结束完整组；不完整截止、缺少组或候选期限到期都不补弹。同一组的唯一 pellet-target 统计不能代替伤害次数；计数监听逐条 APPLIED 且有本枪 / 当前持有者信用的 weapon_damage，允许显式带该信用的间接词条伤害。免疫、阻挡、取消、失败和错误来源排除。此资格仍需细分原作校准，不能视为 Divinity 或全部爆炸交互已经完成。
 
-具体效果仍须定义命中与发射计数、换弹 / 触发重置、冷却窗口、储备不足和身份清理，并以实际多弹丸和延迟伤害验收。组的唯一 pellet-target 统计不等于所有伤害实例数；同一开火还可以创建多个组。等待声明的最终组以纳入最后一发，是待验证的 Chorus 内容策略，不是已经确认的 D2 原作算法；本轮不据此升级效果覆盖状态。
+原表最低发射比例为28.5%，[公开 Community Research](https://www.light.gg/db/items/1563455254/rewind-rounds/?_=114)的可访问索引为28.75%；后者把强化 Adaptive Burst 的16.33%标为暂定值。两者均未消除补弹后 `1?` 秒禁计数窗口的不确定性。直接打开该页返回402，索引不是本次独立实测。规则要求六项来源参数：`minimum_fired_fraction`、`ignore_seconds`、`adaptive_fraction`、`groups`、`settlement_seconds`、`receipt_seconds`，不内置未知时间或静默替换阈值。Adaptive Burst 标签选择显式系数；原表普通14%、测试强化0.1633仍分别保留证据与不确定性。[7.0.0.1](https://www.bungie.net/7/en/News/Article/update_7_0_0_1)的跨武器重建和[6.3.0](https://www.bungie.net/7/en/News/article/destiny2_update_630)的 Divinity 修复仅作历史行为依据。
+
+只有实际转移了正数弹药才清空命中 / 发射计数并启动有限禁计数窗口。零转移不伪造触发，之后获得储备也不重放已经结束的候选。结算前其他效果已填回弹匣则取消该候选并保留计数；下一次真实射空可再次判断。reload_finished 清除计数和候选，保留去重凭据及尚未到期的抑制窗口；卸下来源清理本来源状态。后来再次射空替换旧候选；旧弹丸的晚到伤害按处理时的计数周期入账，已有抑制窗口内不计数。等待声明的最后组、这些换弹 / 并行时序和零转移政策均是明确的 Chorus 选择，原作边界尚待实测。
+
+命中和开火身份使用独立的 receipt_seconds 保留窗口，忽略期命中也登记身份，避免同一回执在窗口结束后重发成为新命中。source-owned after 逐项删除；不把同根连锁去重，也不限制合法重复补弹。验收采用0.25秒抑制、3秒候选期限和3秒凭据保留，均是合成配置，不把0.25秒冒充原表的1?秒。
+
+[测试武器](../common/src/test/resources/effects/rewind_weapon.json) 的容量、伤害、射速、换弹、弹道、组寿命及数量均为合成输入。15项纯测试与7项共享世界场景覆盖真实容器、双变体、逐 bolt、多组、末发未命中、收枪、手动换弹、换装、有限储备、未知结果及纯会话恢复。完整原作计数信用与时序、技能换弹组合、热量 / 异域武器、合法装备原型、死亡 / 离线政策、正式规则包 / HUD和活跃物理弹体跨重启仍待完成；这些定义暂不随发布 jar 提供。
 
 ### Overflow 与特殊 / 重型弹药砖
 

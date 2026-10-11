@@ -1,0 +1,450 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:rewind_rounds",
+                "parameters": {
+                  "minimum_fired_fraction": "minimum_fired_fraction",
+                  "ignore_seconds": "ignore_seconds",
+                  "groups": "groups",
+                  "settlement_seconds": "settlement_seconds",
+                  "receipt_seconds": "receipt_seconds",
+                  "adaptive_fraction": "adaptive_fraction"
+                },
+                "tags": []
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:rewind_rounds",
+                "parameters": {
+                  "minimum_fired_fraction": "minimum_fired_fraction",
+                  "ignore_seconds": "ignore_seconds",
+                  "groups": "groups",
+                  "settlement_seconds": "settlement_seconds",
+                  "receipt_seconds": "receipt_seconds",
+                  "adaptive_fraction": "adaptive_fraction"
+                },
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              },
+              "adaptive": {
+                "bundle": "chorus_d2:rewind_rounds",
+                "parameters": {
+                  "minimum_fired_fraction": "minimum_fired_fraction",
+                  "ignore_seconds": "ignore_seconds",
+                  "groups": "groups",
+                  "settlement_seconds": "settlement_seconds",
+                  "receipt_seconds": "receipt_seconds",
+                  "adaptive_fraction": "adaptive_fraction"
+                },
+                "tags": [
+                  "chorus_d2:adaptive_burst_lfr"
+                ]
+              },
+              "adaptive_enhanced": {
+                "bundle": "chorus_d2:rewind_rounds",
+                "parameters": {
+                  "minimum_fired_fraction": "minimum_fired_fraction",
+                  "ignore_seconds": "ignore_seconds",
+                  "groups": "groups",
+                  "settlement_seconds": "settlement_seconds",
+                  "receipt_seconds": "receipt_seconds",
+                  "adaptive_fraction": "adaptive_fraction"
+                },
+                "tags": [
+                  "chorus_d2:adaptive_burst_lfr",
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "observe": {
+            "bundle": "test:rewind_observer"
+          }
+        },
+        "parameters": {
+          "minimum_fired_fraction": {
+            "unit": "multiplier",
+            "minimum": 1e-06,
+            "maximum": 1,
+            "integral": false
+          },
+          "ignore_seconds": {
+            "unit": "second",
+            "minimum": 1e-06,
+            "maximum": 3600,
+            "integral": false
+          },
+          "groups": {
+            "unit": "count",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "integral": true
+          },
+          "settlement_seconds": {
+            "unit": "second",
+            "minimum": 1e-06,
+            "maximum": 3600,
+            "integral": false
+          },
+          "receipt_seconds": {
+            "unit": "second",
+            "minimum": 1e-06,
+            "maximum": 3600,
+            "integral": false
+          },
+          "adaptive_fraction": {
+            "unit": "multiplier",
+            "minimum": 1e-06,
+            "maximum": 1,
+            "integral": false
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 10,
+        "magazine": 10,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 30
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "action": {
+              "type": "chorus:begin_shot",
+              "pellets": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "second"
+              }
+            },
+            "as": "group"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    },
+                    "pellet": "impact"
+                  }
+                ]
+              }
+            ],
+            "shot": {
+              "binding": "group",
+              "pellet": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:magazine",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "add",
+          "group": {
+            "name": "capacity",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:rewind_observer",
+      "rules": [
+        {
+          "id": "refill",
+          "on": "chorus:ammo_refilled",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:refilled"
+            }
+          ]
+        },
+        {
+          "id": "reload",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:reloaded"
+            }
+          ]
+        },
+        {
+          "id": "reserve",
+          "on": "test:reserve",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "pool": "reserves",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "generate",
+          "on": "test:generate",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:extended_mag",
+      "modifiers": [
+        {
+          "id": "capacity",
+          "profile": "test:magazine",
+          "stage": "capacity",
+          "group": "capacity",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "round"
+          },
+          "stacking_key": "test:extended_mag",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic +4 base magazine capacity; not a D2 magazine perk calibration",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}
