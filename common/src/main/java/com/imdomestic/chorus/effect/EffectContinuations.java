@@ -1,6 +1,7 @@
 package com.imdomestic.chorus.effect;
 
 import com.imdomestic.chorus.effect.buff.BuffRules;
+import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
@@ -9,6 +10,18 @@ public final class EffectContinuations {
     public static final String EVENT = "chorus:internal/continuation";
     private EffectContinuations() {}
     public enum Lifetime { SOURCE, DETACHED }
+    /** Launches and detached queries retain exactly the same source credit as their captured action scope. */
+    public static BuffInstance.Origin origin(RuleEngine.Payload scope) {
+        if (scope instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope value) return value.event().source();
+        if (scope instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Scope value) return value.event().source();
+        if (scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope value) return value.event().source();
+        if (scope instanceof EffectSource source) {
+            var tags = new HashSet<>(source.origin().tags()); tags.addAll(source.tags());
+            return new BuffInstance.Origin(source.origin().owner(), source.origin().source(), source.origin().weapon(), source.origin().ability(), tags);
+        }
+        if (scope instanceof BuffRules.Scope value) return value.snapshot().origin();
+        throw new IllegalStateException("Rule has no bound effect source");
+    }
     public record Pending(String id, String definition, String version, RuleEngine.Payload scope, RuleEngine.Event cause,
             Map<String, RuleEngine.ActionResult> bindings, Optional<EffectTimers.Owner> owner) implements RuleEngine.Payload {
         public Pending {

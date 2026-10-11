@@ -154,7 +154,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         catch (IllegalArgumentException invalidIdentity) { return null; }
         return entity instanceof LivingEntity living && living.isAlive() && !living.isRemoved() && !living.isSpectator() && living.level() == level ? living : null;
     }
-    private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire) {
+    private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire, boolean redirect) {
         if (!candidate.isAlive() || candidate.isRemoved() || candidate.isSpectator() || candidate.level() != level
                 || candidate.getUUID().toString().equals(launch.owner()) || candidate.getUUID().toString().equals(launch.emitter()) || inside.contains(candidate.getUUID())
                 || !progress.canHit(candidate.getUUID().toString(), launch.parameters().collision())) return false;
@@ -167,7 +167,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
             if (policy.relation() == TargetQuery.Relation.ALLIED ? !allied : allied) return false;
         }
         if (acquire && !ProjectileTracking.inCone(direction(getDeltaMovement()), direction(offset), policy.acquisitionAngle())) return false;
-        return !policy.lineOfSight() || MinecraftVisibility.visible(level, point(position()), point(anchor(candidate, policy.anchor())));
+        if (policy.lineOfSight() && !MinecraftVisibility.visible(level, point(position()), point(anchor(candidate, policy.anchor())))) return false;
+        return runtime.authorizeProjectileTracking(launch, this, candidate, acquire, redirect, ageMicros, offset.length());
     }
     private void steer(ServerLevel level, boolean contact) {
         var destination = launch.parameters().destination().orElse(null);
@@ -187,16 +188,19 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         if (getDeltaMovement().lengthSqr() == 0) { trackingTarget = null; return; }
         refreshInside(level, position());
         var retained = trackingTarget == null || contact ? null : level.getEntity(trackingTarget);
-        LivingEntity selected = retained instanceof LivingEntity living && trackable(level, living, policy, false) ? living : null;
+        LivingEntity selected = retained instanceof LivingEntity living && trackable(level, living, policy, false, contact) ? living : null;
+        if (terminal) return;
         if (selected == null) {
             double closest = Double.POSITIVE_INFINITY;
             // Loaded entities only, with identity retention to avoid chasing whichever target becomes marginally nearer.
             for (var entity : level.getAllEntities()) {
-                if (!(entity instanceof LivingEntity living) || !trackable(level, living, policy, true)) continue;
+                if (terminal) return;
+                if (!(entity instanceof LivingEntity living) || !trackable(level, living, policy, true, contact)) continue;
                 double distance = position().distanceToSqr(anchor(living, policy.anchor()));
                 if (distance < closest || distance == closest && (selected == null || living.getUUID().compareTo(selected.getUUID()) < 0)) { selected = living; closest = distance; }
             }
         }
+        if (terminal) return;
         trackingTarget = selected == null ? null : selected.getUUID();
         if (selected == null) return; // Losing a target keeps ballistic flight; no guessed target or chunk loading.
         double speed = getDeltaMovement().length();

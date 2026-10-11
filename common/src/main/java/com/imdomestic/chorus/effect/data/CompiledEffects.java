@@ -366,22 +366,23 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private record GateSite(ActionGate.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
     public ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input){
         settled(state);Objects.requireNonNull(action);Objects.requireNonNull(phase);
-        if(input.actor().isBlank())throw new IllegalArgumentException("Action gate needs an actor");
+        if(input.actor().isBlank()&&(action!=ActionGate.Kind.PROJECTILE_TRACKING||input.victim().isBlank()))
+            throw new IllegalArgumentException("Action gate needs an actor or an explicit tracking target");
         var tags=new HashSet<>(input.tags());tags.add("chorus:action_gate_query");var refs=new HashMap<>(input.references());
         refs.put("action",action.name().toLowerCase(java.util.Locale.ROOT));refs.put("action_phase",phase.name().toLowerCase(java.util.Locale.ROOT));
         var query=new EffectEvent(input.actor(),input.victim(),input.source(),tags,input.numbers(),input.flags(),refs,input.impact(),input.reactions(),input.proc(),input.observedBuffs(),input.observedEntities());
         var sites=new ArrayList<GateSite>();
-        for(var source:state.sources().values())if(source.holder().equals(input.actor()))for(var gate:bundle(source.bundle()).actionGates())
-            if(gate.action()==action)sites.add(new GateSite(gate,source.bundle(),source,sourceId(source)));
-        for(var buff:state.buffs().instances().values())if(buff.key().holder().equals(input.actor())&&buff.pausedAt().isEmpty()&&buff.activeCount(state.buffs().timeMicros())>0&&buff.affects(input.source().weapon(),input.source().ability())){
+        for(var source:state.sources().values())if(source.holder().equals(input.actor())||source.holder().equals(input.victim()))for(var gate:bundle(source.bundle()).actionGates())
+            if(gate.action()==action&&source.holder().equals(gate.subject().holder(input)))sites.add(new GateSite(gate,source.bundle(),source,sourceId(source)));
+        for(var buff:state.buffs().instances().values())if((buff.key().holder().equals(input.actor())||buff.key().holder().equals(input.victim()))&&buff.pausedAt().isEmpty()&&buff.activeCount(state.buffs().timeMicros())>0&&buff.affects(input.source().weapon(),input.source().ability())){
             String id=buffBundles.get(buff.definition().id());if(id==null)continue;
-            for(var gate:bundle(id).actionGates())if(gate.action()==action)sites.add(new GateSite(gate,id,new BuffRules.Scope(buff,false),"buff/"+buff.generation()));
+            for(var gate:bundle(id).actionGates())if(gate.action()==action&&buff.key().holder().equals(gate.subject().holder(input)))sites.add(new GateSite(gate,id,new BuffRules.Scope(buff,false),"buff/"+buff.generation()));
         }
         sites.sort(java.util.Comparator.comparing(GateSite::instance).thenComparing(s->s.declaration().id()));
         var event=queryEvent(state,query);var denials=new ArrayList<ActionGate.Denial>();
         for(var site:sites){
             var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of());
-            if(site.declaration().condition().test(e))denials.add(new ActionGate.Denial(site.declaration().id(),site.bundle(),site.instance(),e.origin()));
+            if(site.declaration().condition().test(e))denials.add(new ActionGate.Denial(site.declaration().id(),site.bundle(),site.instance(),e.origin(),site.declaration().subject(),e.self()));
         }
         return new ActionGate.Decision(action,phase,query,denials);
     }

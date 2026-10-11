@@ -49,6 +49,7 @@ public final class ProjectileFlight {
             if (member.filter(m -> !m.shot().origin().owner().equals(owner)).isPresent()) throw new IllegalArgumentException("Pellet owner differs from shot");
             if (impactSlot.isBlank() || continuation.bindings().containsKey(impactSlot) || continuation.owner().isPresent()) throw new IllegalArgumentException("Projectile needs a fresh contact slot and detached continuation");
         }
+        public com.imdomestic.chorus.effect.buff.BuffInstance.Origin origin() { return EffectContinuations.origin(continuation.scope()); }
         public RuleEngine.Signal finish(Impact impact) {
             if (!position.orElseThrow().dimension().equals(impact.point().dimension())) throw new IllegalArgumentException("Projectile impact changed dimension");
             var bindings = new HashMap<>(continuation.bindings()); bindings.put(impactSlot, impact.withMember(member));

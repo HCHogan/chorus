@@ -1,0 +1,125 @@
+{
+  "version": "test-1",
+  "bundles": [
+    {
+      "id": "test:target_gate",
+      "action_gates": [
+        {
+          "id": "hidden",
+          "action": "projectile_tracking",
+          "subject": "victim",
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:trackable_origin"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:actor_gate",
+      "action_gates": [
+        {
+          "id": "blind",
+          "action": "projectile_tracking",
+          "subject": "actor"
+        }
+      ]
+    },
+    {
+      "id": "test:retain_gate",
+      "action_gates": [
+        {
+          "id": "drop",
+          "action": "projectile_tracking",
+          "subject": "victim",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "action_phase",
+            "is": "continue"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:melee_target",
+      "action_gates": [
+        {
+          "id": "melee",
+          "action": "melee_attack",
+          "subject": "victim"
+        }
+      ]
+    },
+    {
+      "id": "test:bad_tracking",
+      "action_gates": [
+        {
+          "id": "missing",
+          "action": "projectile_tracking",
+          "subject": "victim",
+          "if": {
+            "type": "chorus:event_flag",
+            "name": "unobserved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:tracking_hidden",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "buff_hidden",
+          "action": "projectile_tracking",
+          "subject": "victim",
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:trackable_origin"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:tracking_inputs",
+      "rules": [
+        {
+          "id": "hide",
+          "on": "test:hide",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:tracking_hidden",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:constant",
+                "value": 0.2,
+                "unit": "second"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:tracking_hidden",
+        "version": "test-1",
+        "duration": 0.2
+      },
+      "bundle": "test:tracking_hidden"
+    },
+    {
+      "definition": {
+        "id": "test:tracking_weapon_hidden",
+        "version": "test-1",
+        "duration": 0.2,
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "pause"
+      },
+      "bundle": "test:tracking_hidden"
+    }
+  ]
+}

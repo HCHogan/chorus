@@ -4,6 +4,13 @@ import com.imdomestic.chorus.Constants;
 import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.EffectEvent;
+import com.imdomestic.chorus.effect.input.ActionGate;
+import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.target.EntityObservation;
+import com.imdomestic.chorus.effect.target.EntityQuery;
+import com.imdomestic.chorus.effect.target.PositionQuery;
+import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
@@ -21,6 +28,7 @@ import com.imdomestic.chorus.stat.CalculationProfile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -59,6 +67,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private Optional<Failure> failure = Optional.empty();
     private boolean closed;
     private Optional<MinecraftNativeActions.Report> nativeActionReport=Optional.empty();
+    public record ProjectileTrackingReport(long timeMicros, EffectEvent input, ActionGate.Phase phase,
+            Optional<ActionGate.Decision> decision, Optional<String> failure) {
+        public ProjectileTrackingReport {
+            Objects.requireNonNull(input); Objects.requireNonNull(phase); Objects.requireNonNull(decision); Objects.requireNonNull(failure);
+            if (decision.isPresent() == failure.isPresent()) throw new IllegalArgumentException("Tracking query must have a decision or failure");
+        }
+    }
+    private Optional<ProjectileTrackingReport> projectileTrackingReport = Optional.empty();
     private boolean transferringEquipment, refreshingEquipment;
     private final Map<java.util.UUID, ServerPlayer> equipmentOwners = new java.util.LinkedHashMap<>();
     private record InputKey(java.util.UUID holder, String slot) {}
@@ -118,6 +134,40 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public TimelineEngine.State<EffectState> state() { return session.state(); }
     public CompiledEffects program() { return program; }
     public Optional<MinecraftNativeActions.Report> nativeActionReport(){return nativeActionReport;}
+    /** Last actual tracking query, separate from input authorization and collision/damage receipts. */
+    public Optional<ProjectileTrackingReport> projectileTrackingReport() { return projectileTrackingReport; }
+    boolean authorizeProjectileTracking(ProjectileFlight.Launch launch, EffectProjectile projectile, LivingEntity candidate,
+            boolean acquire, boolean redirect, long ageMicros, double distance) {
+        thread();
+        if (closed || failure.isPresent()) return false;
+        if (!program.hasActionGates(ActionGate.Kind.PROJECTILE_TRACKING)) return true;
+        String victim = candidate.getUUID().toString();
+        long now = view().buffs().timeMicros();
+        var input = new EffectEvent(launch.owner(), victim, launch.origin(), Set.of("chorus:projectile_tracking"),
+                Map.of("tracking_age", new com.imdomestic.chorus.stat.Measure(ageMicros / 1_000_000.0, com.imdomestic.chorus.stat.Unit.SECOND),
+                        "tracking_distance", new com.imdomestic.chorus.stat.Measure(distance, com.imdomestic.chorus.stat.Unit.METER)),
+                Map.of("tracking_redirect", redirect), Map.of("projectile", projectile.getUUID().toString(), "emitter", launch.emitter()));
+        var phase = acquire ? ActionGate.Phase.START : ActionGate.Phase.CONTINUE;
+        try {
+            var entities = new HashMap<String, Optional<EntityQuery.View>>();
+            var positions = new HashMap<PositionQuery, Optional<WorldPosition>>();
+            observeEntity(victim, Optional.of(candidate), entities, positions);
+            for (String id : List.of(launch.owner(), launch.emitter())) if (!id.isBlank() && !entities.containsKey(id)) {
+                net.minecraft.world.entity.Entity entity = null;
+                try { entity = level.getEntity(java.util.UUID.fromString(id)); } catch (IllegalArgumentException ignored) { /* Logical identities remain explicitly unavailable. */ }
+                observeEntity(id, entity instanceof LivingEntity living && !living.isRemoved() && living.level() == level
+                        ? Optional.of(living) : Optional.empty(), entities, positions);
+            }
+            input = input.withObservedEntities(Optional.of(new EntityObservation(now, entities, positions)));
+            var decision = program.checkAction(view(), ActionGate.Kind.PROJECTILE_TRACKING, phase, input);
+            projectileTrackingReport = Optional.of(new ProjectileTrackingReport(now, input, phase, Optional.of(decision), Optional.empty()));
+            return decision.allowed();
+        } catch (RuntimeException error) {
+            projectileTrackingReport = Optional.of(new ProjectileTrackingReport(now, input, phase, Optional.empty(), Optional.of(error.getClass().getSimpleName() + ": " + error.getMessage())));
+            failed(error, List.of());
+            return false;
+        }
+    }
     boolean authorizeNativeAction(LivingEntity actor,net.minecraft.world.entity.Entity victim,String attack,com.imdomestic.chorus.effect.input.ActionGate.Kind kind){
         thread();
         if(!program.hasActionGates(kind))return true;

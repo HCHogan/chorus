@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-gambler-gate.log` BUILD SUCCESSFUL，8 分 36 秒：1221 项 JUnit、Fabric 572 项、NeoForge 582 项及两端发布 jar 全部通过，共享 Chorus 场景为 571 项。新增 9 项 GamblersDodgeTest 和 6 项共享世界场景；10 项 Compendium 审计、75 条审阅报告、原表 HTML / gzip 与三组对应单元格哈希核对通过。发布包仍不包含效果验收夹具 / GameTest；此轮没有客户端协议或输入变化，未新增图形客户端验收。
+最新门禁 `/tmp/chorus-target-gates-gate-2.log` BUILD SUCCESSFUL，3 分 9 秒：1228 项 JUnit（无失败 / 错误 / 跳过）、Fabric 580 项、NeoForge 590 项及两端发布 jar 全部通过，共享 Chorus 场景为 579 项。10 项 Compendium 审计与 75 条审阅报告一致性通过。首轮新增世界夹具的 Buff 版本与投射物程序不一致，修正测试组合版本后完整重跑通过。本阶段没有客户端协议 / 输入变化，未新增图形客户端验收；发布包检查不包含效果夹具或 GameTest。
+
+目标侧限制新增 `action_gates.subject: actor | victim`（默认 actor），拒绝证据显式保留声明持有者与第三方来源。事件身份不交换，多个发起者 / 目标来源独立拒绝；Buff 的有效期、暂停和武器适用范围沿用既有规则。`projectile_tracking` 已接 Chorus 实体的获得、保持及接触后重定向边界，查询携带发射时的来源信用、当前实体 / 位置观察、飞行年龄与距离。限制消失后可重新获得目标，正常拒绝保留弹道与物理伤害，固定 destination 返回不受自动选敌门槛影响。
+
+未知条件证据会记录失败并停止运行时、移除全部关联弹体；该路径不伪造正常拒绝，也不重放碰撞。新增 7 项 TargetGateTest 与 8 项共享世界场景，覆盖两侧叠加、持有者 / 施加者区别、阶段、暂停 / 过期 / 武器范围、来源卸下、实际重新锁定、命中与重定向、返回、故障清理及原版近战目标限制。原 Freeze 测试同时明确：角色冻结不会额外取消已发射弹体的追踪。
+
+本阶段是通用能力，尚未把真实 Dodge 动画期间的追踪移除装配到技能；原版寻敌 / 自带追踪弹和 Guardian 辅助瞄准也未接入。0.2 秒为合成 Buff 验收时长，不作为原作数值。Compendium 仍为 75 条审阅、61 partial、12 unimplemented、2 not_applicable、0 verified。字段见 [目标侧追踪限制](engine-data-packs.md#目标侧追踪限制)。
+
+上一阶段门禁 `/tmp/chorus-gambler-gate.log` BUILD SUCCESSFUL，8 分 36 秒：1221 项 JUnit、Fabric 572 项、NeoForge 582 项及两端发布 jar 全部通过，共享 Chorus 场景为 571 项。新增 9 项 GamblersDodgeTest 和 6 项共享世界场景；10 项 Compendium 审计、75 条审阅报告、原表 HTML / gzip 与三组对应单元格哈希核对通过。发布包仍不包含效果验收夹具 / GameTest；此轮没有客户端协议或输入变化，未新增图形客户端验收。
 
 Gambler's Dodge 直接组合既有地面资格、付费、水平碰撞位移、延迟、实体 / 范围观察和按当前近战槽回能，没有新增技能专用 Java 分支。当前属性在0–100间限幅，按PvE/PvP的1%/0.35%每点计算，15米内非友方加倍，fixed不重复应用CES或属性回能倍率。Lightweight Knife 已接入多周期协议，实际闪身可恢复两把并再次物理发射造成伤害；已装备Ophidia的真实飞刀击杀与闪身刷新、每轮条件联动收益亦完成组合验收。
 

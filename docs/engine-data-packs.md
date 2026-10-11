@@ -1738,15 +1738,15 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump / horizontal_motion / vertical_motion`。查询只读取操作人的 SOURCE 和操作人身上有效、未暂停且适用于当前武器 / 技能的 BUFF。Debuff 可以由其他人施加，判断对象仍是持有者，拒绝依据保留原施加者。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump / horizontal_motion / vertical_motion / projectile_tracking`。每条声明可选 `subject: actor | victim`，默认 actor；仅在 SOURCE / BUFF 的持有者等于查询相应身份时参与。目标侧限制不会交换事件 actor / victim，也不把第三方施加者当作持有者；条件中的 self 与参数仍属于声明持有者。BUFF 须有效、未暂停并适用于本次来源武器 / 技能。subject 所指身份为空时不匹配，不遍历其他人的声明来猜目标。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
 查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
-`CompiledEffects.checkAction` 是只读查询，不发布查询事件或执行规则动作。`Decision` 保留操作、阶段、查询快照和所有命中的拒绝声明（Bundle、实例、声明 id、原来源），按实例 / 声明排序。普通技能、开火和换弹 API 的 `RESTRICTED` 回执包含这个 Decision；拒绝不会支付成本、扣弹、建立射速间隔或覆盖已存在的换弹计划，也不发布 accepted 事实。基础装备 / 定义资格先检查，开火原有的射速检查也先执行。
+`CompiledEffects.checkAction` 是只读查询，不发布查询事件或执行规则动作。`Decision` 保留操作、阶段、查询快照和所有命中的拒绝声明（Bundle、实例、声明 id、原来源、subject、实际 holder），按实例 / 声明排序；同一身份同时作为 actor / victim 不会重复计算同一声明。普通技能、开火和换弹 API 的 `RESTRICTED` 回执包含这个 Decision；拒绝不会支付成本、扣弹、建立射速间隔或覆盖已存在的换弹计划，也不发布 accepted 事实。基础装备 / 定义资格先检查，开火原有的射速检查也先执行。
 
 手动换弹额外在宿主确认后的 `complete`、每次装填反应结算后的下一次 `continue` 复核限制。完成前拒绝不转移弹药；下一步拒绝保留刚完成的弹药转移、回血和其他反应。取消会清除计划及计时器，发布 `reload_cancelled`，`reason=action_restricted`；其 `ActionGate.Cancelled` payload 同时实现常规 EffectEvent.Carrier 并保留拒绝 Decision。授予限制 Buff 本身不会立即取消已接受计划；若它在下个复核边界之前过期，计划仍可继续。
 
-该机制只拦截这些新操作及手动换弹边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行。活动技能 Buff 可通过下节的批量结束动作终止，原版远程攻击接线见下节；原版近战及主动移动输入接线见下文；其他物品使用、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
+技能 / 开火限制只拦截对应操作，手动换弹另复核上述边界。`reload_weapons` 等效果动作、已接受技能动作体、已飞出的投射物、DOT 和点燃连锁继续按各自内容执行；已飞出 Chorus 弹体的自动寻敌可另外用 `projectile_tracking` 限制，见下文，该限制不取消飞行或伤害。活动技能 Buff 可通过下节的批量结束动作终止，原版远程攻击接线见下节；原版近战及主动移动输入接线见下文；其他物品使用、完整 Suppression / Freeze / Suspend 资格以及客户端禁用提示尚未接入，不能把这组通用能力当作这些 D2 状态的完整实现。[action_gates.json](../common/src/test/resources/effects/action_gates.json) 是合成验收内容，不增加 Compendium 效果覆盖数。
 
 ## 原版生物的远程攻击资格
 
@@ -2031,7 +2031,25 @@ Compendium 固定快照中，Arc D28、Solar D29 / D30、Void D30 给出扫描�
 
 `redirect_on_contact: true` 是额外的接触行为：仅在弹体尚未终止时，于此次碰撞动作体完成、位置离开接触面后重新选敌，立即朝所选目标取样点转向，并继续本 tick 余下路程。此次瞬时转向不受持续转向率限制；未选到敌人时保留当前方向（方块已先按法线反射）。可以将 turn_rate 设为 0，只保留碰撞后的离散转向。转向不凭空增加可命中次数：实体必须获准穿透后才能继续转向，方块也必须有剩余反弹预算。每次接触的伤害与计数保持独立，因此相邻目标可在同 tick 被依次击中。
 
-上述 tracking 负责自动选敌；下节 destination 负责固定身份的返回。玩家接回输入见下文；目标类别优先级、D2 转向率校准与统一的墙面 / 实体弹跳总预算仍待实现。三种近战技能的数值与状态装配仍是 [规则集需求](d2-ruleset.md) 中的未完成项。
+上述 tracking 负责自动选敌；下节 destination 负责固定身份的返回。玩家接回输入见下文；目标类别优先级、D2 转向率与各技能参数校准仍待实现。共享墙面 / 实体继续次数现由 `collision.total_continuations` 显式声明，见前节；具体技能当前支持范围见 [规则集](d2-ruleset.md)。
+
+### 目标侧追踪限制
+
+SOURCE 或 BUFF Bundle 可以拒绝针对持有者的自动追踪：
+
+```json
+"action_gates": [
+  { "id": "untrackable", "action": "projectile_tracking", "subject": "victim" }
+]
+```
+
+Chorus `EffectProjectile` 在常规几何、关系、存活及视线检查通过后查询此门槛。获得目标及接触后重定向使用 `start`，保留已有目标使用 `continue`。不限定阶段的声明会同时阻止二者；若只拒绝 continue，同 tick 后续 start 仍可能再次选中该目标。拒绝会失去锁定并尝试其他合格候选；没有候选就保留当前弹道。目标不存在永久黑名单，Buff 到期 / 来源移除后可以重新获得锁定。`subject: actor` 则限制发射者对应弹体的追踪，多个 actor / victim 拒绝继续合并。
+
+查询 actor 是发射时的 owner，victim 是本次候选；source 从投射物捕获的 continuation scope 读取，包含原来源标签，不依赖武器 / 技能仍被选择或来源仍绑定。物理发射实体另放在 `references.emitter`。事件包含 `chorus:projectile_tracking`，numbers 提供 `tracking_age: second`、`tracking_distance: meter`（当前弹体到候选锚点），flags 提供 `tracking_redirect`，references 提供弹体 UUID `projectile`，并由门槛添加 `action / action_phase`。不要假设该查询还带普通技能输入的 on_ground 标志；姿态可从实体观察读取。
+
+宿主在当前逻辑时间观察 owner、emitter 与候选的实体资料及 feet / body / eyes 位置；缺失实体明确为 unavailable，逻辑身份不凭空变成玩家或战斗人员。纯核心允许 `projectile_tracking` 在 actor 为空、victim 明确时只查询目标侧限制，其他操作仍要求 actor。没有这种门槛的程序跳过查询和额外观察。`projectileTrackingReport()` 仅保存最近一次实际候选查询（不一定是最终选中者）的输入、阶段、Decision 或错误，不发布效果事件。无法计算条件是运行时错误，会停止运行时并移除其全部现存弹体，不能冒充正常拒绝并继续世界副作用。
+
+该门槛不阻止实体碰撞或伤害；失去追踪的弹体仍可能沿弹道命中受保护目标。`destination` 的明确接收者、自动抵达与接回不使用自动选敌门槛。当前只连接 Chorus tracking；原版 AI 的目标选择 / 自带追踪弹、Guardian 辅助瞄准和真实 Dodge 动画期间的资格仍待接线。`target_gates.json` 的 0.2 秒 Buff 是通用合成验收，不代表 D2 闪身时长，也不提升 Compendium 内容覆盖。
 
 
 ### 指定目的地与返回阶段

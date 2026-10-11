@@ -750,8 +750,9 @@ public final class EffectCodecs {
         Codec<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGate = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::id),
                 enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),
-                conditions.optionalFieldOf("if", ALWAYS).forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::condition)
-        ).apply(i, com.imdomestic.chorus.effect.input.ActionGate.Declaration::new)), Set.of("id", "action", "if"));
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::condition),
+                enumeration(com.imdomestic.chorus.effect.input.ActionGate.Subject.class).optionalFieldOf("subject", com.imdomestic.chorus.effect.input.ActionGate.Subject.ACTOR).forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::subject)
+        ).apply(i, com.imdomestic.chorus.effect.input.ActionGate.Declaration::new)), Set.of("id", "action", "if", "subject"));
         Codec<com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration> speedLimit = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::id),
                 values.fieldOf("speed").forGetter(com.imdomestic.chorus.effect.motion.HorizontalSpeedLimit.Declaration::speed),
