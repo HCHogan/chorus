@@ -170,6 +170,17 @@ public interface Action {
             return new RuleEngine.Local<>(e.state(), snapshot, List.of());
         }
     }
+    /** Select only declared event tags before capturing damage modifiers; provenance remains explicit. */
+    record CaptureTaggedDamage(CaptureDamage damage, Set<String> inheritEventTags) implements Action {
+        public CaptureTaggedDamage { java.util.Objects.requireNonNull(damage); inheritEventTags = Set.copyOf(inheritEventTags); }
+        @Override public ResultShape validate(Validation v) { return damage.validate(v); }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var selected = new java.util.HashSet<>(damage.tags());
+            for (var tag : e.event().tags()) if (inheritEventTags.contains(tag)) selected.add(tag);
+            return new CaptureDamage(damage.amount(), damage.damageType(), selected, damage.killTags(), damage.nonLethal(),
+                    damage.scalingProfile(), damage.origin(), damage.shieldScalingProfile(), damage.proc()).execute(e);
+        }
+    }
     private static void validateImpact(java.util.Map<String, Value> impact, Validation v) {
         impact.forEach((name, value) -> { ImpactData.requireName(name); value.unit(v); });
     }

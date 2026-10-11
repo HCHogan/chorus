@@ -260,6 +260,18 @@ public final class EffectCodecs {
                 Codec.BOOL.optionalFieldOf("line_of_sight", false).forGetter(SelectionData::lineOfSight)
         ).apply(i, SelectionData::new)).flatXmap(data -> safe(data::action), action -> DataResult.success(SelectionData.of(action)));
     }
+    private static MapCodec<Action.CaptureDamage> captureDamage(Codec<Value> values) {
+        return RecordCodecBuilder.mapCodec(i -> i.group(
+                        values.fieldOf("amount").forGetter(Action.CaptureDamage::amount), ID.fieldOf("damage_type").forGetter(Action.CaptureDamage::damageType),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.CaptureDamage::tags),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("kill_tags", Set.of()).forGetter(Action.CaptureDamage::killTags),
+                        Codec.BOOL.optionalFieldOf("non_lethal", false).forGetter(Action.CaptureDamage::nonLethal),
+                        ID.fieldOf("scaling_profile").forGetter(Action.CaptureDamage::scalingProfile),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.CaptureDamage::origin),
+                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.CaptureDamage::shieldScalingProfile),
+                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.CaptureDamage::proc)).apply(i, Action.CaptureDamage::new));
+    }
+
     public static TypeRegistry<Action> actionTypes(Codec<Value> values) {
         Codec<AmmoActions.FiniteReserve> finiteReserve = strict(RecordCodecBuilder.create(i -> i.group(
                 values.fieldOf("amount").forGetter(AmmoActions.FiniteReserve::amount), values.fieldOf("capacity").forGetter(AmmoActions.FiniteReserve::capacity)
@@ -370,15 +382,12 @@ public final class EffectCodecs {
                         Codec.unboundedMap(MEASUREMENT_NAME, values).optionalFieldOf("numbers", Map.of()).forGetter(CalculationActions.CalculatePipeline::numbers),
                         TARGET.optionalFieldOf("victim").forGetter(CalculationActions.CalculatePipeline::victim)
                 ).apply(i, CalculationActions.CalculatePipeline::new)))
-                .register("chorus:capture_damage", Action.CaptureDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
-                        values.fieldOf("amount").forGetter(Action.CaptureDamage::amount), ID.fieldOf("damage_type").forGetter(Action.CaptureDamage::damageType),
-                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Action.CaptureDamage::tags),
-                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("kill_tags", Set.of()).forGetter(Action.CaptureDamage::killTags),
-                        Codec.BOOL.optionalFieldOf("non_lethal", false).forGetter(Action.CaptureDamage::nonLethal),
-                        ID.fieldOf("scaling_profile").forGetter(Action.CaptureDamage::scalingProfile),
-                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(Action.CaptureDamage::origin),
-                        ID.optionalFieldOf("shield_scaling_profile").forGetter(Action.CaptureDamage::shieldScalingProfile),
-                        PROC.optionalFieldOf("proc", ProcPolicy.Spec.DEFAULT).forGetter(Action.CaptureDamage::proc)).apply(i, Action.CaptureDamage::new)))
+                .register("chorus:capture_damage", Action.CaptureDamage.class, captureDamage(values))
+                .register("chorus:capture_tagged_damage", Action.CaptureTaggedDamage.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        strict(captureDamage(values).codec(), Set.of("amount", "damage_type", "tags", "kill_tags", "non_lethal", "scaling_profile", "origin", "shield_scaling_profile", "proc"))
+                                .fieldOf("damage").forGetter(Action.CaptureTaggedDamage::damage),
+                        ID.listOf().xmap(Set::copyOf, tags -> tags.stream().sorted().toList()).fieldOf("inherit_event_tags").forGetter(Action.CaptureTaggedDamage::inheritEventTags)
+                ).apply(i, Action.CaptureTaggedDamage::new)))
                 .register("chorus:damage_snapshot", Action.DamageCaptured.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("snapshot").forGetter(Action.DamageCaptured::snapshot),
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.DamageCaptured::target),

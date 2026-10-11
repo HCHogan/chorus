@@ -128,6 +128,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/action/apply_status", com.imdomestic.chorus.effect.data.Action.ApplyStatus.class);
         types.put("chorus:effect/data/action/cancel_timer", com.imdomestic.chorus.effect.data.Action.CancelTimer.class);
         types.put("chorus:effect/data/action/capture_damage", com.imdomestic.chorus.effect.data.Action.CaptureDamage.class);
+        types.put("chorus:effect/data/action/capture_tagged_damage", com.imdomestic.chorus.effect.data.Action.CaptureTaggedDamage.class);
         types.put("chorus:effect/data/action/capture_direction", com.imdomestic.chorus.effect.data.Action.CaptureDirection.class);
         types.put("chorus:effect/data/action/capture_position", com.imdomestic.chorus.effect.data.Action.CapturePosition.class);
         types.put("chorus:effect/data/action/capture_value", com.imdomestic.chorus.effect.data.Action.CaptureValue.class);

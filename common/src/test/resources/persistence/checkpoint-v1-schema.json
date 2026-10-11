@@ -105,6 +105,7 @@
   "chorus:effect/data/action/capture_damage": ["amount:com.imdomestic.chorus.effect.data.Value", "damageType:java.lang.String", "tags:java.util.Set<java.lang.String>", "killTags:java.util.Set<java.lang.String>", "nonLethal:boolean", "scalingProfile:java.lang.String", "origin:com.imdomestic.chorus.effect.data.ActionOrigin", "shieldScalingProfile:java.util.Optional<java.lang.String>", "proc:com.imdomestic.chorus.effect.combat.ProcPolicy$Spec"],
   "chorus:effect/data/action/capture_direction": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "mode:com.imdomestic.chorus.effect.target.DirectionQuery$Mode"],
   "chorus:effect/data/action/capture_position": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor"],
+  "chorus:effect/data/action/capture_tagged_damage": ["damage:com.imdomestic.chorus.effect.data.Action$CaptureDamage", "inheritEventTags:java.util.Set<java.lang.String>"],
   "chorus:effect/data/action/capture_value": ["value:com.imdomestic.chorus.effect.data.Value"],
   "chorus:effect/data/action/captured_value": ["value:com.imdomestic.chorus.stat.Measure"],
   "chorus:effect/data/action/check_status": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "stacks:com.imdomestic.chorus.effect.data.Value", "tier:com.imdomestic.chorus.effect.data.Value", "duration:java.util.Optional<com.imdomestic.chorus.effect.data.Value>", "allowDead:boolean"],

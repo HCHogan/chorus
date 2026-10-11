@@ -30,7 +30,7 @@ class ChainReactionTest {
         if (!credit) shot.add("kill_tags", new JsonArray()); return d;
     }
     static class Harness {
-        final CompiledEffects program; EffectSession session; int sequence;
+        final CompiledEffects program; final String burstTag; EffectSession session; int sequence;
         final Map<String, Double> health = new HashMap<>(); final Map<String, WorldPosition> positions = new HashMap<>();
         final Set<String> missing = new HashSet<>(); final List<DamageCommand> hits = new ArrayList<>(); final List<Double> amounts = new ArrayList<>();
         final List<TargetQuery> queries = new ArrayList<>(); final List<ProjectileFlight.Launch> shots = new ArrayList<>(); final List<String> cues = new ArrayList<>();
@@ -38,9 +38,12 @@ class ChainReactionTest {
         Map<String, Measure> a = calibration(false, .1), b = calibration(true, .1);
         Harness() throws Exception { this(Set.of("chorus_d2:arc_damage"), true, false); }
         Harness(Set<String> tags, boolean credit, boolean pvp) throws Exception {
-            program = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("chain_reaction")).getOrThrow(),
+            this(CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("chain_reaction")).getOrThrow(),
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, json("chain_reaction_test_calibration")).getOrThrow(),
-                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, weapon(tags, credit)).getOrThrow()));
+                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, weapon(tags, credit)).getOrThrow())), TAG, pvp);
+        }
+        Harness(CompiledEffects program, String burstTag, boolean pvp) {
+            this.program = program; this.burstTag = burstTag;
             session = new EffectSession(program, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(pvp ? EffectState.Mode.PVP : EffectState.Mode.PVE), this::world);
             entity("player", 1000, -10); equip("normal", "enhanced", "primary"); bind("observer", "test:projectile", "");
         }
@@ -58,7 +61,7 @@ class ChainReactionTest {
         void fire() { session.start(now(), new WeaponFire.Request("player", "fire-" + ++sequence).signal()); healthy(); }
         void impact(String target) { var shot = shots.getLast(); session.start(now(), shot.finish(new ProjectileFlight.Impact(ProjectileFlight.End.ENTITY, positions.get(target), Optional.of(target), 0, 0, 0, 100_000))); healthy(); }
         void kill(String target) { fire(); impact(target); assertEquals(0, health.get(target)); }
-        List<DamageCommand> bursts() { return hits.stream().filter(c -> c.tags().contains(TAG)).toList(); }
+        List<DamageCommand> bursts() { return hits.stream().filter(c -> c.tags().contains(burstTag)).toList(); }
         Optional<EntityQuery.View> view(String id) { return missing.contains(id) || !health.containsKey(id) ? Optional.empty() : Optional.of(new EntityQuery.View(health.get(id) > 0, false, health.get(id), 1000, 0, Set.of(), Set.of())); }
         RuleEngine.ActionResult world(RuleEngine.WorldRequest request) { return switch (request.command()) {
             case PositionQuery q -> new PositionQuery.Result(q, Optional.ofNullable(positions.get(q.target())));
@@ -74,9 +77,9 @@ class ChainReactionTest {
             }
             case DamageCommand d -> {
                 hits.add(d); double value = program.outgoing(state(), d, d.amount()).orElseThrow().output().value(); amounts.add(value);
-                boolean suppressed = immune && d.tags().contains(TAG);
+                boolean suppressed = immune && d.tags().contains(burstTag);
                 double before = health.get(d.target()), loss = suppressed ? 0 : Math.min(before, value); health.put(d.target(), before - loss);
-                if (failBurst && d.tags().contains(TAG)) throw new IllegalStateException("unknown blast after health mutation");
+                if (failBurst && d.tags().contains(burstTag)) throw new IllegalStateException("unknown blast after health mutation");
                 var receipt = new DamageReceipt(request.id().toString(), suppressed ? DamageReceipt.Outcome.IMMUNE : DamageReceipt.Outcome.APPLIED, 0, 0, loss,
                         before > 0 && loss == before ? Optional.of(request.id() + "/death") : Optional.empty(), false);
                 var points = omitPosition ? Map.<PositionQuery, Optional<WorldPosition>>of() : Map.of(new PositionQuery(d.target()), Optional.ofNullable(positions.get(d.target())));
@@ -99,7 +102,7 @@ class ChainReactionTest {
             assertEquals(1000 - damage, h.health.get("full"), 1e-9); assertEquals(1000 - damage / 2, h.health.get("middle"), 1e-9);
             assertEquals(1000, h.health.get("edge")); assertEquals(1000, h.health.get("outside")); assertEquals(2, h.bursts().size());
             assertEquals(radius, h.queries.getFirst().radius());
-            assertTrue(h.bursts().stream().allMatch(d -> d.tags().equals(Set.of("chorus:weapon_damage", TAG, "chorus_d2:" + element + "_damage"))));
+            assertTrue(h.bursts().stream().allMatch(d -> d.tags().equals(Set.of("chorus:weapon_damage", "chorus:explosive_perk_damage", TAG, "chorus_d2:" + element + "_damage"))));
             assertEquals(h.hits.getFirst().source(), h.bursts().getFirst().source()); assertEquals(enhanced ? "b" : "a", h.bursts().getFirst().source().weapon());
         }
     }

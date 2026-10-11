@@ -1300,6 +1300,24 @@ victim 声明必须显式使用 evaluate:on_hit，误用 on_use 在编译时拒�
 
 当前 capture 上下文只有 incoming_damage、damage_type、伤害标签和来源身份；尚未装配的事件测量不会默认为零。自定义 Value / Condition 参与 on_use 时须实现 `snapshot` 部分绑定，返回不可变数据表达式，不能保留 Evaluation 或可变世界状态。on_release / on_tick / on_proc、其他原版投射物自动适配、完整反应规则继承、派生筛选与持久化尚未完成；这些字段不能当作已支持的 JSON 使用。
 
+### 选择事件标签后捕获伤害
+
+`chorus:capture_tagged_damage` 在查询攻击修饰前，将当前 EffectEvent 的 tags 与 inherit_event_tags 白名单求交集，再与 damage.tags 合并。返回与 capture_damage 相同的伤害快照结果，可以交给 damage_snapshot 或 write_damage_snapshot：
+
+```json
+{"action":{"type":"chorus:capture_tagged_damage",
+  "inherit_event_tags":["example:arc_damage","example:solar_damage"],
+  "damage":{"amount":{"type":"chorus:constant","value":10,"unit":"damage"},
+    "damage_type":"minecraft:generic","scaling_profile":"example:outgoing","origin":"event",
+    "tags":["example:explosion"],"kill_tags":["example:weapon_kill"]}},"as":"burst"}
+```
+
+damage 是 capture_damage 的字段对象，没有内层 type；内外层未知字段均拒绝，amount / Profile / 单位校验沿用 capture_damage。inherit_event_tags 必填，可以为空；集合合并去重，无匹配时只保留静态 tags。动作不会读取 bound source tags 或 event.source.tags，也不会自动继承 precision、kill_tags、伤害类别、Profile 或 proc 拒绝列表。归属继续由 damage.origin 选择，kill_tags / proc / 非致命 / 护盾专属缩放等继续由内层声明决定。
+
+选择发生在捕获修饰前，所以元素相关 on_use 条件看到正确的攻击标签。标签与捕获贡献一起冻结，之后来源解绑、事件改变或每目标结算不会重新挑选标签。唯一元素、缺少分类和允许的派生信用属于内容条件；通用动作不硬编码元素目录或每次只能继承一个标签。检查点增加独立 CaptureTaggedDamage 记录，CaptureDamage 和 DamageSnapshot 的原字段形状保持不变。
+
+Chain Reaction 与 Dragonfly 均以此继承单一元素，爆炸显式标为 weapon_damage / explosive_perk_damage，保留 weapon_kill。Dragonfly 不继承原精准击杀的 precision，后续爆炸击杀因此不凭空满足精准条件；没有添加全局连锁限制。见 [Dragonfly 内容规则](d2-ruleset.md#dragonfly-的精准击杀与爆炸信用)。
+
 ### 在 Buff 中保存伤害快照
 
 Buff 可声明 `"components":{"damage_snapshots":["attack"]}`。每个组件初始化为缺失值，和 numbers / positions / target_sets 等组件的名字不能重复。快照由动作创建，不能在数据定义里预填一份运行时快照。下列步骤要求程序已有 example:status Buff 与 example:outgoing 伤害 Profile：
