@@ -1,0 +1,109 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:armor_charge_inputs",
+      "rules": [
+        {
+          "id": "spend",
+          "on": "test:spend_armor_charge",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:buff_count",
+                  "buff": "chorus_d2:armor_charge"
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:event_number",
+                  "name": "stacks",
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:consume_buff",
+              "buff": "chorus_d2:armor_charge",
+              "stacks": {
+                "type": "chorus:event_number",
+                "name": "stacks",
+                "unit": "count"
+              }
+            }
+          ]
+        },
+        {
+          "id": "gain",
+          "on": "test:gain_armor_charge",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:armor_charge_application",
+              "event": "chorus_d2:apply_armor_charge",
+              "holder": "victim",
+              "target": "victim",
+              "origin": "event",
+              "parameters": {
+                "amount": {
+                  "type": "chorus:event_number",
+                  "name": "stacks",
+                  "unit": "count"
+                },
+                "bonus_eligible": {
+                  "type": "chorus:event_number",
+                  "name": "bonus",
+                  "unit": "count"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "observer",
+          "on": "chorus:buff_stacks_changed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "buff_definition",
+                "is": "chorus_d2:armor_charge"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "reason",
+                "is": "consumed"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:armor_charge_consumed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

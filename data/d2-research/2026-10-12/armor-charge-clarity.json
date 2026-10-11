@@ -1,0 +1,248 @@
+[
+  {
+    "hash": 2577472338,
+    "name": "Charged Up",
+    "lastUpload": 1680349654559,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Increases the Maximum Number of Armor Charge Stacks you can hold from 3 to 4|5|6 with 1|2|3 Mods equipped."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 1755737153,
+    "name": "Time Dilation",
+    "lastUpload": 1680554889429,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Extends Armor Charge decay time to 15|18|20 seconds with 1|2|3 Mods equipped."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge decays at the rate of 1 Stack every 10 seconds by default with Passive Mods equipped."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 1627901452,
+    "name": "Stacks on Stacks",
+    "lastUpload": 1680554889429,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "All Armor Charge sources grant an additional Stack."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 686455429,
+    "name": "Health Font",
+    "lastUpload": 1755815364903,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Health stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 1672155562,
+    "name": "Font of Restoration",
+    "lastUpload": 1679865752213,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Class stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 1781551382,
+    "name": "Grenade Font",
+    "lastUpload": 1755815364903,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Grenade stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 2771425787,
+    "name": "Font of Vigor",
+    "lastUpload": 1679865752213,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Melee stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 3461249873,
+    "name": "Font of Wisdom",
+    "lastUpload": 1679865752213,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Super stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "hash": 1901221009,
+    "name": "Font of Agility",
+    "lastUpload": 1679865752213,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 20|40|50 Weapons stat with 1|2|3 Mods equipped while you have active Armor Charges."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Armor Charge now decays over time at the rate of 1 every 10 seconds by default."
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

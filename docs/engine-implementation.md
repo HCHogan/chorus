@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Armor Charge完整门禁 `/tmp/chorus-armor-charge-gate-2.log` BUILD SUCCESSFUL，1分52秒：1557项JUnit（无失败/错误/跳过）、Fabric825项、NeoForge840项与两端发布jar通过，共享Chorus世界场景824项。新增13项规则测试和9项共享世界场景；10项Compendium审计及95条报告一致性通过。没有新增Java执行接口、客户端协议或检查点类型，发布jar继续排除效果/GameTest/持久化夹具。
+
+共享永久Buff保存最多六层离散Armor Charge；当前模组源贡献配置3/4/5/6上限、获得额外层、六种Font副本数与被动衰减。控制器在来源变更结算时调用统一reconcile包，更新派生配置及Orb许可；各Font从单个控制Buff贡献20/40/50属性，避免按副本重复叠加已经汇总的值。单独衰减Buff只在有被动收益时启动，按10/15/18/20秒每次消费一层；成功消费重置周期，新获得及无关来源变更不刷新旧截止点。
+
+实际Orb碰撞发放共享层数，满Super许可只在有相关模组且池未满时提供；Starvation许可独立，满层也可为其Devour收益继续收球。规则场景另外验证第三方给予按接收者配置、显式获得豁免、检查点/重绑的有限pickup_id保留、全部周期、副本表和未知实体观察。世界场景验证真实十秒/二十秒计时、上限变化、模组装卸、来源独立收益、玩家实际死亡及已扣层后世界反应未知时不重放。
+
+首次定向规则运行因新定义使用了不存在的比较/减法枚举而在编译阶段拒绝；按现有ge/le与带单位负缩放组合修正后13项通过，公共配置归约再提取为一个复用包。首轮完整世界门禁仅故障注入场景未捕获runtime.start预期抛出的异常；补上精确异常断言并保留扣费/停止/不重放断言后，最终完整双端回归通过，没有修改执行器行为或放宽消费结果。
+
+两张原表HTML与固定Clarity已归档：18个模组单元格规范化相等，Game Mechanics原表C142是固定C1的已核对子串，明确保留坐标差异。新增Armor Charge与九种模组的10条partial，累计95条审阅：93 partial、2 not_applicable、0 verified，仍不能计算全表覆盖率。每角色一个控制器、正式插槽/能量/互斥/自动装配、完整生产者与消费者、六属性全部玩法投影、原作换装边界、HUD和物理世界恢复仍有缺口。本轮消费场景使用通用consume_buff验收，不声称Kickstart或终结技模组已经接入。[规则及来源](d2-ruleset.md#armor-charge-的共享层数衰减与-font)、[组合协议](engine-data-packs.md#armor-charge-组合协议)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Cessation完整门禁 `/tmp/chorus-cessation-gate-3.log` BUILD SUCCESSFUL，2分10秒：1544项JUnit（无失败/错误/跳过）、Fabric816项、NeoForge831项及两端发布jar通过，共享Chorus世界场景815项。新增10项规则测试和8项共享世界场景；10项Compendium审计与85条报告一致性通过。发布jar不含效果/GameTest/持久化夹具；本轮没有新增Java执行接口、客户端协议或检查点类型。
 
 Cessation由确认finisher读取实际死亡的历史位置，向附近非盟友逐个申请共享Volatile，按实际Guardian/战员选择六秒/十秒。开始、取消、非致死和死亡保护均不产生完成收益；重复Fragment和期限内旧finisher/death事实由两个有限集合去重。击杀分支读取历史Volatile与位置，接受其他施加者的状态，调用共享Void Breach；实际物理收集接入Starvation/Devour和当前职业回能。已授予目标状态和已生成物体可在Fragment解绑后继续。

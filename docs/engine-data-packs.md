@@ -2996,3 +2996,32 @@ Fabric / NeoForge均注册 `chorus:finisher_input` C2S包和可改绑的 `key.ch
 Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatile标签调用共享Void Breach，忽略原施加者身份。两个集合由已有Buff组件和detached清理计时器组成；有限保留防重复事实，不限制独立新击杀、技能循环或同根连锁。具体状态、裂口数值及当前校准缺口见[规则集](d2-ruleset.md#echo-of-cessation-的确认终结与历史易爆击杀)。
 
 共享Volatile三个爆炸分支均先检查`event_position_observed`：已观察则使用`read_event_position`返回的位置，包括明确不可用的结果；仅对从未观察位置的旧宿主保留EntityCenter查询。不要把“历史位置不可用”与“未观察历史位置”合并，否则会把爆炸移动到反应执行时的新位置。Fragment自己的终结爆发要求历史位置，不使用这一旧宿主回退。
+
+## Armor Charge 组合协议
+
+[armor_charge.json](../common/src/test/resources/effects/armor_charge.json)展示可共享的离散层数池如何由Buff、来源贡献、延时生命周期与实际拾取事实组合。每个接收者安装恰好一个`chorus_d2:armor_charge_system`，必填`receipt_seconds: second`；模组来源来自[armor_charge_mods.json](../common/src/test/resources/effects/armor_charge_mods.json)，一份来源表示一个装备副本。上限/额外获得/计时参数由接收者来源汇总，不能把调用者的配置复制给接收者。
+
+通用获得调用：
+
+```json
+{
+  "type": "chorus:invoke_bundle",
+  "bundle": "chorus_d2:armor_charge_application",
+  "event": "chorus_d2:apply_armor_charge",
+  "holder": {"binding":"recipient"},
+  "target": {"binding":"recipient"},
+  "origin": "event",
+  "parameters": {
+    "amount": {"type":"chorus:constant","value":1,"unit":"count"},
+    "bonus_eligible": {"type":"chorus:constant","value":1,"unit":"count"}
+  }
+}
+```
+
+`amount`应为正整数；`bonus_eligible`由具体生产者明确给0或1。接收者没有控制器、没有获得资格、缺失或死亡时不授予。原始来源保留在池与层的origin中，池的目标绑定确保不同给予者共用同一接收者容量。直接调用不是已经确认的拾取事实，也不隐式添加永久去重。
+
+控制器在来源变更及池的gained/stacks_changed/ended事实后调用同一个`armor_charge_reconcile`包。它汇总当前源贡献、更新派生配置、裁剪超出容量的层数、同步Orb许可，并保证被动衰减只有一个实例。普通获得保留既有计时实例，消费先移除旧实例再建立完整周期；自然到期只消费一层。删除计时器产生removed事实，不能再次走expired分支。一个buff_stacks_changed反应不等同于任意游戏的“花费奖励”，消费者仍应依据自己的实际消费结果决定发奖。
+
+消费可以在同一规则中先检查`buff_count >= cost`，再使用`consume_buff`并继续收益动作。消费回执的`stored_delta`为负数，`credited`不是支付量；部分或全部不足的策略必须由消费内容明确选择。世界收益随后失败时保留已经支付的层数，未知结果沿用停止并不重放的执行协议；不要通过旧拾取事实补回成本。
+
+六种Font由一个持有者控制Buff贡献20/40/50点，当前副本数在来源变更结算后更新。安装/撤销控制器会同时清理池、衰减和本系统许可，有限拾取身份按独立期限保留，避免控制器重绑重放旧球。普通模组变更、降低容量和变更周期的具体政策见[规则集](d2-ruleset.md#armor-charge-的共享层数衰减与-font)；正式装备限制、完整消费者和HUD仍需内容层接入。

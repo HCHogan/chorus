@@ -1559,3 +1559,33 @@ Volatile的三个爆炸路径——首次致死施加、已有状态达到伤害
 目标共享`cessation_receipts`分别记录`finisher_ids`与`death_ids`。必填`receipt_seconds`提供有限保留期，验收十二秒不是附加游戏冷却；解绑重绑和纯会话检查点保留期限内的身份。冷却内的旧死亡也不能在冷却结束后重放成新奖励，独立新死亡和新终结技仍能正常触发。授权或物理生成结果未知时沿用运行时停止政策，保留已提交伤害/状态/物体，不自动重放。
 
 [10项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java)覆盖低权限实际终结输入、延迟伤害、实际Guardian/队友/拒绝目标、完成前装卸、重复来源、移除尸体后的易爆爆炸、他人施加状态、普通原版击杀和物理裂口拾取。验收组合仍是测试装配：完整子职业/Fragment目录、终结技动画与数值政策、原作独立爆发伤害及半径、共享Volatile全部来源/混合目标伤害、HUD/素材和物理世界持久化继续标为partial。本阶段复用引擎动作，没有新增Java执行接口、客户端协议或检查点结构。
+
+## Armor Charge 的共享层数、衰减与 Font
+
+[armor_charge.json](../common/src/test/resources/effects/armor_charge.json)用一份目标共享的永久Buff保存离散Armor Charge，最多六层；[armor_charge_mods.json](../common/src/test/resources/effects/armor_charge_mods.json)提供Charged Up、Time Dilation、Stacks on Stacks及六种Font。角色必须安装一个`armor_charge_system`，每个装备的模组副本绑定一个独立来源。状态单位为count，不进入技能回能、CES或CMS管线。
+
+原表Armor Mods的18个名称/描述单元格与固定快照逐格一致。Game Mechanics原表C142的公共机制则是快照C1大单元格的一段，已验证规范化子串，不能把这两者写成同坐标或整格相等。[来源记录](../data/d2-research/2026-10-12/armor-charge.json)保留两张原表HTML、对应坐标、文本哈希及固定Clarity的九个条目。[Bungie的系统介绍](https://www.bungie.net/7/en/News/Article/buildcrafting)支持共享充能、能量球获得、被动衰减和消费的机制；该历史文献不证明全部当前换装边界。
+
+| 规则 | 当前数值与行为 |
+| --- | --- |
+| 基础上限 | 3层；1/2/3个Charged Up变为4/5/6层 |
+| 确认收集Orb | 有获得资格时+1层；不把生成/接触尝试当作收集 |
+| Stacks on Stacks | 合格获得请求额外+1层，多个副本不会再提高；生产者可显式声明豁免 |
+| 被动衰减 | 有被动模组且至少一层时，每10秒移除一层 |
+| Time Dilation | 1/2/3副本改为15/18/20秒；本身不启动被动衰减 |
+| 获得与消费 | 新获得保留正在运行的衰减截止点；消费或衰减后重新开始完整周期 |
+| 六种Font | Health/Class/Grenade/Melee/Super/Weapons各自按1/2/3副本提供20/40/50属性，只要求共享池至少一层 |
+
+源贡献Profile汇总当前副本数并设上限；在来源变更结算时写入持有者控制Buff的派生配置。Font由这一个控制Buff贡献最终数值，避免先查出40点再由两个来源各加一次。六属性沿用既有200上限；这些是属性Profile的数值验收，不代表每个技能、武器动作、超过100属性的分支和动画收益均已装配。
+
+`armor_charge_decay`是独立目标共享的有限Buff，截止时只消费一层。层数的消费事实移除旧计时实例，再按当前配置建立下一周期；旧实例被消费或移除不冒充自然到期。获得第一层启动计时，后续获得不移除正在运行的计时器；多个Font也不会创建多份衰减。没有被动模组时取消计时。纯会话检查点保留实际层数、派生配置和截止点，不从登录时间重新计算一整段时长。
+
+获得通过`armor_charge_application`统一处理，调用者提供`amount: count`及`bonus_eligible: count`（0表示豁免、1表示允许Stacks on Stacks），并将holder/target都指向接收者。它观察接收者实际存在与存活，读取接收者当前配置，加额外层后按剩余空间截断。第三方给予时原始giver继续作为来源，获得资格、容量和额外层属于接收者。直接生产者应按各自实际触发事实做有限去重；通用施加入口本身不限制合法新获得请求。
+
+Orb分支由控制器监听实际`chorus:pickup`，按`pickup_id`有限去重，包含满层时已观察的拾取，防止旧球在消费后重新发层。`receipt_seconds`必填，验收六十秒仅是保留窗口，没有新增获得冷却。满Super时的收球许可使用已有`orb_pickup_permission`标签，但只在具有本系统资格且池未满时授予；满层撤销的是Armor Charge自己的许可。Starvation等其他许可仍独立存在，因此同一球可以在Armor Charge已满时继续提供其他收益。
+
+这一版明确采用以下换装政策：所有已接入相关模组均开启获得资格，包括Charged Up、Time Dilation、Stacks on Stacks；移除最后一个相关模组清空层数，降低容量立即裁剪；修改Time Dilation后按新周期从变更时重新计时；只移除最后一个被动模组时停止衰减，若还有其他相关模组则保留层数。无关来源变更不重置计时。真实死亡清空层数与计时，装配来源继续由装备生命周期管理。以上边界尚需当前原作校准。
+
+本阶段消费验收使用通用`consume_buff`与充足性条件，尚未把Kickstart、Surge或各终结技消费者声明为已支持。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
+
+[13项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java)覆盖容量、六种Font副本表、获得豁免、第三方给予、10/15/18/20秒、消费、解绑重绑、检查点、死亡与未知观察；[9项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java)覆盖真实Orb碰撞、满Super资格、实际十秒/二十秒计时、来源变更、Starvation组合、玩家真实死亡及消费后未知世界反应。正式模组槽/能量/互斥、全部生产者和消费者、完整数值投影、HUD及物理世界恢复仍为partial。未增加引擎专用Java动作、网络包或检查点类型。

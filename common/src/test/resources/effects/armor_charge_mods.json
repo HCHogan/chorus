@@ -1,0 +1,410 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:charged_up",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:charged_up",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "capacity",
+          "profile": "chorus_d2:armor_charge_capacity",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:charged_up",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:time_dilation",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:time_dilation",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "dilation",
+          "profile": "chorus_d2:armor_charge_dilation",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:time_dilation",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:stacks_on_stacks",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:stacks_on_stacks",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "bonus",
+          "profile": "chorus_d2:armor_charge_bonus",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:stacks_on_stacks",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:health_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:health_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:health_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_health",
+          "profile": "chorus_d2:armor_charge_font_health",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:health_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:class_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:class_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:class_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_class",
+          "profile": "chorus_d2:armor_charge_font_class",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:class_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:grenade_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:grenade_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:grenade_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_grenade",
+          "profile": "chorus_d2:armor_charge_font_grenade",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:grenade_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:melee_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:melee_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:melee_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_melee",
+          "profile": "chorus_d2:armor_charge_font_melee",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:melee_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:super_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:super_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:super_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_super",
+          "profile": "chorus_d2:armor_charge_font_super",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:super_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapons_font",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:weapons_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:armor_charge_passive",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:weapons_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        },
+        {
+          "id": "font_weapons",
+          "profile": "chorus_d2:armor_charge_font_weapons",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:weapons_font",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods and Game Mechanics Armor Charge; one source per equipped copy.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

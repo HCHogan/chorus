@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Armor Charge",
+    "Charged Up",
+    "Time Dilation",
+    "Stacks on Stacks",
+    "Health Font",
+    "Class Font",
+    "Grenade Font",
+    "Melee Font",
+    "Super Font",
+    "Weapons Font"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mods-source.html.gz",
+      "sha256": "92afd34a1e2d2af6927073f6b063c22813e817621c3daa5a48626054e12ee829",
+      "gzip_sha256": "55a07f055b7c0992012f33327ff0111f6b88f9a1b4dc17517bb0ab08bc37c8d8",
+      "cells": [
+        {
+          "original_cell": "H3",
+          "snapshot_cell": "H3",
+          "snapshot_text_sha256": "7976fe21212773fee99f3ab5f792a104f83915f3abf6ee89fd36cac01724c9ce",
+          "normalized_text": "Charged up [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "J3",
+          "snapshot_cell": "J3",
+          "snapshot_text_sha256": "0667a1ffb260f2289189265d2e20387ad0b08d2fc524f82919d06c7089e9d755",
+          "normalized_text": "Increases the Maximum Armor Charge Stacks. Maximum Armor Charge Stacks: 4 | 5 | 6",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N18",
+          "snapshot_cell": "N18",
+          "snapshot_text_sha256": "848174b2b9bc56a924731dcd7981c4a7f221aff376e2634b717ab3a4d5e460db",
+          "normalized_text": "Time Dilation [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P18",
+          "snapshot_cell": "P18",
+          "snapshot_text_sha256": "78ed9afeb44a323e5cf9e91d1ed47e91308630533ef73ed5b5380aa0ef3d65e9",
+          "normalized_text": "Armor Charges decay every 15 | 18 | 20 seconds. By default, an Armor Charge stack is removed every 10 seconds if a Passive Mod is equipped.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "K13",
+          "snapshot_cell": "K13",
+          "snapshot_text_sha256": "79c8be584004ff432927ec899fb61d3506af23ca1b93ecf63ad6b821b39c92ca",
+          "normalized_text": "Stacks on Stacks [4 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "M13",
+          "snapshot_cell": "M13",
+          "snapshot_text_sha256": "393e7f30fd6b0b26d8cd93a2e8facedcaa1273c60680d07ea09127bc60054361",
+          "normalized_text": "All sources of Armor Charge now grant an additional stack unless explicitly stated not to.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "H5",
+          "snapshot_cell": "H5",
+          "snapshot_text_sha256": "022454146f59e8ca85298d124b6bcb21c245bf887c689433188c1fd2e1d3cec5",
+          "normalized_text": "Health Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "J5",
+          "snapshot_cell": "J5",
+          "snapshot_text_sha256": "cb31209321704920b5d0427597d16cdec5db81e55411292aeeedb5db8d394de7",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Health.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N5",
+          "snapshot_cell": "N5",
+          "snapshot_text_sha256": "47016a0f9eb63f3e4b98f38afb25b3419807f8468151b168eb58fe91b0812a45",
+          "normalized_text": "Class Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P5",
+          "snapshot_cell": "P5",
+          "snapshot_text_sha256": "a1c5d99af11e56531da308db0c32a174da03e091f6039c0f95c1dd3c318c3ca5",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Class.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "E7",
+          "snapshot_cell": "E7",
+          "snapshot_text_sha256": "a7d74f1a95562de7f1d349196d50d941de6d27a1f11b622214da3218297a258a",
+          "normalized_text": "Grenade Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "G7",
+          "snapshot_cell": "G7",
+          "snapshot_text_sha256": "9da840e868ef635974f66b1c7e4cfc67274277d5623022f266e8c0835d9d2331",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Grenade.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "E12",
+          "snapshot_cell": "E12",
+          "snapshot_text_sha256": "f4852b3da8c766d4c6620983d7c79ee06b62bfcd9fe47441a44cc4f3237adc90",
+          "normalized_text": "Melee Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "G12",
+          "snapshot_cell": "G12",
+          "snapshot_text_sha256": "e45a6e93283e0954e868b1c5563dd04bb4ba69037e46bb5311327da88274cebd",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Melee.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "B12",
+          "snapshot_cell": "B12",
+          "snapshot_text_sha256": "b845c39ca08ed5e1dde30f5bb696665b9ca8cccac9fb18fba7a76a2c667a00b8",
+          "normalized_text": "Super Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "D12",
+          "snapshot_cell": "D12",
+          "snapshot_text_sha256": "885a928607fc0a8a07849584a7b5d269fb0d5d46fa89b2af532efe80682d553c",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Super.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "K14",
+          "snapshot_cell": "K14",
+          "snapshot_text_sha256": "ca4b534497370523c1f150ea6e898f0a3930e628400397ba47cc7589abff462c",
+          "normalized_text": "Weapons Font [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "M14",
+          "snapshot_cell": "M14",
+          "snapshot_text_sha256": "d599fa28c87715f0ee3b502f2cb621ae7ce57d14a585fa8728bb0d810c3b7ad6",
+          "normalized_text": "While Armor Charge is active: +20 | +40 | +50 Weapons.",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Game Mechanics",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mechanics-source.html.gz",
+      "sha256": "dc1e8ef108aca57e8ffd19f1f703fde337b1cc4f411e38781ddcadf006648fa4",
+      "gzip_sha256": "3c752c779cfb5b8a53006718e16f38baa1708d991a4499de36e4660c7da673f4",
+      "cells": [
+        {
+          "original_cell": "C142",
+          "snapshot_cell": "C1",
+          "snapshot_text_sha256": "2c846468c6f9e36e81529d7f1806ea6c3c6041c1a6d234a9ee19181693fcd26d",
+          "normalized_text": "Armor Charges are a resource used by Armor Charge Mods, activating certain Passive Effects while Armor Charges are active, or consuming Armor Charges in exchange for an instantaneous effect. By default, you can only hold up to 3 stacks of Armor Charge. Picking up any Orb of Power while any Armor Charge mod is equipped will grant x1 Armor Charge. Maximum Armor Charge Stacks can be increased to x4 | x5 | x6 by equipping the Charged Up Chest Armor Mod. Passive Mods grant a temporary effect while Armor Charges are active dependent on the mods used without needing a special interaction. Equipping any active Passive Mod will decay x1 Armor Charge every 10 seconds. Decay Timer is reset every time an Armor Charge is consumed or decayed. The Decay Timer can be extended to 15 | 18 | 20 seconds by equipping the Time Dillation Armor Mod in the Class Item.",
+          "match": "normalized_substring"
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/armor-charge-clarity.json",
+      "sha256": "709dda05b007fb3e01861a6b2d57827e37d5ab2a2916406a41619a63af3d72eb",
+      "item_hashes": [
+        2577472338,
+        1755737153,
+        1627901452,
+        686455429,
+        1672155562,
+        1781551382,
+        2771425787,
+        3461249873,
+        1901221009
+      ],
+      "finding": "Confirms 4/5/6 capacity, 15/18/20 second decay, one additional stack per eligible gain, and 20/40/50 Font stat bonuses. Some entries retain older Font names but describe current stat names."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/buildcrafting",
+      "finding": "2023 introduction establishes shared Armor Charge, Orb acquisition with equipped mods, three default stacks, six expanded stacks, decay for passive benefits and explicit consumption. It is historical mechanism evidence, not proof of every current swap or gain-refresh edge case."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6",
+      "finding": "Empowered Finish and charge-consuming finisher mods are mutually exclusive. A future production mod catalogue must enforce that restriction; arbitrary composability in the engine does not imply a legal D2 loadout."
+    }
+  ],
+  "implemented": [
+    "One shared six-stack-capable permanent Buff holds the actual charge pool; current source contributions calculate a 3/4/5/6 effective cap, passive enablement, bonus gain and six Font copy counts.",
+    "Confirmed actual Orb contacts award one stack plus the current Stacks on Stacks bonus, capped at the recipient capacity; generic direct producers use actual recipient availability and life-state observations and an explicit bonus-eligibility input.",
+    "A separate shared decay Buff expires once after 10/15/18/20 seconds and consumes one charge. Accepted spending resets that interval, new gains preserve it, and no passive consumer means no decay.",
+    "Current Font copies grant 20/40/50 stat points while at least one shared charge remains; modifiers are emitted once from the holder control Buff, not multiplied again per copy.",
+    "Current full-Super Orb permission follows available charge space and coexists with Starvation. Source changes reconcile immediately, actual death clears charges, and finite pickup receipts survive pure-session restore and rebinding."
+  ],
+  "gaps": [
+    "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+    "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+    "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+    "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+    "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+    "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+    "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+  ]
+}

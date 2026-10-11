@@ -9230,6 +9230,806 @@
         "finisher_ids/death_ids仅在必填receipt_seconds窗口内有限去重；十二秒验收窗口不是额外游戏冷却，不阻止独立新击杀/因果链，也不保证无限期重放幂等或物理世界故障恢复。",
         "Void Breach复用私有副本和五秒成功生成冷却；职业回能归一化与接触半径仍是显式测试输入。完整多人拾取政策、真实素材/HUD以及跨维度/物理世界重启仍未完成。"
       ]
+    },
+    {
+      "id": "mechanics/armor-charge",
+      "name": "Armor Charge",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C1",
+          "text_sha256": "2c846468c6f9e36e81529d7f1806ea6c3c6041c1a6d234a9ee19181693fcd26d"
+        }
+      ],
+      "scope": "实际Orb收集、共享层数/容量、被动衰减、消费重置、来源变更与有限回执；六属性收益及独立拾取许可",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "actualPickupNeedsEquippedChargeModAndFullSuperPermissionTracksRemainingChargeCapacity"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "chargedUpCopiesSetSharedFourFiveSixCapacityAndRemovingCopiesClampsExistingStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "stacksOnStacksAddsOneAcrossDuplicateCopiesAndExplicitExemptSourcesSkipTheBonus"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "timeDilationHasFifteenEighteenTwentySecondsOnlyWhenAPassiveModIsActive"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "SuccessfulSpendResetsTheWholeDecayIntervalButInsufficientSpendDoesNot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "unrelatedSourceMutationsDoNotResetTimerAndPeriodChangesUseNewConfiguredInterval"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "pickupReceiptsSurviveSpendRebindingAndCheckpointWhileNewActualPickupsRemainValid"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "foreignGiverUsesRecipientsCurrentConfigurationAndNeverCreditsTheGiver"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "actualDeathClearsChargesAndTheirPassiveBenefitWithoutRemovingEquippedSources"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "missingOrUnknownRecipientDoesNotGrantStacksOrPretendThatAnObservationSucceeded"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "actualOrbContactsUseThreeToSixCapacityAndStacksOnStacksWithoutDuplicatingSuperEnergy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "threeTimeDilationCopiesUseActualTwentySecondDecayRegardlessOfFontCopyCount"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "spendingRestartsDecayAndInsufficientCostCannotMoveItsDeadline"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "independentStarvationPermissionStillAllowsAFullChargeOrbAndOnlyItsOwnReward"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "actualPlayerDeathClearsChargesAndRejectsSubsequentGainUntilAlive"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "unknownReactionAfterPaymentRetainsConsumedStacksWithoutReplayingTheCost"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/charged-up",
+      "name": "Charged Up",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "H3",
+          "text_sha256": "7976fe21212773fee99f3ab5f792a104f83915f3abf6ee89fd36cac01724c9ce"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "J3",
+          "text_sha256": "0667a1ffb260f2289189265d2e20387ad0b08d2fc524f82919d06c7089e9d755"
+        }
+      ],
+      "scope": "按当前副本数将共享Armor Charge上限设为4/5/6，影响真实满Super收球资格与上限裁剪",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "chargedUpCopiesSetSharedFourFiveSixCapacityAndRemovingCopiesClampsExistingStacks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "actualOrbContactsUseThreeToSixCapacityAndStacksOnStacksWithoutDuplicatingSuperEnergy"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/time-dilation",
+      "name": "Time Dilation",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N18",
+          "text_sha256": "848174b2b9bc56a924731dcd7981c4a7f221aff376e2634b717ab3a4d5e460db"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P18",
+          "text_sha256": "78ed9afeb44a323e5cf9e91d1ed47e91308630533ef73ed5b5380aa0ef3d65e9"
+        }
+      ],
+      "scope": "按当前副本数将共享逐层衰减设为15/18/20秒，仅有被动收益时衰减",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "timeDilationHasFifteenEighteenTwentySecondsOnlyWhenAPassiveModIsActive"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "unrelatedSourceMutationsDoNotResetTimerAndPeriodChangesUseNewConfiguredInterval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "threeTimeDilationCopiesUseActualTwentySecondDecayRegardlessOfFontCopyCount"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "spendingRestartsDecayAndInsufficientCostCannotMoveItsDeadline"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/stacks-on-stacks",
+      "name": "Stacks on Stacks",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "K13",
+          "text_sha256": "79c8be584004ff432927ec899fb61d3506af23ca1b93ecf63ad6b821b39c92ca"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "M13",
+          "text_sha256": "393e7f30fd6b0b26d8cd93a2e8facedcaa1273c60680d07ea09127bc60054361"
+        }
+      ],
+      "scope": "所有接入的合格Armor Charge获得请求增加一层，重复副本不再增加；显式豁免请求保留原量",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "stacksOnStacksAddsOneAcrossDuplicateCopiesAndExplicitExemptSourcesSkipTheBonus"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "foreignGiverUsesRecipientsCurrentConfigurationAndNeverCreditsTheGiver"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "actualOrbContactsUseThreeToSixCapacityAndStacksOnStacksWithoutDuplicatingSuperEnergy"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/health-font",
+      "name": "Health Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "H5",
+          "text_sha256": "022454146f59e8ca85298d124b6bcb21c245bf887c689433188c1fd2e1d3cec5"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "J5",
+          "text_sha256": "cb31209321704920b5d0427597d16cdec5db81e55411292aeeedb5db8d394de7"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/class-font",
+      "name": "Class Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N5",
+          "text_sha256": "47016a0f9eb63f3e4b98f38afb25b3419807f8468151b168eb58fe91b0812a45"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P5",
+          "text_sha256": "a1c5d99af11e56531da308db0c32a174da03e091f6039c0f95c1dd3c318c3ca5"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/grenade-font",
+      "name": "Grenade Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "E7",
+          "text_sha256": "a7d74f1a95562de7f1d349196d50d941de6d27a1f11b622214da3218297a258a"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "G7",
+          "text_sha256": "9da840e868ef635974f66b1c7e4cfc67274277d5623022f266e8c0835d9d2331"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/melee-font",
+      "name": "Melee Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "E12",
+          "text_sha256": "f4852b3da8c766d4c6620983d7c79ee06b62bfcd9fe47441a44cc4f3237adc90"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "G12",
+          "text_sha256": "e45a6e93283e0954e868b1c5563dd04bb4ba69037e46bb5311327da88274cebd"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/super-font",
+      "name": "Super Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "B12",
+          "text_sha256": "b845c39ca08ed5e1dde30f5bb696665b9ca8cccac9fb18fba7a76a2c667a00b8"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "D12",
+          "text_sha256": "885a928607fc0a8a07849584a7b5d269fb0d5d46fa89b2af532efe80682d553c"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/weapons-font",
+      "name": "Weapons Font",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "K14",
+          "text_sha256": "ca4b534497370523c1f150ea6e898f0a3930e628400397ba47cc7589abff462c"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "M14",
+          "text_sha256": "d599fa28c87715f0ee3b502f2cb621ae7ce57d14a585fa8728bb0d810c3b7ad6"
+        }
+      ],
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "acceptance": [
+        "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
+        "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_charge_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "allSixFontsUseCurrentCopyTotalsAndSharedChargeWithoutStackingTheBenefitPerSource"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "newGainsDoNotRefreshTheRunningTenSecondDecayAndEachExpiryConsumesExactlyOne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java",
+          "symbol": "RemovingLastPassiveStopsDecayAndReaddingStartsANewIntervalWithoutLosingNonPassiveCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "allSixFontContributionsFollowActualPickupAndLiveModCopiesThenDisappearOnSpend"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "realServerTicksDecayOneStackEveryTenSecondsAndNewOrbDoesNotResetTheRunningTimer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
+          "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        }
+      ],
+      "gaps": [
+        "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
+        "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
+        "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
+        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
+        "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
+        "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
     }
   ]
 }
