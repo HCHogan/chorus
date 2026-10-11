@@ -13,36 +13,54 @@ public final class EnergyActions {
     }
     public record Result(EnergyGains.Normalized normalized, Optional<RecipientScaling> recipient, Optional<CalculationProfile.Result> calculation,
             ResourceResult grant) implements RuleEngine.ActionResult {}
-    public enum AbilityOutcome { GRANTED, NO_SELECTION, NO_RESOURCE }
+    public enum AbilityOutcome { GRANTED, NO_SELECTION, NO_RESOURCE, ALREADY_FULL }
     public record AbilityResult(String holder, String slot, Optional<String> ability, AbilityOutcome outcome,
             Optional<Result> gain) implements RuleEngine.ActionResult {
         public Result granted() { return gain.orElseThrow(() -> new IllegalArgumentException("No ability energy grant: " + outcome)); }
     }
-    /** Immutable observation of the selected base skill's account, before any later grants. */
+    /** Immutable observation of the selected base skill's usable energy and recharge destination. */
     public record AbilityObservation(String holder, String slot, Optional<String> ability,
-            Optional<ResourceState> account) implements RuleEngine.ActionResult {
+            Optional<ResourceState> account, Optional<ResourceState> rechargeAccount) implements RuleEngine.ActionResult {
+        public AbilityObservation(String holder, String slot, Optional<String> ability, Optional<ResourceState> account) {
+            this(holder, slot, ability, account, account);
+        }
         public AbilityObservation {
-            Objects.requireNonNull(holder); Objects.requireNonNull(slot); Objects.requireNonNull(ability); Objects.requireNonNull(account);
+            Objects.requireNonNull(holder); Objects.requireNonNull(slot); Objects.requireNonNull(ability); Objects.requireNonNull(account); Objects.requireNonNull(rechargeAccount);
             if (account.isPresent() && (ability.isEmpty() || !account.orElseThrow().key().holder().equals(holder))) {
                 throw new IllegalArgumentException("Mismatched ability energy observation");
             }
+            if (account.isPresent() != rechargeAccount.isPresent() || rechargeAccount.filter(a -> !a.key().holder().equals(holder)
+                    || a.timeMicros() != account.orElseThrow().timeMicros()
+                    || a.key().equals(account.orElseThrow().key()) && !a.equals(account.orElseThrow())).isPresent())
+                throw new IllegalArgumentException("Mismatched ability recharge observation");
         }
         public ResourceState observed() { return account.orElseThrow(() -> new IllegalArgumentException("No ability energy account to observe")); }
+        public ResourceState rechargeObserved() { return rechargeAccount.orElseThrow(() -> new IllegalArgumentException("No ability recharge account to observe")); }
+        public boolean separateRecharge() { return account.isPresent() && !observed().key().equals(rechargeObserved().key()); }
     }
     static final ResultShape ABILITY_OBSERVATION = new ResultShape(Map.of(
             "value", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).observed().value()),
             "capacity", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).observed().capacity()),
-            "missing", new ResultShape.Field(Unit.CHARGE, r -> { var a = ((AbilityObservation) r).observed(); return a.capacity() - a.value(); }),
-            "full_charges", new ResultShape.Field(Unit.COUNT, r -> StrictMath.floor(((AbilityObservation) r).observed().value()))), Map.of(
+            "missing", new ResultShape.Field(Unit.CHARGE, r -> missing(((AbilityObservation) r).observed())),
+            "full_charges", new ResultShape.Field(Unit.COUNT, r -> StrictMath.floor(((AbilityObservation) r).observed().value())),
+            "recharge_value", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).rechargeObserved().value()),
+            "recharge_capacity", new ResultShape.Field(Unit.CHARGE, r -> ((AbilityObservation) r).rechargeObserved().capacity()),
+            "recharge_missing", new ResultShape.Field(Unit.CHARGE, r -> missing(((AbilityObservation) r).rechargeObserved()))), Map.of(
             "available", r -> ((AbilityObservation) r).account().isPresent(),
             "no_selection", r -> ((AbilityObservation) r).ability().isEmpty(),
             "no_resource", r -> { var a = (AbilityObservation) r; return a.ability().isPresent() && a.account().isEmpty(); },
-            "full", r -> ((AbilityObservation) r).account().filter(a -> a.value() == a.capacity()).isPresent()));
+            "full", r -> ((AbilityObservation) r).account().filter(a -> a.value() == a.capacity()).isPresent(),
+            "separate_recharge", r -> ((AbilityObservation) r).separateRecharge(),
+            "recharge_full", r -> ((AbilityObservation) r).rechargeAccount().filter(a -> a.value() == a.capacity()).isPresent()));
+    private static double missing(ResourceState account) {
+        return java.math.BigDecimal.valueOf(account.capacity()).subtract(java.math.BigDecimal.valueOf(account.value())).doubleValue();
+    }
     static AbilityObservation observeAbility(Evaluation e, String slot, Evaluation.Target target) {
         String holder = e.target(target);
         var ability = e.program().orElseThrow().selectedAbility(e.state(), holder, slot);
         var account = ability.flatMap(a -> a.cost()).map(cost -> e.resource(cost.resource(), target));
-        return new AbilityObservation(holder, slot, ability.map(a -> a.id()), account);
+        var recharge = ability.flatMap(a -> a.energyResource()).map(resource -> e.resource(resource, target));
+        return new AbilityObservation(holder, slot, ability.map(a -> a.id()), account, recharge);
     }
     public record ObserveAbility(String slot, Evaluation.Target target) implements Action {
         public ObserveAbility {
@@ -80,9 +98,10 @@ public final class EnergyActions {
         ABILITY_GAIN = new ResultShape(fields, Map.of(
                 "granted", r -> ((AbilityResult) r).outcome() == AbilityOutcome.GRANTED,
                 "no_selection", r -> ((AbilityResult) r).outcome() == AbilityOutcome.NO_SELECTION,
-                "no_resource", r -> ((AbilityResult) r).outcome() == AbilityOutcome.NO_RESOURCE));
+                "no_resource", r -> ((AbilityResult) r).outcome() == AbilityOutcome.NO_RESOURCE,
+                "already_full", r -> ((AbilityResult) r).outcome() == AbilityOutcome.ALREADY_FULL));
     }
-    /** Resolve the recipient's current base skill, then use its actual cost account and gain profile. */
+    /** Resolve the recipient's current base skill, then its explicit recharge destination or legacy cost account. */
     public record GrantAbility(String slot, Evaluation.Target target, Value amount, EnergyGains.Basis basis,
             Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers) implements Action {
         public GrantAbility {
@@ -93,14 +112,18 @@ public final class EnergyActions {
         }
         @Override public ResultShape validate(Validation v) { validateValues(v, target, amount, referenceFactors, numbers); return ABILITY_GAIN; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            String holder = e.target(target);
-            var ability = e.program().orElseThrow().selectedAbility(e.state(), holder, slot);
-            if (ability.isEmpty() || ability.orElseThrow().cost().isEmpty()) {
-                return new RuleEngine.Local<>(e.state(), new AbilityResult(holder, slot, ability.map(a -> a.id()),
+            var observed = observeAbility(e, slot, target);
+            String holder = observed.holder(); var ability = observed.ability();
+            if (observed.account().isEmpty()) {
+                return new RuleEngine.Local<>(e.state(), new AbilityResult(holder, slot, ability,
                         ability.isEmpty() ? AbilityOutcome.NO_SELECTION : AbilityOutcome.NO_RESOURCE, Optional.empty()), List.of());
             }
-            var result = (RuleEngine.Local<EffectState>) new Grant(ability.orElseThrow().cost().orElseThrow().resource(), target, amount, basis, referenceFactors, tags, numbers).execute(e);
-            return new RuleEngine.Local<>(result.state(), new AbilityResult(holder, slot, ability.map(a -> a.id()), AbilityOutcome.GRANTED,
+            // A separate progress meter must not bank another cycle behind an already full usable account.
+            // Direct resource grants remain explicit content operations; legacy single-account grants keep their receipts.
+            if (observed.separateRecharge() && observed.observed().value() == observed.observed().capacity())
+                return new RuleEngine.Local<>(e.state(), new AbilityResult(holder, slot, ability, AbilityOutcome.ALREADY_FULL, Optional.empty()), List.of());
+            var result = (RuleEngine.Local<EffectState>) new Grant(observed.rechargeObserved().key().resource(), target, amount, basis, referenceFactors, tags, numbers).execute(e);
+            return new RuleEngine.Local<>(result.state(), new AbilityResult(holder, slot, ability, AbilityOutcome.GRANTED,
                     Optional.of((Result) result.result())), result.emitted());
         }
     }

@@ -1,0 +1,203 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:other_uses",
+      "capacity": 2,
+      "initial": 0
+    },
+    {
+      "id": "test:other_progress",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:cycle_gain",
+      "gain_scalar": 0.25
+    },
+    {
+      "id": "test:legacy_energy",
+      "capacity": 2,
+      "initial": 0,
+      "gain_profile": "test:cycle_gain",
+      "gain_scalar": 0.8
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:other_route",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:other_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "test:other_progress",
+      "on_use": []
+    },
+    {
+      "id": "test:legacy_route",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:legacy_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:no_route",
+      "slot": "chorus_d2:melee",
+      "on_use": []
+    },
+    {
+      "id": "test:route_override",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "test:legacy_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "cost_from": "base_selection",
+      "recharge_resource": "test:other_progress",
+      "on_use": [
+        {
+          "type": "chorus:refund_cost",
+          "cost": "cast_cost",
+          "fraction": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "multiplier"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:route_inputs",
+      "rules": [
+        {
+          "id": "base",
+          "on": "test:route_base",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "on": "test:route_fixed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "reference",
+          "on": "test:route_reference",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "reference",
+              "reference_factors": {
+                "test:prior_scalar": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "multiplier"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:route_later",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:grant_ability_energy",
+                  "slot": "chorus_d2:melee",
+                  "target": "victim",
+                  "amount": {
+                    "type": "chorus:event_number",
+                    "name": "amount",
+                    "unit": "charge_fraction"
+                  },
+                  "value_basis": "fixed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:route_override_source",
+      "ability_overrides": [
+        {
+          "id": "override",
+          "slot": "chorus_d2:melee",
+          "ability": "test:linked_ability",
+          "replace_with": "test:route_override",
+          "priority": 1
+        }
+      ]
+    }
+  ]
+}

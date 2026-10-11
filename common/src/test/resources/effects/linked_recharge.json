@@ -1,5 +1,5 @@
 {
-  "version": "test-linked-recharge",
+  "version": "compendium-2026-10-05",
   "resources": [
     {
       "id": "test:charges",
@@ -20,7 +20,7 @@
   "profiles": [
     {
       "id": "test:cycle_rate",
-      "version": "test-linked-recharge",
+      "version": "compendium-2026-10-05",
       "input_unit": "charge_fraction_per_second",
       "steps": [
         {
@@ -45,7 +45,7 @@
     },
     {
       "id": "test:cycle_gain",
-      "version": "test-linked-recharge",
+      "version": "compendium-2026-10-05",
       "input_unit": "charge_fraction",
       "steps": []
     }
@@ -54,7 +54,7 @@
     {
       "definition": {
         "id": "test:boost",
-        "version": "test-linked-recharge",
+        "version": "compendium-2026-10-05",
         "duration": 0.5,
         "refresh": "reset"
       },
@@ -191,7 +191,64 @@
               "payment": "start_cycle"
             }
           ]
-        },
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:cycle_rate",
+          "stage": "baseline",
+          "group": "base",
+          "op": "replace",
+          "stacking_key": "test:cycle",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "charge_fraction_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "test:charges",
+              "field": "missing"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "reference": "Synthetic linked cycle calibration; no D2 cooldown claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:boosted",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "boost",
+          "profile": "test:cycle_rate",
+          "stage": "boost",
+          "group": "boost",
+          "op": "multiply",
+          "stacking_key": "test:boost",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic linked cycle boost",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:linked_inputs",
+      "rules": [
         {
           "id": "cast",
           "on": "test:spend",
@@ -447,65 +504,13 @@
             }
           ]
         }
-      ],
-      "modifiers": [
-        {
-          "id": "rate",
-          "profile": "test:cycle_rate",
-          "stage": "baseline",
-          "group": "base",
-          "op": "replace",
-          "stacking_key": "test:cycle",
-          "value": {
-            "type": "chorus:constant",
-            "value": 0.5,
-            "unit": "charge_fraction_per_second"
-          },
-          "if": {
-            "type": "chorus:compare",
-            "left": {
-              "type": "chorus:resource",
-              "resource": "test:charges",
-              "field": "missing"
-            },
-            "op": "gt",
-            "right": {
-              "type": "chorus:constant",
-              "value": 0,
-              "unit": "charge_fraction"
-            }
-          },
-          "reference": "Synthetic linked cycle calibration; no D2 cooldown claim",
-          "confidence": "assumed"
-        }
-      ]
-    },
-    {
-      "id": "test:boosted",
-      "scope": "buff",
-      "modifiers": [
-        {
-          "id": "boost",
-          "profile": "test:cycle_rate",
-          "stage": "boost",
-          "group": "boost",
-          "op": "multiply",
-          "stacking_key": "test:boost",
-          "value": {
-            "type": "chorus:constant",
-            "value": 1,
-            "unit": "delta"
-          },
-          "reference": "Synthetic linked cycle boost",
-          "confidence": "assumed"
-        }
       ]
     }
   ],
   "abilities": [
     {
       "id": "test:linked_ability",
-      "slot": "test:melee",
+      "slot": "chorus_d2:melee",
       "cost": {
         "resource": "test:charges",
         "amount": {
@@ -526,7 +531,13 @@
             "unit": "damage"
           }
         }
-      ]
+      ],
+      "recharge_resource": "test:progress",
+      "effects": {
+        "cycle": {
+          "bundle": "test:linked"
+        }
+      }
     }
   ]
 }

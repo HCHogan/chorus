@@ -18,8 +18,8 @@ public class LinkedRechargeGameTest {
         var p = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("linked_recharge")).getOrThrow();
         var t = new BleakWatcherGameTest.Harness(h, p); t.owner.setHealth(10);
         String owner = BleakWatcherGameTest.id(t.owner);
-        t.runtime.bind(new EffectSource("input", "test:linked", owner, new BuffInstance.Origin(owner, "input", "", ""), Set.of()));
-        t.runtime.abilities(new AbilityChange(owner, AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("test:melee", "test:linked_ability"))));
+        t.runtime.bind(new EffectSource("input", "test:linked_inputs", owner, new BuffInstance.Origin(owner, "input", "", ""), Set.of()));
+        t.runtime.abilities(new AbilityChange(owner, AbilityLoadout.EMPTY, new AbilityLoadout(Map.of("chorus_d2:melee", "test:linked_ability"))));
         return t;
     }
     static double value(BleakWatcherGameTest.Harness t, String resource) {
@@ -31,7 +31,7 @@ public class LinkedRechargeGameTest {
                 new BuffInstance.Origin(owner, "input", "", ""), Set.of(), Map.of("amount", new Measure(amount, Unit.CHARGE)))));
     }
     static void use(GameTestHelper h, BleakWatcherGameTest.Harness t, AbilityUse.Outcome outcome) {
-        h.assertValueEqual(t.runtime.useAbility(t.owner, "test:melee").outcome(), outcome, "linked ability outcome");
+        h.assertValueEqual(t.runtime.useAbility(t.owner, "chorus_d2:melee").outcome(), outcome, "linked ability outcome");
     }
     @GameCase public void actualAbilityCannotSpendPartialCycleAndAFullGrantRestoresBothUses(GameTestHelper h) {
         try (var t = open(h)) {

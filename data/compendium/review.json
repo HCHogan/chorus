@@ -3413,7 +3413,8 @@
         "普通/强化旧表10/11%，Fusion/Glaive/Shotgun/Sniper旧表20/22%；显式换算到当前0属性，再按接收技能CES/属性结算",
         "击杀时选中近战技能决定实际账户；缺少选择/成本声明跳过，损坏配置失败",
         "正近战伤害给予35操控、3秒；来源隔离、刷新、收枪、卸装、免疫与到期",
-        "完成原作0属性逐类实测、完整配装和操控动作时间映射"
+        "完成原作0属性逐类实测、完整配装和操控动作时间映射",
+        "The unchanged perk routes kills into a selected linked skill's separate recharge account using that account's CES; physical projectile kills complete a cycle and restore usable casts. In-flight selection changes route at kill execution, while replacement refunds stay with the paid use account. The receiving linked skill remains synthetic."
       ],
       "evidence": [
         {
@@ -3487,6 +3488,31 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityRechargeTest.java",
+          "symbol": "unchangedPugilistDefinitionFeedsTheCycleAndCompletesBothUsesOnTheFiftiethKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AbilityRechargeGameTest.java",
+          "symbol": "physicalPugilistKillCompletesTheCycleAndEnablesTwoActualCasts"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AbilityRechargeGameTest.java",
+          "symbol": "anInFlightWeaponKillUsesTheNewlySelectedRechargeDestination"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AbilityRechargeGameTest.java",
+          "symbol": "replacementRefundReturnsToThePaidUseAccountWhileKillsStillFeedBaseRecharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AbilityRechargeGameTest.java",
+          "symbol": "unknownCompletionAfterAPhysicalKillKeepsActualHealthAndBothAccountWrites"
         }
       ],
       "gaps": [
@@ -3632,7 +3658,8 @@
         "先填满第一个池不改变后续份额；溢出不再分配，缺失选择/无成本有明确分支",
         "多充能已有一份后不计入未充能分母，按q/3独立授予，为待校准政策",
         "武器与持有者信用隔离、当前选择、未知世界结果保留和实际服务端击杀",
-        "完成当前原作多充能混合分母、基础值和完整子职业/属性的校准"
+        "完成当前原作多充能混合分母、基础值和完整子职业/属性的校准",
+        "A synthetic linked skill keeps eligibility and full-charge counts on its usable account while slot-based energy grants go to its separate progress account. The existing perk definition composes without treating partial cycle progress as usable casts; original exotic policies remain uncalibrated."
       ],
       "evidence": [
         {
@@ -3701,6 +3728,11 @@
         {
           "kind": "design",
           "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityRechargeTest.java",
+          "symbol": "wellspringSharesAndSurplusBonusesStillReadUsableChargesRatherThanTheMeter"
         }
       ],
       "gaps": [
@@ -3735,7 +3767,8 @@
         "属性随消费/回能/选择实时变化，未装备词条的另一武器不受益",
         "强化正档必须提供明确的分档完整加值，缺失或错误单位拒绝",
         "加值先于属性限幅与曲线，实际两次服务端换弹核对时间和储备转移",
-        "校准强化数值、全部武器曲线与操控/稳定性的实际表现"
+        "校准强化数值、全部武器曲线与操控/稳定性的实际表现",
+        "A synthetic linked skill keeps eligibility and full-charge counts on its usable account while slot-based energy grants go to its separate progress account. The existing perk definition composes without treating partial cycle progress as usable casts; original exotic policies remain uncalibrated."
       ],
       "evidence": [
         {
@@ -3839,6 +3872,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProfilePipelineGameTest.java",
           "symbol": "animationStageRunsAfterCurveAndAcceptedPlanRetainsAllTraces"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AbilityRechargeTest.java",
+          "symbol": "wellspringSharesAndSurplusBonusesStillReadUsableChargesRatherThanTheMeter"
         }
       ],
       "gaps": [

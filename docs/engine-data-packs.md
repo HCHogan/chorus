@@ -564,7 +564,7 @@ progress 必须声明为固定容量 1，禁止 resizable；两账户必须已�
 
 [linked_recharge.json](../common/src/test/resources/effects/linked_recharge.json) 是完整可执行的合成示例。技能只从可用账户支付一份，外部能量送入进度账户；资源越过进度 1 的规则显式完成一轮。示例选择首次从满次数使用时清空旧进度，中途再次使用保留本轮进度，满次数不积存时间或外部回能；解绑提供恢复率的来源会暂停，重挂保留账户。2 秒周期、0.5 CES、0.5 秒加速 Buff 和治疗动作体均是测试校准。联动完成只是一个动作，父帧会先执行完再处理派生事实；需要在同一帧中立即使用新次数时，应在进度入账后显式执行 complete_recharge。
 
-当前按技能槽的 grant_ability_energy / ability_energy 仍解析该技能的扣费账户，没有独立 recharge_resource 路由。因此生产联动技能尚不能把现有按槽回能内容直接复用为进度收益；必须先完成路由、观察字段与内容装配。任意分组、每格 parallel 进度、原作时窗、保存恢复和专用 HUD 也未实现。这一通用动作不代表 Ophidia Spathe 的完整行为已验收。
+技能现可通过 recharge_resource 将按槽收益指向独立进度，观察接口同时保留可用次数与进度，见下文。示例把核心周期规则放在 test:linked，由技能的选择期 effects 自动绑定；合成输入另在 test:linked_inputs，避免相同核心来源重复绑定时把一次输入也执行多遍。Pugilist、Wellspring、Surplus 无需改写定义即可组合这类账户。任意分组、每格 parallel 进度、原作时窗、生产金装装配、保存恢复和专用 HUD 仍未实现，这一组合不代表 Ophidia Spathe 的完整行为已验收。
 
 ### 归一化后授予能量
 
@@ -594,11 +594,21 @@ progress 必须声明为固定容量 1，禁止 resizable；两账户必须已�
 
 ### 按当前技能槽授予能量
 
-`chorus:grant_ability_energy` 接受 slot（命名空间 ID）以及与 grant_energy 相同的 target / amount / value_basis / reference_factors / tags / numbers。它在执行时读取目标的基础技能选择，通过该技能 cost.resource 找到接收账户，再复用账户 gain_profile 和完整收益轨迹。它不重新解析施放时的临时 ability_overrides；外部回能属于已选基础技能，不能因为临时免费替换而流向另一个池。未来内容需要别的路由时应显式扩展政策。
+`chorus:grant_ability_energy` 接受 slot（命名空间 ID）以及与 grant_energy 相同的 target / amount / value_basis / reference_factors / tags / numbers。它在执行时读取目标的基础技能选择，优先使用该技能的 recharge_resource，省略时使用 cost.resource；收益缩放和轨迹来自实际接收账户。它不重新解析施放时的临时 ability_overrides，外部回能仍属于已选基础技能。施放支付与退款继续使用实际 cost，不因为独立回充路由而改写。
+
+```json
+{"id":"example:linked_melee","slot":"example:melee",
+ "cost":{"resource":"example:melee_uses","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+ "recharge_resource":"example:melee_cycle","on_use":[]}
+```
+
+recharge_resource 必须引用目录中已声明的资源，并要求技能自身声明 cost；不能只靠 cost_from:base_selection 补造基础选择的回能含义。两者可以指向相同资源，这时沿用旧行为。指向不同账户时，按槽收益进入进度，可用次数只由相应完成规则恢复。首次选择初始化该槽候选技能涉及的扣费和回充账户，重新选择只校验已有状态，不重置余额或进度。周期规则可通过选择期 effects 自动装卸，暂停 / 恢复率仍由内容声明。
 
 未选择该槽时返回 no_selection，已选技能未声明 cost 时返回 no_resource，两者均不求值 amount、不写状态、不发资源事实。声明 cost 且 amount 为零仍有资源账户，不等同于未声明 cost。缺失已选定义、未初始化账户、无 gain_profile 的普通收益等属于配置错误，求值失败，不能伪装成不符合资格。
 
-绑定结果提供 granted / no_selection / no_resource 布尔值；仅 granted 时允许读取 requested / normalized / scaled / credited / overflow / after，缺失收益读取数值会报错，不能用零掩盖缺失。granted 表示完成收益结算，满账户也可能 credited = 0。Java 结果保留 holder / slot / ability 和嵌套收益轨迹。slot 只校验 ID 格式，候选账户及收益 Profile 在实际选择后检查；显式 resource 版本继续提供固定引用的加载期检查。
+当路由到独立账户而可用账户已经达到当前上限时，返回 already_full，不求值 amount、不写进度、不发资源事实，防止在满次数背后额外积存一轮。它不会清掉内容已经显式写入的进度；直接 grant_energy / grant_resource 仍保留按指定资源操作的语义。单账户满容量保持原来的 granted 与 credited=0 / overflow 回执，不改变旧内容。
+
+绑定结果提供 granted / no_selection / no_resource / already_full 布尔值；仅 granted 时允许读取 requested / normalized / scaled / credited / overflow / after，缺失收益读取数值会报错。Java 结果保留 holder / slot / ability 和嵌套收益轨迹；该轨迹的 after 是入账完成时的接收账户读数，后续完成周期的事实不会改写旧回执。slot 只校验 ID 格式；已选账户必须有效，即使可用次数已满，也不能掩盖缺失或损坏的回充账户。普通收益所需 gain_profile 在实际结算时检查，显式 resource 版本继续提供固定引用的加载期检查。
 
 例如 [pugilist.json](../common/src/test/resources/effects/pugilist.json) 的击杀分支使用如下动作，数值依据和换算边界见 [Pugilist](d2-ruleset.md#pugilist)：
 
@@ -613,15 +623,17 @@ progress 必须声明为固定容量 1，禁止 resizable；两账户必须已�
 
 ### 观察当前技能槽能量
 
-`chorus:observe_ability_energy` 接受 slot 和 target（默认 self），按与 grant_ability_energy 相同的基础选择解析账户，绑定不可变的观察结果。不会初始化账户、扣费、运行 gain_profile、发布事实或改变状态。后续回能不改写已有观察；多个技能的分配规则应先观察全部槽，再按这些结果计算各份收益。
+`chorus:observe_ability_energy` 接受 slot 和 target（默认 self），按当前基础选择同时解析扣费账户和回充目的账户，绑定同一时点的不可变观察。不会初始化账户、扣费、运行 gain_profile、发布事实或改变状态。后续回能不改写已有观察；多个技能的分配规则应先观察全部槽，再按这些结果计算各份收益。
 
-结果 flags 为 available / no_selection / no_resource / full；数值字段 value / capacity / missing 的单位是 charge_fraction，full_charges 为 count（总能量向下取整，一份充能恒为 1）。缺失选择或 cost 时分别设置 no_selection / no_resource，available 与 full 均为 false；任何数值读取都会失败，需先用 available 守卫。已有 cost 的账户缺失、容量不匹配或已选定义损坏仍是错误。读取不要求 gain_profile，也不把 cost.amount=0 当成无账户。
+原有数值字段 value / capacity / missing 仍读取扣费账户，单位 charge_fraction；full_charges 为 count（向下取整，一份充能恒为 1）。full 也仍表示扣费账户达到上限，Surplus / Wellspring 不会把半轮进度误当成半份可用次数。新增 recharge_value / recharge_capacity / recharge_missing（charge_fraction）读取接收账户，recharge_full 表示其达到上限，separate_recharge 表示两者身份不同。没有独立路由时两组数值指向同一账户。
+
+available / no_selection / no_resource 保留原语义。缺失选择或 cost 时分别设置 no_selection / no_resource，available、full、recharge_full、separate_recharge 均为 false；任何数值读取都会失败，需先用 available 守卫。任一应有账户缺失、容量不匹配或已选定义损坏仍是错误。读取不要求 gain_profile，也不把 cost.amount=0 当成无账户。
 
 ```json
 {"action":{"type":"chorus:observe_ability_energy","slot":"chorus_d2:melee"},"as":"melee_before"}
 ```
 
-Java 结果保留 holder / slot / ability 与含资源键和时点的 ResourceState。它是观察证据，不是冻结路由的支付凭证；之后的 grant_ability_energy 仍解析执行时选择。跨延迟或世界调用的分配需要另外明确路由政策。当前依然只支持顺序充能账户，不能把 full_charges 当作并行充能槽位模型。
+Java 结果保留 holder / slot / ability、account 与 rechargeAccount，两个 ResourceState 各自保存资源键与相同逻辑时点。它是观察证据，不是冻结路由的支付凭证；之后的 grant_ability_energy 仍解析执行时选择。跨延迟或世界调用的分配需要另外明确路由政策。当前可观察顺序账户和分离的联动进度，仍不能把 full_charges 当作每格并行进度模型。
 
 属性查询也能使用只读 `chorus:ability_energy` Value（slot / target / field）及 `chorus:ability_energy_flag` Condition（同字段，is 默认 true）。字段和缺失语义与观察动作一致；数值字段与布尔字段不可混用，字段名在编译时检查。每次普通查询重新读取当前基础选择，不需要先发布事件或建立 Buff 缓存。以 available 守卫后，内容可以显式选择把未选槽计为零份；原始读数仍没有零默认值。
 

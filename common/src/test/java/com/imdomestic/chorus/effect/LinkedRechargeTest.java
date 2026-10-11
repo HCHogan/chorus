@@ -31,6 +31,7 @@ class LinkedRechargeTest {
                 return new HealingReceipt("heal/" + heals.size(), command, HealingReceipt.Outcome.APPLIED, command.amount(), command.amount(), 0);
             });
             send(SourceChange.bind(source("input", "player")));
+            send(SourceChange.bind(new EffectSource("test-input", "test:linked_inputs", "player", source("input", "player").origin(), Set.of())));
         }
         EffectState state() { return session.state().engine().domain(); }
         long now() { return state().buffs().timeMicros(); }

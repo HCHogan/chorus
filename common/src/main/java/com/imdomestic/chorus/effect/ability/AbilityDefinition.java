@@ -5,15 +5,22 @@ import java.util.*;
 
 /** Instant action kind. The chosen definition and numeric parameters are pinned at acceptance. */
 public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
-        Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom) {
+        Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
+        Optional<String> rechargeResource) {
     /** Only the final resolved definition chooses the payment policy; BASE_SELECTION reads its original selection's declared cost. */
     public enum CostFrom { DEFINITION, BASE_SELECTION }
     public AbilityDefinition {
         id(id); id(slot); Objects.requireNonNull(cost); Objects.requireNonNull(condition); Objects.requireNonNull(costFrom);
+        Objects.requireNonNull(rechargeResource); rechargeResource.ifPresent(AbilityDefinition::id);
+        if (rechargeResource.isPresent() && cost.isEmpty()) throw new IllegalArgumentException("An explicit recharge resource requires a declared cost account");
         tags = Set.copyOf(tags); tags.forEach(AbilityDefinition::id);
         parameters = Collections.unmodifiableMap(new TreeMap<>(parameters)); parameters.keySet().forEach(com.imdomestic.chorus.effect.EffectTimers::localName);
         onUse = List.copyOf(onUse);
         effects = com.imdomestic.chorus.effect.EffectParameters.copy(effects);
+    }
+    public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
+            Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom) {
+        this(id, slot, cost, condition, tags, parameters, onUse, effects, costFrom, Optional.empty());
     }
     public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
             Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse) {
@@ -24,6 +31,8 @@ public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Con
         this(id, slot, cost, condition, tags, parameters, onUse, effects, CostFrom.DEFINITION);
     }
     public boolean hasPayment() { return cost.isPresent() || costFrom == CostFrom.BASE_SELECTION; }
+    /** External energy follows the current base selection, independently of a replacement's payment policy. */
+    public Optional<String> energyResource() { return rechargeResource.or(() -> cost.map(Cost::resource)); }
     /** Static selection configuration, independent of the parameters evaluated for each accepted cast. */
     public record Effect(String bundle, Set<String> tags, Map<String, com.imdomestic.chorus.stat.Measure> parameters) {
         public Effect {

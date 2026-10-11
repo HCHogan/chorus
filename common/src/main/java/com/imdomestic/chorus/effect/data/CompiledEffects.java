@@ -268,6 +268,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 if (cost.amount() instanceof Value.Constant c) Numbers.nonnegative(c.value(), "ability cost");
                 validateAbilityProfile(cost.profile(), Unit.CHARGE);
             });
+            ability.rechargeResource().ifPresent(validation::resource);
             ability.parameters().values().forEach(parameter -> validateAbilityProfile(parameter.profile(), parameter.value().unit(validation)));
             validateInstantSteps(ability.onUse()); validatePayments(ability.onUse(), new HashSet<>());
             var actions = new ArrayList<RuleEngine.Instruction<EffectState>>();
@@ -325,7 +326,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var origin = new BuffInstance.Origin(change.holder(), "chorus:abilities", "", "");
         // A slot may temporarily use another declared pool. Initialize each eligible pool once, never on every cast or replacement.
         var needed = new java.util.TreeSet<String>();
-        abilities.values().stream().filter(ability -> change.after().slots().containsKey(ability.slot())).forEach(ability -> ability.cost().ifPresent(cost -> needed.add(cost.resource())));
+        abilities.values().stream().filter(ability -> change.after().slots().containsKey(ability.slot())).forEach(ability -> {
+            ability.cost().ifPresent(cost -> needed.add(cost.resource()));
+            ability.rechargeResource().ifPresent(needed::add);
+        });
         for (String id : needed) {
             var definition = resources.get(id); var key = new ResourceState.Key(change.holder(), id); var existing = updated.resources().get(key);
             if (existing != null) { definition.validate(existing); continue; }
