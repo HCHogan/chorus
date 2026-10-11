@@ -16,7 +16,13 @@ import org.junit.jupiter.api.Test;
 
 class IcarusDashTest {
     static final String SLOT="chorus_d2:air_move", ABILITY="chorus_d2:icarus_dash", USES="chorus_d2:icarus_dash_uses", METER="chorus_d2:icarus_dash_progress";
-    static CompiledEffects program() throws Exception { return link("icarus_dash", "icarus_dash_inputs"); }
+    static CompiledEffects program() throws Exception {
+        var parts=new ArrayList<EffectProgram>();
+        for(String name:List.of("icarus_dash","icarus_dash_inputs","icarus_dash_cure","cure")) {
+            var data=json(name);AmplifiedTest.version(data);parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow());
+        }
+        return CompiledEffects.link(parts);
+    }
     static final class Harness {
         final CompiledEffects p=program(); final EffectSession session;
         final List<DirectionQuery> queries=new ArrayList<>(); final List<Displacement.Command> moves=new ArrayList<>();

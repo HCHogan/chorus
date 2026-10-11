@@ -1,0 +1,594 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:icarus_air_kill_progress",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "max_stacks": 100,
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:icarus_air_kill_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:icarus_air_kill_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "refresh": "none",
+        "components": {
+          "numbers": {
+            "accepted": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "deaths"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:icarus_air_kill_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:icarus_dash_cure",
+      "rules": [
+        {
+          "id": "airborne_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_kill"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:super_kill"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_entity_observed",
+                    "target": "event_actor"
+                  },
+                  {
+                    "type": "chorus:event_entity_observed",
+                    "target": "victim"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_entity",
+                    "target": "event_actor"
+                  },
+                  "as": "actor"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "actor",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "actor",
+                        "field": "movement_observed"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:result_flag",
+                          "binding": "actor",
+                          "field": "on_ground"
+                        }
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:read_event_entity",
+                            "target": "victim"
+                          },
+                          "as": "victim"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "victim",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "victim",
+                                    "field": "player"
+                                  },
+                                  {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:compare",
+                                        "op": "eq",
+                                        "left": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:rank_and_file"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:rank_and_file"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 0,
+                                                "unit": "count"
+                                              }
+                                            },
+                                            {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:elite"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:elite"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 0,
+                                                "unit": "count"
+                                              }
+                                            },
+                                            {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:boss"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:boss"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 0,
+                                                "unit": "count"
+                                              }
+                                            },
+                                            {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:miniboss"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:miniboss"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 0,
+                                                "unit": "count"
+                                              }
+                                            },
+                                            {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:champion"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:champion"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 0,
+                                                "unit": "count"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:rank_and_file"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:rank_and_file"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:elite"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:elite"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:boss"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:boss"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:icarus_air_kill_receipts"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_buff",
+                                  "buff": "chorus_d2:icarus_air_kill_receipts"
+                                }
+                              ]
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:update_component",
+                                "buff": "chorus_d2:icarus_air_kill_receipts",
+                                "component": "accepted",
+                                "op": "add",
+                                "value": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                },
+                                "once_set": "deaths",
+                                "event_reference": "death_id"
+                              },
+                              "as": "receipt"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "receipt",
+                                "field": "applied"
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_buff",
+                                  "buff": "chorus_d2:icarus_air_kill_progress",
+                                  "stacks": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:result_flag",
+                                      "binding": "victim",
+                                      "field": "player"
+                                    },
+                                    "then": {
+                                      "type": "chorus:constant",
+                                      "value": 67,
+                                      "unit": "count"
+                                    },
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "victim",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:boss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "victim",
+                                            "source": "type",
+                                            "tag": "chorus_d2:boss"
+                                          }
+                                        ]
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 100,
+                                        "unit": "count"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "victim",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:elite"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "victim",
+                                              "source": "type",
+                                              "tag": "chorus_d2:elite"
+                                            }
+                                          ]
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 67,
+                                          "unit": "count"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 34,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:has_buff",
+                                    "buff": "chorus_d2:icarus_air_kill_progress",
+                                    "minimum": 100
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:remove_buff",
+                                      "buff": "chorus_d2:icarus_air_kill_progress"
+                                    },
+                                    {
+                                      "type": "chorus:invoke_bundle",
+                                      "bundle": "chorus_d2:cure",
+                                      "event": "chorus:cure_requested",
+                                      "holder": "self",
+                                      "target": "self",
+                                      "numbers": {
+                                        "tier": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "else": [
+                            {
+                              "type": "chorus:play_cue",
+                              "cue": "chorus_d2:icarus_unclassified_kill"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "chorus_d2:icarus_unobserved_airborne"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "chorus_d2:icarus_unobserved_airborne"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_source_tag",
+                  "tag": "chorus_d2:icarus_dash_cure"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:icarus_air_kill_progress"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:icarus_air_kill_receipts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:icarus_air_kill_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:icarus_air_kill_progress"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:icarus_air_kill_receipts"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

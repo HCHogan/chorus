@@ -579,11 +579,12 @@
           "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
         }
       ],
-      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP",
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复",
       "acceptance": [
         "每级60/30HP，0.1秒过程",
         "重复激活不延长冷却",
-        "真实治疗回执和来源"
+        "真实治疗回执和来源",
+        "Icarus阈值调用与其他来源共用接收者冷却，拒绝时仍消费计数，未知治疗不重放"
       ],
       "evidence": [
         {
@@ -599,11 +600,31 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ScheduledEffectsGameTest.java",
           "symbol": "serverTicksExecuteJsonCureRecoveryAndResourceProfiles"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "cureSharesItsCooldownWithOtherProducersAndConsumesThresholdEvenWhenBlocked"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "realWeaponKillsHealAfterEarlierDeathReactionLandsAttackerAndDiscardsCorpse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "realSuperKillsShareCureCooldownWithAnIndependentProducer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "unknownNativeCureKeepsAppliedHealthAndConsumedProgressWithoutReplay"
         }
       ],
       "gaps": [
         "两次等量脉冲为Chorus选择，原作细分恢复曲线未知",
-        "实际技能/装备来源装配"
+        "Icarus部分模板已调用；凤凰俯冲等其他生产者、正式技能 / 装备装配及全局生命缩放未完成"
       ]
     },
     {
@@ -6634,13 +6655,17 @@
           "text_sha256": "453c2f704529c6ee885e20f441d376760eb70154d5089c8d418e1df571b063ed"
         }
       ],
-      "scope": "双账户技能的4秒单充能 / 5秒联动双充能、Heat Rises与Song of Flame+当前Incinerator来源资格、Buff到期容量裁剪；实际玩家按服务器水平朝向请求8米 / Daybreak 10米碰撞位移；原作完整冲刺和Cure分支未完成",
+      "scope": "双账户技能的4秒单充能 / 5秒联动双充能、Heat Rises与Song of Flame+当前Incinerator来源资格、Buff到期容量裁剪；实际玩家按服务器水平朝向请求8米 / Daybreak 10米碰撞位移；按确认死亡时的移动 / 分类观测累计空中武器 / 超能击杀，五秒加权计数调用共享Cure x1；完整原作冲刺与生产装配未完成",
       "acceptance": [
         "地面输入在扣费之前拒绝，部分进度不能支付；普通4秒后恢复一份",
         "Heat Rises或Song of Flame加当前Incinerator选择使用5秒周期；中途第二次使用不重启周期，两份一起恢复",
         "状态中途变化保留进度，按旧 / 新恢复率分段；到期与完成同刻使用新容量，重选保留账户",
         "Song of Flame配Celestial Fire不提供额外次数；Heat Rises独立满足条件，其他持有者状态不串用",
-        "真实玩家仰头或低头仍沿水平朝向位移，Daybreak距离参数为10米，完整碰撞箱遇墙裁剪；未知结果不退已付能量或重放位移"
+        "真实玩家仰头或低头仍沿水平朝向位移，Daybreak距离参数为10米，完整碰撞箱遇墙裁剪；未知结果不退已付能量或重放位移",
+        "空中武器 / 超能击杀按Rank-And-File34、Elite67、Boss100、Guardian67累计；五秒相邻窗口，阈值请求Cure x1且消费溢出",
+        "使用伤害确认时的攻击者移动和目标分类，发射时 / 落地后状态以及更早死亡反应删除尸体不改写资格；缺失证据、未知和冲突类别不计数",
+        "重复来源共享计数并按death_id去重，达到阈值后不重复累积；固定寿命回执桶不随连续击杀永久延长",
+        "与其他生产者共用Cure冷却；实际HP按已有缩放两次恢复，未知治疗保留已生效生命和已消费计数，最后来源装卸及持有者死亡隔离清理"
       ],
       "evidence": [
         {
@@ -6696,10 +6721,69 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
           "symbol": "unknownNativeDashResultRetainsActualMovementAndPaymentWithoutReplay"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/icarus_dash_cure.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "confirmedWeaponAndSuperKillsUseExplicitRankWeightsInBothTagNamespaces"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "qualifyingKillsRefreshTheFiveSecondGapAndExactExpiryStartsANewCounter"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "unavailableMovementOrVictimEvidenceReportsUnknownInsteadOfAssumingAirborne"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "duplicateSourcesAndRepeatedDeathReceiptsDoNotInflateCountsOrRestartAfterThreshold"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "selectionRemovalLastSourceAndHolderDeathCleanOnlyTheirOwnProgress"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusCureTest.java",
+          "symbol": "cureSharesItsCooldownWithOtherProducersAndConsumesThresholdEvenWhenBlocked"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "realWeaponKillsHealAfterEarlierDeathReactionLandsAttackerAndDiscardsCorpse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "airborneEligibilityIsCapturedAtImpactAndDoesNotUseLaunchOrLaterFlags"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "realSuperKillsShareCureCooldownWithAnIndependentProducer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "realFiveSecondKillGapsRefreshProgressWithoutRetainingOldReceiptBuckets"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
+          "symbol": "unknownNativeCureKeepsAppliedHealthAndConsumedProgressWithoutReplay"
         }
       ],
       "gaps": [
-        "空中武器 / 超能击杀的五秒加权计数和Cure x1分支未实现",
+        "空中Cure已接入；Miniboss / Champion权重未知，原作姿态 / 取样、落地重置、边界 / 溢出 / 来源移除政策待校准；完整超能与武器 / 状态击杀信用分类未完成；Cure沿用未校准的0.1生命缩放和两次等量脉冲",
         "当前是Minecraft授权瞬时位移投影，不是原作冲刺速度 / 动画；按移动输入方向、惯性、滑翔与瞄准交互尚未校准",
         "首次使用重置 / 中途再次使用保留进度、模式切换保留进度、扩容不赠能和缩容裁剪是显式测试政策；原作充能恢复起点、额外次数即时授予、两次冲刺间隔和Daybreak能量特例待校准",
         "Heat Rises / Song of Flame / Daybreak只识别已授予标签，近战资格依赖选择来源标记；测试使用合成状态和近战生产者，不是完整原作能力",

@@ -892,6 +892,12 @@
       "effects": {
         "cycle": {
           "bundle": "chorus_d2:icarus_dash_cycle"
+        },
+        "cure": {
+          "bundle": "chorus_d2:icarus_dash_cure",
+          "tags": [
+            "chorus_d2:icarus_dash_cure"
+          ]
         }
       },
       "parameters": {

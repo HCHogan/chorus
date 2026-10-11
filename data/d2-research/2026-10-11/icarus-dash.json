@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Partial Icarus Dash template: recharge and collision-resolved horizontal displacement; full original movement and Cure branch remain incomplete",
+  "status": "Partial Icarus Dash template: conditional recharge, collision-resolved horizontal displacement and receipt-observed airborne kill Cure; full original movement, classification and production assembly remain incomplete",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
     "retrieved_at": "2026-10-11T00:39:11.742655+00:00",
@@ -21,6 +21,18 @@
       "snapshot_cell": "D84",
       "snapshot_text_sha256": "453c2f704529c6ee885e20f441d376760eb70154d5089c8d418e1df571b063ed",
       "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "B6",
+      "snapshot_cell": "B4",
+      "snapshot_text_sha256": "f22b5280088582f7c290768caa90c11d3e9bee41372bced2fa83c362262478fa",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D6",
+      "snapshot_cell": "D4",
+      "snapshot_text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea",
+      "normalized_text_matches_snapshot": true
     }
   ],
   "known": {
@@ -29,18 +41,45 @@
     "normal_cycle_seconds": 4,
     "enhanced_cycle_seconds": 5,
     "enhanced_capacity": 2,
-    "enhanced_qualification": "Heat Rises active OR Song of Flame active while Incinerator Snap is equipped; Celestial Fire alone does not qualify"
+    "enhanced_qualification": "Heat Rises active OR Song of Flame active while Incinerator Snap is equipped; Celestial Fire alone does not qualify",
+    "airborne_kill_window_seconds": 5,
+    "airborne_kill_progress_percent": {
+      "rank_and_file": 34,
+      "elite": 67,
+      "boss": 100,
+      "guardian": 67
+    },
+    "airborne_kill_classes": [
+      "weapon",
+      "super"
+    ],
+    "airborne_kill_threshold_percent": 100,
+    "airborne_kill_cure_tier": 1,
+    "cure_hp_per_tier": {
+      "pve": 60,
+      "pvp": 30
+    },
+    "cure_duration_seconds": 0.1,
+    "cure_cooldown_seconds": 1
   },
   "policies": [
     "One persistent uses/progress pair; first use from full resets the meter, later uses retain progress. This reset/start policy requires original-game calibration.",
     "Expansion does not grant free charges; shrink clips uses, retaining progress. Buff or loadout changes apply current 4s/5s rate to later segments. These transition policies require original-game calibration.",
     "Minecraft projection is an immediate collision-resolved horizontal displacement from server yaw. It does not reproduce the original dash animation, velocity curve or movement-input-relative direction.",
-    "Heat Rises, Song of Flame, Daybreak and Incinerator Snap are consumed as explicit state/source tags. Test producers use synthetic buffs and a selected melee marker, not complete abilities."
+    "Heat Rises, Song of Flame, Daybreak and Incinerator Snap are consumed as explicit state/source tags. Test producers use synthetic buffs and a selected melee marker, not complete abilities.",
+    "Airborne means the credited actor has an observed native movement snapshot with on_ground=false at confirmed damage completion. Launch-time/current flags are not substituted; swimming, riding and other posture interactions remain uncalibrated.",
+    "Guardian takes the explicit player flag. Combatants require exactly one known rank among rank_and_file, elite, boss, miniboss and champion across entity/type tags; only the first three have supported weights. Unknown or conflicting evidence emits a diagnostic and neither counts nor refreshes.",
+    "Only qualifying kills reset the five-second progress lifetime; landing or an ineligible kill does not clear it. Exact expiry is processed before a new kill. Threshold consumes all progress and excess, even if shared Cure cooldown rejects recovery. These boundary policies need original-game calibration.",
+    "Counter is recipient-shared. A separate non-refreshing five-second receipt bucket uses death_id to prevent duplicate delivery across concurrent sources, including the threshold kill. Buckets expire independently of progress; this is dispatch deduplication, not a permanent event replay ledger.",
+    "Removing the last tagged Cure source or holder death clears progress/receipt state; same-provider replacement preserves it. Already accepted shared Cure follows its own lifetime. These lifecycle policies remain explicit content choices.",
+    "Icarus invokes the existing shared Cure bundle, preserving ability attribution and the recipient cooldown. Absolute HP uses the pre-existing 0.1 Minecraft test scale with equal pulses at 50/100ms; neither is a calibrated full-game curve."
   ],
   "unresolved": [
-    "Cure x1 from weighted airborne weapon/super kills within five seconds is not implemented by this template.",
+    "Miniboss/Champion counter weights, original airborne sampling/posture and landing/reset/overflow/source-removal policies are not independently calibrated; full Super and weapon/status kill-credit classification remain incomplete.",
     "Original inter-dash lockout, cycle-start timing, mode transition energy grants and Daybreak-specific cooldown/Super cost need calibration.",
     "Full Heat Rises / Song of Flame / Daybreak, subclass/aspect assembly, air-move key, animation, HUD, persistence and cross-loader graphical acceptance remain incomplete."
   ],
-  "definition": "common/src/test/resources/effects/icarus_dash.json"
+  "definition": "common/src/test/resources/effects/icarus_dash.json",
+  "cure_definition": "common/src/test/resources/effects/icarus_dash_cure.json",
+  "shared_cure_definition": "common/src/test/resources/effects/cure.json"
 }

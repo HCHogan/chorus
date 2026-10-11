@@ -123,7 +123,8 @@
       "com.imdomestic.chorus.LinkedRechargeGameTest",
       "com.imdomestic.chorus.AbilityRechargeGameTest",
       "com.imdomestic.chorus.ResourceCycleYieldGameTest",
-      "com.imdomestic.chorus.IcarusDashGameTest"
+      "com.imdomestic.chorus.IcarusDashGameTest",
+      "com.imdomestic.chorus.IcarusCureGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

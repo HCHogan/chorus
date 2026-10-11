@@ -6,11 +6,17 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-icarus-gate.log` BUILD SUCCESSFUL，1 分 29 秒：1153 项 JUnit、Fabric 535 项、NeoForge 545 项及两端发布 jar 通过，共享 Chorus 场景为 534 项。新增 10 项 IcarusDashTest、6 项共享世界场景，验证真实玩家水平位移、碰墙、地面拒绝、4秒 / 5秒分段、精确到期、近战选择资格、错误方向回执和未知世界结果保留。10 项 Compendium 审计、报告一致性及来源归档哈希通过；审阅为 72 条：58 partial、12 unimplemented、2 not_applicable、0 verified。此轮没有客户端界面变更或新客户端验收，17 项 Fabric 客户端仍为此前证据。
+最新门禁 `/tmp/chorus-icarus-cure-gate-2.log` BUILD SUCCESSFUL，1 分 9 秒：1164 项 JUnit、Fabric 541 项、NeoForge 551 项及两端发布 jar 通过，共享 Chorus 场景为 540 项。新增 11 项 IcarusCureTest、6 项共享世界场景，验证确认击杀时的离地 / 分类观测、真实武器弹体、34 / 67 / 100 权重、五秒间隔、重复来源、共享 Cure 冷却、来源生命周期和未知治疗保留。10 项 Compendium 审计、报告一致性及来源归档哈希通过；仍为 72 条审阅：58 partial、12 unimplemented、2 not_applicable、0 verified。没有客户端输入 / 同步变化，本轮未新增图形客户端验收，17 项 Fabric 客户端为此前证据。
+
+Icarus Dash 的常驻选择来源新增空中击杀 Cure 分支，直接组合现有历史实体观测、Buff 计数、死亡回执去重和共享 bundle 调用。攻击者落地、死亡反应移除尸体不会改写已经保存的资格；不存在移动或分类证据时不猜值。计数达到100%调用共享 Cure x1，五秒窗口与固定寿命回执桶各自计时；最后来源移除 / 持有者死亡清理计数，其他生产者共用一秒 Cure 冷却。
+
+原表 Solar B148 / D148 和 Cure B6 / D6 与固定 CSV B84 / D84、B4 / D4 核对；研究记录区分已知权重与未校准的取样、姿态、落地 / 溢出 / 装卸政策。完整 Super 信用、Miniboss / Champion 权重、原作恢复曲线和正式生产装配仍有缺口。首轮世界验收因复用夹具预先治疗1HP而基线不符；重设专属场景初始生命后完整重跑通过，没有修改 Cure 数值来迁就测试。
+
+上一阶段门禁 `/tmp/chorus-icarus-gate.log` BUILD SUCCESSFUL，1 分 29 秒：1153 项 JUnit、Fabric 535 项、NeoForge 545 项及两端发布 jar 通过，共享 Chorus 场景为 534 项。新增 10 项 IcarusDashTest、6 项共享世界场景，验证真实玩家水平位移、碰墙、地面拒绝、4秒 / 5秒分段、精确到期、近战选择资格、错误方向回执和未知世界结果保留。10 项 Compendium 审计、报告一致性及来源归档哈希通过；审阅为 72 条：58 partial、12 unimplemented、2 not_applicable、0 verified。此轮没有客户端界面变更或新客户端验收，17 项 Fabric 客户端仍为此前证据。
 
 Icarus Dash 新增 partial 内容：air_move 技能在地面拒绝，使用同一对可用次数 / 进度账户；普通4秒恢复一份，Heat Rises 或 Song of Flame 加当前 Incinerator 来源资格时5秒联动恢复两份。Buff 生命周期和完整选择变化后显式重算容量，中途转换保留进度；到期与完成同刻使用新容量。泛用 capture_direction 新增 horizontal 模式，按服务端yaw捕获水平朝向，保留旧look默认与构造器。实际玩家可发出8米 / Daybreak 10米碰撞位移，未知结果保留扣费和已发生移动。
 
-此模板的扩容不赠能、缩容裁剪、首次使用重置 / 第二次保留和中途切换进度政策尚未原作校准；Heat Rises等生产者为合成输入。原作冲刺速度 / 动画、方向按键、空中击杀Cure、两次冲刺间隔、Daybreak专属费用 / 冷却、正式装配、HUD与存档仍未完成。在线Solar B148 / D148与固定B84 / D84归一化核对一致，来源HTML和哈希已保存；不能把联动恢复当成每格独立parallel的证据。
+此模板的扩容不赠能、缩容裁剪、首次使用重置 / 第二次保留和中途切换进度政策尚未原作校准；Heat Rises等生产者为合成输入。原作冲刺速度 / 动画、方向按键、两次冲刺间隔、Daybreak专属费用 / 冷却、正式装配、HUD与存档仍未完成。在线Solar B148 / D148与固定B84 / D84归一化核对一致，来源HTML和哈希已保存；不能把联动恢复当成每格独立parallel的证据。
 
 周期完成动作新增可选 amount：省略时继续补满当前缺口，显式值允许有限的非负次数并报告 requested / credited / overflow。进度未完成不求值 amount；完成时两账户仍在同次 Local 迁移中提交，不产生退款资格。新合成技能从一开始共用可用次数 / 进度双账户，完成时的 Profile 允许装备将每轮恢复一份改为恢复当前缺口，Buff 可按优先级覆盖；装卸和等效替换保留进度，无需备用技能或账户迁移。
 
@@ -40,7 +46,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 
 手雷输入：两端已有可重绑定的 V 键与按下 / 松开 / 取消协议，服务端计量持续时间，匹配松开先消费输入再解析技能与付款。Bleak Watcher 可由显式来源在长按后转换所选暮域，消费暮域能量并部署真实炮台；实际五连发、Slow / Freeze、Durance 和构造物阵营继续复用现有机制。原作长按阈值、正式 Aspect 装备约束、其余未公开参数及正式技能目录仍待完成。
 
-2026-10-11：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 534 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。
+2026-10-11：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 540 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。
 
 完整程序已通过数据包注册表加载、覆盖和重载，管理命令可以启动运行时并绑定来源；已有运行时保留旧定义。装备槽位、词条选择与类型化实例数值已能原子投影为来源；真实玩家物品容器、玩家 NBT 读写及死亡 / respawn 已接线。独立装备展示协议与最小配装页已接入两端；技能定义、基础选择及其常驻来源、条件替换、成本 / 参数快照、服务端施放命令和手雷按键也已接入。
 
@@ -68,7 +74,8 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 顺序充能、收益裁剪、已支付成本返还、分段积分 | 已有纯核心测试 | `effect/resource/Resources`；parallel 及完整 linked 技能接线未实现 |
 | 联动回充的独立进度与原子完成 | 纯核心及双加载器 GameTest 通过 | `LinkedRecharge / complete_recharge`；两个账户同次提交、一次完整周期补满当前上限、非退款、重复完成无效；具体金装政策未完成 |
 | 装备 / Buff 决定每轮恢复次数 | 纯核心及双加载器 GameTest 通过 | `complete_recharge.amount / resource_cycle_yield.json`；完成时查询 Profile，逐次 / 全部缺口共用同一双账户，实际装卸 / 替换保留进度，Buff 优先级与到期、当前容量、重复来源及未知结果验收；原作金装时窗与换装政策未完成 |
-| Icarus Dash 条件充能与水平朝向位移 | partial 内容；纯核心与双加载器世界测试通过 | `icarus_dash.json / capture_direction.mode`；普通 / 增强冷却、Buff与近战选择协调容量、水平yaw捕获和碰撞位移；完整原作冲刺、Cure、模式切换时序与技能装配待完成 |
+| Icarus Dash 条件充能与水平朝向位移 | partial 内容；纯核心与双加载器世界测试通过 | `icarus_dash.json / capture_direction.mode`；普通 / 增强冷却、Buff与近战选择协调容量、水平yaw捕获和碰撞位移；完整原作冲刺、模式切换时序与技能装配待完成；Cure分支见下项 |
+| Icarus Dash 空中击杀 Cure | partial 内容；纯核心与双加载器世界测试通过 | `icarus_dash_cure.json / cure.json`；历史离地与分类、加权窗口、去重、共享冷却、实际HP及未知结果；原作姿态 / 边界 / 分类、完整Super与正式装配待校准 |
 | 技能扣费与回充账户分离 | 纯核心及双加载器 GameTest 通过 | `AbilityDefinition.rechargeResource / EnergyActions`；当前基础选择路由、双账户初始化 / 观察、已有回能 perk 组合、已满拒绝隐藏储能、付款退款隔离；parallel / 任意分组及生产金装未完成 |
 | 数据资源定义、恢复 Profile、阈值事实与成本分支 | 纯核心及双加载器 GameTest 通过 | `ResourceDefinition`、`ResourceProgramTest`；幂等初始化、环境倍率、Buff 到期分段、增减跨阈值、真实 tick 与实际治疗、解绑重挂不补能 |
 | 同一账户的显式容量变更 | 纯核心及双加载器 GameTest 通过 | `Resources.resize / resize_resource`、`ResourceCapacityTest`；扩容不补能、缩容裁剪、独立事实、未来阈值、合成多来源归约、真实 tick / 治疗及未知结果不重放；Spirit 已接 SOURCE 装备协调，任意 Buff / 条件变化投影待实现 |
@@ -212,7 +219,7 @@ Compendium 固定来源已导入 `data/compendium/2026-10-05/`：22 张表、207
 
 `healing.json` 为通用机制样例，验证伤害回执的 health_loss 驱动治疗、结果绑定及实际回血反应，不主张任何具体吸血词条的参数。双加载器另验证 70.001 ms 逻辑周期信号执行真实治疗；`periodic.json` 已用 schedule 把周期创建、刷新保留和暂停恢复也接到 DSL。普通自然恢复 / 其他模组治疗的自动事实观察、治疗 Profile 尚未接入；离散补盾另用 restore_shield，不混入生命治疗。
 
-Compendium 快照 Solar D4 的 Cure 有 0.1 秒恢复过程及 1 秒激活冷却。`cure.json` 已用隐藏冷却 Buff + 两次定时 heal 表达 x1 / x2 / x3：快照总量为每级 60 [PvP 30] HP，测试内容采用 0.1 的 Minecraft 缩放，分别在 50 ms、100 ms 恢复一半；冷却从激活时开始，期间重复请求不加血、不延长冷却。**两次等量脉冲是 Chorus 的实现选择，快照没有提供原作更细的恢复曲线**。这是由明确输入驱动的可执行内容示例，尚未接入凤凰俯冲等真实技能 / 装备来源；不声称原作完整体感已经校准。
+Compendium 快照 Solar D4 的 Cure 有 0.1 秒恢复过程及 1 秒激活冷却。`cure.json` 已用隐藏冷却 Buff + 两次定时 heal 表达 x1 / x2 / x3：快照总量为每级 60 [PvP 30] HP，测试内容采用 0.1 的 Minecraft 缩放，分别在 50 ms、100 ms 恢复一半；冷却从激活时开始，期间重复请求不加血、不延长冷却。**两次等量脉冲是 Chorus 的实现选择，快照没有提供原作更细的恢复曲线**。Icarus Dash 空中击杀分支已通过 invoke_bundle 调用同一恢复定义，并与独立生产者共用冷却。凤凰俯冲等其他技能 / 装备来源尚未接入；不声称原作完整体感已经校准。
 
 ### 连续生命恢复
 
@@ -771,7 +778,7 @@ DSL 的 ammo.capacity / missing、observe_ammo 和所有弹药动作统一使用
 | `kinetic_tremors.json` | 12 类武器普通 / 强化门槛、逐目标逐武器计数、同一 damage_id 不重复累计 / 刷新、3 秒窗口、收枪保留、0.25 / 1.25 / 2.25 秒固定点三波与 4.25 秒冷却边界；PvE / PvP 最大值、初始 Miniboss / Boss 因子、攻击快照与来源保留；两端真实命中 / 伤害 / tick 验证 | Weapon Perks C135；0.1 投影、6 米内统一最大伤害为未校准内容选择；完整敌人等级 / 动能倍率、距离衰减、正式伤害类型、武器 / 直击 / 等级来源装配及部分触发策略待完成 |
 | `healing.json` | 实际扣血后回血、治疗结果绑定与事实分发、相同回执幂等、被拒绝的量不算 overheal；两端真实治疗与逻辑周期、NeoForge 取消 / 改量 / 嵌套隔离 | 通用机制；不代表完整 Cure / Restoration；自然治疗观察未接入 |
 | `periodic.json` | JSON 调度、刷新保留节奏、按 tier 取值、暂停余量、实例隔离、到期取消、上下文保留、重设 / 取消 | 通用离散周期，不代替连续恢复积分或逐独立层调度 |
-| `cure.json` | x1 / x2 / x3 的 PvE / PvP 总量、50 / 100 ms 两次恢复、1 秒冷却、重复请求不刷新；两端真实 tick 运行 | Solar D4 总量与冷却；0.1 缩放和两次等量脉冲为测试内容选择；实际技能 / 装备触发与细分曲线未校准 |
+| `cure.json` | x1 / x2 / x3 的 PvE / PvP 总量、50 / 100 ms 两次恢复、1 秒冷却、重复请求不刷新；两端真实 tick 运行，Icarus空中击杀与独立来源共用冷却 | Solar D4 总量与冷却；0.1 缩放和两次等量脉冲为测试内容选择；其他技能 / 装备生产者、正式装配与细分曲线未校准 |
 | `restoration.json` | 强度 / 环境速率、历史刷新、互斥来源继续计时、到期残段、暂停不补发、原版实际量 / 溢出与真实 tick；过量恢复不储存 | Solar D7 与 Class Abilities D15；取高覆盖为暂定，未含 Phoenix Dive 例外、Rift 空间物体或实际技能输入；共享 presence 只有交互标签，补盾规则在 healing_rift.json 中 |
 | `stored_position.json` | 保存 / 复制 / 清空、刷新、新旧 generation 结束快照、延迟与来源解绑；7 项纯核心测试 | 带维度的内存位置值；没有坐标运算、接触点、物体或跨重启序列化 |
 | `shield_restoration.json` | 现有层补充、动态 / 默认上限、容量不降低、请求与溢出、generation / FIFO 保留、世界等待 / 嵌套扣盾与去重、资格条件和快照；8 项纯核心 | 合成护盾和 Void 标签测试层；不是完整 Void Overshield 数值或实际来源 |

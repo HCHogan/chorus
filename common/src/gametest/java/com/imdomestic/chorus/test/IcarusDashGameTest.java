@@ -23,7 +23,11 @@ import net.minecraft.world.phys.Vec3;
 
 public class IcarusDashGameTest {
     static final String SLOT="chorus_d2:air_move", ABILITY="chorus_d2:icarus_dash";
-    static CompiledEffects program() { return CompiledEffects.link(List.of("icarus_dash","icarus_dash_inputs").stream().map(n->EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(n)).getOrThrow()).toList()); }
+    static void version(com.google.gson.JsonElement value) {
+        if(value.isJsonObject()){var object=value.getAsJsonObject();if(object.has("version"))object.addProperty("version","compendium-2026-10-05");object.entrySet().forEach(e->version(e.getValue()));}
+        else if(value.isJsonArray())value.getAsJsonArray().forEach(IcarusDashGameTest::version);
+    }
+    static CompiledEffects program() { return CompiledEffects.link(List.of("icarus_dash","icarus_dash_inputs","icarus_dash_cure","cure").stream().map(n->{var data=ThreadedSpikeGameTest.json(n);version(data);return EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow();}).toList()); }
     static final class Harness implements AutoCloseable {
         final GameTestHelper h; final ServerPlayer player; final MinecraftEffectRuntime runtime; final MinecraftWorldActions world;
         final List<Displacement.Receipt> moves=new ArrayList<>(); final Map<BlockPos,BlockState> blocks=new HashMap<>(); boolean fail;
