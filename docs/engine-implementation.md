@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Kickstart完整门禁 `/tmp/chorus-kickstart-gate.log` BUILD SUCCESSFUL，2分16秒：1596项JUnit（无失败/错误/跳过）、Fabric852项、NeoForge867项及两端发布jar通过，共享Chorus世界场景851项。新增12项规则测试（含三种模组、全部副本/层数和两种模式的108组矩阵）与9项共享世界场景；10项Compendium审计、105条报告一致性、来源哈希和差异检查通过。没有新增Java执行器、客户端协议或检查点类型，发布jar继续排除效果/GameTest/持久化夹具，本轮未重复图形客户端门禁。
+
+Grenade、Melee、Utility Kickstart通过服务器接受技能后的实际paid/free、slot与cast事实组合。先记录匹配身份，再检查完整支付、非免费、当前接收者和Armor Charge；捕获全部应付层数与对应副本数，消费并核对stored_delta，再将PvE/PvP表值送入当前基础技能回能管线一次。另一份完整近战充能仍可留在账户中，符合官方9.7.0修复。重复来源与有限窗口内的旧事实不能再次付款，独立新施放不受限制。
+
+真实世界以物理Orb收集、服务器技能接受及实际治疗验证三种模组；另用实际Shield Throw支付、0.9接收者Profile、真实投射物命中与共享护盾组合验证。覆盖第二充能与连续施放、免费/部分成本/条件失败/不足成本/显式延后、普通资源支出与原版普通攻击排除、当前副本、Font撤除和额外收益倍率，以及技能主体实际治疗后未知回执保留先前付款和收益且不重放。纯规则还验证输入不能伪造成本、付款两份只奖励一次、缺少/满接收者、其他模组槽位隔离与会话检查点。
+
+开发期12项规则测试先被输入夹具的命名空间payment局部ID、MULTIPLY使用multiplier而非delta单位拒绝；按现有DSL契约修正为局部ID与+1 delta后全部通过。随后首轮完整双端世界门禁通过，没有放宽断言或修改引擎行为。
+
+原表六个单元格与固定快照规范化一致，三个固定Clarity记录及哈希已归档；Clarity近战多充能旧缺陷文字与官方9.7.0冲突，明确优先官方修复。修正设计文档中“后续抓钩返还可把早先消费改为免费”的表述：已发布成本事实不可倒改，需要等接触目标的资格必须延后结算。当前defer标签只排除即时触发，Flechette Storm落地/累积、Grapple/Tangle/Grappler、Tempest Strike本体、特殊成本与全部回能映射仍待实现。正式插槽/三点能量成本/装配、HUD及物理世界重启也未完成。新增三条partial，累计105条审阅（103 partial、2 not_applicable、0 verified），仍不是全表覆盖率。[规则与来源](d2-ruleset.md#kickstart-的完整付费充能与回能表)、[组合协议](engine-data-packs.md#kickstart-的技能付款组合)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 终结阶段观察与Proximity Ward最终门禁 `/tmp/chorus-proximity-gate-3.log` BUILD SUCCESSFUL，2分20秒：1584项JUnit（无失败/错误/跳过）、Fabric843项、NeoForge858项和两端发布jar通过，共享Chorus世界场景842项。新增5项通用观察测试、8项效果规则测试及8项共享世界场景；10项Compendium审计、102条报告一致性、来源哈希和差异检查通过。发布jar含新的观察动作/回执类，继续排除效果与GameTest夹具；无客户端协议改动，本轮未重复运行图形客户端。
 
 通用observe_finisher纯读当前actor的有效计划与两侧generation占用，提供active、remaining/elapsed/duration，支持匹配事件finisher_id。受害者占用、旧身份、过期或已打断的计划不算当前执行。无有效计划不提供伪造的零时长，回执不会随后续时间变化；它不代替watchdog的世界资格检查。持久化新增Observe和Observation两个类型，原有字段结构逐项保持不变，Codec/检查点及恢复后的查询通过。

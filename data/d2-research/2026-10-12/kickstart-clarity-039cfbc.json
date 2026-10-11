@@ -1,0 +1,265 @@
+{
+  "4182064480": {
+    "hash": 4182064480,
+    "name": "Grenade Kickstart",
+    "lastUpload": 1735009175023,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "When a Grenade Ability Charge is fully consumed and you have active Armor Charges:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Consumes active Armor Charges and grants Grenade Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Each Mod and Stack of Armor Charge counts as one 'charge' for Grenade Energy refunds."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Grenade Energy gains with 2|3|etc. 'charges':"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pve"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVE] 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pvp"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVP] 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ability energy gained may be significantly decreased based on your selected ability's Chunk Energy Scalar. Learn more about this mechanic in "
+            },
+            {
+              "text": "our explainer blog post on the Clarity website",
+              "link": "https://url.d2clarity.com/chunk-energy-scalars",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "1763780622": {
+    "hash": 1763780622,
+    "name": "Melee Kickstart",
+    "lastUpload": 1735009175023,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "When a Melee Ability Charge is fully consumed and you have active Armor Charges:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Consumes active Armor Charges and grants Melee Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Each Mod and Stack of Armor Charge counts as one 'charge' for Melee Energy refunds."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Melee Energy gains with 2|3|etc. 'charges':"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pve"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVE] 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pvp"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVP] 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Bug: Doesn't work if you have more recharged Melee Ability Energy than a single ability charge."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ability energy gained may be significantly decreased based on your selected ability's Chunk Energy Scalar. Learn more about this mechanic in "
+            },
+            {
+              "text": "our explainer blog post on the Clarity website",
+              "link": "https://url.d2clarity.com/chunk-energy-scalars",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "3160387771": {
+    "hash": 3160387771,
+    "name": "Utility Kickstart",
+    "lastUpload": 1702080947315,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "When a Class Ability Charge is fully consumed and you have active Armor Charges:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Consumes active Armor Charges and grants Class Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Each Mod and Stack of Armor Charge counts as one 'charge' for Class Ability Energy refunds."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Class Ability Energy gains with 2|3|etc. 'charges':"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pve"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVE] 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "pvp"
+          ],
+          "linesContent": [
+            {
+              "text": "[PVP] 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

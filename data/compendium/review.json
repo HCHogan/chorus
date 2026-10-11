@@ -9377,7 +9377,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9434,7 +9434,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9501,7 +9501,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9563,7 +9563,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9640,7 +9640,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9717,7 +9717,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9794,7 +9794,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9871,7 +9871,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9948,7 +9948,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -10025,7 +10025,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
+        "Healthy/Bulwark、三种回能终结技、Empowered Finish与三种Kickstart已有部分验收；Kickstart特殊阶段/免费资格、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -10429,6 +10429,186 @@
         "采用接受后的服务器计划时长，原作实际动画、收尾宽限和提前结束边界未定标；未把论坛建议当作无敌或延时依据。",
         "同种副本不补盾、一般非Void护盾减伤/排序、授予后解绑保留至阶段结束及阶段中装备不补发开始，是明确Chorus政策，原作组合边界仍待验证。",
         "纯会话检查点保存有效计划、盾量/期限/身份；物理世界完整重启、跨维度和离线恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/grenade-kickstart",
+      "name": "Grenade Kickstart",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "E8",
+          "text_sha256": "2f190d89a902c37171935d4a9f1cf62e5af21279c4a2bb2a0b7e828701a6dd83"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "G8",
+          "text_sha256": "174f527ecebd26d6632035b12ade85d3fd948c9b79580f32f977d72dd92283a3"
+        }
+      ],
+      "scope": "服务器接受完整付费技能后，按实际Armor Charge与本模组副本表消费全部层数并回充对应当前技能；近战第二充能采用9.7.0修复后规则。",
+      "acceptance": [
+        "三种模组、1–3副本、1–6层、PvE/PvP共108组验证，当前接收者回能缩放一次。",
+        "真实Orb、付费技能/Shield Throw、免费/部分成本/失败/延后资格、历史身份与未知世界结果验证付款和收益。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/kickstart.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "allThreeModsUseEveryArmorAndCopyCombinationAndBothModeTablesWithCESOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "receiptsSurviveSourceAndControllerRebindingAndSessionCheckpoint"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "grenadePaidUseConsumesOneActualOrbAndGrantsTheLowestTableTier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "actualShieldProjectileConsumesChargesAndUsesItsOwnRecipientScalarWithoutSyntheticSkillBody"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "Flechette Storm累积/落地结算、Tempest Strike、Grapple/Tangle/Grappler免费资格及全部特殊成本/回能来源仍待实现；defer标签当前仅排除即时路径。",
+        "按当前选择与收益空间判断、即时开始回能、当前副本取样和完整单位阈值是明确Chorus政策，原作切换/阶段时序待校准。",
+        "定义仍为验收内容；三能量成本、合法插槽/副本数、正式装配、HUD与完整物理世界持久化未完成。",
+        "Clarity近战多充能缺陷说明与官方9.7.0冲突，已优先官方修复；全技能CES/CMS/属性映射尚未逐一校准。"
+      ]
+    },
+    {
+      "id": "armor-mods/melee-kickstart",
+      "name": "Melee Kickstart",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "E13",
+          "text_sha256": "44fb12fe600d47015995d31f37f79899bf47e94c26b4d5c73a6b24018e17c031"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "G13",
+          "text_sha256": "165114fc571276e861dee19fcfd6c1c72804bcfbbdd4a1369b9496c57c8b555b"
+        }
+      ],
+      "scope": "服务器接受完整付费技能后，按实际Armor Charge与本模组副本表消费全部层数并回充对应当前技能；近战第二充能采用9.7.0修复后规则。",
+      "acceptance": [
+        "三种模组、1–3副本、1–6层、PvE/PvP共108组验证，当前接收者回能缩放一次。",
+        "真实Orb、付费技能/Shield Throw、免费/部分成本/失败/延后资格、历史身份与未知世界结果验证付款和收益。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/kickstart.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "allThreeModsUseEveryArmorAndCopyCombinationAndBothModeTablesWithCESOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "receiptsSurviveSourceAndControllerRebindingAndSessionCheckpoint"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "meleeTwoCopiesAndFourActualOrbsSelectTheCombinedTierOnce"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "actualShieldProjectileConsumesChargesAndUsesItsOwnRecipientScalarWithoutSyntheticSkillBody"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "Flechette Storm累积/落地结算、Tempest Strike、Grapple/Tangle/Grappler免费资格及全部特殊成本/回能来源仍待实现；defer标签当前仅排除即时路径。",
+        "按当前选择与收益空间判断、即时开始回能、当前副本取样和完整单位阈值是明确Chorus政策，原作切换/阶段时序待校准。",
+        "定义仍为验收内容；三能量成本、合法插槽/副本数、正式装配、HUD与完整物理世界持久化未完成。",
+        "Clarity近战多充能缺陷说明与官方9.7.0冲突，已优先官方修复；全技能CES/CMS/属性映射尚未逐一校准。"
+      ]
+    },
+    {
+      "id": "armor-mods/utility-kickstart",
+      "name": "Utility Kickstart",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N20",
+          "text_sha256": "73578b8fd4dc54cf810b3d9ec668ef40089fec68330dfe0b3ebca5dc3835ff50"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P20",
+          "text_sha256": "8ff9fc893a60921f0815e2bc0534a2391ec2c0f283a28f71dea844e3a7001519"
+        }
+      ],
+      "scope": "服务器接受完整付费技能后，按实际Armor Charge与本模组副本表消费全部层数并回充对应当前技能；近战第二充能采用9.7.0修复后规则。",
+      "acceptance": [
+        "三种模组、1–3副本、1–6层、PvE/PvP共108组验证，当前接收者回能缩放一次。",
+        "真实Orb、付费技能/Shield Throw、免费/部分成本/失败/延后资格、历史身份与未知世界结果验证付款和收益。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/kickstart.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "allThreeModsUseEveryArmorAndCopyCombinationAndBothModeTablesWithCESOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+          "symbol": "receiptsSurviveSourceAndControllerRebindingAndSessionCheckpoint"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "utilityThreeCopiesAndSixActualOrbsSelectTheMaximumTierOnce"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java",
+          "symbol": "actualShieldProjectileConsumesChargesAndUsesItsOwnRecipientScalarWithoutSyntheticSkillBody"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "Flechette Storm累积/落地结算、Tempest Strike、Grapple/Tangle/Grappler免费资格及全部特殊成本/回能来源仍待实现；defer标签当前仅排除即时路径。",
+        "按当前选择与收益空间判断、即时开始回能、当前副本取样和完整单位阈值是明确Chorus政策，原作切换/阶段时序待校准。",
+        "定义仍为验收内容；三能量成本、合法插槽/副本数、正式装配、HUD与完整物理世界持久化未完成。",
+        "Clarity近战多充能缺陷说明与官方9.7.0冲突，已优先官方修复；全技能CES/CMS/属性映射尚未逐一校准。"
       ]
     }
   ]

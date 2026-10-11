@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Grenade Kickstart",
+    "Melee Kickstart",
+    "Utility Kickstart"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mods-source.html.gz",
+      "sha256": "92afd34a1e2d2af6927073f6b063c22813e817621c3daa5a48626054e12ee829",
+      "gzip_sha256": "55a07f055b7c0992012f33327ff0111f6b88f9a1b4dc17517bb0ab08bc37c8d8",
+      "cells": [
+        {
+          "original_cell": "E8",
+          "snapshot_cell": "E8",
+          "snapshot_text_sha256": "2f190d89a902c37171935d4a9f1cf62e5af21279c4a2bb2a0b7e828701a6dd83",
+          "normalized_text": "Grenade Kickstart [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "G8",
+          "snapshot_cell": "G8",
+          "snapshot_text_sha256": "174f527ecebd26d6632035b12ade85d3fd948c9b79580f32f977d72dd92283a3",
+          "normalized_text": "On Grenade Ability Usage while having Armor Charges: Consumes all Armor Charges to grant Grenade Ability Energy. Ability Energy Gains are based on the sum of number of Armor Charges consumed and Mod copies equipped. Grenade Ability Energy: 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45% 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "E13",
+          "snapshot_cell": "E13",
+          "snapshot_text_sha256": "44fb12fe600d47015995d31f37f79899bf47e94c26b4d5c73a6b24018e17c031",
+          "normalized_text": "Melee Kickstart [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "G13",
+          "snapshot_cell": "G13",
+          "snapshot_text_sha256": "165114fc571276e861dee19fcfd6c1c72804bcfbbdd4a1369b9496c57c8b555b",
+          "normalized_text": "On Melee Ability Charge Usage while having Armor Charges: Consumes all Armor Charges to grant Melee Ability Energy. Ability Energy Gains are based on the sum of number of Armor Charges consumed and Mod copies equipped. Melee Ability Energy: 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45% 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N20",
+          "snapshot_cell": "N20",
+          "snapshot_text_sha256": "73578b8fd4dc54cf810b3d9ec668ef40089fec68330dfe0b3ebca5dc3835ff50",
+          "normalized_text": "Utility Kickstart [3 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P20",
+          "snapshot_cell": "P20",
+          "snapshot_text_sha256": "8ff9fc893a60921f0815e2bc0534a2391ec2c0f283a28f71dea844e3a7001519",
+          "normalized_text": "On Class Ability Usage while having Armor Charges: Consumes all Armor Charges to grant Class Ability Energy. Ability Energy Gains are based on the sum of number of Armor Charges consumed and Mod copies equipped. Class Ability Energy: 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45% 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6%",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "clarity",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "selected_entries": "data/d2-research/2026-10-12/kickstart-clarity-039cfbc.json",
+      "selected_entries_sha256": "8860f8a0d6bd69b9a8952bafbfe85771be3f060c6ae6173cb9c6d898d4b19010",
+      "hashes": [
+        "4182064480",
+        "1763780622",
+        "3160387771"
+      ],
+      "finding": "Confirms per-copy plus consumed-charge tier and both mode tables; Grenade and Melee explicitly state recipient CES. Melee retains an obsolete multiple-charge bug line contradicted by the official 9.7.0 correction."
+    },
+    {
+      "kind": "official",
+      "url": "https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+      "published_at": "2026-06-09",
+      "finding": "Melee Kickstart now activates for a full consumed melee charge even if another charge remains. Flechette Storm waits until returning to ground. Grenade multi-charge support unchanged; free Grapple from Tangles or Grappler no longer triggers Grenade Kickstart. Tempest Strike interaction fixed."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/update-7-3-0-patch-notes",
+      "published_at": "2023-11-28",
+      "finding": "At least one Armor Charge is required; refunds depend on copies plus consumed charges. General non-Super chunk energy is recipient-scaled; the fixed modern tables come from Compendium and pinned Clarity."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/season-deep-update-7-1-0",
+      "published_at": "2023-05-23",
+      "finding": "Unpowered melee no longer consumes Melee Kickstart Armor Charge."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/kickstart.json",
+    "inputs": "common/src/test/resources/effects/kickstart_inputs.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/KickstartTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/KickstartGameTest.java"
+  },
+  "table": {
+    "tier": "paid Armor Charges (1..6) + equipped copies of this mod (1..3)",
+    "tiers": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "pve": [
+      0.162,
+      0.217,
+      0.284,
+      0.344,
+      0.384,
+      0.413,
+      0.434,
+      0.45
+    ],
+    "pvp": [
+      0.125,
+      0.142,
+      0.162,
+      0.187,
+      0.217,
+      0.25,
+      0.284,
+      0.316
+    ],
+    "basis": "base ability energy; apply the current selected recipient gain scalar/profile once"
+  },
+  "rules": [
+    "Each mod source enables Armor Charge and contributes to its own slot-specific copy profile. Matching accepted ability_started uses authoritative paid/free fields, not arbitrary resource_spent or native hit facts.",
+    "Immediate policy requires at least one full unit actually paid, a nonfree use, positive Armor Charge and an available nonfull current recipient. Another remaining full ability charge does not suppress the trigger.",
+    "Capture the pool and matching-copy tier before consumption; consume the entire pool and verify actual negative stored_delta before granting the table reward. A single accepted use pays/refunds once even with multiple equipped copies or multiple full cost units.",
+    "Record every observed matching cast before benefit qualification. Shared finite identities survive rebinding/checkpoint, including free, insufficient-Armor, full/missing and deferred observations; independent new casts remain eligible.",
+    "chorus_d2:defer_kickstart excludes special use from immediate processing. It does not implement a later settlement. Flechette Storm landing and late Grapple/Tangle qualification remain explicit work.",
+    "Unknown skill-body world outcome retains prior accepted skill cost, Armor Charge payment and energy gain; actual world work is not replayed."
+  ],
+  "conflicts": [
+    {
+      "source": "Pinned Clarity Melee Kickstart multiple-charge bug line",
+      "resolution": "Use official 9.7.0 correction; test accepted full payment with more than one unit originally available. Do not preserve the older zero-energy-only behavior."
+    }
+  ],
+  "open_questions": [
+    "Flechette Storm partial-cost accumulation/ground settlement, Tempest Strike skill content and Grapple/Tangle/Grappler free-use qualification are not implemented by this fixture. A later ordinary refund is not automatically a free cast and cannot rewrite an already-published paid fact.",
+    "The nonfull current-recipient guard, current selection/copy sampling, immediate ability_started timing and >=1 full-unit threshold are explicit Chorus policy; original timing, switching and special cost modifiers need calibration.",
+    "Utility uses the same generic base-energy pipeline; unlike Grenade/Melee, its selected Clarity entry has no explicit CES note. Original class ability exceptions and all current CES/CMS/stat mappings still need per-ability validation.",
+    "Synthetic tests use capacity 2, CES 0.5 and an optional x2 gain. A physical Shield Throw uses its existing 0.9 profile and calibrated projectile; this is not full weapon/skill-content coverage.",
+    "Formal armor slots, three-energy costs, legal copy limits, automatic production equipment/HUD and full physical-world save/restart remain incomplete. Definition is verification content excluded from release jars.",
+    "The tested sixty-second identity retention is not a gameplay cooldown or a global causal-cycle suppression; it is not infinite history deduplication."
+  ]
+}

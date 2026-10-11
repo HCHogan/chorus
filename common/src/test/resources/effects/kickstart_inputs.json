@@ -1,0 +1,763 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "test:kick_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "gain",
+          "operation": "multiply",
+          "group": {
+            "name": "gain",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "test:kick_grenade",
+      "capacity": 2,
+      "initial": 0,
+      "gain_scalar": 0.5,
+      "gain_profile": "test:kick_gain"
+    },
+    {
+      "id": "test:kick_melee",
+      "capacity": 2,
+      "initial": 0,
+      "gain_scalar": 0.5,
+      "gain_profile": "test:kick_gain"
+    },
+    {
+      "id": "test:kick_class",
+      "capacity": 2,
+      "initial": 0,
+      "gain_scalar": 0.5,
+      "gain_profile": "test:kick_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:kick_grenade",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_grenade_free",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_grenade_partial",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.5,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_grenade_two",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 2,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_grenade_deferred",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:defer_kickstart"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_grenade_blocked",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_grenade",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_grenade_cast"
+        }
+      ],
+      "if": {
+        "type": "chorus:compare",
+        "left": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "count"
+        },
+        "op": "eq",
+        "right": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "count"
+        }
+      }
+    },
+    {
+      "id": "test:kick_melee",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_melee_free",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_melee_partial",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.5,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_melee_two",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 2,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_melee_deferred",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus_d2:defer_kickstart"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_melee_blocked",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_melee",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_melee_cast"
+        }
+      ],
+      "if": {
+        "type": "chorus:compare",
+        "left": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "count"
+        },
+        "op": "eq",
+        "right": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "count"
+        }
+      }
+    },
+    {
+      "id": "test:kick_class",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_class_free",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_class_partial",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.5,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_class_two",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 2,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_class_deferred",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability",
+        "chorus_d2:defer_kickstart"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:kick_class_blocked",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        },
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:kick_class_cast"
+        }
+      ],
+      "if": {
+        "type": "chorus:compare",
+        "left": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "count"
+        },
+        "op": "eq",
+        "right": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "count"
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:kick_inputs",
+      "rules": [
+        {
+          "id": "fill_grenade",
+          "on": "test:fill_kick_grenade",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_resource",
+              "resource": "test:kick_grenade",
+              "requested": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend_grenade",
+          "on": "test:spend_kick_grenade",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "test:kick_grenade",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "payment": "manual_spend"
+            }
+          ]
+        },
+        {
+          "id": "fill_melee",
+          "on": "test:fill_kick_melee",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_resource",
+              "resource": "test:kick_melee",
+              "requested": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend_melee",
+          "on": "test:spend_kick_melee",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "test:kick_melee",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "payment": "manual_spend"
+            }
+          ]
+        },
+        {
+          "id": "fill_class",
+          "on": "test:fill_kick_class",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_resource",
+              "resource": "test:kick_class",
+              "requested": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend_class",
+          "on": "test:spend_kick_class",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "test:kick_class",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "payment": "manual_spend"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:kick_gain_boost",
+      "modifiers": [
+        {
+          "id": "boost",
+          "profile": "test:kick_gain",
+          "stage": "gain",
+          "group": "gain",
+          "op": "multiply",
+          "stacking_key": "test:boost",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic gain modifier to check exactly one pipeline application.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

@@ -1586,7 +1586,7 @@ Orb分支由控制器监听实际`chorus:pickup`，按`pickup_id`有限去重，
 
 这一版明确采用以下换装政策：所有已接入相关模组均开启获得资格，包括Charged Up、Time Dilation、Stacks on Stacks；移除最后一个相关模组清空层数，降低容量立即裁剪；修改Time Dilation后按新周期从变更时重新计时；只移除最后一个被动模组时停止衰减，若还有其他相关模组则保留层数。无关来源变更不重置计时。真实死亡清空层数与计时，装配来源继续由装备生命周期管理。以上边界尚需当前原作校准。
 
-本阶段消费验收使用通用`consume_buff`与充足性条件，尚未把Kickstart、Surge或各终结技消费者声明为已支持。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
+基础层的消费验收使用通用`consume_buff`与充足性条件；下文六种终结技模组与三种Kickstart已有部分组合验收，Surge和其余消费者仍待实现。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
 
 [13项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java)覆盖容量、六种Font副本表、获得豁免、第三方给予、10/15/18/20秒、消费、解绑重绑、检查点、死亡与未知观察；[9项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java)覆盖真实Orb碰撞、满Super资格、实际十秒/二十秒计时、来源变更、Starvation组合、玩家真实死亡及消费后未知世界反应。正式模组槽/能量/互斥、全部生产者和消费者、完整数值投影、HUD及物理世界恢复仍为partial。未增加引擎专用Java动作、网络包或检查点类型。
 
@@ -1622,3 +1622,20 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 护盾自身保存 finisher_id，匹配的完成或取消事实才会提前移除它，旧取消不能清除新终结的盾。死亡、破盾和有限期限也会清理；最终伤害在阶段截止点执行，此时即使回执未知，已到期护盾也不会保留。更早的未知结果会冻结诊断状态而非继续推进到期；失败运行时停止向原版伤害提供Chorus护盾，不能将仍保存在诊断域中的盾量当作实际保护。已接受的护盾在来源解绑后继续至阶段结束，阶段中途装备模组不补发开始事件，这两项是明确的 Chorus 换装政策。一般护盾顺序、原作副本行为及组合减伤仍需校准。
 
 当前按服务器接受的执行计划模拟动画期，尚无正式终结动画/吸附与配装/HUD，定义仍是组合验收资源。不能将数据规则与真实受伤验收等同于原作动画表现或完整内容发布。
+
+### Kickstart 的完整付费充能与回能表
+
+[三种Kickstart定义](../common/src/test/resources/effects/kickstart.json)监听对应的手雷、近战、职业技能接受事实。实际支付至少一份完整充能、不是免费使用、当前具有Armor Charge且接收者有回能空间时，消费全部Armor Charge。档位为**已消费层数 + 该模组当前副本数**；其他种类的Kickstart副本不参与本档位。
+
+| 合计档位 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| PvE基础回能 | 16.2% | 21.7% | 28.4% | 34.4% | 38.4% | 41.3% | 43.4% | 45% |
+| PvP基础回能 | 12.5% | 14.2% | 16.2% | 18.7% | 21.7% | 25% | 28.4% | 31.6% |
+
+这是基础技能能量，随后经当前接收者的CES与收益Profile一次。离散Armor Charge付款不受回能倍率影响；一次接受即使支付两份完整技能充能，也只消费一次Armor Charge池并使用一次表值。两种模式沿用运行时mode，不把技能目标是否玩家当作模式开关。纯规则测试覆盖3种模组×3档副本×6档层数×2种模式共108组；世界场景还接入真实Shield Throw的0.9接收者Profile、投射物伤害与正常命中护盾。
+
+原表Armor Mods的E8/G8、E13/G13、N20/P20与固定快照规范化相等，三个模组均标注3点装备能量。固定Clarity提供相同表格，但近战条目仍保留多充能失效的旧缺陷说明；[官方9.7.0](https://static01.bungie.net/7/en/News/Article/destiny_update_9_7_0)已经修复为消费一份完整近战充能即可触发，同时明确Flechette Storm等到落地、免费Grapple不触发。当前近战实现优先官方修复，另有真实双充能连续施放验证。[来源档案](../data/d2-research/2026-10-12/kickstart.json)保留冲突、固定记录及哈希。[7.3.0](https://www.bungie.net/7/en/News/Article/update-7-3-0-patch-notes)支持至少一层Armor Charge要求及一般非Super块状回能缩放；Utility的Clarity条目没有单独CES注释，其特殊技能映射仍需逐项核对。
+
+共享有限`cast`集合先记录所有已观察的匹配接受事实，包括免费、当前无Armor Charge、缺少/已满接收账户或延后资格，再判断收益。重复模组、旧事实、解绑重绑和纯会话检查点在保留窗口内不能再次消费；独立新施放允许继续触发。这不是触发冷却，验收六十秒也不是原作数值。普通资源消费和原版普通拳击不产生模组触发；技能支付失败不发布接受事实。技能主体的世界回执未知时，之前完成的技能成本、Armor Charge付款及回能保持，不自动退款或重放。
+
+当前在`ability_started`即时取样当前副本/选择，缺少接收账户或总容量已满时不付款，成本不足一整份时不触发。这些是明确的Chorus内容政策，原作切换/阶段时序与特殊成本仍待校准。`chorus_d2:defer_kickstart`仅排除即时路径，尚未实现Flechette Storm部分消耗累积与落地结算、Tempest Strike本体，以及Grapple/Tangle/Grappler的免费资格；普通返还也不能倒改已经发布的付费事实。正式三能量成本、合法护甲槽位与副本限制、生产装配、HUD、全部CES/CMS映射及物理世界重启未完成，三条审阅保持partial。

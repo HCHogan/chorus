@@ -3065,3 +3065,21 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 `proximity_ward_receipts` 的有效窗口取 receipt_seconds 与 remaining 的最大值，相同身份只能授予一次；盾中的 `finisher_ids` 只负责匹配终止事件。破盾清除盾实例但保留收据，因此开始事实重投不会重新给200 HP。新计划先替换遗留盾实例，再写自己的身份和容量。护盾的有限期限独立于来源生命周期；清理规则在 buff scope 中执行，解绑模组后仍能处理匹配取消和死亡。完整数值来源、换装与动画边界见[D2规则集](d2-ruleset.md#proximity-ward-的终结阶段护盾)。
 
 护盾的有限期限按正常运行时的逻辑钟推进。若在截止点前出现未知结果，诊断状态冻结且不自动重放；Minecraft失败运行时已停止贡献Chorus护盾，后续原版伤害直接走无Chorus盾层的路径。不能通过在故障域中手工推进Buff时间冒充已知完成。
+
+### Kickstart 的技能付款组合
+
+链接`armor_charge`、`armor_charge_mods`及`kickstart`，每角色安装一份Armor Charge控制器，再为装备副本绑定`chorus_d2:grenade_kickstart`、`chorus_d2:melee_kickstart`或`chorus_d2:utility_kickstart`。每份来源各贡献一份获得资格和自己的副本Profile；Profile把贡献限制在0–3，合法槽位/能量预算仍应由正式装配验证，限幅不能替代合法性检查。三种内容分别匹配`chorus_d2:grenade`、`chorus_d2:melee`、`chorus_d2:class`。
+
+`ability_started`来自已经接受并提交成本的服务器施放，包含`cast`和`ability_slot`引用、CHARGE单位的`paid`及布尔`free`。这些实际成本字段覆盖输入中同名值。对应规则读取事实而不读取其他技能的资源消费；普通`resource_spent`与原版命中均不能冒充接受。该反应在排队的技能主体前运行，所以主体之后发生世界失败不会撤销已完成的模组付款或回能。
+
+单个规则按以下次序组合现有通用动作：
+
+1. 用目标共享`kickstart_receipts.cast_ids`记录本次身份，刷新有限期限并安排detached清除；控制器的正数`receipt_seconds`提供保留时间。记录先于收益判断，重复副本不会再次进入付款。
+2. 检查实际`paid >= 1`、非免费、无`chorus_d2:defer_kickstart`标签且Armor Charge非空。部分成本不会自动累计；特殊阶段必须有自己的后续结算。
+3. `observe_ability_energy`读取对应槽位当前基础选择，要求available且非full。捕获Armor Charge层数，计算当前本模组副本，保存两者之和。
+4. `consume_buff`消费全部捕获的层数，验证回执`stored_delta`等于负的应付数量。不能从已经清空的池反算档位，也不能把消费函数的限幅当作成本充足证明。
+5. `grant_ability_energy(value_basis=base)`按运行时PvE/PvP表向该槽位返还能量，由当前接收者管线应用缩放一次。
+
+现有合成输入以两充能容量、0.5接收者系数和可选×2收益验证组合；真实Shield Throw验证其既有0.9Profile。共享池归零后Font属性与衰减计时由Armor Charge控制器正常撤除，没有新增专用Java执行器或检查点类型。只保存纯会话身份不等于整个Minecraft世界已持久化。
+
+延后标签当前是显式排除契约，不能声明已实现落地触发。未来Grapple如果必须等接触Tangle才确定免费使用，也需要先延后对应资格，不能追溯修改已发布的`paid/free`或自动撤回已经产生的其他效果。已经明确为免费的施放应以实际零成本接受；一般回能/返还则不自动成为免费使用。具体表格、官方多充能修复和未完成特例见[Kickstart规则](d2-ruleset.md#kickstart-的完整付费充能与回能表)。
