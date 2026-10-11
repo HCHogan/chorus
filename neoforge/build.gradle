@@ -268,6 +268,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/weapon_aim.json', 'effects/weapon_aim_test_calibration.json'
         include 'effects/box_breathing.json', 'effects/box_breathing_weapon.json'
         include 'effects/snapshot_sights.json', 'effects/weapon_ads_curves.json', 'effects/weapon_ads_test_calibration.json', 'effects/weapon_ads_weapon.json'
+        include 'effects/weapon_range_curves.json', 'effects/weapon_range_test_calibration.json', 'effects/weapon_range_weapon.json'
         include 'effects/armor_finisher_inputs.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'

@@ -1415,7 +1415,7 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 
 容量奖励写入 `chorus_d2:magazine_capacity` 的 `base_add` 阶段，先增加基础发数，再由后续基础倍率阶段和 Overflow 使用。五发测试武器满层容量为十发，真实特殊弹药砖触发强化 Overflow 后从本枪储备装到二十二发；武器击杀将派生容量恢复为五，却保留已经装入的超额弹药。增加容量自身不会补弹，也不产生换弹完成事实。Shotgun 标签按共享 `reload_insert_rounds` 的额外发数 MAX 组增加单次插入量，实际手动换弹每次两发、储备相应扣二；真实所有霰弹枪曲线、与 Timelost / Dual Loader 的组合仍需校准。
 
-共享 `weapon_range` / `weapon_aim_assist` Profile 已可查询按武器隔离、钳制到 0..100 的属性结果，但尚未连接真实武器距离衰减、准星磁性或目标获取。`FailDeadlyTest` 验证不同容量、两变体、层数上限、重复回执、清层、收枪 / 卸装、Overflow、逐发装填、纯会话检查点与未知结果；`FailDeadlyGameTest` 使用真实玩家容器、低权限武器命令、物理弹丸和实体弹药砖验收这些链路。双伤害火箭测试只证明两个独立实例的计数与已知容量档位，不代表完整火箭直击 / 爆炸原型；Bipod 的基础容量二来自显式夹具，不代表已实现 Bipod 本身。Bolt Charge、热量 / 异域、全部真实武器、正式装配 / HUD 与物理世界跨重启仍未完成。
+共享 `weapon_range` / `weapon_aim_assist` Profile 可查询按武器隔离、钳制到 0..100 的属性结果。Range 已接下文的两个参考家族物理衰减消费者，辅瞄尚未连接准星磁性或目标获取。`FailDeadlyTest` 验证不同容量、两变体、层数上限、重复回执、清层、收枪 / 卸装、Overflow、逐发装填、纯会话检查点与未知结果；`FailDeadlyGameTest` 使用真实玩家容器、低权限武器命令、物理弹丸和实体弹药砖验收这些链路。双伤害火箭测试只证明两个独立实例的计数与已知容量档位，不代表完整火箭直击 / 爆炸原型；Bipod 的基础容量二来自显式夹具，不代表已实现 Bipod 本身。Bolt Charge、热量 / 异域、全部真实武器、正式装配 / HUD 与物理世界跨重启仍未完成。
 
 ## 共享 Weaken 与可续时的强削弱
 
@@ -1765,3 +1765,21 @@ Clarity 固定提交 039cfbc 的两条描述也支持输入起算、强化减少
 数值示例采用 10 点合成基础伤害：普通弱点且精确倍率为 2 时输出 28，真实弱点但无精确倍率时为 14；偃月对应 13。护盾排除精确因子后仍按 14 扣除容量。只有合成精确区域而无真实弱点时为 20。各目标在接触时独立判定；不能把黄色伤害数字、precision 标签或护盾未破直接等同于 Box Breathing 资格。
 
 正式武器原型、全部弱点和 Divinity 生产者、瞄准辅助物理效果、原作取消 / 取样窗口、D2 鼠标操作映射 / FOV / 动画 / HUD、生产装配和物理世界重启仍有缺口，条目保持 partial。[内容格式](engine-data-packs.md#box-breathing-的持续瞄准与下一发快照)。
+
+
+### Range 属性与真实弹丸距离衰减
+
+2026-10-12 复核 Foundry 当前 HEAD 为 dcd0c7d，复用此前归档的原始公式与计算源码。Range 先加合资格点数并限幅 0–100，再分别计算 hip 起点 / 终点；ADS 使用独立的伤害距离倍率，不能把该倍率等同于可视 zoom。[来源记录](../data/d2-research/2026-10-12/weapon-range-falloff.json)、[RangeFormula 与 get_ads_multiplier](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs)。
+
+| 普通家族参考 | hip 起点（米） | hip 终点（米） | 最低伤害倍率 | ADS 距离倍率 |
+| --- | --- | --- | --- | --- |
+| Auto Rifle default | 10.75 + 0.125 × Range | 40 | 0.5 | 1.6 |
+| Hand Cannon default | 16 + 0.09 × Range | 29 + 0.03 × Range | 0.33 | 1.5 |
+
+两模式使用各自的来源 floor 定义，这两行未单列 PvE 覆盖值。特殊 frame / intrinsic 和金装存在不同 ADS 倍率，当前不套用这些默认值。四条端点曲线与原始文件逐项比对；下列伤害插值仍为独立的合成校准，不把已知端点当作中间形状的证据。[Foundry 原始参数](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build_resources/weapon_formulas.json)。
+
+参考消费者开火时保存起止距离、当前模式最低倍率及其计算轨迹；准备完成的 ADS 同时放大起止距离，随后松开、卸装或增益变化不改写该发攻击。碰撞时测量原发射位置到真实碰撞点的三维欧氏距离，进入独立命名 falloff 乘区。使用线性测试形状时，平台内倍率 1，区间内为 `1 − (1 − floor) × (distance − start) / (end − start)`，终点及更远保持 floor。直击和精确分量各自使用完整伤害快照，不把距离乘数写回基础伤害，也不把最低伤害强制归零。
+
+Fail-Deadly 的普通满层 +15 Range 已由真实伤害实例驱动下一发的参考起点。合成基础 Range 50、单发容量的自动步枪：起点从 17 米变为 18.875 米，终点仍 40 米。旧发射记录保留 17 米，未装备词条的另一把武器不继承；范围内实际掉血、穿透后每个接触独立距离、飞行中位置 / 来源变化与未知回执不重放分别验收。增强 18 / 6 与中间属性进度仍是既有测试假设，未提高可信度。
+
+取样使用完成 ADS 的布尔边界，未校准原作过渡插值或跳弹的距离定义；直线距离不表示累计弹道长度。基础 Range 50、基础伤害 10、射速 / 弹量、碰撞膨胀与区间线性插值均为测试配置。完整原型 / 金装、原作曲线形状和取样窗口、实际辅瞄、正式内容 / HUD 与物理世界跨重启仍未完成，相关条目保持 partial。[配置契约](engine-data-packs.md#已观测位置距离与实际武器衰减)。

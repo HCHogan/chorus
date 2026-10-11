@@ -2853,7 +2853,7 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 
 `observe_ammo.unmodified_capacity` 在第一次命中时建立本周期的固定层数基准，避免修改后的容量形成自增长。`fail_deadly_magazine` 接收 COUNT（普通层数、火箭层数乘 0.5）并返回 ROUND；`fail_deadly_range` / `fail_deadly_aim_assist` 接收和返回 MULTIPLIER，`fail_deadly_insert` 接收 MULTIPLIER 返回整数 ROUND，四者都能读取 base_capacity / stack_limit / stacks。数据包必须显式提供这些 Profile，以及 `magazine_capacity` 的 base_add 阶段、共享 weapon_range / weapon_aim_assist 与 reload_insert_rounds；未提供的依赖不能被当作已校准默认值。
 
-`receipt_seconds`（second）、`enhanced_range` / `enhanced_aim_assist`（stat_point）是词条参数；后两项在原表未知。实例 Buff 通过组件为容量增加发数、为两项属性增加点数，逐发装填仍由已接受步骤的共享查询处理。容量值独立于已装弹数，清层不删除已有溢出，也不会自动补弹。参考 [完整定义](../common/src/test/resources/effects/fail_deadly.json) 和 [合成曲线](../common/src/test/resources/effects/fail_deadly_test_calibration.json)；射程 / 辅瞄 Profile 当前只证明属性查询，不能算成真实距离衰减 / 瞄准行为验收。
+`receipt_seconds`（second）、`enhanced_range` / `enhanced_aim_assist`（stat_point）是词条参数；后两项在原表未知。实例 Buff 通过组件为容量增加发数、为两项属性增加点数，逐发装填仍由已接受步骤的共享查询处理。容量值独立于已装弹数，清层不删除已有溢出，也不会自动补弹。参考 [完整定义](../common/src/test/resources/effects/fail_deadly.json) 和 [合成曲线](../common/src/test/resources/effects/fail_deadly_test_calibration.json)；Range 已有下文的实际弹丸距离衰减参考消费者；辅瞄仍仅为数值查询，不能算成准星磁性或目标获取验收。
 
 ### 目标共享的承伤状态
 
@@ -3297,3 +3297,18 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 `weapon_ads_curves` 提供 17 个 stat_point → second Profile；消费者的 enter timing 依次使用 `weapon_handling`、对应 `<family>_ads_time`、`handling_animation` 和 `ads_duration`。Handling Profile 已限幅 0–100；曲线输入超界拒绝，避免跳过限幅。ADS 不使用 stow 最终下限，也不拼接角色 Weapons 的切枪时长 Profile。计时的完整 Result 随已接受 WeaponAimPlan 保存，后续 Buff / 护甲变化不会改写期限，新边沿读取当前来源。
 
 `weapon_ads_weapon` 链接 Box Breathing 的实际弹体消费者，三种合成原型可选 Snapshot / Surplus。`weapon_ads_test_calibration` 仅保存三种测试 timing 映射，不是可直接加载的独立 Program。测试固定的退出 0.1 秒与基础 Handling 10、伤害 / 弹量 / 几何均非原作校准；更快达到 AIMED 不提前从输入开始的 Box Breathing 计时。该阶段无新 Java 执行器或检查点类型。曲线来源、特殊弹 ×0.75 / ×0.8 历史分歧及重弹疑问见[规则集](d2-ruleset.md#snapshot-sights-与-ads-时间曲线)。
+
+
+### 已观测位置距离与实际武器衰减
+
+`{"type":"chorus:position_distance","from":"muzzle","to":"impact"}` 返回 meter，from / to 是此前已绑定的位置结果名称。允许 POSITION、PROJECTILE_IMPACT、SHOT_IMPACT 和 PICKUP_CONTACT 的位置形状；目标集合或纯方向不接受。加载时验证绑定与形状，执行时验证两个观测实际存在并属于同一维度。缺失、跨维度或不能表示的无限距离明确失败；同一点为零，不以缺失替代零。
+
+表达式只读不可变观测。发射时捕获的 eyes 位置和真实实体碰撞点可直接组合；不会追随后来移动或消失的持有者，也不改用目标中心。每次穿透碰撞单独求值，使用同一个原始 muzzle。它是三维直线距离，非飞行路径累计、跳弹各段之和或地图导航距离。需要其他定义时由内容显式提供相应观测。快照该表达式会固定已有结果；正常碰撞消费者则在 contact 续体中求值，再把数值传入 damage_snapshot 的 impact。
+
+`weapon_range_weapon` 的实际开火先用 `calculate_pipeline` 将武器 Range 经 0–100 限幅、家族 start / end 曲线和开镜距离倍率生成两条不可变结果，并另存当前模式的最低伤害倍率。查询保留 actor / weapon 来源且 victim 明确为 event_weapon；这类武器查询不应借用清空来源上下文的角色 attribute / profile_value。结果随发射续体保存。输入副本的起止距离为 meter，最低倍率为 multiplier；角色位置、Range Buff 和瞄准状态之后改变都不重算。
+
+碰撞续体对 `(distance − start) / (end − start)` 读取必需的 `chorus_d2:weapon_falloff_shape`，输出从完整伤害到最低伤害的损失进度；再按 `delta = −(1 − floor) × progress` 写入 `falloff_delta`。相同 ImpactData 还保留 distance / range_start / range_end / range_floor，数值贡献进入伤害 Profile 的 `chorus_d2:distance_falloff` 命名因子。具体 Profile 保留外部校准入口，提供者须保证进度和最低倍率在 0–1、end > start；当前两个参考曲线已在 Range 0–100 全域核对端点次序，非法单位 / 缺失 Profile 拒绝链接，除零拒绝执行。
+
+`weapon_range_test_calibration` 显式选择 0–1 线性插值并在区间外保持端点；它是测试校准，没有把插值当作 Foundry 已独立测量的部分。消费者当前在 AIMED 为真时用原型 ADS 距离倍率，过渡中使用 hip 端点；此取样政策仍待原作校准。`weapon_range_curves` 保存两个普通家族的四条参考曲线，特殊原型必须另选正确声明，不能从默认家族推断金装例外。
+
+存储只新增 `chorus:effect/data/value/position_distance`，字段 from / to 均为 String。旧 550 个 ID 和字段形状不变，两份历史检查点保持原始字节。既有位置、CalculationPipeline.Result 与 projectile continuation 承载数值和快照，无新实体持久化承诺。验收包括带位置 / 端点的发射对象编码和领域恢复，不代表跨完整物理世界重启恢复弹丸。[数值来源与缺口](d2-ruleset.md#range-属性与真实弹丸距离衰减)。

@@ -1,0 +1,32 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_falloff_shape",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_linear",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0
+              },
+              {
+                "input": 1,
+                "output": 1
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "clamp"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    }
+  ]
+}

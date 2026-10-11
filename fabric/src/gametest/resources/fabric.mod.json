@@ -48,6 +48,7 @@
       "com.imdomestic.chorus.WeaponAimInputGameTest",
       "com.imdomestic.chorus.BoxBreathingGameTest",
       "com.imdomestic.chorus.SnapshotSightsGameTest",
+      "com.imdomestic.chorus.WeaponRangeFalloffGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
       "com.imdomestic.chorus.KineticTremorsGameTest",

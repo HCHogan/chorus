@@ -3443,11 +3443,12 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "独立JSON：同武器实际伤害实例叠层、击杀清层、收枪保留和回执身份隔离；稳定基础容量、火箭 / Bipod已知映射、武器属性查询、真实Overflow砖与逐发装填；未知曲线与强化属性为显式校准",
+      "scope": "独立JSON：同武器实际伤害实例叠层、击杀清层、收枪保留和回执身份隔离；稳定基础容量、火箭 / Bipod已知映射、武器属性查询、真实Overflow砖与逐发装填；未知曲线与强化属性为显式校准；普通满层 +15 Range 已进入参考自动步枪实际弹丸的衰减起点，开火捕获的旧射程不重算。",
       "acceptance": [
         "每次伤害实例叠层；普通武器最大层数对应弹匣，火箭为2倍容量，并有x2 / x4与Bipod的特殊弹数映射",
         "至多100%增加基础弹匣容量；满层+15 / 强化+?射程、+5 / 强化+?辅瞄",
-        "武器击杀清除全部层数；收枪保留；基础容量与Overflow叠加并影响逐发装填和Bolt Charge等按弹匣计算的效果"
+        "武器击杀清除全部层数；收枪保留；基础容量与Overflow叠加并影响逐发装填和Bolt Charge等按弹匣计算的效果",
+        "实际物理伤害达到普通满层后，下一发经 weapon_range 限幅与 Foundry 参考曲线延后衰减起点；旧发射的端点、持有者位置和其他武器互不改写。"
       ],
       "evidence": [
         {
@@ -3555,10 +3556,28 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FailDeadlyGameTest.java",
           "symbol": "unknownDamageOutcomeKeepsActualHealthLossWithoutInventingProgressOrReplayingDamage"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_range_weapon.json"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-12/weapon-range-falloff.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponRangeFalloffTest.java",
+          "symbol": "actualFailDeadlyDamageChangesTheNextShotWithoutRewritingAlreadyCapturedEndpoints"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponRangeFalloffGameTest.java",
+          "symbol": "actualFailDeadlyHitExtendsTheFollowingWeaponsDamagePlateau"
         }
       ],
       "gaps": [
-        "普通满层15射程 / 5辅瞄有原表依据；强化端点和中间曲线仍未知。enhanced_range / enhanced_aim_assist为必填参数，测试18 / 6及线性曲线不代表原作数值；weapon_range / weapon_aim_assist仅验证属性查询，真实距离衰减 / 准星磁性 / 目标获取消费者未接入。",
+        "普通满层15射程 / 5辅瞄有原表依据；强化端点和中间曲线仍未知。enhanced_range / enhanced_aim_assist为必填参数，测试18 / 6及线性曲线不代表原作数值；weapon_range 已进入两个参考原型的真实距离衰减消费者；区间插值、全部原型 / ADS 取样边界仍待原作校准，weapon_aim_assist 的准星磁性 / 目标获取消费者未接入。",
         "层数上限取第一次合格命中的未修饰容量，普通一次、火箭两倍，避免自身扩容形成自增长。这是明确的容量阶段政策，全部基础容量改写、Bipod正式词条装配、换装 / 死亡 / 离线和重施加边界仍需原作校准。",
         "普通每层加一发使用公开研究说明；原表火箭x2对应2发、Bipod x2 / x4对应3 / 4发。测试将Bipod未修饰容量显式设为2，火箭额外发数floor(stacks/2)，未独立校准x1 / x3取整，也未实现完整火箭直击 / 爆炸和全部多段伤害原型。",
         "逐发装填仅以满层额外1发、MAX组叠加的合成曲线证明真实2发插入和储备守恒。各霰弹枪真实曲线及Timelost / Dual Loader组合仍需校准。",

@@ -38,6 +38,23 @@ public interface Value {
             return e.results().get(binding).read(field, result);
         }
     }
+    /** Euclidean distance between two already-observed positions; unavailable observations have no default. */
+    record PositionDistance(String from, String to) implements Value {
+        public PositionDistance {
+            com.imdomestic.chorus.effect.EffectTimers.localName(from);
+            com.imdomestic.chorus.effect.EffectTimers.localName(to);
+        }
+        @Override public Unit unit(Validation v) {
+            v.result(from).requirePosition(); v.result(to).requirePosition(); return Unit.METER;
+        }
+        private com.imdomestic.chorus.effect.target.WorldPosition position(Evaluation e, String binding) {
+            var shape = e.results().get(binding); var result = e.context().bindings().get(binding);
+            if (shape == null || result == null) throw new IllegalArgumentException("Unbound position: " + binding);
+            return shape.position(result).orElseThrow(() -> new IllegalArgumentException("Position unavailable: " + binding));
+        }
+        @Override public Measure evaluate(Evaluation e) { return new Measure(position(e, from).distanceTo(position(e, to)), Unit.METER); }
+        @Override public Value snapshot(Evaluation e) { return new Constant(evaluate(e).value(), Unit.METER); }
+    }
     enum ResourceField { VALUE, CAPACITY, MISSING }
     record Resource(String resource, Evaluation.Target target, ResourceField field) implements Value {
         public Resource(String resource, Evaluation.Target target) { this(resource, target, ResourceField.VALUE); }

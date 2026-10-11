@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "scope": "Reference Range-to-distance endpoints consumed by actual projectile impacts",
+  "sources": [
+    {
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+      "reused_metadata": "data/d2-research/2026-10-12/weapons-stat-handling.json",
+      "notes": "RangeFormula plus get_ads_multiplier; default Auto Rifle 1.6 and default Hand Cannon 1.5. These factors are not weapon zoom.",
+      "revision": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+      "head_rechecked": true
+    },
+    {
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build_resources/weapon_formulas.json",
+      "path": "data/d2-research/2026-10-12/handling-foundry-formulas.json.gz",
+      "raw_sha256": "fed3a0e02c72e34b8fb6daac459ca776fa31ef90b7350905b5f6276ff9b3178d"
+    }
+  ],
+  "mapping": [
+    {
+      "family": "Auto Rifle",
+      "category": "default",
+      "key": "auto_rifle",
+      "range": {
+        "vpp_start": 0.125,
+        "offset_start": 10.75,
+        "vpp_end": 0.0,
+        "offset_end": 40.0,
+        "floor_percent": 0.5
+      },
+      "ads_distance_multiplier": 1.6
+    },
+    {
+      "family": "Hand Cannon",
+      "category": "default",
+      "key": "hand_cannon",
+      "range": {
+        "vpp_start": 0.09,
+        "offset_start": 16.0,
+        "vpp_end": 0.03,
+        "offset_end": 29,
+        "floor_percent": 0.33
+      },
+      "ads_distance_multiplier": 1.5
+    }
+  ],
+  "policies": [
+    "Range clamps to 0..100 before the start and end curves. Each accepted fire captures both calculation traces, minimum multiplier and ready-ADS distance multiplier.",
+    "Distance is the Euclidean separation between captured launch position and observed collision point, not current owner position, target center or accumulated ricochet path.",
+    "The external weapon_falloff_shape test profile is explicitly synthetic linear interpolation between the published endpoints; the archived Foundry source supplies endpoints/floors, not an independently verified damage interpolation function.",
+    "The ready-only ADS threshold is a Chorus policy; original transition interpolation, range sampling, ricochet distance and all family/exotic exceptions remain uncalibrated."
+  ],
+  "remaining": [
+    "Full weapon/exotic range catalog and actual damage interpolation calibration",
+    "Source tag eligibility, ADS transition and ricochet measurement calibration",
+    "Production content, graphics/HUD, physical-world restart"
+  ]
+}

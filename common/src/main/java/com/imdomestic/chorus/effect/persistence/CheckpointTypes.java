@@ -342,6 +342,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/value/resource", com.imdomestic.chorus.effect.data.Value.Resource.class);
         types.put("chorus:effect/data/value/resource_field", com.imdomestic.chorus.effect.data.Value.ResourceField.class);
         types.put("chorus:effect/data/value/result", com.imdomestic.chorus.effect.data.Value.Result.class);
+        types.put("chorus:effect/data/value/position_distance", com.imdomestic.chorus.effect.data.Value.PositionDistance.class);
         types.put("chorus:effect/data/value/round", com.imdomestic.chorus.effect.data.Value.Round.class);
         types.put("chorus:effect/data/value/rounding", com.imdomestic.chorus.effect.data.Value.Rounding.class);
         types.put("chorus:effect/data/value/scale", com.imdomestic.chorus.effect.data.Value.Scale.class);

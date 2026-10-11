@@ -65,6 +65,9 @@ public final class EffectCodecs {
                 .register("chorus:result", Value.Result.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("binding").forGetter(Value.Result::binding), Codec.STRING.fieldOf("field").forGetter(Value.Result::field)
                 ).apply(i, Value.Result::new)))
+                .register("chorus:position_distance", Value.PositionDistance.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("from").forGetter(Value.PositionDistance::from), Codec.STRING.fieldOf("to").forGetter(Value.PositionDistance::to)
+                ).apply(i, Value.PositionDistance::new)))
                 .register("chorus:resource", Value.Resource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Value.Resource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.Resource::target),
                         enumeration(Value.ResourceField.class).optionalFieldOf("field", Value.ResourceField.VALUE).forGetter(Value.Resource::field)

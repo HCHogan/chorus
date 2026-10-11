@@ -1,0 +1,97 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:auto_rifle_falloff_start",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "reference_distance",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              10.75,
+              0.125,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "meter"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:auto_rifle_falloff_end",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "reference_distance",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              40.0,
+              0.0,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "meter"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:hand_cannon_falloff_start",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "reference_distance",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              16.0,
+              0.09,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "meter"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:hand_cannon_falloff_end",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "reference_distance",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              29,
+              0.03,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "meter"
+        }
+      ]
+    }
+  ]
+}
