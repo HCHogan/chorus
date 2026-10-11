@@ -38,10 +38,18 @@ public interface Value {
             return e.results().get(binding).read(field, result);
         }
     }
-    record Resource(String resource, Evaluation.Target target) implements Value {
+    enum ResourceField { VALUE, CAPACITY, MISSING }
+    record Resource(String resource, Evaluation.Target target, ResourceField field) implements Value {
+        public Resource(String resource, Evaluation.Target target) { this(resource, target, ResourceField.VALUE); }
+        public Resource { java.util.Objects.requireNonNull(field); }
         @Override public Unit unit(Validation v) { v.target(target); v.resource(resource); return Unit.CHARGE; }
         @Override public Measure evaluate(Evaluation e) {
-            return new Measure(e.resource(resource, target).value(), Unit.CHARGE);
+            var account = e.resource(resource, target);
+            return new Measure(switch (field) {
+                case VALUE -> account.value();
+                case CAPACITY -> account.capacity();
+                case MISSING -> java.math.BigDecimal.valueOf(account.capacity()).subtract(java.math.BigDecimal.valueOf(account.value())).doubleValue();
+            }, Unit.CHARGE);
         }
     }
     /** Live query of the selected base ability account; absent accounts have no numeric default. */

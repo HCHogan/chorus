@@ -63,7 +63,8 @@ public final class EffectCodecs {
                         Codec.STRING.fieldOf("binding").forGetter(Value.Result::binding), Codec.STRING.fieldOf("field").forGetter(Value.Result::field)
                 ).apply(i, Value.Result::new)))
                 .register("chorus:resource", Value.Resource.class, RecordCodecBuilder.mapCodec(i -> i.group(
-                        ID.fieldOf("resource").forGetter(Value.Resource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.Resource::target)
+                        ID.fieldOf("resource").forGetter(Value.Resource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.Resource::target),
+                        enumeration(Value.ResourceField.class).optionalFieldOf("field", Value.ResourceField.VALUE).forGetter(Value.Resource::field)
                 ).apply(i, Value.Resource::new)))
                 .register("chorus:ability_energy", Value.AbilityEnergy.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("slot").forGetter(Value.AbilityEnergy::slot), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.AbilityEnergy::target),
@@ -394,6 +395,9 @@ public final class EffectCodecs {
                 .register("chorus:resize_resource", ResourceCapacityActions.Resize.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(ResourceCapacityActions.Resize::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(ResourceCapacityActions.Resize::target),
                         values.fieldOf("capacity").forGetter(ResourceCapacityActions.Resize::capacity)).apply(i, ResourceCapacityActions.Resize::new)))
+                .register("chorus:complete_recharge", LinkedRechargeActions.Complete.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("progress").forGetter(LinkedRechargeActions.Complete::progress), ID.fieldOf("resource").forGetter(LinkedRechargeActions.Complete::resource),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(LinkedRechargeActions.Complete::target)).apply(i, LinkedRechargeActions.Complete::new)))
                 .register("chorus:initialize_resource", Action.InitializeResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Action.InitializeResource::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.InitializeResource::target)
                 ).apply(i, Action.InitializeResource::new)))

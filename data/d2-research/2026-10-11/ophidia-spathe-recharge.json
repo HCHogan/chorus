@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Recharge requirement research only; Ophidia Spathe content is not implemented by the linked-cycle fixture",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1500097863",
+    "retrieved_at": "2026-10-10T23:58:28.130968+00:00",
+    "path": "data/d2-research/2026-10-11/ophidia-spathe-recharge-source.html.gz",
+    "html_sha256": "b462bd083fab9fef1d3ed63b129d41329fc032df69dc856cc7676a37a4522199",
+    "gzip_sha256": "6ab5d9ca2552a7611b14a40df7e81e517ffaff7b8560d9de87cbd7cb2b476603"
+  },
+  "cells": [
+    {
+      "original_cell": "A91",
+      "snapshot_cell": "A62",
+      "snapshot_text_sha256": "064a4c7c6668debf734f88575486160aef68bda2675aa165e06cd4ee1f37a748",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "C91",
+      "snapshot_cell": "C62",
+      "snapshot_text_sha256": "ba24f6262081e0f3f14b7f0b23566aa88fe74e0f2f11017b6ec8c23156305102",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "requirements": [
+    "Solar melee gets an extra charge.",
+    "All melee charges recharge simultaneously, with an unspecified recent-use exception.",
+    "Gambler dodge and knife-kill damage stacks require separate content integration."
+  ],
+  "official_context": {
+    "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1",
+    "published_at": "2024-06-04",
+    "claim": "Lightweight Knife extra charge did not stack with Ophidia Spathe because of its distinct recharge behavior. Historical context, not verification of all current exotic behavior."
+  },
+  "core_demonstration": {
+    "definition": "common/src/test/resources/effects/linked_recharge.json",
+    "policy": "Separate available-use and single-cycle progress accounts; explicit atomic completion fills the former and resets the latter. Partial progress cannot pay a use.",
+    "synthetic_parameters": {
+      "cycle_seconds": 2,
+      "cycle_recipient_scalar": 0.5,
+      "boost_duration_seconds": 0.5
+    }
+  },
+  "unresolved": [
+    "Recent-use exception duration and exact original-game cycle/reset behavior remain uncalibrated.",
+    "The fixture is not Ophidia Spathe, Gambler dodge or a Solar knife. No Compendium entry is promoted by it.",
+    "Ability energy gains currently resolve the cost resource. Production linked skills still need explicit recharge-resource routing for slot-based gains and observations.",
+    "Arbitrary linked groups, parallel independent progress lanes, migration, persistence and UI are not implemented."
+  ]
+}

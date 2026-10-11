@@ -1,0 +1,532 @@
+{
+  "version": "test-linked-recharge",
+  "resources": [
+    {
+      "id": "test:charges",
+      "capacity": 2,
+      "initial": 2,
+      "resizable": true
+    },
+    {
+      "id": "test:progress",
+      "capacity": 1,
+      "initial": 0,
+      "base_rate": 0,
+      "rate_profile": "test:cycle_rate",
+      "gain_profile": "test:cycle_gain",
+      "gain_scalar": 0.5
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:cycle_rate",
+      "version": "test-linked-recharge",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "baseline",
+          "operation": "replace",
+          "group": {
+            "name": "base",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "boost",
+          "operation": "multiply",
+          "group": {
+            "name": "boost",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:cycle_gain",
+      "version": "test-linked-recharge",
+      "input_unit": "charge_fraction",
+      "steps": []
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:boost",
+        "version": "test-linked-recharge",
+        "duration": 0.5,
+        "refresh": "reset"
+      },
+      "bundle": "test:boosted"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:linked",
+      "rules": [
+        {
+          "id": "init",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "test:charges"
+            },
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "test:progress"
+            }
+          ]
+        },
+        {
+          "id": "cycle",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "test:progress",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:complete_recharge",
+                "progress": "test:progress",
+                "resource": "test:charges"
+              },
+              "as": "cycle"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "cycle",
+                    "field": "completed"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "charge_fraction"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:completed"
+                  ],
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "start",
+          "on": "chorus:resource_spent",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_reference",
+                "name": "resource",
+                "is": "test:charges"
+              },
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "before",
+                  "unit": "charge_fraction"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:event_number",
+                  "name": "capacity",
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "test:progress",
+              "amount": {
+                "type": "chorus:resource",
+                "resource": "test:progress",
+                "field": "value"
+              },
+              "payment": "start_cycle"
+            }
+          ]
+        },
+        {
+          "id": "cast",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:spend_resource",
+                "resource": "test:charges",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                },
+                "payment": "cast"
+              },
+              "as": "cost"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "cost",
+                "field": "succeeded"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:cast"
+                  ],
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "charge_fraction"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "resize",
+          "on": "test:resize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "test:charges",
+              "capacity": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              }
+            }
+          ]
+        },
+        {
+          "id": "complete",
+          "on": "test:complete",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:complete_recharge",
+                "progress": "test:progress",
+                "resource": "test:charges"
+              },
+              "as": "cycle"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "cycle",
+                    "field": "completed"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "charge_fraction"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:completed"
+                  ],
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "cycle",
+                      "field": "credited"
+                    },
+                    "factor": 1,
+                    "from": "charge_fraction",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "boost",
+          "on": "test:boost",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:boost"
+            }
+          ]
+        },
+        {
+          "id": "refund",
+          "on": "test:refund",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:spend_resource",
+                "resource": "test:charges",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                },
+                "payment": "refund_cast"
+              },
+              "as": "cost"
+            },
+            {
+              "type": "chorus:refund_cost",
+              "cost": "cost",
+              "fraction": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:resource",
+                  "resource": "test:charges",
+                  "field": "missing"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:progress",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:base",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:resource",
+                  "resource": "test:charges",
+                  "field": "missing"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:progress",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:cycle_rate",
+          "stage": "baseline",
+          "group": "base",
+          "op": "replace",
+          "stacking_key": "test:cycle",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "charge_fraction_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "test:charges",
+              "field": "missing"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "reference": "Synthetic linked cycle calibration; no D2 cooldown claim",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:boosted",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "boost",
+          "profile": "test:cycle_rate",
+          "stage": "boost",
+          "group": "boost",
+          "op": "multiply",
+          "stacking_key": "test:boost",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic linked cycle boost",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:linked_ability",
+      "slot": "test:melee",
+      "cost": {
+        "resource": "test:charges",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1168,4 +1168,12 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 8 项 SpiritArmamentariumTest 和 3 项双加载器共享 SpiritArmamentariumGameTest 覆盖上述组合、选择切换分段回充、Codec 与声明校验。世界场景通过实际物品容器交换到独立 class_item 槽，并验证两枚暮域真实投掷、等效物品替换、保留其他容量来源和空槽卸装；容量观察触发实际治疗后故障时，已转移的物品、容量及生命保留，恢复不会重放。
 
-定义仍位于测试资源，测试物品原型为合成输入。正式 perk 选择、棱镜 / 职业 / 解锁和金装数量限制、美术、HUD、能量持久化、原作装卸 / 死亡能量政策尚未完成。此绑定仅协调 SOURCE 与选择事务；容量受 Buff 生命周期或任意条件变化影响时，内容还需相应重算规则。通用自动投影、parallel / linked 充能时间线仍未实现，审阅保持 **partial**。
+定义仍位于测试资源，测试物品原型为合成输入。正式 perk 选择、棱镜 / 职业 / 解锁和金装数量限制、美术、HUD、能量持久化、原作装卸 / 死亡能量政策尚未完成。此绑定仅协调 SOURCE 与选择事务；容量受 Buff 生命周期或任意条件变化影响时，内容还需相应重算规则。通用自动投影、parallel 及完整 linked 技能装配仍未实现，审阅保持 **partial**。
+
+## Ophidia Spathe 的联动回充需求与边界
+
+2026-10-11 重新读取[在线原表 Exotic Armors](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1500097863#gid=1500097863)，原表 A91 / C91 与 CSV 快照 A62 / C62 归一化一致。它要求 Solar 近战额外次数、同时恢复全部次数，并保留一个未知秒数的近期使用例外；[来源记录](../data/d2-research/2026-10-11/ophidia-spathe-recharge.json) 保存坐标、原 HTML、哈希及未确定项。[官方 8.0.0.1 更新](https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1)曾明确 Lightweight Knife 额外充能因这种特殊回充方式不与 Ophidia Spathe 叠加；这是历史设计约束，不能据此确定当前全部行为。
+
+核心现可用两个资源加 complete_recharge 表达“一轮进度完成，一起恢复全部次数”：施放只扣可用次数，回能先进入单轮进度，完成时清零进度并补满当前次数上限。合成测试覆盖先用一次、中途再用一次、两次都在同一轮末尾恢复，以及一份外部周期能量恢复全部缺口。详细协议见 [联动回充](engine-data-packs.md#联动回充的独立进度与可用次数)。测试的 2 秒周期、0.5 CES 和首次使用重置 / 再次使用保留进度都是合成政策，不是该金装的原作参数。
+
+Ophidia Spathe 的近期使用时窗、精确重置规则、Gambler's Dodge、飞刀击杀增伤与刷新、职业 / 近战资格及与 Lightweight Knife 的装配尚未实现。按槽回能还须从当前的扣费账户路由到独立进度账户；现有通用回能 perk 不能直接视为已支持这套联动。此阶段只新增通用完成能力，不增加该金装的已实现或 partial 覆盖声明。

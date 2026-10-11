@@ -498,11 +498,11 @@ dE/dt = (P(s) + Fold(A0_i × F_i(s))) / T0 × M_regen + R_fixed
 
 T0 为 **0 属性下**的一份充能基础冷却，P 为被动倍率，A0_i 为同基准的额外基础恢复倍率。Fold 使用各效果声明的加算 / 互斥 / 替换；固定恢复可按 Profile 替换指定通道。被动曲线、主动收益曲线和伤害增量是三个不同属性函数。
 
-多充能声明 `recharge_policy=sequential / parallel / linked`，以及收益分配策略；parallel 需要每格独立进度，linked 需要明确哪些格一起恢复。总能量相同不代表充能状态相同。Ophidia Spathe 等具体行为要用时间线校准，不能默认所有技能串行回充。
+多充能的目标协议区分 `sequential / parallel / linked` 及收益分配策略；`recharge_policy` 不是当前资源 Codec 已支持的字段。parallel 需要每格独立进度，linked 需要明确哪些格一起恢复。总能量相同不代表充能状态相同。当前已实现一个显式联动完成原语：可用次数账户与容量为 1 的进度账户分开，complete_recharge 在一轮完成后原子清空进度、补满可用账户。纯核心与双端已验证中途再次使用、部分进度不能付费、同边界恢复全部次数、速率切段及未知世界结果保留。按槽回能的独立进度路由、parallel / 任意分组及生产内容仍待接入；Ophidia Spathe 的未知近期使用时窗仍需校准，不能从合成场景宣称金装完成。完整格式见 [联动回充](engine-data-packs.md#联动回充的独立进度与可用次数)。
 
 实现进度：资源定义已支持 capacity / initial / base_rate / thresholds，以及独立的 rate_profile / gain_profile，当前仅有共享顺序能量。恢复 Profile 输入 / 输出为 `charge_fraction_per_second`，收益 Profile 为 `charge_fraction`；`grant_energy` 按上述基准归一化后查询收益 Profile。旧 `grant_resource` 仍接收已求值的 requested / scaled，不隐式套 CES。Threaded Spike 已以数据装配 0.8 接收系数、当前近战属性收益与被动恢复拟合曲线；完整能力 / 生产者装配尚未完成。`spend_resource` 返回 paid / after / succeeded，余额不足不部分扣款，后续效果可按实际支付结果分支；免费施放的 paid 为 0。`refund_cost` 引用此前的成本或退款结果，按 paid × fraction 申请，同笔成本累计认领最多为 paid，溢出也占用额度。`grant_full_charge` 直接增加整数份数，保留部分进度并按容量裁剪。
 
-普通 refund_cost 引用只在同一动作序列内有效，成本结果与累计认领跨条件分支和世界等待保留；未使用 `as` 的返还也按实际付款身份记录到 Frame.retainedResults，循环清理局部槽位不清除已认领额度，原始 cost 引用不能重复拿回已认领量。返还账户固定取自实际支付回执，免费 / 失败支付返还为 0。Frame 完成后释放记录；显式 retain_cost 已支持将剩余额度转交为有限期句柄，在 after / projectile 中共享 EffectState 账本；转交封存原回执，到期或 close 后撤销所有副本的退款资格。跨独立事件 / Buff 的引用与跨重启账本仍未实现，完整技能回能曲线及 parallel / linked 仍待实现。世界动作失败或取消不会隐式退款，退款资格由内容的结果条件决定。
+普通 refund_cost 引用只在同一动作序列内有效，成本结果与累计认领跨条件分支和世界等待保留；未使用 `as` 的返还也按实际付款身份记录到 Frame.retainedResults，循环清理局部槽位不清除已认领额度，原始 cost 引用不能重复拿回已认领量。返还账户固定取自实际支付回执，免费 / 失败支付返还为 0。Frame 完成后释放记录；显式 retain_cost 已支持将剩余额度转交为有限期句柄，在 after / projectile 中共享 EffectState 账本；转交封存原回执，到期或 close 后撤销所有副本的退款资格。跨独立事件 / Buff 的引用与跨重启账本仍未实现，完整技能回能曲线、parallel 及 linked 按槽回能接线仍待实现。世界动作失败或取消不会隐式退款，退款资格由内容的结果条件决定。
 
 0 / capacity 和显式 thresholds 是时间轴边界，`resource_crossed` 对自然恢复、入账与消费统一判断，初始化另发独立事实。中间整格必须声明；依赖能量值的速率条件也需声明断点，不从任意表达式自动推导。每段采用段起点速率，不声称支持任意连续状态相关的精确积分。测试已验证倍率到期分段、双向跨阈值、满值不储存与真实服务器 tick 驱动。
 
@@ -630,7 +630,7 @@ Bundle 的 `action_gates` 为操作人声明技能、开火、手动换弹、原
 
 - 当前即时动作定义可引用成本账户及成本 Profile；先按最终技能检查资格和能量，成功扣费后才派发施放事实。免费施放 paid 为 0，不能从退款创造能量；失败世界回执保留支付，不自动重放。on_use 可在本帧内使用 cast_cost 退款，或显式 retain_cost 后由延迟 / 飞行共享有限期额度；任意独立事件的按施放查找仍待实现。
 - 每个技能槽引用恢复 Profile，明确 0 属性基础冷却、CES、充能次数、每格进度与回充策略，见「资源恢复与收益」。改冷却不自动改 CES，两者都是独立数据。
-- 同槽共用能量通过相同 resource id 表达，冷却 / CES 由基础选择的常驻来源提供。选择事务先结算旧区间，再原子替换来源，不能因更换变体创建另一份满能量；已付成本的延迟退款始终指向原账户。D2 三个手雷示例已统一至 grenade_energy，使用零资源基准、选择期修饰及 Aspect 的槽位条件实现空槽暂停。换装额外扣减、动态容量、多充能策略和存档迁移仍需独立实现与校准。
+- 同槽共用能量通过相同 resource id 表达，冷却 / CES 由基础选择的常驻来源提供。选择事务先结算旧区间，再原子替换来源，不能因更换变体创建另一份满能量；已付成本的延迟退款始终指向原账户。D2 三个手雷示例已统一至 grenade_energy，使用零资源基准、选择期修饰及 Aspect 的槽位条件实现空槽暂停。SOURCE 装备驱动的动态容量已接入；换装额外扣减、任意条件容量协调、完整多充能技能接线和存档迁移仍需独立实现与校准。
 - 被动恢复、额外基础恢复、总速率倍率、固定每秒收益分通道计算。旧文案里的“基础回复速度 +400%”必须先查清基础冷却和属性基准，不能直接贴到当前公式。
 - Demolitionist 等一次性收益使用 grant_energy 或按当前槽路由的 grant_ability_energy；按属性与适用的 CES / CMS 缩放。Pugilist 与 Demolitionist 已部分装配，完整充能、按实际成本退款和固定设置使用不同动作。
 - Super 被动冷却不由 Super 属性缩短；伤害 / 击杀 / 拾球的主动收益走单独定义。技能消费返回 cost receipt，记录实际支付量、免费施放和充能来源，供返还规则使用。
@@ -1456,7 +1456,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 - [x] 装备存储采用独立容器，槽位由内容包定义，支持三武器与五件护甲的声明；不能直接映射原版护甲槽。已实现真实物品转移、玩家保存 / 加载及死亡 / respawn 接线；已有网络校验与最小配装页；完整 D2 物品装配、主手联动、HUD / 技能 UI 和跨模组适配仍待完成。
 - [ ] 来源层绑定协议已支持 origin_bundle / current_owner_bundle；仍需逐条验证武器卸下后是否继续触发，例如庆典飞行毒池与羸弱能量球。
 - [ ] 校准资源 value_basis、CES / CMS 豁免、Super 主动收益、完整冰霜护甲层数表、Scorch 与生命恢复的冲突数值；区分 measured / fitted / assumed。
-- [ ] 多充能已有 sequential / parallel / linked 协议，Ophidia Spathe 等具体时间线尚未验证；漫游超能消耗策略与技能执行实例仍需用例。
+- [ ] 多充能已有 sequential 基础与显式 linked 完成原语；按槽回能的独立进度路由、parallel / 任意分组、Ophidia Spathe 原作时间线尚未验证；漫游超能消耗策略与技能执行实例仍需用例。
 - [ ] 世界物体之间的关系：Anarchy 连线、缠结拿取投掷、Briarbinds 回收重部署。
 
 ### v0 实现范围
@@ -1465,7 +1465,7 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 | --- | --- | --- |
 | stat 层 | Profile 固定步骤、贡献单位检查、四种合并器、分组树、查表曲线 | 公式曲线、输出上的置信度标记 |
 | 伤害 | 分量、精准、护盾层预算算法、`DamageResult`、伤害前后钩子 | 特殊跨层策略、全部命名投影 |
-| 资源 | 一份充能 = 1.0；被动恢复、`grant_chunk`、`grant_full_charge`；单格串行回充 | parallel / linked 多充能 |
+| 资源 | 一份充能 = 1.0；被动恢复、`grant_chunk`、`grant_full_charge`；顺序回充与显式 linked 完成 | parallel、linked 按槽回能路由与任意分组 |
 | 执行 | Frame + step / resume、OpId、命令与事实队列、故障阈值、到期追赶 | 回执持久化（v0 只在一次结算内保留） |
 | 版本 | 单一规则集版本 | 热重载保留旧快照、多版本并存 |
 | 诊断 | 调试命令打印一次查询的计算轨迹 | 轨迹保留上限、离线分析 |

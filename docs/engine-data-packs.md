@@ -524,7 +524,7 @@ rate / if / maximum 在该接收层的 Buff 作用域求值，每层只有一个
 - 初始化返回 value / created；消费返回 paid / after / succeeded，并保留实际成本回执。余额不足时不部分扣款；零成本可以成功但 paid = 0。payment 是规则内唯一的本地标识，完整回执身份另含事件、规则实例及动作 OperationId；同一指令在循环中每次执行也是独立付款，不在不同激活或迭代间复用。
 - `chorus:resource_changed` 只在值变化时发布；`resource_granted` 另带请求 / 入账测量，`resource_spent` 在实际扣费后发布。统一测量为 before / after / delta / capacity，单位 charge_fraction；引用为 resource / reason，布尔值为 changed。恢复、普通入账、完整充能、消费、返还的 reason 分别为 regeneration / grant / full_charge / spend / refund。通用规则通常监听 changed，避免同时监听专项事实而重复发放同一收益。
 - 定义只描述账户，不自动创建所有玩家的资源。DSL 读取、入账或消费未初始化账户会报错；缺失定义、错误 Profile 单位、未声明的反应阈值在加载时拒绝。
-- 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。显式容量变更见下节；持久化、容量来源自动协调、parallel / linked、多份充能分配策略和持久成本账本尚未实现。
+- 已声明资源由程序接管速率；Java 宿主速率接口只为程序外账户保留。账户解绑后仍按定义恢复；若玩法要求停用时停止，应通过来源修饰和 base_rate = 0 等内容规则表达。显式容量变更与联动回充见下节；持久化、任意 Buff / 条件驱动的容量协调、parallel、多份充能分配策略和持久成本账本尚未实现。
 
 ### 显式资源容量变更
 
@@ -545,6 +545,26 @@ target 默认 self；capacity 必须为有限正数，单位 charge_fraction。�
 这是显式动作，不会自动监听任意属性变化。多个来源决定容量时，先用 calculate 按接收者查询完整 Profile，再把结果交给 resize；应在来源或选择事务已提交后按内容规则重算，不能各自卸下时盲目设回基础容量。示例 [resource_capacity.json](../common/src/test/resources/effects/resource_capacity.json) 验证两个 +1 来源合成三格、接收者隔离和移除一个来源后保留另一个。缩容裁剪是该指令的明确语义，是否适用于某项 D2 换装效果仍需原作校准。
 
 D2 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 已用 grenade_capacity_binding 组合自身 source_attached / source_detached 与持有者 abilities_changed，在完整来源提交后重算容量。手雷选择期来源及 [Spirit](../common/src/test/resources/effects/spirit_armamentarium.json) 共同复用；同一容量多次计算返回未变化结果，不重复发布容量事实。实际装备替换读取最终来源集合，避免等效替换先缩容再扩容；空槽卸装仍由旧来源的卸下反应完成协调。账户声明整格阈值 1 / 2，当前上限由时钟自动纳入。该内容绑定不覆盖任意 Buff / 条件变化，新增容量政策仍需声明对应重算入口；完整限制见 [D2 规则集](d2-ruleset.md#spirit-of-the-armamentarium-额外手雷充能)。
+
+### 联动回充的独立进度与可用次数
+
+联动回充应分别保存可用次数与一轮回充进度。不能把两格总容量的恢复率乘二：后者会在半轮时产生一份可用能量，而联动策略可能要求整轮结束才一起恢复。当前提供显式 `complete_recharge`，由内容组合两个普通资源；`recharge_policy` 仍不是资源声明支持的字段，也没有隐式全局配对表。
+
+```json
+{"action":{"type":"chorus:complete_recharge",
+  "progress":"example:melee_cycle","resource":"example:melee_uses",
+  "target":"self"},"as":"cycle"}
+```
+
+progress 必须声明为固定容量 1，禁止 resizable；两账户必须已初始化、属于同一目标、处于同一逻辑时间，且身份不同。进度不足 1 时返回 completed=false，状态和事实均不变。进度满时，在一次 Local 迁移中把进度清零，并将可用账户补到其**当前**容量；target 默认 self。它不经过 CES / 收益 Profile，因为进度收到能量时已经完成对应缩放。补入量为当前缺口，不因原有可用次数或后来扩容而重复缩放进度。
+
+结果字段 progress_before / progress_after、before / after、capacity / credited 均为 charge_fraction，另有 completed 标志。先发进度账户的 resource_changed（reason=recharge_completed），再发可用账户的 resource_granted（reason=linked_recharge）；有正补入时再发其 resource_changed。所有观察者看到的两个账户均已提交。转换不发布 resource_spent，不生成可退款的 CostResult；重复执行看到清零后的进度，不会重复补入。可用账户已满时仍可显式消费一个完成周期，此时 credited=0。
+
+`chorus:resource` 表达式新增可选 field：value（默认，兼容原读法）、capacity、missing，单位均为 charge_fraction。capacity 读取已调整后的上限，missing 用当前上限减余额；缺失账户仍报错，不默认为零。快照中的 self 读取冻结为常量，victim 读取保留到命中期。这些字段可用于“可用账户未满才让进度继续恢复”等速率条件。
+
+[linked_recharge.json](../common/src/test/resources/effects/linked_recharge.json) 是完整可执行的合成示例。技能只从可用账户支付一份，外部能量送入进度账户；资源越过进度 1 的规则显式完成一轮。示例选择首次从满次数使用时清空旧进度，中途再次使用保留本轮进度，满次数不积存时间或外部回能；解绑提供恢复率的来源会暂停，重挂保留账户。2 秒周期、0.5 CES、0.5 秒加速 Buff 和治疗动作体均是测试校准。联动完成只是一个动作，父帧会先执行完再处理派生事实；需要在同一帧中立即使用新次数时，应在进度入账后显式执行 complete_recharge。
+
+当前按技能槽的 grant_ability_energy / ability_energy 仍解析该技能的扣费账户，没有独立 recharge_resource 路由。因此生产联动技能尚不能把现有按槽回能内容直接复用为进度收益；必须先完成路由、观察字段与内容装配。任意分组、每格 parallel 进度、原作时窗、保存恢复和专用 HUD 也未实现。这一通用动作不代表 Ophidia Spathe 的完整行为已验收。
 
 ### 归一化后授予能量
 
