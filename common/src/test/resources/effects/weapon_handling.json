@@ -1,0 +1,791 @@
+{
+  "version": "test-1",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "effects": {
+          "observe": {
+            "bundle": "test:reload_observer"
+          },
+          "handling": {
+            "bundle": "test:handling_observer"
+          }
+        },
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "kill_clip": {
+                "bundle": "chorus_d2:kill_clip"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "test:primary_ammo",
+        "tags": [
+          "test:weapon"
+        ],
+        "effects": {
+          "observe": {
+            "bundle": "test:reload_observer"
+          },
+          "handling": {
+            "bundle": "test:handling_observer"
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 1,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        },
+        "profile": "test:reload_time"
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "interval_profile": "test:fire_time",
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "handling": {
+        "ready": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.3,
+            "unit": "second"
+          },
+          "profile": "test:handling_time"
+        },
+        "stow": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "second"
+          },
+          "profile": "test:handling_time"
+        }
+      }
+    },
+    {
+      "item": "test:primary_ammo",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 0,
+        "reserves": "unlimited"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:reload_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:magazine",
+      "version": "test-1",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "multiply",
+          "group": {
+            "name": "capacity",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "integer",
+          "rounding": "ceil"
+        }
+      ]
+    },
+    {
+      "id": "test:fire_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_damage",
+      "version": "test-1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:handling_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:expanded",
+        "version": "test-1",
+        "duration": 0.2,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "test:expanded"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:kill_clip_window",
+        "version": "test-1",
+        "duration": 3.6,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "refresh": "reset"
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:kill_clip",
+        "version": "test-1",
+        "duration": 5,
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove",
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:kill_clip_active"
+    },
+    {
+      "definition": {
+        "id": "test:handling_boost",
+        "version": "test-1",
+        "duration": 2,
+        "attach": "holder"
+      },
+      "bundle": "test:handling_boost"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:reload_observer",
+      "rules": [
+        {
+          "id": "started",
+          "on": "chorus:reload_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:reload_started"
+            }
+          ]
+        },
+        {
+          "id": "cancelled",
+          "on": "chorus:reload_cancelled",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:reload_cancelled"
+            }
+          ]
+        },
+        {
+          "id": "finished",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:event_number",
+                  "name": "applied",
+                  "unit": "round"
+                },
+                "factor": 1,
+                "from": "round",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "expand",
+          "on": "test:expand",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:expanded"
+            }
+          ]
+        },
+        {
+          "id": "refill",
+          "on": "test:refill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:refill_magazine"
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "rounds",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "fire_accepted",
+          "on": "chorus:fire_accepted",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:fire_accepted"
+            }
+          ]
+        },
+        {
+          "id": "ammo_spent",
+          "on": "chorus:ammo_spent",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:ammo_spent"
+            }
+          ]
+        },
+        {
+          "id": "shot_fired",
+          "on": "chorus:shot_fired",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_fired"
+            }
+          ]
+        },
+        {
+          "id": "shot_resolved",
+          "on": "chorus:shot_resolved",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_resolved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:fast",
+      "modifiers": [
+        {
+          "id": "time",
+          "profile": "test:reload_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic reload timing, not Destiny tuning",
+          "confidence": "assumed"
+        },
+        {
+          "id": "fire_time",
+          "profile": "test:fire_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic fire interval, not Destiny tuning",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:expanded",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "capacity",
+          "profile": "test:magazine",
+          "stage": "capacity",
+          "group": "capacity",
+          "op": "multiply",
+          "stacking_key": "test:expanded",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic reload capacity, not Destiny tuning",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:kill_clip",
+      "rules": [
+        {
+          "id": "window",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:kill_clip_window"
+            }
+          ]
+        },
+        {
+          "id": "activate",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:kill_clip_window"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:consume_buff",
+              "buff": "chorus_d2:kill_clip_window"
+            },
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:kill_clip",
+              "duration": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 5,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:kill_clip_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:kill_clip",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.25,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:not",
+            "of": {
+              "type": "chorus:event_tag",
+              "tag": "chorus:explosive_perk_damage"
+            }
+          },
+          "reference": "Compendium 2026-10-05 CSV snapshot Weapon Perks C132",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:handling_fast",
+      "modifiers": [
+        {
+          "id": "time",
+          "profile": "test:handling_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:handling_fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic phase timing; not Destiny tuning",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:weapon"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:handling_boost",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "time",
+          "profile": "test:handling_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:handling_fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic phase timing; not Destiny tuning",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:weapon"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:stow_boost",
+      "rules": [
+        {
+          "id": "boost",
+          "on": "chorus:weapon_stowed",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:handling_boost"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:handling_observer",
+      "rules": [
+        {
+          "id": "stowed",
+          "on": "chorus:weapon_stowed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:stowed"
+            }
+          ]
+        },
+        {
+          "id": "drawn",
+          "on": "chorus:weapon_drawn",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:drawn"
+            }
+          ]
+        },
+        {
+          "id": "handling_started",
+          "on": "chorus:weapon_handling_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:handling_started"
+            }
+          ]
+        },
+        {
+          "id": "switch_cancelled",
+          "on": "chorus:weapon_switch_cancelled",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:switch_cancelled"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

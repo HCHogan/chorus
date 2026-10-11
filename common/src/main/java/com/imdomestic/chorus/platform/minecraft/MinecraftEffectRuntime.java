@@ -118,6 +118,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 refreshProjections();
                 var actual = switch (request.command()) {
                     case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
+                    case com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command -> applyHandling(command);
                     case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
                     default -> world.apply(request);
                 };
@@ -172,6 +173,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         validateCheckpointEquipment(level, program, checkpoint);
         var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()));
         runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
+        // The very first clock advance can finish a saved phase before refreshEquipment runs.
+        // Reconnect the already-validated live containers without emitting equipment/source facts.
+        for (var player : level.players()) if (checkpoint.equipmentOwners().contains(player.getUUID()))
+            runtime.equipmentOwners.put(player.getUUID(), player);
         return attach(runtime);
     }
     static void validateCheckpointEquipment(ServerLevel level, CompiledEffects program, Checkpoint checkpoint) {
@@ -414,6 +419,34 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponReload.Commit(before, resolved.state()));
             refreshEquipment(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    /** Timed selection uses the real container and consumes the supplied revision on acceptance. */
+    public boolean switchWeapon(ServerPlayer player, Optional<String> slot, long expectedRevision) {
+        thread(); prepare();
+        if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot switch weapons here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Selection requires a healthy idle runtime");
+        String holder = player.getUUID().toString(); var equipment = PlayerEquipment.get(player);
+        if (equipment.revision() != expectedRevision) throw new IllegalStateException("Stale equipment revision");
+        if (!equipment.projection(program.equipment()).equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)))
+            throw new IllegalStateException("Selection differs from physical ownership");
+        if (!program.usesHandling(view(), holder, slot)) return false;
+        trackEquipment(player);
+        var before = view(); var resolved = program.switchWeapon(before, new com.imdomestic.chorus.effect.weapon.WeaponHandling.Request(holder, java.util.UUID.randomUUID().toString(), slot));
+        if (((com.imdomestic.chorus.effect.weapon.WeaponHandling.Receipt) resolved.result()).outcome() == com.imdomestic.chorus.effect.weapon.WeaponHandling.Outcome.UNCHANGED) return true;
+        equipment.acceptHandling(player, expectedRevision);
+        try {
+            session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponHandling.Commit(before, resolved.state()));
+            refreshEquipment(); refreshProjections(); return true;
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private com.imdomestic.chorus.effect.weapon.WeaponHandling.Applied applyHandling(com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command) {
+        ServerPlayer player;
+        try { player = equipmentOwners.get(java.util.UUID.fromString(command.plan().holder())); }
+        catch (IllegalArgumentException invalid) { player = null; }
+        boolean eligible = player != null && !player.isRemoved() && player.level() == level && player.isAlive() && !player.isSpectator()
+                && command.plan().equals(view().handling().get(command.plan().holder()));
+        boolean applied = eligible && PlayerEquipment.get(player).applyHandling(player, command.change(), program.equipment());
+        return new com.imdomestic.chorus.effect.weapon.WeaponHandling.Applied(command, applied);
     }
     /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
     public com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt fire(ServerPlayer player) {

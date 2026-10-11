@@ -118,8 +118,23 @@ public final class PlayerEquipment {
         change(player, next, nextDrawn, expectedRevision, false, () -> {}, () -> {});
     }
     public void draw(ServerPlayer player, Optional<String> slot, long expectedRevision) {
-        check(player, expectedRevision); Objects.requireNonNull(slot); if (drawn.equals(slot)) return;
+        check(player, expectedRevision); Objects.requireNonNull(slot);
+        var runtime = MinecraftEffectRuntime.installed(player.level()).orElse(null);
+        if (runtime != null && runtime.switchWeapon(player, slot, expectedRevision)) return;
+        if (drawn.equals(slot)) return;
         change(player, items, slot, expectedRevision, false, () -> {}, () -> {});
+    }
+    /** The accepted intent consumes its container revision even before a timed phase changes drawn. */
+    void acceptHandling(ServerPlayer player, long expectedRevision) {
+        check(player, expectedRevision); revision = Math.incrementExact(revision);
+    }
+    boolean applyHandling(ServerPlayer player, EquipmentChange change, CompiledEquipment schema) {
+        check(player, revision);
+        if (!change.holder().equals(player.getUUID().toString()) || !change.before().slots().equals(change.after().slots())
+                || !projection(schema).equals(change.before())) return false;
+        schema.validate(change.after()); long next = Math.incrementExact(revision);
+        drawn = change.after().drawn(); revision = next; inactiveReason = Optional.empty();
+        return true;
     }
     private void change(ServerPlayer player, Map<String, ItemStack> desired, Optional<String> nextDrawn, long expected,
             boolean retrieval, Runnable checkInventory, Runnable transferInventory) {

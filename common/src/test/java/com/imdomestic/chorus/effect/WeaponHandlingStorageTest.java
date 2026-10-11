@@ -25,6 +25,7 @@ class WeaponHandlingStorageTest {
         assertEquals(WeaponReloadTest.program().program(), saved.program());
         assertTrue(saved.program().weapons().stream().allMatch(w -> w.handling().isEmpty()));
         assertEquals(200_000, saved.timeline().domain().reloads().get("player").dueAt());
+        assertTrue(saved.timeline().domain().handling().isEmpty(), "Old state must not invent a pending switch");
         var world = new ArrayList<RuleEngine.WorldRequest>();
         var program = new CompiledEffects(saved.program());
         var session = EffectSession.restore(program, EffectCheckpointTest.clock(), 256, saved, request -> {
@@ -40,6 +41,7 @@ class WeaponHandlingStorageTest {
         var reencoded = EffectCheckpointCodec.encode(saved);
         assertTrue(reencoded.toString().contains("chorus:effect/weapon/weapon_definition_v2"));
         assertFalse(reencoded.toString().contains("\"chorus:effect/weapon/weapon_definition\""));
+        assertEquals("chorus:effect/effect_state_v2", reencoded.getAsJsonObject("state").get("$").getAsString());
         assertEquals(saved, EffectCheckpointCodec.decode(reencoded));
         session.observe(199_999, List.of()); assertTrue(world.isEmpty());
         session.observe(200_000, List.of());

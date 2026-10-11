@@ -2675,7 +2675,7 @@ JSON 顶层固定 `format / program / state / time_micros / next_event / next_fr
 
 格式内部的节点类型可独立升级。RecordTreeCodec.Migration 显式登记只读旧类型、目标类型与纯数据转换；旧节点先完整校验，再升级，最后验证父记录或集合的元素类型。编码拒绝旧类型，迁移图不允许环或一个旧类型有多个出口，迁移后出现重复 Map 键 / Set 成员也拒绝。`schema()` 同时冻结旧、新 wire shape；`types()` 只列当前可写类型，`retiredTypes()` 列只读输入。Java 类名不成为可由存档控制的加载入口。
 
-`chorus:effect/weapon/weapon_definition` 保留原 item / ammunition / reload / fire 四字段，通过 LegacyWeaponDefinitionV1 转为新 `weapon_definition_v2`，新增 handling 默认为空。新定义可选 `handling: {ready: {value, profile 或 profiles}, stow: {value, profile 或 profiles}}`；两个管线均须输出正秒数，沿用 Timing 的单位和 Profile 检查。此阶段完成配置与存储兼容，实际 PlayerEquipment.draw 仍即时变化，后续切枪执行阶段才能消费该配置；不能据此声称举枪 / 收枪已实现。ADS、原作曲线与 100 Handling 收枪下限仍需内容接线和校准。
+`chorus:effect/weapon/weapon_definition` 保留原 item / ammunition / reload / fire 四字段，通过 LegacyWeaponDefinitionV1 转为新 `weapon_definition_v2`，新增 handling 默认为空。新定义可选 `handling: {ready: {value, profile 或 profiles}, stow: {value, profile 或 profiles}}`；两个管线均须输出正秒数，沿用 Timing 的单位和 Profile 检查。PlayerEquipment.draw 已消费该配置，时序见[服务端举枪与收枪阶段](#服务端举枪与收枪阶段)。旧 `effect_state` ID 保留原十五字段，通过 LegacyEffectStateV1 迁移到带空 handling 表的 `effect_state_v2`；已有计时器、资源、Buff、弹药和编号不重建。ADS、原作曲线与 100 Handling 收枪下限仍需内容接线和校准。
 
 [旧检查点夹具](../common/src/test/resources/persistence/pre-handling-reload-v1.json)由修改前的真实会话生成，包含两把已装备武器、击杀窗口及正在进行的换弹。迁移测试验证 50 ms 保存后仍在原 200 ms 截止点补弹和触发对应 Kill Clip，恢复本身不发世界动作，也不重置事件 / 帧编号。此夹具保留原字节，不用新版编码器重生成。
 
@@ -3160,6 +3160,29 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 每个真实伤害出口通过 `ImpactData` 传入 `weapons_stat_target: count`：0 未分类 / 冲突、1 普通 / 精英、2 Boss / Miniboss / Champion、3 实际玩家。分类由该次 inspect_entity 的 observed.player 与 entity/type tags 产生，玩家优先；两个 PvE 组必须互斥。该数字是 D2 内容约定，不是新增引擎枚举。四个 Solar damage_snapshot 出口与三种验收武器的物理接触均已接线；其他生产者必须显式提供，不能把缺少必需命中数据当作已知零值。
 
 on_use 保留来源属性和弹药，impact 条件逐目标计算。重建带快照的 DamageCommand 时需保留 shield profile、reaction snapshot、proc policy 等全部捕获字段，不能用短构造器意外丢失它们。已存在的 DamageSnapshot.command(target, impact) 可以直接构造完整保存的攻击；本次没有改变执行器或检查点结构。数值、资料冲突与未完成项见 [Weapons 分段规则](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)。
+
+## 服务端举枪与收枪阶段
+
+武器定义可选声明两段时间；以下 0.2 / 0.3 秒为合成示例，不是 D2 原型数据：
+
+```json
+"handling": {
+  "stow": {"value": {"type": "chorus:constant", "value": 0.2, "unit": "second"}},
+  "ready": {"value": {"type": "chorus:constant", "value": 0.3, "unit": "second"}}
+}
+```
+
+每段可使用 `profile` 或有序 `profiles`，从 value 的单位开始，最终输出正秒数；例如将武器操控点数依次转换为秒数、乘动画系数、应用该原型的时间下限。配置内不允许显式零时长，未配置 handling 的武器则保持即时阶段。两把武器均未配置且没有待执行切换时，原来的即时 draw 行为不变。混用有、无配置的武器时，缺配置的阶段在同一逻辑边界完成，不人为增加一个 tick。
+
+服务端从真实装备容器接受选择，消耗请求携带的装备 revision；客户端不提供时长、截止点、武器归属或阶段。请求接受立即取消该持有者的手动换弹，并在 handling 计划存在时拒绝 `weapon_fire` / `weapon_reload` 动作。收枪期间仍记录原武器为 drawn，但不能通过常规开火或手动换弹接口使用；收枪完成后，宿主先确认实体资格和完整物理装备投影，再清空物理持握，纯核心随回执提交同一装备变化和 `weapon_stowed`。其既有 Buff 收枪政策也在此时生效。
+
+收枪事实处理后，READY 读取目标武器及当前修饰，接受自己的固定时长；它不会借用旧武器的操控来源。READY 期间 drawn 为空；完成时再提交真实持握和 `weapon_drawn`，随后可以开火。每段都冻结接受时的输入、计算轨迹与截止点；中途装卸修饰不改本段，下一段重新取样。逻辑时间按微秒向上取整，由服务器 tick 追赶各边界；这不是客户端动画帧计时。
+
+同一目标的重复选择保留截止点。新目标取消旧计划，并从当前物理持握重新开始完整阶段；不累计旧动画的完成比例。收枪期间重新选择当前原武器会取消计划并立即恢复其可用性；空手举枪期间选择空手只取消，不再制造一次收枪。卸下、改装或移动计划涉及的目标 / 当前武器会取消；无关装备更新保留计划。死亡、离开维度等原有装备解除会清理计划，最终物理提交仍独立检查存活、旁观与同维度资格。旧 token 的 DUE / NEXT 不能恢复已取消的阶段。这些取消与取样规则是明确的 Chorus 政策，原作对应边界仍须校准。
+
+新增 `weapon_handling_started` / `weapon_handling_finished` / `weapon_switch_finished` / `weapon_switch_cancelled` 事实，均以 `chorus:` 为前缀，保留阶段计划；DSL 可读 `weapon`、`item`、`switch`、`handling_phase`、`reason`、`duration` 和 `scheduled_duration`。`handling_phase` 为 stow 或 ready。开始与取消不是 `weapon_stowed` / `weapon_drawn` 的替代品；后两者只随真实持握变化发布。未知物理回执停止运行时且不重放，无法推断成功；若已提交持握后下游反应失败，物理状态和纯状态都保留完成结果。
+
+EffectState.handling 以 holder 为键保存当前计划，与计时器及装备状态一起进入检查点。旧 effect_state 形状经显式迁移补空表；旧 record 字段不改写。正常停服的整体世界保存仍要求原有宿主保存证据，纯会话恢复不等同于崩溃恢复。ADS、切枪动画 / 进度 HUD、专属切枪行动限制、D2 实际时间曲线及全部异常打断政策尚未实现；现有同步协议仅在接受请求和持握边界更新 revision / drawn。
 
 ## Weapons 属性对已接受换弹的时间贡献
 

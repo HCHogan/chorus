@@ -247,6 +247,16 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 List.of(new RuleEngine.Instruction<>((state, context) -> changeEquipment(state, (EquipmentChange) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.REQUEST, WeaponReload.REQUEST, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> reload(state, (WeaponReload.Request) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponHandling.REQUEST, WeaponHandling.REQUEST, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> switchWeapon(state, (WeaponHandling.Request) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponHandling.NEXT, WeaponHandling.NEXT, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> CompiledHandling.next(state, (WeaponHandling.Plan) context.event().signal().payload(), weapons, this), ""))));
+        definitions.add(new RuleEngine.EventRule<>(WeaponHandling.DUE, WeaponHandling.DUE, (state, context) ->
+                CompiledHandling.current(state, (WeaponHandling.Plan) context.event().signal().payload()),
+                List.of(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Await<EffectState>(CompiledHandling.prepare(state,
+                        (WeaponHandling.Plan) context.event().signal().payload(), this)), "handling_host"),
+                        new RuleEngine.Instruction<>((state, context) -> CompiledHandling.finish(state, (WeaponHandling.Plan) context.event().signal().payload(),
+                                (WeaponHandling.Applied) context.bindings().get("handling_host"), this), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.NEXT, WeaponReload.NEXT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> weapons.next(state, (WeaponReload.Plan) context.event().signal().payload(), this), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.DUE, WeaponReload.DUE, (state, context) -> {
@@ -397,6 +407,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of());
             if(site.declaration().condition().test(e))denials.add(new ActionGate.Denial(site.declaration().id(),site.bundle(),site.instance(),e.origin(),site.declaration().subject(),e.self()));
         }
+        var handling = state.handling().get(input.actor());
+        if (handling != null && (action == ActionGate.Kind.WEAPON_FIRE || action == ActionGate.Kind.WEAPON_RELOAD))
+            denials.add(new ActionGate.Denial("handling", "chorus:weapon_handling", handling.timerId(), handling.origin(), ActionGate.Subject.ACTOR, input.actor()));
         return new ActionGate.Decision(action,phase,query,denials);
     }
     private record LimitSite(HorizontalSpeedLimit.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
@@ -524,6 +537,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
     public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
+    public boolean usesHandling(EffectState state, String holder, Optional<String> slot) { settled(state); return CompiledHandling.configured(state, holder, slot, weapons, this); }
+    public RuleEngine.Local<EffectState> switchWeapon(EffectState state, WeaponHandling.Request request) { settled(state); return CompiledHandling.begin(state, request, weapons, this); }
     public void validateSource(EffectSource source) {
         if (bundle(source.bundle()).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipped source references a buff-only bundle");
         EffectParameters.validate(bundle(source.bundle()).parameters(), source.parameters());
@@ -585,6 +600,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
                         : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
+                        : committed instanceof WeaponHandling.Commit commit ? commit.apply(state)
                         : committed instanceof AbilityUse.Commit commit ? commit.apply(state)
                         : committed instanceof CombatCommit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
     }
@@ -1007,6 +1023,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
+        if (event.signal().type().equals(WeaponHandling.REQUEST) || event.signal().type().equals(WeaponHandling.DUE) || event.signal().type().equals(WeaponHandling.NEXT))
+            return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(com.imdomestic.chorus.effect.finisher.Finisher.PULSE) || event.signal().type().equals(com.imdomestic.chorus.effect.finisher.Finisher.STRIKE))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE) || event.signal().type().equals(WeaponReload.NEXT))
@@ -1061,6 +1079,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private static String sourceId(EffectSource source) { return "source/" + source.instance().length() + ":" + source.instance(); }
     private void validateState(EffectState state) {
         weapons.validate(state);
+        CompiledHandling.validate(state);
         state.sources().values().forEach(this::validateSource);
         state.abilities().values().forEach(loadout -> loadout.slots().forEach(this::validateSelection));
         abilitySources.validate(state);

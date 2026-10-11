@@ -48,6 +48,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public String self() {
         if (context.scope() instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope scope) return scope.event().actor();
+        if (context.scope() instanceof com.imdomestic.chorus.effect.weapon.WeaponHandling.Scope scope) return scope.event().actor();
         if (context.scope() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Scope scope) return scope.event().actor();
         if (context.scope() instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope scope) return scope.event().actor();
         if (context.scope() instanceof EffectSource source) return source.holder();

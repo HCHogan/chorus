@@ -13,6 +13,7 @@ public final class EffectContinuations {
     /** Launches and detached queries retain exactly the same source credit as their captured action scope. */
     public static BuffInstance.Origin origin(RuleEngine.Payload scope) {
         if (scope instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope value) return value.event().source();
+        if (scope instanceof com.imdomestic.chorus.effect.weapon.WeaponHandling.Scope value) return value.event().source();
         if (scope instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Scope value) return value.event().source();
         if (scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope value) return value.event().source();
         if (scope instanceof EffectSource source) {

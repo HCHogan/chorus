@@ -26,7 +26,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_continuations/pending", com.imdomestic.chorus.effect.EffectContinuations.Pending.class);
         types.put("chorus:effect/effect_event", com.imdomestic.chorus.effect.EffectEvent.class);
         types.put("chorus:effect/effect_source", com.imdomestic.chorus.effect.EffectSource.class);
-        types.put("chorus:effect/effect_state", com.imdomestic.chorus.effect.EffectState.class);
+        types.put("chorus:effect/effect_state", LegacyEffectStateV1.class);
+        types.put("chorus:effect/effect_state_v2", com.imdomestic.chorus.effect.EffectState.class);
         types.put("chorus:effect/effect_state/lifetime", com.imdomestic.chorus.effect.EffectState.Lifetime.class);
         types.put("chorus:effect/effect_state/mode", com.imdomestic.chorus.effect.EffectState.Mode.class);
         types.put("chorus:effect/effect_state/timer", com.imdomestic.chorus.effect.EffectState.Timer.class);
@@ -533,7 +534,18 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/ammo_actions/observe_equipped_weapons", com.imdomestic.chorus.effect.data.AmmoActions.ObserveEquippedWeapons.class);
         types.put("chorus:effect/data/ammo_actions/observe_drawn_weapon", com.imdomestic.chorus.effect.data.AmmoActions.ObserveDrawnWeapon.class);
         types.put("chorus:effect/data/value/equipped_reserve_space", com.imdomestic.chorus.effect.data.Value.EquippedReserveSpace.class);
+        types.put("chorus:effect/weapon/weapon_handling/request", com.imdomestic.chorus.effect.weapon.WeaponHandling.Request.class);
+        types.put("chorus:effect/weapon/weapon_handling/phase", com.imdomestic.chorus.effect.weapon.WeaponHandling.Phase.class);
+        types.put("chorus:effect/weapon/weapon_handling/outcome", com.imdomestic.chorus.effect.weapon.WeaponHandling.Outcome.class);
+        types.put("chorus:effect/weapon/weapon_handling/plan", com.imdomestic.chorus.effect.weapon.WeaponHandling.Plan.class);
+        types.put("chorus:effect/weapon/weapon_handling/receipt", com.imdomestic.chorus.effect.weapon.WeaponHandling.Receipt.class);
+        types.put("chorus:effect/weapon/weapon_handling/scope", com.imdomestic.chorus.effect.weapon.WeaponHandling.Scope.class);
+        types.put("chorus:effect/weapon/weapon_handling/fact", com.imdomestic.chorus.effect.weapon.WeaponHandling.Fact.class);
+        types.put("chorus:effect/weapon/weapon_handling/apply", com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply.class);
+        types.put("chorus:effect/weapon/weapon_handling/applied", com.imdomestic.chorus.effect.weapon.WeaponHandling.Applied.class);
+        types.put("chorus:effect/weapon/weapon_handling/commit", com.imdomestic.chorus.effect.weapon.WeaponHandling.Commit.class);
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
-                LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current)));
+                LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
+                new RecordTreeCodec.Migration<>(LegacyEffectStateV1.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV1::current)));
     }
 }

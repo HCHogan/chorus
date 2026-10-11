@@ -71,6 +71,7 @@ final class CompiledWeapons {
                 throw new IllegalArgumentException("Equipment instance is already owned by another holder");
         var applied = change.apply(state, equipment); var updated = applied.state();
         var facts = new ArrayList<>(applied.emitted());
+        var handling = CompiledHandling.reconcile(updated, change.holder()); updated = handling.state(); facts.addAll(handling.emitted());
         for (var entry : change.after().slots().entrySet()) {
             var gear = entry.getValue(); var definition = definitions.get(gear.definition()); if (definition == null) continue;
             if (equipment.schema().slots().stream().noneMatch(slot -> slot.id().equals(entry.getKey()) && slot.weapon()))
@@ -220,6 +221,11 @@ final class CompiledWeapons {
         return new RuleEngine.Local<>(updated, new AmmoActions.Change(transfer, view.after(transfer.after())), facts);
     }
     WeaponDefinition definition(String item) { return definitions.get(item); }
+    Set<String> itemTags(String item) {
+        var definition = items.get(item);
+        if (definition == null) throw new IllegalArgumentException("Unknown equipment item: " + item);
+        return definition.tags();
+    }
     /** Current authoritative drawn instance only; missing or unconfigured selections are empty. */
     com.imdomestic.chorus.effect.target.Targets.Identities drawn(EffectState state, String holder) {
         var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
@@ -298,6 +304,11 @@ final class CompiledWeapons {
         }
     }
     private static EffectState clear(EffectState state, WeaponReload.Plan plan) { return state.withoutReload(plan.holder()).cancel(plan.timerId()); }
+    RuleEngine.Local<EffectState> interruptReload(EffectState state, String holder, String reason) {
+        var plan = state.reloads().get(holder);
+        return plan == null ? new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of())
+                : new RuleEngine.Local<>(clear(state, plan), RuleEngine.Empty.INSTANCE, List.of(fact("chorus:reload_cancelled", plan, reason, Map.of())));
+    }
     private static RuleEngine.Local<EffectState> restrictedReload(EffectState state,WeaponReload.Plan plan,ActionGate.Decision decision){
         var cancelled=fact("chorus:reload_cancelled",plan,"action_restricted",Map.of());
         return new RuleEngine.Local<>(clear(state,plan),decision,List.of(new RuleEngine.Signal(cancelled.type(),new ActionGate.Cancelled((EffectEvent)cancelled.payload(),decision))));
