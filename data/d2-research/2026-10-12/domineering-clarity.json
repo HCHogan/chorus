@@ -1,0 +1,105 @@
+{
+  "hash": 2272984657,
+  "name": "Echo of Domineering",
+  "lastUpload": 1755984214899,
+  "type": "Subclass Fragment",
+  "uploadedBy": "Stardust",
+  "descriptions": {
+    "en": [
+      {
+        "linesContent": [
+          {
+            "text": "Upon "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Suppressing an enemy:"
+          }
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "• "
+          },
+          {
+            "text": "Refills",
+            "title": [
+              {
+                "linesContent": [
+                  {
+                    "text": "Loads bullets into your magazine but does not need a reload animation and doesn't trigger on-reload perks."
+                  }
+                ]
+              }
+            ],
+            "classNames": [
+              "title"
+            ]
+          },
+          {
+            "text": " readied weapon from reserves"
+          }
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "• Grants 30 Weapons stat for 10 seconds"
+          }
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "• Increases Forward Movement Speed by 4% for 10s"
+          }
+        ]
+      },
+      {
+        "classNames": [
+          "spacer"
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "10 second cooldown between activations."
+          }
+        ]
+      },
+      {
+        "classNames": [
+          "spacer"
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "Killing "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Suppressed enemies spawns a "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Void Breach."
+          }
+        ]
+      }
+    ]
+  }
+}

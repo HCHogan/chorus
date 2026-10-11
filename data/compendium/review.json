@@ -6117,7 +6117,7 @@
           "text_sha256": "f1167619a86e890b24906c524cac1d89d76d2a261d56a7b8006cbbf7845ab22f"
         }
       ],
-      "scope": "共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；明确普通/精英分类的原版远程攻击限制、动态分类、驱散和实际十秒到期恢复；实际玩家能量、武器与重新施放验收",
+      "scope": "共享状态的技能行动限制、按明确标签结束活动技能Buff及其计时器、后续授予继续拦截、10/5秒与接收者隔离；明确普通/精英分类的原版远程攻击限制、动态分类、驱散和实际十秒到期恢复；实际玩家能量、武器与重新施放验收；共享参数化施加器按真实玩家/NPC分类选择时长，成功事实接Domineering，死亡清理保留击杀历史",
       "acceptance": [
         "状态施加须通过宿主资格检查；拒绝、死亡或缺失回执不结束旧技能或限制新技能",
         "结束带suppression_interruptible标签的全部活动实例，保留其他增益与其他目标；压制期间后续授予的该类状态也结束",
@@ -6191,7 +6191,7 @@
         "普通/精英禁止射击已接原版远程攻击入口；迷失方向等完整AI失能、过载勇士眩晕及模组自定义攻击入口尚未实现",
         "敌人等级采用明确实体/类型标签，未分类目标不猜普通；正式D2敌人目录与NPC Chorus武器发射装配仍待实现",
         "活动Super与Transcendence使用合成Buff及能量/回血/武器输入验证；完整技能原型、持续能量消耗、动画与宿主移动模式尚待装配",
-        "共享Buff默认10秒，PvP五秒由验收施加器显式提供；压制手雷及全部真实来源和特例时长未逐项接入",
+        "共享Buff默认10秒，通用施加器要求明确战员/Guardian时长，验收使用10/5秒；压制手雷及全部真实来源和特例时长未逐项接入",
         "取剩余时间最大值、同实例保留最初来源及标签驱动的中断边界为当前内容政策，原作刷新与跨施加者归属仍待校准",
         "状态HUD、客户端操作提示、生产装配和持久化未完成"
       ]
@@ -8915,6 +8915,150 @@
         "Orb寿命与收集半径必须提供，二十秒/半米为合成输入；Orb 2.5%与Harvest十秒取原表，但完整Super属性/活动/active Super收益仍未装配。",
         "Breach 11.25%输入、外部归一化与当前Class账户复用上一阶段；测试归一化0.444444及CES .5/.75不当作完整原作校准。",
         "Shield Throw加Feed the Void只验证引擎组合，不宣称合法Titan/Warlock跨职业配装。正式内容目录、HUD/动画/美术、多人可见性与实体跨维度/重启仍未完成。"
+      ]
+    },
+    {
+      "id": "void/echo-of-domineering",
+      "name": "Echo of Domineering",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B15",
+          "text_sha256": "10ffa26a730315f23d5405fcc104ff447c4eefd67759615c0620a3506768555e"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D15",
+          "text_sha256": "6d4750ac205a2d5c705cd905bd0b3070e732a38ae8f621450b466a7b06f80516"
+        },
+        {
+          "sheet": "Void",
+          "cell": "N15",
+          "text_sha256": "d8d69930e739a480060260150b225cbf0747df06d25ce276ef525fa36a6e0ca7"
+        }
+      ],
+      "scope": "实际抑制施加信用驱动四秒冷却、十秒+30 Weapons与4%前移、当前持握武器储备补弹；+10 Grenade常驻；历史抑制击杀生成共享裂口并实际收集",
+      "acceptance": [
+        "抑制成功给当前施加者发放属性与补弹，拒绝/死亡/缺失和纯状态授予不伪造施加信用；补弹不触发换弹词条。",
+        "四秒后可再次触发并重置十秒收益，换枪读取当前持握实例；冷却与收益不因简单解绑重绑重置。",
+        "确认击杀使用死亡时抑制状态及位置生成裂口；与抑制施加冷却独立，复用裂口五秒共享生成冷却。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/echo_of_domineering.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/suppression.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/directional_movement_attributes.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/void_breach.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "actualSuppressionRefillsCurrentWeaponAndGrantsBothBonusesWithoutReloadCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "fourSecondCooldownDoesNotRefreshTenSecondBenefitsUntilANewQualifiedApplication"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "applicantCreditIsIndependentOfRetainedStatusOriginAndDuplicateFragmentsDoNotStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "rejectedDeadMissingAndPureGrantDoNotPretendToBeSuccessfulSuppression"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "targetClassificationControlsSharedSuppressionDurationIndependentlyOfWorldMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "emptyHandsStillReceiveBonusesAndCooldownButStowedAmmoIsUntouched"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "suppressedKillUsesHistoricalStateAfterDeathCleanupAndCollectsSharedBreach"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "nonSuppressedExpiredUnknownAndOtherPlayersKillsDoNotGenerateBreach"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "receiptsSurviveCheckpointRebindingAndCooldownAndDoNotTurnOldFactsIntoNewBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java",
+          "symbol": "unknownAuthorizationAndUnknownBreachCreationDoNotReplayWorldWork"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "paidPhysicalHitSuppressesAndRefillsThenActualKillCreatesCollectableBreach"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "reapplicantGetsBenefitsWhileSharedSuppressionKeepsTheFirstCastersOrigin"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "rejectedDeadMissingAndPureStatusGrantsDoNotAwardFragmentBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "realFourSecondCooldownAllowsAnotherRefillAndResetsTenSecondBenefit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "historicalSuppressionAndDeathPositionSurviveCorpseRemovalAndForeignCaster"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "currentFragmentAtImpactControlsActivationAndEmptyHandsStillGetTimedBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java",
+          "symbol": "unknownResultAfterPhysicalBreachCreationKeepsPriorBenefitsAndDoesNotSpawnAgain"
+        }
+      ],
+      "gaps": [
+        "正式Fragment/子职业装配、全部抑制生产者与来源例外（包括Bombardiers）尚未完成。验收用实际付费Shield Throw加合成命中施加器，不能称为Shield Throw原生具有抑制；目标敌对资格由上游生产者/世界授权负责，Fragment不在回调时猜测历史阵营。",
+        "前移加成已接真实地面输入和通用同步属性；完整D2绝对移动速度、ADS/持枪惩罚、上限、空中控制与换装手感仍需校准。+30 Weapons进入角色属性Profile，不代表全部武器动画/原型收益已接线。",
+        "四秒间隔、十秒收益和属性数值取原表；共享目标计时、空手/无可补弹量仍触发、解绑后已授收益继续、死亡清除活动收益而冷却继续计时，均为明确内容政策，原作边界仍待校准。",
+        "status_ids/death_ids在必填receipt_seconds内有限去重；十二秒为合成验收窗口，不是附加游戏冷却，也不是永久幂等或物理世界故障恢复。",
+        "Breach继续复用私有副本、五秒生成冷却与当前Class账户；测试0.444444归一化、.5/.75 CES及半米接触半径不代表完整原作校准。正式HUD、图标、动画、多人语义和跨维度/世界重启仍未完成。"
       ]
     }
   ]

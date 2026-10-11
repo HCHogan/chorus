@@ -1,0 +1,39 @@
+{
+  "version": "compendium-2026-10-05",
+  "native_attributes": [
+    {
+      "id": "chorus_d2:forward_ground_speed",
+      "attribute": "chorus:forward_ground_speed",
+      "operation": "add_multiplied_total",
+      "profile": "chorus_d2:forward_ground_contribution",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:forward_ground_contribution",
+      "version": "compendium-2026-10-05",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:echo_of_domineering": {
+                "kind": "max"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

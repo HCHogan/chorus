@@ -60,6 +60,9 @@
             "families": {
               "chorus_d2:ember_of_char": {
                 "kind": "max"
+              },
+              "chorus_d2:echo_of_domineering": {
+                "kind": "max"
               }
             }
           }

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Echo of Domineering"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/devour-source.html.gz",
+      "sha256": "887ea9277cc2230d42e21887806cf6c08d81c17ea94a92357224d39b354b4688",
+      "gzip_sha256": "9ff3b59d314ff5656a076dcae5839847747b68b3571772126cafedddc933fe9e",
+      "cells": [
+        {
+          "original_cell": "B18",
+          "snapshot_cell": "B15",
+          "snapshot_text_sha256": "10ffa26a730315f23d5405fcc104ff447c4eefd67759615c0620a3506768555e",
+          "normalized_text": "Domineering",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D18",
+          "snapshot_cell": "D15",
+          "snapshot_text_sha256": "6d4750ac205a2d5c705cd905bd0b3070e732a38ae8f621450b466a7b06f80516",
+          "normalized_text": "Suppressing an enemy grants +30 Weapons and 4% Forward Movement Speed Bonus for 10 seconds and refills the readied weapon. Incurs a 4 second cooldown before it can be reactivated. Killing Suppressed Enemies spawns a Void Breach.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "N18",
+          "snapshot_cell": "N15",
+          "snapshot_text_sha256": "d8d69930e739a480060260150b225cbf0747df06d25ce276ef525fa36a6e0ca7",
+          "normalized_text": "+10 Grenade",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/domineering-clarity.json",
+      "sha256": "99a0b6b4a2479bc5827c572689762b372c2f1cd82637bacc6a8fb19d4cfa53d1",
+      "item_hash": 2272984657,
+      "finding": "Readied weapon refill transfers reserves without on-reload perks; +30 Weapons and 4% forward movement for ten seconds; suppressed kills create Breach. Its ten-second cooldown conflicts with the current sheet and official 8.1.0 and is not adopted."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_8_1_0",
+      "short_excerpt": "Cooldown reduced from 11 seconds to 4 seconds.",
+      "finding": "Facet of Command / Echo of Domineering cooldown changed to four seconds on 2024-10-08."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_5",
+      "short_excerpt": "Fixed an issue where the Echo of Domineering was not increasing the Weapons stat on activation.",
+      "finding": "2026-01-27 fix confirms Weapons-stat activation; do not substitute old Mobility descriptions or the historical bug."
+    }
+  ],
+  "implemented": [
+    "Shared actual status_applied credit triggers a four-second cooldown, ten-second +30 Weapons / +4% forward-ground contribution and refill of the currently drawn weapon from reserves.",
+    "Passive +10 Grenade is reduced once per holder, timed buffs are target-shared, and refill creates no reload_finished credit.",
+    "Suppressed kill qualification and position are read from the confirmed death history, surviving shared status cleanup and corpse removal; invokes the existing private Void Breach producer.",
+    "Separate bounded status/death receipt sets retain applications suppressed by cooldown and survive pure-session checkpoints and rebind.",
+    "Shared suppression_application accepts explicit NPC/Guardian durations, inspects the real target and uses world-authorized apply_status; death clears live suppression."
+  ],
+  "gaps": [
+    "正式Fragment/子职业装配、全部抑制生产者与来源例外（包括Bombardiers）尚未完成。验收用实际付费Shield Throw加合成命中施加器，不能称为Shield Throw原生具有抑制；目标敌对资格由上游生产者/世界授权负责，Fragment不在回调时猜测历史阵营。",
+    "前移加成已接真实地面输入和通用同步属性；完整D2绝对移动速度、ADS/持枪惩罚、上限、空中控制与换装手感仍需校准。+30 Weapons进入角色属性Profile，不代表全部武器动画/原型收益已接线。",
+    "四秒间隔、十秒收益和属性数值取原表；共享目标计时、空手/无可补弹量仍触发、解绑后已授收益继续、死亡清除活动收益而冷却继续计时，均为明确内容政策，原作边界仍待校准。",
+    "status_ids/death_ids在必填receipt_seconds内有限去重；十二秒为合成验收窗口，不是附加游戏冷却，也不是永久幂等或物理世界故障恢复。",
+    "Breach继续复用私有副本、五秒生成冷却与当前Class账户；测试0.444444归一化、.5/.75 CES及半米接触半径不代表完整原作校准。正式HUD、图标、动画、多人语义和跨维度/世界重启仍未完成。"
+  ]
+}

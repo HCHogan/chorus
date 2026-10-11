@@ -2902,3 +2902,10 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 授权通过、状态提交即产生一次信用，即使满层或max_remaining使层数/截止点没有增加。DENIED/DEAD/MISSING、只读`check_status`、纯`grant_buff`、直接`refresh_buff`及移除均不发此事实。采用check_status后手动grant的复合内容也不会自动发布，迁移或显式内容事实须另行决定。事件不补造实体/位置/Buff历史观察，不将先前伤害快照冒充本次授权观测。
 
 动作仍先提交状态，再执行排队反应；回调的未知世界结果不能撤销状态或重试本次施加。后续规则判断是否仍有该状态应查询当前has_buff，不能把已发生的施加事实当作永久存在保证。此接口供Domineering等“成功施加后获益”规则使用，接口验收本身不等于这些Fragment已经完成。
+
+
+## 抑制施加与 Domineering 组合
+
+`suppression.json` 现在提供 `chorus_d2:suppression_application`。用 `invoke_bundle` 调用 `chorus_d2:apply_suppression`，明确传入 `combatant_duration` 与 `guardian_duration`（均为正 second），并保留真实动作 origin / victim。施加器观察目标是否存在、存活及是否玩家，然后执行 `apply_status`；授权成功后由引擎提交 `status_applied`，不是由内容包自行伪造。`chorus_d2:clear_suppression` 是显式清除入口，目标死亡也会清理活动状态。
+
+Domineering内容链接 `suppression`、`character_stats`、`directional_movement_attributes` 与共享 `void_breach`，Fragment来源须给出正 `receipt_seconds`。实际抑制施加后，当前申请者四秒内最多一次获得十秒收益及持握武器补弹；击杀条件读取历史抑制并独立调用Breach。详细规则、源版本冲突和当前物理边界见[D2规则](d2-ruleset.md#echo-of-domineering-的抑制施加信用与持握补弹)。`domineering_inputs.json` 是合成武器与命中施加器的验收夹具，不是发布中的完整技能目录。

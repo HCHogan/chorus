@@ -1,39 +1,265 @@
 {
-  "version":"compendium-2026-10-05",
-  "buffs":[
-    {"definition":{
-      "id":"chorus_d2:suppression","version":"compendium-2026-10-05","duration":10,
-      "attach":"target","refresh":"max_remaining","tags":["chorus_d2:suppression","chorus_d2:void_debuff"]
-    },"bundle":"chorus_d2:suppression_active"}
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:suppression",
+        "version": "compendium-2026-10-05",
+        "duration": 10,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "tags": [
+          "chorus_d2:suppression",
+          "chorus_d2:void_debuff"
+        ]
+      },
+      "bundle": "chorus_d2:suppression_active"
+    }
   ],
-  "bundles":[
-    {"id":"chorus_d2:suppression_active","scope":"buff",
-      "action_gates":[
-        {"id":"abilities","action":"ability_use"},
-        {"id":"combatant_fire","action":"ranged_attack","if":{"type":"chorus:all","of":[
-          {"type":"chorus:event_source_tag","tag":"chorus:combatant"},
-          {"type":"chorus:any","of":[
-            {"type":"chorus:event_source_tag","tag":"chorus_d2:rank_and_file"},
-            {"type":"chorus:event_source_tag","tag":"chorus_d2:elite"}
-          ]},
-          {"type":"chorus:not","of":{"type":"chorus:any","of":[
-            {"type":"chorus:event_source_tag","tag":"chorus:guardian"},
-            {"type":"chorus:event_source_tag","tag":"chorus_d2:champion"},
-            {"type":"chorus:event_source_tag","tag":"chorus_d2:miniboss"},
-            {"type":"chorus:event_source_tag","tag":"chorus_d2:boss"}
-          ]}}
-        ]}}
+  "bundles": [
+    {
+      "id": "chorus_d2:suppression_active",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "abilities",
+          "action": "ability_use"
+        },
+        {
+          "id": "combatant_fire",
+          "action": "ranged_attack",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus:combatant"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:rank_and_file"
+                  },
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:elite"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus:guardian"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:champion"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:miniboss"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:boss"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
       ],
-      "rules":[
-        {"id":"interrupt_existing","on":"chorus:buff_gained","if":{"type":"chorus:own_buff"},"do":[
-          {"type":"chorus:remove_buffs_with_tag","tag":"chorus_d2:suppression_interruptible"}
-        ]},
-        {"id":"interrupt_new","on":"chorus:buff_gained","if":{"type":"chorus:all","of":[
-          {"type":"chorus:event_tag","tag":"chorus_d2:suppression_interruptible"},
-          {"type":"chorus:target_is","left":"self","right":"victim"}
-        ]},"do":[
-          {"type":"chorus:remove_buffs_with_tag","tag":"chorus_d2:suppression_interruptible"}
-        ]}
+      "rules": [
+        {
+          "id": "interrupt_existing",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buffs_with_tag",
+              "tag": "chorus_d2:suppression_interruptible"
+            }
+          ]
+        },
+        {
+          "id": "interrupt_new",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:suppression_interruptible"
+              },
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buffs_with_tag",
+              "tag": "chorus_d2:suppression_interruptible"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:suppression"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:suppression_application",
+      "parameters": {
+        "combatant_duration": "second",
+        "guardian_duration": "second"
+      },
+      "rules": [
+        {
+          "id": "apply",
+          "on": "chorus_d2:apply_suppression",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:own_source"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "combatant_duration"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "guardian_duration"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "victim"
+              },
+              "as": "recipient"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "recipient",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "recipient",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:apply_status",
+                    "buff": "chorus_d2:suppression",
+                    "target": "victim",
+                    "duration": {
+                      "type": "chorus:choose",
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "recipient",
+                        "field": "player"
+                      },
+                      "then": {
+                        "type": "chorus:source_parameter",
+                        "name": "guardian_duration"
+                      },
+                      "else": {
+                        "type": "chorus:source_parameter",
+                        "name": "combatant_duration"
+                      }
+                    }
+                  },
+                  "as": "status"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "chorus_d2:clear_suppression",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:own_source"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:suppression",
+              "target": "victim"
+            }
+          ]
+        }
       ]
     }
   ]

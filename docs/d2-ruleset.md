@@ -1495,7 +1495,7 @@ Starvation调用共享`devour_application`，初始五秒经过独立`starvation
 
 `pickup`的source仍保留生产者，actor/victim为实际收集者。Starvation不会把队友产生的Orb奖励发给队友，也不要求回能大于零才授予Devour。物体宿主先消费，再执行基础奖励及派生pickup反应；未知治疗保留已经提交的能量/生命，不重放物体。断言重复tick不重放和回执有限去重不能代替物理世界存档/故障恢复。
 
-[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java)覆盖真实碰撞、满能量/满生命、动态装卸、外来生产者、账号切换、五秒Devour、五秒生成冷却、25秒裂口到期及写入后故障。Harvest的真实削弱击杀生产链现已接入，见下一节；Cessation/Domineering及全体Super/护甲模组真实生成链、队友Orb副本策略、射击拾取、完整Persistence、正式装配、视觉/HUD及物理世界持久化仍待实现，三个条目保持partial。
+[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java)覆盖真实碰撞、满能量/满生命、动态装卸、外来生产者、账号切换、五秒Devour、五秒生成冷却、25秒裂口到期及写入后故障。Harvest与Domineering的真实死亡生产链现已接入，见后续章节；Cessation及全体Super/护甲模组真实生成链、队友Orb副本策略、射击拾取、完整Persistence、正式装配、视觉/HUD及物理世界持久化仍待实现，三个条目保持partial。
 
 
 ## Echo of Harvest 的削弱击杀与确认生成
@@ -1513,3 +1513,20 @@ Starvation调用共享`devour_application`，初始五秒经过独立`starvation
 `orb_lifetime`与`orb_collection_radius`必填，测试二十秒/半米仍是合成校准。Breach基础回能、Orb收球许可与基础收益均复用上一节定义，Harvest只产生指定持有者的私有逻辑副本；队友Orb复制、完整Super账户和活动倍率、物理表现/存档没有因这一生产者接入而完成。
 
 [12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/HarvestTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/HarvestGameTest.java)验证普通原版攻击、付费Shield Throw物理击杀、他人施加Weaken、尸体移除、飞行中装卸、重复来源、实际十秒冷却、共享裂口冷却、接收者消失造成已知拒绝，以及真实Orb已写入但回执未知。两种拾取物的实际碰撞接入Starvation，后续原版击杀接入共享Devour；Feed the Void组合验证当前强化与初次击杀不重复发回能。跨职业技能组合只证明引擎机制，正式职业/Fragment装配、完整数值和HUD仍保持partial。本阶段没有新增引擎Java动作或检查点结构。
+
+
+## Echo of Domineering 的抑制施加信用与持握补弹
+
+[echo_of_domineering.json](../common/src/test/resources/effects/echo_of_domineering.json)以实际 `chorus:status_applied` 中的本次施加者驱动收益，原表 Void B18/D18/N18 与固定快照 B15/D15/N15 逐格匹配：成功抑制给予十秒 +30 Weapons、4% 前移收益并补充持握武器，四秒后可再激活；击杀被抑制目标产生 Void Breach，Fragment 常驻 +10 Grenade。[官方 8.1.0](https://www.bungie.net/7/en/News/article/destiny_update_8_1_0)将冷却改为四秒，[官方 9.5.5](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_5)修复激活时未增加 Weapons 的问题。固定 Clarity 的十秒冷却与前两项冲突，因此不采用；其储备补弹且不触发换弹词条说明与当前实现一致。逐格来源、哈希和边界见[研究记录](../data/d2-research/2026-10-12/domineering.json)。
+
+目标共享 Suppression 保留最初来源，不代表后来再次施加的人没有成功施加。Fragment按事实的 `event_actor` 发奖，不用 `buff_gained` 的旧来源判断申请者。授权拒绝、目标死亡/缺失、直接 grant、只读 check 和单独 refresh 都不会冒充成功施加。共享 [suppression_application](../common/src/test/resources/effects/suppression.json)要求生产者明确提供 `combatant_duration` / `guardian_duration`，先观察真实目标再选择时长，调用通用 `apply_status`。十秒/五秒是本轮施加器的明确验收输入，不能替代各抑制技能的来源参数。授权与敌对资格由上游生产者/世界宿主提供；Fragment不在回调时猜测历史阵营，完整生产者和来源例外仍需逐项接入。
+
+`domineering_cooldown` 为目标共享四秒，`domineering_active` 为目标共享十秒。冷却中的新成功施加不会续时或补弹；到期后的新施加刷新十秒收益。`observe_drawn_weapon`读取执行时的独立装备容器选择，随后 `refill_magazine` 从该枪储备转移，遵循当前容量和保留溢出的通用规则。触发技能/Fragment origin 中的 weapon 不替代当前选择；没有持握武器时保留属性与冷却，收起武器不补弹。不会生成 `reload_finished`，因而不会触发 Kill Clip 或换弹观察器。
+
+常驻 +10 Grenade 通过角色属性 Profile 的同类 MAX 防止重复来源叠加；解绑后撤回常驻贡献。+30 Weapons由已授予的十秒Buff贡献，经过现有角色属性上限。4%通过 [directional_movement_attributes.json](../common/src/test/resources/effects/directional_movement_attributes.json)投影到 `chorus:forward_ground_speed`，实际地面前进/前斜走生效，横移/后退不受影响；通用接口已单独通过真实客户端键盘与原版属性同步验收。这里没有宣称完整 D2 绝对速度、ADS、持枪惩罚、上限和空中物理已校准，也没有把 Weapons 属性查询等同于所有武器动画/原型收益都已装配。
+
+击杀分支独立于四秒施加冷却：读取死亡回执中的 Suppression 和脚底位置，向击杀者调用共享 Void Breach；他人施加的抑制同样满足状态条件。共享 Suppression 在死亡时清理实时状态，历史观察仍可生成裂口，尸体在规则反应前移除也不丢位置。裂口复用五秒公共生成冷却、私有副本及实际收集后的当前 Class 回能和 Starvation。十二秒的 `receipt_seconds` 是显式验收窗口；两个有限集合分别保留 `status_ids` 和 `death_ids`，冷却内被忽略的施加也记录，旧事实不会在四秒后冒充新触发。纯会话检查点和解绑重绑保留期限内的记录，不增加全局效果循环限制。
+
+已经授予的十秒收益在Fragment解绑后继续，死亡清理活动收益，冷却按原期限继续；这些以及空手触发、排队时查询持握武器的顺序，是明确Chorus内容政策，原作同帧/换装边界仍待校准。未知抑制授权不生成成功收益，真实裂口已写入但回执未知时停止并保留已经提交的补弹/属性，不重放物体。
+
+[10项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java)和[7项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java)验证实际状态授权、当前施加者、储备补弹、真实四秒/十秒时序、飞行中装卸、历史死亡与实体拾取。物理生产链使用付费 Shield Throw 加显式合成命中施加器；这不表示 Shield Throw 原生具有抑制。正式 Fragment/子职业目录、压制手雷/牵引等全部来源、Bombardiers例外、完整属性曲线、HUD/美术和物理世界持久化仍保持 partial。本阶段复用已有引擎动作与宿主接口，没有新增Java动作、协议或检查点字段。

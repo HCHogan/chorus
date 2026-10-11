@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Domineering完整门禁 `/tmp/chorus-domineering-gate-2.log` BUILD SUCCESSFUL，1分47秒：1523项JUnit（无失败/错误/跳过）、Fabric793项、NeoForge808项及两端发布jar通过，共享Chorus场景792项。新增10项规则测试和7项共享世界场景；10项Compendium审计、84条报告一致性及差异检查通过。发布jar不含效果/GameTest/持久化夹具，本轮复用已发布引擎接口，没有新增Java动作、客户端协议或检查点结构。
+
+Echo of Domineering按当前成功抑制申请者发放四秒共享冷却、十秒+30 Weapons/4%前移与当前持握武器储备补弹；+10 Grenade作为来源常驻贡献，同类MAX避免重复Fragment叠加。补弹不发布reload_finished，实际Kill Clip窗口与换弹回血观察器均不触发。冷却中施加不续时，四秒后允许新触发并重置十秒收益；空手仍有属性与冷却，来源/触发武器不替代实际持握选择。
+
+共享suppression_application要求明确战员/Guardian时长，观察实际目标后调用apply_status；死亡清理实时状态。击杀分支读取历史抑制及位置，调用共享私有Void Breach，不依赖四秒激活冷却，也不要求击杀者是最初抑制者。有限status_ids/death_ids记录冷却内施加与已处理击杀，纯会话检查点及解绑重绑保留期限内语义。
+
+真实世界以付费Shield Throw加合成命中施加器产生实际抑制，随后普通原版攻击确认死亡、生成物理裂口并实际碰撞接入Starvation/职业回能；此夹具不表示Shield Throw原生抑制。验证实际装备容器切枪、前移属性、四秒/十秒tick、当前申请者与最初Buff来源、飞行中装卸、拒绝/死亡/移除目标、尸体移除及创建裂口后未知回执不重放。首轮纯测试编译修正不存在的路径常量；首轮世界回归只有新击杀场景因复用十点攻击无法杀死高血量目标而失败，改用明确两千点原版攻击后完整双端回归通过，未放宽死亡断言。
+
+原表三个单元格与快照规范化匹配，固定Clarity与归档哈希核对通过；Clarity旧十秒冷却与原表/官方8.1.0冲突，明确采用四秒，官方9.5.5确认Weapons激活修复。新增Domineering partial，累计84条审阅：82 partial、2 not_applicable、0 verified，仍非全表分母。正式Fragment/子职业装配、完整抑制来源与敌对/例外政策、D2绝对移动/ADS/空中物理、完整Weapons收益、HUD和物理世界重启尚未完成。[规则和来源边界](d2-ruleset.md#echo-of-domineering-的抑制施加信用与持握补弹)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 向前地面移动门禁 `/tmp/chorus-directional-gate.log` BUILD SUCCESSFUL，2分3秒：1513项JUnit（无失败/错误/跳过）、Fabric786项、NeoForge801项及两端发布jar通过，共享Chorus场景785项。新增7项共享世界场景，没有增加检查点类型或字段。10项Compendium审计、83条报告一致性及差异检查通过，发布jar包含新属性与移动宿主且不含效果/GameTest/持久化夹具。
 
 新增同步属性chorus:forward_ground_speed，两端通过属性修改事件为所有具有属性的LivingEntity登记默认倍率1。复用native_attributes归约、临时modifier和原版属性包；原版输入归一化后，只在地面向前/向前斜走时乘本次水平加速度。保留斜走方向、竖直分量及既有动量；纯横移、后退、空中、液体、乘坐、创造飞行、死亡及旁观均不继承该地面倍率。现有移动禁用仍优先，不生成新移动事件或回填纯状态。
