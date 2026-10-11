@@ -1461,7 +1461,7 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 
 手雷基础表为T1 7.5%、T2 11.6%、T3 13.75%、T4及Guardian20%，强化版翻倍。Game Mechanics固定K82明确吞噬将T5 / T6按T4处理；不要把战员rank随意当tier。历史实体观察允许尸体被移除后仍按当时分类，缺失 / 冲突分类仅跳过未知回能并发出`devour_unclassified`，不取消已知治疗与续时。收益交给当前`chorus_d2:grenade`槽的资源账户，以BASE方式经过目标自身gain_profile和CES一次；未选技能时保留其他收益，不制造隐藏账户。BASE解释结合通用Chunk规则和[9.0.0.1属性缩放公告](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)，各表的完整测量条件及所有组合仍需校准。
 
-增强通过独立`enhanced_devour`来源修饰治疗 / 回能，扩展时长由`devour_extension`查询；两者按处理时的持有者配置取值。八秒使用明确的+3秒输入，不再次把五秒乘1.5。Feed the Void的Void / Prismatic激活已在下节接入；Starvation真实拾取、Persistence完整时长与属性惩罚、Secant等生产者尚未完成。原版生物到D2层级的目录、同帧多杀与换装细节、正式装配、HUD及物理世界重启也保留缺口。
+增强通过独立`enhanced_devour`来源修饰治疗 / 回能，扩展时长由`devour_extension`查询；两者按处理时的持有者配置取值。八秒使用明确的+3秒输入，不再次把五秒乘1.5。Feed the Void的Void / Prismatic激活已在下节接入；Starvation真实拾取也已在后文接入；Persistence完整时长与属性惩罚、Secant等生产者尚未完成。原版生物到D2层级的目录、同帧多杀与换装细节、正式装配、HUD及物理世界重启也保留缺口。
 
 [纯测试](../common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java)与[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java)覆盖上述状态 / 数值与真实世界边界，并以实际吞噬资格接入Singularity Blade。实际结果见[实现记录](engine-implementation.md)。
 
@@ -1479,3 +1479,20 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 [规则测试](../common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java)覆盖资格矩阵、历史/当前状态、重复来源、回执、初始与续时时长、失效接收者及未知治疗；[世界测试](../common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java)使用低权限技能输入支付真实账户、实际投射物和HP死亡，以及共享Freeze/Volatile的真实范围爆炸。Shield Throw和Threaded Spike是跨职业引擎组合验收，不能据此允许正式Warlock配装使用Titan/Hunter近战。
 
 Tangle当前只验收显式信用资格，没有真实缠结生产者；Crystal与Rime-Coat等特例未完成，普通Void的多来源Volatile信用也待校准。完整Aspect槽位、正式子职业目录、初始/多杀/换装反应顺序、所有数值缩放和HUD/美术/世界重启仍保持partial。测试1:1生命映射、手雷CES及投掷飞行参数沿用显式夹具，不作原作校准声明。
+
+
+## Starvation、Void Breach 与能量球收集
+
+[echo_of_starvation.json](../common/src/test/resources/effects/echo_of_starvation.json)监听宿主实际消费后生成的`chorus:pickup`，以`event_actor`确定收集者。原表Void B29/D29/N29对应快照B26/D26/N26：拾取Orb of Power或Void Breach授予5秒Devour，Persistence为7.5秒，并有−10Class属性。原表B9/D9对应B7/D7给出裂口11.25%职业能量、25秒寿命、生成间隔5秒和私有性，见[来源与限制](../data/d2-research/2026-10-12/starvation-pickups.json)。
+
+[官方7.0.0.1](https://www.bungie.net/7/en/News/Article/update_7_0_0_1)明确Starvation允许满Super拾取Orb；[9.5.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)保留Starvation与Persistence的负属性。因此Fragment绑定时授予按来源区分的永久`starvation_equipped`能力Buff，标签`orb_pickup_permission`，解绑时移除本来源实例；它是收球资格，不是吞噬状态。负属性通过现有Class Profile结算。重复来源的槽位合法性仍由未来正式装配层约束。
+
+Starvation调用共享`devour_application`，初始五秒经过独立`starvation_duration` Profile；已有吞噬走共享追加5/8秒和70/140HP治疗，不给拾取事件附加击杀手雷回能。增强取收集时的Feed the Void来源。独立目标共享`starvation_receipts`使用pickup_id及必填receipt_seconds防重复授予，清除Devour或单个Fragment解绑不清空期限内的身份。cap同样必填；测试10/15上限与1秒回执不是全来源原作测量。
+
+[void_breach.json](../common/src/test/resources/effects/void_breach.json)提供私有裂口系统：必须有明确生成位置观察，成功生成才启动同收集者共享的五秒冷却；拒绝生成不花冷却，收集也不重置它。每份物体25秒自然到期，生成者解绑后仍可收集。11.25%先经过必需的`void_breach_base_energy`归一化，再用BASE路由至当前选中的Class账户，仅施加一次当前Gain Profile/CES。半径也必须链接`void_breach_collection_radius`，没有猜测原作半径。测试的0.444444归一化、.5/.75 CES、0.5米半径为显式合成校准；满职业能量仍可收集并触发其他收益。
+
+[orb_of_power.json](../common/src/test/resources/effects/orb_of_power.json)提供生产者调用的单个私有副本。`super_energy`、`lifetime`和`collection_radius`均必填；本轮2.5%来源值取原表Fragment Orb行，20秒和0.5米为合成参数，不作为全部Orb的默认事实。`collect_if`在接触时读取当前收集者：Super账户存在且未满，或存在`orb_pickup_permission`，才可消费；没有选中Super不等于空账户。基础回能经外部`orb_of_power_base_energy`后进入当前Super账户。原表明确Super不受Chunk Scalar，测试Super账户设CES=1；完整Super属性/活动/active-Super收益政策尚未装配。
+
+`pickup`的source仍保留生产者，actor/victim为实际收集者。Starvation不会把队友产生的Orb奖励发给队友，也不要求回能大于零才授予Devour。物体宿主先消费，再执行基础奖励及派生pickup反应；未知治疗保留已经提交的能量/生命，不重放物体。断言重复tick不重放和回执有限去重不能代替物理世界存档/故障恢复。
+
+[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java)覆盖真实碰撞、满能量/满生命、动态装卸、外来生产者、账号切换、五秒Devour、五秒生成冷却、25秒裂口到期及写入后故障。生成请求目前由可信宿主测试提供；Harvest/Cessation/Domineering及全体Super/护甲模组真实生成链、队友Orb副本策略、射击拾取、完整Persistence、正式装配、视觉/HUD及物理世界持久化仍待实现，三个条目保持partial。

@@ -1,0 +1,304 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:orb_of_power_base_energy",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": []
+    },
+    {
+      "id": "chorus_d2:void_breach_collection_radius",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_contact_radius",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.5
+            ],
+            "minimum": 0,
+            "maximum": 0,
+            "boundary": "error"
+          },
+          "output_unit": "meter"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:void_breach_base_energy",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "unverified_reference_normalization",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.4444444444444444
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "boundary": "error"
+          },
+          "output_unit": "charge_fraction"
+        }
+      ]
+    },
+    {
+      "id": "test:starvation_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "test:class_a",
+      "capacity": 1,
+      "initial": 0,
+      "gain_scalar": 0.5,
+      "gain_profile": "test:starvation_gain"
+    },
+    {
+      "id": "test:class_b",
+      "capacity": 1,
+      "initial": 0,
+      "gain_scalar": 0.75,
+      "gain_profile": "test:starvation_gain"
+    },
+    {
+      "id": "test:super",
+      "capacity": 1,
+      "initial": 0,
+      "gain_scalar": 1,
+      "gain_profile": "test:starvation_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:class_a",
+      "slot": "chorus_d2:class",
+      "cost": {
+        "resource": "test:class_a",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:class_a_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:class_b",
+      "slot": "chorus_d2:class",
+      "cost": {
+        "resource": "test:class_b",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:class_b_cast"
+        }
+      ]
+    },
+    {
+      "id": "test:super",
+      "slot": "chorus_d2:super",
+      "cost": {
+        "resource": "test:super",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:super_cast"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:starvation_inputs",
+      "rules": [
+        {
+          "id": "fill_class_a",
+          "on": "test:fill_class_a",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:class_a",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "fill_class_b",
+          "on": "test:fill_class_b",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:class_b",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "fill_super",
+          "on": "test:fill_super",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "test:super",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "orb_of_power",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:orb_of_power"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:collected_orb_of_power"
+            }
+          ]
+        },
+        {
+          "id": "void_breach",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:void_breach"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:collected_void_breach"
+            }
+          ]
+        },
+        {
+          "id": "firesprite",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:firesprite"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:collected_firesprite"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:starvation_persistence",
+      "includes": [
+        "test:devour_persistence_extension"
+      ],
+      "modifiers": [
+        {
+          "id": "initial",
+          "profile": "chorus_d2:starvation_duration",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:persistence_initial",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Explicit quoted 5+2.5 duration; not complete Persistence.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

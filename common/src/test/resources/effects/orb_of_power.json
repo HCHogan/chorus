@@ -1,0 +1,131 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:orb_of_power_application",
+      "parameters": {
+        "super_energy": "charge_fraction",
+        "lifetime": "second",
+        "collection_radius": "meter"
+      },
+      "rules": [
+        {
+          "id": "spawn",
+          "on": "chorus_d2:spawn_orb_of_power",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:event_position_observed",
+                "target": "victim",
+                "anchor": "feet"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_position",
+                    "target": "victim",
+                    "anchor": "feet"
+                  },
+                  "as": "place"
+                },
+                {
+                  "pickup": {
+                    "position": "place",
+                    "kind": "chorus_d2:orb_of_power",
+                    "recipient": "self",
+                    "lifetime": {
+                      "type": "chorus:source_parameter",
+                      "name": "lifetime"
+                    },
+                    "radius": {
+                      "type": "chorus:source_parameter",
+                      "name": "collection_radius"
+                    }
+                  },
+                  "as": "contact",
+                  "collect_if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:has_buff_tag",
+                        "target": "self",
+                        "tag": "chorus_d2:orb_pickup_permission"
+                      },
+                      {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:ability_energy_flag",
+                            "slot": "chorus_d2:super",
+                            "target": "self",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:ability_energy_flag",
+                              "slot": "chorus_d2:super",
+                              "target": "self",
+                              "field": "full"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "do": [
+                    {
+                      "for_each": "contact",
+                      "as": "collector",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:calculate",
+                            "profile": "chorus_d2:orb_of_power_base_energy",
+                            "target": {
+                              "binding": "collector"
+                            },
+                            "input": {
+                              "type": "chorus:source_parameter",
+                              "name": "super_energy"
+                            }
+                          },
+                          "as": "energy"
+                        },
+                        {
+                          "type": "chorus:grant_ability_energy",
+                          "slot": "chorus_d2:super",
+                          "target": {
+                            "binding": "collector"
+                          },
+                          "amount": {
+                            "type": "chorus:result",
+                            "binding": "energy",
+                            "field": "value"
+                          },
+                          "value_basis": "base",
+                          "tags": [
+                            "chorus_d2:orb_of_power"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:orb_position_unobserved"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

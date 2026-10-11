@@ -1,0 +1,149 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:void_breach_cooldown",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "attach": "holder",
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:void_breach_system",
+      "rules": [
+        {
+          "id": "spawn",
+          "on": "chorus_d2:spawn_void_breach",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:void_breach_cooldown"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:event_position_observed",
+                "target": "victim",
+                "anchor": "feet"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_position",
+                    "target": "victim",
+                    "anchor": "feet"
+                  },
+                  "as": "place"
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:void_breach_collection_radius",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "meter"
+                    }
+                  },
+                  "as": "radius"
+                },
+                {
+                  "pickup": {
+                    "position": "place",
+                    "kind": "chorus_d2:void_breach",
+                    "recipient": "self",
+                    "lifetime": {
+                      "type": "chorus:constant",
+                      "value": 25,
+                      "unit": "second"
+                    },
+                    "radius": {
+                      "type": "chorus:result",
+                      "binding": "radius",
+                      "field": "value"
+                    }
+                  },
+                  "as": "contact",
+                  "spawn_as": "created",
+                  "do": [
+                    {
+                      "for_each": "contact",
+                      "as": "collector",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:calculate",
+                            "profile": "chorus_d2:void_breach_base_energy",
+                            "target": {
+                              "binding": "collector"
+                            },
+                            "input": {
+                              "type": "chorus:constant",
+                              "value": 0.1125,
+                              "unit": "charge_fraction"
+                            }
+                          },
+                          "as": "base"
+                        },
+                        {
+                          "type": "chorus:grant_ability_energy",
+                          "slot": "chorus_d2:class",
+                          "target": {
+                            "binding": "collector"
+                          },
+                          "amount": {
+                            "type": "chorus:result",
+                            "binding": "base",
+                            "field": "value"
+                          },
+                          "value_basis": "base",
+                          "tags": [
+                            "chorus_d2:void_breach"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "created",
+                    "field": "spawned"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:void_breach_cooldown"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:emit",
+                  "event": "chorus_d2:void_breach_position_unobserved"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

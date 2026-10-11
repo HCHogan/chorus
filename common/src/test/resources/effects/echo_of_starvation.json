@@ -1,0 +1,258 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:starvation_duration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "bonus",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:starvation_equipped",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "holder",
+        "instanced_by": "source",
+        "tags": [
+          "chorus_d2:orb_pickup_permission"
+        ]
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:starvation_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "pickup_ids"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:starvation_receipts"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:echo_of_starvation",
+      "parameters": {
+        "cap": "second",
+        "receipt_seconds": "second"
+      },
+      "modifiers": [
+        {
+          "id": "class_penalty",
+          "profile": "chorus_d2:class_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:starvation_class_penalty",
+          "value": {
+            "type": "chorus:constant",
+            "value": -10,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium Void N26; original N29. Bungie 9.5.0 retains Starvation negative stats.",
+          "confidence": "measured"
+        }
+      ],
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:starvation_equipped"
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:starvation_equipped"
+            }
+          ]
+        },
+        {
+          "id": "collect",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:orb_of_power"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:void_breach"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "receipt_seconds"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:starvation_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:starvation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:starvation_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "pickup_ids",
+                "event_reference": "pickup_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:starvation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:starvation_receipts",
+                      "component": "pickup_ids",
+                      "event_reference": "pickup_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:starvation_duration",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "second"
+                    }
+                  },
+                  "as": "duration"
+                },
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:devour_application",
+                  "event": "chorus_d2:grant_devour",
+                  "target": "self",
+                  "origin": "bound",
+                  "parameters": {
+                    "duration": {
+                      "type": "chorus:result",
+                      "binding": "duration",
+                      "field": "value"
+                    },
+                    "cap": {
+                      "type": "chorus:source_parameter",
+                      "name": "cap"
+                    },
+                    "receipt_seconds": {
+                      "type": "chorus:source_parameter",
+                      "name": "receipt_seconds"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:starvation_receipts",
+      "scope": "buff"
+    }
+  ]
+}

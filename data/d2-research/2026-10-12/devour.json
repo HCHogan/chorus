@@ -141,5 +141,10 @@
     "date": "2026-10-12",
     "research": "data/d2-research/2026-10-12/feed-the-void.json",
     "scope": "Void and Prismatic activation integrated; formal subclass assembly and remaining grantors still incomplete."
+  },
+  "starvation_follow_up": {
+    "date": "2026-10-12",
+    "research": "data/d2-research/2026-10-12/starvation-pickups.json",
+    "scope": "Actual Orb/Breach collection grants shared Devour; full producers and formal subclass assembly remain incomplete."
   }
 }

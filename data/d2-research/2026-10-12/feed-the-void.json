@@ -198,5 +198,10 @@
       "symbol": "unknownHealingAfterActualSkillKillRetainsPaymentAndHealthWithoutReplay"
     }
   ],
-  "follow_up": "Echo of Starvation actual pickup grants, full Echo of Persistence and formal subclass content assembly."
+  "follow_up": "Echo of Starvation actual pickup grants, full Echo of Persistence and formal subclass content assembly.",
+  "starvation_follow_up": {
+    "date": "2026-10-12",
+    "research": "data/d2-research/2026-10-12/starvation-pickups.json",
+    "scope": "Real Orb/Breach collection now grants Devour and observes current enhancement; production generation chains remain incomplete."
+  }
 }

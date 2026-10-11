@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Echo of Starvation",
+    "Void Breach",
+    "Orb of Power private recipient template"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/devour-source.html.gz",
+      "sha256": "887ea9277cc2230d42e21887806cf6c08d81c17ea94a92357224d39b354b4688",
+      "gzip_sha256": "9ff3b59d314ff5656a076dcae5839847747b68b3571772126cafedddc933fe9e",
+      "cells": [
+        {
+          "original_cell": "B9",
+          "snapshot_cell": "B7",
+          "snapshot_text_sha256": "9fb39f97835518aeb4313220afa5e0e301f85525a9f7f3d1eacbfdd6fafbe9ae",
+          "normalized_text": "Void Breach",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D9",
+          "snapshot_cell": "D7",
+          "snapshot_text_sha256": "826e58436b2dd4743d90be45f53865f75e340f95e2ac1e9c062bca034ddbdb60",
+          "normalized_text": "Void Elemental Pickup. Grants 11.25% Class Ability Energy on Pickup. Allies do not receive Void Breaches created by the user. Lasts 25 seconds before disappearing. Incurs a 5 second cooldown between Void Breach spawns.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "B29",
+          "snapshot_cell": "B26",
+          "snapshot_text_sha256": "5e20b9bc5edfd60176fcaa8f3c14af3ff577c39052217e214be742527a0223c9",
+          "normalized_text": "Starvation",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D29",
+          "snapshot_cell": "D26",
+          "snapshot_text_sha256": "74816fe9a730aa3587d295f88808e99fca434884dee5c2253a2570372233f6b0",
+          "normalized_text": "On Orb of Power or Void Breach Pickup: Grants Devour for 5+2.5 seconds.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "N29",
+          "snapshot_cell": "N26",
+          "snapshot_text_sha256": "8ffe497b521f8e5333831186e181dcf2c62a554b0cdf9be1f18775ce7537cc5f",
+          "normalized_text": "-10 Class",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/devour-clarity.json",
+      "sha256": "847ffa45bb72428dac71a19461817f494f7230d6d65b4a9f192a445c64a5c181",
+      "item_hash": 2661180603,
+      "finding": "Orb of Power or Void Breach pickup grants Devour for five seconds, 7.5 with Persistence."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/update_7_0_0_1",
+      "short_excerpt": "Now allows Orb of Power pickup with full Super energy.",
+      "finding": "Starvation also accepts Void Breaches; Void Breach pickup gives class ability energy."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "finding": "Starvation and Persistence are exceptions to removal of negative Void Fragment stats."
+    },
+    {
+      "kind": "fixed_compendium_snapshot",
+      "sheet": "Game Mechanics",
+      "cells": [
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C1",
+          "text_sha256": "2c846468c6f9e36e81529d7f1806ea6c3c6041c1a6d234a9ee19181693fcd26d"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "I137",
+          "text_sha256": "1015f68ec00b224e693983ffaeea1529fcd7eeebd00e01a820526f21e8f63903"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "L137",
+          "text_sha256": "03637f3629296928f05ece67adf32d509e2e19717d107105246257a6feab8854"
+        }
+      ],
+      "finding": "Super is exempt from Chunk Scalars. Fragment-produced Orbs list 2.5% Super energy. Values are inputs, not all producer definitions."
+    }
+  ],
+  "implemented": [
+    "Actual private Orb/Breach collection grants shared Devour with current recipient enhancement.",
+    "Starvation live source capability permits Orb collection at full Super; -10 Class stat.",
+    "Breach private pickup, 25-second lifetime, 5-second successful-spawn cooldown and current class account energy.",
+    "Orb explicit provider energy/lifetime/radius, current Super account and live collection eligibility.",
+    "Independent bounded Starvation pickup receipt set; actual host claims before rewards."
+  ],
+  "limitations": [
+    "完整正式Fragment/子职业选择、全部Orb生成者、Harvest/Cessation/Domineering等真实Void Breach生成者和射击拾取尚未装配；本轮以可信生成请求接到真实物体/收集，不能冒充完整生产者链。",
+    "每个拾取物是显式指定收集者的私有逻辑单位。Void Breach不向队友发副本；Orb由生产者决定自己和队友副本，完整Super自拾取排除、多人可见性/共享表现与全部来源规则未完成。",
+    "Orb必须明确super_energy/lifetime/collection_radius；20秒、0.5米和2.5%测试组合不证明通用Orb寿命或半径。真实物体仍用通用占位美术，没有原作滚动/掉落/引力或HUD。",
+    "Void Breach原表11.25%先进入必需的void_breach_base_energy Profile，再按当前选中职业技能BASE/Gain Profile/CES结算；测试0.444444归一化、.5/.75 CES是明确合成输入。原表测量属性/能量基准、全职业/活动缩放和完整Class stat冷却投影仍需校准。",
+    "Orb回能走当前Super账户，测试账户CES=1符合原表Super无Chunk Scalar；完整Super属性和活动/来源倍率、active Super禁回能政策及每种实际Super账户未完成。",
+    "Starvation初始5/7.5秒、重施加共享5/8秒续时已验收；完整Persistence和所有来源cap仍需装配与校准。cap/receipt_seconds必填，测试10/15上限不当成全来源实测。",
+    "拾取按收集时Fragment/Feed the Void配置执行；绑定能力Buff提供满Super收球资格并随该来源卸下撤销。所有同帧换装/死亡/赠予/收益顺序与其他满能量拾取许可组合仍需原作校准。",
+    "物体宿主先消费再执行奖励；Starvation有独立目标共享有限pickup_ids，防止重复事实或重复Fragment重复授予。仅期限内幂等，外部重复contact、世界故障恢复和物理拾取物跨重启未保证；没有新增游戏冷却或连锁上限。",
+    "正式内容目录、敌我/角色资格、跨维度/离线、存档、HUD与美术仍未完成；三个条目均保持partial。"
+  ],
+  "evidence": [
+    {
+      "kind": "design",
+      "path": "docs/d2-ruleset.md"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/echo_of_starvation.json"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/void_breach.json"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/orb_of_power.json"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/starvation_inputs.json"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "bothPickupKindsGrantFiveSecondsAndUseCurrentEnhancedDevourWithoutGrantingKillEnergy"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "basePickupRewardAndStarvationAreIndependentAndUseTheCollectorsCurrentAccounts"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "aFullSuperRequiresCurrentPickupPermissionWhichCanBeEquippedAfterSpawnAndRemovedAgain"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "missingSuperAccountDoesNotMasqueradeAsEmptyButStarvationStillPermitsItsOwnReward"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "duplicateFactsAndDuplicateFragmentsDoNotDoubleGrantAfterCleanseRebindOrCheckpoint"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "fragmentPenaltyAndQuotedPersistenceInitialDurationAreSeparateFromEightSecondExtension"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "sharedBreachCooldownStartsOnlyOnSuccessfulCreationAndCollectionDoesNotResetIt"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "expiryUnknownPositionAndUnrelatedPickupNeverInventDevourOrBasicEnergy"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "fragmentRemovalLeavesOldPickupAndActiveDevourButDoesNotGrantNewDevourOnCollection"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "fullClassEnergyStillCollectsBreachAndDeadRecipientsNeverGainDevour"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "independentRapidPickupsHaveNoRewardCooldownAndCanBeFollowedByRealKillBenefits"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java",
+      "symbol": "unknownHealingKeepsBasePickupEnergyAndCommittedHealthWithoutRetry"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "actualOrbAndBreachContactsGrantNormalOrEnhancedDevourAlongsideTheirBaseEnergy"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "fullSuperOrbRemainsUntilStarvationIsActuallyEquippedAndForeignCreatorGetsNoReward"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "removingFragmentRevokesFullOrbPermissionWhileMissingSuperStillAllowsDevourWithFragment"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "privateBreachRetainsItsBaseRewardAfterProducerAndFragmentRemovalAndUsesCurrentClassAbility"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "realBreachSpawnsShareFiveSecondCooldownAndUncollectedCopiesExpireAfterTwentyFiveSeconds"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "fiveSecondDevourExpiresOnActualTicksWhileItsFragmentRemainsEquipped"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "fullClassEnergyAndFullHealthDoNotPreventBreachCollectionOrFutureDevourKillRewards"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java",
+      "symbol": "unknownPickupHealingConsumesPhysicalUnitAndRetainsBaseEnergyAndHealthWithoutReplay"
+    }
+  ],
+  "follow_up": "Actual weakened-kill Harvest producer chain, full Echo of Persistence, complete formal content/skill assembly."
+}

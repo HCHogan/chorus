@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Starvation与真实拾取物门禁 `/tmp/chorus-starvation-gate.log` BUILD SUCCESSFUL，1分59秒：1485项JUnit（无失败/错误/跳过）、Fabric764项、NeoForge779项及两端发布jar通过，共享Chorus场景763项。新增12项规则测试、8项共享世界场景。10项Compendium审计、82条报告一致性、原表五个单元格及归档哈希检查通过，发布包不含效果/GameTest/持久化夹具。本轮仅增加内容定义、验收与文档，没有新增引擎Java动作、检查点结构或客户端协议。
+
+Echo of Starvation按实际pickup的收集者授予五秒共享Devour，当前Feed the Void使其治疗变为140HP；重新拾取走已有状态的五/八秒续时，不附加击杀手雷能量。−10Class属性进入已有Profile。来源绑定的能力Buff提供满Super收球许可，解绑只撤回本来源许可；先检查账户可用性，缺失Super不冒充空账户。Starvation本身仍可在缺失选择时提供拾取收益。目标共享有限pickup_ids防止重复事实或重复来源重复治疗，清除Devour/重绑/纯会话检查点保留期限内幂等。
+
+Void Breach按原表提供25秒私有物体、成功生成后五秒共享冷却，收集把11.25%输入经明确外部归一化路由至当前Class账户。满能量不阻止收集；生成者/Fragment解绑后，已生成物体的基础奖励继续存在。Orb模板要求生产者明确能量/寿命/半径，并按当前Super余额或额外许可决定是否消费；生产者信用与实际收集者分开。测试2.5%来源值、20秒/.5米及裂口0.444444归一化/.5/.75 CES均有明确边界，未伪称全来源校准。
+
+真实世界场景验证碰撞消费、满Super装备前后资格、外来生产者/其他角色不能代领、切换职业技能账户、满HP/满Class、五秒Devour到期、五秒生成冷却与25秒裂口独立寿命；后续原版击杀接上共享吞噬回能。未知治疗后物体已消费，基础能量和已提交生命保留，重复tick不重放。开发首轮纯测试漏配新测试账户必需的gain_profile，补上显式恒等Profile后12项规则测试及首轮双端世界门禁全部通过。
+
+新增Starvation、Void Breach和Orb私有副本模板三条partial审阅，累计82条：80 partial、2 not_applicable、0 verified，仍非全表分母。Harvest/Cessation/Domineering与其他真实生产者、全部Orb副本/来源/Super政策、完整Persistence、正式Fragment/职业装配、数值校准、HUD/物理表现及世界持久化尚未完成。[规则与来源边界](d2-ruleset.md#starvationvoid-breach-与能量球收集)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Feed the Void完整门禁 `/tmp/chorus-feed-gate-2.log` BUILD SUCCESSFUL，1分39秒：1473项JUnit（无失败/错误/跳过）、Fabric756项、NeoForge771项及两端发布jar通过，共享Chorus场景755项。新增12项规则测试、8项共享世界场景；10项Compendium审计、79条报告一致性、两张原表四个单元格与归档哈希检查通过。发布包不含效果/GameTest/持久化夹具，本轮没有新增引擎Java动作、检查点类型或客户端协议。
 
 独立Void/Prismatic来源包include增强Devour。普通来源需要明确Void技能击杀，棱镜接受任意元素技能和额外Frozen Enemy Shatter/Volatile/Tangle分类。补齐Shield Throw与Threaded Spike生产者的通用ability伤害/击杀信用；不把归因中的ability名称或普通近战误当技能资格。旧Volatile模板含generic ability标签，明确的派生分类优先，真实武器施加的易爆爆炸只走棱镜激活。

@@ -2864,3 +2864,10 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Feed the Void](d2-ruleset.md#feed-the-void-的自动激活与共享收益)把来源资格和共享Devour收益分开。资格必须检查`event_buffs_available`，再判断历史不存在；同时检查当前`has_buff`，避免同一事件前面的反应已授予状态后再次治疗。新状态不能让旧事实逆向取得持续击杀奖励；事件归因中的ability名称也不能代替明确的damage/kill信用。
 
 多个来源可能在同一事件帧排队`invoke_bundle`，调用者不能只用当前Buff不存在来保证单次激活。此内容用独立目标共享的有限death_ids先接纳，再排队调用；回执不依附被清除的Devour，也不随单个来源卸下清空。`after lifetime=detached`保留清理参数，目标Buff本身max_remaining限制总寿命。该用途是回执幂等，不限制合法效果循环；期限和最终装配唯一性仍是宿主/内容的显式契约。
+
+
+### 拾取许可与拾取奖励独立
+
+[Starvation](d2-ruleset.md#starvationvoid-breach-与能量球收集)同时需要接触前许可与消费后奖励。内容用按来源的能力Buff表达`orb_pickup_permission`，`collect_if`实时检查收集者的Super账户或该许可；解绑撤销许可但不删除已经生成的物体。已存在/缺失账户先用`ability_energy_flag(available)`区分，再读取full状态；缺失不是空能量。
+
+`chorus:pickup`来源保留生成者，actor/victim才是收集者；被动奖励使用`target_is(self,event_actor)`，不能用`source_is(owner)`把他人产生的Orb拒绝掉。真实物体在奖励前先消费，奖励动作中的已知满账户/无选择不会撤销拾取事实；未知世界动作则按既有顺序停止后续执行。Starvation通过独立有限pickup_id集合保证反应幂等，不能把它推广成外部重复contact可安全重放所有基础收益。
