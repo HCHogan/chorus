@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-fractional-healing-gate.log` BUILD SUCCESSFUL，2 分 46 秒：1254 项 JUnit（无失败 / 错误 / 跳过）、Fabric 613 项、NeoForge 628 项和两端发布 jar 全部通过，共享 Chorus 场景为 612 项。10 项 Compendium 审计、76 条报告一致性、7 个原表单元格与 HTML / gzip 哈希核对通过。发布包含最大生命比例治疗与混合恢复选择，不含测试效果 / GameTest；没有客户端输入 / 协议变更，本阶段没有新增图形客户端验收。
+最新门禁 `/tmp/chorus-checkpoint-gate.log` BUILD SUCCESSFUL，1 分 38 秒：1267 项 JUnit（无失败 / 错误 / 跳过）、Fabric 615 项、NeoForge 630 项和两端发布 jar 全部通过，共享 Chorus 场景为 614 项。10 项 Compendium 审计及 76 条生成报告一致性通过；发布包包含两个 Checkpoint 类型，不含效果夹具 / GameTest。本轮未更改客户端输入 / 协议，没有新增图形客户端验收。
+
+已实现成功结算边界的会话检查点与恢复。`TimelineEngine.Checkpoint` 保留完整领域状态、逻辑时间和事件 / Frame 序号；`EffectSession.Checkpoint` 固定完整 EffectProgram，重编译相同内容可恢复，同版本标签下修改内容则拒绝。恢复不进行初始化、时钟推进或世界重放；新账本退休全部旧 Frame，晚到旧回执不能恢复新动作。规则执行中的编号分配使用检查溢出的算术，防止序号绕回。
+
+新增 13 项纯测试与 2 项双端共享世界场景。验证来源移除 / Buff 到期后的攻击快照、未来命令和身份与不中断运行相等、暂停计时余量和新 generation、重新施放不覆盖旧 after、部分领取的保留退款，以及技能选择 / 弹药 / 随机游标。等待世界结果、放弃请求、规则失败和世界执行中重入均拒绝捕获；实际原版治疗已写入但回执丢失时保留 pending，不能重放或保存为成功边界。
+
+这是不可变 Java 数据的会话恢复协议，尚未加入 JSON / NBT 编解码、Minecraft 世界保存 / 启动恢复、原版投影重建或离线政策。两项世界场景在同一真实世界上替换纯会话，不是服务器重启验收；短命世界物体仍按设计不保存，后续需要处理它们的状态引用。Compendium 仍为 76 条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[恢复接口与宿主边界](engine-data-packs.md#已结算会话的检查点与恢复)。
+
+上一阶段门禁 `/tmp/chorus-fractional-healing-gate.log` BUILD SUCCESSFUL，2 分 46 秒：1254 项 JUnit（无失败 / 错误 / 跳过）、Fabric 613 项、NeoForge 628 项和两端发布 jar 全部通过，共享 Chorus 场景为 612 项。10 项 Compendium 审计、76 条报告一致性、7 个原表单元格与 HTML / gzip 哈希核对通过。发布包含最大生命比例治疗与混合恢复选择，不含测试效果 / GameTest；没有客户端输入 / 协议变更，本阶段没有新增图形客户端验收。
 
 heal 和 health_recovery 新增可选 basis:max_health，分别使用 health_fraction、health_fraction_per_second；默认 absolute 保持现有单位与行为。来源速率及 Profile 仍由纯核心按段计算，世界执行时一次采样实际最大生命，将比例额度换算成 HP 再走原版治疗。回执保留原比例 / basis、最大生命观察、已解析 requested 与实际 offered / effective / overheal。目标不可用时没有可推导的比例 HP 量，结果标记未解析，读取时拒绝伪造零值；死亡目标不复活。
 
@@ -220,6 +228,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 攻击 / 防御 Profile 到实际世界伤害 | 纯核心及双加载器 GameTest 通过 | `CompiledEffects.outgoing / defense`、`DamageCapture`；显式 scaling_profile、目标 defense_profile、完整轨迹、玩家委托不重算、原版门槛与嵌套命中 |
 | origin/current 反应绑定 | 纯核心及双加载器 GameTest 通过 | `ReactionSnapshot`；来源规则在释放时捕获身份 / 标签，命中和击杀可在解绑后执行；当前规则独立读取新来源；多版本目录并存与 Buff 规则继承未实现；proc 排除已另行接入 |
 | 世界命令执行、会话内去重、失败停留 | 纯宿主及双加载器 GameTest 通过 | `EffectSession`、`OperationLedger`；结果未知不重试，跨重启恢复未实现 |
+| 成功边界检查点与会话恢复 | 纯核心及双加载器世界测试通过 | `TimelineEngine.Checkpoint / EffectSession.Checkpoint`；完整目录匹配、时钟 / 序号与全部领域状态保留、旧操作退休、未知结果拒绝；磁盘编码 / Minecraft 存档与重启恢复未实现 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

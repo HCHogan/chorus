@@ -66,6 +66,7 @@
       "com.imdomestic.chorus.ShieldThrowGameTest",
       "com.imdomestic.chorus.HealthLayerGameTest",
       "com.imdomestic.chorus.FractionalHealingGameTest",
+      "com.imdomestic.chorus.EffectCheckpointGameTest",
       "com.imdomestic.chorus.ProjectileDestinationGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",

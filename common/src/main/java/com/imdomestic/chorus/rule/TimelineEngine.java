@@ -30,6 +30,15 @@ public final class TimelineEngine<S> {
         }
     }
 
+    /** A settled boundary, including the identity counters needed by deferred domain work. */
+    public record Checkpoint<S>(String version, S domain, long timeMicros, long nextEvent, long nextFrame) {
+        public Checkpoint {
+            Objects.requireNonNull(version); Objects.requireNonNull(domain);
+            if (timeMicros < 0 || timeMicros == NEVER || nextEvent < 1 || nextFrame < 1)
+                throw new IllegalArgumentException("Invalid checkpoint clock or sequence");
+        }
+    }
+
     private final RuleEngine<S> engine;
     private final Clock<S> clock;
 
@@ -59,6 +68,28 @@ public final class TimelineEngine<S> {
         var base = engine.initial(domain);
         return new State<>(new RuleEngine.State<>(base.version(), domain, time, base.nextEvent(), base.nextFrame(), base.facts(),
                 base.frames(), base.pending(), base.receipts(), base.failure()), Optional.empty(), Map.of(), Optional.empty());
+    }
+
+    public Checkpoint<S> checkpoint(State<S> state) {
+        if (!state.idle() || state.engine().failure().isPresent() || state.abandoned().isPresent())
+            throw new IllegalStateException("Checkpoint requires a successfully settled timeline");
+        var value = state.engine();
+        var checkpoint = new Checkpoint<>(value.version(), value.domain(), value.timeMicros(), value.nextEvent(), value.nextFrame());
+        // Use the same validation on both sides; no time advancement or world work occurs here.
+        restore(checkpoint);
+        return checkpoint;
+    }
+
+    /** The caller must also pin the rule definitions and any external clock policy. */
+    public State<S> restore(Checkpoint<S> checkpoint) {
+        var initial = initial(checkpoint.domain());
+        if (!initial.engine().version().equals(checkpoint.version()))
+            throw new IllegalArgumentException("Checkpoint belongs to another rule version");
+        if (initial.engine().timeMicros() != checkpoint.timeMicros())
+            throw new IllegalArgumentException("Checkpoint and domain clocks differ");
+        var restored = new RuleEngine.State<>(checkpoint.version(), checkpoint.domain(), checkpoint.timeMicros(),
+                checkpoint.nextEvent(), checkpoint.nextFrame(), List.of(), List.of(), Optional.empty(), Map.of(), Optional.empty());
+        return new State<>(restored, Optional.empty(), Map.of(), Optional.empty());
     }
 
     public Transition<S> transition(State<S> state, Input input) {

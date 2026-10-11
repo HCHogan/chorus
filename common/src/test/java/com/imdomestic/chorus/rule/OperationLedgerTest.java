@@ -24,4 +24,20 @@ class OperationLedgerTest {
         assertThrows(IllegalStateException.class, () -> ledger.execute(request, _ -> { calls.incrementAndGet(); return new Receipt(4); }));
         assertThrows(IllegalStateException.class, ledger::nextBoundary); assertEquals(1, calls.get());
     }
+    @Test void restoredLedgerRejectsEveryPreviouslyAllocatedFrameAcrossEmptyBoundaries() {
+        var ledger = OperationLedger.restore(19); var calls = new AtomicInteger();
+        ledger.nextBoundary(); ledger.nextBoundary();
+        for (long frame : new long[]{1, 7, 18}) {
+            assertThrows(IllegalArgumentException.class, () -> ledger.execute(new WorldRequest(new OperationId(frame, 4, 2), new Command(9)), _ -> {
+                calls.incrementAndGet(); return new Receipt(9);
+            }));
+        }
+        var request = new WorldRequest(new OperationId(19, 0, 0), new Command(5));
+        assertEquals(new Receipt(5), ledger.execute(request, _ -> { calls.incrementAndGet(); return new Receipt(5); }));
+        assertEquals(new Receipt(5), ledger.execute(request, _ -> { throw new AssertionError("duplicate execution"); }));
+        ledger.nextBoundary();
+        assertThrows(IllegalArgumentException.class, () -> ledger.execute(request, _ -> new Receipt(5)));
+        assertEquals(1, calls.get());
+        assertThrows(IllegalArgumentException.class, () -> OperationLedger.restore(0));
+    }
 }

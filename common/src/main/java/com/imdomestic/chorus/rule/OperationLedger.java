@@ -13,6 +13,17 @@ public final class OperationLedger {
     private final Map<OperationId, Entry> entries = new HashMap<>();
     private long retiredFrame, greatestFrame;
 
+    public OperationLedger() {}
+
+    /** All frames before the next unallocated frame belong to an already acknowledged checkpoint. */
+    public static OperationLedger restore(long nextFrame) {
+        if (nextFrame < 1) throw new IllegalArgumentException("Invalid restored frame sequence");
+        var ledger = new OperationLedger();
+        ledger.retiredFrame = nextFrame - 1;
+        ledger.greatestFrame = ledger.retiredFrame;
+        return ledger;
+    }
+
     public ActionResult execute(WorldRequest request, Function<WorldCommand, ActionResult> executor) {
         var previous = entries.get(request.id());
         if (previous != null) {

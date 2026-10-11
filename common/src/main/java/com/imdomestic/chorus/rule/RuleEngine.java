@@ -248,9 +248,9 @@ public final class RuleEngine<S> {
             cursor.time = start.timeMicros();
             cursor.receipts.clear(); // v0 retains receipts for one complete settlement boundary.
             cursor.failure = Optional.empty();
-            long id = cursor.nextEvent++;
+            long id = cursor.eventId();
             cursor.facts.add(new Event(id, id, Optional.empty(), cursor.time, start.signal()));
-            for (var signal : start.following()) cursor.facts.add(new Event(cursor.nextEvent++, id, Optional.of(id), cursor.time, signal));
+            for (var signal : start.following()) cursor.facts.add(new Event(cursor.eventId(), id, Optional.of(id), cursor.time, signal));
             try { cursor.domain = Objects.requireNonNull(reconciler.apply(cursor.domain, start.committed())); }
             catch (RuntimeException error) { cursor.distributing = cursor.facts.getFirst(); cursor.fail(error); return new Transition<>(cursor.snapshot(), List.of()); }
         } else if (input instanceof Completed completed) {
@@ -296,7 +296,7 @@ public final class RuleEngine<S> {
                         if (previous != null && !previous.equals(binding)) throw new IllegalArgumentException("Conflicting rule binding: " + binding.instance());
                     }
                     for (RuleBinding binding : unique.values()) {
-                        cursor.frames.addLast(new Frame(cursor.nextFrame++, event, binding.instance(), binding.definition(), binding.scope(), 0, false, Map.of()));
+                        cursor.frames.addLast(new Frame(cursor.frameId(), event, binding.instance(), binding.definition(), binding.scope(), 0, false, Map.of()));
                     }
                     cursor.distributing = null;
                     continue;
@@ -358,6 +358,9 @@ public final class RuleEngine<S> {
             pending = state.pending(); receipts = new LinkedHashMap<>(state.receipts()); failure = state.failure();
         }
 
+        long eventId() { long id = nextEvent; nextEvent = Math.incrementExact(nextEvent); return id; }
+        long frameId() { long id = nextFrame; nextFrame = Math.incrementExact(nextFrame); return id; }
+
         void commit(Frame frame, Instruction<S> instruction, Local<S> result) {
             domain = result.state();
             var bindings = new HashMap<>(frame.bindings());
@@ -370,7 +373,7 @@ public final class RuleEngine<S> {
             frames.addFirst(new Frame(frame.id(), frame.event(), frame.rule(), frame.definition(), frame.scope(), frame.pc() + 1, true,
                     bindings, frame.iterations(), invocations, retained));
             for (var signal : result.emitted()) {
-                facts.addLast(new Event(nextEvent++, frame.event().root(), Optional.of(frame.event().id()), time, signal));
+                facts.addLast(new Event(eventId(), frame.event().root(), Optional.of(frame.event().id()), time, signal));
             }
         }
 

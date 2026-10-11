@@ -2545,3 +2545,23 @@ Profile 必须仅输出 Chorus 贡献。输入是绑定中的固定 Measure，�
 伤害结果的 `result_flag` 增加 `failed`，当且仅当回执Outcome为FAILED；它与applied/immune等已知结果和运行时未知故障分开。Minecraft世界动作在目标缺失/已移除/维度错误时可返回FAILED。未知执行不会伪造FAILED回执，仍停止等待并保留已提交世界效果。内容若要按已知物理接触触发、而非只按实际扣血，可显式组合这个标志和实体/投射物观察。
 
 共享Void Overshield内容直接组合grant_buff与restore_shield及有上限的层声明，没有新增金装或技能专用Java分支；各来源调用时显式提供额度、时长及目标。原版分类支持仅在Combatant攻击的护盾预算中乘0.3，仍按FIFO传递未经该层重复减免的余量。具体取样、刷新、物理校准和生产边界见[D2规则集](d2-ruleset.md#共享-void-overshield-与-shield-throw)。
+
+## 已结算会话的检查点与恢复
+
+该接口服务于后续存档和宿主恢复，目前只传递不可变 Java 数据，尚无 JSON / NBT 存档格式。内容作者不需要给每个 Buff 单独选择要保存的字段。
+
+```java
+var session = new EffectSession(compiled, clock, 256, initialState, worldExecutor);
+// 完成一个外部结算边界后捕获；调用不会触发任何世界动作。
+var saved = session.checkpoint();
+// 宿主停止使用旧会话，并提供与检查点对应的世界及相同的外部时钟策略。
+var resumed = EffectSession.restore(compiled, clock, 256, saved, worldExecutor);
+```
+
+`EffectSession.Checkpoint` 固定完整规则目录与 `TimelineEngine.Checkpoint<EffectState>`，后者携带 domain、timeMicros、nextEvent、nextFrame。恢复要求目录内容相等，允许重新编译同一份目录和改变单次 Pump 预算；相同 version 下改数值也会拒绝。直接用自定义 TimelineEngine 构建的旧会话未证明数据目录身份，不能调用这个数据目录检查点接口；通用 TimelineEngine 自身的检查点仍由调用方负责规则身份。
+
+所有领域字段一起保留，尤其包括已脱离来源的 after、其捕获的伤害 / 查询结果、暂停定时器余量、Buff generation、已领取部分退款的保留凭据和随机流游标。不会重新初始化来源、补满资源、清空弹药、重新取攻击快照或重新抽随机数。恢复时保持原逻辑时间，未来推进仍逐个结算原期限；没有隐式补算离线时长。
+
+仅成功排空的边界可捕获。调用世界执行器期间、尚待回执、未处理事实 / Frame、未完成外部请求、失败或被放弃请求均拒绝。已完成回执不在检查点中保留：它们只用于原边界去重，恢复后所有 `< nextFrame` 的世界操作均已退休，晚到旧回执也不能恢复新动作。未知世界结果不能使用这个入口恢复或自动重试。
+
+宿主责任尚待接入：磁盘编解码及格式版本、实体 / 物品与规则状态的保存一致性、短命世界物体清理和引用生命周期、运行时安装 / 原版投影、离线政策，以及未知结果日志和显式迁移。世界测试只在同一真实世界状态上更换纯会话，不能当作已完成服务器重启验收。

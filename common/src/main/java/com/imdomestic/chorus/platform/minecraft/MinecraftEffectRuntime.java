@@ -97,7 +97,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         this.nativeMovement = new MinecraftMovementProjection(level,program);
         this.nativeHorizontalSpeed = new MinecraftHorizontalSpeedProjection(level,program);
         this.originTick = level.getGameTime(); this.originMicros = initial.buffs().timeMicros();
-        this.session = new EffectSession(program.engine(clock, 256), initial, request -> {
+        this.session = new EffectSession(program, clock, 256, initial, request -> {
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
             operationFacts = new ArrayList<>();
             try {
