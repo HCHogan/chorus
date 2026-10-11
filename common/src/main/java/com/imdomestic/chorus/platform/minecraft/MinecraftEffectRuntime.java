@@ -64,6 +64,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private record InputKey(java.util.UUID holder, String slot) {}
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
+    private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
+
+    void trackProjectile(EffectProjectile projectile) { thread(); projectiles.add(projectile); }
+    private void abandonProjectiles() { projectiles.forEach(EffectProjectile::abandon); projectiles.clear(); }
+    private void maintainProjectiles() {
+        // Contact continuations can launch more flights or fail the runtime; iterate the original generation only.
+        for (var projectile : List.copyOf(projectiles)) if (!projectile.maintain(this)) projectiles.remove(projectile);
+    }
 
     private MinecraftEffectRuntime(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
@@ -497,6 +505,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
                 committedShields, committedCombat, List.copyOf(reservations.values()), facts));
         abilityInputs.clear();
+        abandonProjectiles();
         Constants.LOG.error("Chorus rule runtime stopped for {}. Committed world changes are retained; no automatic replay.", level.dimension().identifier(), error);
     }
     private void countUnprocessed(long amount) {
@@ -507,7 +516,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public static void tick(ServerLevel level) {
         var runtime = LIVE.get(level);
         if (runtime == null || runtime.failure.isPresent()) return;
-        try { runtime.prepare(); runtime.start(new RuleEngine.Signal("chorus:tick", RuleEngine.Empty.INSTANCE)); }
+        try { runtime.prepare(); runtime.maintainProjectiles(); runtime.start(new RuleEngine.Signal("chorus:tick", RuleEngine.Empty.INSTANCE)); }
         catch (RuntimeException error) { runtime.failed(error, List.of()); }
     }
     public static void unload(ServerLevel level) { var runtime = LIVE.get(level); if (runtime != null) runtime.close(); }
@@ -520,6 +529,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
         closed = true; equipmentOwners.clear(); abilityInputs.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        abandonProjectiles();
         var constructs = new ArrayList<EffectConstruct>();
         for (var entity : level.getAllEntities()) if (entity instanceof EffectConstruct construct && construct.ownedBy(this)) constructs.add(construct);
         constructs.forEach(EffectConstruct::discard);

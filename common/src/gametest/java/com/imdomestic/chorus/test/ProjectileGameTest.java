@@ -170,4 +170,54 @@ public class ProjectileGameTest {
             });
         } catch (Throwable error) { t.close(); throw error; }
     }
+    private static void lifecycleFlight(JsonObject data) {
+        var flight = data.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonArray("do").get(3).getAsJsonObject();
+        flight.add("do", JsonParser.parseString("[{\"type\":\"chorus:play_cue\",\"cue\":\"test:finished\"}]").getAsJsonArray());
+    }
+    private static BlockPos loadedInactive(GameTestHelper h) {
+        var center = h.absolutePos(BlockPos.ZERO);
+        for (int radius = 1; radius <= 16; radius++) for (int x = -radius; x <= radius; x++) for (int z = -radius; z <= radius; z++) {
+            if (Math.max(Math.abs(x), Math.abs(z)) != radius) continue;
+            var p = center.offset(x * 16, 40, z * 16);
+            if (h.getLevel().getChunkSource().getChunkNow(p.getX() >> 4, p.getZ() >> 4) != null && !h.getLevel().isPositionEntityTicking(p)) return p;
+        }
+        throw new AssertionError("No loaded, non-entity-ticking boundary in fixture");
+    }
+    @GameCase public void loadedInactiveRegionsTerminateWithoutAnotherEntityTickOrCallbackReplay(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, ProjectileGameTest::lifecycleFlight)) {
+            var outside = loadedInactive(h); t.fire(); var p = t.projectiles.getFirst();
+            p.setPos(Vec3.atCenterOf(outside)); int ticks = p.tickCount;
+            MinecraftEffectRuntime.tick(h.getLevel());
+            h.assertTrue(p.isRemoved() && p.progress().terminal(), "level runtime retained inactive flight");
+            h.assertValueEqual(p.tickCount, ticks, "cleanup replayed physical simulation");
+            h.assertValueEqual(p.progress().sequence(), 1L, "one terminal observation");
+            h.assertValueEqual(t.cues.size(), 1, "terminal continuation missing");
+            MinecraftEffectRuntime.tick(h.getLevel()); p.tick();
+            h.assertValueEqual(t.cues.size(), 1, "cleanup replayed its callback");
+            h.assertTrue(!h.getLevel().isPositionEntityTicking(outside), "cleanup loaded/ticketed inactive region");
+        } h.succeed();
+    }
+    @GameCase public void runtimeCloseDiscardsInactiveFlightsBeforeAReplacementCanObserveThem(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, ProjectileGameTest::lifecycleFlight)) {
+            t.fire(); t.fire(); var outside = loadedInactive(h); t.projectiles.getFirst().setPos(Vec3.atCenterOf(outside));
+            t.runtime.close();
+            h.assertTrue(t.projectiles.stream().allMatch(Entity::isRemoved), "close waits for native entity ticks");
+            try (var replacement = MinecraftEffectRuntime.install(h.getLevel(), t.runtime.program(), t.runtime.state().engine().domain(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), t.world::apply, MinecraftEffectRuntime::nativeSource)) {
+                MinecraftEffectRuntime.tick(h.getLevel()); t.projectiles.forEach(EffectProjectile::tick);
+                h.assertTrue(t.cues.isEmpty(), "replacement executed abandoned continuations");
+            }
+        } h.succeed();
+    }
+    @GameCase public void unknownInactiveFlightCallbackDiscardsItsPeersWithoutReplayingAnyOfThem(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h, ProjectileGameTest::lifecycleFlight)) {
+            t.fire(); t.fire(); var outside = loadedInactive(h); t.projectiles.getFirst().setPos(Vec3.atCenterOf(outside));
+            t.failAfterCue = true; MinecraftEffectRuntime.tick(h.getLevel());
+            h.assertTrue(t.runtime.failure().isPresent(), "unknown callback did not fail runtime");
+            h.assertTrue(t.projectiles.stream().allMatch(Entity::isRemoved), "failed runtime left other flights alive");
+            h.assertValueEqual(t.cues.size(), 1, "peer callback ran after unknown result");
+            MinecraftEffectRuntime.tick(h.getLevel()); t.projectiles.forEach(EffectProjectile::tick);
+            h.assertValueEqual(t.cues.size(), 1, "unknown callback replayed");
+        } h.succeed();
+    }
+
 }

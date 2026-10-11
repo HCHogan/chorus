@@ -14,4 +14,10 @@ public class ProjectileGameTest extends com.imdomestic.chorus.test.ProjectileGam
     public void absentGeometryAndUnknownChunksRejectLaunchWhileStoppedRuntimeCannotExecuteOldFlight(GameTestHelper h) throws Exception { super.absentGeometryAndUnknownChunksRejectLaunchWhileStoppedRuntimeCannotExecuteOldFlight(h); }
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:projectile_failure", maxTicks = 60) @Override
     public void unknownImpactOutcomeRetainsCommittedDamageAndConsumesProjectileWithoutReplay(GameTestHelper h) throws Exception { super.unknownImpactOutcomeRetainsCommittedDamageAndConsumesProjectileWithoutReplay(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void loadedInactiveRegionsTerminateWithoutAnotherEntityTickOrCallbackReplay(GameTestHelper h) throws Exception { super.loadedInactiveRegionsTerminateWithoutAnotherEntityTickOrCallbackReplay(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void runtimeCloseDiscardsInactiveFlightsBeforeAReplacementCanObserveThem(GameTestHelper h) throws Exception { super.runtimeCloseDiscardsInactiveFlightsBeforeAReplacementCanObserveThem(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void unknownInactiveFlightCallbackDiscardsItsPeersWithoutReplayingAnyOfThem(GameTestHelper h) throws Exception { super.unknownInactiveFlightCallbackDiscardsItsPeersWithoutReplayingAnyOfThem(h); }
 }

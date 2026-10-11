@@ -98,21 +98,46 @@ public final class ProjectileFlight {
             return new Progress(nextSequence, nextBounces, nextContacts, nextHits, done);
         }
     }
+    /** Uninflated, world-axis-aligned target bounds at contact, before any reaction can move/remove it. */
+    public record Geometry(WorldPosition minimum, double width, double height, double depth, double inflation) {
+        public Geometry {
+            Objects.requireNonNull(minimum);
+            for (double extent : new double[] {width, height, depth}) {
+                Numbers.finite(extent, "contact extent");
+                if (extent <= 0) throw new IllegalArgumentException("Contact bounds require positive extents");
+            }
+            Numbers.nonnegative(inflation, "collision inflation");
+        }
+    }
     /** ENTITY, ARRIVED and CAUGHT carry a target; arrival/catch are not collision hits. */
     public record Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
-            long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member) implements PositionResult, Targets.Collection {
+            long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member, Optional<Geometry> geometry) implements PositionResult, Targets.Collection {
+        public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
+                long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal, Optional<ShotGroups.Member> member) {
+            this(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, member, Optional.empty());
+        }
         public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ,
                 long ageMicros, long sequence, long bounces, long entityContacts, long targetContacts, boolean terminal) {
             this(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, Optional.empty());
         }
         public Impact withMember(Optional<ShotGroups.Member> value) {
-            return new Impact(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, value);
+            return new Impact(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, value, geometry);
         }
+        public Impact withGeometry(Geometry value) {
+            return new Impact(end, point, target, normalX, normalY, normalZ, ageMicros, sequence, bounces, entityContacts, targetContacts, terminal, member, Optional.of(value));
+        }
+        public Geometry observedGeometry() { return geometry.orElseThrow(() -> new IllegalArgumentException("Projectile contact geometry was not observed")); }
+        // Do not clamp: collision inflation can put the contact outside the actual bounds.
+        public double relativeX() { var g = observedGeometry(); return (point.x() - g.minimum().x()) / g.width(); }
+        public double relativeY() { var g = observedGeometry(); return (point.y() - g.minimum().y()) / g.height(); }
+        public double relativeZ() { var g = observedGeometry(); return (point.z() - g.minimum().z()) / g.depth(); }
         public Impact(End end, WorldPosition point, Optional<String> target, double normalX, double normalY, double normalZ, long ageMicros) {
             this(end, point, target, normalX, normalY, normalZ, ageMicros, 1, 0, end == End.ENTITY ? 1 : 0, end == End.ENTITY ? 1 : 0, true);
         }
         public Impact {
-            Objects.requireNonNull(end); Objects.requireNonNull(point); Objects.requireNonNull(target); Objects.requireNonNull(member);
+            Objects.requireNonNull(end); Objects.requireNonNull(point); Objects.requireNonNull(target); Objects.requireNonNull(member); Objects.requireNonNull(geometry);
+            if (geometry.isPresent() && (end != End.ENTITY || !point.dimension().equals(geometry.orElseThrow().minimum().dimension())))
+                throw new IllegalArgumentException("Contact geometry requires an entity in the same dimension");
             Numbers.finite(normalX, "normal x"); Numbers.finite(normalY, "normal y"); Numbers.finite(normalZ, "normal z");
             if (ageMicros < 0 || end.hasTarget() != target.isPresent() || target.filter(String::isBlank).isPresent()) throw new IllegalArgumentException("Invalid projectile impact");
             double normal = Math.hypot(Math.hypot(normalX, normalY), normalZ);

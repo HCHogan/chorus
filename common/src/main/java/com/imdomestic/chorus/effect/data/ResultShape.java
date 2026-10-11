@@ -50,15 +50,24 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             "count", new Field(Unit.COUNT, r -> pickup(r).targets().size()), "age", new Field(Unit.SECOND, r -> pickup(r).ageMicros() / 1_000_000.0)),
             Map.of("collected", r -> pickup(r).end() == com.imdomestic.chorus.effect.object.WorldPickup.End.COLLECTED,
                     "expired", r -> pickup(r).end() == com.imdomestic.chorus.effect.object.WorldPickup.End.EXPIRED), false, Reference.PICKUP_CONTACT);
-    public static final ResultShape PROJECTILE_IMPACT = new ResultShape(Map.of(
+    public static final ResultShape PROJECTILE_IMPACT = projectileImpactShape();
+    private static ResultShape projectileImpactShape() {
+        var fields = new java.util.HashMap<String, Field>(Map.of(
             "count", new Field(Unit.COUNT, r -> impact(r).targets().size()),
             "age", new Field(Unit.SECOND, r -> impact(r).ageMicros() / 1_000_000.0),
             "normal_x", new Field(Unit.MULTIPLIER, r -> impact(r).normalX()),
             "normal_y", new Field(Unit.MULTIPLIER, r -> impact(r).normalY()),
             "normal_z", new Field(Unit.MULTIPLIER, r -> impact(r).normalZ()),
             "sequence", new Field(Unit.COUNT, r -> impact(r).sequence()), "bounces", new Field(Unit.COUNT, r -> impact(r).bounces()),
-            "entity_contacts", new Field(Unit.COUNT, r -> impact(r).entityContacts()), "target_contacts", new Field(Unit.COUNT, r -> impact(r).targetContacts())),
-            Map.of("arrived", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ARRIVED,
+            "entity_contacts", new Field(Unit.COUNT, r -> impact(r).entityContacts()), "target_contacts", new Field(Unit.COUNT, r -> impact(r).targetContacts())));
+        fields.put("relative_x", new Field(Unit.MULTIPLIER, r -> impact(r).relativeX()));
+        fields.put("relative_y", new Field(Unit.MULTIPLIER, r -> impact(r).relativeY()));
+        fields.put("relative_z", new Field(Unit.MULTIPLIER, r -> impact(r).relativeZ()));
+        fields.put("bounds_width", new Field(Unit.METER, r -> impact(r).observedGeometry().width()));
+        fields.put("bounds_height", new Field(Unit.METER, r -> impact(r).observedGeometry().height()));
+        fields.put("bounds_depth", new Field(Unit.METER, r -> impact(r).observedGeometry().depth()));
+        fields.put("collision_inflation", new Field(Unit.METER, r -> impact(r).observedGeometry().inflation()));
+        var flags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>(Map.of("arrived", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ARRIVED,
                     "caught", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.CAUGHT,
                     "target_lost", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.TARGET_LOST,
                     "entity", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY,
@@ -66,7 +75,11 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "expired", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.EXPIRED,
                     "unloaded", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.UNLOADED,
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
-                    "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()), false, Reference.PROJECTILE_IMPACT);
+                    "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()));
+        flags.put("geometry_observed", r -> impact(r).geometry().isPresent());
+        return new ResultShape(fields, flags, false, Reference.PROJECTILE_IMPACT);
+    }
+
     public void requireDamageTally() { if (reference != Reference.DAMAGE_TALLY) throw new IllegalArgumentException("Result is not a damage tally handle"); }
     public void requireDamageReceipt() { if (reference != Reference.DAMAGE_RECEIPT) throw new IllegalArgumentException("Result is not a damage receipt"); }
     public static final ResultShape DAMAGE_TALLY = new ResultShape(Map.of(), Map.of(), false, Reference.DAMAGE_TALLY);

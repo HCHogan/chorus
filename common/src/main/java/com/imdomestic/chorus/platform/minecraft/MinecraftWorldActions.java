@@ -134,7 +134,9 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 if (runtime.failure().isPresent() || !runtime.program().program().version().equals(launch.continuation().version())) throw new IllegalStateException("Projectile runtime mismatch");
                 var entity = new EffectProjectile(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_PROJECTILE.get(), level);
                 entity.initialize(launch, runtime, launch.owner().isBlank() ? null : entities.apply(launch.owner()));
-                if (level.addFreshEntity(entity) && !entity.isRemoved()) id = Optional.of(entity.getUUID().toString());
+                if (level.addFreshEntity(entity) && !entity.isRemoved()) {
+                    runtime.trackProjectile(entity); id = Optional.of(entity.getUUID().toString());
+                }
                 else { entity.discard(); outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.REJECTED; }
             }
         }

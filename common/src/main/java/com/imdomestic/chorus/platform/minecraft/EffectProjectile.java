@@ -59,7 +59,19 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         observe(ProjectileFlight.End.CAUGHT, position(), Optional.of(player.getUUID().toString()), 0, 0, 0, false);
         return true; // The flight was consumed even if its subsequent world action failed.
     }
-    private void abandon() { progress = progress.abandon(); terminal = true; trackingTarget = null; discard(); }
+    void abandon() { progress = progress.abandon(); terminal = true; trackingTarget = null; discard(); }
+    /** Level-owned cleanup still runs when vanilla stops ticking this entity's section. No physics is replayed. */
+    boolean maintain(MinecraftEffectRuntime expected) {
+        if (runtime != expected) throw new IllegalArgumentException("Projectile belongs to another runtime");
+        if (terminal || isRemoved() || runtime.failure().isPresent()
+                || MinecraftEffectRuntime.installed((ServerLevel) level()).orElse(null) != runtime
+                || launch.member().filter(member -> !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), member)).isPresent()) {
+            abandon(); return false;
+        }
+        if (!((ServerLevel) level()).isPositionEntityTicking(blockPosition()))
+            observe(ProjectileFlight.End.UNLOADED, position(), Optional.empty(), 0, 0, 0, false);
+        return !terminal && !isRemoved();
+    }
     private WorldPosition point(Vec3 p) { return new WorldPosition(level().dimension().identifier().toString(), p.x, p.y, p.z); }
     @Override public void tick() {
         if (terminal) return;
@@ -95,7 +107,12 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
             if (entity != null) {
                 remaining = remainingAfter(remaining, from, entity.getLocation(), movement);
                 inside.add(entity.getEntity().getUUID());
-                if (!observe(ProjectileFlight.End.ENTITY, entity.getLocation(), Optional.of(entity.getEntity().getUUID().toString()), 0, 0, 0, false)) return;
+                var bounds = entity.getEntity().getBoundingBox();
+                double width = bounds.maxX - bounds.minX, height = bounds.maxY - bounds.minY, depth = bounds.maxZ - bounds.minZ;
+                Optional<ProjectileFlight.Geometry> geometry = width > 0 && height > 0 && depth > 0
+                        && Double.isFinite(width) && Double.isFinite(height) && Double.isFinite(depth)
+                        ? Optional.of(new ProjectileFlight.Geometry(point(new Vec3(bounds.minX, bounds.minY, bounds.minZ)), width, height, depth, 0.125)) : Optional.empty();
+                if (!observe(ProjectileFlight.End.ENTITY, entity.getLocation(), Optional.of(entity.getEntity().getUUID().toString()), 0, 0, 0, false, geometry)) return;
                 setPos(entity.getLocation().add(getDeltaMovement().normalize().scale(SEPARATION)));
                 steer(server, true);
             } else if (block.getType() == HitResult.Type.BLOCK) {
@@ -206,13 +223,16 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         return best;
     }
     private boolean observe(ProjectileFlight.End reason, Vec3 at, Optional<String> target, double nx, double ny, double nz, boolean embedded) {
+        return observe(reason, at, target, nx, ny, nz, embedded, Optional.empty());
+    }
+    private boolean observe(ProjectileFlight.End reason, Vec3 at, Optional<String> target, double nx, double ny, double nz, boolean embedded, Optional<ProjectileFlight.Geometry> geometry) {
         if (terminal) return false;
         progress = progress.contact(launch.parameters().collision(), reason, target, embedded);
         terminal = progress.terminal(); setPos(at);
         if (terminal) discard(); // Commit collision bookkeeping before reactions; failures never replay the contact.
         try {
             runtime.start(launch.finish(new ProjectileFlight.Impact(reason, point(at), target, nx, ny, nz, ageMicros,
-                    progress.sequence(), progress.bounces(), progress.entityContacts(), reason == ProjectileFlight.End.ENTITY ? progress.hits().get(target.orElseThrow()) : 0, terminal)));
+                    progress.sequence(), progress.bounces(), progress.entityContacts(), reason == ProjectileFlight.End.ENTITY ? progress.hits().get(target.orElseThrow()) : 0, terminal, launch.member(), geometry)));
         } catch (RuntimeException error) {
             abandon(); com.imdomestic.chorus.Constants.LOG.error("Projectile contact action failed; consumed projectile will not replay", error);
         }

@@ -41,11 +41,13 @@ public final class MinecraftVisibility {
         String dimension = level.dimension().identifier().toString();
         if (!from.dimension().equals(dimension) || !to.dimension().equals(dimension)) return Optional.empty();
         if (!loaded(level, from) || !loaded(level, to)) return Optional.empty();
+        if (projectile && (!level.isPositionEntityTicking(BlockPos.containing(from.x(), from.y(), from.z()))
+                || !level.isPositionEntityTicking(BlockPos.containing(to.x(), to.y(), to.z())))) return Optional.empty();
         var blocks = new BlockGetter() {
             boolean missing;
             @Override public BlockState getBlockState(BlockPos pos) {
                 var chunk = level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
-                if (chunk == null) { missing = true; return Blocks.BEDROCK.defaultBlockState(); }
+                if (chunk == null || projectile && !level.isPositionEntityTicking(pos)) { missing = true; return Blocks.BEDROCK.defaultBlockState(); }
                 return chunk.getBlockState(pos);
             }
             @Override public FluidState getFluidState(BlockPos pos) {
