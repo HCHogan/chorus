@@ -1,0 +1,197 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:heat",
+        "version": "compendium-2026-10-05",
+        "duration": 20,
+        "refresh": "reset",
+        "attach": "target",
+        "tags": [
+          "chorus_d2:heat_rises"
+        ]
+      }
+    },
+    {
+      "definition": {
+        "id": "test:song",
+        "version": "compendium-2026-10-05",
+        "duration": 20,
+        "refresh": "reset",
+        "attach": "target",
+        "tags": [
+          "chorus_d2:song_of_flame"
+        ]
+      }
+    },
+    {
+      "definition": {
+        "id": "test:daybreak",
+        "version": "compendium-2026-10-05",
+        "duration": 20,
+        "refresh": "reset",
+        "attach": "target",
+        "tags": [
+          "chorus_d2:daybreak"
+        ]
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:icarus_inputs",
+      "rules": [
+        {
+          "id": "heat",
+          "on": "test:heat",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:heat",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "remove_heat",
+          "on": "test:remove_heat",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:heat",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "song",
+          "on": "test:song",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:song",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "remove_song",
+          "on": "test:remove_song",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:song",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "daybreak",
+          "on": "test:daybreak",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:daybreak",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "remove_daybreak",
+          "on": "test:remove_daybreak",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:daybreak",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "fill",
+          "on": "test:fill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_energy",
+              "resource": "chorus_d2:icarus_dash_progress",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:icarus_marker"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:snap",
+      "slot": "chorus_d2:melee",
+      "on_use": [],
+      "effects": {
+        "marker": {
+          "bundle": "test:icarus_marker",
+          "tags": [
+            "chorus_d2:incinerator_snap"
+          ]
+        }
+      }
+    },
+    {
+      "id": "test:celestial",
+      "slot": "chorus_d2:melee",
+      "on_use": []
+    }
+  ]
+}

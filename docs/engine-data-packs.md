@@ -1866,7 +1866,7 @@ Minecraft 宿主确认目标存在且处于当前维度，拒绝死亡、旁观�
 ]
 ```
 
-此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 读取服务器实体的 look vector，保存带维度的归一化方向；capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。它还没有可写入 Buff 的方向组件或持久化 Codec。
+此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 的可选 mode 默认为 look，读取服务器实体的完整 look vector；horizontal 则直接按服务器 yaw 捕获水平朝向，y=0，即使实体正向上 / 下看也有确定方向。两种模式均保存带维度的归一化方向，回执必须匹配原请求的目标和 mode。horizontal 表示朝向，不是客户端移动按键方向。capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。它还没有可写入 Buff 的方向组件或持久化 Codec。
 
 直接以实体为 center 的查询可以给 center_anchor；target_anchor 决定每个候选实体的取样点，均为 feet / body（碰撞箱中心高度）/ eyes。已捕获位置是精确坐标，不再叠加 center_anchor；这类查询若指定非默认 center_anchor 会在编译时报错。区域判断、距离和可选视线均使用同一对取样点，**不是整个碰撞箱与区域的相交测试**。球形旧请求仍保留脚底语义；非球形回执另保存相对坐标并验证它位于区域内，结果读取不再访问世界。
 

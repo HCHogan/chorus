@@ -636,9 +636,11 @@ public interface Action {
             return new RuleEngine.Local<>(e.state(), captured, List.of());
         }
     }
-    record CaptureDirection(Evaluation.Target target) implements Action {
+    record CaptureDirection(Evaluation.Target target, com.imdomestic.chorus.effect.target.DirectionQuery.Mode mode) implements Action {
+        public CaptureDirection(Evaluation.Target target) { this(target, com.imdomestic.chorus.effect.target.DirectionQuery.Mode.LOOK); }
+        public CaptureDirection { java.util.Objects.requireNonNull(target); java.util.Objects.requireNonNull(mode); }
         @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.DIRECTION; }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.target.DirectionQuery(e.target(target))); }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.target.DirectionQuery(e.target(target), mode)); }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var result = (com.imdomestic.chorus.effect.target.DirectionQuery.Result) receipt;
             if (!result.query().equals(e.context().command(com.imdomestic.chorus.effect.target.DirectionQuery.class))) throw new IllegalArgumentException("Direction receipt does not match request");

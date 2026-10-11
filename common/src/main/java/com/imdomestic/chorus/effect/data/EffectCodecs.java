@@ -491,7 +491,8 @@ public final class EffectCodecs {
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.CapturePosition::anchor)
                 ).apply(i, Action.CapturePosition::new)))
                 .register("chorus:capture_direction", Action.CaptureDirection.class, RecordCodecBuilder.mapCodec(i -> i.group(
-                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CaptureDirection::target)).apply(i, Action.CaptureDirection::new)))
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CaptureDirection::target),
+                        enumeration(com.imdomestic.chorus.effect.target.DirectionQuery.Mode.class).optionalFieldOf("mode", com.imdomestic.chorus.effect.target.DirectionQuery.Mode.LOOK).forGetter(Action.CaptureDirection::mode)).apply(i, Action.CaptureDirection::new)))
                 .register("chorus:direction_between", MotionActions.Between.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("from").forGetter(MotionActions.Between::from), Codec.STRING.fieldOf("to").forGetter(MotionActions.Between::to)).apply(i, MotionActions.Between::new)))
                 .register("chorus:world_direction", DisplacementActions.Direction.class, RecordCodecBuilder.mapCodec(i -> i.group(

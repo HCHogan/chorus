@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "status": "Partial Icarus Dash template: recharge and collision-resolved horizontal displacement; full original movement and Cure branch remain incomplete",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "retrieved_at": "2026-10-11T00:39:11.742655+00:00",
+    "path": "data/d2-research/2026-10-11/icarus-dash-source.html.gz",
+    "html_sha256": "7fa9c88db2f9d4b3aa8986a7330c623c9cecbfa0a10c49635907d98a9399a790",
+    "gzip_sha256": "5acd830911f6c283b7a3852c4a1fc6e1eaf9c2bae7524916830e581ad8f988fe"
+  },
+  "cells": [
+    {
+      "original_cell": "B148",
+      "snapshot_cell": "B84",
+      "snapshot_text_sha256": "db22afbb43baeee0e965fd57ffeeace9a6d559d2f121594149a420b2224042e2",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D148",
+      "snapshot_cell": "D84",
+      "snapshot_text_sha256": "453c2f704529c6ee885e20f441d376760eb70154d5089c8d418e1df571b063ed",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "known": {
+    "distance_meters": 8,
+    "daybreak_distance_multiplier": 1.25,
+    "normal_cycle_seconds": 4,
+    "enhanced_cycle_seconds": 5,
+    "enhanced_capacity": 2,
+    "enhanced_qualification": "Heat Rises active OR Song of Flame active while Incinerator Snap is equipped; Celestial Fire alone does not qualify"
+  },
+  "policies": [
+    "One persistent uses/progress pair; first use from full resets the meter, later uses retain progress. This reset/start policy requires original-game calibration.",
+    "Expansion does not grant free charges; shrink clips uses, retaining progress. Buff or loadout changes apply current 4s/5s rate to later segments. These transition policies require original-game calibration.",
+    "Minecraft projection is an immediate collision-resolved horizontal displacement from server yaw. It does not reproduce the original dash animation, velocity curve or movement-input-relative direction.",
+    "Heat Rises, Song of Flame, Daybreak and Incinerator Snap are consumed as explicit state/source tags. Test producers use synthetic buffs and a selected melee marker, not complete abilities."
+  ],
+  "unresolved": [
+    "Cure x1 from weighted airborne weapon/super kills within five seconds is not implemented by this template.",
+    "Original inter-dash lockout, cycle-start timing, mode transition energy grants and Daybreak-specific cooldown/Super cost need calibration.",
+    "Full Heat Rises / Song of Flame / Daybreak, subclass/aspect assembly, air-move key, animation, HUD, persistence and cross-loader graphical acceptance remain incomplete."
+  ],
+  "definition": "common/src/test/resources/effects/icarus_dash.json"
+}

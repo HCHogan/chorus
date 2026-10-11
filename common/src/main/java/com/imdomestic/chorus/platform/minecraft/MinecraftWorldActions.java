@@ -86,7 +86,16 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case DirectionQuery query -> {
                 var entity = entities.apply(query.target());
                 var direction = Optional.<WorldDirection>empty();
-                if (present(entity)) { var v = entity.getLookAngle(); direction = Optional.of(new WorldDirection(level.dimension().identifier().toString(), v.x, v.y, v.z)); }
+                if (present(entity)) {
+                    String dimension = level.dimension().identifier().toString();
+                    if (query.mode() == DirectionQuery.Mode.HORIZONTAL) {
+                        // Use yaw directly: projecting a vertical look vector loses its horizontal heading.
+                        double yaw = Math.toRadians(entity.getYRot());
+                        direction = Optional.of(new WorldDirection(dimension, -Math.sin(yaw), 0, Math.cos(yaw)));
+                    } else {
+                        var v = entity.getLookAngle(); direction = Optional.of(new WorldDirection(dimension, v.x, v.y, v.z));
+                    }
+                }
                 yield new DirectionQuery.Result(query, direction);
             }
             case TargetQuery query -> select(query);

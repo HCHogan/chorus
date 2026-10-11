@@ -1,0 +1,942 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "chorus_d2:icarus_dash_uses",
+      "capacity": 1,
+      "initial": 1,
+      "resizable": true,
+      "thresholds": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "chorus_d2:icarus_dash_progress",
+      "capacity": 1,
+      "initial": 0,
+      "rate_profile": "chorus_d2:icarus_dash_rate"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:icarus_dash_rate",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "baseline",
+          "operation": "replace",
+          "group": {
+            "name": "base",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:icarus_dash_cycle",
+      "rules": [
+        {
+          "id": "initialize",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:icarus_dash_uses"
+            },
+            {
+              "type": "chorus:initialize_resource",
+              "resource": "chorus_d2:icarus_dash_progress"
+            },
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "selection",
+          "on": "chorus:abilities_changed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_gained",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_stacks_changed",
+          "on": "chorus:buff_stacks_changed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_refreshed",
+          "on": "chorus:buff_refreshed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_ended",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_paused",
+          "on": "chorus:buff_paused",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_resumed",
+          "on": "chorus:buff_resumed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "status_extended",
+          "on": "chorus:buff_extended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:heat_rises"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:song_of_flame"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "melee_attached",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incinerator_snap"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "melee_detached",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incinerator_snap"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:resize_resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "capacity": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:any",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:heat_rises"
+                    },
+                    {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:has_buff_tag",
+                          "tag": "chorus_d2:song_of_flame"
+                        },
+                        {
+                          "type": "chorus:has_source_tag",
+                          "tag": "chorus_d2:incinerator_snap"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "charge_fraction"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "complete",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "chorus_d2:icarus_dash_progress",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "type": "chorus:complete_recharge",
+              "progress": "chorus_d2:icarus_dash_progress",
+              "resource": "chorus_d2:icarus_dash_uses"
+            }
+          ]
+        },
+        {
+          "id": "first_use",
+          "on": "chorus:resource_spent",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "resource",
+                "is": "chorus_d2:icarus_dash_uses"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "before",
+                  "unit": "charge_fraction"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:event_number",
+                  "name": "capacity",
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "chorus_d2:icarus_dash_progress",
+              "amount": {
+                "type": "chorus:resource",
+                "resource": "chorus_d2:icarus_dash_progress"
+              },
+              "payment": "start_dash_cycle"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "recharge",
+          "profile": "chorus_d2:icarus_dash_rate",
+          "stage": "baseline",
+          "group": "base",
+          "op": "replace",
+          "stacking_key": "chorus_d2:icarus_dash_cycle",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:any",
+              "of": [
+                {
+                  "type": "chorus:has_buff_tag",
+                  "tag": "chorus_d2:heat_rises"
+                },
+                {
+                  "type": "chorus:all",
+                  "of": [
+                    {
+                      "type": "chorus:has_buff_tag",
+                      "tag": "chorus_d2:song_of_flame"
+                    },
+                    {
+                      "type": "chorus:has_source_tag",
+                      "tag": "chorus_d2:incinerator_snap"
+                    }
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 0.2,
+              "unit": "charge_fraction_per_second"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0.25,
+              "unit": "charge_fraction_per_second"
+            }
+          },
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "chorus_d2:icarus_dash_uses",
+              "field": "missing"
+            },
+            "op": "gt",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "reference": "Compendium Solar D84 (CSV), D148 (online 2026-10-11): 4s normally, 5s and linked extra charge in Heat Rises or Song of Flame with Incinerator Snap. Mid-cycle transition policy remains uncalibrated.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:icarus_dash",
+      "slot": "chorus_d2:air_move",
+      "tags": [
+        "chorus:movement_ability",
+        "chorus_d2:icarus_dash"
+      ],
+      "if": {
+        "type": "chorus:not",
+        "of": {
+          "type": "chorus:event_flag",
+          "name": "on_ground"
+        }
+      },
+      "cost": {
+        "resource": "chorus_d2:icarus_dash_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:icarus_dash_progress",
+      "effects": {
+        "cycle": {
+          "bundle": "chorus_d2:icarus_dash_cycle"
+        }
+      },
+      "parameters": {
+        "distance": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:has_buff_tag",
+              "tag": "chorus_d2:daybreak"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "meter"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 8,
+              "unit": "meter"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_direction",
+            "mode": "horizontal"
+          },
+          "as": "heading"
+        },
+        {
+          "type": "chorus:displace_entity",
+          "direction": "heading",
+          "distance": {
+            "type": "chorus:event_number",
+            "name": "param.distance",
+            "unit": "meter"
+          },
+          "tags": [
+            "chorus_d2:icarus_dash"
+          ],
+          "origin": "event"
+        }
+      ]
+    }
+  ]
+}

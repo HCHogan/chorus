@@ -1181,3 +1181,15 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 通用完成动作进一步支持可选 amount，由完成时查询的 Profile 决定一轮恢复一份或当前全部缺口。[周期收益合成示例](../common/src/test/resources/effects/resource_cycle_yield.json) 从一开始共用两个账户，让装备 / Buff 改变产出；真实装备中途装卸不重置进度，等效物品替换不赠送能量。纯核心验证当前容量、重复来源、Buff 优先级和精确到期，两端世界验证实际施放、自然回充与未知观察结果保留。它证明这类模式切换无需制造备用技能账户；一秒周期、装卸保留进度和临时 Buff 都不是 Ophidia Spathe 的原作参数。
 
 这些验证使用合成联动技能。Ophidia Spathe 的近期使用时窗、精确重置规则、Gambler's Dodge、飞刀击杀增伤与刷新、职业 / 近战资格及与 Lightweight Knife 的装配尚未实现。满可用次数时按槽回能返回 already_full，是当前防止隐藏储能的 Chorus 路由政策；不能据此宣称复现全部原作换装、重置或特殊退款行为。此阶段增加通用能力和已有 perk 的组合证据，不增加该金装的已实现或 partial 覆盖声明。
+
+## Icarus Dash 的条件充能与水平位移
+
+2026-10-11 核对[在线原表 Solar B148 / D148](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1186062409#gid=1186062409)，文本与固定 CSV B84 / D84 归一化一致；原 HTML、哈希、坐标和假设见 [研究记录](../data/d2-research/2026-10-11/icarus-dash.json)。[icarus_dash.json](../common/src/test/resources/effects/icarus_dash.json) 提供部分技能模板，使用独立 air_move 槽和同一对可用次数 / 进度账户。
+
+普通模式为一份可用次数、4 秒一轮；Heat Rises 活跃，或 Song of Flame 活跃且当前来源带 Incinerator Snap 标记时，上限为两份、5 秒一轮，完整周期统一恢复当前缺口。Celestial Fire 不提供这个标记，Heat Rises 的资格独立。选择期来源在 Buff 生效 / 结束 / 暂停 / 恢复等生命周期、相关来源装卸和基础选择变化后重算容量；查询读取完整的新状态。取消选择暂停回充，重新选择保留账户并重算当前容量。
+
+当前模板采用明确的过渡政策：扩容不赠能，缩容裁剪，已有进度保留；首次从满次数使用时清空旧进度，中途第二次使用不重启本轮。状态变化前后按各自的恢复率积分；Buff 恰好在完成时刻到期时，先按旧恢复率积完旧时间段，随后以新容量结算。这些中途切换、赠能和计时起点政策还需原作实测，不从原表的“同时恢复”推导为已校准事实。
+
+服务端的 on_ground 输入在付款前检查，只有离地才接受。接受时保存位移距离：通常8米，Daybreak标签下10米。随后 capture_direction(mode=horizontal) 按服务器yaw捕获朝向，displace_entity 用完整碰撞箱裁剪并执行授权位置更新；垂直视角不改变高度，碰墙不隐式退费，未知世界结果保留已付款和已发生的移动。这个瞬时位移是明确的 Minecraft 投影，未复现原作冲刺动画、速度曲线、惯性、方向按键或滑翔行为。
+
+10项单元测试和6项共享世界场景覆盖资格、实际玩家位置、墙体碰撞、真实tick分段、到期边界、基础近战选择与未知结果。Heat Rises / Song of Flame / Daybreak 的测试生产者为合成Buff，Incinerator选择为合成标记技能。空中武器 / 超能击杀的五秒加权计数与Cure x1、完整状态生产者、两次冲刺间隔、Daybreak专属消耗 / 冷却、正式子职业装配、空中移动按键、HUD及存档仍未实现，覆盖保持 **partial**。

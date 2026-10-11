@@ -6615,6 +6615,96 @@
         "SOURCE attach/detach and ability selection reconcile against the complete committed source set. Capacity-changing Buff lifecycles and arbitrary condition changes require their own reconciliation rules; generic automatic projection is not implemented.",
         "Sequential shared regeneration is retained without multiplying rate or grants by capacity. Ophidia Spathe linked recovery and parallel charge timelines are not implemented."
       ]
+    },
+    {
+      "id": "solar/icarus_dash",
+      "name": "Icarus Dash",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B84",
+          "text_sha256": "db22afbb43baeee0e965fd57ffeeace9a6d559d2f121594149a420b2224042e2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D84",
+          "text_sha256": "453c2f704529c6ee885e20f441d376760eb70154d5089c8d418e1df571b063ed"
+        }
+      ],
+      "scope": "双账户技能的4秒单充能 / 5秒联动双充能、Heat Rises与Song of Flame+当前Incinerator来源资格、Buff到期容量裁剪；实际玩家按服务器水平朝向请求8米 / Daybreak 10米碰撞位移；原作完整冲刺和Cure分支未完成",
+      "acceptance": [
+        "地面输入在扣费之前拒绝，部分进度不能支付；普通4秒后恢复一份",
+        "Heat Rises或Song of Flame加当前Incinerator选择使用5秒周期；中途第二次使用不重启周期，两份一起恢复",
+        "状态中途变化保留进度，按旧 / 新恢复率分段；到期与完成同刻使用新容量，重选保留账户",
+        "Song of Flame配Celestial Fire不提供额外次数；Heat Rises独立满足条件，其他持有者状态不串用",
+        "真实玩家仰头或低头仍沿水平朝向位移，Daybreak距离参数为10米，完整碰撞箱遇墙裁剪；未知结果不退已付能量或重放位移"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/icarus_dash.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusDashTest.java",
+          "symbol": "groundGatePrecedesPaymentAndNormalUseRequiresFourSecondsForTheNextWholeCharge"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusDashTest.java",
+          "symbol": "heatRisesCompletesBothUsesTogetherEvenWhenTheSecondDashOccursMidCycle"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusDashTest.java",
+          "symbol": "activatingHeatMidCycleKeepsProgressAndUsesTheNewRateOnlyForTheRemainingSegment"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusDashTest.java",
+          "symbol": "expiryAtTheExactCompletionBoundaryUsesTheNewSingleChargeCapacity"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IcarusDashTest.java",
+          "symbol": "songOfFlameRequiresTheCurrentIncineratorSelectionAndHeatRisesQualifiesIndependently"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
+          "symbol": "groundedCastIsRejectedAndVerticalLookStillMovesHorizontallyForEightMeters"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
+          "symbol": "daybreakDistanceUsesTenMetersAndWallCollisionKeepsThePaidCharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
+          "symbol": "realHeatRisesTransitionKeepsPartialProgressAndRestoresTwoPaidDashes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
+          "symbol": "realBuffExpiryClipsCapacityBeforeTheSameBoundaryCompletesRecharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusDashGameTest.java",
+          "symbol": "unknownNativeDashResultRetainsActualMovementAndPaymentWithoutReplay"
+        }
+      ],
+      "gaps": [
+        "空中武器 / 超能击杀的五秒加权计数和Cure x1分支未实现",
+        "当前是Minecraft授权瞬时位移投影，不是原作冲刺速度 / 动画；按移动输入方向、惯性、滑翔与瞄准交互尚未校准",
+        "首次使用重置 / 中途再次使用保留进度、模式切换保留进度、扩容不赠能和缩容裁剪是显式测试政策；原作充能恢复起点、额外次数即时授予、两次冲刺间隔和Daybreak能量特例待校准",
+        "Heat Rises / Song of Flame / Daybreak只识别已授予标签，近战资格依赖选择来源标记；测试使用合成状态和近战生产者，不是完整原作能力",
+        "正式子职业 / Aspect装配、空中移动按键、HUD、存档和双端图形表现未实现"
+      ]
     }
   ]
 }
