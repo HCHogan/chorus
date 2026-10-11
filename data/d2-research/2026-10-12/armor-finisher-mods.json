@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Healthy Finisher",
+    "Bulwark Finisher",
+    "Explosive Finisher",
+    "One-Two Finisher",
+    "Utility Finisher",
+    "Empowered Finish"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mods-source.html.gz",
+      "sha256": "92afd34a1e2d2af6927073f6b063c22813e817621c3daa5a48626054e12ee829",
+      "gzip_sha256": "55a07f055b7c0992012f33327ff0111f6b88f9a1b4dc17517bb0ab08bc37c8d8",
+      "cells": [
+        {
+          "original_cell": "N9",
+          "snapshot_cell": "N9",
+          "snapshot_text_sha256": "cec1e85f028463bc59fc0b3c5c11cac4f359034f5023946be6951ede4c521bfd",
+          "normalized_text": "Healthy Finisher [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P9",
+          "snapshot_cell": "P9",
+          "snapshot_text_sha256": "dfbeca5934dc14be1ae4abf7316b1b1024a8ca6c966d057c9f311ed247aa1d2d",
+          "normalized_text": "On Finisher: Consumes x1 Armor Charge. Instantly fully restores Health and Shields.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N4",
+          "snapshot_cell": "N4",
+          "snapshot_text_sha256": "df6f1edea51cf488214cd04526c8c217961729a9dd49b8eac4ef2aab541f07ce",
+          "normalized_text": "Bulwark Finisher [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P4",
+          "snapshot_cell": "P4",
+          "snapshot_text_sha256": "2ed69596c0e43d1d3c4a2dabdcb9f26e20d80d60653cdab114ba688a3dda95f0",
+          "normalized_text": "On Finisher: Consumes x3 or more Armor Charges Grants Void Overshield for a varying duration. Overshield Duration at x3, x4, x5, and x6 Charges: 8 | 10 | 12 | 14 seconds.",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N8",
+          "snapshot_cell": "N8",
+          "snapshot_text_sha256": "7ce92dfb3464cc97ae16cb35e59693bd6473c8fa1e12a1cc3356fbfa91358676",
+          "normalized_text": "Explosive Finisher [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P8",
+          "snapshot_cell": "P8",
+          "snapshot_text_sha256": "904b087eaa6fc15d88c2c6bb7c20e79bb9bccb7e808e22e19ba305a48ddf24ae",
+          "normalized_text": "On Finisher: Consumes x3 or more Armor Charge. Grants Grenade Ability Energy. x3 = 70% | x4 = 80% | x5 = 90% | x6 = 100%",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N10",
+          "snapshot_cell": "N10",
+          "snapshot_text_sha256": "c55adc457f343f0da0365027bc64e3f388e1c9f625c2ddb717be944f9e58ff62",
+          "normalized_text": "One-Two Finisher [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P10",
+          "snapshot_cell": "P10",
+          "snapshot_text_sha256": "84bdb1bb5283b2ebf9680ae61e5fa4c34ea59327f05689fb460794001d22c50e",
+          "normalized_text": "On Finisher: Consumes x3 or more Armor Charge. Grants Melee Ability Energy. x3 = 70% | x4 = 80% | x5 = 90% | x6 = 100%",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N19",
+          "snapshot_cell": "N19",
+          "snapshot_text_sha256": "e83cf455ada6bc83b3558d568450f0b9538bbd5f131fd32b286ef10b43dea9fc",
+          "normalized_text": "Utility Finisher [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P19",
+          "snapshot_cell": "P19",
+          "snapshot_text_sha256": "9fb50a6ad1497c8fd11612f286df8d8442d5ad81cd7b702d060fd54d8ec622bc",
+          "normalized_text": "On Finisher: Consumes x3 or more Armor Charge. Grants Class Ability Energy. x3 = 70% | x4 = 80% | x5 = 90% | x6 = 100%",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "N7",
+          "snapshot_cell": "N7",
+          "snapshot_text_sha256": "ad2bbbd089320b99a880618ddf51f14cf77b40468c5f41c232fbe79125081254",
+          "normalized_text": "Empowered Finish [1 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P7",
+          "snapshot_cell": "P7",
+          "snapshot_text_sha256": "da68c1fbe67204cb6d0554ef8d9d42397e53eb4836cedfd46d9d7c2c135debb0",
+          "normalized_text": "On Finisher, while at x0 Armor Charge: Grants x1 Armor Charge.",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "clarity",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "selected_entries": "data/d2-research/2026-10-12/armor-finisher-clarity-039cfbc.json",
+      "selected_entries_sha256": "5646f38ee5f94aaefd074cd84a058b4d392636f2ee4d66cf2713fe99d86bcae6",
+      "hashes": [
+        "4004774875",
+        "4004774874",
+        "4004774877",
+        "4004774873",
+        "1125986156",
+        "1208761894"
+      ],
+      "finding": "Confirms 45 HP Void Overshield and duration table; energy rows explicitly apply the selected ability Chunk Energy Scalar."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6",
+      "finding": "Empowered Finish added to finisher-mod mutual exclusivity; cannot equip it alongside charge-consuming finisher mods. Specifically discusses Stacks on Stacks combination."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1",
+      "finding": "Multiple copies of Empowered Finish should not provide stacking benefits."
+    },
+    {
+      "kind": "official_historical",
+      "url": "https://www.bungie.net/7/en/News/article/51110",
+      "finding": "4.0.0.1 separates finisher execution from the optional mod benefit/cost; full melee or insufficient Super does not prevent execution. Historical Super costs are not used as current Armor Charge quantities or multi-charge calibration."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/armor_finisher_mods.json",
+    "inputs": "common/src/test/resources/effects/armor_finisher_inputs.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java"
+  },
+  "rules": {
+    "healthy": "Wounded living recipient, at least one charge; consume one and submit a full ordinary-health heal request. MC health represents ordinary D2 health and shields. Does not repair overshield or Absorption.",
+    "bulwark": "Consume all if at least three, restore shared 45 HP Void Overshield for 8/10/12/14 seconds for 3/4/5/6 paid stacks. Existing duration profile and MAX remaining policy apply.",
+    "ability_energy": "Consume all if at least three and current selected ability has missing capacity. Base 0.7/0.8/0.9/1.0 passes through selected recipient CES and normal gain pipeline once.",
+    "empowered": "Only at zero, request one shared charge with Stacks on Stacks eligibility; independent new completions are not rate limited.",
+    "receipt": "Shared finite finisher_id set is marked before benefit eligibility; duplicate source copies, mode swaps, rebind and session checkpoints retain consumed identities. Test window is sixty seconds, not an extra proc cooldown."
+  },
+  "open_questions": [
+    "Formal mod sockets, energy costs, loadout legality, acquisition eligibility of standalone generator/non-consumer mods, auto-assembly, HUD, and physical world restart remain incomplete.",
+    "Runtime content guard suppresses all six benefits if multiple distinct finisher modes are injected. Duplicate same-kind sources count once. This is an explicit invalid-loadout policy; complete current Manifest conflict categories are not imported.",
+    "Full ordinary health or full/missing ability skips payment. Multi-charge policy tests the full usable-account capacity, allowing recharge of a second charge; current original-game per-mod eligibility requires calibration. Historical patch is not a current multi-charge proof.",
+    "Bulwark spends to refresh even when full, uses shared MAX remaining duration and restores capacity. Whether the original avoids spending when neither capacity nor duration improves needs calibration.",
+    "Payment precedes world reward: rejected/unknown healing keeps payment; unknown results stop without automatic retries. Unknown-result state cannot establish whether the original game refunds known cancelled healing.",
+    "Clarity energy percentages are treated as CES-unscaled base, supported by its explicit scalar note; full modern stat/CMS and all ability interactions remain current gain-profile responsibilities.",
+    "Selected loadout and charges are read at confirmed completion; mode change during animation follows current sources. Exact original swap and animation policies are not claimed."
+  ]
+}

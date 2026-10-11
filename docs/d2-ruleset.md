@@ -1589,3 +1589,26 @@ Orb分支由控制器监听实际`chorus:pickup`，按`pickup_id`有限去重，
 本阶段消费验收使用通用`consume_buff`与充足性条件，尚未把Kickstart、Surge或各终结技消费者声明为已支持。[官方7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6)明确Empowered Finish不能与消费Armor Charge的终结技模组同时装备；未来正式装配目录必须表达互斥，不能以引擎允许组合推断原作配装合法。
 
 [13项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/ArmorChargeTest.java)覆盖容量、六种Font副本表、获得豁免、第三方给予、10/15/18/20秒、消费、解绑重绑、检查点、死亡与未知观察；[9项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java)覆盖真实Orb碰撞、满Super资格、实际十秒/二十秒计时、来源变更、Starvation组合、玩家真实死亡及消费后未知世界反应。正式模组槽/能量/互斥、全部生产者和消费者、完整数值投影、HUD及物理世界恢复仍为partial。未增加引擎专用Java动作、网络包或检查点类型。
+
+### 消费 Armor Charge 的终结技模组
+
+`armor_finisher_mods.json` 组合六种模组，监听确认完成的 `chorus:finisher`。它们共享上一节的离散充能池，不把终结输入或开始动画当作完成；资源不足只跳过模组收益，不阻止终结技执行。
+
+| 模组 | 确认完成时的成本 | 收益 |
+| --- | --- | --- |
+| Healthy Finisher | 1 层 | 提交补满普通生命的治疗请求 |
+| Bulwark Finisher | 至少 3 层，消费全部当前层数 | 45 HP 共享 Void Overshield；3/4/5/6 层对应 8/10/12/14 秒 |
+| Explosive Finisher | 至少 3 层，消费全部当前层数 | 当前手雷的基础能量 70%/80%/90%/100% |
+| One-Two Finisher | 同上 | 当前近战的基础能量 70%/80%/90%/100% |
+| Utility Finisher | 同上 | 当前职业技能的基础能量 70%/80%/90%/100% |
+| Empowered Finish | 当前必须为 0 层 | 获得 1 层；允许 Stacks on Stacks 的额外 1 层 |
+
+回能表按已支付层数取值，经 `grant_ability_energy(value_basis=base)` 解析完成时的基础技能槽与回充账户，再应用该接收者的 CES 和正常收益 Profile 一次。固定 Clarity 三条回能说明明确列出 Chunk Energy Scalar，不将表中 100% 视为无条件获得完整一充能。测试 CES 0.5/0.75 是代表性输入，不是某个原作技能的定标。普通生命映射遵循本项目既有设计：Minecraft 生命承担原作普通 Health/Shields；Healthy 不修复 Absorption 或额外 Void Overshield。Bulwark 复用共享护盾的容量、持续时间 Profile、MAX remaining 和既有对战员减伤。
+
+每次确认先在目标共享的有限 `finisher_ids` 集合记录身份，再检查当前配装、实际存活、成本和收益需求。重复副本、同一事实重投、换模组及来源重绑不会在记录窗口内再次付款或发奖；没有足够资源或收益已满的事实也被记住。下一次独立终结仍可触发，不增加循环深度上限或隐藏冷却。身份窗口沿用 `armor_charge_system.receipt_seconds`，验收的六十秒是重投协议参数。
+
+官方 [7.0.0.6](https://www.bungie.net/7/en/News/article/destiny-2-hotfix-7-0-0-6) 将 Empowered Finish 纳入终结技模组互斥，明确不允许与消耗充能的终结模组同装；[8.0.0.1](https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1) 修复其重复副本生效，并说明无叠加收益。当前六个模组分别给 `armor_charge_finisher_modes` 的独立 MAX 组贡献 1，多于一个不同种类时整组不付款也不发奖，避免绑定顺序决定谁先获得或消费层数。这是对被管理入口注入的无效配装的运行时政策，完整 Manifest 冲突目录和正式插槽校验仍未实现。
+
+以下边界仍需当前原作校准：满普通生命或满/缺失技能账户不付款；多充能按账户总容量判断，允许补第二充能；Bulwark 即使容量已满仍可付款刷新；世界治疗被拒绝后保留已支付成本。历史 [4.0.0.1](https://www.bungie.net/7/en/News/article/51110) 支持终结动作与可选模组成本/收益分离，但当时使用 Super 成本，不能证明当前每种模组的这些边界。未知世界结果保留已提交状态并停止，不自动重放付款或治疗。原作动画、中途换装、当前全部 CES/CMS、独立充能生成器的资格、HUD 和物理世界恢复仍有缺口。
+
+原表 Armor Mods 的 N4/P4、N7/P7、N8/P8、N9/P9、N10/P10、N19/P19 与固定快照规范化相同。完整来源、六条 Clarity 原文、哈希和待确认项见 [研究记录](../data/d2-research/2026-10-12/armor-finisher-mods.json)。定义仍作为验收内容，六条审阅保持 partial。

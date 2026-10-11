@@ -236,6 +236,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/armor_charge.json'
         include 'effects/armor_charge_mods.json'
         include 'effects/armor_charge_inputs.json'
+        include 'effects/armor_finisher_mods.json'
+        include 'effects/armor_finisher_inputs.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'
         include 'effects/starvation_inputs.json'

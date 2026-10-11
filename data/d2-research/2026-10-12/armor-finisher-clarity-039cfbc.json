@@ -1,0 +1,253 @@
+{
+  "4004774875": {
+    "hash": 4004774875,
+    "name": "Healthy Finisher",
+    "lastUpload": 1689235825901,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishers consume 1 Stack of Armor Charge to fully restore Health and Shields."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "4004774874": {
+    "hash": 4004774874,
+    "name": "Bulwark Finisher",
+    "lastUpload": 1712883202187,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishers consume 3 or more Stacks of Armor Charge and grant a 45 HP "
+            },
+            {
+              "classNames": [
+                "void"
+              ]
+            },
+            {
+              "text": "Void Overshield."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Overshield lasts 8|10|12|14 seconds with 3|4|5|6 Stacks of Armor Charge consumed."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "4004774877": {
+    "hash": 4004774877,
+    "name": "Explosive Finisher",
+    "lastUpload": 1735009175023,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finisher consume 3 or more Stacks of Armor Charge and grant Grenade Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Energy Gains with 3|4|5|6 Stacks Consumed:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "70% | 80% | 90% | 100%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ability energy gained may be significantly decreased based on your selected ability's Chunk Energy Scalar. Learn more about this mechanic in "
+            },
+            {
+              "text": "our explainer blog post on the Clarity website",
+              "link": "https://url.d2clarity.com/chunk-energy-scalars",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "4004774873": {
+    "hash": 4004774873,
+    "name": "One-Two Finisher",
+    "lastUpload": 1735009175023,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishers consume 3 or more Stacks of Armor Charge and grant Melee Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Energy Gains with 3|4|5|6 Stacks Consumed:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "70% | 80% | 90% | 100%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ability energy gained may be significantly decreased based on your selected ability's Chunk Energy Scalar. Learn more about this mechanic in "
+            },
+            {
+              "text": "our explainer blog post on the Clarity website",
+              "link": "https://url.d2clarity.com/chunk-energy-scalars",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "1125986156": {
+    "hash": 1125986156,
+    "name": "Utility Finisher",
+    "lastUpload": 1735009175023,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finisher consume 3 or more Stacks of Armor Charge and grant Class Ability Energy."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Energy Gains with 3|4|5|6 Stacks Consumed:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "70% | 80% | 90% | 100%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ability energy gained may be significantly decreased based on your selected ability's Chunk Energy Scalar. Learn more about this mechanic in "
+            },
+            {
+              "text": "our explainer blog post on the Clarity website",
+              "link": "https://url.d2clarity.com/chunk-energy-scalars",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "1208761894": {
+    "hash": 1208761894,
+    "name": "Empowered Finish",
+    "lastUpload": 1680554889429,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishers with no active Armor Charge Stacks grant 1 Stack of Armor Charge."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

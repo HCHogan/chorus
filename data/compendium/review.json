@@ -9377,7 +9377,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9434,7 +9434,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9501,7 +9501,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9563,7 +9563,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9640,7 +9640,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9717,7 +9717,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9794,7 +9794,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9871,7 +9871,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -9948,7 +9948,7 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
@@ -10025,10 +10025,340 @@
         "定义仍为可组合的验收数据；正式护甲模组插槽、能量成本、合法副本数、装配/自动安装和实际HUD同步未完成。每个角色要求一个armor_charge_system，每个模组副本一个独立来源。",
         "所有已接入Armor Charge模组（含Charged Up、Time Dilation与Stacks on Stacks）均提供本系统获得资格；独立非消费模组是否足以开启原作获得资格，仍需当前原作边界校准。",
         "移除最后一个相关模组清空层数，减少上限立即裁剪，更换Time Dilation后按新周期重新计时，停用最后一个被动模组停止计时且保留非被动配装下层数，均为明确内容政策，原作换装边界仍待校准。",
-        "测试消费通过通用consume_buff和已知充足性条件触发，尚未接入Kickstart、Surge、Healthy/Bulwark等实际消费者；Empowered Finish互斥、Elemental Charge计数、队友授予和全部获得豁免仍待装配。",
+        "Healthy/Bulwark、三种回能终结技和Empowered Finish已有部分验收；Kickstart、Surge、Elemental Charge计数、队友授予、全部获得豁免及正式互斥装配仍待完成。",
         "六种Font已进入现有六属性Profile并遵循200上限；全部角色/武器曲线、属性超过100的每个技能投影和真实动作/动画仍有原有缺口，查询数值正确不等于全部玩法收益已实现。",
         "Orb满Super时的Armor Charge收球许可只在当前有获得资格且未满层时授予；其他Fragment许可独立保留。真实Orb生成数值/寿命/半径仍为既有验收输入，全部多人副本政策未完成。",
         "拾取身份只在必填receipt_seconds内去重，测试六十秒不是额外获得冷却。纯会话检查点保留池、派生配置、衰减截止点与有限身份；正式物理世界存档、离线与跨维度恢复未完成。"
+      ]
+    },
+    {
+      "id": "armor-mods/healthy-finisher",
+      "name": "Healthy Finisher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N9",
+          "text_sha256": "cec1e85f028463bc59fc0b3c5c11cac4f359034f5023946be6951ede4c521bfd"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P9",
+          "text_sha256": "dfbeca5934dc14be1ae4abf7316b1b1024a8ca6c966d057c9f311ed247aa1d2d"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "healthyConsumesOneAfterConfirmedCompletionAndRestoresActualHealthOnly"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "realFinisherConsumesOneOrbChargeAndFullyHealsWithoutAddingAbsorption"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
+      ]
+    },
+    {
+      "id": "armor-mods/bulwark-finisher",
+      "name": "Bulwark Finisher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N4",
+          "text_sha256": "df6f1edea51cf488214cd04526c8c217961729a9dd49b8eac4ef2aab541f07ce"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P4",
+          "text_sha256": "2ed69596c0e43d1d3c4a2dabdcb9f26e20d80d60653cdab114ba688a3dda95f0"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "bulwarkUsesAllPaidStacksForFortyFiveHpAndEightToFourteenSecondDuration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "sixChargesGiveFourteenSecondSharedShieldThatAbsorbsRealCombatantDamage"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
+      ]
+    },
+    {
+      "id": "armor-mods/explosive-finisher",
+      "name": "Explosive Finisher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N8",
+          "text_sha256": "7ce92dfb3464cc97ae16cb35e59693bd6473c8fa1e12a1cc3356fbfa91358676"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P8",
+          "text_sha256": "904b087eaa6fc15d88c2c6bb7c20e79bb9bccb7e808e22e19ba305a48ddf24ae"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "eachEnergyModUsesAllPaidStacksAndTheRecipientsCESExactlyOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "explosiveFinisherRewardsCanActuallyPayTheSelectedGrenade"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
+      ]
+    },
+    {
+      "id": "armor-mods/one-two-finisher",
+      "name": "One-Two Finisher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N10",
+          "text_sha256": "c55adc457f343f0da0365027bc64e3f388e1c9f625c2ddb717be944f9e58ff62"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P10",
+          "text_sha256": "84bdb1bb5283b2ebf9680ae61e5fa4c34ea59327f05689fb460794001d22c50e"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "eachEnergyModUsesAllPaidStacksAndTheRecipientsCESExactlyOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "oneTwoFinisherRewardsCanActuallyPayTheSelectedMelee"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
+      ]
+    },
+    {
+      "id": "armor-mods/utility-finisher",
+      "name": "Utility Finisher",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N19",
+          "text_sha256": "e83cf455ada6bc83b3558d568450f0b9538bbd5f131fd32b286ef10b43dea9fc"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P19",
+          "text_sha256": "9fb50a6ad1497c8fd11612f286df8d8442d5ad81cd7b702d060fd54d8ec622bc"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "selectedAbilityAtCompletionReceivesEnergyAndOldSelectionRemainsUnchanged"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "utilityFinisherRewardsCanActuallyPayTheSelectedClassAbility"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
+      ]
+    },
+    {
+      "id": "armor-mods/empowered-finish",
+      "name": "Empowered Finish",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N7",
+          "text_sha256": "ad2bbbd089320b99a880618ddf51f14cf77b40468c5f41c232fbe79125081254"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P7",
+          "text_sha256": "da68c1fbe67204cb6d0554ef8d9d42397e53eb4836cedfd46d9d7c2c135debb0"
+        }
+      ],
+      "scope": "确认终结后执行表中充能支付与收益，复用共享Armor Charge、回能或虚空护盾；独立输入不因模组资源不足而拒绝。",
+      "acceptance": [
+        "真实拾球获得层数、服务器确认终结，再按本模组门槛和已支付层数执行收益。",
+        "相同finisher_id在有限窗口内至多处理一次，包括无收益、重复副本和来源重绑；新终结允许继续触发。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_finisher_mods.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "empoweredStartsOnlyAtZeroAndStacksOnStacksAddsOneWithoutDuplicateModBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorFinisherTest.java",
+          "symbol": "duplicateCopiesAndFactsAfterRebindingChangingModeAndCheckpointCannotSpendOrAwardTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorFinisherGameTest.java",
+          "symbol": "empoweredDuplicateCopiesGrantOnceAtZeroAndUseStacksOnStacks"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        }
+      ],
+      "gaps": [
+        "定义仍是验收内容，正式插槽/能量成本/自动装配、完整互斥目录和HUD未完成。",
+        "满资源不付款、多充能账户按总容量判断、Bulwark刷新和已付款后治疗被拒绝时保留成本，均有明确Chorus政策；当前原作边界仍待校准。",
+        "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
+        "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
       ]
     }
   ]

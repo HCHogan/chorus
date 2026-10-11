@@ -1,0 +1,2000 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:armor_charge_finisher_modes",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "healthy_finisher",
+          "operation": "add",
+          "group": {
+            "name": "healthy_finisher",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "bulwark_finisher",
+          "operation": "add",
+          "group": {
+            "name": "bulwark_finisher",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "explosive_finisher",
+          "operation": "add",
+          "group": {
+            "name": "explosive_finisher",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "one_two_finisher",
+          "operation": "add",
+          "group": {
+            "name": "one_two_finisher",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "utility_finisher",
+          "operation": "add",
+          "group": {
+            "name": "utility_finisher",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "empowered_finish",
+          "operation": "add",
+          "group": {
+            "name": "empowered_finish",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:armor_finisher_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "finisher_ids"
+          ]
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:healthy_finisher",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:healthy_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "healthy_finisher",
+          "group": "healthy_finisher",
+          "op": "add",
+          "stacking_key": "chorus_d2:healthy_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                }
+                              },
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "recipient",
+                                  "field": "health"
+                                },
+                                "op": "lt",
+                                "right": {
+                                  "type": "chorus:result",
+                                  "binding": "recipient",
+                                  "field": "max_health"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                }
+                              },
+                              "as": "paid"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:consume_buff",
+                                "buff": "chorus_d2:armor_charge",
+                                "stacks": {
+                                  "type": "chorus:result",
+                                  "binding": "paid",
+                                  "field": "value"
+                                }
+                              },
+                              "as": "payment"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "payment",
+                                  "field": "stored_delta"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:scale",
+                                  "of": {
+                                    "type": "chorus:result",
+                                    "binding": "paid",
+                                    "field": "value"
+                                  },
+                                  "factor": -1,
+                                  "from": "count",
+                                  "to": "count"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:heal",
+                                  "amount": {
+                                    "type": "chorus:result",
+                                    "binding": "recipient",
+                                    "field": "max_health"
+                                  },
+                                  "tags": [
+                                    "chorus_d2:healthy_finisher"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:bulwark_finisher",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:bulwark_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "bulwark_finisher",
+          "group": "bulwark_finisher",
+          "op": "add",
+          "stacking_key": "chorus_d2:bulwark_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 3,
+                                  "unit": "count"
+                                }
+                              },
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                }
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                }
+                              },
+                              "as": "paid"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:consume_buff",
+                                "buff": "chorus_d2:armor_charge",
+                                "stacks": {
+                                  "type": "chorus:result",
+                                  "binding": "paid",
+                                  "field": "value"
+                                }
+                              },
+                              "as": "payment"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "payment",
+                                  "field": "stored_delta"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:scale",
+                                  "of": {
+                                    "type": "chorus:result",
+                                    "binding": "paid",
+                                    "field": "value"
+                                  },
+                                  "factor": -1,
+                                  "from": "count",
+                                  "to": "count"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:invoke_bundle",
+                                  "bundle": "chorus_d2:void_overshield_application",
+                                  "event": "chorus_d2:grant_void_overshield",
+                                  "holder": "self",
+                                  "target": "self",
+                                  "parameters": {
+                                    "amount": {
+                                      "type": "chorus:constant",
+                                      "value": 45,
+                                      "unit": "damage"
+                                    },
+                                    "duration": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "paid",
+                                          "field": "value"
+                                        },
+                                        "op": "ge",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 6,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 14,
+                                        "unit": "second"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:compare",
+                                          "left": {
+                                            "type": "chorus:result",
+                                            "binding": "paid",
+                                            "field": "value"
+                                          },
+                                          "op": "ge",
+                                          "right": {
+                                            "type": "chorus:constant",
+                                            "value": 5,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 12,
+                                          "unit": "second"
+                                        },
+                                        "else": {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:result",
+                                              "binding": "paid",
+                                              "field": "value"
+                                            },
+                                            "op": "ge",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 4,
+                                              "unit": "count"
+                                            }
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 10,
+                                            "unit": "second"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 8,
+                                            "unit": "second"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:explosive_finisher",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:explosive_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "explosive_finisher",
+          "group": "explosive_finisher",
+          "op": "add",
+          "stacking_key": "chorus_d2:explosive_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:observe_ability_energy",
+                            "slot": "chorus_d2:grenade"
+                          },
+                          "as": "energy"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 3,
+                                  "unit": "count"
+                                }
+                              },
+                              {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "energy",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:result_flag",
+                                      "binding": "energy",
+                                      "field": "full"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                }
+                              },
+                              "as": "paid"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:consume_buff",
+                                "buff": "chorus_d2:armor_charge",
+                                "stacks": {
+                                  "type": "chorus:result",
+                                  "binding": "paid",
+                                  "field": "value"
+                                }
+                              },
+                              "as": "payment"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "payment",
+                                  "field": "stored_delta"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:scale",
+                                  "of": {
+                                    "type": "chorus:result",
+                                    "binding": "paid",
+                                    "field": "value"
+                                  },
+                                  "factor": -1,
+                                  "from": "count",
+                                  "to": "count"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_ability_energy",
+                                  "slot": "chorus_d2:grenade",
+                                  "amount": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {
+                                        "type": "chorus:result",
+                                        "binding": "paid",
+                                        "field": "value"
+                                      },
+                                      "op": "ge",
+                                      "right": {
+                                        "type": "chorus:constant",
+                                        "value": 6,
+                                        "unit": "count"
+                                      }
+                                    },
+                                    "then": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "charge_fraction"
+                                    },
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "paid",
+                                          "field": "value"
+                                        },
+                                        "op": "ge",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 5,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 0.9,
+                                        "unit": "charge_fraction"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:compare",
+                                          "left": {
+                                            "type": "chorus:result",
+                                            "binding": "paid",
+                                            "field": "value"
+                                          },
+                                          "op": "ge",
+                                          "right": {
+                                            "type": "chorus:constant",
+                                            "value": 4,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 0.8,
+                                          "unit": "charge_fraction"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 0.7,
+                                          "unit": "charge_fraction"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value_basis": "base",
+                                  "tags": [
+                                    "chorus_d2:explosive_finisher"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:one_two_finisher",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:one_two_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "one_two_finisher",
+          "group": "one_two_finisher",
+          "op": "add",
+          "stacking_key": "chorus_d2:one_two_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:observe_ability_energy",
+                            "slot": "chorus_d2:melee"
+                          },
+                          "as": "energy"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 3,
+                                  "unit": "count"
+                                }
+                              },
+                              {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "energy",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:result_flag",
+                                      "binding": "energy",
+                                      "field": "full"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                }
+                              },
+                              "as": "paid"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:consume_buff",
+                                "buff": "chorus_d2:armor_charge",
+                                "stacks": {
+                                  "type": "chorus:result",
+                                  "binding": "paid",
+                                  "field": "value"
+                                }
+                              },
+                              "as": "payment"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "payment",
+                                  "field": "stored_delta"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:scale",
+                                  "of": {
+                                    "type": "chorus:result",
+                                    "binding": "paid",
+                                    "field": "value"
+                                  },
+                                  "factor": -1,
+                                  "from": "count",
+                                  "to": "count"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_ability_energy",
+                                  "slot": "chorus_d2:melee",
+                                  "amount": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {
+                                        "type": "chorus:result",
+                                        "binding": "paid",
+                                        "field": "value"
+                                      },
+                                      "op": "ge",
+                                      "right": {
+                                        "type": "chorus:constant",
+                                        "value": 6,
+                                        "unit": "count"
+                                      }
+                                    },
+                                    "then": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "charge_fraction"
+                                    },
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "paid",
+                                          "field": "value"
+                                        },
+                                        "op": "ge",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 5,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 0.9,
+                                        "unit": "charge_fraction"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:compare",
+                                          "left": {
+                                            "type": "chorus:result",
+                                            "binding": "paid",
+                                            "field": "value"
+                                          },
+                                          "op": "ge",
+                                          "right": {
+                                            "type": "chorus:constant",
+                                            "value": 4,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 0.8,
+                                          "unit": "charge_fraction"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 0.7,
+                                          "unit": "charge_fraction"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value_basis": "base",
+                                  "tags": [
+                                    "chorus_d2:one_two_finisher"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:utility_finisher",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:utility_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "utility_finisher",
+          "group": "utility_finisher",
+          "op": "add",
+          "stacking_key": "chorus_d2:utility_finisher",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:observe_ability_energy",
+                            "slot": "chorus_d2:class"
+                          },
+                          "as": "energy"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                },
+                                "op": "ge",
+                                "right": {
+                                  "type": "chorus:constant",
+                                  "value": 3,
+                                  "unit": "count"
+                                }
+                              },
+                              {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "energy",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:result_flag",
+                                      "binding": "energy",
+                                      "field": "full"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:buff_count",
+                                  "buff": "chorus_d2:armor_charge"
+                                }
+                              },
+                              "as": "paid"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:consume_buff",
+                                "buff": "chorus_d2:armor_charge",
+                                "stacks": {
+                                  "type": "chorus:result",
+                                  "binding": "paid",
+                                  "field": "value"
+                                }
+                              },
+                              "as": "payment"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:compare",
+                                "left": {
+                                  "type": "chorus:result",
+                                  "binding": "payment",
+                                  "field": "stored_delta"
+                                },
+                                "op": "eq",
+                                "right": {
+                                  "type": "chorus:scale",
+                                  "of": {
+                                    "type": "chorus:result",
+                                    "binding": "paid",
+                                    "field": "value"
+                                  },
+                                  "factor": -1,
+                                  "from": "count",
+                                  "to": "count"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_ability_energy",
+                                  "slot": "chorus_d2:class",
+                                  "amount": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {
+                                        "type": "chorus:result",
+                                        "binding": "paid",
+                                        "field": "value"
+                                      },
+                                      "op": "ge",
+                                      "right": {
+                                        "type": "chorus:constant",
+                                        "value": 6,
+                                        "unit": "count"
+                                      }
+                                    },
+                                    "then": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "charge_fraction"
+                                    },
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "paid",
+                                          "field": "value"
+                                        },
+                                        "op": "ge",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 5,
+                                          "unit": "count"
+                                        }
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 0.9,
+                                        "unit": "charge_fraction"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:compare",
+                                          "left": {
+                                            "type": "chorus:result",
+                                            "binding": "paid",
+                                            "field": "value"
+                                          },
+                                          "op": "ge",
+                                          "right": {
+                                            "type": "chorus:constant",
+                                            "value": 4,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 0.8,
+                                          "unit": "charge_fraction"
+                                        },
+                                        "else": {
+                                          "type": "chorus:constant",
+                                          "value": 0.7,
+                                          "unit": "charge_fraction"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value_basis": "base",
+                                  "tags": [
+                                    "chorus_d2:utility_finisher"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:empowered_finish",
+      "modifiers": [
+        {
+          "id": "enabled",
+          "profile": "chorus_d2:armor_charge_enabled",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:empowered_finish",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Compendium Armor Mods; equipped finisher mod enables the shared charge pool.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "mode",
+          "profile": "chorus_d2:armor_charge_finisher_modes",
+          "stage": "empowered_finish",
+          "group": "empowered_finish",
+          "op": "add",
+          "stacking_key": "chorus_d2:empowered_finish",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "reference": "Bungie 7.0.0.6 finisher mod mutual exclusion; duplicates provide no additional mode.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:armor_charge_control"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:armor_finisher_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:armor_finisher_receipts",
+                  "duration": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:armor_charge_control",
+                    "component": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:armor_finisher_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:armor_charge_finisher_modes",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "as": "modes"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:result",
+                      "binding": "modes",
+                      "field": "value"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:buff_count",
+                              "buff": "chorus_d2:armor_charge"
+                            },
+                            "op": "eq",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "count"
+                            }
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:invoke_bundle",
+                              "bundle": "chorus_d2:armor_charge_application",
+                              "event": "chorus_d2:apply_armor_charge",
+                              "holder": "self",
+                              "target": "self",
+                              "parameters": {
+                                "amount": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                },
+                                "bonus_eligible": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

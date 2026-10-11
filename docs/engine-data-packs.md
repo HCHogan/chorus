@@ -3025,3 +3025,15 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 消费可以在同一规则中先检查`buff_count >= cost`，再使用`consume_buff`并继续收益动作。消费回执的`stored_delta`为负数，`credited`不是支付量；部分或全部不足的策略必须由消费内容明确选择。世界收益随后失败时保留已经支付的层数，未知结果沿用停止并不重放的执行协议；不要通过旧拾取事实补回成本。
 
 六种Font由一个持有者控制Buff贡献20/40/50点，当前副本数在来源变更结算后更新。安装/撤销控制器会同时清理池、衰减和本系统许可，有限拾取身份按独立期限保留，避免控制器重绑重放旧球。普通模组变更、降低容量和变更周期的具体政策见[规则集](d2-ruleset.md#armor-charge-的共享层数衰减与-font)；正式装备限制、完整消费者和HUD仍需内容层接入。
+
+### 终结技模组的付款与收益
+
+链接 `armor_finisher_mods`、`armor_charge`、`void_overshield` 及其正常 Profile 依赖，为角色绑定一个 `chorus_d2:armor_charge_system`，并为每个实际模组副本绑定对应 bundle：`healthy_finisher`、`bulwark_finisher`、`explosive_finisher`、`one_two_finisher`、`utility_finisher` 或 `empowered_finish`（均为 `chorus_d2:`）。它们不要求额外参数；有限去重窗口读取控制器的 `receipt_seconds`。测试专用 `armor_finisher_inputs` 提供合成终结输入和代表性两充能近战账户，不是可发布的角色配装。
+
+执行顺序是：确认终结事实 → 共享身份记录 → 当前模组模式归约 → 实体与收益需求观察 → 捕获应付层数 → `consume_buff` → 核对实际 `stored_delta` → 世界治疗、共享护盾或当前技能回能。至少三层的模组消费全部当前层数，并使用捕获的支付数量选表，不能在扣费后重新读空池推算收益。原子纯状态付款完成后，治疗被取消或其回执未知不会自动退款；后者停止运行时，禁止猜测结果后重发世界动作。
+
+`armor_charge_finisher_modes` 每种模组用独立 MAX 组计数，相同模组多副本仍计 1。多个不同种类被注入时不选择一个赢家，不付款、不发奖，但终结本身正常完成。正式装配应先拒绝非法模组组合；当前运行时保护不能替代插槽、能量成本和完整冲突类别校验。
+
+`armor_finisher_receipts` 是目标共享 Buff，记录包括“没钱”“已满”和模式冲突在内的已处理完成事实。来源移除不清掉它；同一身份在窗口内不能通过换装、重新获得资源或受伤再次获益。detach 延迟清理按身份执行，新 finisher_id 正常参与后续效果循环。来源移除也不收回已授予的共享护盾或资源。
+
+实际充能来源和当前模组选择都在完成时读取，能量通过选中的基础槽回充目的账户，允许该账户的既有收益 Profile 修饰。满资源、多充能和 Bulwark 刷新政策及原作未定标边界见 [D2 规则集](d2-ruleset.md#消费-armor-charge-的终结技模组)。

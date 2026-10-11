@@ -17,8 +17,9 @@ public class ArmorChargeGameTest {
     static final String D="chorus_d2:";
     static EffectSource system(String holder){return new EffectSource("armor_charge/"+holder,D+"armor_charge_system",holder,new BuffInstance.Origin(holder,"armor_charge/"+holder,"",""),Set.of(),Map.of("receipt_seconds",new Measure(60,Unit.SECOND)));}
     static EffectSource mod(String holder,String name,int copy){String id=name+"/"+copy+"/"+holder;return new EffectSource(id,D+name,holder,new BuffInstance.Origin(holder,id,"",""),Set.of());}
-    static ProjectileGameTest.Harness open(GameTestHelper h)throws Exception{
-        var t=StarvationGameTest.open(h,false,"armor_charge","armor_charge_mods","armor_charge_inputs");
+    static ProjectileGameTest.Harness open(GameTestHelper h,String... additional)throws Exception{
+        var modules=new ArrayList<>(List.of("armor_charge","armor_charge_mods","armor_charge_inputs"));modules.addAll(List.of(additional));
+        var t=StarvationGameTest.open(h,false,modules.toArray(String[]::new));
         try{t.runtime.unbind("starvation");t.runtime.bind(system(owner(t)));IncandescentGameTest.bind(t,"armor_inputs","test:armor_charge_inputs","");return t;}catch(Exception|Error e){t.close();throw e;}
     }
     static void mod(ProjectileGameTest.Harness t,String name,int copy){t.runtime.bind(mod(owner(t),name,copy));ShieldThrowGameTest.settled(t);}

@@ -15,7 +15,8 @@ class ArmorChargeTest {
     static EffectSource mod(String owner,String name,int copy){String id=name+"/"+copy+"/"+owner;return new EffectSource(id,D+name,owner,new BuffInstance.Origin(owner,id,"",""),Set.of());}
     static class Harness extends StarvationTest.Harness {
         boolean unknownRecipient;
-        Harness() throws Exception {super("armor_charge","armor_charge_mods","armor_charge_inputs");remove("starvation");equip(system("player"));bind("armor_inputs","test:armor_charge_inputs","player");}
+        Harness(String... additional) throws Exception {super(modules(additional));remove("starvation");equip(system("player"));bind("armor_inputs","test:armor_charge_inputs","player");}
+        static String[] modules(String[] additional){var names=new ArrayList<>(List.of("armor_charge","armor_charge_mods","armor_charge_inputs"));names.addAll(List.of(additional));return names.toArray(String[]::new);}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){if(unknownRecipient&&r.command() instanceof EntityQuery)throw new IllegalStateException("unknown recipient");return super.world(r);}
         void mod(String name,int copy){equip(ArmorChargeTest.mod("player",name,copy));}
         void unmod(String name,int copy){remove(name+"/"+copy+"/player");}
