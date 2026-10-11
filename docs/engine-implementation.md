@@ -6,7 +6,17 @@
 
 ## 当前证据
 
-区域异步保存证据的最终门禁 `/tmp/chorus-region-save-final-gate.log` BUILD SUCCESSFUL，1 分 28 秒：1298 项 JUnit（无失败 / 错误 / 跳过）、Fabric 640 项、NeoForge 655 项与两端发布 jar 全部通过，共享场景为639项。10 项 Compendium 审计与76条报告一致性检查通过，发布包包含 Journal / Access / Mixin 及注册，不含效果 / 存储测试夹具或 GameTest。本阶段没有客户端协议 / 输入变更，也没有新增图形客户端验收。
+世界附加数据保存证据的最终门禁 `/tmp/chorus-saved-data-final-gate.log` BUILD SUCCESSFUL，1 分 25 秒：1304 项 JUnit（无失败 / 错误 / 跳过）、Fabric 646 项、NeoForge 661 项与两端发布 jar 全部通过，共享场景为645项。10 项 Compendium 审计、76条报告一致性和差异检查通过。发布包包含 SavedData Journal / Access / 通用与各加载器写入 Mixin 及注册，不含效果 / 存储测试夹具或 GameTest；本阶段没有客户端协议 / 输入变更或新增图形客户端验收。
+
+`SavedDataSaveJournal` 已按 SavedDataStorage 实例观察同步编码 / 调度、每批异步 future、目录创建、真实文件写入和关闭。它保留之前批次的未完成任务和历史错误，不因后来的空保存或正常 close 返回就确认成功；文件计数只在实际写入方法正常返回后增加。原版 dirty、缓存、原始 future / 取消、异常和重试行为不变。completion 在已知失败时可提前返回含 pending 的报告，不取消原版工作，也不声称这些任务已停止。
+
+6 项纯测试覆盖空批次与未开始状态、旧 pending 与正常关闭、吞掉的文件错误及时报告、实际路径与只计写入、不变报告、编码 / 取消 / 关闭异常原样保留、等待期间新增任务以及 close 等待 I/O 时的锁边界。6 项共享 SavedDataSaveGameTest 覆盖实际单文件和超过原版线程数的分组批次、压缩 NBT 读回、目录失败后 dirty 已清和后续正常 future、独立文件写入失败、同 ID 不同实例隔离与 WorldCheckpointStore 拒绝提交、受控旧批次在原版 close 返回后才真正写入、编码中途失败造成部分 dirty 清除，以及旧 exceptional future 阻止后续两批文件。
+
+首轮 `/tmp/chorus-saved-data-gate.log` 的 Fabric 646 项通过；NeoForge 强制注入检查发现其 patched tryWrite 已改用 IOUtilities.writeNbtCompressed，未接受通用 NbtIo 注入。已拆为 Fabric / NeoForge 各自必需的写入 Mixin，NeoForge 另观察其额外 Files.createDirectories；其临时文件、force、move / 回退政策全部由原加载器执行，未降低注入要求。
+
+本阶段仍是实际文件 / future 证据，不是自动生命周期或服务器重启验收。宿主需在世界静止后保存全部正确实例，并等待当前报告和关闭结果；未进入区域 worker 的上层区块 / 实体 / POI 序列化故障、短命对象遗留状态、离线 / 崩溃对账和迁移仍有缺口。Compendium 保持76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[世界附加数据保存协议](engine-data-packs.md#世界附加数据的保存证据)。
+
+上一阶段区域异步保存证据的最终门禁 `/tmp/chorus-region-save-final-gate.log` BUILD SUCCESSFUL，1 分 28 秒：1298 项 JUnit（无失败 / 错误 / 跳过）、Fabric 640 项、NeoForge 655 项与两端发布 jar 全部通过，共享场景为639项。10 项 Compendium 审计与76条报告一致性检查通过，发布包包含 Journal / Access / Mixin 及注册，不含效果 / 存储测试夹具或 GameTest。本阶段没有客户端协议 / 输入变更，也没有新增图形客户端验收。
 
 每个原版 IOWorker 已持有独立的 `RegionSaveJournal`。它观察 WRITE / DRAIN / FLUSH / CLOSE 的原始 future，保存未完成任务、最后写入及成功 flush 的覆盖位置和实例生命周期内的失败。原版失败任务移出待写队列后，后续 flush 可以成功；历史失败因此不能被清掉或被后来成功掩盖。删除同样计入写入，flush 之后新增写入使旧确认不足。原版异常 / 取消、文件写入和关闭行为保持不变，观察器不修复或重试。
 
@@ -288,7 +298,8 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 实体 NBT 与临时最大生命恢复 | 双加载器 5 项共享世界场景通过 | `LivingAttributeLoadMixin / MinecraftAttributeProjection`；索引前目标属性重建、永久修饰与保存生命保留、过期 / 死亡 / 重复加载 / 失败隔离；启动安装先于实体载入仍由后续宿主保存协调负责 |
 | 多维度宿主归档与保存确认协议 | 11 项纯测试及双端实际文件 / 运行时恢复通过 | `CheckpointArchive / WorldCheckpointStore`；元数据 / 目录身份、候选与提交区分、运行前失效、完整具名确认和旧回调隔离；自动服务器钩子与真实全世界写入确认未接入 |
 | 原版玩家与 level.dat 同步保存证据 | 3 项纯测试与双加载器 6 项共享真实文件场景通过 | `MinecraftSaveCapture` 与保存入口 / 替换 Mixin；准确路径、写入前 / 替换失败与缺失文件、完整窗口与失败保留；区域任务另用独立 Journal，自动生命周期待接入 |
-| 区域文件异步保存证据 | 6 项纯测试与双加载器 5 项共享真实区域文件场景通过 | `RegionSaveJournal / MinecraftRegionSaveAccess / RegionSaveCaptureMixin`；pending、flush 覆盖最后写入、失败不被后来成功掩盖、吞掉的关闭错误与 supplier 不结束；未提交的序列化、SavedDataStorage 和完整生命周期协调仍待接入 |
+| 区域文件异步保存证据 | 6 项纯测试与双加载器 5 项共享真实区域文件场景通过 | `RegionSaveJournal / MinecraftRegionSaveAccess / RegionSaveCaptureMixin`；pending、flush 覆盖最后写入、失败不被后来成功掩盖、吞掉的关闭错误与 supplier 不结束；未提交的上层序列化和完整生命周期协调仍待接入 |
+| 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；全部存储实例协调和自动生命周期待接入 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

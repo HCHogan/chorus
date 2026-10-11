@@ -13,6 +13,7 @@
     "LevelSaveCaptureMixin",
     "SaveReplacementMixin",
     "RegionSaveCaptureMixin",
+    "SavedDataSaveCaptureMixin",
     "PlayerEquipmentMixin",
     "ServerPlayerEquipmentMixin",
     "EffectProgramReloadMixin",

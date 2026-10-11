@@ -2648,4 +2648,21 @@ pendingSave.confirm("region");
 
 completion 等待调用时已经提交的观察，或在已知失败时提前返回失败报告，不发起保存 / flush，也不取消仍在执行的原版任务。supplier 抛错且原版 future 永不结束时，失败报告仍能返回，并保留 pending；宿主不能把它当作 I/O 已停止。返回时会重新取当前报告，期间新增但未完成或未 flush 的工作仍会使报告失败。报告是不可变快照，后续写入或关闭失败不会修改旧对象；确认前必须等待所有相关工作并读取当前报告，宿主还必须保证世界不再变化。生命周期失败没有自动清除入口，之后一次成功不能证明原先失败的其他区块也已修复；显式恢复政策另行处理。调用方仍需枚举本次保存的全部存储实例，不能以一个 worker 成功替代整个世界。
 
-本协议覆盖已经到达 IOWorker 的任务，不覆盖在提交之前的区块 / 实体 / POI 序列化失败、SavedDataStorage 吞掉的文件异常，或未提交的脏状态。自动保存 / 启动加载、上述故障通道与所有存储实例的协调、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在同 tick 内已经变化的世界上宣称回滚。实际文件测试不等于完整世界保存或服务器重启验收。
+本协议覆盖已经到达 IOWorker 的任务，不覆盖在提交之前的区块 / 实体 / POI 序列化失败或未提交的脏状态。SavedDataStorage 使用下面的独立观察协议，不能拿区域文件的报告替代。
+
+### 世界附加数据的保存证据
+
+原版 `SavedDataStorage` 通过 `MinecraftSavedDataSaveAccess` 提供每个实例独立的 `SavedDataSaveJournal`。scheduleSave 从编码开始即被观察，保留每一次返回 future 的完成 / 异常 / 取消，包括同步编码失败。tryWrite 中目录创建和实际文件写入的结果在原版 catch IOException 之前记录，成功文件数仅在写入方法正常返回后增加。Fabric 观察 NbtIo.writeCompressed；NeoForge 观察其替换的 IOUtilities.writeNbtCompressed 以及额外的 Files.createDirectories，保留该加载器临时文件 / force / move 行为。两端使用各自必需的写入注入点，不以可选注入跳过差异。关闭操作独立记录，不能因 close 返回就忽略此前异步任务。
+
+这条原版路径有两个边界：收集时先清 dirty 标志，实际文件写入失败时 future 仍可成功；没有新 dirty 项时 scheduleSave 返回新的已完成 future，而不等待上一批 pendingWriteFuture。SavedDataSaveJournal 保留全部未完成批次与文件操作，后来的空保存不能覆盖旧任务或清除历史失败。编码中途失败前可能已有其他项被清掉 dirty，因而同步编码失败同样不能被下一次空保存洗掉。观察器不修改 dirty、原版 future 或缓存，不自动重试文件。
+
+```java
+var journal = ((MinecraftSavedDataSaveAccess) storage).chorus$savedDataSaves();
+storage.scheduleSave();
+journal.completion().join().requireSuccess();
+pendingSave.confirm("saved_data");
+```
+
+成功报告要求该实例至少实际调用过一次 scheduleSave、所有观察任务完成且没有该实例生命周期内的失败；真正无脏数据的空批次可以成功。completion 等待调用时已经存在的任务，或在已知失败时提前返回当前失败报告，不取消仍在执行的 I/O；期间新增的未完成任务仍会显示在返回报告里。关闭后的旧批次仍可在原版继续写入，报告会保留 pending，不能在这时删除世界文件或提交检查点。DIRECTORY / WRITE / SCHEDULE / CLOSE 各有错误来源，实际目录 / 文件记录规范化绝对路径；已完成的成功文件不逐个永久保存在 Journal 中。
+
+报告仍是不可变时点快照，不能检测保存调用之后新变 dirty 的对象；宿主须先冻结世界并调用正确存储实例的保存，再等待当前报告和所有关闭结果。它证明的是所观察原版编码与文件操作的返回结果，不提供 fsync / 目录断电持久性、跨文件事务、自动修复或整服重启保证。上层区块 / 实体 / POI 提交前序列化的故障、自动保存 / 启动加载和所有实例的协调、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在已经变化的世界上宣称回滚。
