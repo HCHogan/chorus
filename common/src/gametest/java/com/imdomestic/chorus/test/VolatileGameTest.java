@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.target.TargetQuery;
+import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.mojang.serialization.JsonOps;
@@ -125,10 +126,12 @@ public class VolatileGameTest {
     }
     @GameCase public void volatileExplosionsCanDetonateOtherVolatileTargetsInTheSameCausalRoot(GameTestHelper helper) throws Exception {
         try (var test = new Harness(helper, EffectState.Mode.PVE)) {
+            var centers = Set.of(test.target, test.neighbor).stream().map(e -> new TargetQuery.PositionCenter(
+                    new WorldPosition(e.level().dimension().identifier().toString(), e.getX(), e.getY(), e.getZ()))).collect(java.util.stream.Collectors.toSet());
             test.hit(test.target, 1, true); test.hit(test.neighbor, 1, true); test.hit(test.neighbor, 8, false);
             test.hit(test.target, 19, false);
             helper.assertValueEqual(test.queries.size(), 2, "both targets detonate");
-            helper.assertValueEqual(new HashSet<>(test.queries.stream().map(TargetQuery::center).toList()), Set.of(new TargetQuery.EntityCenter(id(test.target)), new TargetQuery.EntityCenter(id(test.neighbor))), "independent centers");
+            helper.assertValueEqual(new HashSet<>(test.queries.stream().map(TargetQuery::center).toList()), centers, "independent historical centers");
             helper.assertValueEqual(new HashSet<>(test.queryRoots).size(), 1, "legitimate cascade stays in one root");
             helper.assertTrue(test.buff(VOLATILE, test.target).isEmpty() && test.buff(VOLATILE, test.neighbor).isEmpty(), "consumed statuses terminate this cascade");
             helper.assertTrue(test.buff(COOLDOWN, test.target).isPresent() && test.buff(COOLDOWN, test.neighbor).isPresent(), "independent per-target cooldowns");

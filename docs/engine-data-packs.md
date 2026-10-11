@@ -2970,3 +2970,29 @@ Fabric / NeoForge均注册 `chorus:finisher_input` C2S包和可改绑的 `key.ch
 终结技独立于 `AbilityUse`，不选择或支付普通技能槽，也不默认继承 `ability_use` 限制；终结技专属禁用条件仍由来源条件、世界资格及占用Buff定义。正式职业/终结技目录、敌人资格标签生产、HUD目标提示、视觉动画和所有原作控制/保护特例尚未完成。网络序号是连接输入状态，不是玩法存档；本阶段未改变效果检查点结构。
 
 共享世界验收覆盖低权限命令、当前服务器朝向、候选筛选、实际击杀、重复/错误维度/忙碌请求、真实发送者资格、来源解绑和开始回调未知结果。Fabric客户端场景使用真实H键、注册包、服务器选敌和实际延迟击杀，并验证背包界面阻止输入以及关闭后不补发。NeoForge当前验证服务端链路和编解码，尚无同等真实客户端运行证据。
+
+## Cessation 与直接易爆施加
+
+[echo_of_cessation.json](../common/src/test/resources/effects/echo_of_cessation.json)组合已确认的终结技、历史位置查询、逐目标状态授权和共享拾取物。绑定Fragment时必须提供`burst_radius: meter`与`receipt_seconds: second`；4米和十二秒是验收输入，前者原表仍未知，后者仅为有限回执保留期。
+
+确认终结技以`finisher_id`去重后读取victim历史位置，筛选相对于event_actor的非盟友，排除施放者与被终结目标。对每个候选调用共享[volatile.json](../common/src/test/resources/effects/volatile.json)中的直接状态生产者：
+
+```json
+{
+  "type": "chorus:invoke_bundle",
+  "bundle": "chorus_d2:volatile_status_application",
+  "event": "chorus_d2:apply_volatile",
+  "target": {"binding": "neighbor"},
+  "origin": "event",
+  "parameters": {
+    "combatant_duration": {"type":"chorus:constant","value":10,"unit":"second"},
+    "guardian_duration": {"type":"chorus:constant","value":6,"unit":"second"}
+  }
+}
+```
+
+被调用规则限定owner/own_source、正时长和没有已有Volatile/重施加冷却。`inspect_entity`确认目标存活和实际player分类，再以相应时长`apply_status`；成功后沿用通用`status_applied`事实。调用本身不表示状态已经写入，拒绝或未知结果也不会生成成功事实。当前生产者沿用保留首来源且不刷新已有Volatile的内容政策，不能据此推定所有原作施加来源都遵循相同刷新规则。
+
+Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatile标签调用共享Void Breach，忽略原施加者身份。两个集合由已有Buff组件和detached清理计时器组成；有限保留防重复事实，不限制独立新击杀、技能循环或同根连锁。具体状态、裂口数值及当前校准缺口见[规则集](d2-ruleset.md#echo-of-cessation-的确认终结与历史易爆击杀)。
+
+共享Volatile三个爆炸分支均先检查`event_position_observed`：已观察则使用`read_event_position`返回的位置，包括明确不可用的结果；仅对从未观察位置的旧宿主保留EntityCenter查询。不要把“历史位置不可用”与“未观察历史位置”合并，否则会把爆炸移动到反应执行时的新位置。Fragment自己的终结爆发要求历史位置，不使用这一旧宿主回退。

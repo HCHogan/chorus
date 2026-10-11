@@ -1,0 +1,325 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:cessation_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "finisher_ids",
+            "death_ids"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:cessation_receipts"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:echo_of_cessation",
+      "parameters": {
+        "burst_radius": "meter",
+        "receipt_seconds": "second"
+      },
+      "rules": [
+        {
+          "id": "finisher",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "lethal"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "receipt_seconds"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "burst_radius"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              {
+                "type": "chorus:event_position_observed",
+                "target": "victim"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:cessation_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:cessation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:cessation_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "finisher_ids",
+                "event_reference": "finisher_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:cessation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:cessation_receipts",
+                      "component": "finisher_ids",
+                      "event_reference": "finisher_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:read_event_position",
+                    "target": "victim"
+                  },
+                  "as": "center"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "center"
+                    },
+                    "radius": {
+                      "type": "chorus:source_parameter",
+                      "name": "burst_radius"
+                    },
+                    "relation": "not_allied",
+                    "relative_to": "event_actor",
+                    "exclude": [
+                      "event_actor",
+                      "victim"
+                    ],
+                    "include_center": false
+                  },
+                  "as": "nearby"
+                },
+                {
+                  "for_each": "nearby",
+                  "as": "neighbor",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:volatile_status_application",
+                      "event": "chorus_d2:apply_volatile",
+                      "target": {
+                        "binding": "neighbor"
+                      },
+                      "origin": "event",
+                      "parameters": {
+                        "combatant_duration": {
+                          "type": "chorus:constant",
+                          "value": 10,
+                          "unit": "second"
+                        },
+                        "guardian_duration": {
+                          "type": "chorus:constant",
+                          "value": 6,
+                          "unit": "second"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "volatile_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_buffs_available",
+                "target": "victim"
+              },
+              {
+                "type": "chorus:event_has_buff_tag",
+                "target": "victim",
+                "tag": "chorus_d2:volatile"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "receipt_seconds"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:cessation_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:cessation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:cessation_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "death_ids",
+                "event_reference": "death_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:cessation_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:cessation_receipts",
+                      "component": "death_ids",
+                      "event_reference": "death_id"
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:void_breach_system",
+                  "event": "chorus_d2:spawn_void_breach",
+                  "origin": "event",
+                  "target": "victim"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:cessation_receipts",
+      "scope": "buff"
+    }
+  ]
+}

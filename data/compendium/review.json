@@ -1163,13 +1163,14 @@
           "text_sha256": "87848d9af6cd61347b520a80b7862dc7da5db5f3eb57c7a6d7fe74a5102e2daa"
         }
       ],
-      "scope": "JSON 施加击排除、两种环境阈值/持续/伤害、目标共享冷却、致死施加资格、归因及双加载器实际范围连锁",
+      "scope": "JSON 施加击排除、两种环境阈值/持续/伤害、目标共享冷却、致死施加资格、归因及双加载器实际范围连锁；直接状态生产者按实际Guardian/战员计时，三个爆炸分支优先使用历史位置",
       "acceptance": [
         "施加击排除；后续每个 damage_id 只累计一次",
         "190/200 阈值、10/6 秒、145/80 最大伤害、5 米范围与引爆后 1 秒目标冷却；自然到期无爆炸",
         "首次致死施加仍检查资格；已有状态致死命中和随后死亡事实只引爆一次",
         "任意攻击者可引爆，明确来源与技能击杀资格；相邻 Volatile 可在同一因果根继续连锁",
-        "真实技能来源、实际伤害投影、距离曲线及重施加归因校准"
+        "真实技能来源、实际伤害投影、距离曲线及重施加归因校准",
+        "直接施加不虚构命中，先观察实际目标再授权；已有状态/目标冷却不被旁路，尸体清理后使用确认位置爆炸。"
       ],
       "evidence": [
         {
@@ -1235,6 +1236,26 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/VolatileGameTest.java",
           "symbol": "readOnlyDeadQualificationStillHonorsStatusPolicyAndMissingEntities"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "onlyConfirmedFinisherAppliesSharedVolatileWithActualTargetDurationsAndNoInventedBurstDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "historicalVolatileKillFromAnotherGiverSpawnsBreachAfterLiveStateAndCorpseDisappear"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "actualFinisherAppliesVolatileThenNativeKillExplodesFromRemovedCorpseAndBreachFeedsStarvation"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "individualAuthorizationAndActualGuardianClassificationControlNearbyVolatile"
         }
       ],
       "gaps": [
@@ -1243,7 +1264,9 @@
         "累计暂用实际 HP 与 Chorus 护盾损失，不含 Absorption；原作投影及目标等级缩放仍待校准",
         "已有状态不刷新并保留首次来源为夹具策略；多来源重施加规则待校准",
         "施加意图标签、武器/技能来源及正式伤害类型仍需内容装配；测试爆炸仅在测试数据包配置受伤冷却旁路",
-        "状态免疫与 D2 阵营尚未装配；施加者离线/跨维度时的关系快照尚未实现"
+        "状态免疫与 D2 阵营尚未装配；施加者离线/跨维度时的关系快照尚未实现",
+        "直接状态生产者的6/10秒已使用实际目标分类；旧命中生产者的阈值/爆炸伤害仍按全局环境配置，混合目标与全部来源例外未完整校准。",
+        "历史位置有记录但不可用时不实时补查；完全未观察位置的旧宿主仍保留实体中心查询，此兼容路径不保证尸体移除后的范围爆炸。"
       ]
     },
     {
@@ -9059,6 +9082,153 @@
         "四秒间隔、十秒收益和属性数值取原表；共享目标计时、空手/无可补弹量仍触发、解绑后已授收益继续、死亡清除活动收益而冷却继续计时，均为明确内容政策，原作边界仍待校准。",
         "status_ids/death_ids在必填receipt_seconds内有限去重；十二秒为合成验收窗口，不是附加游戏冷却，也不是永久幂等或物理世界故障恢复。",
         "Breach继续复用私有副本、五秒生成冷却与当前Class账户；测试0.444444归一化、.5/.75 CES及半米接触半径不代表完整原作校准。正式HUD、图标、动画、多人语义和跨维度/世界重启仍未完成。"
+      ]
+    },
+    {
+      "id": "void/echo-of-cessation",
+      "name": "Echo of Cessation",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B13",
+          "text_sha256": "b4071d0f4d52630eabb4d2b3cafb66a19db631c798ec0977960476cb1ea3e76e"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D13",
+          "text_sha256": "8eaae768c6cbb0c23c690d58844f51930a6cbeb703bd9ccf22fbaa6572848210"
+        },
+        {
+          "sheet": "Void",
+          "cell": "N13",
+          "text_sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112"
+        }
+      ],
+      "scope": "确认终结技读取历史中心施加共享Volatile；按真实目标分类授权与计时；历史易爆击杀生成共享裂口并实际收集接入Starvation/职业回能",
+      "acceptance": [
+        "终结技开始、取消、非致死与死亡保护不施加易爆；实际确认完成按保存中心筛选附近敌人，独立检查状态资格。",
+        "重复Fragment与期限内旧finisher_id/death_id不会重新施加或生成；后续独立终结技/击杀仍可触发，目标状态在来源解绑后继续。",
+        "击杀信用属于当前实际击杀者，无需是易爆施加者；实时易爆和尸体清理不丢失历史状态与爆炸/裂口中心。",
+        "共享裂口五秒冷却、物理拾取和Starvation回能贯通；未知世界结果保留已提交状态而不自动重复伤害/生成。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/echo_of_cessation.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/volatile.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/void_breach.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "onlyConfirmedFinisherAppliesSharedVolatileWithActualTargetDurationsAndNoInventedBurstDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "cancellationOrOrdinaryKillCannotImpersonateACompletedFinisher"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "duplicateFragmentsAndReplayAfterCleanseRebindAndCheckpointDoNotReapply"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "historicalVolatileKillFromAnotherGiverSpawnsBreachAfterLiveStateAndCorpseDisappear"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "liveStatusesKeepTheirFirstOriginAndDeadlineAndOutlastFragmentRemoval"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "deniedDeadAndMissingRecipientsDoNotReceiveVolatile"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "sharedBreachCooldownAndFiniteDeathReceiptsDoNotBlockIndependentLaterKills"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "missingHistoricalBuffsOrPositionNeverInventBreachOrFinisherCenter"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "fragmentMayBeEquippedOrRemovedWhileTheAcceptedFinisherIsWaiting"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java",
+          "symbol": "unknownStatusOrBreachResultStopsAfterCommittedFactsWithoutRetry"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "actualFinisherAppliesVolatileThenNativeKillExplodesFromRemovedCorpseAndBreachFeedsStarvation"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "individualAuthorizationAndActualGuardianClassificationControlNearbyVolatile"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "teammatesAndTheFinisherOwnerAreExcludedFromTheBurst"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "survivingTheActualFinisherStrikeDoesNotApplyVolatileOrCreateBreach"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "lateFragmentEquipmentUsesCurrentCompletionRulesAndExistingVolatileSurvivesUnbinding"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "volatileFromAnotherActualCasterStillQualifiesTheOwnersOrdinaryKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "unknownReactionAfterAnActualStatusWriteStopsWithoutRepeatingTheFinisher"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java",
+          "symbol": "unknownReceiptAfterCreatingThePhysicalBreachCannotCreateAnotherCopy"
+        }
+      ],
+      "gaps": [
+        "正式Fragment/子职业装配与完整终结技目标资格、动画和伤害政策仍待接入；20%HP、3块选取距离、0.3秒和1000点终结技伤害是合成验收输入。",
+        "原表与固定Clarity均未给爆发半径，burst_radius必填且测试4米只验证闭边界。官方描述提到Void伤害爆发，但未找到独立伤害量，当前只施加共享Volatile，不将缺少伤害动作等同于原作无伤害；独立爆发伤害与视线/距离锚点政策待校准。",
+        "按终结技确认时当前Fragment装配触发、目标共享Volatile保留首次来源与截止时间、排除施放者/终结目标、缺失历史位置不补造中心，均为明确内容政策。完整换装/死亡时序与D2敌我例外仍需校准。",
+        "共享Volatile直接施加按实际Guardian/战员选择6/10秒，但既有命中生产者的全局环境阈值/爆炸伤害、0.1投影、线性衰减、Absorption与全部来源信用仍有原有缺口。",
+        "finisher_ids/death_ids仅在必填receipt_seconds窗口内有限去重；十二秒验收窗口不是额外游戏冷却，不阻止独立新击杀/因果链，也不保证无限期重放幂等或物理世界故障恢复。",
+        "Void Breach复用私有副本和五秒成功生成冷却；职业回能归一化与接触半径仍是显式测试输入。完整多人拾取政策、真实素材/HUD以及跨维度/物理世界重启仍未完成。"
       ]
     }
   ]

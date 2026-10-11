@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Cessation完整门禁 `/tmp/chorus-cessation-gate-3.log` BUILD SUCCESSFUL，2分10秒：1544项JUnit（无失败/错误/跳过）、Fabric816项、NeoForge831项及两端发布jar通过，共享Chorus世界场景815项。新增10项规则测试和8项共享世界场景；10项Compendium审计与85条报告一致性通过。发布jar不含效果/GameTest/持久化夹具；本轮没有新增Java执行接口、客户端协议或检查点类型。
+
+Cessation由确认finisher读取实际死亡的历史位置，向附近非盟友逐个申请共享Volatile，按实际Guardian/战员选择六秒/十秒。开始、取消、非致死和死亡保护均不产生完成收益；重复Fragment和期限内旧finisher/death事实由两个有限集合去重。击杀分支读取历史Volatile与位置，接受其他施加者的状态，调用共享Void Breach；实际物理收集接入Starvation/Devour和当前职业回能。已授予目标状态和已生成物体可在Fragment解绑后继续。
+
+组合验收发现已有Volatile的阈值反应先于death清理状态，因此修正首次致死施加、阈值和死亡三条爆炸路径，使它们优先查询保存的位置；历史位置明确不可用时不退回实时实体，只有完全未观察位置的旧宿主保留原有回退。首次致死施加仍须通过已有世界资格检查，历史位置本身不能替代授权。原有同根双目标连锁场景继续验证四次实际爆炸分量和两处独立历史中心。
+
+开发首轮世界门禁因组合包重复声明两个占位来源而阻止8个新场景启动，另有一项旧连锁场景仍断言EntityCenter；移除重复定义并将断言改为两个精确历史坐标后重跑。第二轮只有新外来施加者场景失败：它漏计了外来源Volatile对击杀者的真实伤害。改为先断言外来爆炸扣血，再检查物理拾取在实际剩余生命上增加70点，最终完整双端门禁通过；没有更改实际伤害、来源归属或奖励规则来迁就测试。
+
+原表五个单元格（Cessation三格与Volatile两格）和快照规范化匹配，HTML/Clarity归档哈希核对通过。新增Cessation partial，累计85条审阅：83 partial、2 not_applicable、0 verified，仍不是全表分母。原表与Clarity未给爆发半径，4米保留为必填参数的测试取值；官方提到的独立Void爆发伤害尚无量值，当前只完成范围施加分支，不声称原作没有该伤害。正式子职业/Fragment装配、目标/动画政策、全部Volatile来源和混合目标数值、HUD及物理世界重启仍有缺口。[规则及来源](d2-ruleset.md#echo-of-cessation-的确认终结与历史易爆击杀)、[组合协议](engine-data-packs.md#cessation-与直接易爆施加)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 终结技输入门禁 `/tmp/chorus-finisher-input-gate.log` BUILD SUCCESSFUL，2分7秒：1534项JUnit、Fabric808项、NeoForge823项及两端发布jar通过，共享Chorus世界场景807项。新增7项共享世界场景；随后 `/tmp/chorus-finisher-input-client.log` BUILD SUCCESSFUL，1分44秒，Fabric注册/处理资源中的19项客户端场景全部完成，包含新增真实H键场景。10项Compendium审计和报告一致性通过；没有新增检查点类型或改变旧结构。
 
 两端注册独立FinisherInputPayload、按键和连接清理；服务器只接sequence/dimension，消费序号后检查实际发送者、维度、运行时与占用状态。`requestFinisher`发出意图事件，由绑定来源按服务器方向选择候选并调用已有begin_finisher。无来源不产生默认执行，忙碌输入不排队，不经普通技能槽、AbilityUse或能量消耗。低权限`/chorus finisher`走同一运行时入口。
@@ -993,12 +1005,12 @@ Volatile 的致死施加路径已经由显式施加意图、实际伤害事实�
 
 ## Volatile 的数据规则与验收边界
 
-[volatile.json](../common/src/test/resources/effects/volatile.json) 使用目标 Buff、伤害身份集合、只读资格检查和范围迭代，无专用 Java 词条分支。来源规则要求宿主在真实命中事实中保留 `test:apply_volatile` 施加意图；原版默认来源映射不会自行添加该测试标签。
+[volatile.json](../common/src/test/resources/effects/volatile.json) 使用目标 Buff、伤害身份集合、只读资格检查和范围迭代，无专用 Java 词条分支。原有命中生产者要求宿主在真实命中事实中保留 `test:apply_volatile` 施加意图；原版默认来源映射不会自行添加该测试标签。Cessation阶段新增 `volatile_status_application`：调用者明确战员/Guardian时长，观察实际目标后通过 `apply_status` 直接施加，不要求伪造命中；已有状态/重施加冷却仍先拒绝。
 
 - 首次存活施加成功后，以零增量记录施加击的 damage_id。后续命中按 `effective_damage` 累计，每个伤害身份只计一次；该投影目前是实际生命与 Chorus 护盾损失，不含原版 Absorption。
 - 达到环境阈值或收到实际致死事实时，先挂目标共享的 1 秒冷却并移除 Volatile，再查询范围和造成爆炸。随后到来的 death 事实不会重复引爆；其他目标的 Volatile 可以继续响应爆炸，在同一 root 中自然连锁。自然到期不爆炸、不挂冷却。
 - 首次施加击已经致死时，执行 `check_status(allow_dead=true)`；资格允许后直接走引爆序列，不给死亡目标创建 Volatile。冷却仍作为明确的内部状态记录。资格拒绝或目标缺失时不引爆，也不授予冷却。
-- 范围以受害者为中心、施加者为队伍关系参照，包含仍存活的中心并排除施加者。任意攻击者可推进已有状态的累计；爆炸保留首次施加来源，显式标记 void / ability damage 和 ability kill，不从武器引用推导 weapon kill。新一次冷却结束后的施加可以归属于另一来源。
+- 范围优先使用触发伤害所观察的受害者历史位置，施加者为队伍关系参照，包含仍存活的中心并排除施加者。首次致死施加、阈值和死亡三个分支都使用这一策略；历史位置有记录但不可用不实时补查，完全未观察位置的旧宿主保留原有实体中心查询。任意攻击者可推进已有状态的累计；爆炸保留首次施加来源，显式标记 void / ability damage 和 ability kill，不从武器引用推导 weapon kill。新一次冷却结束后的施加可以归属于另一来源。
 
 快照 Void D9 的阈值为 190 [PvP 200]，最大爆炸伤害为 145 [PvP 80]，半径 5 米、持续 10 [PvP 6] 秒、引爆后 1 秒内不能再次施加。夹具将伤害与阈值都乘以 0.1；距离衰减采用中心最大、5 米为零的线性曲线。**0.1 缩放、线性衰减，以及已有状态不刷新并保留首次来源，均为明确的内容选择；不能当成已经验证的完整原作策略。** 实际伤害投影、目标等级缩放、多来源重施加、状态免疫与阵营规则仍需校准。关系参照依赖施加者仍在本维度，离线 / 跨维度来源的阵营快照尚未接入。
 

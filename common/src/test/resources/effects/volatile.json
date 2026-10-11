@@ -1,16 +1,18 @@
 {
-  "version": "test-volatile-v1",
+  "version": "compendium-2026-10-05",
   "buffs": [
     {
       "definition": {
         "id": "chorus_d2:volatile",
-        "version": "test-volatile-v1",
+        "version": "compendium-2026-10-05",
         "duration": 10,
         "attach": "target",
         "refresh": "none",
         "tags": [
           "chorus:void",
-          "chorus:debuff"
+          "chorus:debuff",
+          "chorus_d2:volatile",
+          "chorus_d2:void_debuff"
         ],
         "components": {
           "numbers": {
@@ -29,7 +31,7 @@
     {
       "definition": {
         "id": "chorus_d2:volatile_cooldown",
-        "version": "test-volatile-v1",
+        "version": "compendium-2026-10-05",
         "duration": 1,
         "attach": "target",
         "refresh": "none"
@@ -119,90 +121,198 @@
                       "target": "victim"
                     },
                     {
-                      "action": {
-                        "type": "chorus:select_targets",
-                        "center": "victim",
-                        "relative_to": "source_owner",
-                        "relation": "not_allied",
-                        "include_center": true,
-                        "exclude": [
-                          "source_owner"
-                        ],
-                        "radius": {
-                          "type": "chorus:constant",
-                          "value": 5,
-                          "unit": "meter"
-                        }
+                      "if": {
+                        "type": "chorus:event_position_observed",
+                        "target": "victim"
                       },
-                      "as": "nearby"
-                    },
-                    {
-                      "for_each": "nearby",
-                      "as": "target",
-                      "do": [
+                      "then": [
                         {
-                          "type": "chorus:damage",
-                          "target": {
-                            "binding": "target"
+                          "action": {
+                            "type": "chorus:read_event_position",
+                            "target": "victim"
                           },
-                          "damage_type": "chorus_d2:volatile",
-                          "amount": {
-                            "type": "chorus:arithmetic",
-                            "op": "mul",
-                            "of": [
-                              {
-                                "type": "chorus:scale",
-                                "of": {
-                                  "type": "chorus:pvp",
-                                  "pve": {
-                                    "type": "chorus:constant",
-                                    "value": 145,
-                                    "unit": "damage"
-                                  },
-                                  "pvp": {
-                                    "type": "chorus:constant",
-                                    "value": 80,
-                                    "unit": "damage"
-                                  }
-                                },
-                                "factor": 0.1,
-                                "from": "damage",
-                                "to": "damage"
+                          "as": "volatile_center"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": {
+                              "position": "volatile_center"
+                            },
+                            "relative_to": "source_owner",
+                            "relation": "not_allied",
+                            "include_center": true,
+                            "exclude": [
+                              "source_owner"
+                            ],
+                            "radius": {
+                              "type": "chorus:constant",
+                              "value": 5,
+                              "unit": "meter"
+                            }
+                          },
+                          "as": "nearby"
+                        },
+                        {
+                          "for_each": "nearby",
+                          "as": "target",
+                          "do": [
+                            {
+                              "type": "chorus:damage",
+                              "target": {
+                                "binding": "target"
                               },
-                              {
-                                "type": "chorus:curve",
-                                "of": {
-                                  "type": "chorus:result",
-                                  "binding": "target",
-                                  "field": "distance"
-                                },
-                                "from": "meter",
-                                "to": "multiplier",
-                                "curve": {
-                                  "type": "chorus:table",
-                                  "points": [
-                                    {
-                                      "input": 0,
-                                      "output": 1
+                              "damage_type": "chorus_d2:volatile",
+                              "amount": {
+                                "type": "chorus:arithmetic",
+                                "op": "mul",
+                                "of": [
+                                  {
+                                    "type": "chorus:scale",
+                                    "of": {
+                                      "type": "chorus:pvp",
+                                      "pve": {
+                                        "type": "chorus:constant",
+                                        "value": 145,
+                                        "unit": "damage"
+                                      },
+                                      "pvp": {
+                                        "type": "chorus:constant",
+                                        "value": 80,
+                                        "unit": "damage"
+                                      }
                                     },
-                                    {
-                                      "input": 5,
-                                      "output": 0
+                                    "factor": 0.1,
+                                    "from": "damage",
+                                    "to": "damage"
+                                  },
+                                  {
+                                    "type": "chorus:curve",
+                                    "of": {
+                                      "type": "chorus:result",
+                                      "binding": "target",
+                                      "field": "distance"
+                                    },
+                                    "from": "meter",
+                                    "to": "multiplier",
+                                    "curve": {
+                                      "type": "chorus:table",
+                                      "points": [
+                                        {
+                                          "input": 0,
+                                          "output": 1
+                                        },
+                                        {
+                                          "input": 5,
+                                          "output": 0
+                                        }
+                                      ],
+                                      "interpolation": "linear",
+                                      "boundary": "clamp"
                                     }
-                                  ],
-                                  "interpolation": "linear",
-                                  "boundary": "clamp"
-                                }
-                              }
-                            ]
+                                  }
+                                ]
+                              },
+                              "tags": [
+                                "chorus:ability_damage",
+                                "chorus:void_damage",
+                                "chorus_d2:volatile_damage"
+                              ],
+                              "kill_tags": [
+                                "chorus:ability_kill"
+                              ]
+                            }
+                          ]
+                        }
+                      ],
+                      "else": [
+                        {
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": "victim",
+                            "relative_to": "source_owner",
+                            "relation": "not_allied",
+                            "include_center": true,
+                            "exclude": [
+                              "source_owner"
+                            ],
+                            "radius": {
+                              "type": "chorus:constant",
+                              "value": 5,
+                              "unit": "meter"
+                            }
                           },
-                          "tags": [
-                            "chorus:ability_damage",
-                            "chorus:void_damage",
-                            "chorus_d2:volatile_damage"
-                          ],
-                          "kill_tags": [
-                            "chorus:ability_kill"
+                          "as": "nearby"
+                        },
+                        {
+                          "for_each": "nearby",
+                          "as": "target",
+                          "do": [
+                            {
+                              "type": "chorus:damage",
+                              "target": {
+                                "binding": "target"
+                              },
+                              "damage_type": "chorus_d2:volatile",
+                              "amount": {
+                                "type": "chorus:arithmetic",
+                                "op": "mul",
+                                "of": [
+                                  {
+                                    "type": "chorus:scale",
+                                    "of": {
+                                      "type": "chorus:pvp",
+                                      "pve": {
+                                        "type": "chorus:constant",
+                                        "value": 145,
+                                        "unit": "damage"
+                                      },
+                                      "pvp": {
+                                        "type": "chorus:constant",
+                                        "value": 80,
+                                        "unit": "damage"
+                                      }
+                                    },
+                                    "factor": 0.1,
+                                    "from": "damage",
+                                    "to": "damage"
+                                  },
+                                  {
+                                    "type": "chorus:curve",
+                                    "of": {
+                                      "type": "chorus:result",
+                                      "binding": "target",
+                                      "field": "distance"
+                                    },
+                                    "from": "meter",
+                                    "to": "multiplier",
+                                    "curve": {
+                                      "type": "chorus:table",
+                                      "points": [
+                                        {
+                                          "input": 0,
+                                          "output": 1
+                                        },
+                                        {
+                                          "input": 5,
+                                          "output": 0
+                                        }
+                                      ],
+                                      "interpolation": "linear",
+                                      "boundary": "clamp"
+                                    }
+                                  }
+                                ]
+                              },
+                              "tags": [
+                                "chorus:ability_damage",
+                                "chorus:void_damage",
+                                "chorus_d2:volatile_damage"
+                              ],
+                              "kill_tags": [
+                                "chorus:ability_kill"
+                              ]
+                            }
                           ]
                         }
                       ]
@@ -349,6 +459,332 @@
                   "target": "self"
                 },
                 {
+                  "if": {
+                    "type": "chorus:event_position_observed",
+                    "target": "self"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:read_event_position",
+                        "target": "self"
+                      },
+                      "as": "volatile_center"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "volatile_center"
+                        },
+                        "relative_to": "source_owner",
+                        "relation": "not_allied",
+                        "include_center": true,
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 5,
+                          "unit": "meter"
+                        }
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "for_each": "nearby",
+                      "as": "target",
+                      "do": [
+                        {
+                          "type": "chorus:damage",
+                          "target": {
+                            "binding": "target"
+                          },
+                          "damage_type": "chorus_d2:volatile",
+                          "amount": {
+                            "type": "chorus:arithmetic",
+                            "op": "mul",
+                            "of": [
+                              {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:pvp",
+                                  "pve": {
+                                    "type": "chorus:constant",
+                                    "value": 145,
+                                    "unit": "damage"
+                                  },
+                                  "pvp": {
+                                    "type": "chorus:constant",
+                                    "value": 80,
+                                    "unit": "damage"
+                                  }
+                                },
+                                "factor": 0.1,
+                                "from": "damage",
+                                "to": "damage"
+                              },
+                              {
+                                "type": "chorus:curve",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "target",
+                                  "field": "distance"
+                                },
+                                "from": "meter",
+                                "to": "multiplier",
+                                "curve": {
+                                  "type": "chorus:table",
+                                  "points": [
+                                    {
+                                      "input": 0,
+                                      "output": 1
+                                    },
+                                    {
+                                      "input": 5,
+                                      "output": 0
+                                    }
+                                  ],
+                                  "interpolation": "linear",
+                                  "boundary": "clamp"
+                                }
+                              }
+                            ]
+                          },
+                          "tags": [
+                            "chorus:ability_damage",
+                            "chorus:void_damage",
+                            "chorus_d2:volatile_damage"
+                          ],
+                          "kill_tags": [
+                            "chorus:ability_kill"
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": "self",
+                        "relative_to": "source_owner",
+                        "relation": "not_allied",
+                        "include_center": true,
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 5,
+                          "unit": "meter"
+                        }
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "for_each": "nearby",
+                      "as": "target",
+                      "do": [
+                        {
+                          "type": "chorus:damage",
+                          "target": {
+                            "binding": "target"
+                          },
+                          "damage_type": "chorus_d2:volatile",
+                          "amount": {
+                            "type": "chorus:arithmetic",
+                            "op": "mul",
+                            "of": [
+                              {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:pvp",
+                                  "pve": {
+                                    "type": "chorus:constant",
+                                    "value": 145,
+                                    "unit": "damage"
+                                  },
+                                  "pvp": {
+                                    "type": "chorus:constant",
+                                    "value": 80,
+                                    "unit": "damage"
+                                  }
+                                },
+                                "factor": 0.1,
+                                "from": "damage",
+                                "to": "damage"
+                              },
+                              {
+                                "type": "chorus:curve",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "target",
+                                  "field": "distance"
+                                },
+                                "from": "meter",
+                                "to": "multiplier",
+                                "curve": {
+                                  "type": "chorus:table",
+                                  "points": [
+                                    {
+                                      "input": 0,
+                                      "output": 1
+                                    },
+                                    {
+                                      "input": 5,
+                                      "output": 0
+                                    }
+                                  ],
+                                  "interpolation": "linear",
+                                  "boundary": "clamp"
+                                }
+                              }
+                            ]
+                          },
+                          "tags": [
+                            "chorus:ability_damage",
+                            "chorus:void_damage",
+                            "chorus_d2:volatile_damage"
+                          ],
+                          "kill_tags": [
+                            "chorus:ability_kill"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "victim",
+            "right": "self"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:volatile_cooldown",
+              "target": "self"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:volatile",
+              "target": "self"
+            },
+            {
+              "if": {
+                "type": "chorus:event_position_observed",
+                "target": "self"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_position",
+                    "target": "self"
+                  },
+                  "as": "death_center"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "death_center"
+                    },
+                    "relative_to": "source_owner",
+                    "relation": "not_allied",
+                    "include_center": true,
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "meter"
+                    }
+                  },
+                  "as": "nearby"
+                },
+                {
+                  "for_each": "nearby",
+                  "as": "target",
+                  "do": [
+                    {
+                      "type": "chorus:damage",
+                      "target": {
+                        "binding": "target"
+                      },
+                      "damage_type": "chorus_d2:volatile",
+                      "amount": {
+                        "type": "chorus:arithmetic",
+                        "op": "mul",
+                        "of": [
+                          {
+                            "type": "chorus:scale",
+                            "of": {
+                              "type": "chorus:pvp",
+                              "pve": {
+                                "type": "chorus:constant",
+                                "value": 145,
+                                "unit": "damage"
+                              },
+                              "pvp": {
+                                "type": "chorus:constant",
+                                "value": 80,
+                                "unit": "damage"
+                              }
+                            },
+                            "factor": 0.1,
+                            "from": "damage",
+                            "to": "damage"
+                          },
+                          {
+                            "type": "chorus:curve",
+                            "of": {
+                              "type": "chorus:result",
+                              "binding": "target",
+                              "field": "distance"
+                            },
+                            "from": "meter",
+                            "to": "multiplier",
+                            "curve": {
+                              "type": "chorus:table",
+                              "points": [
+                                {
+                                  "input": 0,
+                                  "output": 1
+                                },
+                                {
+                                  "input": 5,
+                                  "output": 0
+                                }
+                              ],
+                              "interpolation": "linear",
+                              "boundary": "clamp"
+                            }
+                          }
+                        ]
+                      },
+                      "tags": [
+                        "chorus:ability_damage",
+                        "chorus:void_damage",
+                        "chorus_d2:volatile_damage"
+                      ],
+                      "kill_tags": [
+                        "chorus:ability_kill"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
                   "action": {
                     "type": "chorus:select_targets",
                     "center": "self",
@@ -440,112 +876,118 @@
               ]
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:volatile_status_application",
+      "parameters": {
+        "combatant_duration": "second",
+        "guardian_duration": "second"
+      },
+      "rules": [
         {
-          "id": "death",
-          "on": "chorus:death",
+          "id": "apply",
+          "on": "chorus_d2:apply_volatile",
           "if": {
-            "type": "chorus:target_is",
-            "left": "victim",
-            "right": "self"
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "combatant_duration"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "guardian_duration"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:volatile",
+                  "target": "victim"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:volatile_cooldown",
+                  "target": "victim"
+                }
+              }
+            ]
           },
           "do": [
             {
-              "type": "chorus:grant_buff",
-              "buff": "chorus_d2:volatile_cooldown",
-              "target": "self"
-            },
-            {
-              "type": "chorus:remove_buff",
-              "buff": "chorus_d2:volatile",
-              "target": "self"
-            },
-            {
               "action": {
-                "type": "chorus:select_targets",
-                "center": "self",
-                "relative_to": "source_owner",
-                "relation": "not_allied",
-                "include_center": true,
-                "exclude": [
-                  "source_owner"
-                ],
-                "radius": {
-                  "type": "chorus:constant",
-                  "value": 5,
-                  "unit": "meter"
-                }
+                "type": "chorus:inspect_entity",
+                "target": "victim"
               },
-              "as": "nearby"
+              "as": "entity"
             },
             {
-              "for_each": "nearby",
-              "as": "target",
-              "do": [
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "entity",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "entity",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
                 {
-                  "type": "chorus:damage",
-                  "target": {
-                    "binding": "target"
-                  },
-                  "damage_type": "chorus_d2:volatile",
-                  "amount": {
-                    "type": "chorus:arithmetic",
-                    "op": "mul",
-                    "of": [
-                      {
-                        "type": "chorus:scale",
-                        "of": {
-                          "type": "chorus:pvp",
-                          "pve": {
-                            "type": "chorus:constant",
-                            "value": 145,
-                            "unit": "damage"
-                          },
-                          "pvp": {
-                            "type": "chorus:constant",
-                            "value": 80,
-                            "unit": "damage"
-                          }
-                        },
-                        "factor": 0.1,
-                        "from": "damage",
-                        "to": "damage"
-                      },
-                      {
-                        "type": "chorus:curve",
-                        "of": {
-                          "type": "chorus:result",
-                          "binding": "target",
-                          "field": "distance"
-                        },
-                        "from": "meter",
-                        "to": "multiplier",
-                        "curve": {
-                          "type": "chorus:table",
-                          "points": [
-                            {
-                              "input": 0,
-                              "output": 1
-                            },
-                            {
-                              "input": 5,
-                              "output": 0
-                            }
-                          ],
-                          "interpolation": "linear",
-                          "boundary": "clamp"
-                        }
-                      }
-                    ]
-                  },
-                  "tags": [
-                    "chorus:ability_damage",
-                    "chorus:void_damage",
-                    "chorus_d2:volatile_damage"
-                  ],
-                  "kill_tags": [
-                    "chorus:ability_kill"
-                  ]
+                  "type": "chorus:apply_status",
+                  "buff": "chorus_d2:volatile",
+                  "target": "victim",
+                  "duration": {
+                    "type": "chorus:choose",
+                    "if": {
+                      "type": "chorus:result_flag",
+                      "binding": "entity",
+                      "field": "player"
+                    },
+                    "then": {
+                      "type": "chorus:source_parameter",
+                      "name": "guardian_duration"
+                    },
+                    "else": {
+                      "type": "chorus:source_parameter",
+                      "name": "combatant_duration"
+                    }
+                  }
                 }
               ]
             }

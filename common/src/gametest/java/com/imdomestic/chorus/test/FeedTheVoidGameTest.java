@@ -28,8 +28,6 @@ public class FeedTheVoidGameTest {
             if (spike) ThreadedSpikeGameTest.prepare(d); else ShieldThrowGameTest.prepare(d); modules(d);
             for (String name : extra) {
                 var part = ThreadedSpikeGameTest.json(name);
-                // This old self-contained fixture uses another version; only its namespace is linked here.
-                if (name.equals("volatile")) part = JsonParser.parseString(part.toString().replace("test-volatile-v1", "compendium-2026-10-05")).getAsJsonObject();
                 GamblersDodgeGameTest.merge(d, part);
             }
         }, true);

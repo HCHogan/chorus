@@ -1,0 +1,54 @@
+{
+  "hash": 3854948620,
+  "name": "Echo of Cessation",
+  "lastUpload": 1697894818765,
+  "type": "Subclass Fragment",
+  "uploadedBy": "Stardust",
+  "descriptions": {
+    "en": [
+      {
+        "linesContent": [
+          {
+            "text": "Finishers make enemies within ? meters "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Volatile."
+          }
+        ]
+      },
+      {
+        "classNames": [
+          "spacer"
+        ]
+      },
+      {
+        "linesContent": [
+          {
+            "text": "Killing "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Volatile enemies spawns a "
+          },
+          {
+            "classNames": [
+              "void"
+            ]
+          },
+          {
+            "text": "Void Breach."
+          }
+        ]
+      }
+    ]
+  }
+}

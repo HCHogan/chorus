@@ -1,0 +1,360 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:finishing",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "target",
+        "tags": [
+          "chorus:finisher_participant"
+        ]
+      },
+      "bundle": "test:finisher_lock"
+    },
+    {
+      "definition": {
+        "id": "test:being_finished",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "target",
+        "tags": [
+          "chorus:finisher_participant"
+        ]
+      },
+      "bundle": "test:finisher_lock"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:finisher",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "test:begin",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:begin_finisher",
+                "target": "victim",
+                "actor_buff": "test:finishing",
+                "target_buff": "test:being_finished",
+                "duration": {
+                  "type": "chorus:constant",
+                  "value": 0.3,
+                  "unit": "second"
+                },
+                "policy": {
+                  "maximum_health_fraction": 0.2,
+                  "range": 3,
+                  "eligible_tag": "test:finishable",
+                  "line_of_sight": true
+                },
+                "damage": {
+                  "type": "chorus:constant",
+                  "value": 1000,
+                  "unit": "damage"
+                },
+                "damage_type": "test:finisher",
+                "tags": [
+                  "chorus:kinetic"
+                ]
+              },
+              "as": "begun"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "begun",
+                "field": "busy"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:busy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "started",
+          "on": "chorus:finisher_started",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:started"
+            }
+          ]
+        },
+        {
+          "id": "completed",
+          "on": "chorus:finisher",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:completed"
+            }
+          ]
+        },
+        {
+          "id": "cancelled",
+          "on": "chorus:finisher_cancelled",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:cancelled"
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:kill"
+            }
+          ]
+        },
+        {
+          "id": "interrupt",
+          "on": "test:interrupt",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:finishing"
+            }
+          ]
+        },
+        {
+          "id": "cancel",
+          "on": "test:cancel",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_finisher",
+              "reason": "test:input_cancelled"
+            }
+          ]
+        },
+        {
+          "id": "clear_volatile",
+          "on": "test:clear_volatile",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:volatile",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "volatile_applied",
+          "on": "chorus:status_applied",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:volatile"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:volatile_applied"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:finisher_lock",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "ability_use",
+          "action": "ability_use"
+        },
+        {
+          "id": "weapon_fire",
+          "action": "weapon_fire"
+        },
+        {
+          "id": "weapon_reload",
+          "action": "weapon_reload"
+        },
+        {
+          "id": "melee_attack",
+          "action": "melee_attack"
+        },
+        {
+          "id": "ranged_attack",
+          "action": "ranged_attack"
+        },
+        {
+          "id": "movement_input",
+          "action": "movement_input"
+        },
+        {
+          "id": "jump",
+          "action": "jump"
+        }
+      ]
+    },
+    {
+      "id": "test:finisher_input",
+      "rules": [
+        {
+          "id": "request",
+          "on": "chorus:finisher_requested",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_direction",
+                "target": "self"
+              },
+              "as": "aim"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "self",
+                "area": {
+                  "type": "chorus:cone",
+                  "length": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "meter"
+                  },
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "meter"
+                  },
+                  "direction": "aim"
+                },
+                "relation": "not_allied",
+                "relative_to": "self",
+                "exclude": [
+                  "self"
+                ],
+                "order": "nearest",
+                "line_of_sight": true,
+                "target_anchor": "body"
+              },
+              "as": "candidates"
+            },
+            {
+              "for_each": "candidates",
+              "as": "candidate",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff_tag",
+                      "target": "self",
+                      "tag": "chorus:finisher_participant"
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:begin_finisher",
+                      "target": {
+                        "binding": "candidate"
+                      },
+                      "actor_buff": "test:finishing",
+                      "target_buff": "test:being_finished",
+                      "duration": {
+                        "type": "chorus:constant",
+                        "value": 0.3,
+                        "unit": "second"
+                      },
+                      "policy": {
+                        "maximum_health_fraction": 0.2,
+                        "range": 3,
+                        "eligible_tag": "test:finishable",
+                        "line_of_sight": true
+                      },
+                      "damage": {
+                        "type": "chorus:constant",
+                        "value": 1000,
+                        "unit": "damage"
+                      },
+                      "damage_type": "test:finisher",
+                      "tags": [
+                        "chorus:kinetic"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:block_abilities",
+      "action_gates": [
+        {
+          "id": "abilities",
+          "action": "ability_use"
+        }
+      ]
+    }
+  ]
+}

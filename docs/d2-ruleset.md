@@ -1541,3 +1541,21 @@ Compendium 的 `Armor Mods!P13` 将 Proximity Ward 限定在终结技期间；`E
 通用执行协议现提供 `finisher_started`、配对占用 Buff、确认击杀后的 `finisher` 和 `finisher_cancelled`。开始时已经通过世界资格并占用双方，实际伤害发生在明确时长之后；目标不可用、越界、视线阻隔或占用被中断会取消。期间属性/护盾适合跟随施放者占用的生命周期，不能在开始时直接发放本应依赖击杀的收益。伤害使用独立 finisher 信用，元素、伤害类型、输出 Profile、目标保护和特殊近战信用由内容声明。
 
 当前世界验收采用20%原版HP、3块脚底距离、0.3秒及1000点伤害，全部为合成输入。专用终结技H键/自助命令及服务器数据化候选选择已接入，吸附/动画和原作目标选择校准仍未完成；输入独立于普通技能槽，不默认继承 Suppression 等技能禁用规则。Cessation、Proximity Ward、Winter’s Guile 和其他模组的完整来源装配仍未完成，本阶段不新增或升级 Compendium 效果完成状态。
+
+## Echo of Cessation 的确认终结与历史易爆击杀
+
+[echo_of_cessation.json](../common/src/test/resources/effects/echo_of_cessation.json)将两个触发分开：`chorus:finisher`向终结目标附近的敌人施加共享Volatile；持有者的`chorus:kill`若记录目标死亡时带有Volatile，则请求共享Void Breach。原表Void B16/D16/N16与固定快照B13/D13/N13一致；Volatile的B11/D11与固定B9/D9也已逐格核对。[官方7.0.0.1](https://www.bungie.net/7/en/News/Article/update_7_0_0_1)将前者限定为终结技final blow，因此不在输入、开始、取消或非致死时发放。归档、固定Clarity和文本哈希见[来源记录](../data/d2-research/2026-10-12/cessation.json)。
+
+原表与Clarity均将范围写作未知，内容因此要求`burst_radius`（meter）参数；测试4米只验证闭区间与实际空间查询，不是原作校准。官方描述提到Void伤害爆发，但这些资料没有独立伤害量；当前已实现范围施加，没有增加猜测的伤害动作，也没有据此认定原作爆发无伤害。独立爆发伤害、视线、范围锚点和目标例外保留为校准缺口。
+
+完成事实沿用实际死亡回执的脚底位置。Fragment先要求位置曾被观察，再调用`read_event_position`，按`not_allied`相对于实际施放者筛选附近目标，排除施放者和被终结目标。记录不可用的位置产生正常的缺失中心结果，不重新查询尸体。每个候选通过`volatile_status_application`先观察实际存活与玩家分类，再调用世界授权的`apply_status`；战员10秒、Guardian6秒来自共享Volatile数值，不用世界PvE/PvP模式推断目标身份。被拒绝、已死亡、不可用、已有Volatile或处于一秒重新施加冷却中的目标不被重新授予。
+
+`volatile_status_application`是可复用的直接施加生产者，要求`combatant_duration`和`guardian_duration`，不虚构命中或零点伤害。这里沿用已有Volatile保留首次来源与截止时间的内容政策；Fragment卸下后，已经授予目标的状态继续运行。Fragment在终结技等待期间装上时按完成时的当前规则触发，提前卸下则不触发；这些换装边界仍待原作校准。
+
+Volatile的三个爆炸路径——首次致死施加、已有状态达到伤害阈值、死亡引爆——现在优先读取触发伤害的历史中心。达到阈值的hit反应可能早于death移除实时Volatile，因此只修改死亡分支不足以修复尸体提前移除时的漏炸。完全未记录位置的旧宿主仍可走原有实体中心查询；有记录但不可用时不能退回当前实体位置。首次致死施加仍要求原有`check_status(allow_dead=true)`世界资格，保存的位置不代替该授权；资格前已经缺失的目标仍会被拒绝。中心、范围伤害和归因保持各自独立，同一因果链中其他Volatile仍可继续爆炸，未增加循环上限。
+
+裂口资格使用`event_buffs_available`与`event_has_buff_tag`读取死亡时状态，不要求击杀者也是最初易爆施加者；实时状态清理和尸体移除不抹去已有证据。调用共享`void_breach_system`后沿用成功生成才开始的五秒冷却、指定接收者的私有副本、物理接触收集以及当前Class回能和Starvation。新生成来源不改变裂口本身的收益、冷却或归一化政策。
+
+目标共享`cessation_receipts`分别记录`finisher_ids`与`death_ids`。必填`receipt_seconds`提供有限保留期，验收十二秒不是附加游戏冷却；解绑重绑和纯会话检查点保留期限内的身份。冷却内的旧死亡也不能在冷却结束后重放成新奖励，独立新死亡和新终结技仍能正常触发。授权或物理生成结果未知时沿用运行时停止政策，保留已提交伤害/状态/物体，不自动重放。
+
+[10项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/CessationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/CessationGameTest.java)覆盖低权限实际终结输入、延迟伤害、实际Guardian/队友/拒绝目标、完成前装卸、重复来源、移除尸体后的易爆爆炸、他人施加状态、普通原版击杀和物理裂口拾取。验收组合仍是测试装配：完整子职业/Fragment目录、终结技动画与数值政策、原作独立爆发伤害及半径、共享Volatile全部来源/混合目标伤害、HUD/素材和物理世界持久化继续标为partial。本阶段复用引擎动作，没有新增Java执行接口、客户端协议或检查点结构。

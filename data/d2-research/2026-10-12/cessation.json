@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Echo of Cessation",
+    "Volatile direct application and historical explosion center"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/cessation-source.html.gz",
+      "sha256": "08182b2440328ceaece1becba7753d7ea57545904b2267d0c36e6514609d1ed9",
+      "gzip_sha256": "30137610841664c93f9364f50152ec95d77ad3fcfaad33712bbf1289d9eaf5a4",
+      "cells": [
+        {
+          "original_cell": "B16",
+          "snapshot_cell": "B13",
+          "snapshot_text_sha256": "b4071d0f4d52630eabb4d2b3cafb66a19db631c798ec0977960476cb1ea3e76e",
+          "normalized_text": "Cessation",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D16",
+          "snapshot_cell": "D13",
+          "snapshot_text_sha256": "8eaae768c6cbb0c23c690d58844f51930a6cbeb703bd9ccf22fbaa6572848210",
+          "normalized_text": "Finishers inflicting Volatile to enemies within ? metres. Killing Volatile Enemies spawns a Void Breach.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "N16",
+          "snapshot_cell": "N13",
+          "snapshot_text_sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+          "normalized_text": "-",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "B11",
+          "snapshot_cell": "B9",
+          "snapshot_text_sha256": "a9e1146636ddbb259c9f19563da0f1ab2f410bca3ada860188a70f1bd6e21233",
+          "normalized_text": "Volatile",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D11",
+          "snapshot_cell": "D9",
+          "snapshot_text_sha256": "87848d9af6cd61347b520a80b7862dc7da5db5f3eb57c7a6d7fe74a5102e2daa",
+          "normalized_text": "Volatile Enemies trigger an explosion after being dealt 190 [200] damage or upon dying, dealing up to 145 [80] Void Ability Damage in a 5 meter radius. Volatile lasts for 10 [6] seconds, harmlessly expiring afterwards. Debuff is removed after triggering the explosion. The damage from the hit that applies Volatile doesn't count towards the detonation threshold. Incurs a 1 second cooldown before Volatile can be reapplied to an enemy after the explosion is triggered.",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/cessation-clarity.json",
+      "sha256": "3481ec4893690a816212d8b6c6914e213e891fec15b700b15156a1868e4e183d",
+      "item_hash": 3854948620,
+      "finding": "Finishers apply Volatile around the completed target and volatile kills create Void Breaches. Radius is explicitly unknown; this older entry provides no standalone burst damage value."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/update_7_0_0_1",
+      "short_excerpt": "Finisher final blows create a burst of Void damage that causes nearby enemies to become volatile.",
+      "finding": "2023-02-27 introduction ties the effect to finisher final blows and separately grants Void Breaches on defeating volatile targets. This supports the confirmed-completion trigger, not a current radius or damage calibration."
+    }
+  ],
+  "implemented": [
+    "Actual confirmed finisher history supplies the victim position; nearby current non-allies receive world-authorized shared Volatile with actual combatant/Guardian duration classification.",
+    "Only the confirmed completion triggers the spread: start, cancellation, nonlethal strikes and death prevention do not qualify. New effects do not invent an extra damaging hit.",
+    "Current holder kills use historical Volatile and position, independent of who first applied it; shared Breach generation and actual collection feed Starvation/Devour and the current Class account.",
+    "Independent bounded finisher/death receipts survive source rebind and pure-session checkpoints; subsequent independent actual finishers and kills remain allowed.",
+    "All three existing Volatile explosion branches prefer the captured impact/death position, so a removed corpse no longer invalidates an observed center. Explicitly unavailable positions do not fall back to the live entity; only unobserved legacy hosts retain live lookup."
+  ],
+  "gaps": [
+    "正式Fragment/子职业装配与完整终结技目标资格、动画和伤害政策仍待接入；20%HP、3块选取距离、0.3秒和1000点终结技伤害是合成验收输入。",
+    "原表与固定Clarity均未给爆发半径，burst_radius必填且测试4米只验证闭边界。官方描述提到Void伤害爆发，但未找到独立伤害量，当前只施加共享Volatile，不将缺少伤害动作等同于原作无伤害；独立爆发伤害与视线/距离锚点政策待校准。",
+    "按终结技确认时当前Fragment装配触发、目标共享Volatile保留首次来源与截止时间、排除施放者/终结目标、缺失历史位置不补造中心，均为明确内容政策。完整换装/死亡时序与D2敌我例外仍需校准。",
+    "共享Volatile直接施加按实际Guardian/战员选择6/10秒，但既有命中生产者的全局环境阈值/爆炸伤害、0.1投影、线性衰减、Absorption与全部来源信用仍有原有缺口。",
+    "finisher_ids/death_ids仅在必填receipt_seconds窗口内有限去重；十二秒验收窗口不是额外游戏冷却，不阻止独立新击杀/因果链，也不保证无限期重放幂等或物理世界故障恢复。",
+    "Void Breach复用私有副本和五秒成功生成冷却；职业回能归一化与接触半径仍是显式测试输入。完整多人拾取政策、真实素材/HUD以及跨维度/物理世界重启仍未完成。"
+  ]
+}
