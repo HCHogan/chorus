@@ -1,0 +1,263 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:chain_reaction",
+                "tags": [],
+                "parameters": {
+                  "pve_damage": "pve_damage",
+                  "pvp_damage": "pvp_damage",
+                  "full_radius": "full_radius",
+                  "radius": "radius",
+                  "delay": "delay"
+                }
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:chain_reaction",
+                "tags": [
+                  "chorus:enhanced"
+                ],
+                "parameters": {
+                  "pve_damage": "pve_damage",
+                  "pvp_damage": "pvp_damage",
+                  "full_radius": "full_radius",
+                  "radius": "radius",
+                  "delay": "delay"
+                }
+              }
+            }
+          }
+        },
+        "parameters": {
+          "pve_damage": {
+            "unit": "damage",
+            "minimum": 0,
+            "maximum": 100000,
+            "integral": false
+          },
+          "pvp_damage": {
+            "unit": "damage",
+            "minimum": 0,
+            "maximum": 100000,
+            "integral": false
+          },
+          "full_radius": {
+            "unit": "meter",
+            "minimum": 0,
+            "maximum": 100000,
+            "integral": false
+          },
+          "radius": {
+            "unit": "meter",
+            "minimum": 0,
+            "maximum": 100000,
+            "integral": false
+          },
+          "delay": {
+            "unit": "second",
+            "minimum": 0,
+            "maximum": 3600,
+            "integral": false
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        }
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus_d2:arc_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "unresolved",
+          "on": "chorus_d2:chain_reaction_unresolved",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:chain_reaction_unresolved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:chain_bonus",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "chorus_d2:chain_reaction_outgoing",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:chain_bonus",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "confidence": "assumed",
+          "reference": "Synthetic source snapshot bonus."
+        }
+      ]
+    }
+  ]
+}

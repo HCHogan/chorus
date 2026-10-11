@@ -1271,7 +1271,7 @@
       "name": "Chain Reaction",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -1284,10 +1284,10 @@
           "text_sha256": "e6b0371f605b7252c4547e442fee09cf5fc3a0446f0bdaf620cb1e580b078c3e"
         }
       ],
-      "scope": "已核对需求；通用距离快照、冻结加伤与命中期衰减分阶段计算及真实范围扣血机制通过，尚不是该 perk 的实现",
+      "scope": "独立 JSON：同持有者 / 同武器击杀、单一伤害元素继承、强化 +10%、死亡位置快照、延迟范围衰减与持续派生击杀；显式数值校准和实际装备 / 弹丸 / 世界伤害验收",
       "acceptance": [
         "武器击杀触发与武器元素继承",
-        "按弹药/武器种类选择基础伤害和强化值，问号数值保持待核对",
+        "显式 PvE / PvP 基础值与强化 +10%；9.0.0.1 统一 perk 缩放，原表按武器原型分列的值保留为冲突资料",
         "特殊弹药 2.4 米内不衰减 / 6 米到零，重弹药 3 米内不衰减 / 7 米到零",
         "强化剑额外 +20 格挡耐力"
       ],
@@ -1319,13 +1319,42 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ImpactSnapshotGameTest.java",
           "symbol": "delayedExplosionUsesFrozenBonusesAndPerTargetDistancesAfterQueryMovement"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/chain_reaction.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/chain_reaction_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ChainReactionTest.java",
+          "symbol": "sixElementsTwoModesAndAmmoBranchesUseEndpointsAndEnhancedTenPercent"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ChainReactionTest.java",
+          "symbol": "legitimateTwelveHopFeedbackHasNoRepeatLimitAndUsesEachDeathCenter"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ChainReactionGameTest.java",
+          "symbol": "bothAmmoRadiiAndEnhancedDamageUsePhysicalVictimsAndExcludeAllies"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ChainReactionGameTest.java",
+          "symbol": "delayedBlastSurvivesCorpseRemovalAndPerkReplacementWithCapturedBonus"
         }
       ],
       "gaps": [
-        "具体 perk 数据定义和武器击杀接线",
-        "问号基础数值、模式及武器/目标缩放校准",
-        "两个范围端点之间的真实衰减曲线未明确；测试线性插值不是原作断言",
-        "武器元素继承与强化剑格挡耐力装配"
+        "原表与现代研究基准冲突、当前全部敌人等级缩放、主弹药 / 异域来源和强化剑 +20 格挡耐力及实际格挡消耗尚未验收。",
+        "线性曲线、0 / 0.1 秒延迟、0.1 伤害缩放以及武器弹量 / 射速 / 弹道均为合成校准。",
+        "所有额外伤害的 weapon_kill / element / threadling 标签和来源特例、死亡 / 离线政策、正式内容目录 / HUD / 全世界存档待完成。",
+        "纯会话检查点覆盖排队爆炸，不证明实体弹丸跨重启。",
+        "爆炸保留 weapon_kill 并允许继续触发、按事实伤害元素归类、按活动模式取样、来源卸装时序均为当前内容政策；官方 Threadling 排除已落实，其他原作触发组合仍须校准。"
       ]
     },
     {
@@ -1371,7 +1400,8 @@
       "gaps": [
         "具体 perk 数据定义与精准击杀接线",
         "完整距离曲线和基础伤害所用基准/目标缩放",
-        "武器元素与弹药类别自动装配"
+        "武器元素与弹药类别自动装配",
+        "9.0.0.1 官方已改为统一 perk 缩放；原表旧武器原型缩放不能直接作为当前公式。见 data/d2-research/2026-10-11/chain-reaction.json。"
       ]
     },
     {
@@ -1417,7 +1447,8 @@
       "gaps": [
         "具体 perk 数据定义与精准击杀接线",
         "原文两个装填数值的含义及距离衰减曲线待核对",
-        "武器/敌人类别数值缩放与实际装填动画"
+        "武器/敌人类别数值缩放与实际装填动画",
+        "9.0.0.1 官方已改为统一 perk 缩放；原表旧武器原型缩放不能直接作为当前公式。见 data/d2-research/2026-10-11/chain-reaction.json。"
       ]
     },
     {

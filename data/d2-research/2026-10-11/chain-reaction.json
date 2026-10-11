@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "effect": "Chain Reaction",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "cells": [
+        {
+          "original_cell": "A42",
+          "snapshot_cell": "A41",
+          "normalized_text": "Chain Reaction",
+          "snapshot_text_sha256": "fee822a775ca4009845aa7dd925b18d8ad80800f5075994890a30cd0fbfbe779",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C42",
+          "snapshot_cell": "C41",
+          "normalized_text": "On Weapon Kill: Target explodes, dealing varying [Special = 44.8? ↑49.3? | Power = 72.8 ↑80?] Weapon-Element Matching Damage, down to 0% damage. Rocket Pulse: 158 ↑174 | Breech GL: 189 ↑208 | Shotgun, Area Denial GL: 236 ↑260 | Glaive: 284 ↑313 | 2.4m No Falloff, 6m Maximum Falloff on Special Weapons Wave GL, MG, Sword: 352 ↑387 | Drum GL, LFR: 448 ↑493 | RL: 543 ↑598 | 3m No Falloff, 7m Maximum Falloff for Power Weapons. ↑Passively grants +20 Guard Endurance to Swords.",
+          "snapshot_text_sha256": "e6b0371f605b7252c4547e442fee09cf5fc3a0446f0bdaf620cb1e580b078c3e",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        }
+      ]
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "finding": "Chain Reaction、Dragonfly、Firefly 改为统一的 perk 伤害缩放，不再沿用武器原型缩放；武器 perk 生成的 Threadling 不再触发 Chain Reaction。"
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0",
+      "published_at": "2025-09-09",
+      "finding": "强化 Chain Reaction 移除旧库存收益，改为爆炸伤害 +10%。该条没有明确说明剑格挡耐力的现状。"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/2396489472/chain-reaction/?_=112",
+      "source_last_updated": "2026-01-10",
+      "retrieval": "Search index text available; direct open failed in this session. No independent in-game calibration.",
+      "finding": "研究给出特殊弹药 PvE 67.2 / PvP 44.8，重弹药 PvE 109.2 / PvP 72.8；全伤半径 2.4 / 3 米。与原表问号值及按原型分列的值分开保留。"
+    },
+    {
+      "kind": "official_patch_search_index",
+      "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+      "published_at": "2026-06-09",
+      "finding": "Riskrunner 催化新增 Chain Reaction；因此不能推断该 perk 只可能出现在特殊 / 重型弹药武器。主弹药的基础值和半径仍需独立校准。"
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/chain_reaction.json",
+    "consumer": "common/src/test/resources/effects/chain_reaction_weapon.json",
+    "calibration": "common/src/test/resources/effects/chain_reaction_test_calibration.json",
+    "required_parameters": {
+      "pve_damage": "damage",
+      "pvp_damage": "damage",
+      "full_radius": "meter",
+      "radius": "meter",
+      "delay": "second"
+    },
+    "enhancement_multiplier": 1.1,
+    "element_contract": "Exactly one recognized *_damage tag on the credited kill fact; origin metadata is preserved independently. Missing or ambiguous classification emits chain_reaction_unresolved.",
+    "credit_policy": "Owner and weapon must match an equipped perk source. Exclude threadling_damage. Derived kills otherwise retain weapon credit and may trigger further explosions. This is an explicit provisional content policy, not proof of every original-game interaction.",
+    "timing_policy": "Snapshot attack at confirmed kill; center comes from receipt feet position. Positive delay detached; zero executes immediately. Stow retains eligibility; removal before kill prevents triggering, removal after snapshot does not cancel pending explosion.",
+    "falloff": "Known plateau and zero edge; normalize interior by same-unit ratio and require external multiplier->multiplier profile. Synthetic linear test curve, no original-game linearity claim.",
+    "world_units": "Synthetic 0.1 damage scale; distance uses meters as blocks.",
+    "unified_target_scaling": "Dedicated outgoing stage, no weapon-archetype scaling. Complete current combatant rank values remain uncalibrated."
+  },
+  "validation": {
+    "status": "passed",
+    "full_gate_log": "/tmp/chorus-chain-gate.log",
+    "duration": "2m37s",
+    "unit_tests": 1387,
+    "fabric_world_tests": 702,
+    "neoforge_world_tests": 717,
+    "shared_world_scenarios": 701,
+    "final_unit_log": "/tmp/chorus-chain-final-unit.log",
+    "final_unit_scope": "1387 tests passed after expanding both ammo classes across normal and enhanced variants; no core or world changes. Subsequent JSON formatting preserves parsed data.",
+    "audits": "10 Compendium tool tests, 76-entry report and source checks; old checkpoint shapes unchanged; both release jars contain Ratio and no test fixtures."
+  },
+  "remaining": [
+    "原表与现代研究基准冲突、当前全部敌人等级缩放、主弹药 / 异域来源和强化剑 +20 格挡耐力及实际格挡消耗尚未验收。",
+    "线性曲线、0 / 0.1 秒延迟、0.1 伤害缩放以及武器弹量 / 射速 / 弹道均为合成校准。",
+    "所有额外伤害的 weapon_kill / element / threadling 标签和来源特例、死亡 / 离线政策、正式内容目录 / HUD / 全世界存档待完成。",
+    "纯会话检查点覆盖排队爆炸，不证明实体弹丸跨重启。"
+  ]
+}

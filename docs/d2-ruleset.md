@@ -1320,3 +1320,32 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 装配时首个周期、只按接受射击重置、满弹 / 空储备继续原相位、到点先补弹后处理同刻外部射击、替换词条从新装配时刻重新计时，均是明确的 Chorus 政策。手动换弹不推迟重建的计时有验收，但原作精确边界仍待校准；死亡、离线、所有热量武器和容量词条交互也没有从这段原文中推断为已完成。
 
 10项纯测试覆盖整数边界、来源 / 武器隔离、有限与无限储备、动态容量、换装 / 所有者转移、同刻结算、纯会话检查点及未知结果；5项共享世界测试使用真实物品插槽、低权限开火 / 换弹命令、物理击杀与服务器 tick 验证对应链路。测试武器的五发容量、30储备、10伤害、0.15秒射速、0.2秒换弹与20米/秒弹道均为合成参数。正式内容装配、武器原型、HUD / 动画及物理武器独立重启验收仍待完成，状态为 partial。
+
+
+## Chain Reaction 的击杀爆炸与来源校准
+
+已提供 [chain_reaction.json](../common/src/test/resources/effects/chain_reaction.json)、[实际物品 / 开火夹具](../common/src/test/resources/effects/chain_reaction_weapon.json) 和 [显式测试校准](../common/src/test/resources/effects/chain_reaction_test_calibration.json)。这些目前位于测试资源，尚未加入正式武器内容目录。纯引擎和真实世界测试分别为 ChainReactionTest 与 ChainReactionGameTest。
+
+### 当前资料与冲突
+
+[原表 Weapon Perks A42 / C42](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278&range=A42:C42) 与固定快照 A41 / C41 按空白规范化逐格一致。表中仍有特殊弹药 44.8? / 强化49.3?、重型72.8 / 强化80?，并按武器原型分列伤害；问号与旧记录完整保存在[研究记录](../data/d2-research/2026-10-11/chain-reaction.json)。
+
+[Bungie 9.0.0.1](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1) 已明确 Chain Reaction / Dragonfly / Firefly 改用统一 perk 缩放，并排除武器 perk 生成的 Threadling 对 Chain Reaction 的触发。[9.1.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_1_0) 明确强化 Chain Reaction 爆炸增加10%伤害。当前定义因此没有沿用表中的旧武器原型倍率。
+
+[light.gg Community Research](https://www.light.gg/db/items/2396489472/chain-reaction/?_=112) 的可访问索引标注2026-01-10更新：特殊弹药 PvE / PvP 基础67.2 / 44.8，重型109.2 / 72.8。此次直连页面失败，数值来自索引，没有独立实测。测试以这些值验证模式选择；定义要求宿主显式提供 pve_damage / pvp_damage，不把它们当作所有等级 / 活动下的最终伤害。原表的强化剑 +20 格挡耐力仍保留为未验收项，不能从补丁的库存属性变更推断它已删除。[9.7.0](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0) 的官方索引还列出 Riskrunner 催化新增该词条，所以主弹药来源不能被硬性排除，其参数仍须另行校准。
+
+### 数据与执行政策
+
+`chorus_d2:chain_reaction` 必需五个参数：pve_damage / pvp_damage（damage）、full_radius / radius（meter）、delay（second）。真实物品定义检查有限非负值；radius 必须大于 full_radius，正延迟仍须满足引擎微秒时钟的最小时长。特殊弹药测试使用2.4 / 6米，重型3 / 7米。强化乘数固定1.1，采用十进制算术；活动模式在击杀产生爆炸快照时选择。
+
+击杀事实必须匹配来源持有者和武器并有 weapon_kill 信用，且不能标为 threadling_damage。元素取自该事实中唯一一个 kinetic / arc / solar / void / stasis / strand 的 `chorus_d2:*_damage` 标签；与事实的原始 owner / source / weapon / ability 分开保存，既不按当前手持枪重新判定，也不盲目复制全部伤害标签。没有元素、多个元素、缺失死亡位置或无效半径会发布 chain_reaction_unresolved。宿主仍负责为实际技能 / 武器正确分类；合成动能等测试证明可表达，不表示当前原作存在所有这类装备。
+
+死亡回执的 feet 位置固定爆炸中心。来源增益在确认击杀时捕获；正 delay 保存 detached 续体，零 delay 直接执行。爆炸时重新查询非盟友，排除来源玩家和原死者，逐目标确认可用 / 存活。距离取自此次查询；全伤平台内固定1，最远边界固定0且不提交零伤害动作。内部区间经 ratio 归一化后交给必需的 chain_reaction_falloff Profile；输出不在0～1时发布未解决诊断。
+
+伤害通过独立 chain_reaction_outgoing Profile 结算，保留单一元素和 weapon_damage / weapon_kill 信用；完整的当前敌人等级缩放留在统一目标阶段。派生爆炸击杀可以再次触发，不设代数或次数上限。这里的连锁、间接信用、队友过滤、取样与卸装行为是当前内容政策，不能把它们外推为已核对全部原作组合。收枪保留触发资格；击杀前卸下 perk 不触发，已捕获的爆炸在来源卸下后仍完成。
+
+### 验证边界
+
+纯测试涵盖六元素、两模式、普通 / 强化、全伤 / 中点 / 零边界、诊断、Threadling排除、真实射击信用、收枪 / 替换、历史中心、冻结增益、连续12次派生击杀、死亡 / 缺失 / 免疫目标、未知世界结果不重放和排队爆炸的检查点恢复。共享世界场景通过真实玩家独立装备容器、低权限开火命令、物理击杀、实际扣血、队友过滤、尸体移除、来源替换、三代爆炸与未知伤害回执。
+
+线性内部曲线、0 / 0.1秒延迟、0.1世界伤害映射、武器容量 / 射速 / 弹道均为合成输入。完整敌人等级与活动数值、主弹药 / 异域特例、原作全部派生触发资格、剑格挡消耗、正式内容 / HUD 和实体跨重启仍未完成；覆盖保持 partial。纯会话恢复不能替代物理武器重启验证。
