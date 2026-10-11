@@ -38,6 +38,8 @@ public class LightweightKnifeGameTest {
             var contact=actions.get(actions.size()-1).getAsJsonObject().getAsJsonArray("do");
             for(String reason:List.of("expired","unloaded")) contact.add(JsonParser.parseString("{\"if\":{\"type\":\"chorus:result_flag\",\"binding\":\"impact\",\"field\":\""+reason+"\"},\"then\":[{\"type\":\"chorus:play_cue\",\"cue\":\"test:"+reason+"\"}]}"));
             if(contactCue){var body=data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonArray("on_use");var projectile=body.get(body.size()-1).getAsJsonObject();var before=new JsonArray();before.add(JsonParser.parseString("{\"type\":\"chorus:play_cue\",\"cue\":\"test:contact\"}"));projectile.getAsJsonArray("do").forEach(before::add);projectile.add("do",before);}},true);
+        // Keep the five-metre flight inside the eight-block test structure's loaded columns.
+        t.owner.setPos(h.absoluteVec(new Vec3(2.5,40,2.5)));
         t.owner.setXRot(0);t.owner.setYRot(0);t.owner.getFoodData().setFoodLevel(0);select(t,true);return t;
     }
     static String owner(ProjectileGameTest.Harness t){return t.owner.getUUID().toString();}
@@ -47,7 +49,7 @@ public class LightweightKnifeGameTest {
     static ResourceState resource(ProjectileGameTest.Harness t,String name){return state(t).resources().get(new ResourceState.Key(owner(t),D+"solar_melee_"+name));}
     static Optional<BuffInstance> buff(ProjectileGameTest.Harness t,String name){return state(t).buffs().instances().values().stream().filter(b->b.key().holder().equals(owner(t))&&b.definition().id().equals(D+name)).findFirst();}
     static void region(ProjectileGameTest.Harness t,LivingEntity target){String id=target.getUUID().toString();t.runtime.bind(new EffectSource("region/"+id,"test:knife_region",id,new BuffInstance.Origin(id,"region/"+id,"",""),Set.of(),Map.of("min_x",new Measure(-1,Unit.MULTIPLIER),"max_x",new Measure(2,Unit.MULTIPLIER),"min_y",new Measure(.75,Unit.MULTIPLIER),"max_y",new Measure(1.125,Unit.MULTIPLIER),"min_z",new Measure(-1,Unit.MULTIPLIER),"max_z",new Measure(2,Unit.MULTIPLIER))));}
-    static LivingEntity target(ProjectileGameTest.Harness t,double relativeY,float health){var e=ThreadedSpikeGameTest.target(t,2.5,40,8.5,health);e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1024);e.setHealth(health);e.setPos(t.owner.getX(),t.owner.getEyeY()-e.getBoundingBox().getYsize()*relativeY,e.getZ());return e;}
+    static LivingEntity target(ProjectileGameTest.Harness t,double relativeY,float health){var e=ThreadedSpikeGameTest.target(t,2.5,40,7.5,health);e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1024);e.setHealth(health);e.setPos(t.owner.getX(),t.owner.getEyeY()-e.getBoundingBox().getYsize()*relativeY,e.getZ());t.h.assertTrue(t.h.getLevel().isPositionEntityTicking(e.blockPosition()),"knife target fixture is outside simulated columns");return e;}
     static void hit(ProjectileGameTest.Harness t,int flight){
         var p=t.projectiles.get(flight);int before=t.hits.size();for(int i=0;i<40&&!p.isRemoved();i++)p.tick();
         t.h.assertTrue(p.isRemoved(),"knife continued after first contact");
@@ -64,7 +66,7 @@ public class LightweightKnifeGameTest {
     @GameCase public void actualGuardianAndUnconfiguredTargetsUseTheirOwnDamageAndRegionData(GameTestHelper h)throws Exception{
         try(var t=open(h)){
             var unclassified=target(t,.9,1024);cast(t);hit(t,0);near(h,unclassified.getHealth(),616,"unconfigured target received guessed headshot");h.assertTrue(buff(t,"radiant").isEmpty(),"unconfigured target granted Radiant");unclassified.discard();
-            var guardian=NativeMeleeGameTest.player(h);t.entities.add(guardian);guardian.setNoGravity(true);guardian.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);guardian.setHealth(1000);guardian.setPos(t.owner.getX(),t.owner.getEyeY()-guardian.getBoundingBox().getYsize()*.9,h.absoluteVec(new Vec3(0,0,8.5)).z);region(t,guardian);cast(t);hit(t,1);near(h,guardian.getHealth(),850,"Guardian precision damage must be 100*1.5 even in PvE mode");
+            var guardian=NativeMeleeGameTest.player(h);t.entities.add(guardian);guardian.setNoGravity(true);guardian.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);guardian.setHealth(1000);guardian.setPos(t.owner.getX(),t.owner.getEyeY()-guardian.getBoundingBox().getYsize()*.9,h.absoluteVec(new Vec3(0,0,7.5)).z);region(t,guardian);cast(t);hit(t,1);near(h,guardian.getHealth(),850,"Guardian precision damage must be 100*1.5 even in PvE mode");
         }h.succeed();
     }
     @GameCase public void contactGeometrySurvivesTargetMovementAndIntrinsicPrecisionSurvivesDeselection(GameTestHelper h)throws Exception{
