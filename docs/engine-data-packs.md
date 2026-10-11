@@ -962,7 +962,9 @@ weapons 中可选的 fire 为当前物品原型声明一次触发。缺省时拒
 
 只有接受的开火才清除持有者的换弹 Plan 与计时器，并发布 `reload_cancelled{reason=fire_accepted}`。冷却、条件失败和缺弹请求保留原换弹；请求恰逢换弹截止时，运行时先完成该边界的到期结算，再接受输入。随后按顺序发布实际 `ammo_spent / ammo_changed`（只有弹数变化时）和 `chorus:fire_accepted`，已有规则按事件队列运行。on_fire 在 fire_accepted 的专属规则中执行，再执行该事件的来源 / Buff 监听；动作读取当时状态，需要冻结的伤害应显式使用 capture_damage。
 
-fire_accepted 的 actor 是持有者，victim 为空；source.owner 为接受时持有者，source.weapon 为实际物品实例，source.source 为 `shot/<请求标识>`。references 包含 weapon / item / shot，numbers 包含 cost、interval 和 scheduled_interval。发射后的投射物保留该来源、捕获的攻击和词法值；收枪或后来手持另一把武器不会改写其信用。
+fire_accepted 的 actor 是持有者，victim 为空；source.owner 为接受时持有者，source.weapon 为实际物品实例，source.source 为 `shot/<请求标识>`。references 包含 weapon / item / shot / origin_source，其中 shot 保留请求标识，origin_source 等于 source.source。numbers 包含 cost、interval、scheduled_interval，以及单位均为 round 的 before_magazine / magazine / capacity / unmodified_capacity：分别是本次支付前后弹量、接受时求值的有效基础容量与容量 Profile 的未修饰输入。它们是不可变的接受快照，不会因后续反应补弹、换弹或容量变化而重算。发射后的投射物保留该来源、捕获的攻击和词法值；收枪或后来手持另一把武器不会改写其信用。
+
+内容可用 `cost > 0 && before_magazine > 0 && magazine == 0` 判断本次接受是否消耗到空；零成本空弹匣开火不满足这一转换，拒绝开火不产生接受事实。接受时射空仍不证明该攻击的弹丸已经结算。需要等待时，显式记住 origin_source，再与 shot_progress / shot_resolved 的同名引用关联；不能在延迟回调中仅凭当前弹匣为零推断是哪次射击。
 
 **接受、发射成功、命中、击杀与整枪结算是不同事实。** fire_accepted 不证明 projectile 已成功生成；生成是否成功看实际 Launch 回执，hit / kill 看 DamageReceipt。弹药支付也不自动生成 shot_fired、shot_resolved 或“射空弹匣”。若声明的世界动作被明确拒绝，已接受的弹药和间隔保持；若结果未知，运行时保留待确认操作并停止，不自动退款或重放。具体内容若需要已知失败补偿，应另声明并验证相应回执处理策略。
 
@@ -1003,8 +1005,11 @@ Rampage 的可执行例子见 [rampage.json](../common/src/test/resources/effect
 | max_pellets_on_target / max_effective_pellets_on_target | 同一目标上的最大唯一命中 / 有效伤害弹丸数；两个最大值可能来自不同目标 |
 | flags.complete / flags.all_hit | 所有预期槽位都已有终态 / 完整且每颗弹丸都曾 hit；all_hit 允许分散目标，不等于集中全中 |
 | references.shot | 稳定的本次整枪组身份；成员伤害事实另外带 pellet 索引与 contact 序号 |
+| references.origin_source | 该组 Handle 的 origin.source；武器开火派生组可与 fire_accepted 关联，不改写 references.shot 的组身份 |
 
 计数值单位均为 COUNT。类型化 `ShotGroups.Summary` 额外保留两个每目标计数表；公共事件 victim 选择命中数最多的目标，同分按身份字符串排序，没有 hit 时为空。贯穿可计入多个目标；同一弹丸对同一目标的多次接触 / 多条伤害命令只计一次。免疫和格挡遵从现有 hit 契约，计入 hit 但不计入有效伤害；CANCELLED / FAILED 与纯几何接触不计入 hit。集中命中要检查 max_pellets_on_target，不能只检查 pellets_hit；需要最终完整结果时再要求 complete。
+
+origin_source 只表达实际来源关系，不强制一枪一个组，也不保证来源一定是武器开火：技能或其他动作创建的组仍保留自己的来源。它不额外分配全局身份；自定义请求生产者须在关联存续期间使用不重复的 token，内容还应匹配 owner / weapon。Minecraft 开火入口生成 UUID。多个组可共享同一来源，某一组 complete 不代表该来源的所有组已结束；需要整次连发结算的内容必须显式组织组及计数。寿命截止的 complete=false 和全部打空的 complete=true 都保留关联，但含义不同；最后一颗打空不妨碍完整组结算。
 
 `chorus:shot_progress` 在实际伤害回执增加任一目标的唯一 hit / 有效弹丸数时发布；重复命中未改变计数则不发布。另有 COUNT 字段 previous_pellets_hit / previous_pellets_effective / previous_max_pellets_on_target / previous_max_effective_pellets_on_target，references.pellet 指向本次成员。类型化 Progress 保留不可变的 before / after Summary。当前接触尚未关闭，complete 通常为 false；该事实不等待整枪结束，也不证明剩余弹丸已完成。
 
@@ -1398,6 +1403,15 @@ Buff 生命周期事实现提供通用 EffectEvent 投影。numbers 的 `request
 root、shot、服务器 tick 和批次之间不做自动映射；派生伤害默认创建自己的单例批次，正常循环与事件传播保持原行为。该机制仅提供身份及按批记账，不提供最终 batch_resolved 事件或全批原子结算。多分量共用一次性 Buff 资格由下述独立的 damage_group 显式声明，不由 batch 自动推导。完整合成夹具见 [damage_batch.json](../common/src/test/resources/effects/damage_batch.json)，它不是完整 Bolt Charge。
 
 ### 单个集合凭据到期
+
+条件 `chorus:set_contains` 按字面 entry 查询集合；`chorus:set_contains_event_reference` 从当前事件 references 的指定键取得身份后查询：
+
+```json
+{"type":"chorus:set_contains_event_reference","buff":"test:pending_fire",
+ "component":"origins","event_reference":"origin_source","target":"self"}
+```
+
+两者只读当前来源所绑定的 Buff 实例，不在其他持有者、武器或来源实例中寻找匹配。target 默认 self；集合须在 Buff 的 components.sets 中声明，实例不存在或已到期返回 false。事件引用缺失 / 空白则明确报错，不以 false 隐藏错误输入；身份写入可复用 `update_component.once_set`，删除使用下述动作。快照时 self 等来源侧查询冻结为布尔值；victim 查询保留目标侧的实时集合，但立即捕获事件身份字符串，后续命中不能换用另一个事件引用。两种条件及捕获后的表达式可序列化，不保留执行闭包。这些集合仅服务内容声明的关联或去重，不限制合法事件循环。
 
 `chorus:forget_set_entry` 从指定 Buff 的已声明集合删除当前事件引用指向的一项：
 

@@ -237,6 +237,16 @@ Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction 与 Over
 
 覆盖为 partial。除随机分布外，上述基础换弹 / 溢出阶段、容量快照、基础容量不变及多种 on-reload 效果的顺序仍需原作交互验收。技能换弹、完整 D2 原型、弹药存档与 HUD 尚未完成；clown_weapon.json 的 5 发初始容量与 0.2 秒换弹为合成夹具。
 
+### Rewind Rounds 的开火关联与待校准边界
+
+Rewind Rounds 仍为 **unimplemented**。[研究记录](../data/d2-research/2026-10-11/rewind-rounds.json) 已逐格核对当天原表 A188 / C188 / C251 与固定 CSV A187 / C187 / C250：普通 / 强化按命中伤害实例的60 / 70%向上取整补弹，收枪保留计数，Adaptive Burst 线融逐 bolt 计数并单列14%。补弹不触发普通换弹效果，有限弹药从对应武器储备转移。
+
+原表最低发射比例为28.5%，[公开 Community Research](https://www.light.gg/db/items/1563455254/rewind-rounds/?_=114)的可访问索引为28.75%；后者还把强化 Adaptive Burst 的16.33%标为暂定值。原表和该索引都没有消除补弹后 `1?` 秒禁计数窗口的不确定性。直接打开该页返回402，不能把搜索索引当作当前独立实测。阈值冲突、特殊原型强化系数和抑制时间均需显式内容配置与校准；不静默选一个数字。[7.0.0.1](https://www.bungie.net/7/en/News/Article/update_7_0_0_1)的跨武器重建说明和[6.3.0](https://www.bungie.net/7/en/News/article/destiny2_update_630)的 Divinity 修复只是历史行为证据，不证明这些数值或最终弹丸的结算时机。
+
+本轮只补齐通用表达能力：fire_accepted 保留扣弹前后弹量、当时有效容量与未修饰容量；接受事件和弹丸组进度 / 结束事件共有 origin_source，可由 Buff 集合记住并查询对应射击。原有 shot 字段继续分别表示请求与组，不混用身份。零成本或拒绝开火不会伪造有成本的射空转换，最后一颗打空也可形成 complete=true 的组结束；超时未完成依旧是 complete=false。
+
+具体效果仍须定义命中与发射计数、换弹 / 触发重置、冷却窗口、储备不足和身份清理，并以实际多弹丸和延迟伤害验收。组的唯一 pellet-target 统计不等于所有伤害实例数；同一开火还可以创建多个组。等待声明的最终组以纳入最后一发，是待验证的 Chorus 内容策略，不是已经确认的 D2 原作算法；本轮不据此升级效果覆盖状态。
+
 ### Overflow 与特殊 / 重型弹药砖
 
 [overflow.json](../common/src/test/resources/effects/overflow.json) 根据 `chorus:pickup` 的实际 actor 匹配当前持有者，且 pickup_kind 必须是 `chorus_d2:special_ammo` 或 `chorus_d2:heavy_ammo`。它不按砖生成者匹配，不把普通储备增加、Firesprite 或砖到期当作拾取。当前装备中每把满溢武器均可响应，收枪不移除来源；每把武器只从自己的储备 refill 至 `ceil(当前有效基础容量 × 2 / 强化 2.2)`，储备不足就只转入可用量，主弹药的无限储备不改成有限账户。一次溢出不修改基础容量、不产生 reload_finished，也不裁掉已有更高溢出。

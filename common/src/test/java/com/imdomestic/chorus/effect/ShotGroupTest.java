@@ -75,6 +75,32 @@ class ShotGroupTest {
         ShotGroups.Summary summary() { assertEquals(1, summaries.size()); return summaries.getFirst(); }
     }
     static double number(ShotGroups.Summary summary, String key) { return summary.event().numbers().get(key).value(); }
+    @Test void outOfOrderGroupsRetainTheirAcceptedSourceWhileTheFinalPelletMayMiss() throws Exception {
+        var h = new Harness(); h.fire(); var a = h.state().shots().get("a");
+        h.equip("secondary"); h.fire(); var b = h.state().shots().get("b");
+        h.impact(4, "enemy", 1, true); h.impact(3, "enemy", 1, true);
+        assertTrue(h.summaries.isEmpty()); h.impact(5, "", 1, true);
+        assertEquals(1, h.summaries.size()); assertEquals(b.origin().source(), h.summaries.getFirst().event().references().get("origin_source"));
+        h.impact(2, "enemy", 1, true); h.impact(0, "enemy", 1, true); h.impact(1, "", 1, true);
+        assertEquals(2, h.summaries.size()); var last = h.summaries.getLast();
+        assertEquals(a.origin().source(), last.event().references().get("origin_source"));
+        assertEquals(last.shot().id(), last.event().references().get("shot")); assertNotEquals(a.token(), last.event().references().get("shot"));
+        assertTrue(last.complete()); assertEquals(2, number(last, "pellets_hit")); assertEquals(1, number(last, "pellets_missed"));
+        for (var progress : h.progress) assertEquals(progress.after().shot().origin().source(), progress.event().references().get("origin_source"));
+    }
+    @Test void incompleteAndNonWeaponGroupsExposeOnlyTheirActualOriginWithoutInventingAcceptedFire() throws Exception {
+        var h = new Harness(); h.fire(); var shot = h.state().shots().get("a");
+        // Expiry is correlated but never promoted to a complete attack.
+        h.until(h.state().shotGroups().values().iterator().next().handle().dueAt());
+        var summary = h.summary(); assertFalse(summary.complete()); assertEquals(shot.origin().source(), summary.event().references().get("origin_source"));
+        var origin = new com.imdomestic.chorus.effect.buff.BuffInstance.Origin("caster", "ability/cast-7", "", "test:ability");
+        var handle = new ShotGroups.Handle("independent/group", origin, 2, 0, 50_000);
+        var begun = ShotGroups.begin(EffectState.empty(), handle).state();
+        var expired = ShotGroups.expire(begun.cancel(handle.timerId()).withBuffs(new com.imdomestic.chorus.effect.buff.BuffStore(50_000, 1, Map.of())), handle);
+        var ability = (ShotGroups.Summary) expired.emitted().getFirst().payload();
+        assertEquals("ability/cast-7", ability.event().references().get("origin_source")); assertEquals("independent/group", ability.event().references().get("shot"));
+        assertTrue(expired.state().shots().isEmpty()); assertFalse(ability.complete());
+    }
     @Test void ownedShotWaitsForAllPelletsUsesReceiptsAndPreservesAttributionAfterStow() throws Exception {
         var h = new Harness(); h.fire(); var group = h.state().shotGroups().values().iterator().next();
         assertEquals(0, h.state().ammunition().get("a").magazine()); assertEquals(3, h.launches.size()); assertTrue(h.summaries.isEmpty());

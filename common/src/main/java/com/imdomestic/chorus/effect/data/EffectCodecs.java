@@ -150,6 +150,14 @@ public final class EffectCodecs {
                 .register("chorus:event_reference", Condition.EventReference.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("name").forGetter(Condition.EventReference::name), Codec.STRING.fieldOf("is").forGetter(Condition.EventReference::expected)
                 ).apply(i, Condition.EventReference::new)))
+                .register("chorus:set_contains", Condition.SetContains.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(Condition.SetContains::buff), TARGET.optionalFieldOf("target", Evaluation.BuiltinTarget.SELF).forGetter(Condition.SetContains::target),
+                        Codec.STRING.fieldOf("component").forGetter(Condition.SetContains::component), Codec.STRING.fieldOf("entry").forGetter(Condition.SetContains::entry)
+                ).apply(i, Condition.SetContains::new)))
+                .register("chorus:set_contains_event_reference", Condition.SetContainsEventReference.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(Condition.SetContainsEventReference::buff), TARGET.optionalFieldOf("target", Evaluation.BuiltinTarget.SELF).forGetter(Condition.SetContainsEventReference::target),
+                        Codec.STRING.fieldOf("component").forGetter(Condition.SetContainsEventReference::component), Codec.STRING.fieldOf("event_reference").forGetter(Condition.SetContainsEventReference::eventReference)
+                ).apply(i, Condition.SetContainsEventReference::new)))
                 .register("chorus:event_flag", Condition.EventFlag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("name").forGetter(Condition.EventFlag::name), Codec.BOOL.optionalFieldOf("is", true).forGetter(Condition.EventFlag::expected)).apply(i, Condition.EventFlag::new)))
                 .register("chorus:target_is", Condition.TargetIs.class, RecordCodecBuilder.mapCodec(i -> i.group(

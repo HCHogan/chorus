@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.equipment.*;
 import com.imdomestic.chorus.effect.projectile.*;
+import com.imdomestic.chorus.effect.weapon.WeaponFire;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
 import com.mojang.authlib.GameProfile;
@@ -34,7 +35,7 @@ public class ShotGroupGameTest {
     private static final class Harness implements AutoCloseable {
         final GameTestHelper h; final ServerPlayer owner; final LivingEntity target; final MinecraftEffectRuntime runtime;
         final List<EffectProjectile> projectiles = new ArrayList<>(); final List<ShotGroups.Summary> summaries = new ArrayList<>();
-        final List<DamageReceipt> damage = new ArrayList<>(); boolean unknownDamage;
+        final List<DamageReceipt> damage = new ArrayList<>(); boolean unknownDamage; WeaponFire.Accepted accepted;
         Harness(GameTestHelper h, boolean stationary) throws Exception {
             this.h = h;
             var cookie = CommonListenerCookie.createInitial(new GameProfile(UUID.randomUUID(), "pellet-test"), false);
@@ -58,6 +59,7 @@ public class ShotGroupGameTest {
             var world = new MinecraftWorldActions(h.getLevel(), ref -> h.getLevel().getEntity(UUID.fromString(ref)) instanceof LivingEntity e ? e : null,
                     _ -> new DamageSource(type, null, owner), (_, _) -> true, _ -> {});
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty(), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
+                if (request.command() instanceof ProjectileFlight.Launch && payload() instanceof WeaponFire.Accepted fire) accepted = fire;
                 var receipt = world.apply(request);
                 if (receipt instanceof ProjectileFlight.Receipt launch && launch.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(launch.entity().orElseThrow())));
                 if (receipt instanceof DamageReceipt hit) { damage.add(hit); if (unknownDamage) throw new IllegalStateException("Injected unknown grouped pellet damage"); }
@@ -92,6 +94,13 @@ public class ShotGroupGameTest {
                     near(h, t.number("max_pellets_on_target"), 3, "same target pellets"); near(h, t.number("pellets_effective"), 3, "effective pellets");
                     h.assertTrue(t.summaries.getFirst().complete() && t.summaries.getFirst().event().flags().get("all_hit"), "complete all-hit shot");
                     h.assertValueEqual(t.summaries.getFirst().shot().origin().weapon(), "a", "frozen weapon identity");
+                    h.assertTrue(t.accepted != null, "physical launch retains its accepted fire");
+                    var accepted = t.accepted.event(); var resolved = t.summaries.getFirst().event();
+                    h.assertValueEqual(resolved.references().get("origin_source"), accepted.references().get("origin_source"), "accepted fire and final group correlation after stow");
+                    h.assertValueEqual(resolved.references().get("shot"), t.summaries.getFirst().shot().id(), "group identity unchanged");
+                    near(h, accepted.numbers().get("before_magazine").value(), 1, "accepted pre-spend magazine");
+                    near(h, accepted.numbers().get("magazine").value(), 0, "accepted post-spend magazine");
+                    near(h, accepted.numbers().get("capacity").value(), 5, "accepted effective capacity");
                     h.assertTrue(t.state().shotGroups().isEmpty() && t.state().timers().isEmpty(), "settled shot leaked state");
                     h.assertValueEqual(t.state().ammunition().get("a").magazine(), 0, "single-round shot cost"); h.succeed();
                 }

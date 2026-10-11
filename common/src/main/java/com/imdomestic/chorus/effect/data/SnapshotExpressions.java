@@ -52,6 +52,8 @@ public final class SnapshotExpressions {
                 yield bound instanceof Condition.Constant constant ? new Condition.Constant(!constant.value()) : new Condition.Not(bound);
             }
             case Condition.HasBuff c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.SetContains c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.SetContainsEventReference c -> c.resolve(e).snapshot(e);
             case Condition.AbilityEnergyFlag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasBuffTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.HasSourceTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));

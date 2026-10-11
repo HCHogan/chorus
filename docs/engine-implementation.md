@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+开火 / 弹丸组关联的完整门禁 `/tmp/chorus-shot-identity-final-gate.log` BUILD SUCCESSFUL，7分50秒：1358项 JUnit（无失败 / 错误 / 跳过）、Fabric 690项、NeoForge 705项及两端发布 jar 通过，共享场景仍为689项。10项 Compendium审计、76条报告一致性、既有v1字段形状和差异检查通过。发布包包含两种新增条件，未混入效果 / GameTest / 持久化测试夹具；没有客户端协议或图形变化。
+
+fire_accepted 新增支付前后弹量、接受时有效容量与未修饰容量四项 ROUND 快照，并与 shot_progress / shot_resolved 共有 origin_source；原有请求 token 与组 ID 的 shot 字段各自保持原义。来源关联不把多个组合并成一次结束，也不把零消耗、拒绝射击或不完整截止视为完整的射空攻击。Minecraft 请求入口使用 UUID；自定义宿主须保证有效关联期间 token 不复用。
+
+新增只读 set_contains / set_contains_event_reference 条件，按 Buff 定义与来源计算实例键，复用 once_set 写入和 forget_set_entry 删除。来源侧快照冻结成员判断；victim 快照仅冻结事件身份、保留目标集合实时读取。缺失 / 空白事件引用和未声明集合明确拒绝；不存在 / 已到期实例返回 false。两种新检查点类型独立注册，既有 v1 类型形状保持不变。
+
+9项新增纯测试覆盖动态容量、支付前后不可变事实、零成本 / 缺弹拒绝、两把武器乱序结束与最后一颗未命中、未完成 / 非武器组来源，以及集合隔离、选择性删除、目标快照、JSON与检查点类型往返。现有共享 ShotGroup 世界场景补强了真实容器开火、物理三弹丸和收枪后的接受 / 汇总关联断言。首轮回归的旧 BundleInvocation 场景因 Slow 不存在失败；其横向测试弹道改为玩家同列向上，并检查目标模拟资格和明确输出缺失状态。该改动保留卸下生产者后命中、原来源信用及当前 Durance 查询的原验收目标；旧日志不足以证明此前缺失命中的唯一原因。
+
+Rewind Rounds 原表已与固定快照逐格核对，28.5 / 28.75%发射阈值冲突、强化 Adaptive Burst系数和1?秒抑制窗口保存在[研究记录](../data/d2-research/2026-10-11/rewind-rounds.json)。本轮完成的是通用关联基础，尚未加入该词条的数据定义或原作结算策略验收，Compendium保持76条审阅、67 partial、7 unimplemented、2 not_applicable、0 verified。正式内容装配、HUD与该物理武器跨重启仍待后续完成。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Overflow 的完整门禁 `/tmp/chorus-overflow-final-gate.log` BUILD SUCCESSFUL，1 分 40 秒：1349 项 JUnit（无失败 / 错误 / 跳过）、Fabric 690 项、NeoForge 705 项及两端发布 jar 通过，共享场景为689项。10 项 Compendium 审计、76条报告一致性与差异检查通过。此阶段只增加内容 / 测试 / 文档，未修改引擎 Java、客户端协议或检查点类型；发布包没有混入效果夹具和 GameTest。
 
 新增 `overflow.json` 在实际收集者的特殊 / 重型 pickup 事实后，对各当前装备来源执行普通 / 强化2 / 2.2倍有效基础容量的 ceiling refill。十进制乘法先于取整，25×2.2得到55。每把武器只从自己的储备转移，有限储备不足时受限，无限主弹药保持无限；收枪可触发，不改变基础容量、不删除已有更高溢出、不发布普通换弹完成事实。

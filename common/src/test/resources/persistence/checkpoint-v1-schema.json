@@ -197,6 +197,8 @@
   "chorus:effect/data/condition/own_timer": ["name:java.lang.String"],
   "chorus:effect/data/condition/resource_crossed": ["resource:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "threshold:double", "direction:com.imdomestic.chorus.effect.data.Condition$Crossing"],
   "chorus:effect/data/condition/result_flag": ["binding:java.lang.String", "field:java.lang.String", "expected:boolean"],
+  "chorus:effect/data/condition/set_contains": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "component:java.lang.String", "entry:java.lang.String"],
+  "chorus:effect/data/condition/set_contains_event_reference": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "component:java.lang.String", "eventReference:java.lang.String"],
   "chorus:effect/data/condition/source": ["THIS_WEAPON", "THIS_ABILITY", "OWNER"],
   "chorus:effect/data/condition/source_is": ["source:com.imdomestic.chorus.effect.data.Condition$Source"],
   "chorus:effect/data/condition/source_tag": ["tag:java.lang.String"],

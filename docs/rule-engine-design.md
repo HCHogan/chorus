@@ -131,9 +131,9 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:death` | death id、死亡者、伤害原因及可选攻击来源 | 持有者死亡时触发；无攻击者的死亡也可以分发 |
 | `chorus:death_prevented` | damage id、被救活者及真正生效的保护来源 | 图腾等不死保护实际成功；不算 death / kill。当前原版适配器记录实际消耗物品 ID；其他模组的保护来源仍待接入 |
 | `chorus:hit` | 同上，加 damage id、分量结果、命名伤害投影、immune / lethal；effective 明确指实际扣除的护盾与生命之和，不含溢出 | Upon dealing Melee Damage |
-| `chorus:fire_accepted` | 服务端接受的持有者 / 物品实例 / shot 标识、已提交成本及间隔；不等于实际发射或命中 | 已接实际容器的单次开火，执行 on_fire 并保留真实伤害来源 |
+| `chorus:fire_accepted` | 服务端接受的持有者 / 物品实例 / shot 标识、已提交成本及间隔、支付前后弹量与当时容量快照；不等于实际发射或命中 | 已接实际容器的单次开火，执行 on_fire；origin_source 可关联其派生弹丸组 |
 | `chorus:shot_progress` | 显式组内实际回执使每目标唯一命中 / 有效弹丸计数增加；含前后计数，不必等待其余弹丸结束 | One-Two Punch：同一目标普通 12 / 强化 10 颗，从未达标跨至达标时触发 |
-| `chorus:shot_resolved` | 所有成员终止或寿命截止；各目标的唯一命中 / 有效弹丸数与 complete；一组只结算一次 | 需要整枪最终结果的效果；不完整截止不能冒充全数命中 |
+| `chorus:shot_resolved` | 所有成员终止或寿命截止；各目标的唯一命中 / 有效弹丸数与 complete；一组只结算一次 | 通过 origin_source 关联来源、shot 区分组；不完整截止不能冒充全数命中，也不能把单组结束当成来源下所有组结束 |
 | `chorus:damage_taken` | 攻击者、伤害类型、数值 | Feedback |
 | `chorus:heal` / `chorus:health_restored` / `chorus:overheal` | heal id、来源、目标、requested / offered / effective / overheal；分别代表接受的正治疗、实际回血、容量溢出 | 当前已接显式 heal 动作；满血不发 health_restored，取消不算 overheal；自然治疗观察尚未接入 |
 | `chorus:ability_started` | 已接受的技能、施放者、成本与参数快照 | 成本提交后、on_use 前的即时状态清理；拒绝请求不触发 |
@@ -1273,6 +1273,8 @@ Char / Ashes 进一步验证有时间推进的持续反馈：点燃对其他目�
 Incandescent 已将真实武器实例的击杀接到上述共享状态：死亡实体观测选择范围和层数，范围内逐目标伤害回执后施加 Scorch；多把枪共同叠到阈值仍使用首次来源。装备来源的标签随状态保存，用于声明 weapon_damage 信用和 scorch_rank_exempt 等数值资格。Ashes 选择通过 Profile 查询，层数由各生产者自己的表决定，不能统一乘 1.5。资料没有确定的距离曲线、世界单位以及等级排除和非 Boss 20% 的关系要求显式校准定义，不能用类型正确或测试通过替代原作数值验证。
 
 数值组件的 `once_set` 只对指定 Buff 集合内的身份去重。现有 `chorus:forget_set_entry` 可按保留的事件引用删除一项，配合 `after` 实现逐项到期：重复回执不刷新窗口，达到触发计数不必清空去重历史。长期射击不积累永久集合；保留期由内容声明，不能据此限制合法连锁或把所有同根事件合并。[单个集合凭据到期](engine-data-packs.md#单个集合凭据到期)。
+
+`set_contains / set_contains_event_reference` 提供只读身份成员判断，按 Buff 定义与绑定来源隔离实例，可把接受开火的 origin_source 与后续组结算关联。victim 延迟查询冻结的是事件身份，集合本身仍在命中时读取；来源侧查询则在快照时冻结结果。此通用关联能力不默认决定 Rewind Rounds 的补弹时机、连发组边界或命中信用，具体效果仍需数据定义及验收。
 
 ### 生命周期事件
 

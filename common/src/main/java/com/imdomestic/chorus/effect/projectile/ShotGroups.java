@@ -163,7 +163,8 @@ public final class ShotGroups {
         String victim = ""; int maximum = 0;
         for (var entry : hits.entrySet()) if (entry.getValue() > maximum) { maximum = entry.getValue(); victim = entry.getKey(); }
         var handle = group.handle(); var event = new EffectEvent(handle.origin().owner(), victim, handle.origin(), handle.origin().tags(), numbers,
-                Map.of("complete", group.complete(), "all_hit", group.complete() && hit == handle.pellets()), Map.of("shot", handle.id()));
+                Map.of("complete", group.complete(), "all_hit", group.complete() && hit == handle.pellets()),
+                Map.of("shot", handle.id(), "origin_source", handle.origin().source()));
         return new Summary(event, handle, group.complete(), hits, effective);
     }
     private static Measure count(int value) { return new Measure(value, Unit.COUNT); }

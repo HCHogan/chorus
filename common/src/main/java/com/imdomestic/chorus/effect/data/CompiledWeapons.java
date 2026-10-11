@@ -239,7 +239,7 @@ final class CompiledWeapons {
         if (previous != null && now < previous.readyAt()) return rejectFire(state, WeaponFire.Outcome.COOLDOWN);
         var tags = new HashSet<>(items.get(weapon.definition()).tags()); tags.addAll(fire.tags());
         var origin = new BuffInstance.Origin(request.holder(), "shot/" + request.token(), weapon.instance(), "", tags);
-        var query = new EffectEvent(request.holder(), "", origin, tags, Map.of(), Map.of(), Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token()));
+        var query = new EffectEvent(request.holder(), "", origin, tags, Map.of(), Map.of(), Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token(), "origin_source", origin.source()));
         var restriction=program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,ActionGate.Phase.START,query);
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new WeaponFire.Receipt(WeaponFire.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var event = new RuleEngine.Event(0, 0, Optional.empty(), now, new RuleEngine.Signal("chorus:internal/fire_query", query));
@@ -261,7 +261,10 @@ final class CompiledWeapons {
             facts.add(new RuleEngine.Signal("chorus:ammo_spent", changed)); facts.add(new RuleEngine.Signal("chorus:ammo_changed", changed));
         }
         var accepted = new EffectEvent(query.actor(), query.victim(), origin, tags,
-                Map.of("cost", new Measure(rounds, Unit.ROUND), "interval", interval, "scheduled_interval", new Measure((shot.readyAt() - now) / 1_000_000.0, Unit.SECOND)), Map.of(), query.references());
+                Map.of("cost", new Measure(rounds, Unit.ROUND), "interval", interval,
+                        "scheduled_interval", new Measure((shot.readyAt() - now) / 1_000_000.0, Unit.SECOND),
+                        "before_magazine", new Measure(cost.before().magazine(), Unit.ROUND), "magazine", new Measure(cost.after().magazine(), Unit.ROUND),
+                        "capacity", new Measure(view.capacity(), Unit.ROUND), "unmodified_capacity", new Measure(view.account().capacity(), Unit.ROUND)), Map.of(), query.references());
         facts.add(new RuleEngine.Signal(WeaponFire.ACCEPTED, new WeaponFire.Accepted(accepted, definition, shot)));
         return new RuleEngine.Local<>(updated, new WeaponFire.Receipt(WeaponFire.Outcome.ACCEPTED, Optional.of(shot)), facts);
     }

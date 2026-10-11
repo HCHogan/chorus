@@ -221,6 +221,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/condition/own_timer", com.imdomestic.chorus.effect.data.Condition.OwnTimer.class);
         types.put("chorus:effect/data/condition/resource_crossed", com.imdomestic.chorus.effect.data.Condition.ResourceCrossed.class);
         types.put("chorus:effect/data/condition/result_flag", com.imdomestic.chorus.effect.data.Condition.ResultFlag.class);
+        types.put("chorus:effect/data/condition/set_contains", com.imdomestic.chorus.effect.data.Condition.SetContains.class);
+        types.put("chorus:effect/data/condition/set_contains_event_reference", com.imdomestic.chorus.effect.data.Condition.SetContainsEventReference.class);
         types.put("chorus:effect/data/condition/source", com.imdomestic.chorus.effect.data.Condition.Source.class);
         types.put("chorus:effect/data/condition/source_is", com.imdomestic.chorus.effect.data.Condition.SourceIs.class);
         types.put("chorus:effect/data/condition/source_tag", com.imdomestic.chorus.effect.data.Condition.SourceTag.class);

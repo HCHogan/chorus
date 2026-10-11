@@ -88,6 +88,32 @@ public interface Condition {
             return EffectTimers.event(e.context().event().signal().payload()).filter(event -> expected.equals(event.references().get(name))).isPresent();
         }
     }
+    /** Exact membership in this source's active buff instance; no cross-source search or mutation. */
+    record SetContains(String buff, Evaluation.Target target, String component, String entry) implements Condition {
+        public SetContains {
+            java.util.Objects.requireNonNull(target);
+            if (buff == null || buff.isBlank() || component == null || component.isBlank() || entry == null || entry.isBlank())
+                throw new IllegalArgumentException("Missing set membership identity");
+        }
+        @Override public void validate(Validation v) {
+            v.target(target);
+            if (!v.buff(buff).components().sets().contains(component)) throw new IllegalArgumentException("Undeclared set component: " + component);
+        }
+        @Override public boolean test(Evaluation e) {
+            return e.state().buffs().active(e.key(buff, target)).map(b -> b.components().sets().get(component).contains(entry)).orElse(false);
+        }
+    }
+    /** Resolve the event identity now, retaining only that string when snapshotting a live victim query. */
+    record SetContainsEventReference(String buff, Evaluation.Target target, String component, String eventReference) implements Condition {
+        public SetContainsEventReference { new SetContains(buff, target, component, eventReference); }
+        @Override public void validate(Validation v) { new SetContains(buff, target, component, eventReference).validate(v); }
+        SetContains resolve(Evaluation e) {
+            String identity = e.event().references().get(eventReference);
+            if (identity == null || identity.isBlank()) throw new IllegalArgumentException("Missing set identity: " + eventReference);
+            return new SetContains(buff, target, component, identity);
+        }
+        @Override public boolean test(Evaluation e) { return resolve(e).test(e); }
+    }
     enum Crossing { UP, DOWN }
     record ResourceCrossed(String resource, Evaluation.Target target, double threshold, Crossing direction) implements Condition {
         @Override public void validate(Validation v) { v.target(target); v.resource(resource).threshold(threshold); }

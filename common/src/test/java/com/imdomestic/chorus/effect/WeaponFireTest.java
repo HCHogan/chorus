@@ -22,6 +22,9 @@ class WeaponFireTest {
     static CompiledEffects program(JsonObject data) throws Exception { return CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, data).getOrThrow(), load("kill_clip").program())); }
     static JsonObject config(JsonObject data) { return data.getAsJsonArray("weapons").get(0).getAsJsonObject().getAsJsonObject("fire"); }
     static Loadout pair(String drawn) { return WeaponReloadTest.pair(drawn); }
+    static WeaponFire.Accepted accepted(RuleEngine.Local<EffectState> result) {
+        return result.emitted().stream().filter(s -> s.type().equals(WeaponFire.ACCEPTED)).map(s -> (WeaponFire.Accepted) s.payload()).findFirst().orElseThrow();
+    }
     static final class Harness {
         final CompiledEffects program; final EffectSession session;
         final List<ProjectileFlight.Launch> launches = new ArrayList<>(); final List<EffectState> atLaunch = new ArrayList<>();
@@ -97,6 +100,38 @@ class WeaponFireTest {
         var h = new Harness(program(data), EffectState.empty()); h.equip(pair("primary")); var first = h.fire().shot().orElseThrow();
         assertEquals(0, first.cost().applied()); assertEquals(List.of("test:fire_accepted"), h.cues); assertEquals(0, h.magazine("a"));
         assertEquals(WeaponFire.Outcome.COOLDOWN, h.fire().outcome()); h.until(150_000); assertEquals(WeaponFire.Outcome.ACCEPTED, h.fire().outcome());
+    }
+    @Test void acceptanceFreezesAmmoTransitionAndDerivedCapacityBeforeAnyLaterReaction() throws Exception {
+        var data = json("weapon_fire"); config(data).getAsJsonObject("cost").addProperty("value", 2);
+        var h = new Harness(program(data), EffectState.empty()); h.equip(pair("primary"));
+        var account = h.state().ammunition().get("a");
+        var loaded = h.state().withAmmo(account.magazine(7));
+        // Use the existing capacity buff instead of inventing a special fire query path.
+        var origin = new BuffInstance.Origin("player", "capacity", "a", "");
+        var def = h.program.program().buffs().stream().filter(b -> b.definition().id().equals("test:expanded")).findFirst().orElseThrow().definition();
+        loaded = loaded.withBuffs(com.imdomestic.chorus.effect.buff.Buffs.grant(loaded.buffs(), def, "player", "player", origin, 1, 1, 1_000_000).store());
+        var result = h.program.fire(loaded, new WeaponFire.Request("player", "metadata")); var fact = accepted(result);
+        assertEquals(new Measure(7, Unit.ROUND), fact.event().numbers().get("before_magazine"));
+        assertEquals(new Measure(5, Unit.ROUND), fact.event().numbers().get("magazine"));
+        assertEquals(new Measure(10, Unit.ROUND), fact.event().numbers().get("capacity"));
+        assertEquals(new Measure(5, Unit.ROUND), fact.event().numbers().get("unmodified_capacity"));
+        assertEquals(new Measure(2, Unit.ROUND), fact.event().numbers().get("cost"));
+        assertEquals("metadata", fact.event().references().get("shot")); assertEquals("shot/metadata", fact.event().references().get("origin_source"));
+        assertEquals(fact.shot().origin().source(), fact.event().references().get("origin_source"));
+        var later = result.state().withAmmo(result.state().ammunition().get("a").magazine(1));
+        assertEquals(1, later.ammunition().get("a").magazine()); assertEquals(5, fact.event().numbers().get("magazine").value());
+    }
+    @Test void zeroCostAndRejectedFireCannotBeMistakenForAnEmptyingTransition() throws Exception {
+        var data = json("weapon_fire"); config(data).getAsJsonObject("cost").addProperty("value", 0);
+        var h = new Harness(program(data), EffectState.empty()); h.equip(pair("primary"));
+        var empty = h.state().withAmmo(h.state().ammunition().get("a").magazine(0));
+        var free = accepted(h.program.fire(empty, new WeaponFire.Request("player", "free")));
+        assertEquals(new Measure(0, Unit.ROUND), free.event().numbers().get("before_magazine"));
+        assertEquals(new Measure(0, Unit.ROUND), free.event().numbers().get("magazine"));
+        assertEquals(new Measure(0, Unit.ROUND), free.event().numbers().get("cost"));
+        var paid = new Harness(); paid.equip(pair("primary"));
+        var rejected = paid.program.fire(paid.state().withAmmo(paid.state().ammunition().get("a").magazine(0)), new WeaponFire.Request("player", "rejected"));
+        assertEquals(WeaponFire.Outcome.NO_AMMUNITION, ((WeaponFire.Receipt) rejected.result()).outcome()); assertTrue(rejected.emitted().isEmpty());
     }
     @Test void failedConditionMissingBehaviorAndMultiRoundShortfallArePureRejections() throws Exception {
         var data = json("weapon_fire"); config(data).add("if", JsonParser.parseString("{\"type\":\"chorus:event_tag\",\"tag\":\"test:missing\"}"));

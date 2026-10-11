@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "effect": "Rewind Rounds",
+  "reviewed_at": "2026-10-11",
+  "status": "researched_not_implemented",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "sheet": "Weapon Perks",
+      "cells": [
+        {
+          "original_cell": "A188",
+          "snapshot_cell": "A187",
+          "normalized_text": "Rewind Rounds",
+          "snapshot_text_sha256": "399b44795aec424164982ef5b47aeac9aa2dd8200957db6820af25e8a4982a5e",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C188",
+          "snapshot_cell": "C187",
+          "normalized_text": "Upon emptying the Magazine: Refills 60% ↑70% of all damage instances scored. Always rounds up. Counter persists through stow. Requires shooting at least 28.5% of the Magazine Capacity for refill to activate. Always rounds up. Hits within 1? seconds of triggering the refill do not count. Displayed by the active buff indicator. Adaptive Burst Linear Fusion Rifle Behavior: Counts each bolt individually. Refill Amount is 14% of damage instances scored.",
+          "snapshot_text_sha256": "d46bdc5b8870f2f87738bc892e524c7b83e0438d8042aaeeea3dc2fc15fb3dc0",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "pinned_csv_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/1563455254/rewind-rounds/?_=114",
+      "access": "Direct open returned 402; current search index exposed the Community Research text. No live measurement or numerical modification date was verified.",
+      "summary": "Enhanced refill: 70% of hits, rounded up, using reserves and capped at base capacity. Count starts at reload or prior proc; direct hits are not required. Firing threshold: 28.75%. Post-proc suppression remains 1? second. Adaptive Burst LFR counts each bolt; enhanced rate 16.33% is explicitly provisional."
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/Article/update_7_0_0_1",
+      "published_at": "2023-02-27",
+      "claim": "Rebuilt Rewind Rounds for weapons outside Vault of Glass; no numeric refill threshold or final-projectile timing specified."
+    },
+    {
+      "kind": "bungie_patch_notes_search_index",
+      "url": "https://www.bungie.net/7/en/News/article/destiny2_update_630",
+      "access": "Direct web open failed; search index exposed the relevant patch entry.",
+      "claim": "Historical fix for Rewind Rounds hits on the Divinity cage. Does not establish all current damage-credit rules."
+    }
+  ],
+  "baseline": {
+    "ordinary_refill_fraction": 0.6,
+    "enhanced_refill_fraction": 0.7,
+    "adaptive_burst_lfr_fraction": 0.14,
+    "minimum_fired_fraction": 0.285,
+    "rounding": "ceiling",
+    "persists_through_stow": true,
+    "post_proc_hit_suppression_seconds": "1?; must be calibrated, not silently set to 1"
+  },
+  "conflicts": [
+    {
+      "parameter": "minimum_fired_fraction",
+      "compendium": 0.285,
+      "community_research": 0.2875,
+      "resolution": "Unresolved. Retain both observations and require an explicit content choice; no silent replacement."
+    },
+    {
+      "parameter": "enhanced_adaptive_burst_lfr_fraction",
+      "compendium": "14% stated for Adaptive Burst without a separate enhanced number",
+      "community_research": 0.1633,
+      "resolution": "Provisional secondary observation; do not infer a confirmed enhanced coefficient from the base text."
+    }
+  ],
+  "engine_foundation": [
+    "Accepted fire exposes immutable before_magazine, magazine, capacity and unmodified_capacity, all in rounds. Zero-cost fire and rejected requests are distinguishable from a paid emptying transition.",
+    "Accepted fire and ShotGroups progress/summary expose origin_source while preserving their distinct shot references. Multiple groups may share an origin; one complete group is not proof that every group from that fire has ended.",
+    "Set membership conditions can correlate remembered event identities within the declared buff instance. A victim snapshot captures the identity while querying victim membership at impact. Source membership freezes at use.",
+    "These primitives do not implement Rewind Rounds and do not establish its original-game settlement timing."
+  ],
+  "remaining_requirements": [
+    "Declare and validate counters since reload/proc, stow retention, source/weapon isolation, fired-round threshold and decimal ceiling arithmetic.",
+    "Decide and label settlement policy for final misses, multiple bolts, overlapping shots, delayed explosions and incomplete groups; final-group completion is a proposed Chorus policy, not an observed D2 fact.",
+    "Count eligible damage instances rather than assuming unique pellet-target pairs equal the hit ledger. Preserve weapon credit and evaluate indirect damage, immunity, blockage and Divinity behavior explicitly.",
+    "Calibrate post-proc suppression, threshold conflict and enhanced Adaptive Burst rate. Never hide unknown values in a generic hardcoded timer or weapon multiplier.",
+    "Refill from the weapon account, cap at effective base capacity and avoid ordinary reload triggers; define zero-transfer, external refill, manual/ability reload, source removal and owner-transfer behavior.",
+    "Add ordinary/enhanced and multi-bolt rule definitions, unit and physical-world tests, checkpoint behavior and formal content assembly before changing coverage from unimplemented."
+  ]
+}
