@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effects": [
+    "Weapons attribute reload duration",
+    "Weapons Font",
+    "Surplus"
+  ],
+  "sources": [
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "path": "data/d2-research/2026-10-12/weapons-stat-source.html.gz",
+      "raw_sha256": "655e15a806da629f16608c4d62316ebb6b47e69565c5bbefe153f865fc536e2b",
+      "gzip_sha256": "8114a5d9526b25fdc74e94c61c8cc60b5f17cab85ce98e47435e9fcb3c159603",
+      "capture_file_mtime_utc": "2026-10-11T18:30:27.576308+00:00",
+      "coordinate_system": "original_google_sheet",
+      "cells": [
+        {
+          "cell": "C203",
+          "snapshot_cell": "C48",
+          "text_sha256": "aafc7b0e9b9e48bdd9f860937e6e80ea5a9a02942e9cdc42e8135210212a89aa",
+          "normalized_matches_snapshot": true
+        },
+        {
+          "cell": "E203",
+          "snapshot_cell": "E48",
+          "text_sha256": "94930e200fb89db3763ef4ef228f8709f46241ca052300d54f4a455a59ff227f",
+          "normalized_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "community_research_table_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/gviz/tq?headers=0&tqx=out:json&sheet=Armor%20Stat%20Info",
+      "path": "data/d2-research/2026-10-12/weapons-stat-engineeeer.json.gz",
+      "raw_sha256": "d2cdeeb1cf2da3b44a0a7578cef5677394e108d6b67f6c2829a7a9e4a8d56eb6",
+      "gzip_sha256": "0166b754307e51d77704afe80df625a5b70fd8125f8cccfa88e8e75ee607d784",
+      "capture_file_mtime_utc": "2026-10-11T18:31:02.775484+00:00",
+      "sheet": "Armor Stat Info",
+      "coordinate_system": "original_google_sheet_with_headers_0",
+      "checked_reload_row": [
+        {
+          "cell": "D30",
+          "stat": 0.0,
+          "duration_reduction": 0.0
+        },
+        {
+          "cell": "E30",
+          "stat": 10.0,
+          "duration_reduction": 0.01
+        },
+        {
+          "cell": "F30",
+          "stat": 20.0,
+          "duration_reduction": 0.02
+        },
+        {
+          "cell": "G30",
+          "stat": 30.0,
+          "duration_reduction": 0.03
+        },
+        {
+          "cell": "I30",
+          "stat": 50.0,
+          "duration_reduction": 0.05
+        },
+        {
+          "cell": "J30",
+          "stat": 60.0,
+          "duration_reduction": 0.06
+        },
+        {
+          "cell": "K30",
+          "stat": 70.0,
+          "duration_reduction": 0.07
+        },
+        {
+          "cell": "L30",
+          "stat": 80.0,
+          "duration_reduction": 0.08
+        },
+        {
+          "cell": "M30",
+          "stat": 90.0,
+          "duration_reduction": 0.09
+        },
+        {
+          "cell": "N30",
+          "stat": 100.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "O30",
+          "stat": 110.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "P30",
+          "stat": 120.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "Q30",
+          "stat": 130.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "R30",
+          "stat": 140.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "S30",
+          "stat": 150.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "T30",
+          "stat": 160.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "U30",
+          "stat": 170.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "V30",
+          "stat": 180.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "W30",
+          "stat": 190.0,
+          "duration_reduction": 0.1
+        },
+        {
+          "cell": "X30",
+          "stat": 200.0,
+          "duration_reduction": 0.1
+        }
+      ],
+      "header_anomaly": {
+        "H2": 45.0,
+        "H30": 0.04,
+        "policy": "45 header with a 0.04 value is not a valid linear sample. Skip this column; retain the mismatch, do not relabel it as 40."
+      }
+    }
+  ],
+  "formula": "duration multiplier = 1 - 0.001 * min(clamp(derived Weapons stat, 0, 200), 100)",
+  "pipeline": "weapon reload stat contributions -> 0..100 weapon-stat clamp -> weapon-specific seconds curve -> independent animation multipliers -> Weapons duration multiplier",
+  "implementation": [
+    "weapon_stat_reload contributes to reload_animation/weapons_stat with its own named factor chorus_d2:weapons_reload_duration; MAX and one stacking key make duplicate providers idempotent",
+    "Character Weapons points never add to the weapon Reload Speed stat; a weapon at 100 Reload Speed can still receive the duration multiplier",
+    "Armor/Font contribution changes are read only when a reload or insertion is accepted; committed timing and its trace are immutable",
+    "Each incremental insertion gets its own accepted timing; the following step reads the then-current armor and perks",
+    "Existing draw cancellation, host verification, reserve transfers and unknown-reaction behavior are unchanged; no new engine or checkpoint type"
+  ],
+  "sampling_policy": {
+    "status": "explicit_chorus_policy_not_original_game_timing_calibration",
+    "full_reload": "sample at acceptance",
+    "incremental_reload": "sample once per accepted insertion; changes cannot retime an in-progress insertion",
+    "mode": "same Compendium scalar in both modes; there is no distinct PvP value in the source"
+  },
+  "remaining": [
+    "The generic handling animation query is not a physical ready/stow/ADS timeline. Actual handling phases and the 100-Handling stow floor remain incomplete; this reload bundle does not claim to implement them",
+    "Enhanced ammo-brick probability and full ammo-generation/drop policy remain incomplete",
+    "Per-weapon reload curves, reload-cancel thresholds/animation, magazine display timing and all original-game sampling exceptions require calibration; the rifle/shotgun curves and armor rolls here are synthetic inputs",
+    "Complete production catalog, loadout/HUD assembly and physical-world restart remain incomplete"
+  ]
+}

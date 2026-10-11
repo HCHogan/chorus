@@ -1610,4 +1610,6 @@ Proximity Ward 已使用上述观察组合200 HP终结阶段护盾。身份收�
 
 Weapons 属性作为独立命名乘区加入公共武器 Profile，并由武器来源 Solar 共享。护甲与 Font 仍通过派生属性汇总；来源点数和原弹药种类按内容的 on_use 策略捕获，目标等级由每次命中的实际观察提供。普通 / 精英使用 0–100 区间，Boss / Miniboss / Champion 与 Guardian 使用超过 100 的区间，两段不会对同一目标再次相乘。玩家分类优先于等级标签，跨组冲突或未分类目标不猜增伤。
 
-这层使用既有 attribute、Origin tags、ImpactData、shared_apply 与快照协议，没有新增 Weapons 专用 Java 状态。资料冲突继续进入贡献 confidence；通用运行时不把社区与历史官方数值差异静默变成确定事实。来源元数据、实装范围、明确的采样政策和未完成的换弹 / 操控 / 弹药砖分支见 [规则集](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)与 [内容契约](engine-data-packs.md#weapons-属性伤害的内容契约)。
+这层使用既有 attribute、Origin tags、ImpactData、shared_apply 与快照协议，没有新增 Weapons 专用 Java 状态。资料冲突继续进入贡献 confidence；通用运行时不把社区与历史官方数值差异静默变成确定事实。来源元数据、实装范围、明确的采样政策、未完成的操控 / 弹药砖分支及换弹原型校准见 [规则集](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)与 [内容契约](engine-data-packs.md#weapons-属性伤害的内容契约)。
+
+Weapons 的换弹收益已沿用现有时间 Pipeline 接入：武器装填属性先经原型曲线得到秒数，角色属性再贡献独立的时长乘数。已接受换弹的截止点保持不变；逐发装填按每一发分别接受并取样。无需新增 Weapons 专用执行状态，仍由原换弹完成事实触发 perk 与储备转移。操控则需要真实的举枪 / 收枪 / 开镜阶段，当前数值查询与即时 draw 尚不构成完整执行；不得以单独倍率查询宣称该分支完成。[换弹规则与操控缺口](d2-ruleset.md#weapons-属性的换弹时长)。

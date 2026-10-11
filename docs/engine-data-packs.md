@@ -3152,3 +3152,13 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 每个真实伤害出口通过 `ImpactData` 传入 `weapons_stat_target: count`：0 未分类 / 冲突、1 普通 / 精英、2 Boss / Miniboss / Champion、3 实际玩家。分类由该次 inspect_entity 的 observed.player 与 entity/type tags 产生，玩家优先；两个 PvE 组必须互斥。该数字是 D2 内容约定，不是新增引擎枚举。四个 Solar damage_snapshot 出口与三种验收武器的物理接触均已接线；其他生产者必须显式提供，不能把缺少必需命中数据当作已知零值。
 
 on_use 保留来源属性和弹药，impact 条件逐目标计算。重建带快照的 DamageCommand 时需保留 shield profile、reaction snapshot、proc policy 等全部捕获字段，不能用短构造器意外丢失它们。已存在的 DamageSnapshot.command(target, impact) 可以直接构造完整保存的攻击；本次没有改变执行器或检查点结构。数值、资料冲突与未完成项见 [Weapons 分段规则](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)。
+
+## Weapons 属性对已接受换弹的时间贡献
+
+组合 `character_stats`、实际属性来源、`weapon_stats` 与 `weapon_stat_reload`，再给角色绑定 `chorus_d2:weapon_stat_reload` 系统来源。武器已有的 `reload.profiles` 链保持“weapon_reload → 原型秒数曲线 → reload_animation”；角色属性贡献进入最后一个 Profile 的 `weapons_stat` MAX 阶段，factor 为 `chorus_d2:weapons_reload_duration`。它不贡献 weapon_reload 的点数，不修改弹匣或储备容量。
+
+修饰器通过 `attribute(self, chorus_d2:weapons_stat, 0 stat_point)`查询当前角色来源，0–100 点每点转换为 −0.001 delta；重复系统提供者共用一个 stacking_key。角色已经由属性 Profile 汇总并限幅；此处再把用于时长的点数上限限定为 100。独立 animation 阶段继续 PRODUCT，两个命名因子可分别从保存的轨迹中剔除。
+
+`WeaponReload.Plan`已经保存整条 CalculationPipeline.Result，无需新的定时器或状态字段。普通换弹在接受时求值一次；`insert.repeat.profiles`必须同样显式包含需要的时间管线，下一发只在前一发完成事实处理后求值，不能将最初的 Weapons 倍率缓存到整个重复装填循环。当前来源 / 护甲变化不修改正在等待的 Plan。没有经过这条时间管线的即时补弹或其他计时动作不会自动获得该倍率。
+
+实际动作计时仍由宿主与现有换弹协议执行。操控查询、动画表现以及完整武器曲线不是该模块自动提供的能力；参见 [数值与验收边界](d2-ruleset.md#weapons-属性的换弹时长)。

@@ -262,6 +262,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/weapon_surge_inputs.json'
         include 'effects/weapon_surge_weapon.json'
         include 'effects/weapon_stat_damage.json', 'effects/weapon_stat_weapon.json'
+        include 'effects/weapon_stat_reload.json', 'effects/weapon_stat_reload_inputs.json'
         include 'effects/armor_finisher_inputs.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'

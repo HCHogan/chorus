@@ -23,8 +23,12 @@ class SurplusTest {
                 "test:secondary", new Loadout.Gear("b", "test:shotgun", Map.of("perk", secondaryPerk))), Optional.of("test:" + drawn));
     }
     static class Harness {
-        final CompiledEffects program = program(); final EffectSession session; int sequence;
+        final CompiledEffects program; final EffectSession session; int sequence;
         Harness(boolean enhanced, double grenade, double melee, double clazz) throws Exception {
+            this(program(), enhanced, grenade, melee, clazz);
+        }
+        Harness(CompiledEffects program, boolean enhanced, double grenade, double melee, double clazz) throws Exception {
+            this.program = program;
             var initial = EffectState.empty(); String[] pools = {"grenade", "melee_double", "class", "super"}; double[] values = {grenade, melee, clazz, 1};
             for (int i = 0; i < pools.length; i++) initial = initial.withResource(new ResourceState(new ResourceState.Key("player", "test:" + pools[i] + "_energy"), values[i], i == 1 ? 2 : 1, 0));
             initial = initial.withSource(new EffectSource("input", "test:surplus_input", "player", new BuffInstance.Origin("player", "input", "", ""), Set.of()));

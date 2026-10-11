@@ -1,0 +1,47 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:weapon_stat_reload",
+      "modifiers": [
+        {
+          "id": "duration",
+          "profile": "chorus_d2:reload_animation",
+          "stage": "weapons_stat",
+          "group": "weapons_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_reload_duration",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "min",
+              "of": [
+                {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:weapons_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  "target": "self"
+                },
+                {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "stat_point"
+                }
+              ]
+            },
+            "factor": -0.001,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "confidence": "measured",
+          "reference": "Compendium Game Mechanics E48 / original E203; Engineeeer Armor Stat Info row 30. Source and calibration limits: data/d2-research/2026-10-12/weapons-stat-reload.json."
+        }
+      ]
+    }
+  ]
+}

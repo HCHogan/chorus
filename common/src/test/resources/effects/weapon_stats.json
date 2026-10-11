@@ -108,6 +108,16 @@
             "reduction": "product"
           },
           "factor": "chorus_d2:reload_animation"
+        },
+        {
+          "type": "chorus:apply",
+          "id": "weapons_stat",
+          "operation": "multiply",
+          "group": {
+            "name": "weapons_stat",
+            "reduction": "max"
+          },
+          "factor": "chorus_d2:weapons_reload_duration"
         }
       ]
     },

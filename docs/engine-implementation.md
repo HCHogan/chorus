@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Weapons换弹时长完整门禁 `/tmp/chorus-weapons-reload-gate-2.log` BUILD SUCCESSFUL，2分28秒：1648项JUnit（无失败/错误/跳过）、Fabric882项、NeoForge897项及两端发布jar通过，共享Chorus世界场景881项。新增7项规则测试和5项共享世界场景；10项Compendium工具测试与107条来源/报告审计通过。没有新增生产Java类型、检查点字段或客户端协议，发布jar继续排除验证夹具，本轮未重复图形客户端测试。
+
+`weapon_stat_reload`把角色Weapons点数转换为独立的换弹时长乘数，100点达到0.9且更高属性不再缩短。它进入reload_animation的单独MAX阶段，位于武器装填属性、原型秒数曲线和已有动画乘数之后；不会把角色点数加到武器Reload Speed上，也不重复计算同一系统来源。命名因子可从已保存轨迹中单独移除。实际护甲和Font继续使用同一个派生角色属性，无新Buff缓存或独立计时器。
+
+规则测试覆盖两种模式、九个属性点与两种武器曲线共36组查询、Surplus加值/限幅与合成0.75动画乘数、异主/重复来源、计划序列化、来源移除及切枪取消。真实世界通过Surplus三档的1.3秒曲线与100点属性组合为1.17秒；50点护甲加三份Font经物理Orb激活到100，消费共享充能后下一次为1.235秒。完整换弹保持已接受截止点；三次真实逐发装填依接受时护甲分别使用1.17/1.3/1.17秒并精确消耗三发储备。未知完成治疗回执保留实际补弹和回血，不重放已发生的操作。
+
+定向验证曾因向整点护甲参数传入9.5而拒绝夹具；改为9点后完整规则与双端世界通过，没有放宽装备参数约束。沿用上一阶段的同日原始存档，核对Engineeeer第30行20个无标题冲突的时间样本；H2=45/H30=0.04单独保留，未用该列拟合公式。[来源记录](../data/d2-research/2026-10-12/weapons-stat-reload.json)、[规则与剩余范围](d2-ruleset.md#weapons-属性的换弹时长)。原Weapons/Font/Surplus审阅扩充，仍为105 partial、2 not_applicable、0 verified。
+
+操控目前仍只有数值查询，装备draw仍即时变化，尚无真实举枪/收枪/开镜计时与100 Handling收枪下限。增强弹药砖、完整武器时间曲线、原作换装/取消窗口校准、正式生产装配/HUD及物理世界恢复仍未完成；本阶段只补齐实际换弹对角色属性的消费，不将倍率查询当作完整操控实现。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Weapons属性伤害通过1641项完整JUnit（无失败/错误/跳过，`/tmp/chorus-weapons-stat-gate.log`单元阶段）；最终双端门禁 `/tmp/chorus-weapons-stat-world-2.log` BUILD SUCCESSFUL，9分21秒：Fabric877项、NeoForge892项及两端发布jar通过，共享Chorus世界场景876项。新增9项规则测试与7项共享世界场景；10项Compendium工具测试、107条来源/报告审计、两个原始存档哈希和差异检查通过。没有新增生产Java类型、检查点字段或客户端协议，发布jar继续排除验证夹具，本轮未重复图形客户端测试。
 
 `weapon_stat_damage`以既有attribute查询实际护甲/Font汇总后的Weapons点数，在公共weapon_stat MAX阶段贡献独立命名因子，并由Solar共享。来源必须具备明确武器信用与唯一弹药类型；0–100点作用于普通/精英，超过100点按Primary/Special、Heavy或实际Guardian使用独立斜率。实际玩家优先于标签，未知/跨组冲突不猜等级。来源属性和弹药按on_use捕获，每次命中读取当前受击者；原Incandescent装备与开火元数据补充Primary弹药并延续到首次Scorch快照。
