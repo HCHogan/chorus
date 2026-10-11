@@ -59,12 +59,17 @@
   },
   "remaining": [
     "实际命中和击杀已连接物理投射物、支付后的近战技能账户及真实武器容器，但攻击分类由显式合成定义提供；原版native_damage不会自动冒充近战或剑，完整剑轻重击/能量/格挡、各技能和派生伤害信用仍未实现或校准。",
-    "Void Overshield复用实际共享盾池；Devour和Invisibility目前仅为资格标签夹具，不代表完整吞噬治疗/回能或隐身行为。正式神器单选来源、子职业/装备装配和当前赛季可用性仍未完成。",
+    "Void Overshield与共享Devour的实际状态/收益均可提供资格，Devour已通过后续组合世界测试；Invisibility仍为资格标签夹具，完整吞噬授予来源/隐身行为、正式神器/子职业装配和当前赛季可用性尚未完成。",
     "历史资格取实际伤害边界：同一hit随后获得/移除Buff不改写kill资格。这是明确的事件时序政策，原作对应反应顺序仍需实测。死亡目标不追加Weaken，致死命中走范围分支；与要求被削弱目标击杀的其他词条交互未校准。",
     "已知IMMUNE命中仍可独立请求状态授权，DENIED不施加；CANCELLED/FAILED不产生hit。原作所有免疫、格挡、图腾救活和特殊技能资格需逐项校准，不能由合成测试推断全部原作行为。",
     "四米按历史死者脚底位置与当前目标脚底球形距离、not_allied、无视线过滤查询；范围锚点、敌我分类、障碍和全部跨来源刷新/首信用政策仍需原作校准。目标拒绝与来源卸下政策为显式Chorus选择。",
     "receipt_seconds是宿主必填的有限回执去重期限，不是效果冷却或连锁上限；一秒夹具只证明期限内幂等，期限外回执重放不保证去重。重复神器来源须由正式装配层约束。",
     "测试10伤害、20m/s、零重力、1秒飞行、0.15秒射击间隔、弹量/0.2秒换弹、两秒资格标记和立即支付的近战均为合成参数，不作D2武器/技能数值。",
     "完整生产规则包、HUD/素材绑定、剑与近战动画、物理世界跨重启恢复，以及共享Weaken的战员AI准确性/完整空中移动仍未完成。"
-  ]
+  ],
+  "follow_up": {
+    "date": "2026-10-12",
+    "research": "data/d2-research/2026-10-12/devour.json",
+    "note": "Real Devour acquired during physical sword-fixture flight now qualifies burst and pays its own heal/energy; validation above remains the earlier Singularity-only gate."
+  }
 }

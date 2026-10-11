@@ -1,0 +1,269 @@
+{
+  "source_url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+  "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+  "observed_at": "2026-10-12",
+  "full_source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+  "selected_entries": {
+    "2321824284": {
+      "hash": 2321824284,
+      "name": "Feed the Void",
+      "lastUpload": 1787265837991,
+      "type": "Subclass Aspect",
+      "uploadedBy": "Hawkmoona",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Ability kills grant "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Devour for 10 seconds (15 with "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Echo of Persistence). "
+              },
+              {
+                "text": "(Prismatic Only: Kills with Shatter, Volatile Explosions, and Tangles also grant Devour",
+                "classNames": [
+                  "bold"
+                ]
+              },
+              {
+                "text": ")."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Your "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Devour is enhanced, granting twice as much HP (70HP🠚140 HP) and Grenade Ability Energy."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Kills while "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Devour is active add 5 seconds to the timer (8 with "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Echo of Persistence)."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Enhanced "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Devour Grenade Energy granted is based on "
+              },
+              {
+                "text": "Combatant Tier",
+                "link": "https://url.d2clarity.com/combatants",
+                "classNames": [
+                  "link"
+                ]
+              },
+              {
+                "text": ":"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• Tier 1: 15%"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• Tier 2: 23.2%"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• Tier 3: 27.5%"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• Tier 4 or Players: 40%"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2272984671": {
+      "hash": 2272984671,
+      "name": "Echo of Persistence",
+      "lastUpload": 1714219892088,
+      "type": "Subclass Fragment",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Buffs applied to you last longer."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Devour and Void Overshield: 50% increased duration"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Invisibility: 40% increased duration"
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Specific increases from "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Echo of Persistence for "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Buff sources can be found in their descriptions."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2661180603": {
+      "hash": 2661180603,
+      "name": "Echo of Starvation",
+      "lastUpload": 1714219892088,
+      "type": "Subclass Fragment",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Picking up an Orb of Power or "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Breach grants "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Devour for 5 seconds (7.5 with "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Echo of Persistence)."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

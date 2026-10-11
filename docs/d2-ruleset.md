@@ -1446,4 +1446,21 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 
 [纯测试](../common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java)覆盖三种 Buff、两类攻击、真实目标分类、命中期资格、历史死亡中心、范围 / 授权、有限回执去重、来源与检查点。[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java)使用真实玩家容器、实际支付的合成近战、物理投射物与真实生命变化，覆盖六秒时长、双目标强度、四米边界、队友和拒绝、同击状态变化、尸体移除、解绑及未知回执。实际结果见[实现记录](engine-implementation.md)。
 
-当前实际 Void Overshield 可提供资格；Devour / Invisibility 只用标签夹具，尚未实现完整效果。剑信用由合成武器显式提供，原版 `native_damage` 不自动获得剑 / 近战标签；测试的投射物也不等同完整剑轻重击、格挡或近战技能。合成伤害 / 弹道 / 弹药 / 回执期限不作原作校准。完整来源与派生信用、致死命中联动、免疫 / 格挡 / 救活、敌我 / 范围 / 障碍、正式装配与当前可用性、HUD、动画及物理世界重启均保留 partial。
+实际 Void Overshield 和共享 Devour 均可提供资格，Devour 的真实治疗 / 回能已与该神器组合验证；原独立神器测试仍保留标签夹具，Invisibility 尚未实现完整效果。剑信用由合成武器显式提供，原版 `native_damage` 不自动获得剑 / 近战标签；测试的投射物也不等同完整剑轻重击、格挡或近战技能。合成伤害 / 弹道 / 弹药 / 回执期限不作原作校准。完整来源与派生信用、致死命中联动、免疫 / 格挡 / 救活、敌我 / 范围 / 障碍、正式装配与当前可用性、HUD、动画及物理世界重启均保留 partial。
+
+
+## 共享 Devour 的治疗、续时与击杀手雷回能
+
+[devour.json](../common/src/test/resources/effects/devour.json)提供目标共享吞噬状态及普通 / 强化收益。原表 Void B6 / D6 对应固定 B4 / D4，Feed the Void 原 B137 / D137 对应 B77 / D77；Persistence 和 Starvation 的坐标也已逐格核对，见[研究记录](../data/d2-research/2026-10-12/devour.json)。[Clarity 固定提交](https://github.com/Database-Clarity/Live-Clarity-Database/blob/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json)确认70 / 140 HP、强化双倍手雷回能和击杀追加5 / 8秒，消除了把原表“refreshes5+3”误读成重置至五秒的歧义。
+
+`devour_application`要求调用者显式提供`duration`、`cap`与`receipt_seconds`，检查目标存在 / 存活及参数合法后授予状态。首次按给定时长开始；已有状态则增加当前`devour_extension`查询值，限制在已接纳的最大cap内，保留第一来源与实例。每次激活 / 重施加恢复生命，不凭激活本身发放击杀回能。普通十秒、Persistence十五秒及Starvation五 / 七点五秒有来源；所有来源的最大续时上限尚未独立证明，cap仍是必填校准值。[9.7.0官方修复](https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0)已处理Secant与Persistence意外缩短时长，不能把旧故障当作通用规则。
+
+击杀收益按Buff持有者与event_actor匹配，并要求同一死亡回执的历史观察中已有该状态。赠予者不是收益接收者；赠予来源解绑也不取消持有者的持续状态。同一击杀后来才授予吞噬时，不让新状态逆向领取其旧击杀收益。每个状态实例维护有期限的death_ids集合，重复事实不重复治疗、续时或回能；独立击杀没有人为冷却或循环上限。状态死亡 / 清除 / 到期时一并清理身份，不能据此承诺永久重放幂等。
+
+当前动作顺序为延长、治疗、手雷回能。普通治疗先把70 DAMAGE送入`devour_healing`，再送入必需的外部`health_projection`；强化来源在前者以MAX贡献+100%，得到140，避免重复强化来源叠乘。测试映射1:1只验证真实HP写入，不定义最终全局生命缩放。已知治疗被拒绝或满血裁剪不阻止另外两项收益；世界结果未知则停止，不回滚已经提交的时长 / 生命，也不重试或虚构后续回能。
+
+手雷基础表为T1 7.5%、T2 11.6%、T3 13.75%、T4及Guardian20%，强化版翻倍。Game Mechanics固定K82明确吞噬将T5 / T6按T4处理；不要把战员rank随意当tier。历史实体观察允许尸体被移除后仍按当时分类，缺失 / 冲突分类仅跳过未知回能并发出`devour_unclassified`，不取消已知治疗与续时。收益交给当前`chorus_d2:grenade`槽的资源账户，以BASE方式经过目标自身gain_profile和CES一次；未选技能时保留其他收益，不制造隐藏账户。BASE解释结合通用Chunk规则和[9.0.0.1属性缩放公告](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)，各表的完整测量条件及所有组合仍需校准。
+
+增强通过独立`enhanced_devour`来源修饰治疗 / 回能，扩展时长由`devour_extension`查询；两者按处理时的持有者配置取值。八秒使用明确的+3秒输入，不再次把五秒乘1.5。该共享层尚未完成Feed the Void的Void / Prismatic激活规则、Starvation真实拾取、Persistence完整时长与属性惩罚、Secant等生产者。原版生物到D2层级的目录、同帧多杀与换装细节、正式装配、HUD及物理世界重启也保留缺口。
+
+[纯测试](../common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java)与[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java)覆盖上述状态 / 数值与真实世界边界，并以实际吞噬资格接入Singularity Blade。实际结果见[实现记录](engine-implementation.md)。

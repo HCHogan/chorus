@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "effect": "Devour",
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/devour-source.html.gz",
+      "sha256": "887ea9277cc2230d42e21887806cf6c08d81c17ea94a92357224d39b354b4688",
+      "gzip_sha256": "9ff3b59d314ff5656a076dcae5839847747b68b3571772126cafedddc933fe9e",
+      "cells": [
+        {
+          "original_cell": "B6",
+          "snapshot_cell": "B4",
+          "snapshot_text_sha256": "4c1e80409c4f601e3557b440b0af0f4e2b39decb9ac5531cd485e2565e1ae127",
+          "normalized_text": "Devour",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D6",
+          "snapshot_cell": "D4",
+          "snapshot_text_sha256": "a01ece532d587a6d03a924caea485d0c49331095da388e200550f86d9be7bc84",
+          "normalized_text": "Restores 70 HP on activation and grants Devour for 10+5 seconds. Reactivating Devour restores 70 HP and refreshes 5+3 seconds. Scoring a kill while Devour is active restores 70 HP, grants Grenade Ability Energy, and refreshes 5+3 seconds of its duration. Grenade Ability Energy on Kill: Tier 1 Combatant = 7.5% | T2 = 11.6% | T3 = 13.75% | T4 = 20% | Guardians = 20%",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "B25",
+          "snapshot_cell": "B22",
+          "snapshot_text_sha256": "d8e68f610a342f2574480e29f0916f9f7f08314557f557b19defe1bd32a8818d",
+          "normalized_text": "Persistence",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D25",
+          "snapshot_cell": "D22",
+          "snapshot_text_sha256": "bf8c4644715d0b70078ded02388531137743b92759bc57730ec371e762da37e6",
+          "normalized_text": "Void Buffs applied to the user last longer. Devour: 50% Increased duration. Invisibility: 40% increased duration. Void Overshield: 50% increased duration.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "B137",
+          "snapshot_cell": "B77",
+          "snapshot_text_sha256": "de363408cdfd1436cca11b5ac00ed7a35d0d34c37f05bcceff29eeef19005e00",
+          "normalized_text": "Feed the Void",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D137",
+          "snapshot_cell": "D77",
+          "snapshot_text_sha256": "d3ae45adef44ff7e50c5af2f72fcf6f43707c6087d10ffff0daca7fb6319333b",
+          "normalized_text": "Void Ability Kills grant Devour. Devour becomes Enhanced Devour. Enhanced Devour: Restores 140 HP on activation and grants Enhanced Devour for 10+5 seconds. Reactivating Enhanced Devour restores 140 HP and refreshes 5+3 seconds. Scoring a kill while Enhanced Devour is active restores 140 HP, grants doubled Grenade Ability Energy, and refreshes 5+3 seconds of its duration. Grenade Ability Energy on Kill: Tier 1 Combatant = 15% | T2 = 23.2% | T3 = 27.5% | T4 = 40% | Guardians = 40%",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "B29",
+          "snapshot_cell": "B26",
+          "snapshot_text_sha256": "5e20b9bc5edfd60176fcaa8f3c14af3ff577c39052217e214be742527a0223c9",
+          "normalized_text": "Starvation",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D29",
+          "snapshot_cell": "D26",
+          "snapshot_text_sha256": "74816fe9a730aa3587d295f88808e99fca434884dee5c2253a2570372233f6b0",
+          "normalized_text": "On Orb of Power or Void Breach Pickup: Grants Devour for 5+2.5 seconds.",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "fixed_compendium_snapshot",
+      "sheet": "Game Mechanics",
+      "cell": "C1",
+      "text_sha256": "2c846468c6f9e36e81529d7f1806ea6c3c6041c1a6d234a9ee19181693fcd26d",
+      "supports": "Unless exempted, percentage ability-energy gains use recipient Chunk Energy Scaling."
+    },
+    {
+      "kind": "fixed_compendium_snapshot",
+      "sheet": "Game Mechanics",
+      "cell": "K82",
+      "text_sha256": "0a03757fd7e8d63069c82ca36147472941f6a4bf592aa721d399f2e2582d8650",
+      "supports": "Tiers differ from ranks. For Devour, tiers5/6 use the tier4 amount; vehicles are inconsistent."
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_selection": "data/d2-research/2026-10-12/devour-clarity.json",
+      "full_source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "supports": "Feed the Void confirms70/140HP, doubled energy, and timer addition5/8seconds. Persistence and Starvation entries match duration inputs. Full activation producers and all source caps are not implemented."
+    },
+    {
+      "kind": "official_bungie",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "supports": "Patch states200→140 Devour healing and stat-scaled ability returns. It does not explicitly distinguish ordinary70HP; use the updated Compendium/Clarity split instead of applying the reduction twice."
+    },
+    {
+      "kind": "official_bungie",
+      "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+      "supports": "Fixes Secant Filaments shortening Devour with Persistence. Do not adopt older forum bug reports as intended source-duration behavior."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/devour.json",
+    "inputs": "common/src/test/resources/effects/devour_inputs.json",
+    "source_parameters": {
+      "duration": "second",
+      "cap": "second",
+      "receipt_seconds": "second"
+    },
+    "activation": "Validate positive inputs/cap>=duration and actual living recipient. New status uses caller duration; reactivation adds current extension and preserves maximum admitted cap. Each accepted activation heals but does not itself award kill energy.",
+    "healing": "70 DAMAGE through devour_healing strength profile, then mandatory external health_projection. Shared enhancement contributes+1 delta byMAX, yielding140 before projection.",
+    "kills": "Require holder==event_actor and historical Devour presence. A bounded per-status death_id set prevents duplicate rewards. Extend, heal, then independently classify the historical victim for grenade energy.",
+    "energy": "T1=.075,T2=.116,T3=.1375,T4/T5/T6/Guardian=.2 charge_fraction, doubled through devour_grenade for enhanced Devour; current selected grenade recipient processes BASE gain exactly once via its own scaling and CES.",
+    "unknown_tier": "Missing/conflicting classification emits devour_unclassified and skips only energy; no live-corpse fallback.",
+    "lifecycle": "Holder death, cleanse and expiry remove status; grantor detach retains it. Existing enhancement modifiers are read on each benefit; current selected grenade determines destination. Pure checkpoints retain deadline, cap and bounded identity sets.",
+    "safety": "No arbitrary gameplay cooldown or feedback limit. Known rejected/clipped heal does not block later energy; unknown heal stops after prior local duration/health commits and cannot replay."
+  },
+  "validation": {
+    "unit_tests": "12 dedicated DevourTest scenarios; full suite1461 with zero failures/errors/skips.",
+    "world_tests": "Eight new shared DevourGameTest scenarios. Fabric748 and NeoForge763 passed;747 shared scenarios total.",
+    "full_gate": "/tmp/chorus-devour-gate.log BUILD SUCCESSFUL in1m47s; both release jars built and fixture exclusion passed.",
+    "development": "First test compile used a nonexistent HealingReceipt CANCELLED enum; corrected to a known REJECTED receipt with zero offered/effective quantities. Dedicated12 tests and first complete world gate passed.",
+    "audits": "10 Compendium audits,78-entry report consistency, eight original/snapshot cell comparisons, source hashes, both release fixture exclusions and git diff --check passed."
+  },
+  "remaining": [
+    "共享普通/强化收益已实现；Feed the Void 的 Void/Prismatic 自动激活、Starvation 的 Orb/Void Breach 拾取、Secant/Trapper/Unbreakable 等正式生产者尚未接入。本轮增强来源只表达收益翻倍，不代表完整 Aspect。",
+    "Persistence 的明确八秒续时已由修饰输入验证，初始duration和cap由调用者给出；完整三类Void Buff时长、职业属性惩罚和正式Fragment装配尚未完成。",
+    "原表与Clarity确认初始10/15、Starvation5/7.5及每次延长5/8秒，但本轮未独立确认所有来源上限。cap为必填校准输入，普通10/15和长来源20的测试不能冒充全来源上限实测。重施加保留较高cap/首次来源的政策仍待校准。",
+    "手雷表按BASE接入当前选中技能的gain_profile和CES，依据通用Chunk规则及官方属性缩放；原表每个数值的全部测量条件、异常来源/活动/装备叠加、当前属性采样和多杀同帧政策仍需逐条校准。测试.5/.75 CES和2.25增益是显式合成输入。",
+    "70/140 HP先经过外部必需health_projection；测试使用1:1身份映射，不是最终D2到Minecraft全局生命缩放。完整Health/Shield基础层恢复曲线、治疗阻断与特殊金装交互仍需原作校准。",
+    "击杀要求死亡前已观察到该持有者的Devour；同次击杀新授予状态不能逆向取得旧击杀收益。持续状态/收益按当前持有者，增强修饰按处理时查询，原作换装/赠予/同击顺序仍需实测。",
+    "T1–T6和实际玩家按历史回执分类，T5/T6取T4；无法或多重分类只跳过回能并发出诊断，已知治疗/续时仍执行。原版mob不会自动被猜成D2 Tier，车辆及全部D2对象目录仍待装配。",
+    "death_ids只有receipt_seconds期间的幂等保证，状态结束清理全部身份；没有人为冷却或连锁上限。未知治疗保留已提交时长/生命但不执行后续回能，真实宿主的故障恢复和跨世界重启仍待完成。",
+    "完整生产规则包、子职业/装备装配、HUD/美术及物理世界持久化仍未完成。"
+  ]
+}

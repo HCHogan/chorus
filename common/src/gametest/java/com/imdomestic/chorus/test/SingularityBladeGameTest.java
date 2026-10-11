@@ -28,7 +28,10 @@ public class SingularityBladeGameTest {
         }
     }
     static ProjectileGameTest.Harness open(GameTestHelper h) throws Exception {
-        var t = new ProjectileGameTest.Harness(h, "singularity_blade", SingularityBladeGameTest::prepare, true);
+        return open(h, _ -> {});
+    }
+    static ProjectileGameTest.Harness open(GameTestHelper h, java.util.function.Consumer<JsonObject> edit) throws Exception {
+        var t = new ProjectileGameTest.Harness(h, "singularity_blade", d -> { prepare(d); edit.accept(d); }, true);
         try {
             t.owner.setPos(t.owner.chunkPosition().getMinBlockX() + 2.5, t.owner.getY(), t.owner.chunkPosition().getMinBlockZ() + 6.5);
             t.owner.setGameMode(net.minecraft.world.level.GameType.SURVIVAL); var equipment = PlayerEquipment.get(t.owner);

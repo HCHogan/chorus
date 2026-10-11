@@ -1662,7 +1662,7 @@
       ],
       "gaps": [
         "实际命中和击杀已连接物理投射物、支付后的近战技能账户及真实武器容器，但攻击分类由显式合成定义提供；原版native_damage不会自动冒充近战或剑，完整剑轻重击/能量/格挡、各技能和派生伤害信用仍未实现或校准。",
-        "Void Overshield复用实际共享盾池；Devour和Invisibility目前仅为资格标签夹具，不代表完整吞噬治疗/回能或隐身行为。正式神器单选来源、子职业/装备装配和当前赛季可用性仍未完成。",
+        "Void Overshield与共享Devour的实际状态/收益均可提供资格，Devour已通过组合世界测试；Invisibility仍为资格标签夹具，完整吞噬授予来源/隐身行为、正式神器/子职业装配和当前赛季可用性尚未完成。",
         "历史资格取实际伤害边界：同一hit随后获得/移除Buff不改写kill资格。这是明确的事件时序政策，原作对应反应顺序仍需实测。死亡目标不追加Weaken，致死命中走范围分支；与要求被削弱目标击杀的其他词条交互未校准。",
         "已知IMMUNE命中仍可独立请求状态授权，DENIED不施加；CANCELLED/FAILED不产生hit。原作所有免疫、格挡、图腾救活和特殊技能资格需逐项校准，不能由合成测试推断全部原作行为。",
         "四米按历史死者脚底位置与当前目标脚底球形距离、not_allied、无视线过滤查询；范围锚点、敌我分类、障碍和全部跨来源刷新/首信用政策仍需原作校准。目标拒绝与来源卸下政策为显式Chorus选择。",
@@ -7920,6 +7920,178 @@
         "当前Guardian使用真实玩家分类；NPC Guardian、混合交战与全部特殊伤害增幅资格尚需校准。原表普通6 / 2.5秒不覆盖所有生产者，调用者须显式给出参数。",
         "20%减速已进入原版movement_speed；战员AI准确性、完整空中 / 特殊移动、动画、HUD和正式内容未实现。独立50%减伤 / 30%全局减益是合成组合输入。",
         "纯会话检查点覆盖状态 / 强值 / 截止点，物理世界跨重启与完整角色来源自动装配仍未完成。"
+      ]
+    },
+    {
+      "id": "void/devour",
+      "name": "Devour",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B4",
+          "text_sha256": "4c1e80409c4f601e3557b440b0af0f4e2b39decb9ac5531cd485e2565e1ae127"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D4",
+          "text_sha256": "a01ece532d587a6d03a924caea485d0c49331095da388e200550f86d9be7bc84"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D77",
+          "text_sha256": "d3ae45adef44ff7e50c5af2f72fcf6f43707c6087d10ffff0daca7fb6319333b"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D22",
+          "text_sha256": "bf8c4644715d0b70078ded02388531137743b92759bc57730ec371e762da37e6"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C1",
+          "text_sha256": "2c846468c6f9e36e81529d7f1806ea6c3c6041c1a6d234a9ee19181693fcd26d"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "K82",
+          "text_sha256": "0a03757fd7e8d63069c82ca36147472941f6a4bf592aa721d399f2e2582d8650"
+        }
+      ],
+      "scope": "共享普通/强化70/140HP治疗、按历史T1–T6/Guardian回能、当前手雷账户及独立CES/属性缩放、五/八秒续时与显式上限；真实HP/死亡/技能支付、Singularity组合、生命周期和检查点已验收",
+      "acceptance": [
+        "初次激活与重新授予恢复70HP；增强来源恢复140HP。实际恢复受接收者缺失生命与世界恢复授权约束。",
+        "处于Devour期间的确认击杀恢复生命、按历史敌人层级给予手雷能量，并将剩余时间增加五秒；Persistence的明确条目增加八秒。",
+        "T1–T4及Guardian分别给予7.5/11.6/13.75/20/20%基础能量，强化翻倍；T5/T6按T4。适用Chunk和当前属性后仅计入当前选中的手雷接收账户。",
+        "未知分类不能猜回能，激活来源卸下不撤回已授予状态；死亡/清除/到期清理，重复回执在配置期限内不能重复发奖。",
+        "正式Feed the Void/Starvation等授予来源、Persistence全部时长/属性以及所有来源上限仍需独立装配与校准。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/devour.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/devour_inputs.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "activationAndReactivationHealOnceButExtendRemainingTimeInsteadOfResettingIt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "everyTierGuardianAndEnhancementUseTheQuotedTableThenRecipientScalingExactlyOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "quotedPersistenceExtensionIsEightSecondsAndExplicitCapsSupportLongerGrantors"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "recipientOwnsTheKillBenefitsEvenWhenAnotherActorOriginallyGrantedDevour"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "missingOrConflictingClassificationOnlySkipsEnergyAndHistoricalTierSurvivesCorpseRemoval"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "currentGrenadeSelectionRoutesEnergyAndAbsentSelectionDoesNotCancelOtherBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "duplicateFactsDoNotRepeatRewardsButIndependentKillsHaveNoInventedCooldown"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "priorKillCannotGainBenefitsRetroactivelyAfterNewDevourAndNonlethalHitsDoNotProc"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "enhancementsAreCurrentRecipientModifiersAndDuplicateSourcesDoNotMultiplyTwice"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "invalidMissingAndDeadRecipientsDoNotActivateWhileHealClippingDoesNotBlockOtherBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "expiryCleanseDeathAndCheckpointRespectLifecycleAndReceiptHistory"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java",
+          "symbol": "unknownHealingKeepsCommittedHealthAndPriorDurationButNeverInventsEnergyOrRetries"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "actualTieredAndPlayerDeathsRestoreNormalOrEnhancedHealthAndGrenadeEnergy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "nativeDeathsFillCurrentGrenadeAccountThenRealPlayerInputSpendsExactlyOneCharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "normalKillExtendsByFiveSecondsAndActualTicksEventuallyExpireTheSharedState"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "quotedPersistenceKillExtensionAddsEightSecondsWithoutMultiplyingItAgain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "actualDevourAcquiredInFlightQualifiesSingularityAndTheFollowingKillPaysBothEffects"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "corpseRemovalKeepsObservedTierWhileUnknownTierRetainsOnlyKnownBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "foreignGrantorDetachRetainsRecipientBenefitsAndActualDeathCleansTheState"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
+          "symbol": "unknownHealKeepsActualHealthWriteWithoutGrantingLaterEnergyOrReplayingTheKill"
+        }
+      ],
+      "gaps": [
+        "共享普通/强化收益已实现；Feed the Void 的 Void/Prismatic 自动激活、Starvation 的 Orb/Void Breach 拾取、Secant/Trapper/Unbreakable 等正式生产者尚未接入。本轮增强来源只表达收益翻倍，不代表完整 Aspect。",
+        "Persistence 的明确八秒续时已由修饰输入验证，初始duration和cap由调用者给出；完整三类Void Buff时长、职业属性惩罚和正式Fragment装配尚未完成。",
+        "原表与Clarity确认初始10/15、Starvation5/7.5及每次延长5/8秒，但本轮未独立确认所有来源上限。cap为必填校准输入，普通10/15和长来源20的测试不能冒充全来源上限实测。重施加保留较高cap/首次来源的政策仍待校准。",
+        "手雷表按BASE接入当前选中技能的gain_profile和CES，依据通用Chunk规则及官方属性缩放；原表每个数值的全部测量条件、异常来源/活动/装备叠加、当前属性采样和多杀同帧政策仍需逐条校准。测试.5/.75 CES和2.25增益是显式合成输入。",
+        "70/140 HP先经过外部必需health_projection；测试使用1:1身份映射，不是最终D2到Minecraft全局生命缩放。完整Health/Shield基础层恢复曲线、治疗阻断与特殊金装交互仍需原作校准。",
+        "击杀要求死亡前已观察到该持有者的Devour；同次击杀新授予状态不能逆向取得旧击杀收益。持续状态/收益按当前持有者，增强修饰按处理时查询，原作换装/赠予/同击顺序仍需实测。",
+        "T1–T6和实际玩家按历史回执分类，T5/T6取T4；无法或多重分类只跳过回能并发出诊断，已知治疗/续时仍执行。原版mob不会自动被猜成D2 Tier，车辆及全部D2对象目录仍待装配。",
+        "death_ids只有receipt_seconds期间的幂等保证，状态结束清理全部身份；没有人为冷却或连锁上限。未知治疗保留已提交时长/生命但不执行后续回能，真实宿主的故障恢复和跨世界重启仍待完成。",
+        "完整生产规则包、子职业/装备装配、HUD/美术及物理世界持久化仍未完成。"
       ]
     }
   ]

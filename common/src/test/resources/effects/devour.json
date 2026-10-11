@@ -1,0 +1,559 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:devour_healing",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [{"type": "chorus:apply", "id": "bonus", "operation": "multiply", "group": {"name": "bonus", "reduction": "max"}}]
+    },
+    {
+      "id": "chorus_d2:devour_grenade",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [{"type": "chorus:apply", "id": "bonus", "operation": "multiply", "group": {"name": "bonus", "reduction": "max"}}]
+    },
+    {
+      "id": "chorus_d2:devour_extension",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [{"type": "chorus:apply", "id": "bonus", "operation": "add", "group": {"name": "bonus", "reduction": "max"}}]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:devour",
+        "version": "compendium-2026-10-05",
+        "duration": 10,
+        "attach": "target",
+        "refresh": "none",
+        "tags": ["chorus_d2:devour", "chorus_d2:void_buff"],
+        "components": {
+          "numbers": {"cap": {"initial": 10, "unit": "second"}, "receipt_seconds": {"initial": 1, "unit": "second"}, "seen": {"initial": 0, "unit": "count"}},
+          "sets": ["death_ids"]
+        }
+      },
+      "bundle": "chorus_d2:devour_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:devour_application",
+      "parameters": {"duration": "second", "cap": "second", "receipt_seconds": "second"},
+      "rules": [
+        {
+          "id": "grant",
+          "on": "chorus_d2:grant_devour",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {"type": "chorus:own_source"},
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "duration"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+              },
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "cap"},
+                "op": "ge",
+                "right": {"type": "chorus:source_parameter", "name": "duration"}
+              },
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "receipt_seconds"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+              }
+            ]
+          },
+          "do": [
+            {"action": {"type": "chorus:inspect_entity", "target": "victim"}, "as": "recipient"},
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "available"},
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "alive"}
+                ]
+              },
+              "then": [
+                {
+                  "if": {"type": "chorus:has_buff", "buff": "chorus_d2:devour", "target": "victim"},
+                  "then": [
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "component": "cap",
+                      "op": "max",
+                      "value": {"type": "chorus:source_parameter", "name": "cap"}
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "component": "receipt_seconds",
+                      "op": "max",
+                      "value": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:devour_extension",
+                        "target": "victim",
+                        "input": {"type": "chorus:constant", "value": 5, "unit": "second"}
+                      },
+                      "as": "extension"
+                    },
+                    {
+                      "type": "chorus:extend_buff",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "amount": {"type": "chorus:result", "binding": "extension", "field": "value"},
+                      "cap": {"type": "chorus:component", "buff": "chorus_d2:devour", "target": "victim", "component": "cap"}
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "duration": {"type": "chorus:source_parameter", "name": "duration"}
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "component": "cap",
+                      "op": "set",
+                      "value": {"type": "chorus:source_parameter", "name": "cap"}
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:devour",
+                      "target": "victim",
+                      "component": "receipt_seconds",
+                      "op": "set",
+                      "value": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:devour_healing",
+                    "target": "victim",
+                    "input": {"type": "chorus:constant", "value": 70, "unit": "damage"}
+                  },
+                  "as": "raw_heal"
+                },
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:health_projection",
+                    "target": "victim",
+                    "input": {"type": "chorus:result", "binding": "raw_heal", "field": "value"}
+                  },
+                  "as": "heal"
+                },
+                {
+                  "type": "chorus:heal",
+                  "target": "victim",
+                  "amount": {"type": "chorus:result", "binding": "heal", "field": "value"},
+                  "tags": ["chorus_d2:devour"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "chorus_d2:clear_devour",
+          "if": {"type": "chorus:own_source"},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:devour", "target": "victim"}]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:devour_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {"type": "chorus:target_is", "left": "self", "right": "event_actor"},
+              {"type": "chorus:event_buffs_available", "target": "self"},
+              {"type": "chorus:event_has_buff", "buff": "chorus_d2:devour", "target": "self", "match": "any"}
+            ]
+          },
+          "do": [
+            {"action": {"type": "chorus:inspect_entity", "target": "self"}, "as": "recipient"},
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "available"},
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "alive"}
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:update_component",
+                    "buff": "chorus_d2:devour",
+                    "target": "self",
+                    "component": "seen",
+                    "op": "set",
+                    "value": {"type": "chorus:constant", "value": 0, "unit": "count"},
+                    "once_set": "death_ids",
+                    "event_reference": "death_id"
+                  },
+                  "as": "admitted"
+                },
+                {
+                  "if": {"type": "chorus:result_flag", "binding": "admitted", "field": "applied"},
+                  "then": [
+                    {
+                      "after": {"type": "chorus:component", "buff": "chorus_d2:devour", "target": "self", "component": "receipt_seconds"},
+                      "do": [{"type": "chorus:forget_set_entry", "buff": "chorus_d2:devour", "component": "death_ids", "event_reference": "death_id"}]
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:devour_extension",
+                        "target": "self",
+                        "input": {"type": "chorus:constant", "value": 5, "unit": "second"}
+                      },
+                      "as": "extension"
+                    },
+                    {
+                      "type": "chorus:extend_buff",
+                      "buff": "chorus_d2:devour",
+                      "target": "self",
+                      "amount": {"type": "chorus:result", "binding": "extension", "field": "value"},
+                      "cap": {"type": "chorus:component", "buff": "chorus_d2:devour", "target": "self", "component": "cap"}
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:devour_healing",
+                        "target": "self",
+                        "input": {"type": "chorus:constant", "value": 70, "unit": "damage"}
+                      },
+                      "as": "raw_heal"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:health_projection",
+                        "target": "self",
+                        "input": {"type": "chorus:result", "binding": "raw_heal", "field": "value"}
+                      },
+                      "as": "heal"
+                    },
+                    {
+                      "type": "chorus:heal",
+                      "target": "self",
+                      "amount": {"type": "chorus:result", "binding": "heal", "field": "value"},
+                      "tags": ["chorus_d2:devour"]
+                    },
+                    {
+                      "if": {"type": "chorus:event_entity_observed", "target": "victim"},
+                      "then": [
+                        {"action": {"type": "chorus:read_event_entity", "target": "victim"}, "as": "classified"},
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {"type": "chorus:result_flag", "binding": "classified", "field": "available"},
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {"type": "chorus:result_flag", "binding": "classified", "field": "player"},
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_2"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_2"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_4"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_4"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_5"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_5"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_6"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "classified",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_6"
+                                              }
+                                            ]
+                                          },
+                                          "then": {"type": "chorus:constant", "value": 1, "unit": "count"},
+                                          "else": {"type": "chorus:constant", "value": 0, "unit": "count"}
+                                        }
+                                      ]
+                                    },
+                                    "op": "eq",
+                                    "right": {"type": "chorus:constant", "value": 1, "unit": "count"}
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:devour_grenade",
+                                "target": "self",
+                                "input": {
+                                  "type": "chorus:choose",
+                                  "if": {"type": "chorus:result_flag", "binding": "classified", "field": "player"},
+                                  "then": {"type": "chorus:constant", "value": 0.2, "unit": "charge_fraction"},
+                                  "else": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "classified",
+                                          "source": "entity",
+                                          "tag": "chorus_d2:combatant_tier_1"
+                                        },
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "classified",
+                                          "source": "type",
+                                          "tag": "chorus_d2:combatant_tier_1"
+                                        }
+                                      ]
+                                    },
+                                    "then": {"type": "chorus:constant", "value": 0.075, "unit": "charge_fraction"},
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "classified",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:combatant_tier_2"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "classified",
+                                            "source": "type",
+                                            "tag": "chorus_d2:combatant_tier_2"
+                                          }
+                                        ]
+                                      },
+                                      "then": {"type": "chorus:constant", "value": 0.116, "unit": "charge_fraction"},
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "classified",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:combatant_tier_3"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "classified",
+                                              "source": "type",
+                                              "tag": "chorus_d2:combatant_tier_3"
+                                            }
+                                          ]
+                                        },
+                                        "then": {"type": "chorus:constant", "value": 0.1375, "unit": "charge_fraction"},
+                                        "else": {"type": "chorus:constant", "value": 0.2, "unit": "charge_fraction"}
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "as": "energy"
+                            },
+                            {
+                              "type": "chorus:grant_ability_energy",
+                              "slot": "chorus_d2:grenade",
+                              "amount": {"type": "chorus:result", "binding": "energy", "field": "value"},
+                              "value_basis": "base",
+                              "tags": ["chorus_d2:devour"]
+                            }
+                          ],
+                          "else": [{"type": "chorus:emit", "event": "chorus_d2:devour_unclassified"}]
+                        }
+                      ],
+                      "else": [{"type": "chorus:emit", "event": "chorus_d2:devour_unclassified"}]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {"type": "chorus:target_is", "left": "self", "right": "victim"},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:devour"}]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:enhanced_devour",
+      "modifiers": [
+        {
+          "id": "devour_healing",
+          "profile": "chorus_d2:devour_healing",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:enhanced_devour",
+          "value": {"type": "chorus:constant", "value": 1, "unit": "delta"},
+          "reference": "Compendium Void D77, original D137; shared enhancement only, Feed the Void activation producer is separate.",
+          "confidence": "measured"
+        },
+        {
+          "id": "devour_grenade",
+          "profile": "chorus_d2:devour_grenade",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:enhanced_devour",
+          "value": {"type": "chorus:constant", "value": 1, "unit": "delta"},
+          "reference": "Compendium Void D77, original D137; shared enhancement only, Feed the Void activation producer is separate.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

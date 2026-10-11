@@ -1,0 +1,90 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {"id": "chorus_d2:health_projection", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": []},
+    {
+      "id": "chorus_d2:test_devour_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [{"type": "chorus:apply", "id": "bonus", "operation": "multiply", "group": {"name": "bonus", "reduction": "max"}}]
+    }
+  ],
+  "resources": [
+    {"id": "test:grenade_a", "capacity": 2, "initial": 0, "gain_profile": "chorus_d2:test_devour_gain", "gain_scalar": 0.5},
+    {"id": "test:grenade_b", "capacity": 1, "initial": 0, "gain_profile": "chorus_d2:test_devour_gain", "gain_scalar": 0.75}
+  ],
+  "abilities": [
+    {
+      "id": "test:grenade_a",
+      "slot": "chorus_d2:grenade",
+      "cost": {"resource": "test:grenade_a", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}},
+      "on_use": [{"type": "chorus:play_cue", "cue": "test:grenade_cast"}]
+    },
+    {
+      "id": "test:grenade_b",
+      "slot": "chorus_d2:grenade",
+      "cost": {"resource": "test:grenade_b", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}},
+      "on_use": [{"type": "chorus:play_cue", "cue": "test:grenade_cast"}]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:devour_inputs",
+      "rules": [
+        {
+          "id": "hit",
+          "on": "test:damage",
+          "if": {"type": "chorus:source_is", "source": "owner"},
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {"type": "chorus:event_number", "name": "amount", "unit": "damage"},
+              "damage_type": "minecraft:generic",
+              "tags": ["chorus:weapon_damage"],
+              "kill_tags": ["chorus:weapon_kill"]
+            }
+          ]
+        },
+        {
+          "id": "unclassified",
+          "on": "chorus_d2:devour_unclassified",
+          "if": {"type": "chorus:target_is", "left": "self", "right": "event_actor"},
+          "do": [{"type": "chorus:play_cue", "cue": "test:devour_unclassified"}]
+        }
+      ]
+    },
+    {
+      "id": "test:devour_persistence_extension",
+      "modifiers": [
+        {
+          "id": "extension",
+          "profile": "chorus_d2:devour_extension",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "add",
+          "stacking_key": "test:persistence",
+          "value": {"type": "chorus:constant", "value": 3, "unit": "second"},
+          "reference": "Explicit quoted 5+3 extension only; not a complete Persistence fragment.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:devour_stat_gain",
+      "modifiers": [
+        {
+          "id": "stat",
+          "profile": "chorus_d2:test_devour_gain",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:stat",
+          "value": {"type": "chorus:constant", "value": 1.25, "unit": "delta"},
+          "reference": "Synthetic100-stat endpoint to test exactly once scaling independently of recipient CES.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}
