@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+向前地面移动门禁 `/tmp/chorus-directional-gate.log` BUILD SUCCESSFUL，2分3秒：1513项JUnit（无失败/错误/跳过）、Fabric786项、NeoForge801项及两端发布jar通过，共享Chorus场景785项。新增7项共享世界场景，没有增加检查点类型或字段。10项Compendium审计、83条报告一致性及差异检查通过，发布jar包含新属性与移动宿主且不含效果/GameTest/持久化夹具。
+
+新增同步属性chorus:forward_ground_speed，两端通过属性修改事件为所有具有属性的LivingEntity登记默认倍率1。复用native_attributes归约、临时modifier和原版属性包；原版输入归一化后，只在地面向前/向前斜走时乘本次水平加速度。保留斜走方向、竖直分量及既有动量；纯横移、后退、空中、液体、乘坐、创造飞行、死亡及旁观均不继承该地面倍率。现有移动禁用仍优先，不生成新移动事件或回填纯状态。
+
+世界场景验证不同朝向/模拟量、真实travel位移、疾跑/蹲行输入、实际水/熔岩、行动限制与动量、其他原版修饰共存、接收者到期/解绑，以及原版属性包编解码。客户端门禁 `/tmp/chorus-directional-client.log` BUILD SUCCESSFUL，1分40秒：Fabric注册的18项客户端场景完成，新增场景以真实键盘和集成服务器验证合成×1.5前移倍率、横移倍率1、属性变更/关闭同步及位置一致。NeoForge本轮验证服务端和属性包，尚未运行同等真实客户端场景。
+
+这一通用能力为Domineering、Lightweight等方向限定收益补宿主接口；没有将Minecraft摩擦、绝对速度、ADS、空中手感或1024属性上限当作D2数值校准。完整Domineering内容仍待接入，Compendium审阅不增加完成声明。接口见[向前地面移动倍率](engine-data-packs.md#向前地面移动倍率)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 持握武器查询门禁 `/tmp/chorus-drawn-gate-2.log` BUILD SUCCESSFUL，2分4秒：1513项JUnit（无失败/错误/跳过）、Fabric779项、NeoForge794项及两端发布jar通过，共享Chorus场景778项。新增7项规则测试和3项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过；发布jar包含ObserveDrawnWeapon且不含效果/GameTest/持久化夹具。
 
 新增通用observe_drawn_weapon动作，从holder当前独立装备容器返回零或一个已配置武器身份，供for_each与refill_magazine等已有动作使用。来源/触发事件携带的武器不代替当前选择，空手或未配置武器行为返回空集合，已配置武器缺少弹药账户则报错。补弹遵守当前容量、溢出保留与有限/无限储备规则，不产生reload_finished；实际容器测试验证切枪、其他持有者隔离及Kill Clip窗口不被消费。延迟后查询与延迟前保存身份分别采用当前或原先选择，来源解绑及纯会话检查点保留其区别。

@@ -1,0 +1,186 @@
+{
+  "version": "test-1",
+  "native_attributes": [
+    {
+      "id": "test:forward",
+      "attribute": "chorus:forward_ground_speed",
+      "operation": "add_multiplied_total",
+      "profile": "test:forward",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    },
+    {
+      "id": "test:global",
+      "attribute": "minecraft:movement_speed",
+      "operation": "add_multiplied_total",
+      "profile": "test:global",
+      "input": {
+        "value": 0,
+        "unit": "delta"
+      },
+      "output_unit": "delta"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:forward",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:global",
+      "version": "test-1",
+      "input_unit": "delta",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "contributions",
+          "operation": "add",
+          "group": {
+            "name": "contributions",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:temporary",
+        "version": "test-1",
+        "duration": 0.2,
+        "attach": "target"
+      },
+      "bundle": "test:temporary"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:forward",
+      "modifiers": [
+        {
+          "id": "forward",
+          "profile": "test:forward",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:forward",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.04,
+            "unit": "delta"
+          },
+          "reference": "Synthetic directional movement acceptance; not a complete Destiny movement model",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:strong",
+      "modifiers": [
+        {
+          "id": "strong",
+          "profile": "test:forward",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:strong",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic directional movement acceptance; not a complete Destiny movement model",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:global",
+      "modifiers": [
+        {
+          "id": "global",
+          "profile": "test:global",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:global",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.2,
+            "unit": "delta"
+          },
+          "reference": "Synthetic directional movement acceptance; not a complete Destiny movement model",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:temporary",
+      "modifiers": [
+        {
+          "id": "temporary",
+          "profile": "test:forward",
+          "stage": "contributions",
+          "group": "contributions",
+          "op": "add",
+          "stacking_key": "test:temporary",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic directional movement acceptance; not a complete Destiny movement model",
+          "confidence": "assumed"
+        }
+      ],
+      "scope": "buff"
+    },
+    {
+      "id": "test:stop",
+      "action_gates": [
+        {
+          "id": "move",
+          "action": "movement_input"
+        }
+      ]
+    },
+    {
+      "id": "test:inputs",
+      "rules": [
+        {
+          "id": "temporary",
+          "on": "test:temporary",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:temporary",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

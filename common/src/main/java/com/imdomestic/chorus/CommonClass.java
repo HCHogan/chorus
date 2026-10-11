@@ -32,6 +32,7 @@ public class CommonClass {
         }
 
         com.imdomestic.chorus.registry.ChorusEntities.init();
+        com.imdomestic.chorus.registry.ChorusAttributes.init();
         ChorusComponents.init();
         ChorusItems.init();
     }
