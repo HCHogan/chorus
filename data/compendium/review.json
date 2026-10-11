@@ -1538,7 +1538,7 @@
       "name": "Singularity Blade",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Artifact Perks",
@@ -1551,7 +1551,7 @@
           "text_sha256": "98c6469ca25723f9efe440f94baeefc3e99de86ac89195403551960eaac280a0"
         }
       ],
-      "scope": "已核对命中期状态资格要求；数值快照/实时修饰机制已有合成测试，但该神器反应规则未实现",
+      "scope": "神器来源JSON按实际命中时的虚空Buff观察施加六秒共享Weaken；确认近战/剑击杀按历史中心在四米内独立授权；真实支付/物理命中、双方强度/时长、来源与失败边界已验收",
       "acceptance": [
         "Devour/Invisibility/Overshield 任一存在时，近战与剑命中施加 6 秒 Weaken",
         "资格在命中时检查，而非使用时快照",
@@ -1559,25 +1559,116 @@
       ],
       "evidence": [
         {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
           "kind": "definition",
-          "path": "common/src/test/resources/effects/damage_snapshot.json"
+          "path": "common/src/test/resources/effects/singularity_blade.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/singularity_blade_inputs.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weaken.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/DamageSnapshotTest.java",
-          "symbol": "explicitOnHitContributionsMayAppearAndDisappearAfterLaunch"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "eachRecognizedVoidBuffLetsMeleeAndSwordHitsApplySixSecondsWithActualRecipientStrength"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "qualificationIsObservedAtImpactRatherThanProjectileLaunch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "hitReactionsCannotRetroactivelyGrantOrRemoveTheBuffQualificationOfTheSameKill"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "burstUsesHistoricalDeathCenterFourMeterBoundaryAndIndependentStatusAuthorization"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "ordinaryWeaponDamageUnrelatedVoidBuffOrMissingObservationCannotPretendToQualify"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "missingDeathPositionPreventsBurstButDoesNotBlockNonlethalDirectApplication"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "replayedHitsAndDeathsNeitherExtendTheDeadlineNorRepeatTheAreaQuery"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "knownImmuneHitMayApplyStatusButDeniedTargetCannotAndUnknownDamageCannotInventAHit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "stowKeepsArtifactEligibilityButDetachPreventsFutureHitsWithoutRemovingExistingWeaken"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java",
+          "symbol": "checkpointKeepsReceiptHistoryAndUnknownStatusAuthorizationStopsWithoutReplaying"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/DamageSnapshotGameTest.java",
-          "symbol": "onHitBonusAcquiredAfterLaunchParticipatesInTheSameMaxGroup"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "paidMeleeAndSwordHitsUseActualRecipientStrengthAndBothLastSixSeconds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "devourAndInvisibilityGainedOrLostDuringFlightDetermineActualHitEligibility"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "paidMeleeAndSwordKillsApplyFourMeterBurstWithTeamAndPerTargetStatusChecks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "sameHitBuffReactionsCannotRewriteTheQualificationOfItsFollowingKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "corpseRemovalBeforeFactDeliveryStillUsesTheActualHistoricalDeathCenter"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "weaponStowRetainsEligibilityWhileArtifactDetachPreventsFutureHitsAndKeepsOldWeaken"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java",
+          "symbol": "unknownPhysicalDamageKeepsHealthLossWithoutInventingWeakenOrReplayingTheAttack"
         }
       ],
       "gaps": [
-        "该来源描述反应资格，数值 on_hit 测试不能证明该 perk 已实现",
-        "实际剑/近战信用、三种虚空 Buff 识别与状态免疫接线",
-        "共享Weaken承伤 / 移动 / 状态施加已独立提供；该神器反应规则、命中期资格、击杀范围施加与完整时间线仍未实现。",
-        "神器来源装配和本快照之后的可用性/改动未核对"
+        "实际命中和击杀已连接物理投射物、支付后的近战技能账户及真实武器容器，但攻击分类由显式合成定义提供；原版native_damage不会自动冒充近战或剑，完整剑轻重击/能量/格挡、各技能和派生伤害信用仍未实现或校准。",
+        "Void Overshield复用实际共享盾池；Devour和Invisibility目前仅为资格标签夹具，不代表完整吞噬治疗/回能或隐身行为。正式神器单选来源、子职业/装备装配和当前赛季可用性仍未完成。",
+        "历史资格取实际伤害边界：同一hit随后获得/移除Buff不改写kill资格。这是明确的事件时序政策，原作对应反应顺序仍需实测。死亡目标不追加Weaken，致死命中走范围分支；与要求被削弱目标击杀的其他词条交互未校准。",
+        "已知IMMUNE命中仍可独立请求状态授权，DENIED不施加；CANCELLED/FAILED不产生hit。原作所有免疫、格挡、图腾救活和特殊技能资格需逐项校准，不能由合成测试推断全部原作行为。",
+        "四米按历史死者脚底位置与当前目标脚底球形距离、not_allied、无视线过滤查询；范围锚点、敌我分类、障碍和全部跨来源刷新/首信用政策仍需原作校准。目标拒绝与来源卸下政策为显式Chorus选择。",
+        "receipt_seconds是宿主必填的有限回执去重期限，不是效果冷却或连锁上限；一秒夹具只证明期限内幂等，期限外回执重放不保证去重。重复神器来源须由正式装配层约束。",
+        "测试10伤害、20m/s、零重力、1秒飞行、0.15秒射击间隔、弹量/0.2秒换弹、两秒资格标记和立即支付的近战均为合成参数，不作D2武器/技能数值。",
+        "完整生产规则包、HUD/素材绑定、剑与近战动画、物理世界跨重启恢复，以及共享Weaken的战员AI准确性/完整空中移动仍未完成。"
       ]
     },
     {
@@ -7823,7 +7914,7 @@
         }
       ],
       "gaps": [
-        "Singularity Blade命中期资格和4米击杀扩散尚未实现，本轮只补其共享Weaken依赖；所有正式技能 / 武器 / 神器来源装配仍待完成。",
+        "Singularity Blade已接命中期资格、六秒状态和四米击杀扩散，见独立条目；全部正式技能 / 武器 / 神器来源装配仍待完成。",
         "MAX_REMAINING、强值与最长剩余时间分别取大、跨来源首信用及施加者解绑后保留是明确政策；原作全部顺序 / 刷新 / 击杀归属尚需实测。原表确认Fafnir / Felwinter / Tractor可被其他Weaken续时，不代表所有Tether可如此续时。",
         "Moebius / Deadfall持续束缚生命周期、所有独立全局减益分组、原表Deadfall Guardian50%?和各强值来源时长仍未校准；测试30% / 50%输入只验证共享强值保留，不代表完成具体技能或异域。",
         "当前Guardian使用真实玩家分类；NPC Guardian、混合交战与全部特殊伤害增幅资格尚需校准。原表普通6 / 2.5秒不覆盖所有生产者，调用者须显式给出参数。",

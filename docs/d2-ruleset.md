@@ -1419,7 +1419,7 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 
 ## 共享 Weaken 与可续时的强削弱
 
-[weaken.json](../common/src/test/resources/effects/weaken.json) 为普通削弱和可由其他 Weaken 续时的强削弱提供共享目标状态，来源依据为 Void 原表 B13 / D13、固定快照 B11 / D11；原 HTML 与快照文本及哈希见[研究记录](../data/d2-research/2026-10-11/weaken.json)。原表给出普通战员承伤 +15%、Guardian +7.5%、移动速度降低 20%，默认时长分别 6 / 2.5 秒；具体生产者可以另给时长，例如 Singularity Blade 两种命中环境均需按其条目传入 6 秒。这一共享定义不代表神器反应规则已经实现。
+[weaken.json](../common/src/test/resources/effects/weaken.json) 为普通削弱和可由其他 Weaken 续时的强削弱提供共享目标状态，来源依据为 Void 原表 B13 / D13、固定快照 B11 / D11；原 HTML 与快照文本及哈希见[研究记录](../data/d2-research/2026-10-11/weaken.json)。原表给出普通战员承伤 +15%、Guardian +7.5%、移动速度降低 20%，默认时长分别 6 / 2.5 秒；具体生产者可以另给时长，例如 Singularity Blade 两种命中环境均需按其条目传入 6 秒。Singularity Blade 的命中 / 击杀生产者已在下节单独接线，其正式装配与原作特例仍有缺口。
 
 `chorus_d2:weaken_application` 接受四个必填参数：`combatant_duration` / `guardian_duration`（second）和 `combatant_strength` / `guardian_strength`（delta）。可信来源发出 `chorus_d2:apply_weaken`，携带自身 source_instance / bundle 和真实 victim；应用时明确观察目标存在 / 存活及 player 标志，再请求 `apply_status` 授权。普通调用者传入 6 / 2.5 秒与 0.15 / 0.075。当前以真实玩家识别 Guardian，不按整个世界的 PvP 开关选值；混合交战、NPC Guardian、特殊生产者与敌人类型仍需进一步分类校准。四参数必须为正，缺参在链接 / 来源验证时失败，缺失或死亡目标不请求施加，授权拒绝不改变既有状态。
 
@@ -1430,3 +1430,20 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 移动修饰复用共享 movement_speed_contribution 的 status 乘法阶段，再投影到原版 movement_speed 属性。单个 Weaken 贡献 -0.2 delta，重复施加不会重复扣速；到期、清除和确认死亡移除贡献。它不禁止移动 / 跳跃，原作战员准确性降低、完整空中移动和动画变化未由这一属性投影实现。施加者来源卸下不清除已经留在目标上的状态；可信 `chorus_d2:clear_weaken` 可清除，确认死亡会清理实时 Buff，但伤害回执保留死亡前 Buff 观察，后续“击杀被削弱目标”可使用事件历史条件。
 
 `WeakenTest` 覆盖实际目标分类、两模式、共享 / 非叠加、强值续时、与独立减伤组合、拒绝施加、无效输入、到期 / 清除 / 死亡、施加者解绑、纯会话检查点与未知授权不重放。`WeakenGameTest` 覆盖真实玩家与战员扣血、移动属性、服务器 tick 的 2.5 / 6 秒到期、实际强值续时、全局减益最高值、独立减伤、状态拒绝及致死伤害的历史观察。来源均为测试宿主显式绑定；完整神器、技能 / 武器施加、原作强值来源特例、AI 精度、HUD 和物理世界持久化仍未完成。
+
+
+## Singularity Blade 的命中资格与击杀扩散
+
+[singularity_blade.json](../common/src/test/resources/effects/singularity_blade.json) 将神器作为持有者的独立 SOURCE bundle，不装进每把武器的 perk 插槽。来源为原表 Artifact Perks F22 / E23，对应固定快照 F14 / E15；归档、逐格文本与哈希见[研究记录](../data/d2-research/2026-10-11/singularity-blade.json)。[Bungie 2025-11-26 公告](https://www.bungie.net/7/en/News/Article/twid_11_26_2025)确认虚空 Buff 下近战 / 剑命中削弱和击杀扩散的定性行为；六秒和四米仍以 Compendium 为数值依据，公告不证明当前赛季可用性。
+
+资格要求攻击所有者与神器持有者相同，伤害带 `melee_damage`，或同时带 `weapon_damage` 与 `sword`。`event_buffs_available(source_owner)` 后检查同一伤害回执保存的 Devour / Invisibility / Void Overshield 标签，允许飞行途中获得或失去资格；不使用发射时攻击快照，也不让同一 hit 反应刚获得的 Buff 反过来改写该次 kill。这个更细的同次命中 / 击杀顺序是明确的 Chorus 政策，原作仍需实测。
+
+非致死 `hit` 调用共享 `weaken_application`；已知伤害免疫仍可请求独立状态授权，拒绝则不施加。确认 `kill` 读取回执中的死者脚底位置，在四米闭区间内查询当前非队友、排除所有者和原死者，再逐目标授权施加。查询使用脚底球形距离、不额外要求视线；尸体已移动或移除不会改变中心。爆发本身只有状态，没有补造伤害。死者不追加目标状态；与其他“击杀被削弱目标”效果的同击交互尚未校准。
+
+两条路径均使用 `origin: event` 保留实际攻击的武器 / 技能归属，传入战员 / Guardian 各六秒、15% / 7.5% 承伤增幅。此处 Guardian 的六秒明确覆盖普通 Weaken 的 2.5 秒。目标继续共享前节状态、全局减益 MAX、20% 原版移动减速、强值续时及死亡 / 到期清理。
+
+每个神器来源维护有限期限的 damage_id / death_id 身份集合，`receipt_seconds` 必须由宿主给出。每次合法新事实延长桶的清理期限，逐项删除旧身份；这不是触发冷却或连锁次数限制，也不保证无限历史重放幂等。收枪不改变神器资格，解绑神器清理私有身份状态并阻止未来触发，已施加的目标 Weaken 保留至其自身结束。正式装配层仍须保证不重复绑定同一个已选择神器。
+
+[纯测试](../common/src/test/java/com/imdomestic/chorus/effect/SingularityBladeTest.java)覆盖三种 Buff、两类攻击、真实目标分类、命中期资格、历史死亡中心、范围 / 授权、有限回执去重、来源与检查点。[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/SingularityBladeGameTest.java)使用真实玩家容器、实际支付的合成近战、物理投射物与真实生命变化，覆盖六秒时长、双目标强度、四米边界、队友和拒绝、同击状态变化、尸体移除、解绑及未知回执。实际结果见[实现记录](engine-implementation.md)。
+
+当前实际 Void Overshield 可提供资格；Devour / Invisibility 只用标签夹具，尚未实现完整效果。剑信用由合成武器显式提供，原版 `native_damage` 不自动获得剑 / 近战标签；测试的投射物也不等同完整剑轻重击、格挡或近战技能。合成伤害 / 弹道 / 弹药 / 回执期限不作原作校准。完整来源与派生信用、致死命中联动、免疫 / 格挡 / 救活、敌我 / 范围 / 障碍、正式装配与当前可用性、HUD、动画及物理世界重启均保留 partial。

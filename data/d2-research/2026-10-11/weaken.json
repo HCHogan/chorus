@@ -54,11 +54,16 @@
     "audits": "10 Compendium audits,77-entry report consistency, original/snapshot cell and archive hashes, release fixture exclusion and git diff --check passed."
   },
   "remaining": [
-    "Singularity Blade命中期资格和4米击杀扩散尚未实现，本轮只补其共享Weaken依赖；所有正式技能 / 武器 / 神器来源装配仍待完成。",
+    "Singularity Blade已接命中期资格、六秒状态和四米击杀扩散，见后续研究记录；全部正式技能 / 武器 / 神器来源装配仍待完成。",
     "MAX_REMAINING、强值与最长剩余时间分别取大、跨来源首信用及施加者解绑后保留是明确政策；原作全部顺序 / 刷新 / 击杀归属尚需实测。原表确认Fafnir / Felwinter / Tractor可被其他Weaken续时，不代表所有Tether可如此续时。",
     "Moebius / Deadfall持续束缚生命周期、所有独立全局减益分组、原表Deadfall Guardian50%?和各强值来源时长仍未校准；测试30% / 50%输入只验证共享强值保留，不代表完成具体技能或异域。",
     "当前Guardian使用真实玩家分类；NPC Guardian、混合交战与全部特殊伤害增幅资格尚需校准。原表普通6 / 2.5秒不覆盖所有生产者，调用者须显式给出参数。",
     "20%减速已进入原版movement_speed；战员AI准确性、完整空中 / 特殊移动、动画、HUD和正式内容未实现。独立50%减伤 / 30%全局减益是合成组合输入。",
     "纯会话检查点覆盖状态 / 强值 / 截止点，物理世界跨重启与完整角色来源自动装配仍未完成。"
-  ]
+  ],
+  "follow_up": {
+    "date": "2026-10-12",
+    "research": "data/d2-research/2026-10-11/singularity-blade.json",
+    "note": "First producer integration completed partial acceptance; validation above remains the earlier shared-Weaken-stage evidence."
+  }
 }

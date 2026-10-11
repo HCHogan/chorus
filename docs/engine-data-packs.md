@@ -2839,3 +2839,12 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Weaken](d2-ruleset.md#共享-weaken-与可续时的强削弱) 复用 `inspect_entity`、`apply_status` 和带单位的组件写入，在状态授权成功后才更新目标共享的 strength。跨来源不重复建层；状态配置 MAX_REMAINING，组件显式取 MAX，两者分别控制时间与强度，不能假设选强度会自动选择同一来源的时长。固定时长、强度和保留来源的政策均属于内容定义。
 
 目标 `defense_profile` 的 global_debuff 组以 MAX 归并承伤增幅，随后 resistance 组计算独立减伤。它与攻击端伤害快照分别求值，新的目标状态无需重建已发射攻击；来源归因仍是原攻击。共享 `movement_attributes` 的 status 组投影原版移动属性，到期和死亡清理沿用通用 Buff 生命周期。此例没有新增检查点类型或引擎 Java 分支。
+
+
+### 用历史命中事实组合反应资格与范围状态
+
+[Singularity Blade](d2-ruleset.md#singularity-blade-的命中资格与击杀扩散)使用现有 `event_buffs_available` / `event_has_buff_tag` 查询事实记录的攻击者 Buff；它们不等价于数值修饰的 `on_hit` 或读取处理到 kill 时的实时状态。同一伤害生成的 hit / kill 共享观察，因此前面的反应不会改变后面的历史资格。同步动作宿主未提供 Buff 观察时，伤害动作可在结算边界补采样；显式观察未包含该 holder 时仍是未知。直接输入的事实若没有观察，内容须明确处理，不能把未知当作空 Buff 或自动读当前状态。
+
+击杀反应先检查历史位置是否可用，再用 `read_event_position` 绑定位置，随后 `select_targets` 查询当前目标；不重新读取死者坐标。`invoke_bundle` 的 `origin: event` 保留攻击信用，但被调 bundle 仍独立检查目标存活与状态授权。目标列表中的每一项可以有不同结果；范围状态不必产生伤害。时间 / 强度、范围锚点、阵营和视线策略由内容显式决定。
+
+此组合没有新增 Java 动作或检查点类型。来源实例化 Buff 的两个身份集合分别记录 hit 与 kill，`once_set` 控制重复事实，`forget_set_entry` 与桶到期负责有界清理；有限去重窗口不限制合法后续命中与效果链。完整来源装配、实际行为与原作校准不能由这套通用接口的存在自动推定为完成。

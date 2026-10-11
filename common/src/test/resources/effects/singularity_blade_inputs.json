@@ -1,0 +1,434 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": [
+          "test:weapon",
+          "chorus:special_ammo"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "test:empty"
+              },
+              "enhanced": {
+                "bundle": "test:empty"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {
+        "capacity": 20,
+        "magazine": 20,
+        "reserves": {
+          "rounds": 30,
+          "capacity": 50
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus:sword"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": []
+    },
+    {
+      "id": "test:melee_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "devour",
+          "on": "test:devour",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:devour_presence"
+            }
+          ]
+        },
+        {
+          "id": "invisibility",
+          "on": "test:invisibility",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:invisibility_presence"
+            }
+          ]
+        },
+        {
+          "id": "unrelated_void",
+          "on": "test:unrelated_void",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:unrelated_void_presence"
+            }
+          ]
+        },
+        {
+          "id": "clear_void",
+          "on": "test:clear_void",
+          "do": [
+            {
+              "type": "chorus:remove_buffs_with_tag",
+              "tag": "chorus_d2:void_buff"
+            }
+          ]
+        },
+        {
+          "id": "shield",
+          "on": "test:overshield",
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:void_overshield_application",
+              "event": "chorus_d2:grant_void_overshield",
+              "target": "self",
+              "parameters": {
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 15,
+                  "unit": "damage"
+                },
+                "duration": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "second"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:devour_on_hit",
+      "rules": [
+        {
+          "id": "gain",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:devour_presence"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:clear_void_on_hit",
+      "rules": [
+        {
+          "id": "lose",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buffs_with_tag",
+              "tag": "chorus_d2:void_buff"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:presence_active",
+      "scope": "buff"
+    }
+  ],
+  "resources": [
+    {
+      "id": "test:melee_energy",
+      "capacity": 1,
+      "initial": 1,
+      "gain_profile": "test:melee_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:melee",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:melee_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "damage"
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "test:weapon_damage",
+            "tags": [
+              "chorus:melee_damage",
+              "chorus:ability_damage"
+            ],
+            "kill_tags": [
+              "chorus:melee_kill",
+              "chorus:ability_kill"
+            ]
+          },
+          "as": "shot"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "second"
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "for_each": "impact",
+              "as": "victim",
+              "do": [
+                {
+                  "type": "chorus:damage_snapshot",
+                  "snapshot": "shot",
+                  "target": {
+                    "binding": "victim"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:devour_presence",
+        "version": "compendium-2026-10-05",
+        "duration": 2,
+        "tags": [
+          "chorus_d2:devour",
+          "chorus_d2:void_buff"
+        ]
+      },
+      "bundle": "test:presence_active"
+    },
+    {
+      "definition": {
+        "id": "test:invisibility_presence",
+        "version": "compendium-2026-10-05",
+        "duration": 2,
+        "tags": [
+          "chorus_d2:invisibility",
+          "chorus_d2:void_buff"
+        ]
+      },
+      "bundle": "test:presence_active"
+    },
+    {
+      "definition": {
+        "id": "test:unrelated_void_presence",
+        "version": "compendium-2026-10-05",
+        "duration": 2,
+        "tags": [
+          "chorus_d2:unrelated_void",
+          "chorus_d2:void_buff"
+        ]
+      },
+      "bundle": "test:presence_active"
+    }
+  ]
+}

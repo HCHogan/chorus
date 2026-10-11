@@ -1,0 +1,235 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:singularity_blade_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "source",
+        "components": {"numbers": {"seen": {"initial": 0, "unit": "count"}}, "sets": ["damage_ids", "death_ids"]}
+      },
+      "bundle": "chorus_d2:singularity_blade_receipts"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:singularity_blade",
+      "parameters": {"receipt_seconds": "second"},
+      "rules": [
+        {
+          "id": "hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:source_is", "source": "owner"},
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {"type": "chorus:event_tag", "tag": "chorus:melee_damage"},
+                      {
+                        "type": "chorus:all",
+                        "of": [{"type": "chorus:event_tag", "tag": "chorus:weapon_damage"}, {"type": "chorus:event_tag", "tag": "chorus:sword"}]
+                      }
+                    ]
+                  },
+                  {"type": "chorus:event_buffs_available", "target": "source_owner"},
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:devour"},
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:invisibility"},
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:void_overshield"}
+                    ]
+                  }
+                ]
+              },
+              {"type": "chorus:event_flag", "name": "lethal", "is": false}
+            ]
+          },
+          "do": [
+            {
+              "if": {"type": "chorus:not", "of": {"type": "chorus:has_buff", "buff": "chorus_d2:singularity_blade_receipts"}},
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:singularity_blade_receipts",
+                  "duration": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:singularity_blade_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {"type": "chorus:constant", "value": 0, "unit": "count"},
+                "once_set": "damage_ids",
+                "event_reference": "damage_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {"type": "chorus:result_flag", "binding": "receipt", "field": "applied"},
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:singularity_blade_receipts",
+                  "duration": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                },
+                {
+                  "after": {"type": "chorus:source_parameter", "name": "receipt_seconds"},
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:singularity_blade_receipts",
+                      "component": "damage_ids",
+                      "event_reference": "damage_id"
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:weaken_application",
+                  "event": "chorus_d2:apply_weaken",
+                  "origin": "event",
+                  "target": "victim",
+                  "parameters": {
+                    "combatant_duration": {"type": "chorus:constant", "value": 6, "unit": "second"},
+                    "guardian_duration": {"type": "chorus:constant", "value": 6, "unit": "second"},
+                    "combatant_strength": {"type": "chorus:constant", "value": 0.15, "unit": "delta"},
+                    "guardian_strength": {"type": "chorus:constant", "value": 0.075, "unit": "delta"}
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:source_is", "source": "owner"},
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {"type": "chorus:event_tag", "tag": "chorus:melee_damage"},
+                      {
+                        "type": "chorus:all",
+                        "of": [{"type": "chorus:event_tag", "tag": "chorus:weapon_damage"}, {"type": "chorus:event_tag", "tag": "chorus:sword"}]
+                      }
+                    ]
+                  },
+                  {"type": "chorus:event_buffs_available", "target": "source_owner"},
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:devour"},
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:invisibility"},
+                      {"type": "chorus:event_has_buff_tag", "target": "source_owner", "tag": "chorus_d2:void_overshield"}
+                    ]
+                  }
+                ]
+              },
+              {"type": "chorus:event_position_observed", "target": "victim", "anchor": "feet"}
+            ]
+          },
+          "do": [
+            {
+              "if": {"type": "chorus:not", "of": {"type": "chorus:has_buff", "buff": "chorus_d2:singularity_blade_receipts"}},
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:singularity_blade_receipts",
+                  "duration": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:singularity_blade_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {"type": "chorus:constant", "value": 0, "unit": "count"},
+                "once_set": "death_ids",
+                "event_reference": "death_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {"type": "chorus:result_flag", "binding": "receipt", "field": "applied"},
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:singularity_blade_receipts",
+                  "duration": {"type": "chorus:source_parameter", "name": "receipt_seconds"}
+                },
+                {
+                  "after": {"type": "chorus:source_parameter", "name": "receipt_seconds"},
+                  "do": [{"type": "chorus:forget_set_entry", "buff": "chorus_d2:singularity_blade_receipts", "component": "death_ids", "event_reference": "death_id"}]
+                },
+                {"action": {"type": "chorus:read_event_position", "target": "victim", "anchor": "feet"}, "as": "place"},
+                {
+                  "if": {"type": "chorus:result_flag", "binding": "place", "field": "available"},
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {"position": "place"},
+                        "radius": {"type": "chorus:constant", "value": 4, "unit": "meter"},
+                        "relation": "not_allied",
+                        "relative_to": "source_owner",
+                        "exclude": ["source_owner", "victim"],
+                        "order": "nearest"
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "for_each": "nearby",
+                      "as": "neighbor",
+                      "do": [
+                        {
+                          "type": "chorus:invoke_bundle",
+                          "bundle": "chorus_d2:weaken_application",
+                          "event": "chorus_d2:apply_weaken",
+                          "origin": "event",
+                          "target": {"binding": "neighbor"},
+                          "parameters": {
+                            "combatant_duration": {"type": "chorus:constant", "value": 6, "unit": "second"},
+                            "guardian_duration": {"type": "chorus:constant", "value": 6, "unit": "second"},
+                            "combatant_strength": {"type": "chorus:constant", "value": 0.15, "unit": "delta"},
+                            "guardian_strength": {"type": "chorus:constant", "value": 0.075, "unit": "delta"}
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {"type": "chorus:own_source"},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:singularity_blade_receipts"}]
+        }
+      ]
+    },
+    {"id": "chorus_d2:singularity_blade_receipts", "scope": "buff"}
+  ]
+}

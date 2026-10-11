@@ -40,6 +40,8 @@ public class ProjectileGameTest {
         final List<DamageCommand> hits = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>(); final List<TargetQuery> queries = new ArrayList<>();
         final List<Action.CueCommand> cues = new ArrayList<>(); final List<RuleEngine.OperationId> operations = new ArrayList<>();
         Consumer<Action.CueCommand> onCue = _ -> {};
+        final Set<String> deniedStatusTargets = new HashSet<>();
+        java.util.function.BiConsumer<DamageCommand, DamageReceipt> afterDamageReceipt = (_, _) -> {};
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue, failAfterDisplacement;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
@@ -61,7 +63,7 @@ public class ProjectileGameTest {
                 var data = JsonParser.parseReader(reader).getAsJsonObject(); edit.accept(data); program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).getOrThrow();
             }
             var type = h.getLevel().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse("chorus_gametest:delayed")));
-            world = new MinecraftWorldActions(h.getLevel(), this::resolve, _ -> new DamageSource(type, null, owner), (_, _) -> true, cue -> { cues.add(cue); onCue.accept(cue); });
+            world = new MinecraftWorldActions(h.getLevel(), this::resolve, _ -> new DamageSource(type, null, owner), (target, _) -> !deniedStatusTargets.contains(id(target)), cue -> { cues.add(cue); onCue.accept(cue); });
             var source = new EffectSource("launch", "test:projectile", id(owner), new BuffInstance.Origin(id(owner), "source", "", "test:bolt"), Set.of());
             var boost = new EffectSource("boost", "test:power", id(owner), source.origin(), Set.of());
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, EffectState.empty().withSource(source).withSource(boost), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
@@ -70,7 +72,7 @@ public class ProjectileGameTest {
                 if (result instanceof ProjectileFlight.Receipt receipt && receipt.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (result instanceof WorldPickup.Receipt receipt && receipt.entity().isPresent()) pickups.add((EffectObject) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (request.command() instanceof Action.CueCommand && failAfterCue) throw new IllegalStateException("Injected unknown pickup cue outcome");
-                if (result instanceof DamageReceipt receipt) { hits.add((DamageCommand) request.command()); receipts.add(receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
+                if (result instanceof DamageReceipt receipt) { var damage = (DamageCommand) request.command(); hits.add(damage); receipts.add(receipt); afterDamageReceipt.accept(damage, receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
                 if (request.command() instanceof HealingCommand && failAfterHealing) throw new IllegalStateException("Injected unknown projectile healing outcome");
                 if (request.command() instanceof TargetQuery q) queries.add(q);
                 return result;

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "effect": "Singularity Blade",
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=473308249",
+      "archived_html": "data/d2-research/2026-10-11/singularity-blade-source.html.gz",
+      "sha256": "6cbab7f65060f6a24158bdaefbd00284b040d23e4dd32a7e346fb066e2063b92",
+      "gzip_sha256": "b08f6309c296e763d849c48724a2e4fbd3aad26c575d812f829e92449299e5a9",
+      "cells": [
+        {
+          "original_cell": "F22",
+          "snapshot_cell": "F14",
+          "snapshot_text_sha256": "28b0ef4bbf1565047fd1fea992d5066fb6d3942abea99a4cb4bbf6c83c858b76",
+          "normalized_text": "Singularity Blade",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "E23",
+          "snapshot_cell": "E15",
+          "snapshot_text_sha256": "98c6469ca25723f9efe440f94baeefc3e99de86ac89195403551960eaac280a0",
+          "normalized_text": "While a Void Buff (Devour, Invisibility, or Overshield) is active: Melee and Sword Hits inflict Weaken for 6 seconds. Checks on-hit, instead of snapshotting on-usage. On Melee or Sword Kill while a Void Buff is active: Triggers a Weakening Burst, inflicting Weaken to enemies within 4 meters for 6 seconds.",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "official_bungie",
+      "url": "https://www.bungie.net/7/en/News/Article/twid_11_26_2025",
+      "published_at": "2025-11-26",
+      "observed_at": "2026-10-11",
+      "supports": "Void elemental buff qualifies melee and Sword hits for Weaken and final blows for a weakening burst. Qualitative agreement only: no independent duration, radius, same-kill timing or current availability proof."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/singularity_blade.json",
+    "inputs": "common/src/test/resources/effects/singularity_blade_inputs.json",
+    "shared_state": "common/src/test/resources/effects/weaken.json",
+    "source_parameters": {
+      "receipt_seconds": "second"
+    },
+    "qualification": "Artifact source scoped to holder; matching owner and melee_damage OR (weapon_damage AND sword). event_buffs_available plus historical source_owner Devour/Invisibility/Void Overshield tags at actual damage boundary, not launch-time qualification or subsequent live reaction state.",
+    "hit": "Known nonlethal hit invokes shared Weaken with original event attribution; status authorization is independent of damage immunity.",
+    "kill": "Confirmed kill with observed death feet position queries current non-allied living targets within4m, excluding owner and original victim. Each target independently invokes shared status, with no extra blast damage.",
+    "weaken": "Both combatant and actual-player durations6s; respective ordinary strengths.15/.075 delta; existing shared damage/movement/lifecycle policies retained.",
+    "history": "Separate bounded damage_id/death_id sets per artifact source; valid new events refresh cleanup horizon and schedule individual forgetting. No gameplay cooldown or loop-depth limit.",
+    "lifecycle": "Weapon stow keeps eligibility; artifact source detach cancels future reactions and clears private receipt state, retaining already applied target Weaken.",
+    "unknown": "Unknown damage commits no hit/kill reactions and is never retried; unknown status authorization creates no status. Unavailable historical attacker observation or death position does not fall back to current state."
+  },
+  "validation": {
+    "unit_tests": "10 dedicated SingularityBladeTest scenarios; full suite1449, zero failures/errors/skips.",
+    "world_tests": "Seven new shared SingularityBladeGameTest scenarios; Fabric740 and NeoForge755 passed,739 shared scenarios total.",
+    "full_gate": "/tmp/chorus-singularity-gate.log BUILD SUCCESSFUL in1m47s; both release jars built and fixture exclusion passed.",
+    "development": "Pure fixture initially omitted required weapon.reload. After fixing it,9/10 scenarios passed; the missing-observation test was then corrected to provide an explicit observation missing the attacker, since the synchronous action reducer samples wholly absent observations. All10 dedicated tests and first full world gate passed.",
+    "audits": "10 Compendium audits,77-entry report consistency, original/snapshot text and archive hashes, both release fixture exclusions and git diff --check passed."
+  },
+  "remaining": [
+    "实际命中和击杀已连接物理投射物、支付后的近战技能账户及真实武器容器，但攻击分类由显式合成定义提供；原版native_damage不会自动冒充近战或剑，完整剑轻重击/能量/格挡、各技能和派生伤害信用仍未实现或校准。",
+    "Void Overshield复用实际共享盾池；Devour和Invisibility目前仅为资格标签夹具，不代表完整吞噬治疗/回能或隐身行为。正式神器单选来源、子职业/装备装配和当前赛季可用性仍未完成。",
+    "历史资格取实际伤害边界：同一hit随后获得/移除Buff不改写kill资格。这是明确的事件时序政策，原作对应反应顺序仍需实测。死亡目标不追加Weaken，致死命中走范围分支；与要求被削弱目标击杀的其他词条交互未校准。",
+    "已知IMMUNE命中仍可独立请求状态授权，DENIED不施加；CANCELLED/FAILED不产生hit。原作所有免疫、格挡、图腾救活和特殊技能资格需逐项校准，不能由合成测试推断全部原作行为。",
+    "四米按历史死者脚底位置与当前目标脚底球形距离、not_allied、无视线过滤查询；范围锚点、敌我分类、障碍和全部跨来源刷新/首信用政策仍需原作校准。目标拒绝与来源卸下政策为显式Chorus选择。",
+    "receipt_seconds是宿主必填的有限回执去重期限，不是效果冷却或连锁上限；一秒夹具只证明期限内幂等，期限外回执重放不保证去重。重复神器来源须由正式装配层约束。",
+    "测试10伤害、20m/s、零重力、1秒飞行、0.15秒射击间隔、弹量/0.2秒换弹、两秒资格标记和立即支付的近战均为合成参数，不作D2武器/技能数值。",
+    "完整生产规则包、HUD/素材绑定、剑与近战动画、物理世界跨重启恢复，以及共享Weaken的战员AI准确性/完整空中移动仍未完成。"
+  ]
+}
