@@ -55,7 +55,10 @@ class EffectCheckpointTest {
             };
         }
         void restore() {
-            var saved = session.checkpoint();
+            var before = session.checkpoint();
+            var saved = com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.decode(
+                    com.google.gson.JsonParser.parseString(com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.encode(before).toString()));
+            assertEquals(before, saved, "Disk representation must retain the full checkpoint");
             var rebuilt = new CompiledEffects(saved.program());
             int calls = seen.size();
             session = EffectSession.restore(rebuilt, clock(), 256, saved, this::world);

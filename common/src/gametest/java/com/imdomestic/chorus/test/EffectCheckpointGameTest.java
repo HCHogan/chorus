@@ -13,7 +13,7 @@ import java.util.*;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityTypes;
 
-/** Session restore against the same live world. Disk/world-save coordination is intentionally not simulated. */
+/** File round-trip and session restore against the same live world; world-save coordination is not simulated. */
 public class EffectCheckpointGameTest {
     private static EffectClock clock() { return new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())); }
     private static RuleEngine.Signal signal(EffectSource source, String type) {
@@ -40,7 +40,17 @@ public class EffectCheckpointGameTest {
         var session = new EffectSession(program, clock(), 1, EffectState.empty().withSource(source), world);
         session.start(0, signal(source, "test:apply")); session.observe(70_001, List.of()); near(helper, target.getHealth(), 3, "first pulse");
         session.start(100_000, signal(source, "chorus:weapon_stowed"));
-        var saved = session.checkpoint();
+        var beforeSave = session.checkpoint();
+        var directory = java.nio.file.Files.createTempDirectory("chorus-checkpoint-world-");
+        EffectSession.Checkpoint saved;
+        try {
+            var path = directory.resolve("session.json");
+            com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.write(path, beforeSave);
+            saved = com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.read(path);
+            helper.assertValueEqual(saved, beforeSave, "complete checkpoint file round-trip");
+        } finally {
+            java.nio.file.Files.deleteIfExists(directory.resolve("session.json")); java.nio.file.Files.delete(directory);
+        }
         var restored = EffectSession.restore(new CompiledEffects(saved.program()), clock(), 256, saved, world);
         helper.assertValueEqual(restored.checkpoint(), saved, "restored state and identity counters");
         near(helper, target.getHealth(), 3, "restore performed no world action");
