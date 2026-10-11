@@ -59,6 +59,43 @@ public class RuntimeRestoreGameTest {
         }
         h.succeed();
     }
+    @GameCase public void archivedCatalogueMetadataRestoresAfterExplicitEntityFileConfirmations(GameTestHelper h) throws Exception {
+        var directory = java.nio.file.Files.createTempDirectory("chorus-world-archive-");
+        var actor = h.spawnWithNoFreeWill(EntityTypes.COW, 2, 2, 2); actor.setHealth(1);
+        var victim = h.spawnWithNoFreeWill(EntityTypes.COW, 4, 2, 2);
+        try {
+            var storage = new com.imdomestic.chorus.effect.persistence.WorldCheckpointStore(directory.resolve("checkpoint.json"));
+            var session = storage.begin();
+            com.imdomestic.chorus.effect.persistence.CheckpointArchive archive;
+            try (var runtime = EffectPrograms.install(h.getLevel(), PROGRAM, EffectState.Mode.PVP)) {
+                runtime.bind(new EffectSource("passive", "chorus_gametest:loaded", id(actor), new BuffInstance.Origin(id(actor), "passive", "", ""), Set.of()));
+                archive = new com.imdomestic.chorus.effect.persistence.CheckpointArchive(List.of(EffectPrograms.checkpoint(h.getLevel(), PROGRAM)));
+                refused(h, () -> EffectPrograms.checkpoint(h.getLevel(), Identifier.parse("chorus_gametest:missing")));
+                var pending = session.prepare(archive, Set.of("actor_nbt", "victim_nbt"));
+                refused(h, () -> { try { storage.begin(); } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); } });
+                for (var entity : List.of(actor, victim)) {
+                    var output = net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING, h.getLevel().registryAccess());
+                    entity.saveWithoutId(output); String part = entity == actor ? "actor_nbt" : "victim_nbt";
+                    var path = directory.resolve(part + ".dat"); net.minecraft.nbt.NbtIo.writeCompressed(output.buildResult(), path);
+                    h.assertValueEqual(net.minecraft.nbt.NbtIo.readCompressed(path, net.minecraft.nbt.NbtAccounter.unlimitedHeap()), output.buildResult(), "actual fixture entity file");
+                    pending.confirm(part);
+                    if (entity == actor) refused(h, () -> { try { pending.commit(); } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); } });
+                }
+                pending.commit();
+            }
+            var recovered = storage.begin().recovered().orElseThrow(); h.assertValueEqual(recovered, archive, "full archive file round-trip");
+            try (var runtime = EffectPrograms.restore(h.getLevel(), recovered.dimensions().getFirst())) {
+                h.assertValueEqual(EffectPrograms.checkpoint(h.getLevel(), PROGRAM), archive.dimensions().getFirst(), "catalogue and host metadata preserved");
+                near(h, actor.getHealth(), 2, "source initialization not repeated");
+                victim.hurtServer(h.getLevel(), h.getLevel().damageSources().mobAttack(actor), 2); near(h, actor.getHealth(), 3, "restored native observer works");
+            }
+        } finally {
+            MinecraftEffectRuntime.installed(h.getLevel()).ifPresent(MinecraftEffectRuntime::close);
+            try (var files = java.nio.file.Files.list(directory)) { for (var path : files.toList()) java.nio.file.Files.delete(path); }
+            java.nio.file.Files.delete(directory);
+        }
+        h.succeed();
+    }
     @GameCase(environment = "chorus_gametest:runtime_restore_clock", maxTicks = 14)
     public void restoredProjectionsPreserveForeignModifiersAndExpireOnTheOriginalClock(GameTestHelper h) throws Exception {
         var t = harness(h); MinecraftEffectRuntime restored = null;
@@ -110,6 +147,12 @@ public class RuntimeRestoreGameTest {
         h.assertTrue(MinecraftEffectRuntime.installed(h.getLevel()).isEmpty(), "rejected restore attached a runtime");
         try (var runtime = EffectPrograms.restore(h.getLevel(), PROGRAM, saved)) {
             h.assertValueEqual(runtime.checkpoint(), saved, "rejections did not damage valid checkpoint");
+        }
+        // Equal DSL alone cannot prove that a caller-supplied Java executor/clock has the default host semantics.
+        try (var custom = MinecraftEffectRuntime.install(h.getLevel(), EffectPrograms.find(h.getLevel().getServer(), PROGRAM).orElseThrow(),
+                EffectState.empty(), clock(), world(h), MinecraftEffectRuntime::nativeSource)) {
+            refused(h, () -> EffectPrograms.checkpoint(h.getLevel(), PROGRAM));
+            h.assertTrue(custom.failure().isEmpty(), "archive preflight poisoned a custom host"); custom.checkpoint();
         }
         h.succeed();
     }

@@ -20,6 +20,9 @@ import net.minecraft.world.entity.LivingEntity;
 /** Server-side reloadable catalogue. Existing runtimes retain their immutable compiled program. */
 public final class EffectPrograms {
     private EffectPrograms() {}
+    // The default Java host/clock is part of restoration semantics, not implied by equal DSL content.
+    private static final java.util.Map<MinecraftEffectRuntime, Identifier> DEFAULT_HOSTS = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static MinecraftEffectRuntime catalogueHost(Identifier id, MinecraftEffectRuntime runtime) { DEFAULT_HOSTS.put(runtime, id); return runtime; }
     public static final ResourceKey<Registry<LoadedProgram>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("chorus", "effect_program"));
     /** Called before publication, after every module in the reload snapshot has been decoded. */
     public static void validate(RegistryAccess.Frozen registries) {
@@ -38,13 +41,25 @@ public final class EffectPrograms {
     }
     public static MinecraftEffectRuntime install(ServerLevel level, Identifier id, EffectState.Mode mode) {
         var program = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
-        return MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode).withRandom(new com.imdomestic.chorus.effect.random.RandomState(new java.security.SecureRandom().nextLong(), 0)),
-                new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), world(level), MinecraftEffectRuntime::nativeSource);
+        return catalogueHost(id, MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode).withRandom(new com.imdomestic.chorus.effect.random.RandomState(new java.security.SecureRandom().nextLong(), 0)),
+                new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), world(level), MinecraftEffectRuntime::nativeSource));
     }
     public static MinecraftEffectRuntime restore(ServerLevel level, Identifier id, MinecraftEffectRuntime.Checkpoint checkpoint) {
         var program = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
-        return MinecraftEffectRuntime.restore(level, program, checkpoint, new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())),
-                world(level), MinecraftEffectRuntime::nativeSource);
+        return catalogueHost(id, MinecraftEffectRuntime.restore(level, program, checkpoint, new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())),
+                world(level), MinecraftEffectRuntime::nativeSource));
+    }
+    /** Capture a catalogue-backed runtime with the metadata required by the host archive. */
+    public static com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry checkpoint(ServerLevel level, Identifier id) {
+        var runtime = MinecraftEffectRuntime.installed(level).orElseThrow(() -> new IllegalStateException("No Chorus runtime in this dimension"));
+        if (!id.equals(DEFAULT_HOSTS.get(runtime))) throw new IllegalArgumentException("Runtime is not the named default catalogue host");
+        var current = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
+        if (!runtime.program().program().equals(current.program())) throw new IllegalArgumentException("Runtime differs from the named catalogue entry");
+        var saved = runtime.checkpoint();
+        return new com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry(id.toString(), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners());
+    }
+    public static MinecraftEffectRuntime restore(ServerLevel level, com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry saved) {
+        return restore(level, Identifier.parse(saved.program()), new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners()));
     }
     private static MinecraftWorldActions world(ServerLevel level) {
         return new MinecraftWorldActions(level, value -> living(level, value), command -> {

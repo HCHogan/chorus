@@ -5,6 +5,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 
 public class RuntimeRestoreGameTest extends com.imdomestic.chorus.test.RuntimeRestoreGameTest {
     @GameTest(structure = "chorus_gametest:empty") @Override
+    public void archivedCatalogueMetadataRestoresAfterExplicitEntityFileConfirmations(GameTestHelper h) throws Exception {
+        super.archivedCatalogueMetadataRestoresAfterExplicitEntityFileConfirmations(h);
+    }
+    @GameTest(structure = "chorus_gametest:empty") @Override
     public void catalogueRestorePreservesPaidEnergyAndDoesNotRepeatSourceInitialization(GameTestHelper h) {
         super.catalogueRestorePreservesPaidEnergyAndDoesNotRepeatSourceInitialization(h);
     }

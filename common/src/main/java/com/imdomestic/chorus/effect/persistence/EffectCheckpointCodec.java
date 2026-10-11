@@ -6,8 +6,6 @@ import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.data.EffectProgram;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.Set;
@@ -53,14 +51,6 @@ public final class EffectCheckpointCodec {
     }
     /** Validate/encode before touching the previous file. Unsupported atomic rename fails without a non-atomic fallback. */
     public static void write(Path path, EffectSession.Checkpoint checkpoint) throws IOException {
-        byte[] bytes = encode(checkpoint).toString().getBytes(StandardCharsets.UTF_8);
-        Path target = path.toAbsolutePath();
-        Path temporary = Files.createTempFile(target.getParent(), ".chorus-checkpoint-", ".tmp");
-        try {
-            try (var channel = FileChannel.open(temporary, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                var buffer = ByteBuffer.wrap(bytes); while (buffer.hasRemaining()) channel.write(buffer); channel.force(true);
-            }
-            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        } finally { Files.deleteIfExists(temporary); }
+        com.imdomestic.chorus.core.codec.AtomicJsonFile.write(path, encode(checkpoint));
     }
 }
