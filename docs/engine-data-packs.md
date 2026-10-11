@@ -3257,3 +3257,17 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 到期时通过 WeaponAim.Verify 查询实际玩家的同维度、存活、非旁观资格、当前 Plan 和物理容器。明确拒绝发布 ended；未知宿主结果停住会话，不重放。ready 状态提交之后的提示或反应失败保留已完成状态。运行时保存和恢复不重放阶段事实，恢复后的第一个 tick 即可核验已登记的在线容器。
 
 [pre-aim-handling-v2.json](../common/src/test/resources/persistence/pre-aim-handling-v2.json) 是扩展类型前真实会话的原始检查点，包含旧枚举、两把武器、0.5 时长来源和正在执行的 STOW。迁移补空瞄准状态并保留 100 ms 的收枪 / 250 ms 的举枪期限；外层仍为 format 1，旧 wire shape 全部冻结。[来源与哈希](../common/src/test/resources/persistence/pre-aim-handling-v2.md)。D2 ADS 曲线、连续瞄准 perk 的正式配置、原作反转 / 取消窗口及物理世界整体重启仍待校准和验收。
+
+### Box Breathing 的持续瞄准与下一发快照
+
+`box_breathing` Bundle 挂载到武器 perk，强化来源带 `chorus:enhanced`。它从 `weapon_aim_started` 起算 1.5 / 1.4 秒，不等 `weapon_aim_ready`；开始和到期均要求自己的武器已持握、held 为真且弹匣大于零。到期产生按武器实例区分的永久 Buff，直到开火、松开、强制结束或来源卸下。永久不表示跨这些边界保留，只表示无需人为设置一个最长瞄准时限。
+
+`fire_accepted` 的内置武器 on_fire 先运行，捕获本次伤害；对应 perk 规则随后移除 Buff，并在仍持握、held、有弹时重新接受完整等待。身体命中、打空和已接受但发射被明确拒绝的请求均消耗这次机会；射速 / 无弹 / 行动门槛导致的拒绝没有 fire_accepted，不重启等待。未知发射结果可能让流程停在消费规则之前，会话此时不可继续或自动重放；飞行期间的未知伤害结果不回滚已经提交的扣弹和消费。
+
+扣弹先于 fire_accepted，所以最后一发在捕获攻击前弹匣已为零。实际触发成本的 `ammo_spent / ammo_changed` 事实现在额外带 **`chorus:weapon_fire_cost`**；这是该次事实的标签，来源、其他弹药操作和派生动作不继承。内容利用它把射击成本的清理交给 fire_accepted，避免丢失最后一发收益。其余弹药变化按事实 victim 与 this_weapon 匹配接收账户；降到零清理等待和 Buff，从零获得弹药且仍瞄准时重新计时。此连续有弹政策明确写入内容，尚未逐项在原作实测。
+
+伤害 Buff 进入公共 `test:weapon_damage` 的 perks / weapon_perk 阶段，与 `chorus:precision` 命名因子分开。攻击必须是直接武器伤害，不含 explosive_perk_damage / glaive_melee；来源是否 held 和武器家族在发射时捕获，命中时必须提供 `ImpactData.weakspot: count`。1 表示真实目标弱点，0 表示身体或合成精确区域；缺失会报错，不根据 precision 标签猜测。弱点给 40%，`chorus_d2:glaive` 或同时有 sniper_rifle / heavy_ammo 标签的来源给 30%。原型必须提供准确家族和弹药标签。
+
+`precision_delta` 是消费者的独立命中输入。弱点可以在其为零时仍取得 Box Breathing 收益；护盾可排除 `chorus:precision` 而保留该收益；合成精确区域可以有精确倍率，却传 weakspot=0。消费者的实际弹体接触读取目标相对几何区域后分别提供这两个输入。测试采用明确的 Minecraft 区域，未实现 Divinity 实体或全部 D2 目标模型。
+
+另提供 `chorus_d2:aim_assist_falloff_distance` 的 1.1 倍距离贡献，只适用于已激活且仍 held 的对应武器。当前只验证数值 Profile，没有接入弹道吸附 / 准星。`box_breathing_weapon` 是完整合成消费目录，基础伤害 10、精确倍率 2、弹量、射速、ADS 过渡和几何均不是原作校准；规则数值与来源分歧见[规则集](d2-ruleset.md#box-breathing-的输入计时与弱点收益)。

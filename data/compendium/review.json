@@ -11115,6 +11115,154 @@
         "on_use与初始Scorch采样、混合交战分类为显式内容政策，原作换装/命中/来源特例仍待校准",
         "完整武器/异域伤害资格、正式敌人目录、New Gear/活动Surge/Overcharge、生产装配、HUD与物理世界恢复未完成"
       ]
+    },
+    {
+      "id": "weapon-perks/box-breathing",
+      "name": "Box Breathing",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A35",
+          "text_sha256": "a0b153534ad2dfdc223a7ee7d53c3645a933c945fd87d48f08450d7b74e41095"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C35",
+          "text_sha256": "347d0a7d193b6e23a2e2a2d1c36ae05f07141919c833beb88582717396541ee8"
+        }
+      ],
+      "scope": "Accepted held-aim timer, next-shot snapshot and consumption, per-impact natural weakspot distinction, separate precision shield suppression and numerical aim-assist falloff contribution; normal/enhanced on real owned weapons.",
+      "acceptance": [
+        "Normal 1.5 s and enhanced 1.4 s start at ADS input, independently of ADS transition completion. Only accepted fire restarts the full wait.",
+        "The accepted last round captures its bonus before consumption despite magazine reaching zero; body shots and misses consume too. External zero-ammo transitions and refill have explicit cancellation/restart policy.",
+        "Compendium policy: default 40 percent weakspot damage; heavy sniper and glaive 30 percent; 10 percent aim-assist falloff distance. Clarity conflict stays visible.",
+        "Source held state and prototype tags freeze at fire. Each impact supplies natural weakspot independently from its precision multiplier; release or unequip cannot rewrite an accepted flight.",
+        "Shield removes the named precision factor while retaining weakspot damage; synthetic precision region receives no natural-weakspot bonus.",
+        "Wait and active buff survive checkpoint restore without restarting; unknown launch/hit outcomes never replay spent ammunition or physical work."
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/box_breathing.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/box_breathing_weapon.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-12/box-breathing.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "normalAndEnhancedStartAtInputEvenBeforeTheAimTransitionFinishes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "onlyAcceptedShotsRestartTheFullWaitWithoutRequiringAnotherAimInput"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "lastRoundCapturesItsBonusBeforeFireCostReactionsAndEmptyGunWaitsForRefill"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "externalAmmoChangesUseTheRecipientWeaponAndOnlyBreakTheWaitAtZero"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "releaseSwapAndPerkRemovalCancelTheirOwnWaitAndActiveBenefit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "naturalWeakspotAndPrecisionAreIndependentAcrossModesAndWeaponFamilies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "everyAcceptedShotConsumesTheBuffAndItsSnapshotSurvivesReleaseOrUnequip"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "partialWaitAndPermanentReadyStateRestoreWithoutReplayOrResettingTheTimer"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "aimAssistDistanceUsesTheMatchingWeaponsReadyBuffAndStopsImmediatelyOnRelease"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "unknownPhysicalLaunchKeepsPaidAmmoAndCannotSpendOrLaunchTheSameShotAgain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "NormalLastRoundKeepsItsCapturedBonusAfterRelease"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "EnhancedLastRoundStartsOneTenthOfASecondEarlier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "EarlyPhysicalFireRestartsTheWaitAndBodyFireConsumesTheNextOpportunity"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "ShieldSuppressesPrecisionFactorButRetainsNaturalWeakspotBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "GlaiveNaturalWeakspotGetsThirtyPercentWithoutAPrecisionMultiplier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "SyntheticPrecisionRegionDoesNotInheritNaturalWeakspotDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "WaitingPerkResumesOnItsOriginalDeadlineAndReleaseStillClearsIt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BoxBreathingGameTest.java",
+          "symbol": "UnknownHitAfterConsumptionPreservesHealthLossAndDoesNotReplayTheShot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
+          "symbol": "capturedBonusCannotLeakToAnotherWeaponOwnerOrExcludedDamageComponent"
+        }
+      ],
+      "gaps": [
+        "Production weapon, perk and target region catalog; consumer damage/precision/flight/ammo/ADS values and geometry remain synthetic.",
+        "Continuous empty-magazine restart, source-attachment and all original-game cancellation/sampling boundaries are explicit Chorus policies, not fully calibrated.",
+        "Aim assist is a numeric contribution, not physical magnetism; no actual Divinity bubble producer.",
+        "Mouse/FOV/animation/HUD and production loadout integration.",
+        "Physical world restart and full exceptional source/target combinations."
+      ]
     }
   ]
 }

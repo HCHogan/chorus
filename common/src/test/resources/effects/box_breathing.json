@@ -1,0 +1,596 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:aim_assist_falloff_distance",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "perks",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:box_breathing",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "refresh": "none",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove"
+      },
+      "bundle": "chorus_d2:box_breathing_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:box_breathing",
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:weapon_aim_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "box_breathing"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:box_breathing"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:ammo",
+                      "field": "magazine"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "round"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "box_breathing",
+                  "event": "chorus_d2:box_breathing_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1.5,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 1.4,
+                      "unit": "second"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "chorus:fire_accepted",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "box_breathing"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:box_breathing"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:ammo",
+                      "field": "magazine"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "round"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "box_breathing",
+                  "event": "chorus_d2:box_breathing_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1.5,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 1.4,
+                      "unit": "second"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "release",
+          "on": "chorus:weapon_aim_released",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "box_breathing"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:box_breathing"
+            }
+          ]
+        },
+        {
+          "id": "end",
+          "on": "chorus:weapon_aim_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "box_breathing"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:box_breathing"
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "box_breathing"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:box_breathing"
+            }
+          ]
+        },
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:ammo",
+                      "field": "magazine"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "round"
+                    }
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "box_breathing",
+                  "event": "chorus_d2:box_breathing_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1.5,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 1.4,
+                      "unit": "second"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ammo",
+          "on": "chorus:ammo_changed",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "victim",
+                "right": "this_weapon"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:weapon_fire_cost"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "magazine",
+                  "unit": "round"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "round"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:cancel_timer",
+                  "name": "box_breathing"
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:box_breathing"
+                }
+              ],
+              "else": [
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:compare",
+                        "left": {
+                          "type": "chorus:event_number",
+                          "name": "before_magazine",
+                          "unit": "round"
+                        },
+                        "op": "eq",
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "round"
+                        }
+                      },
+                      {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:weapon_aiming"
+                          },
+                          {
+                            "type": "chorus:weapon_drawn"
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:ammo",
+                              "field": "magazine"
+                            },
+                            "op": "gt",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "round"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:cancel_timer",
+                      "name": "box_breathing"
+                    },
+                    {
+                      "type": "chorus:remove_buff",
+                      "buff": "chorus_d2:box_breathing"
+                    },
+                    {
+                      "type": "chorus:schedule",
+                      "name": "box_breathing",
+                      "event": "chorus_d2:box_breathing_ready",
+                      "delay": {
+                        "type": "chorus:enhanced",
+                        "base": {
+                          "type": "chorus:constant",
+                          "value": 1.5,
+                          "unit": "second"
+                        },
+                        "enhanced": {
+                          "type": "chorus:constant",
+                          "value": 1.4,
+                          "unit": "second"
+                        }
+                      },
+                      "policy": "replace"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus_d2:box_breathing_ready",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_timer",
+                "name": "box_breathing"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:ammo",
+                      "field": "magazine"
+                    },
+                    "op": "gt",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "round"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:box_breathing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:box_breathing_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:box_breathing",
+          "evaluate": "on_use",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:any",
+              "of": [
+                {
+                  "type": "chorus:event_source_tag",
+                  "tag": "chorus_d2:glaive"
+                },
+                {
+                  "type": "chorus:all",
+                  "of": [
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:sniper_rifle"
+                    },
+                    {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:heavy_ammo"
+                    }
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 0.3,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0.4,
+              "unit": "delta"
+            }
+          },
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:explosive_perk_damage"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:glaive_melee"
+                }
+              },
+              {
+                "type": "chorus:weapon_aiming"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weakspot",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks C35, original C35, 2026-10-12; conflicting Clarity Scout/Glaive values: data/d2-research/2026-10-12/box-breathing.json",
+          "confidence": "conflict"
+        },
+        {
+          "id": "aim_assist",
+          "profile": "chorus_d2:aim_assist_falloff_distance",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:box_breathing",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:weapon_aiming"
+          },
+          "reference": "Compendium Weapon Perks C35, original C35, 2026-10-12; conflicting Clarity Scout/Glaive values: data/d2-research/2026-10-12/box-breathing.json",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "source_url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+  "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+  "entries": {
+    "23371658": {
+      "hash": 23371658,
+      "name": "Box Breathing",
+      "lastUpload": 1676844056332,
+      "type": "Weapon Trait Enhanced",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Aiming Down Sights for "
+              },
+              {
+                "text": "🡅",
+                "classNames": [
+                  "enhancedArrow"
+                ]
+              },
+              {
+                "text": "1.4 seconds without firing grants the following for a single shot:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• 10% increased Aim Assist Falloff Distance"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• 40% increased precision damage (35% for "
+              },
+              {
+                "classNames": [
+                  "primary"
+                ]
+              },
+              {
+                "text": "Scout Rifles, 30% for "
+              },
+              {
+                "classNames": [
+                  "heavy"
+                ]
+              },
+              {
+                "text": "Heavy Ammo Sniper Rifles)"
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Timer starts as soon as the ADS input is pressed. Unscoping immediately removes the buff."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "For glaives (Greasy Luck), the projectile must strike the target's critical hitbox in order to recieve the 40% "
+              },
+              {
+                "text": "[35%]",
+                "classNames": [
+                  "pvp"
+                ]
+              },
+              {
+                "text": " damage bonus."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "🡅",
+                "classNames": [
+                  "enhancedArrow"
+                ]
+              },
+              {
+                "text": " Activation time is decreased by 0.1 seconds."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2551157718": {
+      "hash": 2551157718,
+      "name": "Box Breathing",
+      "lastUpload": 1783446631691,
+      "type": "Weapon Trait",
+      "uploadedBy": "Hawkmoona",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Aiming Down Sights for 1.5 seconds without firing grants the following for a single shot:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• 10% increased Aim Assist Falloff Distance"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "• 40% increased precision damage (35% for "
+              },
+              {
+                "classNames": [
+                  "primary"
+                ]
+              },
+              {
+                "text": "Scout Rifles, 30% for "
+              },
+              {
+                "classNames": [
+                  "heavy"
+                ]
+              },
+              {
+                "text": "Heavy Ammo Sniper Rifles)"
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Timer starts as soon as the ADS input is pressed. Unscoping immediately removes the buff."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "For glaives (Greasy Luck), the projectile must strike the target's critical hitbox in order to recieve the 40% "
+              },
+              {
+                "text": "[35%]",
+                "classNames": [
+                  "pvp"
+                ]
+              },
+              {
+                "text": " damage bonus."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

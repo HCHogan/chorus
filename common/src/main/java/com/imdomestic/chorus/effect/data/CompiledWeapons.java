@@ -289,6 +289,10 @@ final class CompiledWeapons {
         if (reload != null) { updated = clear(updated, reload); facts.add(fact("chorus:reload_cancelled", reload, "fire_accepted", Map.of())); }
         if (cost.changed()) {
             var changed = AmmoFacts.changed(request.holder(), origin, cost, view.capacity());
+            // Consumers can defer shot-cost reactions until fire_accepted has captured the attack.
+            // This belongs to this fact only; later ammo effects must not inherit it from the origin.
+            var costTags = new HashSet<>(changed.tags()); costTags.add("chorus:weapon_fire_cost");
+            changed = new EffectEvent(changed.actor(), changed.victim(), changed.source(), costTags, changed.numbers(), changed.flags(), changed.references());
             facts.add(new RuleEngine.Signal("chorus:ammo_spent", changed)); facts.add(new RuleEngine.Signal("chorus:ammo_changed", changed));
         }
         var accepted = new EffectEvent(query.actor(), query.victim(), origin, tags,

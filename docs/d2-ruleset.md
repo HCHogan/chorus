@@ -1739,3 +1739,15 @@ stow  = max(stowCurve(100), stowCurve(H) × A × W)
 通用引擎现有服务端 ENTERING / AIMED / EXITING 阶段，内容可分别监听按下、完成瞄准、松开与结束，并查询 held / ready。持续瞄准计时应按具体 perk 从正确事实起算，不能把开始按键和完成动画视为同一个时刻。每个边沿接受时固定本段时间，反向输入接受完整新阶段；切枪、手动换弹被接受时取消。来源侧瞄准条件随攻击发射快照保存，目标侧条件保留到实际命中。
 
 这些是可验证的 Chorus 执行契约，尚未宣称与原作的取消窗口、反转动画进度及所有 perk 取样点一致。当前 0.2 / 0.1 秒与 0.5 倍只用于通用验收，未将 Foundry ADS 拟合曲线接入，也未完成正式子职业 / perk 装配或鼠标、FOV、HUD。Freeze 内容只增加新的 START / COMPLETE 禁止入口，已完成瞄准被控制状态中断的政策仍待接线；不据此将其升级为完整效果。Compendium 审阅数与 partial 状态保持不变。[接口与内容契约](engine-data-packs.md#服务端开镜输入与阶段)。
+
+### Box Breathing 的输入计时与弱点收益
+
+2026-10-12 原表 Weapon Perks A35 / C35 与固定快照规范化匹配：普通 / 强化在有弹、持续 ADS 且不开火 1.5 / 1.4 秒后，为下一发提供 10% 瞄准辅助衰减距离和 40% 弱点增伤；重弹狙击与偃月改为 30%。计时从按下 ADS 输入开始。弱点增伤可作用于护盾下的真实弱点以及没有精确倍率的武器，不作用于 Divinity 球。[原表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278#gid=1662574278)、[存档及核验](../data/d2-research/2026-10-12/box-breathing.json)。
+
+Clarity 固定提交 039cfbc 的两条描述也支持输入起算、强化减少 0.1 秒和退出立即移除，但写侦察步枪 35%、偃月 40%（PvP 35%），与当前原表冲突。这里采用用户提供的 Compendium，伤害贡献保留 CONFLICT 置信度。Bungie 的 Renegades 武器预览确认改为统一的 40% 下一发精确增伤、重弹狙击 30%；它只佐证重做方向，不当作当前所有弱点例外的独立测量。[Clarity 原文](https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json)、[Bungie 预览](https://www.bungie.net/7/en/News/Article/dev_insight_renegades_weapons)。
+
+实现使用来源计时器、按武器实例的 Buff 和 ON_USE / impact 分离，不增加 perk 专用 Java 状态。标准触发动作先捕获攻击，随后消费并重新等待；发射后退出或卸装不改变那一发，身体命中或未命中也消费。最后一发的弹匣归零由通用 weapon_fire_cost 事实标签识别，不能在捕获前误删增伤。其他原因耗尽弹匣、补弹后重新起算，以及手动换弹取消瞄准是当前明确的 Chorus 政策，尚未独立校准原作所有边界。
+
+数值示例采用 10 点合成基础伤害：普通弱点且精确倍率为 2 时输出 28，真实弱点但无精确倍率时为 14；偃月对应 13。护盾排除精确因子后仍按 14 扣除容量。只有合成精确区域而无真实弱点时为 20。各目标在接触时独立判定；不能把黄色伤害数字、precision 标签或护盾未破直接等同于 Box Breathing 资格。
+
+正式武器原型、全部弱点和 Divinity 生产者、瞄准辅助物理效果、原作取消 / 取样窗口、鼠标 / FOV / 动画 / HUD、生产装配和物理世界重启仍有缺口，条目保持 partial。[内容格式](engine-data-packs.md#box-breathing-的持续瞄准与下一发快照)。

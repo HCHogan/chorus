@@ -9,7 +9,7 @@
 | 来源表 | 历史 | 文本单元格 | 已引用审阅 | 待审阅 |
 | --- | --- | ---: | ---: | ---: |
 | Landing | 否 | 37 | 0 | 37 |
-| Weapon Perks | 否 | 831 | 60 | 771 |
+| Weapon Perks | 否 | 831 | 62 | 769 |
 | Armor Perks | 否 | 171 | 0 | 171 |
 | Artifact Perks | 否 | 313 | 2 | 311 |
 | Armor Mods | 否 | 286 | 40 | 246 |
@@ -144,6 +144,7 @@
 | Utility Kickstart | partial | Armor Mods N20; Armor Mods P20 | 服务器接受完整付费技能后，按实际Armor Charge与本模组副本表消费全部层数并回充对应当前技能；近战第二充能采用9.7.0修复后规则。；缺口：Flechette Storm累积/落地结算、Tempest Strike、Grapple/Tangle/Grappler免费资格及全部特殊成本/回能来源仍待实现；defer标签当前仅排除即时路径。；按当前选择与收益空间判断、即时开始回能、当前副本取样和完整单位阈值是明确Chorus政策，原作切换/阶段时序待校准。；定义仍为验收内容；三能量成本、合法插槽/副本数、正式装配、HUD与完整物理世界持久化未完成。；Clarity近战多充能缺陷说明与官方9.7.0冲突，已优先官方修复；全技能CES/CMS/属性映射尚未逐一校准。 |
 | Weapon Surge (Kinetic / Arc / Solar / Void / Stasis / Strand) | partial | Armor Mods K15; Armor Mods M15 | 六种元素按当前副本使用两种模式的涌动表，共用Armor Charge衰减；同元素高低档取最大值，与Radiant/真实Rampage独立乘算。；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合；缺口：四档提供者目前是独立合成Buff，完整金装/神器触发与持续时间、活动Surge/Overcharge及特殊武器/超能资格未实现。；on_use取样为明确Chorus政策，原作开火/命中/切换时机尚待校准；Solar Scorch/Ignition已接共享阶段，其他独立伤害Profile仍需逐项接入。；正式三能量预算、总插槽/副本数、生产装配、HUD与物理世界重启未完成；非法注入组合只验证归约边界。 |
 | Weapons attribute | partial | Game Mechanics C48; Game Mechanics E48 | 真实护甲与Font汇总后按0–100/101–200区间计算武器增伤；三种弹药原始归因、实际Guardian/等级分类、来源快照与逐目标结算；共享Radiant/Surge/Rampage及Incandescent派生Solar；Weapons换弹时长乘数已在原型曲线之后接入，真实护甲/Font变化保留当前计划并影响下一次装填；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限；缺口：Weapons换弹和操控时长已接真实服务端阶段；增强弹药砖、ADS、全部原型/金装曲线与动画窗口仍未实现或校准。当前两种操控曲线是固定Foundry社区模型；与角色倍率共用最终下限是明确来源组合推断，非独立原作实测。武器基础Handling、射速、弹量、换弹曲线及护甲输入仍是合成验收值。；低阶Heavy当前15%与官方9.0.0.1历史10%冲突，已标记conflict，尚无独立原作实测；等级细分依据作者预览解释；on_use与初始Scorch采样、混合交战分类为显式内容政策，原作换装/命中/来源特例仍待校准；完整武器/异域伤害资格、正式敌人目录、New Gear/活动Surge/Overcharge、生产装配、HUD与物理世界恢复未完成 |
+| Box Breathing | partial | Weapon Perks A35; Weapon Perks C35 | Accepted held-aim timer, next-shot snapshot and consumption, per-impact natural weakspot distinction, separate precision shield suppression and numerical aim-assist falloff contribution; normal/enhanced on real owned weapons.；缺口：Production weapon, perk and target region catalog; consumer damage/precision/flight/ammo/ADS values and geometry remain synthetic.；Continuous empty-magazine restart, source-attachment and all original-game cancellation/sampling boundaries are explicit Chorus policies, not fully calibrated.；Aim assist is a numeric contribution, not physical magnetism; no actual Divinity bubble producer.；Mouse/FOV/animation/HUD and production loadout integration.；Physical world restart and full exceptional source/target combinations. |
 
 ## 使用
 

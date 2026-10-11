@@ -33,7 +33,7 @@ class WeaponHandlingTest {
                 }
                 case Action.CueCommand cue -> {
                     cues.add(cue.cue()); observed.add(state());
-                    assertEquals(physical, state().equipment().get("player"), "Reaction must see committed physical selection");
+                    assertEquals(physical, state().equipment().getOrDefault("player", Loadout.EMPTY), "Reaction must see committed physical selection");
                     if (unknownCue) throw new IllegalStateException("unknown reaction result");
                     yield RuleEngine.Empty.INSTANCE;
                 }

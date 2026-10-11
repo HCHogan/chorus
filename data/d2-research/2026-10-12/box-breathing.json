@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effect": "Box Breathing",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/box-breathing-source.html.gz",
+      "raw_sha256": "b1f3eb17a2bbc2c71be6f7569f9614c9a5a2ddec74251b47f345e4e153f9abd8",
+      "gzip_sha256": "f17d44052df04d050f13b6f434da585ab29c2b3f91a8cce82edf5ef0b4fed669",
+      "sheet": "Weapon Perks",
+      "cells": [
+        {
+          "original_cell": "A35",
+          "snapshot_cell": "A35",
+          "normalized_text": "Box Breathing",
+          "snapshot_text_sha256": "a0b153534ad2dfdc223a7ee7d53c3645a933c945fd87d48f08450d7b74e41095",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C35",
+          "snapshot_cell": "C35",
+          "normalized_text": "After 1.5 ↑1.4 seconds of ADS without firing while Magazine is >0: 10% Increased Aim Assist Falloff Distance and 40% increased Weakspot Damage for the next shot while ADS. Heavy Sniper Rifles and Glaives receive 30% increased Weakspot Damage instead. Timer starts as soon as the Aim Down Sights input is pressed. Weakspot damage? Least convoluted way Buffs \"Precision Hits\" against Shielded Combatants and works on weapons without Precision Multipliers as long as they hit the weakspot. Weakspot Buffs do not work on a Divinity Bubble",
+          "snapshot_text_sha256": "347d0a7d193b6e23a2e2a2d1c36ae05f07141919c833beb88582717396541ee8",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "community_maintainer_database",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "path": "data/d2-research/2026-10-12/box-breathing-clarity-039cfbc.json",
+      "sha256": "6b02729b0ada8e60bff8d44bcf0701545f39ca1eb1ce90ebb2ea4f3229c34b6c",
+      "conflict": "Clarity says 35 percent for Scouts and 40 percent [35 PvP] for glaives. The supplied current Compendium says 40 percent except heavy snipers and glaives at 30 percent. Use Compendium and retain CONFLICT confidence for damage. Both sources agree on 1.5/1.4 seconds from ADS input and 10 percent aim-assist falloff distance."
+    },
+    {
+      "kind": "bungie_preview",
+      "url": "https://www.bungie.net/7/en/News/Article/dev_insight_renegades_weapons",
+      "section": "Perks / Box Breathing",
+      "claim": "Preview announces a flat 40 percent precision-damage benefit for existing weapon types, 30 percent for the new heavy sniper. It corroborates the retuning, but is not an independent measurement of the current weakspot behavior or glaive exception."
+    }
+  ],
+  "numbers": {
+    "normal_seconds": 1.5,
+    "enhanced_seconds": 1.4,
+    "aim_assist_falloff_multiplier": 1.1,
+    "default_weakspot_multiplier": 1.4,
+    "glaive_and_heavy_sniper_multiplier": 1.3
+  },
+  "policies": [
+    "Start the wait at accepted held input, even if entering ADS has not finished. Weapon must be drawn with positive magazine. A rejected fire request does not restart the wait.",
+    "On fire_accepted the built-in weapon on_fire captures damage before source rules consume the buff and re-arm the full wait if still held with ammo. A miss or body shot consumes the opportunity too.",
+    "Only accepted trigger-cost ammo facts have chorus:weapon_fire_cost. Other ammo effects, including ones emitted by a shot source, do not inherit the marker. An external magazine transition to zero cancels; zero-to-positive starts a fresh wait. This continuous-ammo policy is explicit and not independently measured in Destiny.",
+    "Release, aim cancellation, switch, accepted manual reload and perk removal clear pending and active state. Effect refills do not inherently cancel held aim. State restoration does not restart timers or recreate accepted launches.",
+    "An impact supplies weakspot COUNT 1 only for a natural target weakpoint and 0 for body or synthetic precision regions. Precision multiplier is an independent impact delta and may be zero. Shield suppression can remove the named precision factor while keeping Box Breathing.",
+    "Capture source eligibility and family tags at fire; resolve each impact weakspot input later. Keep source snapshot after release, stow or unequip.",
+    "Heavy sniper requires both sniper_rifle and heavy_ammo metadata; glaive is a separate family. Consumer archetype metadata must be complete. Prototype families, geometry, precision multiplier and all other weapon values in the consumer are synthetic.",
+    "Aim-assist falloff exposes a numeric profile. It is not yet connected to a Destiny-style bullet-magnetism cone or a client reticle. No Divinity entity is implemented; tests use a separate synthetic precision region to verify the damage contract."
+  ],
+  "remaining": [
+    "Complete original-game aim cancellation, readiness and restart boundaries",
+    "Production weapon catalog and trait assembly",
+    "Destiny target hit regions and exotic source exceptions",
+    "Actual aim assistance, mouse/FOV/animation/HUD integration",
+    "Physical world restart"
+  ]
+}

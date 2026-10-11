@@ -45,6 +45,7 @@
       "com.imdomestic.chorus.WeaponStatHandlingGameTest",
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.WeaponAimGameTest",
+      "com.imdomestic.chorus.BoxBreathingGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
       "com.imdomestic.chorus.KineticTremorsGameTest",
