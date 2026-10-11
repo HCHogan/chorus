@@ -19,6 +19,7 @@ public final class SnapshotExpressions {
             case Value.Resource v -> target(v.target()) ? v : literal(v, e);
             case Value.AbilityEnergy v -> target(v.target()) ? v : literal(v, e);
             case Value.Ammo v -> target(v.weapon()) ? v : literal(v, e);
+            case Value.EquippedReserveSpace v -> target(v.holder()) ? v : literal(v, e);
             case Value.Round v -> new Value.Round(v.input().snapshot(e), v.mode());
             case Value.BuffCount v -> target(v.target()) ? v : literal(v, e);
             case Value.Component v -> target(v.target()) ? v : literal(v, e);

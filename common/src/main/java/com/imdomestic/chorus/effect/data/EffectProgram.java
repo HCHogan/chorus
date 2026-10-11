@@ -93,7 +93,11 @@ public record EffectProgram(String version, List<Buff> buffs, List<Bundle> bundl
         public Rule(String id, String on, Condition condition, List<Step> actions, ReactionBinding binding) { this(id, on, condition, actions, binding, Optional.empty()); }
         public Rule(String id, String on, Condition condition, List<Step> actions) { this(id, on, condition, actions, ReactionBinding.CURRENT_OWNER_BUNDLE); }
     }
-    public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile, Pickup {}
+    public sealed interface Step permits Instruction, Branch, ForEach, After, Projectile, Pickup, ConditionalPickup {}
+    /** Separate variant preserves the stored v1 shape of unconditional pickups. */
+    public record ConditionalPickup(Pickup pickup, Condition collectIf) implements Step {
+        public ConditionalPickup { java.util.Objects.requireNonNull(pickup); java.util.Objects.requireNonNull(collectIf); }
+    }
     public record Pickup(PickupSpec spec, String bind, List<Step> body, Optional<String> spawnBind) implements Step {
         public Pickup(PickupSpec spec, String bind, List<Step> body) { this(spec, bind, body, Optional.empty()); }
         public Pickup { java.util.Objects.requireNonNull(spec); java.util.Objects.requireNonNull(bind); body = List.copyOf(body); java.util.Objects.requireNonNull(spawnBind); }

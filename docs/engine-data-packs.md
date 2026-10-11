@@ -800,10 +800,12 @@ Java 结果保留 holder / slot / ability、account 与 rechargeAccount，两个
 | --- | --- |
 | `initialize_ammo` | capacity / magazine / reserves 必填；reserves 为上例的有限账户或字符串 `unlimited`。容量输入须为正，初始弹匣允许溢出，有限储备须在容量内。可选 capacity_profile 和 holder（默认 self）见下文。重复初始化保留现值，容量输入、Profile / holder 或储备种类 / 容量不一致则拒绝。初始化不发布弹药变化事实 |
 | `observe_ammo` | 返回 available / created / infinite_reserves / finite_reserves。观察不会创建账户，created 恒为 false；initialize 的新建结果 created 为 true。未初始化时 available 为 false，不能直接读其弹数 |
+| `observe_equipped_weapons` | holder 默认 self，tags 默认空集合。返回当前装备中有 WeaponDefinition 的武器实例身份集合，包含收起的武器，按实例 ID 排序去重，可 for_each 后把 binding 用作 weapon。tags 必须全部匹配物品定义标签；不读取 socket / perk 的来源标签。未装备的库存 / 遗留账户、护甲及没有武器行为的物品不参与；已装备匹配武器缺少弹药账户则报错 |
 | `spend_ammo` | amount 必填，pool 为 magazine（默认）或 reserves；全部足额才扣除，失败 applied = 0。零请求可 complete，但不会产生实际弹药或开火事实 |
 | `refill_magazine` | amount / ceiling 均可省略；实际量受请求、弹匣空间和储备限制。从有限储备扣除同量；无限储备无需保存一个虚构的大数 |
 | `grant_ammo` | amount 必填，pool 默认 magazine，ceiling 可省略。给弹匣不会扣储备；给有限储备最多到储备容量；给无限储备 applied = 0。弹匣默认 ceiling 为基础容量，已有溢出不被删除 |
 | `ammo` Value | weapon 默认 this_weapon，field 为 magazine / capacity / unmodified_capacity / missing / reserves / reserve_capacity；单位 round。capacity 为当前有效基础容量，unmodified_capacity 为固定输入，missing = max(0, capacity − magazine)。不存在账户或读取无限储备的有限数值均报错 |
+| `equipped_reserve_space` Value | holder / tags 与上述装备查询相同，单位 round。累计当前匹配武器的有限储备 capacity − rounds；无限储备和没有匹配武器贡献零。不会把缺失账户当成无限或零，也不根据弹匣缺弹推断储备缺口。普通读取随当前装备 / 弹数变化；on_use 快照固定来源侧数值，victim 查询仍保留到命中时 |
 | `round` Value | input 为任意同单位数值，mode 必填 floor / ceiling / half_up。保留单位；half_up 在恰好半数时远离零。它不自动将 charge_fraction 或 count 换成 round |
 
 实际弹数、容量、请求和 ceiling 都须为 0 至 2³¹−1 的整数（基础容量至少为 1）。常量在加载时校验，动态值在写状态前校验；不隐式截断小数。按基础容量的 60% 上取整可写为：
@@ -2362,6 +2364,23 @@ Minecraft 使用 `chorus:effect_construct`，具有独立 UUID、真实生命值
 先用 capture_position 绑定 place。寿命为正秒数，radius 为非负米数；kind 是命名空间标识。可选 `attraction: {profile, radius, speed}` 分别指定米 → 米的收集者属性 Profile、基础米数及 meter_per_second 速度。Profile 必须在当前程序中存在；生成时不把生成者的吸附属性冻结给收集者。以上是合成语法示例，不是某个 D2 拾取物的完整定义。
 
 `contact` 支持 collected / expired 标志、count（拾取为 1，过期为 0）、age 秒数，以及位置和目标集合引用。生命周期区间为 [生成, 过期)，到期时不能同时拾取。每个逻辑单位单独持有版本、来源、词法结果和收集者；动作体为 detached，普通成本回执不能跨帧，显式 retain_cost 句柄继续共享原账本限额。
+
+步骤可另加 `collect_if`，类型为普通 Condition；例如 recipient 为 victim 的弹药砖可以使用：
+
+```json
+"collect_if": {
+  "type": "chorus:compare",
+  "left": {"type": "chorus:equipped_reserve_space", "holder": "victim", "tags": ["example:special_ammo"]},
+  "op": "gt",
+  "right": {"type": "chorus:constant", "value": 0, "unit": "round"}
+}
+```
+
+这是 pickup / as / do / spawn_as 的同级字段，不放入 pickup 参数内。生成时只编译验证条件，接触时由 `CompiledEffects.canCollectPickup(state, spawn)` 读取最新已结算状态与时钟。来源、触发原因及生成前捕获的词法结果保持原值；self 仍是原规则持有者，victim 仍来自原事件，不会隐式改为收集者。需要判断 recipient 时应显式使用同一个目标表达式或捕获的身份。条件不能引用尚未发生的 contact、spawn_as 或不可跨帧的普通成本回执。
+
+Minecraft 宿主在距离 / 视线与收集者存活检查之后、消费实体之前执行条件。false 时不消费、不发拾取事实、也不执行动作体；该单位仍可吸附、再次检查并正常到期。两个砖依次接触时，后一个读取前一个奖励结算后的储备。过期不受 collect_if 阻拦。查询是纯读取，不执行世界动作；其他宿主也必须在实际领取前调用这个接口，直接提交内部 contact 不会代替宿主完成资格检查。未知定义 / 错误版本或求值异常拒绝奖励；Minecraft 对异常单位丢弃并记录错误。
+
+实现使用新增 ConditionalPickup 数据类型，旧 Pickup / Spawn / Parameters 的 v1 存储字段保持不变。[conditional_pickup.json](../common/src/test/resources/effects/conditional_pickup.json) 是合成示例：每把匹配有限武器补三发储备后再执行世界奖励。它验证领取协议，不定义 D2 弹药砖掉落量、分配倍率或 Overflow。真实玩家测试通过手动换弹产生储备缺口，原地同一个单位才可领取；其余场景验证晚换装、收枪、错误类别 / 持有者、两个砖竞争、无限储备、到期与未知奖励结果。
 
 可选 `spawn_as: "created"` 把同步生成回执绑定到外层后续动作：`created.spawned` 为成功标志，`count` 为成功 1 / 失败 0；其余互斥标志为 missing_position、missing_recipient、wrong_dimension、unloaded、rejected。内容可据此只在确认生成后开始冷却。该回执不是目标集合，不能 foreach；不能与已有绑定或 contact 同名，也不能在自身的延迟动作体中读取尚未返回的生成回执。已知生成失败可以分支处理，未知世界结果仍停止推导，不视为已知失败后重试。
 

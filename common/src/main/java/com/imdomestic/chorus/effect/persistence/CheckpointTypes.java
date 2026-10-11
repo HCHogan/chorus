@@ -239,6 +239,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/effect_program/branch", com.imdomestic.chorus.effect.data.EffectProgram.Branch.class);
         types.put("chorus:effect/data/effect_program/buff", com.imdomestic.chorus.effect.data.EffectProgram.Buff.class);
         types.put("chorus:effect/data/effect_program/bundle", com.imdomestic.chorus.effect.data.EffectProgram.Bundle.class);
+        types.put("chorus:effect/data/effect_program/conditional_pickup", com.imdomestic.chorus.effect.data.EffectProgram.ConditionalPickup.class);
         types.put("chorus:effect/data/effect_program/evaluate", com.imdomestic.chorus.effect.data.EffectProgram.Evaluate.class);
         types.put("chorus:effect/data/effect_program/for_each", com.imdomestic.chorus.effect.data.EffectProgram.ForEach.class);
         types.put("chorus:effect/data/effect_program/health_recovery", com.imdomestic.chorus.effect.data.EffectProgram.HealthRecovery.class);
@@ -509,6 +510,8 @@ final class CheckpointTypes {
         types.put("chorus:stat/numeric_group/evaluation", com.imdomestic.chorus.stat.NumericGroup.Evaluation.class);
         types.put("chorus:stat/reduction", com.imdomestic.chorus.stat.Reduction.class);
         types.put("chorus:stat/unit", com.imdomestic.chorus.stat.Unit.class);
+        types.put("chorus:effect/data/ammo_actions/observe_equipped_weapons", com.imdomestic.chorus.effect.data.AmmoActions.ObserveEquippedWeapons.class);
+        types.put("chorus:effect/data/value/equipped_reserve_space", com.imdomestic.chorus.effect.data.Value.EquippedReserveSpace.class);
         return new RecordTreeCodec(types);
     }
 }

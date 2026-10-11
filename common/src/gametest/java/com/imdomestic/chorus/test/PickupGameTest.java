@@ -33,9 +33,13 @@ public class PickupGameTest {
         final GameTestHelper h; final ServerPlayer owner; final LivingEntity collector, outsider;
         final MinecraftEffectRuntime runtime; final MinecraftWorldActions world; final EffectSource source;
         final List<EffectObject> objects = new ArrayList<>(); final List<HealingCommand> heals = new ArrayList<>(); final List<Action.CueCommand> cues = new ArrayList<>();
+        final List<EffectState> collectedStates = new ArrayList<>();
         final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterHealing;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception {
+            this(h, "pickup", edit);
+        }
+        Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception {
             this.h = h; owner = h.makeMockServerPlayerInLevel(); owner.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
             var base = h.absoluteVec(new Vec3(2.5, 40, 2.5));
             // Keep the entire scenario in one already-loaded chunk.
@@ -44,20 +48,24 @@ public class PickupGameTest {
             collector.setPos(owner.position().add(3, 0, 0)); outsider.setPos(owner.position());
             for (var e : List.of(owner, collector, outsider)) { e.setNoGravity(true); e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); e.setHealth(10); }
             CompiledEffects program;
-            try (var r = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/pickup.json")), StandardCharsets.UTF_8)) {
+            try (var r = new InputStreamReader(Objects.requireNonNull(getClass().getResourceAsStream("/effects/" + fixture + ".json")), StandardCharsets.UTF_8)) {
                 var data = JsonParser.parseReader(r).getAsJsonObject(); edit.accept(data); program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).getOrThrow();
             }
             source = new EffectSource("producer", "test:pickup", id(owner), new BuffInstance.Origin(id(owner), "producer", "", ""), Set.of());
             var initial = EffectState.empty().withSource(source);
             for (var e : List.of(owner, collector, outsider)) initial = initial.withSource(new EffectSource("listener/" + id(e), "test:collector", id(e), new BuffInstance.Origin(id(e), "listener", "", ""), Set.of()));
             world = new MinecraftWorldActions(h.getLevel(), ref -> h.getLevel().getEntity(UUID.fromString(ref)) instanceof LivingEntity living ? living : null,
-                    _ -> owner.damageSources().generic(), (_, _) -> true, cues::add);
+                    _ -> owner.damageSources().generic(), (_, _) -> true, this::cue);
             runtime = MinecraftEffectRuntime.install(h.getLevel(), program, initial, new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 var result = world.apply(request);
                 if (result instanceof WorldPickup.Receipt receipt && receipt.entity().isPresent()) objects.add((EffectObject) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (request.command() instanceof HealingCommand heal) { heals.add(heal); if (failAfterHealing) throw new IllegalStateException("Injected unknown pickup reward"); }
                 return result;
             }, MinecraftEffectRuntime::nativeSource);
+        }
+        void cue(Action.CueCommand cue) {
+            cues.add(cue);
+            if (cue.cue().equals("test:collected")) collectedStates.add(runtime.state().engine().domain());
         }
         void spawn() { runtime.start(new RuleEngine.Signal("test:spawn", new EffectEvent(id(owner), id(collector), source.origin(), Set.of(), Map.of()))); }
         void magnet(LivingEntity who) { runtime.bind(new EffectSource("magnet/" + id(who), "test:magnet", id(who), new BuffInstance.Origin(id(who), "magnet", "", ""), Set.of())); }

@@ -54,6 +54,9 @@ public final class EffectCodecs {
                 .register("chorus:ammo", Value.Ammo.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(Value.Ammo::weapon),
                         enumeration(com.imdomestic.chorus.effect.ammo.AmmoState.Field.class).fieldOf("field").forGetter(Value.Ammo::field)).apply(i, Value.Ammo::new)))
+                .register("chorus:equipped_reserve_space", Value.EquippedReserveSpace.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(Value.EquippedReserveSpace::holder),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(Value.EquippedReserveSpace::tags)).apply(i, Value.EquippedReserveSpace::new)))
                 .register("chorus:round", Value.Round.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         self.fieldOf("input").forGetter(Value.Round::input), enumeration(Value.Rounding.class).fieldOf("mode").forGetter(Value.Round::mode)).apply(i, Value.Round::new)))
                 .register("chorus:constant", Value.Constant.class, RecordCodecBuilder.mapCodec(i -> i.group(
@@ -268,6 +271,9 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.Initialize::holder)).apply(i, AmmoActions.Initialize::new)))
                 .register("chorus:observe_ammo", AmmoActions.Observe.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Observe::weapon)).apply(i, AmmoActions.Observe::new)))
+                .register("chorus:observe_equipped_weapons", AmmoActions.ObserveEquippedWeapons.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(AmmoActions.ObserveEquippedWeapons::holder),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AmmoActions.ObserveEquippedWeapons::tags)).apply(i, AmmoActions.ObserveEquippedWeapons::new)))
                 .register("chorus:spend_ammo", AmmoActions.Spend.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Spend::weapon),
                         enumeration(com.imdomestic.chorus.effect.ammo.Ammunition.Pool.class).optionalFieldOf("pool", com.imdomestic.chorus.effect.ammo.Ammunition.Pool.MAGAZINE).forGetter(AmmoActions.Spend::pool),
@@ -649,15 +655,24 @@ public final class EffectCodecs {
                     pickupSpec.fieldOf("pickup").forGetter(EffectProgram.Pickup::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Pickup::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Pickup::body), Codec.STRING.optionalFieldOf("spawn_as").forGetter(EffectProgram.Pickup::spawnBind)
             ).apply(i, EffectProgram.Pickup::new)), Set.of("pickup", "as", "do", "spawn_as"));
-            return Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
+            Codec<EffectProgram.ConditionalPickup> conditionalPickup = strict(RecordCodecBuilder.create(i -> i.group(
+                    pickupSpec.fieldOf("pickup").forGetter(v -> v.pickup().spec()), Codec.STRING.fieldOf("as").forGetter(v -> v.pickup().bind()),
+                    self.listOf().fieldOf("do").forGetter(v -> v.pickup().body()), Codec.STRING.optionalFieldOf("spawn_as").forGetter(v -> v.pickup().spawnBind()),
+                    conditions.fieldOf("collect_if").forGetter(EffectProgram.ConditionalPickup::collectIf)
+            ).apply(i, (spec, bind, body, spawnBind, collectIf) -> new EffectProgram.ConditionalPickup(new EffectProgram.Pickup(spec, bind, body, spawnBind), collectIf))),
+                    Set.of("pickup", "as", "do", "spawn_as", "collect_if"));
+            Codec<EffectProgram.Step> unconditional = Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
+                        case EffectProgram.ConditionalPickup ignored -> throw new IllegalArgumentException("Conditional pickup needs collect_if codec");
                         case EffectProgram.Pickup spawn -> Either.left(Either.left(spawn));
                         case EffectProgram.Projectile launch -> Either.left(Either.right(launch));
                         case EffectProgram.Instruction execute -> Either.right(Either.left(execute)); case EffectProgram.Branch choose -> Either.right(Either.right(Either.left(choose)));
                         case EffectProgram.ForEach each -> Either.right(Either.right(Either.right(Either.left(each))));
                         case EffectProgram.After later -> Either.right(Either.right(Either.right(Either.right(later))));
                     });
+            return Codec.either(conditionalPickup, unconditional).xmap(value -> value.map(v -> v, v -> v),
+                    value -> value instanceof EffectProgram.ConditionalPickup conditional ? Either.left(conditional) : Either.right(value));
         });
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),

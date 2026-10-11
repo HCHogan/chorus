@@ -49,6 +49,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final BuffRules<EffectState> buffRules;
     private final List<RuleEngine.EventRule<EffectState>> definitions;
     private final java.util.Set<String> continuationIds;
+    private record PickupCheck(Optional<Condition> condition, Map<String, ResultShape> results, Map<String, String> slots) {
+        private PickupCheck { results = Map.copyOf(results); slots = Map.copyOf(slots); }
+    }
+    private final Map<String, PickupCheck> pickupChecks = new HashMap<>();
 
     /** Link decoded fragments, then validate once with all cross-fragment references available. No overrides or version rewriting. */
     public static CompiledEffects link(List<EffectProgram> fragments) {
@@ -315,6 +319,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             case EffectProgram.ForEach loop -> validateInstantSteps(loop.body());
             case EffectProgram.Projectile projectile -> validateInstantSteps(projectile.body());
             case EffectProgram.Pickup pickup -> validateInstantSteps(pickup.body());
+            case EffectProgram.ConditionalPickup pickup -> validateInstantSteps(pickup.pickup().body());
             case EffectProgram.After after -> {
                 if (after.lifetime() != EffectContinuations.Lifetime.DETACHED) throw new IllegalArgumentException("Instant invocation continuation must explicitly be detached");
                 validateInstantSteps(after.body());
@@ -501,6 +506,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         }).toList();
     }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
+    public com.imdomestic.chorus.effect.target.Targets.Identities equippedWeapons(EffectState state, String holder, java.util.Set<String> tags) {
+        return weapons.equipped(state, holder, tags);
+    }
     public Optional<InstantReload.Check> instantReload(EffectState state, String holder, InstantReload.Selection selection,
             InstantReload.Completion completion, String reason, BuffInstance.Origin cause, RuleEngine.OperationId operation) {
         settled(state); return weapons.instant(state, holder, selection, completion, reason, cause, operation);
@@ -758,6 +766,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             else if (step instanceof EffectProgram.ForEach loop) validatePayments(loop.body(), seen);
             else if (step instanceof EffectProgram.After after) validatePayments(after.body(), new HashSet<>());
             else if (step instanceof EffectProgram.Projectile projectile) validatePayments(projectile.body(), new HashSet<>());
+            else if (step instanceof EffectProgram.Pickup pickup) validatePayments(pickup.body(), new HashSet<>());
+            else if (step instanceof EffectProgram.ConditionalPickup pickup) validatePayments(pickup.pickup().body(), new HashSet<>());
         }
     }
 
@@ -775,7 +785,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         RuleEngine.Action<EffectState> noop = (state, _) -> new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         for (int index = 0; index < steps.size(); index++) {
             Map<String, ResultShape> previous = Map.copyOf(results); Map<String, String> previousSlots = Map.copyOf(slots);
-            switch (steps.get(index)) {
+            var step = steps.get(index);
+            Optional<Condition> collectIf = step instanceof EffectProgram.ConditionalPickup conditional ? Optional.of(conditional.collectIf()) : Optional.empty();
+            if (step instanceof EffectProgram.ConditionalPickup conditional) step = conditional.pickup();
+            switch (step) {
+                case EffectProgram.ConditionalPickup ignored -> throw new AssertionError("Conditional pickup was not normalized");
                 case EffectProgram.Instruction instruction -> {
                     ResultShape shape = instruction.action().validate(validation(bundle, previous));
                     // Private cost slots expose the latest instruction result for diagnostics.
@@ -900,6 +914,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
                     previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); } });
                     String definition = ownerRule + "/pickup/" + path + index, contactSlot = path + index + "/contact/" + pickup.bind();
+                    collectIf.ifPresent(condition -> condition.validate(validation(bundle, capturedResults)));
+                    if (pickupChecks.putIfAbsent(definition, new PickupCheck(collectIf, capturedResults, capturedSlots)) != null)
+                        throw new IllegalArgumentException("Duplicate pickup continuation: " + definition);
                     var nestedResults = new LinkedHashMap<>(capturedResults); var nestedSlots = new java.util.TreeMap<>(capturedSlots);
                     nestedResults.put(pickup.bind(), ResultShape.PICKUP_CONTACT); nestedSlots.put(pickup.bind(), contactSlot);
                     var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
@@ -957,6 +974,19 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             }
         }
         return List.copyOf(output);
+    }
+
+    /** Read-only claim eligibility: captured lexical scope and cause, current state and time. The host claims once after this check. */
+    public boolean canCollectPickup(EffectState state, com.imdomestic.chorus.effect.object.WorldPickup.Spawn pickup) {
+        validateState(state);
+        var pending = pickup.continuation();
+        var check = pickupChecks.get(pending.definition());
+        if (!program.version().equals(pending.version()) || check == null || pending.cause().timeMicros() > state.buffs().timeMicros())
+            throw new IllegalArgumentException("Unknown or incompatible pickup continuation");
+        var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(),
+                new RuleEngine.Signal(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, pending));
+        var context = new RuleEngine.Context(event, pending.id(), pending, pending.bindings());
+        return check.condition().map(condition -> condition.test(scopedEvaluation(state, context, check.results(), check.slots()))).orElse(true);
     }
 
     @Override public List<RuleEngine.RuleBinding> resolve(EffectState state, RuleEngine.Event event) {

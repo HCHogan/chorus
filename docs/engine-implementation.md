@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+条件拾取与装备弹药查询的完整门禁 `/tmp/chorus-conditional-pickup-gate.log` BUILD SUCCESSFUL，1 分 51 秒：1338 项 JUnit（无失败 / 错误 / 跳过）、Fabric 684 项、NeoForge 699 项以及两端发布 jar 通过，共享场景为683项。10 项 Compendium 审计、76条报告一致性与差异检查通过。此阶段没有客户端协议 / 图形变更，未新增图形客户端验收。
+
+新增 `collect_if` 在物理领取前读取当前状态，false 不消费实体也不执行奖励，后续 tick 重新判断；到期不受阻拦。生成时的来源、原因和词法结果保持捕获语义，不隐式把 self / victim 改成收集者。查询通过已编译的 pickup 续体定义解析，错误版本、未知定义或求值失败不能产生奖励。ConditionalPickup 是新增的检查点类型，旧 Pickup / Spawn / Parameters 等全部 v1 字段形状不变。
+
+`observe_equipped_weapons` 按当前持有者、武器槽、配置的武器原型和物品定义标签筛选，包括收枪，排除护甲、未配置原型、其他持有者与未装备账户；结果是排序去重的武器实例身份，可直接迭代补弹。`equipped_reserve_space` 累计这些武器的有限储备缺口；无限储备不创造可拾取空间，缺失账户明确失败。普通查询读取实时状态，on_use 来源取样与 victim 延迟取样遵循已有快照规则。
+
+8 项 ConditionalPickupTest 验证读取与分配、范围 / 单位 / 词法限制、来源卸下、原因捕获、装备变化、缺失 / 无限账户、快照和检查点往返。5 项共享 ConditionalPickupGameTest 验证真实玩家独立物品容器与低权限手动换弹：储备满时砖保留，换弹留出缺口后同一个砖才领取；还覆盖晚换装和收枪的多武器补给、错误持有者 / 类别、两个砖竞争同一个缺口、到期，以及部分奖励已提交后的未知世界结果不重放。拾取反应看到各武器已经提交的储备；故障父动作不会伪造成功拾取反应。开发首轮补齐合成无限弹药原型显式的 `reserves: unlimited` 字段，随后全部检查通过。
+
+合成示例每把匹配武器补三发，只验证引擎协议。Compendium 保持76条审阅、66 partial、8 unimplemented、2 not_applicable、0 verified；Overflow / Rewind Rounds 仍未实现，D2 弹药砖掉落量、分配、拾取政策与正式内容仍需接线和校准。发布 jar 包含通用接口，不含效果 / GameTest 夹具。接口见 [物理拾取动作体](engine-data-packs.md#物理拾取物的动作体)；D2 规则说明已修正精准补弹和重建仍被旧段落标为未实现的问题。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Reconstruction 的完整门禁 `/tmp/chorus-reconstruction-final-gate.log` BUILD SUCCESSFUL，1 分 28 秒：1330 项 JUnit、Fabric 679 项、NeoForge 694 项与两端发布 jar 通过，共享场景为678项。随后仅补强纯测试中的旧持有者延迟事件断言，`/tmp/chorus-reconstruction-final-unit.log` 完整1330项 JUnit 再次通过，无失败 / 错误 / 跳过；世界场景和生产代码未改变。10 项 Compendium 审计、76条报告一致性和差异检查通过。发布包保留通用 Schedule / Refill，不含效果 / 存储 / GameTest 夹具；无客户端协议或图形变更，未新增图形客户端验收。
 
 重建已有独立 JSON：每个装备来源以命名周期计时器处理普通 / 强化6 / 5.5秒停火；实际接受射击只重置自己的计时器，收枪和手动换弹保持原相位。每次读取当前基础容量，25%向上取整，从有限储备转移至双倍容量；已有溢出不被降低容量裁掉，空储备 / 满弹继续原周期。全部使用现有通用动作，没有加入专用 Java 词条分支。

@@ -76,6 +76,20 @@ public final class AmmoActions {
         @Override public ResultShape validate(Validation v) { v.target(weapon); return OBSERVATION; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Local<>(e.state(), new Observation(Optional.ofNullable(e.state().ammunition().get(e.target(weapon))).map(account -> e.ammoView(e.state(), account)), false), List.of()); }
     }
+    static Set<String> itemTags(Set<String> tags) {
+        var copied = Set.copyOf(tags);
+        copied.forEach(id -> { if (!id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid item tag: " + id); });
+        return copied;
+    }
+    public record ObserveEquippedWeapons(Evaluation.Target holder, Set<String> tags) implements Action {
+        public ObserveEquippedWeapons { Objects.requireNonNull(holder); tags = itemTags(tags); }
+        @Override public ResultShape validate(Validation v) { v.target(holder); return ResultShape.TARGET_IDENTITIES; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var result = e.program().orElseThrow(() -> new IllegalArgumentException("Equipped weapons require a compiled program"))
+                    .equippedWeapons(e.state(), e.target(holder), tags);
+            return new RuleEngine.Local<>(e.state(), result, List.of());
+        }
+    }
     public record Spend(Evaluation.Target weapon, Ammunition.Pool pool, Value amount) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(weapon); validateRounds(amount, v); return CHANGE; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { var view = e.ammoView(weapon); return commit(e, view, Ammunition.spend(view.account(), pool, rounds(amount, e))); }

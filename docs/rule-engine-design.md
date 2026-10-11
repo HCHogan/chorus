@@ -668,7 +668,9 @@ Bundle 的 `action_gates` 声明技能、开火、手动换弹、原版远程攻
 
 炮台发射使用 `projectile.emitter` 区分发射实体与原施放者：两者均排除自身碰撞 / 选敌，阵营参照与伤害归属仍属于原玩家。`launch_as` 提供实际生成回执，内容可在成功发射后改变炮台状态；生成失败或未知结果不能误记为已经开火。炮台移除后已发出的弹体保持 detached 生命周期。
 
-拾取物的首批接口使用 `pickup: {position, kind, recipient, lifetime, radius, attraction?}, as, do, spawn_as?`：先捕获位置，再向世界请求生成一个逻辑单位。`recipient` 明确指定收集者；共享物品、给队友的副本和私有物品由内容层分别生成，不能自动把它交给最近玩家。动作体捕获生成时的来源及词法结果，卸下来源后仍可执行。收集结果为单元素目标集合，过期结果为空集合；两者都保留终点位置。`chorus:pickup` 的 actor / victim 为实际收集者，source 为生成者；拾取者装备应按 event_actor 判断资格。当前接口与 `chorus:effect_entity` 的私有拾取宿主已实现；组件拼装、合并及具体 D2 内容的进度见 [实现记录](engine-implementation.md#拾取物的逻辑协议)。
+拾取物的首批接口使用 `pickup: {position, kind, recipient, lifetime, radius, attraction?}, as, do, spawn_as?, collect_if?`：先捕获位置，再向世界请求生成一个逻辑单位。`recipient` 明确指定收集者；共享物品、给队友的副本和私有物品由内容层分别生成，不能自动把它交给最近玩家。动作体捕获生成时的来源及词法结果，卸下来源后仍可执行。收集结果为单元素目标集合，过期结果为空集合；两者都保留终点位置。`chorus:pickup` 的 actor / victim 为实际收集者，source 为生成者；拾取者装备应按 event_actor 判断资格。当前接口与 `chorus:effect_entity` 的私有拾取宿主已实现；组件拼装、合并及具体 D2 内容的进度见 [实现记录](engine-implementation.md#拾取物的逻辑协议)。
+
+`collect_if` 在物理接触、消费实体之前读取当前已结算状态；false 时单位保留，后续状态变化可以使它重新合格，到期则始终正常结束。条件保留生成时来源、原因与词法捕获，不隐式重绑定 self / victim 为收集者；未知求值不产生奖励。条件不允许未来 contact / spawn receipt。`observe_equipped_weapons(holder,tags)` 提供当前装备的武器实例集合（包含收枪，按物品定义标签全部匹配）；`equipped_reserve_space(holder,tags)` 累计它们的有限储备缺口，不把无限储备或弹匣缺弹当作有限储备空间。领取动作体可按当前装备分配储备，随后排队的拾取反应看到全部已提交的转移。旧无条件拾取物不需要改数据；详细作用域和自定义宿主责任见 [物理拾取接口](engine-data-packs.md#物理拾取物的动作体)。
 
 | 组件 | 作用 | 表里的例子 |
 | --- | --- | --- |

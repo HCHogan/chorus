@@ -216,6 +216,19 @@ final class CompiledWeapons {
         return new RuleEngine.Local<>(updated, new AmmoActions.Change(transfer, view.after(transfer.after())), facts);
     }
     WeaponDefinition definition(String item) { return definitions.get(item); }
+    /** Equipped, including stowed, configured weapon instances; only item-definition tags participate. */
+    com.imdomestic.chorus.effect.target.Targets.Identities equipped(EffectState state, String holder, Set<String> tags) {
+        var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
+        equipment.validate(loadout);
+        var selected = new ArrayList<String>();
+        for (var slot : equipment.schema().slots()) {
+            var gear = loadout.slots().get(slot.id());
+            if (!slot.weapon() || gear == null || !definitions.containsKey(gear.definition()) || !items.get(gear.definition()).tags().containsAll(tags)) continue;
+            if (!state.ammunition().containsKey(gear.instance())) throw new IllegalArgumentException("Equipped weapon has no ammunition account: " + gear.instance());
+            selected.add(gear.instance());
+        }
+        return com.imdomestic.chorus.effect.target.Targets.Identities.of(selected);
+    }
     RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, CompiledEffects program) {
         var gear = WeaponReload.drawn(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY));
         if (gear.isEmpty()) return rejectFire(state, WeaponFire.Outcome.EMPTY_HANDS);

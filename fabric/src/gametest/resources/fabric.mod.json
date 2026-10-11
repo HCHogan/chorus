@@ -102,6 +102,7 @@
       "com.imdomestic.chorus.SolarFragmentStatsGameTest",
       "com.imdomestic.chorus.IncandescentGameTest",
       "com.imdomestic.chorus.PickupGameTest",
+      "com.imdomestic.chorus.ConditionalPickupGameTest",
       "com.imdomestic.chorus.FirespriteGameTest",
       "com.imdomestic.chorus.EventBuffObservationGameTest",
       "com.imdomestic.chorus.EventEntityObservationGameTest",

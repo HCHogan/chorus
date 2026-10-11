@@ -72,7 +72,8 @@ public final class EffectObject extends Entity implements ItemSupplier {
         }
     }
     private boolean canCollect(ServerLevel server, Vec3 center, double distance) {
-        return distance <= pickup.parameters().radius() && MinecraftVisibility.visible(server, point(position()), point(center));
+        return distance <= pickup.parameters().radius() && MinecraftVisibility.visible(server, point(position()), point(center))
+                && runtime.program().canCollectPickup(runtime.state().engine().domain(), pickup);
     }
     private void finish(WorldPickup.End end, Optional<String> collector, long age) {
         var signal = pickup.finish(new WorldPickup.Contact(end, point(position()), collector, age));

@@ -221,7 +221,7 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 | Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | 每发 / 每 bolt 计数与射空资格；适应爆发线融为 14%；补弹后计数屏蔽 `1?` 秒仍是未知 |
 | Clown Cartridge，C47 | 合格换弹后一次随机取值，以有效基础容量计算溢出上限并上取整，从储备 refill | partial：独立 JSON / 实际装备与换弹 / 随机回执已验；分布与组合顺序仍待校准 |
 
-除下文 Clown Cartridge 已推进到 partial，其他五项仍是需求审阅，状态为 unimplemented：通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表已提供这些 perk 的可执行内容定义。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体顺序仍需验收；来源有问号的参数保留未知。
+Clown Cartridge、Triple Tap、Fourth Time's The Charm 与 Reconstruction 已推进到 partial，具体定义和验收边界见下文；Overflow 与 Rewind Rounds 仍为 unimplemented。通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表其余词条已经实现。新增条件拾取与当前装备武器 / 储备空间查询，已用合成每武器三发的示例验证“储备满则保留实体、留出空间后领取、先完成各武器储备入账再处理拾取反应”；它尚未定义 D2 弹药砖数量、分配或满溢内容。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体内容顺序仍需验收；来源有问号的参数保留未知。
 
 ### Clown Cartridge 的随机溢出与验收边界
 

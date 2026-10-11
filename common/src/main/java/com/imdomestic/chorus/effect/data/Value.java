@@ -68,6 +68,21 @@ public interface Value {
                     ? e.ammoView(weapon).read(field) : e.ammo(weapon).read(field), Unit.ROUND);
         }
     }
+    /** Total free finite reserve space of the holder's currently equipped matching weapons. */
+    record EquippedReserveSpace(Evaluation.Target holder, java.util.Set<String> tags) implements Value {
+        public EquippedReserveSpace { java.util.Objects.requireNonNull(holder); tags = AmmoActions.itemTags(tags); }
+        @Override public Unit unit(Validation v) { v.target(holder); return Unit.ROUND; }
+        @Override public Measure evaluate(Evaluation e) {
+            var weapons = e.program().orElseThrow(() -> new IllegalArgumentException("Equipped reserves require a compiled program"))
+                    .equippedWeapons(e.state(), e.target(holder), tags);
+            long space = 0;
+            for (var weapon : weapons.targets()) {
+                var reserve = e.state().ammunition().get(weapon.entity()).reserve();
+                if (reserve.isPresent()) space = Math.addExact(space, (long) reserve.orElseThrow().capacity() - reserve.orElseThrow().rounds());
+            }
+            return new Measure(space, Unit.ROUND);
+        }
+    }
     enum Rounding { FLOOR, CEILING, HALF_UP }
     record Round(Value input, Rounding mode) implements Value {
         @Override public Unit unit(Validation v) { return input.unit(v); }
