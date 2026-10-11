@@ -62,7 +62,8 @@ public final class EffectObject extends Entity implements ItemSupplier {
             if (distance > radius || distance == 0) return;
             var to = position().add(center.subtract(position()).scale(Math.min(1, attraction.speed() / 20 / distance)));
             var terrain = MinecraftVisibility.projectile(server, point(position()), point(to));
-            if (terrain.isEmpty() || terrain.orElseThrow().getType() != HitResult.Type.MISS) return;
+            if (terrain.isEmpty() || terrain.orElseThrow().unavailable()
+                    || terrain.orElseThrow().hit().getType() != HitResult.Type.MISS) return;
             setPos(to);
             if (canCollect(server, center, to.distanceTo(center))) finish(WorldPickup.End.COLLECTED, Optional.of(pickup.recipient()), age);
         } catch (RuntimeException error) {

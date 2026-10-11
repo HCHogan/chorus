@@ -30,19 +30,20 @@ public final class MinecraftVisibility {
     }
     /** Empty means unknown terrain or another dimension, not an unobstructed path. */
     public static Optional<BlockHitResult> trace(ServerLevel level, WorldPosition from, WorldPosition to) {
-        return trace(level, from, to, false);
+        return path(level, from, to, false).filter(p -> !p.unavailable()).map(ProjectilePath::hit);
     }
+    /** The available prefix ends at this hit; an unavailable endpoint is not a physical wall. */
+    public record ProjectilePath(BlockHitResult hit, boolean unavailable) {}
     /** Closed segment contacts, without vanilla's forward sample that classifies near-face hits as embedded. */
-    public static Optional<BlockHitResult> projectile(ServerLevel level, WorldPosition from, WorldPosition to) {
-        return trace(level, from, to, true);
+    public static Optional<ProjectilePath> projectile(ServerLevel level, WorldPosition from, WorldPosition to) {
+        return path(level, from, to, true);
     }
-    private static Optional<BlockHitResult> trace(ServerLevel level, WorldPosition from, WorldPosition to, boolean projectile) {
+    private static Optional<ProjectilePath> path(ServerLevel level, WorldPosition from, WorldPosition to, boolean projectile) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Visibility observation requires server thread");
         String dimension = level.dimension().identifier().toString();
         if (!from.dimension().equals(dimension) || !to.dimension().equals(dimension)) return Optional.empty();
-        if (!loaded(level, from) || !loaded(level, to)) return Optional.empty();
-        if (projectile && (!level.isPositionEntityTicking(BlockPos.containing(from.x(), from.y(), from.z()))
-                || !level.isPositionEntityTicking(BlockPos.containing(to.x(), to.y(), to.z())))) return Optional.empty();
+        if (!loaded(level, from) || !projectile && !loaded(level, to)) return Optional.empty();
+        if (projectile && !level.isPositionEntityTicking(BlockPos.containing(from.x(), from.y(), from.z()))) return Optional.empty();
         var blocks = new BlockGetter() {
             boolean missing;
             @Override public BlockState getBlockState(BlockPos pos) {
@@ -73,7 +74,7 @@ public final class MinecraftVisibility {
             }
             return best;
         }, c -> BlockHitResult.miss(c.getTo(), Direction.UP, BlockPos.containing(c.getTo()))) : blocks.clip(context);
-        return blocks.missing ? Optional.empty() : Optional.of(hit);
+        return Optional.of(new ProjectilePath(hit, blocks.missing));
     }
     private static BlockHitResult contact(AABB box, Vec3 from, Vec3 to, BlockPos pos) {
         var delta = to.subtract(from);

@@ -102,7 +102,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
             // Sweep only as far as arrival. Geometry beyond a completed flight cannot reject it.
             var terrain = MinecraftVisibility.projectile(server, point(from), point(travelEnd));
             if (terrain.isEmpty()) { observe(ProjectileFlight.End.UNLOADED, from, Optional.empty(), 0, 0, 0, false); return; }
-            var block = terrain.orElseThrow(); var end = block.getType() == HitResult.Type.BLOCK ? block.getLocation() : travelEnd;
+            var path = terrain.orElseThrow(); var block = path.hit(); var end = block.getType() == HitResult.Type.BLOCK ? block.getLocation() : travelEnd;
             var entity = entityHit(server, from, end, movement);
             if (entity != null) {
                 remaining = remainingAfter(remaining, from, entity.getLocation(), movement);
@@ -115,6 +115,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 if (!observe(ProjectileFlight.End.ENTITY, entity.getLocation(), Optional.of(entity.getEntity().getUUID().toString()), 0, 0, 0, false, geometry)) return;
                 setPos(entity.getLocation().add(getDeltaMovement().normalize().scale(SEPARATION)));
                 steer(server, true);
+            } else if (path.unavailable()) {
+                observe(ProjectileFlight.End.UNLOADED, end, Optional.empty(), 0, 0, 0, false); return;
             } else if (block.getType() == HitResult.Type.BLOCK) {
                 remaining = remainingAfter(remaining, from, end, movement);
                 var normal = block.getDirection(); var n = new Vec3(normal.getStepX(), normal.getStepY(), normal.getStepZ());

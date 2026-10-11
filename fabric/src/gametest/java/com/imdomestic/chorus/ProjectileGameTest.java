@@ -20,4 +20,6 @@ public class ProjectileGameTest extends com.imdomestic.chorus.test.ProjectileGam
     public void runtimeCloseDiscardsInactiveFlightsBeforeAReplacementCanObserveThem(GameTestHelper h) throws Exception { super.runtimeCloseDiscardsInactiveFlightsBeforeAReplacementCanObserveThem(h); }
     @GameTest(structure = "chorus_gametest:empty") @Override
     public void unknownInactiveFlightCallbackDiscardsItsPeersWithoutReplayingAnyOfThem(GameTestHelper h) throws Exception { super.unknownInactiveFlightCallbackDiscardsItsPeersWithoutReplayingAnyOfThem(h); }
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void availableContactsPrecedeUnavailableTerrainInTheSamePhysicalStep(GameTestHelper h) throws Exception { super.availableContactsPrecedeUnavailableTerrainInTheSamePhysicalStep(h); }
 }

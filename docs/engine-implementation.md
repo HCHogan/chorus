@@ -6,6 +6,10 @@
 
 ## 当前证据
 
+投射物补充回归发现：整步终点进入不可模拟区块时，旧路径检查会提前放弃边界前的有效命中。路径现在返回首个障碍 / 不可用边界及可用性证据，先结算可用路段中的实体接触，实际墙面仍执行方块动作；只有继续飞行到不可用边界才结束为 unloaded。拾取物吸引的调用点同步适配，仍不跨越未知路段。新增共享场景在真实模拟边界验证实体命中、无目标终止位置和更近墙面的先后关系。
+
+该场景修复前在 `/tmp/chorus-boundary-before.log` 稳定失败，修复后定向运行通过；完整集成回归 `/tmp/chorus-cyclic-gate-2.log` 亦通过。此日志同时包含下一阶段的多周期回能工作，边界修复与回能功能分别提交，不把测试总数当作本修复新增的效果覆盖。
+
 最新门禁 `/tmp/chorus-lightweight-gate-4.log` BUILD SUCCESSFUL，5 分 48 秒：1200 项 JUnit、Fabric 561 项、NeoForge 571 项及两端发布 jar 通过，共享 Chorus 场景为 560 项。新增 10 项 LightweightKnifeTest、3 项 ProjectileGeometryTest、7 项轻量飞刀世界场景和 3 项投射物生命周期世界场景。10 项 Compendium 审计、报告一致性及来源归档哈希通过；发布包不含效果夹具 / GameTest。本轮没有新增图形客户端验收。
 
 Lightweight Knife 新增 partial 内容：40米/秒实体飞刀、两次充能、145.2秒基础周期、0.8 CES、408 / 100 基础伤害、1.5精准倍率与成功精准命中后的十秒 Radiant。实际飞刀击杀连接 Ophidia Spathe，下一刀读取当前增伤层数；固有第二次充能与金装扩容取高。依赖的物理参数、目标精准区域和 PvP 金装参数仍要求显式校准，不能把合成夹具当作完整生产装配。审阅为74条：60 partial、12 unimplemented、2 not_applicable、0 verified，详见 [D2 内容与缺口](d2-ruleset.md#lightweight-knife-的物理飞行与精准命中)。

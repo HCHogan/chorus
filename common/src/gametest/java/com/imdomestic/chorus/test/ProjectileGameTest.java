@@ -220,4 +220,36 @@ public class ProjectileGameTest {
         } h.succeed();
     }
 
+    @GameCase public void availableContactsPrecedeUnavailableTerrainInTheSamePhysicalStep(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h)) {
+            var center = h.absolutePos(BlockPos.ZERO); Vec3 boundary = null, direction = null;
+            search: for (int x = -8; x <= 8; x++) for (int z = -8; z <= 8; z++) {
+                var inside = new BlockPos(((center.getX() >> 4) + x) * 16 + 8, center.getY() + 40, ((center.getZ() >> 4) + z) * 16 + 8);
+                if (!h.getLevel().isPositionEntityTicking(inside)) continue;
+                for (var d : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                    var outside = inside.relative(d, 16);
+                    if (h.getLevel().getChunkSource().getChunkNow(outside.getX() >> 4, outside.getZ() >> 4) == null || h.getLevel().isPositionEntityTicking(outside)) continue;
+                    direction = new Vec3(d.getStepX(), 0, d.getStepZ()); boundary = Vec3.atLowerCornerOf(inside).add(direction.scale(8)).add(0, .7, 0); break search;
+                }
+            }
+            h.assertTrue(boundary != null, "no active/inactive simulation boundary");
+            var from = boundary.subtract(direction.scale(1.5)); var target = t.cow(2.5, 40, 3.5);
+            target.setPos(boundary.subtract(direction.scale(.5)).add(0, -.7, 0));
+            h.assertTrue(h.getLevel().isPositionEntityTicking(target.blockPosition()), "target must be on available side");
+            t.fire(); var p = t.projectiles.getLast(); p.setPos(from); p.setDeltaMovement(direction.scale(2)); p.tick();
+            near(h, target.getHealth(), 80, "an unavailable endpoint erased a nearer available entity contact");
+            h.assertValueEqual(t.hits.size(), 1, "available prefix contact must execute once"); target.discard();
+            t.fire(); p = t.projectiles.getLast(); p.setPos(from); p.setDeltaMovement(direction.scale(2)); p.tick();
+            h.assertTrue(p.isRemoved(), "empty flight crossed unavailable region");
+            near(h, p.position().distanceTo(boundary), 0, "empty flight must stop at first unavailable boundary");
+            h.assertValueEqual(t.hits.size(), 1, "unavailable region manufactured a hit");
+            var wall = BlockPos.containing(boundary.subtract(direction.scale(.5)));
+            t.blocks.put(wall, h.getLevel().getBlockState(wall)); h.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+            t.fire(); p = t.projectiles.getLast(); p.setPos(from); p.setDeltaMovement(direction.scale(2)); p.tick();
+            h.assertTrue(p.isRemoved(), "available wall did not stop flight");
+            near(h, p.position().distanceTo(boundary.subtract(direction)), 0, "available wall must precede unavailable terrain");
+            h.assertValueEqual(t.queries.size(), 1, "available wall must execute its block contact body");
+        } h.succeed();
+    }
+
 }
