@@ -1461,6 +1461,21 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 
 手雷基础表为T1 7.5%、T2 11.6%、T3 13.75%、T4及Guardian20%，强化版翻倍。Game Mechanics固定K82明确吞噬将T5 / T6按T4处理；不要把战员rank随意当tier。历史实体观察允许尸体被移除后仍按当时分类，缺失 / 冲突分类仅跳过未知回能并发出`devour_unclassified`，不取消已知治疗与续时。收益交给当前`chorus_d2:grenade`槽的资源账户，以BASE方式经过目标自身gain_profile和CES一次；未选技能时保留其他收益，不制造隐藏账户。BASE解释结合通用Chunk规则和[9.0.0.1属性缩放公告](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)，各表的完整测量条件及所有组合仍需校准。
 
-增强通过独立`enhanced_devour`来源修饰治疗 / 回能，扩展时长由`devour_extension`查询；两者按处理时的持有者配置取值。八秒使用明确的+3秒输入，不再次把五秒乘1.5。该共享层尚未完成Feed the Void的Void / Prismatic激活规则、Starvation真实拾取、Persistence完整时长与属性惩罚、Secant等生产者。原版生物到D2层级的目录、同帧多杀与换装细节、正式装配、HUD及物理世界重启也保留缺口。
+增强通过独立`enhanced_devour`来源修饰治疗 / 回能，扩展时长由`devour_extension`查询；两者按处理时的持有者配置取值。八秒使用明确的+3秒输入，不再次把五秒乘1.5。Feed the Void的Void / Prismatic激活已在下节接入；Starvation真实拾取、Persistence完整时长与属性惩罚、Secant等生产者尚未完成。原版生物到D2层级的目录、同帧多杀与换装细节、正式装配、HUD及物理世界重启也保留缺口。
 
 [纯测试](../common/src/test/java/com/imdomestic/chorus/effect/DevourTest.java)与[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java)覆盖上述状态 / 数值与真实世界边界，并以实际吞噬资格接入Singularity Blade。实际结果见[实现记录](engine-implementation.md)。
+
+
+## Feed the Void 的自动激活与共享收益
+
+[feed_the_void.json](../common/src/test/resources/effects/feed_the_void.json)定义普通虚空与棱镜两个来源包，均include共享`enhanced_devour`，不另写治疗/回能公式。原表Void B137/D137和Prismatic B98/D98分别对应固定B77/D77和B61/D61，已逐格匹配并保存[来源记录](../data/d2-research/2026-10-12/feed-the-void.json)。[官方棱镜介绍](https://www.bungie.net/7/en/News/Article/prismatic_deep_dive)确认棱镜放宽至任意元素技能击杀；原表与固定Clarity进一步列出Frozen Enemy Shatter、Volatile Explosion和Tangle。
+
+普通来源要求确认kill具有`ability_damage`或`ability_kill`，并有明确Void元素标签；保留既有内容使用的`chorus_d2:void`、`chorus_d2:void_damage`、`chorus:void`和`chorus:void_damage`四种拼写。`freeze_shatter`、`volatile_damage`和`tangle_damage`优先作为独立派生分类，仅额外进入棱镜分支，不能因旧Volatile模板的generic ability标签误开普通Void分支。伤害来源的ability字段表示归因，不自动证明技能击杀；原版近战/武器、仅Void元素、非致死命中均不能激活。Shield Throw和Threaded Spike的实际伤害生产者已补充通用技能伤害/击杀标签，同时保留原有近战/元素标签。
+
+激活要求同持有者击杀，死亡前Buff观察可用且未有Devour，处理时也未有Devour，并实际检查持有者存活。已有状态的击杀完全交给共享Devour：只治疗一次、发一次当前手雷回能、追加五秒；首次激活不反向取得该次击杀的持续收益。初始十秒经独立`feed_the_void_duration` Profile查询，再调用`devour_application`；`cap`和`receipt_seconds`必须由宿主给出。Persistence的十秒乘1.5和五秒加三分别验收，未把八秒错误算成7.5秒。完整Fragment与全部来源cap校准仍待完成。
+
+激活回执放在独立的目标共享`feed_the_void_receipts`，不同Aspect来源共享death_ids，避免排队调用造成重复初次治疗。该集合有显式期限；每项以detached续体清理，整体按max_remaining到期。清除Devour、卸下/重绑Aspect不会在期限内重新发放同一击杀，但独立新击杀没有附加冷却。纯会话检查点保留这段历史，不能据此宣称完整世界持久化。Aspect解绑后已有Devour继续存在，后续治疗/回能回到普通值；增强取当前持有者配置，此换装政策仍需原作边界校准。
+
+[规则测试](../common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java)覆盖资格矩阵、历史/当前状态、重复来源、回执、初始与续时时长、失效接收者及未知治疗；[世界测试](../common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java)使用低权限技能输入支付真实账户、实际投射物和HP死亡，以及共享Freeze/Volatile的真实范围爆炸。Shield Throw和Threaded Spike是跨职业引擎组合验收，不能据此允许正式Warlock配装使用Titan/Hunter近战。
+
+Tangle当前只验收显式信用资格，没有真实缠结生产者；Crystal与Rime-Coat等特例未完成，普通Void的多来源Volatile信用也待校准。完整Aspect槽位、正式子职业目录、初始/多杀/换装反应顺序、所有数值缩放和HUD/美术/世界重启仍保持partial。测试1:1生命映射、手雷CES及投掷飞行参数沿用显式夹具，不作原作校准声明。

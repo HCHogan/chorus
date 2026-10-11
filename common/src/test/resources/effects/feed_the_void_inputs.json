@@ -1,0 +1,368 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:feed_inputs",
+      "rules": [
+        {
+          "id": "void",
+          "on": "test:feed_void",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus_d2:void"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "solar",
+          "on": "test:feed_solar",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus_d2:solar"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "arc",
+          "on": "test:feed_arc",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus:arc"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "stasis",
+          "on": "test:feed_stasis",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus:stasis"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "strand",
+          "on": "test:feed_strand",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus_d2:strand"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "kinetic",
+          "on": "test:feed_kinetic",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus:kinetic"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "melee",
+          "on": "test:feed_melee",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:melee_damage",
+                "chorus_d2:void"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "weapon",
+          "on": "test:feed_weapon",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:weapon_damage",
+                "chorus_d2:void"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "volatile",
+          "on": "test:feed_volatile",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_damage",
+                "chorus:void_damage",
+                "chorus_d2:volatile_damage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shatter",
+          "on": "test:feed_shatter",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:stasis",
+                "chorus:freeze_shatter",
+                "chorus:derived"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "crystal",
+          "on": "test:feed_crystal",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:stasis",
+                "chorus:crystal_shatter"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tangle",
+          "on": "test:feed_tangle",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus_d2:strand",
+                "chorus_d2:tangle_damage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "super",
+          "on": "test:feed_super",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:ability_kill",
+                "chorus_d2:void"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "volatile_apply",
+          "on": "test:feed_volatile_apply",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:weapon_damage",
+                "test:apply_volatile"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:feed_duration",
+      "modifiers": [
+        {
+          "id": "duration",
+          "profile": "chorus_d2:feed_the_void_duration",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:persistence",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "reference": "Quoted Persistence duration modifier only, not a complete Fragment.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

@@ -136,5 +136,10 @@
     "T1–T6和实际玩家按历史回执分类，T5/T6取T4；无法或多重分类只跳过回能并发出诊断，已知治疗/续时仍执行。原版mob不会自动被猜成D2 Tier，车辆及全部D2对象目录仍待装配。",
     "death_ids只有receipt_seconds期间的幂等保证，状态结束清理全部身份；没有人为冷却或连锁上限。未知治疗保留已提交时长/生命但不执行后续回能，真实宿主的故障恢复和跨世界重启仍待完成。",
     "完整生产规则包、子职业/装备装配、HUD/美术及物理世界持久化仍未完成。"
-  ]
+  ],
+  "feed_the_void_follow_up": {
+    "date": "2026-10-12",
+    "research": "data/d2-research/2026-10-12/feed-the-void.json",
+    "scope": "Void and Prismatic activation integrated; formal subclass assembly and remaining grantors still incomplete."
+  }
 }

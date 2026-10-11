@@ -219,6 +219,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/singularity_blade_inputs.json'
         include 'effects/devour.json'
         include 'effects/devour_inputs.json'
+        include 'effects/feed_the_void.json'
+        include 'effects/feed_the_void_inputs.json'
         include 'effects/chain_reaction_test_calibration.json'
         include 'effects/overflow.json'
         include 'effects/ammo_pickups.json'

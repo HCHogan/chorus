@@ -7966,7 +7966,7 @@
         "处于Devour期间的确认击杀恢复生命、按历史敌人层级给予手雷能量，并将剩余时间增加五秒；Persistence的明确条目增加八秒。",
         "T1–T4及Guardian分别给予7.5/11.6/13.75/20/20%基础能量，强化翻倍；T5/T6按T4。适用Chunk和当前属性后仅计入当前选中的手雷接收账户。",
         "未知分类不能猜回能，激活来源卸下不撤回已授予状态；死亡/清除/到期清理，重复回执在配置期限内不能重复发奖。",
-        "正式Feed the Void/Starvation等授予来源、Persistence全部时长/属性以及所有来源上限仍需独立装配与校准。"
+        "Feed the Void激活已独立验收；Starvation等授予来源、Persistence全部时长/属性以及所有来源上限仍需独立装配与校准。"
       ],
       "evidence": [
         {
@@ -8080,10 +8080,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/DevourGameTest.java",
           "symbol": "unknownHealKeepsActualHealthWriteWithoutGrantingLaterEnergyOrReplayingTheKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "paidPhysicalShieldKillsActivateThenRewardExactlyOnceAndKeepGrenadeSelection"
         }
       ],
       "gaps": [
-        "共享普通/强化收益已实现；Feed the Void 的 Void/Prismatic 自动激活、Starvation 的 Orb/Void Breach 拾取、Secant/Trapper/Unbreakable 等正式生产者尚未接入。本轮增强来源只表达收益翻倍，不代表完整 Aspect。",
+        "共享收益及Feed the Void的Void/Prismatic自动激活已接线；Starvation的Orb/Void Breach拾取、Secant/Trapper/Unbreakable等生产者仍未接入，正式Aspect选择装配未完成。",
         "Persistence 的明确八秒续时已由修饰输入验证，初始duration和cap由调用者给出；完整三类Void Buff时长、职业属性惩罚和正式Fragment装配尚未完成。",
         "原表与Clarity确认初始10/15、Starvation5/7.5及每次延长5/8秒，但本轮未独立确认所有来源上限。cap为必填校准输入，普通10/15和长来源20的测试不能冒充全来源上限实测。重施加保留较高cap/首次来源的政策仍待校准。",
         "手雷表按BASE接入当前选中技能的gain_profile和CES，依据通用Chunk规则及官方属性缩放；原表每个数值的全部测量条件、异常来源/活动/装备叠加、当前属性采样和多杀同帧政策仍需逐条校准。测试.5/.75 CES和2.25增益是显式合成输入。",
@@ -8092,6 +8097,165 @@
         "T1–T6和实际玩家按历史回执分类，T5/T6取T4；无法或多重分类只跳过回能并发出诊断，已知治疗/续时仍执行。原版mob不会自动被猜成D2 Tier，车辆及全部D2对象目录仍待装配。",
         "death_ids只有receipt_seconds期间的幂等保证，状态结束清理全部身份；没有人为冷却或连锁上限。未知治疗保留已提交时长/生命但不执行后续回能，真实宿主的故障恢复和跨世界重启仍待完成。",
         "完整生产规则包、子职业/装备装配、HUD/美术及物理世界持久化仍未完成。"
+      ]
+    },
+    {
+      "id": "void/feed-the-void",
+      "name": "Feed the Void (Void / Prismatic)",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Void",
+          "cell": "B77",
+          "text_sha256": "de363408cdfd1436cca11b5ac00ed7a35d0d34c37f05bcceff29eeef19005e00"
+        },
+        {
+          "sheet": "Void",
+          "cell": "D77",
+          "text_sha256": "d3ae45adef44ff7e50c5af2f72fcf6f43707c6087d10ffff0daca7fb6319333b"
+        },
+        {
+          "sheet": "Prismatic",
+          "cell": "B61",
+          "text_sha256": "de363408cdfd1436cca11b5ac00ed7a35d0d34c37f05bcceff29eeef19005e00"
+        },
+        {
+          "sheet": "Prismatic",
+          "cell": "D61",
+          "text_sha256": "38565e73b023ff2ddfd857e22f335bdd2018ddee0df2c2ec99aae4812d8cb3ec"
+        }
+      ],
+      "scope": "Void/Prismatic激活资格、共享140HP/双倍回能、历史状态避免重复结算、目标共享有限回执；真实付费投射物、碎冰和易爆击杀组合",
+      "acceptance": [
+        "Void技能击杀激活，Prismatic接受任意元素技能击杀及明确的Frozen Enemy Shatter/Volatile/Tangle例外。",
+        "首次激活治疗140HP并持续十秒；已有Devour时仅由共享状态结算一次治疗/手雷回能/续时。",
+        "Aspect强化其他来源的Devour，解绑不移除已授予状态；不同Aspect来源不得重复发放首次治疗。",
+        "最终数值校准、完整Tangle/水晶例外、正式子职业装配和Persistence全部效果仍需独立验收。"
+      ],
+      "evidence": [
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/feed_the_void.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/feed_the_void_inputs.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "voidRequiresAbilityCreditAndVoidElementWhilePrismaticExplicitlyAdmitsAdditionalDamageKinds"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "firstActivationHealsOnceThenExistingDevourHandlesOneKillRewardAndFiveSecondExtension"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "foreignKillsNonlethalHitsAndRawAbilityOriginDoNotGrantAnUnqualifiedDevour"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "alreadyGrantedDevourIsEnhancedByTheAspectAndDetachingRetainsOnlyOrdinaryBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "duplicateSourcesShareActivationReceiptsAndNeverDoubleTheEnhancementOrInitialHeal"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "boundedReceiptsSurviveCleanseDetachRebindAndCheckpointWithoutSuppressingNewKills"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "missingHistoricalObservationNeverAssumesAbsenceAndOldActiveKillCannotReactivateAfterCleanse"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "liveDevourGrantedAfterAnOldEmptyObservationDoesNotReceiveASecondActivationHeal"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "separateInitialDurationProfileSupportsQuotedPersistenceWithoutMultiplyingKillExtensionTwice"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "missingOrDeadRecipientAndInconsistentCapDoNotActivate"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "consecutiveIndependentKillsRemainEligibleWithoutAnInventedCooldown"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+          "symbol": "unknownInitialHealPreservesCommittedStateAndNeverAwardsEnergyOrRetries"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "paidPhysicalShieldKillsActivateThenRewardExactlyOnceAndKeepGrenadeSelection"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "paidStrandSpikeKillsQualifyOnlyForPrismaticAndThenUseSharedKillBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "actualFrozenEnemyShatterKillActivatesPrismaticDespiteHavingNoGenericAbilityTag"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "actualWeaponAppliedVolatileExplosionActivatesOnlyPrismaticEvenWithLegacyAbilityCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "AspectBindingAtImpactControlsActivationAndDuplicateSourcesDoNotDoubleActualHealing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "NativeWeaponKillsDoNotActivateButContinueOrdinaryDevourAfterAspectRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "realTicksExpireTheInitialTenSecondsAndANewEligibleKillStartsANewActivation"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+          "symbol": "unknownHealingAfterActualSkillKillRetainsPaymentAndHealthWithoutReplay"
+        }
+      ],
+      "gaps": [
+        "完整职业/Aspect/Fragment槽位、两槽限制、选择UI及正式内容目录尚未装配；数据定义仍位于测试资源。Shield Throw和Threaded Spike组合场景是跨职业引擎验收，不宣称Warlock能合法装备Titan/Hunter近战。",
+        "Frozen enemy shatter与当前共享Volatile已用真实世界爆炸验收；Tangle只有显式资格矩阵，真实缠结生成/拾取/投掷/爆炸尚未实现。Crystal单独排除，Rime-Coat等水晶和所有技能/派生伤害例外仍需原作校准。",
+        "普通Void要求明确ability_damage或ability_kill加Void元素，显式Prismatic额外分类不因旧Volatile能力标签而变成普通Void资格。完整多来源Volatile继承信用仍待独立校准，不能把来源ability字段当作击杀信用。",
+        "Aspect按击杀处理时的当前来源生效，已有Devour按死亡前观察和当前状态分别处理，首次激活不额外发手雷能量。同击新授予/移除、多杀排队、换装和赠予等原作时序仍需实测。",
+        "初始十秒经独立feed_the_void_duration查询；十五秒和八秒组合由明确Persistence修饰夹具验证，完整Persistence三类Void Buff时长与属性惩罚仍未装配。cap由宿主明确提供，测试10/15不冒充所有来源上限实测。",
+        "目标共享activation death_ids在receipt_seconds内去重，可跨清除/Aspect解绑重绑/纯会话检查点；独立击杀没有人为冷却。期限外回执重放和完整故障恢复不作保证，测试一秒不是游戏冷却。",
+        "70/140HP到Minecraft的1:1映射、.5/.75 CES和投掷技能飞行参数是合成校准；完整数值缩放、AI与敌人Tier目录、HUD/美术以及物理世界跨重启仍未完成。"
       ]
     }
   ]

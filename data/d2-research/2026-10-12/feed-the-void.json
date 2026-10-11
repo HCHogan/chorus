@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "effect": "Feed the Void (Void and Prismatic)",
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Void",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/devour-source.html.gz",
+      "sha256": "887ea9277cc2230d42e21887806cf6c08d81c17ea94a92357224d39b354b4688",
+      "gzip_sha256": "9ff3b59d314ff5656a076dcae5839847747b68b3571772126cafedddc933fe9e",
+      "cells": [
+        {
+          "original_cell": "B137",
+          "snapshot_cell": "B77",
+          "snapshot_text_sha256": "de363408cdfd1436cca11b5ac00ed7a35d0d34c37f05bcceff29eeef19005e00",
+          "normalized_text": "Feed the Void",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D137",
+          "snapshot_cell": "D77",
+          "snapshot_text_sha256": "d3ae45adef44ff7e50c5af2f72fcf6f43707c6087d10ffff0daca7fb6319333b",
+          "normalized_text": "Void Ability Kills grant Devour. Devour becomes Enhanced Devour. Enhanced Devour: Restores 140 HP on activation and grants Enhanced Devour for 10+5 seconds. Reactivating Enhanced Devour restores 140 HP and refreshes 5+3 seconds. Scoring a kill while Enhanced Devour is active restores 140 HP, grants doubled Grenade Ability Energy, and refreshes 5+3 seconds of its duration. Grenade Ability Energy on Kill: Tier 1 Combatant = 15% | T2 = 23.2% | T3 = 27.5% | T4 = 40% | Guardians = 40%",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Prismatic",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1918152785",
+      "archived_html": "data/d2-research/2026-10-12/feed-the-void-prismatic-source.html.gz",
+      "sha256": "4762266dd9a8ae0112f002827526238d4dc32910df48e119d03a3dadca9684f7",
+      "gzip_sha256": "c1ceb4d6ea5ee3e749cefb547b1f968be058b411f9777b29d6dc9a81cae5adcd",
+      "cells": [
+        {
+          "original_cell": "B98",
+          "snapshot_cell": "B61",
+          "snapshot_text_sha256": "de363408cdfd1436cca11b5ac00ed7a35d0d34c37f05bcceff29eeef19005e00",
+          "normalized_text": "Feed the Void",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D98",
+          "snapshot_cell": "D61",
+          "snapshot_text_sha256": "38565e73b023ff2ddfd857e22f335bdd2018ddee0df2c2ec99aae4812d8cb3ec",
+          "normalized_text": "Grants Enhanced Devour upon scoring an Ability Kill, Frozen Enemy Shatter Kill, Volatile Explosion Kill, or a Tangle Kill. Devour becomes Enhanced Devour. Enhanced Devour: Restores 140 HP on activation and grants Enhanced Devour for 10 seconds. Reactivating Enhanced Devour restores 140 HP and refreshes 5 seconds. Scoring a kill while Enhanced Devour is active restores 140 HP, grants doubled Grenade Ability Energy, and refreshes 5 seconds of its duration. Grenade Ability Energy on Kill: Tier 1 Combatant = 15% | T2 = 23.2% | T3 = 27.5% | T4 = 40% | Guardians = 40%",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/devour-clarity.json",
+      "sha256": "847ffa45bb72428dac71a19461817f494f7230d6d65b4a9f192a445c64a5c181",
+      "item_hash": 2321824284,
+      "finding": "Prismatic-only Shatter, Volatile Explosions and Tangles; 10/15 initial seconds; 5/8 kill extension; enhanced 140 HP and doubled grenade returns."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/prismatic_deep_dive",
+      "finding": "Prismatic broadens Feed the Void from Void ability defeats to ability defeats of any damage type. This historical design explanation does not independently establish current derived-credit edge cases.",
+      "short_excerpt": "Feed the Void activate from ability defeats of any damage type, not just Stasis and Void"
+    }
+  ],
+  "implemented": [
+    "Source bundles include enhanced_devour without duplicating shared benefits.",
+    "Void skill kills and Prismatic any-element skill / frozen enemy shatter / volatile / tangle qualification.",
+    "Shared bounded activation receipts and historical/current Devour guards prevent duplicate grants.",
+    "Shield Throw and Threaded Spike producers now explicitly declare generic ability damage and kill credit.",
+    "Real paid physical skills and actual shared Freeze/Volatile deaths exercise qualification."
+  ],
+  "policies": [
+    "完整职业/Aspect/Fragment槽位、两槽限制、选择UI及正式内容目录尚未装配；数据定义仍位于测试资源。Shield Throw和Threaded Spike组合场景是跨职业引擎验收，不宣称Warlock能合法装备Titan/Hunter近战。",
+    "Frozen enemy shatter与当前共享Volatile已用真实世界爆炸验收；Tangle只有显式资格矩阵，真实缠结生成/拾取/投掷/爆炸尚未实现。Crystal单独排除，Rime-Coat等水晶和所有技能/派生伤害例外仍需原作校准。",
+    "普通Void要求明确ability_damage或ability_kill加Void元素，显式Prismatic额外分类不因旧Volatile能力标签而变成普通Void资格。完整多来源Volatile继承信用仍待独立校准，不能把来源ability字段当作击杀信用。",
+    "Aspect按击杀处理时的当前来源生效，已有Devour按死亡前观察和当前状态分别处理，首次激活不额外发手雷能量。同击新授予/移除、多杀排队、换装和赠予等原作时序仍需实测。",
+    "初始十秒经独立feed_the_void_duration查询；十五秒和八秒组合由明确Persistence修饰夹具验证，完整Persistence三类Void Buff时长与属性惩罚仍未装配。cap由宿主明确提供，测试10/15不冒充所有来源上限实测。",
+    "目标共享activation death_ids在receipt_seconds内去重，可跨清除/Aspect解绑重绑/纯会话检查点；独立击杀没有人为冷却。期限外回执重放和完整故障恢复不作保证，测试一秒不是游戏冷却。",
+    "70/140HP到Minecraft的1:1映射、.5/.75 CES和投掷技能飞行参数是合成校准；完整数值缩放、AI与敌人Tier目录、HUD/美术以及物理世界跨重启仍未完成。"
+  ],
+  "evidence": [
+    {
+      "kind": "design",
+      "path": "docs/d2-ruleset.md"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/feed_the_void.json"
+    },
+    {
+      "kind": "definition",
+      "path": "common/src/test/resources/effects/feed_the_void_inputs.json"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "voidRequiresAbilityCreditAndVoidElementWhilePrismaticExplicitlyAdmitsAdditionalDamageKinds"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "firstActivationHealsOnceThenExistingDevourHandlesOneKillRewardAndFiveSecondExtension"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "foreignKillsNonlethalHitsAndRawAbilityOriginDoNotGrantAnUnqualifiedDevour"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "alreadyGrantedDevourIsEnhancedByTheAspectAndDetachingRetainsOnlyOrdinaryBenefits"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "duplicateSourcesShareActivationReceiptsAndNeverDoubleTheEnhancementOrInitialHeal"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "boundedReceiptsSurviveCleanseDetachRebindAndCheckpointWithoutSuppressingNewKills"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "missingHistoricalObservationNeverAssumesAbsenceAndOldActiveKillCannotReactivateAfterCleanse"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "liveDevourGrantedAfterAnOldEmptyObservationDoesNotReceiveASecondActivationHeal"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "separateInitialDurationProfileSupportsQuotedPersistenceWithoutMultiplyingKillExtensionTwice"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "missingOrDeadRecipientAndInconsistentCapDoNotActivate"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "consecutiveIndependentKillsRemainEligibleWithoutAnInventedCooldown"
+    },
+    {
+      "kind": "unit_test",
+      "path": "common/src/test/java/com/imdomestic/chorus/effect/FeedTheVoidTest.java",
+      "symbol": "unknownInitialHealPreservesCommittedStateAndNeverAwardsEnergyOrRetries"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "paidPhysicalShieldKillsActivateThenRewardExactlyOnceAndKeepGrenadeSelection"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "paidStrandSpikeKillsQualifyOnlyForPrismaticAndThenUseSharedKillBenefits"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "actualFrozenEnemyShatterKillActivatesPrismaticDespiteHavingNoGenericAbilityTag"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "actualWeaponAppliedVolatileExplosionActivatesOnlyPrismaticEvenWithLegacyAbilityCredit"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "AspectBindingAtImpactControlsActivationAndDuplicateSourcesDoNotDoubleActualHealing"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "NativeWeaponKillsDoNotActivateButContinueOrdinaryDevourAfterAspectRemoval"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "realTicksExpireTheInitialTenSecondsAndANewEligibleKillStartsANewActivation"
+    },
+    {
+      "kind": "world_test",
+      "path": "common/src/gametest/java/com/imdomestic/chorus/test/FeedTheVoidGameTest.java",
+      "symbol": "unknownHealingAfterActualSkillKillRetainsPaymentAndHealthWithoutReplay"
+    }
+  ],
+  "follow_up": "Echo of Starvation actual pickup grants, full Echo of Persistence and formal subclass content assembly."
+}

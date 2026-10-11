@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Feed the Void完整门禁 `/tmp/chorus-feed-gate-2.log` BUILD SUCCESSFUL，1分39秒：1473项JUnit（无失败/错误/跳过）、Fabric756项、NeoForge771项及两端发布jar通过，共享Chorus场景755项。新增12项规则测试、8项共享世界场景；10项Compendium审计、79条报告一致性、两张原表四个单元格与归档哈希检查通过。发布包不含效果/GameTest/持久化夹具，本轮没有新增引擎Java动作、检查点类型或客户端协议。
+
+独立Void/Prismatic来源包include增强Devour。普通来源需要明确Void技能击杀，棱镜接受任意元素技能和额外Frozen Enemy Shatter/Volatile/Tangle分类。补齐Shield Throw与Threaded Spike生产者的通用ability伤害/击杀信用；不把归因中的ability名称或普通近战误当技能资格。旧Volatile模板含generic ability标签，明确的派生分类优先，真实武器施加的易爆爆炸只走棱镜激活。
+
+激活同时检查死亡前与当前Devour，初次治疗140HP但不反向结算持续状态的手雷收益；已有状态仍由共享Devour处理一次治疗/回能/续时。目标共享的有限activation death_ids防止多个Aspect来源排队重复治疗；清除状态、解绑重绑和纯会话检查点不会在期限内重新发奖，独立击杀无附加冷却。初始十秒使用独立时长Profile，明确的十五秒初始和八秒延长组合通过修饰夹具验证，cap与回执期限继续必填。
+
+世界测试以低权限技能命令支付真实账户，实际Shield Throw/Threaded Spike物理击杀驱动初次激活及下一次奖励；同时连接共享Freeze的碎冰和共享Volatile的范围爆炸、原版后续击杀、飞行中装配、重复来源、十秒真实tick到期及写入治疗后故障。首轮Fabric有一项失败：碎冰测试只有Combatant Tier，漏了独立的战斗Rank，Freeze按既有规则拒绝未知分类；补充明确elite标签与冻结前置断言后完整双端回归通过。源记录初稿的审阅kind也按审计允许值修正为effect。
+
+当前79条审阅中77 partial、2 not_applicable、0 verified，仍不代表全表分母。Tangle真实生产者、水晶/Rime-Coat特例、完整来源信用与原作时序、Persistence/Starvation完整来源、正式职业/Aspect装配、数值校准、HUD及物理世界持久化尚未完成。跨职业投掷技能组合只验收引擎机制，不宣称合法Warlock配装。[规则与来源边界](d2-ruleset.md#feed-the-void-的自动激活与共享收益)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 共享 Devour 的完整门禁 `/tmp/chorus-devour-gate.log` BUILD SUCCESSFUL，1 分 47 秒：1461 项 JUnit（无失败 / 错误 / 跳过）、Fabric 748 项、NeoForge 763 项及两端发布 jar 通过，共享场景为 747 项。新增 12 项纯测试与 8 项共享世界场景，首轮完整世界回归通过；两端发布包未混入效果 / GameTest / 持久化夹具。本轮只增加数据、测试和文档，没有新增引擎 Java 动作、检查点类型或客户端协议。10 项 Compendium 审计、78 条报告一致性、来源校验及差异检查通过。
 
 共享目标状态恢复普通 / 强化 70 / 140 HP，重新授予和合格击杀增加剩余时间，五秒 / 明确的 Persistence 八秒经过独立查询。调用者必须给出初始duration、延长cap与回执期限；只接受存活目标，重施加保留较高已接纳上限与第一来源。恢复数值先经过增强MAX，再经过外部必需health_projection；此次1:1世界映射是显式夹具。

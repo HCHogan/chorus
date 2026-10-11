@@ -2857,3 +2857,10 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 恢复、续时、回能是独立的语义结果：缺少死者tier只跳过未知的回能；治疗满血 / 已知拒绝也不能当作其他收益失败。相反，世界治疗结果未知会中止顺序动作，保留已提交的状态并等待宿主处理，不补发后续动作或重放治疗。`grant_ability_energy`在执行时解析当前技能槽、归一化收益与接收账户，不从旧Buff来源绑定某个已卸下技能。
 
 源代码定义要求显式外部`health_projection`，以及调用者的时长 / 上限 / 回执期限；已有引擎接口足以组合此状态，没有新增Java动作或检查点类型。时间上限、换装时采样、各收益先后与回执有效期仍属于内容政策，须分别保留原作校准证据。
+
+
+### 自动激活与已有共享状态的结算边界
+
+[Feed the Void](d2-ruleset.md#feed-the-void-的自动激活与共享收益)把来源资格和共享Devour收益分开。资格必须检查`event_buffs_available`，再判断历史不存在；同时检查当前`has_buff`，避免同一事件前面的反应已授予状态后再次治疗。新状态不能让旧事实逆向取得持续击杀奖励；事件归因中的ability名称也不能代替明确的damage/kill信用。
+
+多个来源可能在同一事件帧排队`invoke_bundle`，调用者不能只用当前Buff不存在来保证单次激活。此内容用独立目标共享的有限death_ids先接纳，再排队调用；回执不依附被清除的Devour，也不随单个来源卸下清空。`after lifetime=detached`保留清理参数，目标Buff本身max_remaining限制总寿命。该用途是回执幂等，不限制合法效果循环；期限和最终装配唯一性仍是宿主/内容的显式契约。

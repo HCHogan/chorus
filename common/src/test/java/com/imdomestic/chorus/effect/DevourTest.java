@@ -20,13 +20,14 @@ class DevourTest {
     static EffectSource application(String id, String giver, double duration, double cap) {
         return new EffectSource(id, BUFF + "_application", giver, new BuffInstance.Origin(giver, id, "", ""), Set.of(), Map.of("duration", new Measure(duration, Unit.SECOND), "cap", new Measure(cap, Unit.SECOND), "receipt_seconds", new Measure(1, Unit.SECOND)));
     }
-    static final class Harness {
+    static class Harness {
         final CompiledEffects p; EffectSession session;
         final Map<String, Double> health = new HashMap<>(); final Map<String, EntityQuery.View> kinds = new HashMap<>();
         final List<HealingCommand> heals = new ArrayList<>(); final List<String> cues = new ArrayList<>();
         boolean omitEntities, unknownHeal, denyHeal; DamageCommand lastCommand; DamageReceipt lastReceipt; Runnable afterDamage = () -> {};
-        Harness() throws Exception {
-            p = link("devour", "devour_inputs"); entity("player", 100, true, Set.of()); entity("giver", 100, true, Set.of()); classify(1, false);
+        Harness(String... additional) throws Exception {
+            var modules = new ArrayList<>(List.of("devour", "devour_inputs")); modules.addAll(List.of(additional));
+            p = link(modules.toArray(String[]::new)); entity("player", 100, true, Set.of()); entity("giver", 100, true, Set.of()); classify(1, false);
             session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty(), this::world);
             bind("input", "test:devour_inputs", "player"); bind("other_input", "test:devour_inputs", "giver"); select("a");
         }
