@@ -1,0 +1,867 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:fail_deadly_state",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep",
+        "components": {
+          "numbers": {
+            "hits": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "limit": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "base_capacity": {
+              "initial": 0,
+              "unit": "round"
+            },
+            "range": {
+              "initial": 0,
+              "unit": "stat_point"
+            },
+            "aim_assist": {
+              "initial": 0,
+              "unit": "stat_point"
+            },
+            "insert_bonus": {
+              "initial": 0,
+              "unit": "round"
+            },
+            "magazine_bonus": {
+              "initial": 0,
+              "unit": "round"
+            }
+          },
+          "sets": []
+        }
+      },
+      "bundle": "chorus_d2:fail_deadly_state"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:fail_deadly_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "damage_ids",
+            "death_ids"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:fail_deadly_receipts"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:fail_deadly",
+      "parameters": {
+        "receipt_seconds": "second",
+        "enhanced_range": "stat_point",
+        "enhanced_aim_assist": "stat_point"
+      },
+      "rules": [
+        {
+          "id": "hit",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "applied"
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "effective_with_absorption",
+                  "unit": "damage"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:fail_deadly_receipts"
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:fail_deadly_receipts",
+                      "duration": {
+                        "type": "chorus:source_parameter",
+                        "name": "receipt_seconds"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:update_component",
+                    "buff": "chorus_d2:fail_deadly_receipts",
+                    "component": "seen",
+                    "op": "set",
+                    "value": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    },
+                    "once_set": "damage_ids",
+                    "event_reference": "damage_id"
+                  },
+                  "as": "receipt"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "receipt",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:refresh_buff",
+                      "buff": "chorus_d2:fail_deadly_receipts",
+                      "duration": {
+                        "type": "chorus:source_parameter",
+                        "name": "receipt_seconds"
+                      }
+                    },
+                    {
+                      "after": {
+                        "type": "chorus:source_parameter",
+                        "name": "receipt_seconds"
+                      },
+                      "do": [
+                        {
+                          "type": "chorus:forget_set_entry",
+                          "buff": "chorus_d2:fail_deadly_receipts",
+                          "component": "damage_ids",
+                          "event_reference": "damage_id"
+                        }
+                      ]
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:has_buff",
+                          "buff": "chorus_d2:fail_deadly_state"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:grant_buff",
+                          "buff": "chorus_d2:fail_deadly_state"
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "base_capacity",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:result",
+                            "binding": "ammo",
+                            "field": "unmodified_capacity"
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "limit",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:scale",
+                            "of": {
+                              "type": "chorus:result",
+                              "binding": "ammo",
+                              "field": "unmodified_capacity"
+                            },
+                            "factor": 1,
+                            "from": "round",
+                            "to": "count"
+                          }
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:source_tag",
+                            "tag": "chorus_d2:rocket_launcher"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:update_component",
+                              "buff": "chorus_d2:fail_deadly_state",
+                              "component": "limit",
+                              "op": "set",
+                              "value": {
+                                "type": "chorus:scale",
+                                "of": {
+                                  "type": "chorus:result",
+                                  "binding": "ammo",
+                                  "field": "unmodified_capacity"
+                                },
+                                "factor": 2,
+                                "from": "round",
+                                "to": "count"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:fail_deadly_state",
+                      "component": "hits",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:arithmetic",
+                        "op": "min",
+                        "of": [
+                          {
+                            "type": "chorus:arithmetic",
+                            "op": "add",
+                            "of": [
+                              {
+                                "type": "chorus:component",
+                                "buff": "chorus_d2:fail_deadly_state",
+                                "component": "hits"
+                              },
+                              {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:capture_value",
+                        "value": {
+                          "type": "chorus:ratio",
+                          "numerator": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          },
+                          "denominator": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          }
+                        }
+                      },
+                      "as": "progress"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:fail_deadly_magazine",
+                        "input": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:source_tag",
+                            "tag": "chorus_d2:rocket_launcher"
+                          },
+                          "then": {
+                            "type": "chorus:scale",
+                            "of": {
+                              "type": "chorus:component",
+                              "buff": "chorus_d2:fail_deadly_state",
+                              "component": "hits"
+                            },
+                            "factor": 0.5,
+                            "from": "count",
+                            "to": "count"
+                          },
+                          "else": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          }
+                        },
+                        "numbers": {
+                          "base_capacity": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "base_capacity"
+                          },
+                          "stack_limit": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          },
+                          "stacks": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          }
+                        }
+                      },
+                      "as": "magazine"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:fail_deadly_range",
+                        "input": {
+                          "type": "chorus:result",
+                          "binding": "progress",
+                          "field": "value"
+                        },
+                        "numbers": {
+                          "base_capacity": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "base_capacity"
+                          },
+                          "stack_limit": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          },
+                          "stacks": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          }
+                        }
+                      },
+                      "as": "range"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:fail_deadly_aim_assist",
+                        "input": {
+                          "type": "chorus:result",
+                          "binding": "progress",
+                          "field": "value"
+                        },
+                        "numbers": {
+                          "base_capacity": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "base_capacity"
+                          },
+                          "stack_limit": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          },
+                          "stacks": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          }
+                        }
+                      },
+                      "as": "aim_assist"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:fail_deadly_insert",
+                        "input": {
+                          "type": "chorus:result",
+                          "binding": "progress",
+                          "field": "value"
+                        },
+                        "numbers": {
+                          "base_capacity": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "base_capacity"
+                          },
+                          "stack_limit": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "limit"
+                          },
+                          "stacks": {
+                            "type": "chorus:component",
+                            "buff": "chorus_d2:fail_deadly_state",
+                            "component": "hits"
+                          }
+                        }
+                      },
+                      "as": "insert"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "magazine",
+                              "field": "value"
+                            },
+                            "op": "ge",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "round"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "magazine",
+                              "field": "value"
+                            },
+                            "op": "le",
+                            "right": {
+                              "type": "chorus:component",
+                              "buff": "chorus_d2:fail_deadly_state",
+                              "component": "base_capacity"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "range",
+                              "field": "value"
+                            },
+                            "op": "ge",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "multiplier"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "range",
+                              "field": "value"
+                            },
+                            "op": "le",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "multiplier"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "aim_assist",
+                              "field": "value"
+                            },
+                            "op": "ge",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "multiplier"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "aim_assist",
+                              "field": "value"
+                            },
+                            "op": "le",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "multiplier"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "insert",
+                              "field": "value"
+                            },
+                            "op": "ge",
+                            "right": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "round"
+                            }
+                          },
+                          {
+                            "type": "chorus:compare",
+                            "left": {
+                              "type": "chorus:result",
+                              "binding": "insert",
+                              "field": "value"
+                            },
+                            "op": "eq",
+                            "right": {
+                              "type": "chorus:round",
+                              "input": {
+                                "type": "chorus:result",
+                                "binding": "insert",
+                                "field": "value"
+                              },
+                              "mode": "floor"
+                            }
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "magazine_bonus",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:result",
+                            "binding": "magazine",
+                            "field": "value"
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "range",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:arithmetic",
+                            "op": "mul",
+                            "of": [
+                              {
+                                "type": "chorus:enhanced",
+                                "base": {
+                                  "type": "chorus:constant",
+                                  "value": 15,
+                                  "unit": "stat_point"
+                                },
+                                "enhanced": {
+                                  "type": "chorus:source_parameter",
+                                  "name": "enhanced_range"
+                                }
+                              },
+                              {
+                                "type": "chorus:result",
+                                "binding": "range",
+                                "field": "value"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "aim_assist",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:arithmetic",
+                            "op": "mul",
+                            "of": [
+                              {
+                                "type": "chorus:enhanced",
+                                "base": {
+                                  "type": "chorus:constant",
+                                  "value": 5,
+                                  "unit": "stat_point"
+                                },
+                                "enhanced": {
+                                  "type": "chorus:source_parameter",
+                                  "name": "enhanced_aim_assist"
+                                }
+                              },
+                              {
+                                "type": "chorus:result",
+                                "binding": "aim_assist",
+                                "field": "value"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:fail_deadly_state",
+                          "component": "insert_bonus",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:result",
+                            "binding": "insert",
+                            "field": "value"
+                          }
+                        }
+                      ],
+                      "else": [
+                        {
+                          "type": "chorus:emit",
+                          "event": "chorus_d2:fail_deadly_unresolved"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:fail_deadly_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:fail_deadly_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:fail_deadly_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "death_ids",
+                "event_reference": "death_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:fail_deadly_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:fail_deadly_receipts",
+                      "component": "death_ids",
+                      "event_reference": "death_id"
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:fail_deadly_state"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:fail_deadly_state"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:fail_deadly_receipts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:fail_deadly_state",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "magazine",
+          "profile": "chorus_d2:magazine_capacity",
+          "stage": "base_add",
+          "group": "base_add",
+          "op": "add",
+          "stacking_key": "chorus_d2:fail_deadly",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:fail_deadly_state",
+            "component": "magazine_bonus"
+          },
+          "confidence": "assumed",
+          "reference": "Compendium original C385 / snapshot C364; unknown intermediate and enhanced values require external calibration."
+        },
+        {
+          "id": "range",
+          "profile": "chorus_d2:weapon_range",
+          "stage": "perks",
+          "group": "range",
+          "op": "add",
+          "stacking_key": "chorus_d2:fail_deadly",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:fail_deadly_state",
+            "component": "range"
+          },
+          "confidence": "assumed",
+          "reference": "Compendium original C385 / snapshot C364; unknown intermediate and enhanced values require external calibration."
+        },
+        {
+          "id": "aim_assist",
+          "profile": "chorus_d2:weapon_aim_assist",
+          "stage": "perks",
+          "group": "aim_assist",
+          "op": "add",
+          "stacking_key": "chorus_d2:fail_deadly",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:fail_deadly_state",
+            "component": "aim_assist"
+          },
+          "confidence": "assumed",
+          "reference": "Compendium original C385 / snapshot C364; unknown intermediate and enhanced values require external calibration."
+        },
+        {
+          "id": "insert",
+          "profile": "chorus_d2:reload_insert_rounds",
+          "stage": "extra_rounds",
+          "group": "extra_rounds",
+          "op": "add",
+          "stacking_key": "chorus_d2:fail_deadly",
+          "value": {
+            "type": "chorus:component",
+            "buff": "chorus_d2:fail_deadly_state",
+            "component": "insert_bonus"
+          },
+          "confidence": "assumed",
+          "reference": "Compendium original C385 / snapshot C364; unknown intermediate and enhanced values require external calibration.",
+          "if": {
+            "type": "chorus:source_tag",
+            "tag": "chorus_d2:shotgun"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:fail_deadly_receipts",
+      "scope": "buff"
+    }
+  ]
+}

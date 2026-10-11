@@ -2825,3 +2825,11 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Timelost Magazine](d2-ruleset.md#timelost-magazine-的超能结束与基础弹匣) 的结束输入为内容事件 `chorus_d2:super_ended`，必须带 `chorus:super_ability` 并保留实际owner。生产者负责区分自然结束、移除和取消；不能将 `ability_started` 或任意Buff结束当作超能结束。测试生产者通过实际付款后创建的持续Buff自然到期发出该事实，直接移除不触发。
 
 定义要求两个未知回能校准参数 `base_super_gain` / `enhanced_super_gain`（charge_fraction），以及外部 `chorus_d2:magazine_capacity` 的base_bonus阶段和共享reload_insert_rounds Profile。先授容量Buff再refill_magazine，可让真实补弹、后续Overflow、逐发装填查询同一派生容量；原始capacity仍为稳定Profile输入。修改容量与修改已装弹数是不同动作，到期不会自动删除超额弹药。Buff按武器隔离且收枪保留，来源卸下显式清理；这些组合全部复用现有DSL。参考 [timelost_magazine.json](../common/src/test/resources/effects/timelost_magazine.json)。
+
+### 伤害驱动的基础容量与独立回执身份
+
+[Fail-Deadly](d2-ruleset.md#fail-deadly-的伤害实例与基础弹匣) 将长期层数和近期回执身份分开存放。`update_component` 的 `once_set` / `event_reference` 先接受不同 `damage_id`，成功后才增加层数；`death_id` 使用另一个集合，武器击杀只清进度。附属 `after` 任务逐项删除身份，receipt Buff 的刷新 / 到期限制无事件时的保留期；计数 Buff 永久且收枪保留。去重针对同一事实重复交付，不是禁止效果循环。
+
+`observe_ammo.unmodified_capacity` 在第一次命中时建立本周期的固定层数基准，避免修改后的容量形成自增长。`fail_deadly_magazine` 接收 COUNT（普通层数、火箭层数乘 0.5）并返回 ROUND；`fail_deadly_range` / `fail_deadly_aim_assist` 接收和返回 MULTIPLIER，`fail_deadly_insert` 接收 MULTIPLIER 返回整数 ROUND，四者都能读取 base_capacity / stack_limit / stacks。数据包必须显式提供这些 Profile，以及 `magazine_capacity` 的 base_add 阶段、共享 weapon_range / weapon_aim_assist 与 reload_insert_rounds；未提供的依赖不能被当作已校准默认值。
+
+`receipt_seconds`（second）、`enhanced_range` / `enhanced_aim_assist`（stat_point）是词条参数；后两项在原表未知。实例 Buff 通过组件为容量增加发数、为两项属性增加点数，逐发装填仍由已接受步骤的共享查询处理。容量值独立于已装弹数，清层不删除已有溢出，也不会自动补弹。参考 [完整定义](../common/src/test/resources/effects/fail_deadly.json) 和 [合成曲线](../common/src/test/resources/effects/fail_deadly_test_calibration.json)；射程 / 辅瞄 Profile 当前只证明属性查询，不能算成真实距离衰减 / 瞄准行为验收。

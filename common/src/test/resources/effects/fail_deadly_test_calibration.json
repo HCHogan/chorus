@@ -1,0 +1,175 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:fail_deadly_magazine",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_progress",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 100000,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        },
+        {
+          "type": "chorus:round",
+          "id": "synthetic_integer_bonus",
+          "rounding": "floor"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:fail_deadly_range",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_progress",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:fail_deadly_aim_assist",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_progress",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "boundary": "error"
+          },
+          "output_unit": "multiplier"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:fail_deadly_insert",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_progress",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              1
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        },
+        {
+          "type": "chorus:round",
+          "id": "synthetic_full_stack_extra_shell",
+          "rounding": "floor"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:magazine_capacity",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "base_add",
+          "operation": "add",
+          "group": {
+            "name": "base_add",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "base_bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "base_bonus",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "synthetic_integer",
+          "rounding": "ceil"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:special_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_one_round",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:heavy_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_one_round",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        }
+      ]
+    }
+  ]
+}

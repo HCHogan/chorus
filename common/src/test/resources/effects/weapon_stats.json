@@ -163,6 +163,50 @@
           "maximum": 100
         }
       ]
+    },
+    {
+      "id": "chorus_d2:weapon_range",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "range",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_aim_assist",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "aim_assist",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        }
+      ]
     }
   ]
 }

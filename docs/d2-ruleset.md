@@ -271,7 +271,7 @@ Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction、Overfl
 
 还要区分临时溢出上限与**改变基础容量**。C364 Fail-Deadly、C409 Timelost Magazine 明确指出基础容量变化还影响其他按弹匣计算的效果，并能与 Overflow 叠加。现有 capacity_profile 已从固定输入、当前来源和 Buff 求有效基础容量，默认补弹 / 生成上限及按容量百分比统一读取它；refill.ceiling 另表达这一次的溢出上限。加成结束后不需要把容量改回旧值，也不删除已装弹数。具体 DSL 见 [动态基础容量](engine-data-packs.md#动态基础容量与数值快照)。
 
-两项已加入需求审阅，仍为 unimplemented。Fail-Deadly 需要每个伤害实例叠层、武器击杀清层、收枪保留、普通武器与火箭 / Bipod 的特殊层数映射，以及至多 +100% 基础容量、射程 / 辅瞄；强化属性中有 `?`，完整曲线也不能从最大值猜测。Timelost Magazine 需要超能结束时 refill、+100% 基础容量持续 20 / 强化 21 秒、Found Verdict 每次装两发，武器击杀额外回超能的 `1?% / +?%` 仍待核对。两者对 Bolt Charge 等按容量效果的交互也需要内容定义。
+两项已有独立内容定义，审阅为 partial，详见下文各自章节。Fail-Deadly 已接每个伤害实例叠层、武器击杀清层、收枪保留、普通武器与火箭 / Bipod 的特殊层数映射，以及基础容量、射程 / 辅瞄查询；强化属性中有 `?`，中间曲线保留外部校准。Timelost Magazine 已接超能结束时 refill、+100% 基础容量持续 20 / 强化 21 秒和 Found Verdict 每次装两发，武器击杀额外回超能的 `1?% / +?%` 为必填参数。两者与 Overflow 的真实组合已有验收，Bolt Charge 等按容量效果仍需逐项验收。
 
 `ammo_capacity.json` 的 5 发输入、200 ms 翻倍和两倍补弹上限只验证机制。实际加成 / refill 的先后、过期后已有子弹的原作策略、各容量阶段的取整、逐发装填 / 热量 / 特殊射击模式、原型容量随武器配置变化及完整存档同步仍待校准和接线，不能据此宣称两个词条已完整实现。
 
@@ -1400,3 +1400,19 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 武器击杀回能要求owner、原武器与weapon_kill信用同时匹配，使用对应变体的必填参数，经过 `grant_ability_energy` 的base归一化与接收方缩放进入当前选择的 `chorus_d2:super` 账户。飞行中换超能选择影响最终接收者；无选择、不合格信用或非致死命中不制造回能。实际超能期间是否允许补充、Super属性曲线及所有异域 / 特殊杀敌信用仍待完整校准。
 
 `TimelostMagazineTest` 覆盖付费 / 拒绝 / 取消、两种持续时间、刷新 / 收枪 / 卸装、有限 / 无限储备、Overflow、Found Verdict逐步换弹、武器伤害回执驱动回能、当前账户路由、纯会话检查点与未知结果不重放。`TimelostMagazineGameTest` 覆盖真实玩家容器与命令、物理杀敌、自然超能结束、实际20 / 21秒窗口、两发装填、物理弹药砖、卸装和已提交补弹后的世界故障。基础容量5、武器伤害 / 弹道、0.2 / 0.1秒换弹及0.2秒超能均属合成验收输入。正式物品 / 职业装配、HUD、所有原作数值和全世界持久化仍未完成。
+
+## Fail-Deadly 的伤害实例与基础弹匣
+
+新增 [fail_deadly.json](../common/src/test/resources/effects/fail_deadly.json)、[武器夹具](../common/src/test/resources/effects/fail_deadly_weapon.json) 和 [独立校准](../common/src/test/resources/effects/fail_deadly_test_calibration.json)。复用伤害事实、组件、数值 Profile、容量和逐发装填机制，没有新增引擎 Java 类型；定义仍在测试资源中。[研究记录](../data/d2-research/2026-10-11/fail-deadly.json) 保留原表坐标、哈希、公开资料与未完成范围。
+
+原表 A385 / C385 对应固定快照 A364 / C364；Reload Perk Notes 原表 C251 对应快照 C250，文本及哈希已核对。原表确定每个伤害实例一层、武器击杀清层、收枪保留、满层至多增加 100% 基础容量、普通 +15 射程 / +5 辅瞄。火箭层数上限为弹匣两倍，x2 可装 2 发，Bipod 时 x2 / x4 对应 3 / 4 发。[Bungie 官方介绍](https://origin-static01.bungie.net/7/en/News/Article/dev_insights_return_of_the_director) 确认伤害逐层增长、下一次本枪击杀结束的机制；[公开研究索引](https://www.light.gg/db/items/415411839/fail-deadly/?_=680) 标注 2026-07-21 更新，描述普通每层增加一发基础容量，仍未给射程 / 辅瞄中间值。该描述未列火箭特例，不能覆盖原表的特殊映射。
+
+`chorus:hit` 必须属于同持有者 / 同武器、带 `weapon_damage`、已应用且实际生命 / Chorus 护盾 / Absorption 损失总和为正。计数按 `damage_id` 区分，实际同一弹丸产生的两个独立伤害回执可增加两层，不按开火次数合并。免疫、拦截、零损失、其他技能伤害和未知世界结果不凭空增加层数。普通武器首次合格命中时保存未修饰容量作为层数上限，火箭保存其两倍；后续扩容不反过来扩大上限。这个取样阶段是明确的 Chorus 内容策略，其他基础容量改写和 Bipod 的正式装配仍需校准。
+
+伤害 / 死亡回执身份与长期进度放在两个 Buff 中。`receipt_seconds` 为必填、有界的重复回执保留时长；该时间不会限制效果持续或合法再触发。击杀以独立 `death_id` 去重，只删除本枪进度和属性 Buff，保留近期身份，所以同一致死命中重放不能重建层数，旧死亡回执也不能再次清除新周期。超过保留期的旧回执不保证再次去重，宿主仍应只发布真实事实。收枪保留进度和飞行中伤害的归属，卸下来源显式清理这两个 Buff 与附属凭据任务；原作卸装 / 死亡 / 离线政策尚待完整校准。
+
+四个必需外部 Profile 分别计算容量额外发数、射程进度、辅瞄进度和逐发装填额外发数。普通容量 Profile 输入为层数，火箭为层数的一半；同时提供 `base_capacity`、`stack_limit`、`stacks` 三个只读数值。容量直接使用 COUNT 到 ROUND 的曲线，不把近似的 `1/3` 归一化比例再乘回容量后向下取整，避免普通第三发等边界少算一发。测试曲线使用整数向下取整；火箭 x1 / x3 的处理仍为合成校准。射程 / 辅瞄输入为层数进度，输出 0..1 的倍率；普通端点为 15 / 5，强化端点 `enhanced_range` / `enhanced_aim_assist` 必须提供，测试 18 / 6 不是原作数值。中间线性曲线和满层额外一发装填也只用于验收。Profile 结果越出已声明范围时发出 `chorus_d2:fail_deadly_unresolved`，保留计数及此前属性，不写入这一组无效奖励；Profile 本身的类型 / 执行错误仍遵循通用错误语义。
+
+容量奖励写入 `chorus_d2:magazine_capacity` 的 `base_add` 阶段，先增加基础发数，再由后续基础倍率阶段和 Overflow 使用。五发测试武器满层容量为十发，真实特殊弹药砖触发强化 Overflow 后从本枪储备装到二十二发；武器击杀将派生容量恢复为五，却保留已经装入的超额弹药。增加容量自身不会补弹，也不产生换弹完成事实。Shotgun 标签按共享 `reload_insert_rounds` 的额外发数 MAX 组增加单次插入量，实际手动换弹每次两发、储备相应扣二；真实所有霰弹枪曲线、与 Timelost / Dual Loader 的组合仍需校准。
+
+共享 `weapon_range` / `weapon_aim_assist` Profile 已可查询按武器隔离、钳制到 0..100 的属性结果，但尚未连接真实武器距离衰减、准星磁性或目标获取。`FailDeadlyTest` 验证不同容量、两变体、层数上限、重复回执、清层、收枪 / 卸装、Overflow、逐发装填、纯会话检查点与未知结果；`FailDeadlyGameTest` 使用真实玩家容器、低权限武器命令、物理弹丸和实体弹药砖验收这些链路。双伤害火箭测试只证明两个独立实例的计数与已知容量档位，不代表完整火箭直击 / 爆炸原型；Bipod 的基础容量二来自显式夹具，不代表已实现 Bipod 本身。Bolt Charge、热量 / 异域、全部真实武器、正式装配 / HUD 与物理世界跨重启仍未完成。

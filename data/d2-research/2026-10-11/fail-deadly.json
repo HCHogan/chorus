@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "effect": "Fail-Deadly",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "cells": [
+        {
+          "original_cell": "A385",
+          "snapshot_cell": "A364",
+          "normalized_text": "Fail-Deadly Nessus Destination",
+          "snapshot_text_sha256": "7d640462ede48f021125fab069740554c4c9daefc3d7a8dd3f72778e63f6b488",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C385",
+          "snapshot_cell": "C364",
+          "normalized_text": "Each Damage Instance scored grant a stack of Fail-Deadly. Maximum stack amount is equal to the Magazine. Rocket Launcher maximum stack is 2x its Magazine Capacity. Requires x2 for 2 (3 if Bipod) Rockets. x4 allows 4 Rockets with Bipod. Fail-Deadly grants up to 100% increased Base Magazine Capacity, +15 ↑+? Range, and +5 ↑+? Aim Assist at maximum stacks. All stacks are removed upon scoring a kill with the weapon. Buff persists through stow. Base Magazine Increases change the base value, meaning it stacks with Increased Magazine Capacity effects like Overflow and increases the amount of Shells loaded for Shotguns. This also means it changes mag-based effects such as gaining Bolt Charge.",
+          "snapshot_text_sha256": "05fe397ff838c5d89f8c596d07f59e98d6a6a859841f6acd16606244a33c2e90",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        }
+      ],
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz"
+    },
+    {
+      "kind": "official_bungie",
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/dev_insights_return_of_the_director",
+      "published_at": "2026-05-28",
+      "finding": "官方介绍确认本枪伤害获得逐层弹匣 / 射程 / 目标获取收益，并在下一次本枪击杀结束；未给层数映射或强化数值。"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/415411839/fail-deadly/?_=680",
+      "research_updated_at": "2026-07-21",
+      "finding": "一次伤害一层，上限基础弹匣，每层加一发基础容量至100%，该基础值供Overflow等使用，本枪击杀清层；射程和辅瞄仍为未知。该说明未列火箭特例，原表特殊映射独立保留。直接页面抓取失败，可访问搜索索引。"
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/fail_deadly.json",
+    "consumer": "common/src/test/resources/effects/fail_deadly_weapon.json",
+    "calibration": "common/src/test/resources/effects/fail_deadly_test_calibration.json",
+    "required_parameters": {
+      "receipt_seconds": "second",
+      "enhanced_range": "stat_point",
+      "enhanced_aim_assist": "stat_point"
+    },
+    "damage_contract": "Same owner and weapon, weapon_damage, applied, positive effective_with_absorption; each distinct damage_id advances once within the configured receipt horizon. Unknown world results never manufacture progress.",
+    "state": "Permanent weapon-scoped progression retains stow. First hit captures unmodified capacity; normal limit equals it, rocket limit is twice it. Hits saturate without feeding derived capacity back into the limit.",
+    "receipts": "Separate weapon-scoped recent damage_ids and death_ids with per-entry attached forget timers and finite idle expiry. A credited weapon kill clears progress, not receipts; same lethal hit cannot rebuild progress and old death cannot reset a later cycle inside the horizon.",
+    "profiles": "Magazine input COUNT is hits for ordinary weapons or half hits for rockets, output ROUND, plus base_capacity/stack_limit/stacks numbers. Range and aim-assist use normalized MULTIPLIER progress; insert returns integer ROUND. Unknown intermediate curves and enhanced stat endpoints remain external.",
+    "capacity": "ROUND bonus enters magazine_capacity base_add before other base multipliers. Capacity changes never refill or delete loaded ammo. Physical pickup and enhanced Overflow read ten-round expanded baseline to load22 using own reserves.",
+    "stats": "Shared weapon_range and weapon_aim_assist expose weapon-isolated,0..100-clamped numerical results only; no actual falloff or targeting consumer claim.",
+    "reload": "Shotgun source tag uses shared reload_insert_rounds extra_rounds MAX group. Synthetic full-stack +1 turns one-shell baseline into two actual rounds per insertion.",
+    "validation_policy": "Profile outputs outside magazine0..base, stat0..1 or nonnegative integral insert bounds emit fail_deadly_unresolved and retain previous bonuses while keeping count. Type/execution failures still follow engine error semantics.",
+    "scope": "Content/test implementation, not production weapon catalogue or complete original-game calibration; no engine Java or checkpoint type changes."
+  },
+  "validation": {
+    "unit_tests": "FailDeadlyTest9 scenarios passed; full suite1430, zero failures/errors/skips.",
+    "world_tests": "FailDeadlyGameTest7 new shared scenarios. Fabric728 and NeoForge743 passed;727 shared scenarios total.",
+    "full_gate": "/tmp/chorus-fail-deadly-gate.log BUILD SUCCESSFUL in1m46s, both release jars built.",
+    "development": "Initial dedicated unit compile exposed use of nonexistent Loadout.drawnWeapon; resolve drawn slot to Gear.instance. Nine dedicated tests then passed; first full world gate passed.",
+    "audits": "10 Compendium audits,76-entry report consistency, original/snapshot cell and archive hashes, release fixture exclusion and git diff --check passed."
+  },
+  "remaining": [
+    "普通满层15射程 / 5辅瞄有原表依据；强化端点和中间曲线仍未知。enhanced_range / enhanced_aim_assist为必填参数，测试18 / 6及线性曲线不代表原作数值；weapon_range / weapon_aim_assist仅验证属性查询，真实距离衰减 / 准星磁性 / 目标获取消费者未接入。",
+    "层数上限取第一次合格命中的未修饰容量，普通一次、火箭两倍，避免自身扩容形成自增长。这是明确的容量阶段政策，全部基础容量改写、Bipod正式词条装配、换装 / 死亡 / 离线和重施加边界仍需原作校准。",
+    "普通每层加一发使用公开研究说明；原表火箭x2对应2发、Bipod x2 / x4对应3 / 4发。测试将Bipod未修饰容量显式设为2，火箭额外发数floor(stacks/2)，未独立校准x1 / x3取整，也未实现完整火箭直击 / 爆炸和全部多段伤害原型。",
+    "逐发装填仅以满层额外1发、MAX组叠加的合成曲线证明真实2发插入和储备守恒。各霰弹枪真实曲线及Timelost / Dual Loader组合仍需校准。",
+    "已验证真实Overflow砖读取增加后的基础容量、击杀清层保留已装溢出；Bolt Charge按弹匣收益、热量武器、异域和全部派生伤害信用尚未验收。",
+    "receipt_seconds必填，测试1秒身份保留；它独立于永久进度，超过窗口的旧回执不保证去重，宿主须只发布真实事实。有效伤害含Absorption、卸装取消资格和击杀清层后的回执处理为当前明确政策，原作完整边界尚待校准。",
+    "武器容量 / 储备 / 射速 / 弹道、0.2 / 0.1秒插入和每砖1发均为合成。正式内容 / 物品 / 子职业装配、HUD及物理世界跨重启未完成；纯会话检查点只证明引擎状态和计时恢复。"
+  ]
+}
