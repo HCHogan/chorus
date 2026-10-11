@@ -16,8 +16,9 @@ import net.minecraft.world.item.*;
 
 /** Real Orb acquisition, server-authorized finishers and actual payment/reward consumers. */
 public class ArmorFinisherGameTest {
-    static ProjectileGameTest.Harness openMods(GameTestHelper h)throws Exception{
-        var t=ArmorChargeGameTest.open(h,"armor_finisher_mods","armor_finisher_inputs");
+    static ProjectileGameTest.Harness openMods(GameTestHelper h,String... additional)throws Exception{
+        var modules=new ArrayList<>(List.of("armor_finisher_mods","armor_finisher_inputs"));modules.addAll(List.of(additional));
+        var t=ArmorChargeGameTest.open(h,modules.toArray(String[]::new));
         try{t.runtime.bind(FinisherInputGameTest.input(t.owner));t.runtime.bind(FinisherInputGameTest.observer(t.owner));IncandescentGameTest.bind(t,"mod_inputs","test:finisher_mod_inputs","");StarvationGameTest.select(t,"melee","finisher_melee");return t;}catch(Exception|Error e){t.close();throw e;}
     }
     static void charge(ProjectileGameTest.Harness t,String name,int n){mod(t,name,0);for(int i=0;i<3;i++)mod(t,"charged_up",i);for(int i=0;i<n;i++)orb(t);}

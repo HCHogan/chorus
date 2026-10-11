@@ -13,7 +13,8 @@ class ArmorFinisherTest {
     static class Harness extends ArmorChargeTest.Harness {
         Finisher.Decision decision=Finisher.Decision.ALLOWED; Finisher.Plan plan;
         boolean prevented;
-        Harness() throws Exception {super("armor_finisher_mods","armor_finisher_inputs","void_overshield");equip(FinisherTest.source("player"));bind("mod_inputs","test:finisher_mod_inputs","player");selectMore("melee","finisher_melee");}
+        Harness(String... additional) throws Exception {super(modules(additional));equip(FinisherTest.source("player"));bind("mod_inputs","test:finisher_mod_inputs","player");selectMore("melee","finisher_melee");}
+        static String[] modules(String[] additional){var names=new ArrayList<>(List.of("armor_finisher_mods","armor_finisher_inputs","void_overshield"));names.addAll(List.of(additional));return names.toArray(String[]::new);}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){
             if(r.command() instanceof Finisher.Check q)return new Finisher.Checked(q,decision);
             if(prevented&&r.command() instanceof DamageCommand q){lastCommand=q;lastReceipt=new DamageReceipt(r.id().toString(),DamageReceipt.Outcome.APPLIED,0,0,0,Optional.empty(),true);return lastReceipt;}

@@ -10360,6 +10360,76 @@
         "原表十二格与固定Clarity已对照，但不代表所有技能CES/CMS、换装/动画及组合均已校准。",
         "有限六十秒身份窗口与纯会话检查点不等于物理世界完整存档、离线或跨维度恢复。"
       ]
+    },
+    {
+      "id": "armor-mods/proximity-ward",
+      "name": "Proximity Ward",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N13",
+          "text_sha256": "bc89f049d5f687d61774e1db9da3d02b8df84c189f734cf3d1c9dd873b533de4"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P13",
+          "text_sha256": "4ad208d0a8945193be40608e08323600c1f537a8e26d31d3de972e7792e2e9c0"
+        }
+      ],
+      "scope": "确认开始后200 HP终结阶段护盾，基于当前有效终结计划的剩余时间；取消/死亡/破盾/到期清除，阶段身份隔离与重复来源不补盾。",
+      "acceptance": [
+        "普通非Void护盾承受真实战员伤害，溢出伤害进入生命，结束后不继续提供保护。",
+        "过时开始事件不重新授予，旧终结事件不清除下一次的护盾；来源解绑后已有保护和清理继续。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/proximity_ward.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FinisherObservationTest.java",
+          "symbol": "optionalIdentityRejectsMissingOldOrAnotherActorsExecution"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProximityWardTest.java",
+          "symbol": "lateFirstDeliveryUsesObservedRemainingDurationNotTheOldFullDuration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ProximityWardTest.java",
+          "symbol": "staleStartOutsideItsExecutionCannotCreateOrReplaceProtectionEvenAfterReceiptExpiry"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProximityWardGameTest.java",
+          "symbol": "startShieldAbsorbsActualCombatantDamageWithoutVoidResistanceAndExpiresBeforeLaterDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProximityWardGameTest.java",
+          "symbol": "DuringPhaseWardAndHealthyFinisherCompletionAreIndependentAndCanCoexist"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ProximityWardGameTest.java",
+          "symbol": "earlierUnknownResultKeepsDiagnosticShieldStateButCannotProtectAgainstSubsequentNativeHits"
+        }
+      ],
+      "gaps": [
+        "定义仍在验收资源，正式护甲插槽/能量成本/自动装配、动画和HUD未完成。",
+        "采用接受后的服务器计划时长，原作实际动画、收尾宽限和提前结束边界未定标；未把论坛建议当作无敌或延时依据。",
+        "同种副本不补盾、一般非Void护盾减伤/排序、授予后解绑保留至阶段结束及阶段中装备不补发开始，是明确Chorus政策，原作组合边界仍待验证。",
+        "纯会话检查点保存有效计划、盾量/期限/身份；物理世界完整重启、跨维度和离线恢复未完成。"
+      ]
     }
   ]
 }

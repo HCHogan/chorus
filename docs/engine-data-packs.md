@@ -3056,3 +3056,12 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 结果提供 `active` 标志，以及以 second 为单位的 `remaining`、`elapsed` 和 `duration`。先判断 active，再读取数值；不存在计划时不伪造零时长。它不发世界请求、不修改状态、不产生事件，得到的回执也不会随后续时间或新计划变化。该回执只证明会话中的计划与占用，不能代替世界存活、距离或视线检查；这些仍由终结 watchdog 检查。查询的是当前可继续的阶段，完成/取消事件里的历史身份不等于仍在执行；到达截止点后即使世界结果未知，也不能用旧开始事件重新取得完整时长。
 
 持久化新增 `FinisherActions.Observe` 与 `Finisher.Observation` 两个类型，不改变已有 Plan、EffectState 或字段结构。观察回执可随等待中的动作帧保存，当前有效计划仍使用原有两侧占用与 detached watchdog 协议。
+
+
+### Proximity Ward 的阶段绑定
+
+链接 `proximity_ward` 后为模组来源绑定 `chorus_d2:proximity_ward`，提供正数 `receipt_seconds`。它独立于 Armor Charge 控制器；生产绑定不应因为名字中含 Finisher 而给它计入消费模组互斥组。现有来源输入产生 `chorus:finisher_started` 后，规则通过 `observe_finisher(match_event=true)` 验证当前身份并读取 remaining，再创建同名目标共享护盾。
+
+`proximity_ward_receipts` 的有效窗口取 receipt_seconds 与 remaining 的最大值，相同身份只能授予一次；盾中的 `finisher_ids` 只负责匹配终止事件。破盾清除盾实例但保留收据，因此开始事实重投不会重新给200 HP。新计划先替换遗留盾实例，再写自己的身份和容量。护盾的有限期限独立于来源生命周期；清理规则在 buff scope 中执行，解绑模组后仍能处理匹配取消和死亡。完整数值来源、换装与动画边界见[D2规则集](d2-ruleset.md#proximity-ward-的终结阶段护盾)。
+
+护盾的有限期限按正常运行时的逻辑钟推进。若在截止点前出现未知结果，诊断状态冻结且不自动重放；Minecraft失败运行时已停止贡献Chorus护盾，后续原版伤害直接走无Chorus盾层的路径。不能通过在故障域中手工推进Buff时间冒充已知完成。

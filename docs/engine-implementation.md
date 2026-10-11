@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+终结阶段观察与Proximity Ward最终门禁 `/tmp/chorus-proximity-gate-3.log` BUILD SUCCESSFUL，2分20秒：1584项JUnit（无失败/错误/跳过）、Fabric843项、NeoForge858项和两端发布jar通过，共享Chorus世界场景842项。新增5项通用观察测试、8项效果规则测试及8项共享世界场景；10项Compendium审计、102条报告一致性、来源哈希和差异检查通过。发布jar含新的观察动作/回执类，继续排除效果与GameTest夹具；无客户端协议改动，本轮未重复运行图形客户端。
+
+通用observe_finisher纯读当前actor的有效计划与两侧generation占用，提供active、remaining/elapsed/duration，支持匹配事件finisher_id。受害者占用、旧身份、过期或已打断的计划不算当前执行。无有效计划不提供伪造的零时长，回执不会随后续时间变化；它不代替watchdog的世界资格检查。持久化新增Observe和Observation两个类型，原有字段结构逐项保持不变，Codec/检查点及恢复后的查询通过。
+
+Proximity Ward在接受开始后授予200 HP普通额外护盾，用观察到的剩余时长确定有限期限。重复副本或开始事件不能补满损失容量或重建已破裂的盾，过期旧开始在收据清除后也被当前身份查询拒绝；旧取消不会删除下一次终结的护盾。完成、取消、死亡、破盾及截止点均能结束保护，来源解绑后已授予保护与其清理继续。没有借用Void护盾减伤或消耗Armor Charge，真实世界验证其与Healthy Finisher的阶段内受伤/结束后治疗组合。
+
+世界场景验证真实200 HP护盾、战员伤害与溢出、阶段后普通扣血、旧事实隔离、解绑/目标移除、实际玩家死亡以及最终伤害回执未知时阶段盾已经到期。另验证更早的未知结果冻结诊断盾量，但失败运行时不再向原版伤害提供Chorus盾层；后续真实攻击直接扣血，不手工推进冻结的Buff时钟或猜测完成。开发期世界编译修正测试对私有invulnerableTime的访问，按现有测试协议清零damageCooldownTime后完整门禁通过；没有改变引擎伤害或模组规则。原表N13/P13与固定Clarity对应数据已归档，新条目partial；累计102条审阅（100 partial、2 not_applicable、0 verified），不构成全表覆盖率。原作动画时序/收尾宽限、护盾顺序/组合、换装政策、正式插槽/能量/装配、HUD和物理世界恢复仍有缺口。[规则及来源](d2-ruleset.md#proximity-ward-的终结阶段护盾)、[阶段绑定](engine-data-packs.md#proximity-ward-的阶段绑定)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Armor Charge终结模组完整门禁 `/tmp/chorus-armor-finisher-gate-4.log` BUILD SUCCESSFUL，1分51秒：1571项JUnit（无失败/错误/跳过）、Fabric835项、NeoForge850项与两端发布jar通过，共享Chorus世界场景834项。10项Compendium审计、101条报告一致性、来源哈希和差异检查通过；发布jar继续排除效果、GameTest和持久化夹具。没有新增Java执行接口、客户端协议或检查点类型，本轮未重复运行图形客户端。
 
 六个 Armor Charge 终结模组已组合到确认完成事实：Healthy消费一层补满普通生命；Bulwark消费至少三层的全部层数，恢复45 HP共享Void Overshield并按3/4/5/6层给予8/10/12/14秒；Explosive、One-Two、Utility按同表回充当前手雷、近战、职业技能的70%/80%/90%/100%基础能量，经接收者CES与收益Profile一次；Empowered只在零层时获得一层，允许Stacks on Stacks额外层。

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "effect": "Proximity Ward",
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-12/armor-charge-mods-source.html.gz",
+      "sha256": "92afd34a1e2d2af6927073f6b063c22813e817621c3daa5a48626054e12ee829",
+      "gzip_sha256": "55a07f055b7c0992012f33327ff0111f6b88f9a1b4dc17517bb0ab08bc37c8d8",
+      "cells": [
+        {
+          "original_cell": "N13",
+          "snapshot_cell": "N13",
+          "snapshot_text_sha256": "bc89f049d5f687d61774e1db9da3d02b8df84c189f734cf3d1c9dd873b533de4",
+          "normalized_text": "Proximity Ward [2 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P13",
+          "snapshot_cell": "P13",
+          "snapshot_text_sha256": "4ad208d0a8945193be40608e08323600c1f537a8e26d31d3de972e7792e2e9c0",
+          "normalized_text": "During a Finisher: Grants a 200 HP Overshield.",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "clarity",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "selected_entry": "data/d2-research/2026-10-12/proximity-ward-clarity-039cfbc.json",
+      "selected_entry_sha256": "42be274c1776fe1a9234ce667e19c92e0713176422af31404c14102d844a30d6",
+      "hash": 4081595582,
+      "finding": "200 HP overshield during the finisher animation; does not specify Void Overshield or Armor Charge consumption."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/proximity_ward.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/ProximityWardTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/ProximityWardGameTest.java",
+    "engine_observation": "common/src/main/java/com/imdomestic/chorus/effect/data/FinisherActions.java"
+  },
+  "rules": [
+    "Accepted finisher start observes a still-live actor-side plan with matching finisher_id. Missing/stale/different identity produces no protection.",
+    "Grant a shared 200 HP non-Void shield until the observed remaining phase deadline. Duplicate sources or replay cannot refill it; broken shield does not cancel the finisher.",
+    "Only a terminal fact with the same shield finisher_id removes it early. Cancellation, death, shield break or the finite phase deadline removes protection; source unbinding does not retract an accepted grant.",
+    "Independent new finisher identities can obtain new shields. The receipt window is at least the remaining animation duration; tested sixty seconds is not a proc cooldown.",
+    "Generic observe_finisher returns immutable active/remaining/elapsed/duration data without emitting facts or world work; match_event optionally matches the event finisher_id. It is actor-side, not the victim participation flag.",
+    "At the final strike boundary the phase shield is already expired. If an earlier unknown result stops the runtime, diagnostic Buff state is frozen; the failed runtime contributes no Chorus shield layers to subsequent native damage. No inferred clock advancement or world replay is performed."
+  ],
+  "open_questions": [
+    "Original animation timings, target protection, exact post-animation grace, early animation ending and swap behavior remain uncalibrated; current policy uses the accepted server execution duration.",
+    "Equipping during a phase does not synthesize a past start; an explicitly delivered still-active start can grant only the observed remaining duration. Granted protection survives unbinding until phase termination.",
+    "Shared shield ordering with other overshields, generic non-Void mitigation and duplicate-copy no-refill policy are Chorus choices pending original combination calibration.",
+    "Formal armor mod slots, energy cost, automatic equipment, D2 animation/HUD and complete physical world restart remain incomplete.",
+    "No current official numerical change was established from search; forum anecdotes are not used to introduce invulnerability or a grace duration. Compendium and pinned Clarity define the implemented baseline."
+  ]
+}
