@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "scope": "Timed Payload delayed translated contact and explicit unavailable-target policy",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "reused_metadata": "data/d2-research/2026-10-12/explosive-payload.json",
+      "path": "data/d2-research/2026-10-12/payload-source.html.gz",
+      "coordinates": {
+        "original": [
+          "A229",
+          "C229"
+        ],
+        "snapshot": [
+          "A228",
+          "C228"
+        ]
+      }
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "path": "data/d2-research/2026-10-12/payload-clarity-039cfbc.json",
+      "hashes": [
+        1954620775,
+        1562897767
+      ]
+    },
+    {
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_1_perks.rs",
+      "path": "data/d2-research/2026-10-12/payload-foundry-perks.rs.gz",
+      "conflict": "Foundry share .5 conflicts with Compendium/Clarity .55. Delay .6 agrees."
+    },
+    {
+      "url": "https://www.bungie.net/en/Explore/Detail/DestinyInventoryItemDefinition/1595336071",
+      "notes": "Official inventory page describes projectiles attached to enemies exploding after a delay. This establishes attachment intent, not the detailed translation, death, missing-target or rotation policies."
+    }
+  ],
+  "selected": {
+    "fraction": 0.55,
+    "delay_seconds": 0.6,
+    "pve_blast_multiplier": 1.3,
+    "pvp_blast_multiplier": 1,
+    "enhanced_stability": 5,
+    "radius_meters": null
+  },
+  "policies": [
+    "Reference feet position is observed before direct damage. At deadline, observe target feet again and translate the original contact by the reference movement. No implicit bone rotation or scale.",
+    "A dead but present body may supply position. Living primary receives the full blast once; other living non-allied targets are queried near the translated contact at detonation.",
+    "Missing target at deadline emits a diagnostic, closes the group and retires the blast. It does not silently use original impact or current owner as a substitute.",
+    "Block contact uses the recorded surface even if block contents change. Physical-world/unload policies and original-game semantics need independent validation.",
+    "One contact damage group lives for one second and closes after the .6-second blast or diagnostic branch. This is explicit consumer policy, not cycle suppression.",
+    "Source damage snapshots, radius/mode/delay query results, target identity and original contact survive detached scheduling and domain checkpoint restoration. A physical projectile across full server restart is not proved.",
+    "Test radius3 and linear radial shape are synthetic explicit providers; no unknown radius default. B10/P2/ammo/fire rate are synthetic.",
+    "Entity UUID does not distinguish a new player life using the same UUID. Incarnation-aware attachments and last-known detach locations remain required before full acceptance."
+  ],
+  "remaining": [
+    "Original radius, radial interpolation, flinch/stagger, precision rounding and source/target sampling calibration",
+    "Bone-relative transforms, entity lifetime identity, death/removal detach and last-known location policy",
+    "Real world dimension/unload/respawn acceptance and world restart persistence",
+    "Full D2 outgoing/proc/weapon/skill catalogue and production UI"
+  ]
+}

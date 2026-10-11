@@ -658,6 +658,27 @@ public interface Action {
                     observation.requirePosition(e.target(target), anchor)), List.of());
         }
     }
+    /** Pure translation of three observations. No implicit entity lookup, fallback, rotation or scale. */
+    record RebasePosition(String position, String from, String to) implements Action {
+        public RebasePosition {
+            com.imdomestic.chorus.effect.EffectTimers.localName(position);
+            com.imdomestic.chorus.effect.EffectTimers.localName(from);
+            com.imdomestic.chorus.effect.EffectTimers.localName(to);
+        }
+        @Override public ResultShape validate(Validation v) {
+            v.result(position).requirePosition(); v.result(from).requirePosition(); v.result(to).requirePosition();
+            return ResultShape.POSITION;
+        }
+        private com.imdomestic.chorus.effect.target.WorldPosition read(Evaluation e, String binding) {
+            var shape = e.results().get(binding); var result = e.context().bindings().get(binding);
+            if (shape == null || result == null) throw new IllegalArgumentException("Unbound position: " + binding);
+            return shape.position(result).orElseThrow(() -> new IllegalArgumentException("Position unavailable: " + binding));
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var translated = read(e, position).rebase(read(e, from), read(e, to));
+            return new RuleEngine.Local<>(e.state(), new com.imdomestic.chorus.effect.target.PositionResult.Stored(Optional.of(translated)), List.of());
+        }
+    }
     record CapturePosition(Evaluation.Target target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor anchor) implements Action {
         public CapturePosition(Evaluation.Target target) { this(target, com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET); }
         @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.POSITION; }

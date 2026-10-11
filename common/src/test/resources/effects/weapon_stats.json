@@ -16,7 +16,8 @@
             "families": {
               "chorus_d2:snapshot_sights_stability": {
                 "kind": "max"
-              }
+              },
+              "chorus_d2:timed_payload": {"kind": "max"}
             }
           }
         },

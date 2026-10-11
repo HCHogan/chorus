@@ -3323,3 +3323,14 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 实体/方块接触各自开启显式 damage_group，直击、主目标爆炸、邻近目标爆炸加入同一组，随后关闭。消费策略声明 sharing=group 的一次性 Buff 因而能覆盖两个分量，下一次独立攻击重新读取资格。这个组不等于 damage_batch，也不会自动屏蔽同根事件或游戏预期循环。爆炸带 weapon_damage、explosive_perk_damage、passive_explosive_perk_damage、explosive_payload_damage 及明确元素标签；不继承 precision。上述标签仍需具体 proc 消费者主动声明，不能凭“爆炸”一词统一决定触发资格。
 
 主目标从原 impact 读取身份，伤害后重新检查存活，再发一次满额爆炸；邻近列表排除主目标和持有者，查询 BODY 锚点、not_allied、nearest。直接击杀不会取消周围爆炸。攻击来源、两份快照和原碰撞点保持不变；未知物理回执遵循现有停机和不重放契约，不宣称两份宿主伤害能原子回滚。参考程序只覆盖 Kinetic 来源、指定合成武器与显式活动模式，不包含完整 D2 元素/武器/敌人目录。
+
+
+## 平移已观测位置与延迟附着
+
+新增普通动作 `{"type":"chorus:rebase_position","position":"impact","from":"anchor_start","to":"anchor_now"}`，返回可绑定的位置结果。它计算 position + (to − from)，不进行世界查询，不读取实体引用，也不处理旋转/缩放。三个输入必须是已绑定的位置形状，ProjectileFlight.Impact 也可提供位置。未绑定/错误形状、缺失位置、跨维度和非有限结果拒绝，不补零或猜测替代中心。需要允许缺失的内容必须先使用位置结果的 available/missing 条件显式分支。
+
+Timed Payload 参考程序在命中时 capture_position 保存目标 FEET，在 detached after 续体到期时再次 capture_position，再调用 rebase_position。这里的“附着”是按目标身份的平移追踪，不等同完整物理挂点。目标不可用分支明确 play_cue 并 end_damage_group，活体/尸体、消失的方块和同 UUID 新生命的边界见规则集。
+
+`timed_payload.json` 提供 payload_delay 秒数查询，并复用前述 payload_fraction / payload_radius / payload_blast_scale Profile；链接时也需要这些 Profile 的提供者。参考组合通过 explosive_payload 片段提供公共查询定义，没有因此自动安装 Explosive Payload 词条。参数 payload_radius 必填；外部 payload_radial_shape 仍需提供。强化稳定性家族取高，独立于爆炸弹头强化装填家族。
+
+存储仅新增 `chorus:effect/data/action/rebase_position`，字段为 position/from/to 三个字符串；原 551 个存储类型形状保持不变。结果复用 PositionResult.Stored，领域续体可编码并保持原截止时间和目标绑定。它不保存 Minecraft 物理弹体，也没有引入实体生命代际身份。

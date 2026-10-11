@@ -555,6 +555,10 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventPosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.ReadEventPosition::anchor)
                 ).apply(i, Action.ReadEventPosition::new)))
+                .register("chorus:rebase_position", Action.RebasePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("position").forGetter(Action.RebasePosition::position),
+                        Codec.STRING.fieldOf("from").forGetter(Action.RebasePosition::from), Codec.STRING.fieldOf("to").forGetter(Action.RebasePosition::to)
+                ).apply(i, Action.RebasePosition::new)))
                 .register("chorus:capture_position", Action.CapturePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CapturePosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.CapturePosition::anchor)

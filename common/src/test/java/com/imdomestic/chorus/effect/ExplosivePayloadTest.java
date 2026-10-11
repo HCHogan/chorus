@@ -28,7 +28,8 @@ class ExplosivePayloadTest {
     static Loadout.Gear gun(String id,String family,String perk){return new Loadout.Gear(id,family.equals("auto_rifle")?"test:rifle":"test:hand_cannon",Map.of("perk",perk));}
     static class Harness extends ChainReactionTest.Harness {
         Harness(boolean pvp)throws Exception{this(json("explosive_payload_weapon"),pvp);}
-        Harness(JsonObject data,boolean pvp)throws Exception{super(program(data),TAG,pvp,Map.of(),Map.of());}
+        Harness(JsonObject data,boolean pvp)throws Exception{this(program(data),TAG,pvp);}
+        Harness(CompiledEffects program,String tag,boolean pvp){super(program,tag,pvp,Map.of(),Map.of());}
         @Override void equip(String a,String b,String drawn){equip(gun("a","hand_cannon",a),gun("b","auto_rifle",b),drawn);}
         void equip(Loadout.Gear a,Loadout.Gear b,String drawn){var next=new Loadout(Map.of("test:primary",a,"test:secondary",b),Optional.of("test:"+drawn));session.start(now(),new EquipmentChange("player",state().equipment().getOrDefault("player",Loadout.EMPTY),next).signal());healthy();}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){return switch(r.command()){

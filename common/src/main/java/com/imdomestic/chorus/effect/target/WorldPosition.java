@@ -16,4 +16,11 @@ public record WorldPosition(String dimension, double x, double y, double z) {
         Numbers.nonnegative(distance, "position distance");
         return distance;
     }
+    /** Translate a saved point by the movement between two observations of its reference anchor. */
+    public WorldPosition rebase(WorldPosition from, WorldPosition to) {
+        java.util.Objects.requireNonNull(from); java.util.Objects.requireNonNull(to);
+        if (!dimension.equals(from.dimension) || !dimension.equals(to.dimension))
+            throw new IllegalArgumentException("Cannot rebase positions across dimensions");
+        return new WorldPosition(dimension, x + (to.x - from.x), y + (to.y - from.y), z + (to.z - from.z));
+    }
 }

@@ -549,5 +549,6 @@
   "chorus:stat/numeric_group": ["name:java.lang.String", "reduction:com.imdomestic.chorus.stat.Reduction", "families:java.util.Map<java.lang.String, com.imdomestic.chorus.stat.FamilyPolicy>", "children:java.util.List<com.imdomestic.chorus.stat.NumericGroup>"],
   "chorus:stat/numeric_group/evaluation": ["path:java.lang.String", "reduction:com.imdomestic.chorus.stat.Reduction", "value:java.util.OptionalDouble", "selected:java.util.Set<java.lang.String>"],
   "chorus:stat/reduction": ["SUM", "MAX", "PRODUCT", "RESIST"],
-  "chorus:stat/unit": ["id:java.lang.String"]
+  "chorus:stat/unit": ["id:java.lang.String"],
+  "chorus:effect/data/action/rebase_position": ["position:java.lang.String", "from:java.lang.String", "to:java.lang.String"]
 }
