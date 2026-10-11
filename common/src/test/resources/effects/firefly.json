@@ -1,0 +1,717 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:firefly",
+      "parameters": {
+        "pve_damage": "damage",
+        "pvp_damage": "damage",
+        "full_radius": "meter",
+        "radius": "meter",
+        "delay": "second",
+        "pve_minimum_falloff": "multiplier",
+        "pvp_minimum_falloff": "multiplier"
+      },
+      "rules": [
+        {
+          "id": "reload_reward",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {"type": "chorus:source_is", "source": "owner"},
+              {"type": "chorus:source_is", "source": "this_weapon"},
+              {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"},
+              {"type": "chorus:event_tag", "tag": "chorus:precision"}
+            ]
+          },
+          "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:firefly_reload"}]
+        },
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:source_is", "source": "owner"},
+                  {"type": "chorus:source_is", "source": "this_weapon"},
+                  {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"},
+                  {"type": "chorus:event_tag", "tag": "chorus:precision"}
+                ]
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pve_damage"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "damage"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pvp_damage"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "damage"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "full_radius"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "meter"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "radius"},
+                    "op": "gt",
+                    "right": {"type": "chorus:source_parameter", "name": "full_radius"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "delay"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+                  },
+                  {"type": "chorus:event_position_observed", "target": "victim", "anchor": "feet"},
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                    "op": "le",
+                    "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"},
+                    "op": "ge",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                  },
+                  {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"},
+                    "op": "le",
+                    "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {"action": {"type": "chorus:read_event_position", "target": "victim", "anchor": "feet"}, "as": "place"},
+            {
+              "if": {"type": "chorus:result_flag", "binding": "place", "field": "available"},
+              "then": [
+                {
+                  "action": {
+                    "amount": {
+                      "type": "chorus:pvp",
+                      "pve": {"type": "chorus:source_parameter", "name": "pve_damage"},
+                      "pvp": {"type": "chorus:source_parameter", "name": "pvp_damage"}
+                    },
+                    "damage_type": "chorus_d2:firefly",
+                    "scaling_profile": "chorus_d2:firefly_outgoing",
+                    "origin": "event",
+                    "tags": ["chorus:weapon_damage", "chorus:explosive_perk_damage", "chorus_d2:firefly_damage", "chorus_d2:solar_damage"],
+                    "kill_tags": ["chorus:weapon_kill"],
+                    "type": "chorus:capture_damage"
+                  },
+                  "as": "burst"
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {"type": "chorus:source_parameter", "name": "delay"},
+                    "op": "gt",
+                    "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+                  },
+                  "then": [
+                    {
+                      "after": {"type": "chorus:source_parameter", "name": "delay"},
+                      "lifetime": "detached",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": {"position": "place"},
+                            "radius": {"type": "chorus:source_parameter", "name": "radius"},
+                            "relation": "not_allied",
+                            "relative_to": "source_owner",
+                            "exclude": ["source_owner", "victim"],
+                            "order": "nearest"
+                          },
+                          "as": "nearby"
+                        },
+                        {
+                          "for_each": "nearby",
+                          "as": "neighbor",
+                          "do": [
+                            {"action": {"type": "chorus:inspect_entity", "target": {"binding": "neighbor"}}, "as": "observed"},
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [{"type": "chorus:result_flag", "binding": "observed", "field": "available"}, {"type": "chorus:result_flag", "binding": "observed", "field": "alive"}]
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:calculate",
+                                    "profile": "chorus_d2:firefly_falloff",
+                                    "input": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "max",
+                                      "of": [
+                                        {"type": "chorus:constant", "value": 0, "unit": "multiplier"},
+                                        {
+                                          "type": "chorus:arithmetic",
+                                          "op": "min",
+                                          "of": [
+                                            {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                            {
+                                              "type": "chorus:ratio",
+                                              "numerator": {
+                                                "type": "chorus:arithmetic",
+                                                "op": "add",
+                                                "of": [
+                                                  {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                                  {"type": "chorus:scale", "of": {"type": "chorus:source_parameter", "name": "full_radius"}, "factor": -1, "from": "meter", "to": "meter"}
+                                                ]
+                                              },
+                                              "denominator": {
+                                                "type": "chorus:arithmetic",
+                                                "op": "add",
+                                                "of": [
+                                                  {"type": "chorus:source_parameter", "name": "radius"},
+                                                  {"type": "chorus:scale", "of": {"type": "chorus:source_parameter", "name": "full_radius"}, "factor": -1, "from": "meter", "to": "meter"}
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "as": "curve"
+                                },
+                                {
+                                  "action": {
+                                    "type": "chorus:capture_value",
+                                    "value": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:compare",
+                                        "left": {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                        "op": "le",
+                                        "right": {"type": "chorus:source_parameter", "name": "full_radius"}
+                                      },
+                                      "then": {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:compare",
+                                          "left": {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                          "op": "ge",
+                                          "right": {"type": "chorus:source_parameter", "name": "radius"}
+                                        },
+                                        "then": {
+                                          "type": "chorus:pvp",
+                                          "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                          "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                        },
+                                        "else": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:pvp",
+                                              "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                              "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                            },
+                                            {
+                                              "type": "chorus:arithmetic",
+                                              "op": "mul",
+                                              "of": [
+                                                {
+                                                  "type": "chorus:arithmetic",
+                                                  "op": "add",
+                                                  "of": [
+                                                    {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                                    {
+                                                      "type": "chorus:scale",
+                                                      "of": {
+                                                        "type": "chorus:pvp",
+                                                        "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                                        "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                                      },
+                                                      "factor": -1,
+                                                      "from": "multiplier",
+                                                      "to": "multiplier"
+                                                    }
+                                                  ]
+                                                },
+                                                {"type": "chorus:result", "binding": "curve", "field": "value"}
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "as": "falloff"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                        "op": "gt",
+                                        "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                        "op": "le",
+                                        "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                        "op": "ge",
+                                        "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                        "op": "le",
+                                        "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:damage_snapshot",
+                                      "snapshot": "burst",
+                                      "target": {"binding": "neighbor"},
+                                      "impact": {
+                                        "firefly_falloff": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                        "distance": {"type": "chorus:result", "binding": "neighbor", "field": "distance"}
+                                      }
+                                    }
+                                  ],
+                                  "else": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:all",
+                                          "of": [
+                                            {
+                                              "type": "chorus:compare",
+                                              "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                              "op": "eq",
+                                              "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                            },
+                                            {
+                                              "type": "chorus:compare",
+                                              "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                              "op": "ge",
+                                              "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                            },
+                                            {
+                                              "type": "chorus:compare",
+                                              "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                              "op": "le",
+                                              "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "then": [{"type": "chorus:emit", "event": "chorus_d2:firefly_unresolved"}]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {"position": "place"},
+                        "radius": {"type": "chorus:source_parameter", "name": "radius"},
+                        "relation": "not_allied",
+                        "relative_to": "source_owner",
+                        "exclude": ["source_owner", "victim"],
+                        "order": "nearest"
+                      },
+                      "as": "nearby"
+                    },
+                    {
+                      "for_each": "nearby",
+                      "as": "neighbor",
+                      "do": [
+                        {"action": {"type": "chorus:inspect_entity", "target": {"binding": "neighbor"}}, "as": "observed"},
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [{"type": "chorus:result_flag", "binding": "observed", "field": "available"}, {"type": "chorus:result_flag", "binding": "observed", "field": "alive"}]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:firefly_falloff",
+                                "input": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "max",
+                                  "of": [
+                                    {"type": "chorus:constant", "value": 0, "unit": "multiplier"},
+                                    {
+                                      "type": "chorus:arithmetic",
+                                      "op": "min",
+                                      "of": [
+                                        {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                        {
+                                          "type": "chorus:ratio",
+                                          "numerator": {
+                                            "type": "chorus:arithmetic",
+                                            "op": "add",
+                                            "of": [
+                                              {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                              {"type": "chorus:scale", "of": {"type": "chorus:source_parameter", "name": "full_radius"}, "factor": -1, "from": "meter", "to": "meter"}
+                                            ]
+                                          },
+                                          "denominator": {
+                                            "type": "chorus:arithmetic",
+                                            "op": "add",
+                                            "of": [
+                                              {"type": "chorus:source_parameter", "name": "radius"},
+                                              {"type": "chorus:scale", "of": {"type": "chorus:source_parameter", "name": "full_radius"}, "factor": -1, "from": "meter", "to": "meter"}
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              },
+                              "as": "curve"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:capture_value",
+                                "value": {
+                                  "type": "chorus:choose",
+                                  "if": {
+                                    "type": "chorus:compare",
+                                    "left": {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                    "op": "le",
+                                    "right": {"type": "chorus:source_parameter", "name": "full_radius"}
+                                  },
+                                  "then": {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                  "else": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:compare",
+                                      "left": {"type": "chorus:result", "binding": "neighbor", "field": "distance"},
+                                      "op": "ge",
+                                      "right": {"type": "chorus:source_parameter", "name": "radius"}
+                                    },
+                                    "then": {
+                                      "type": "chorus:pvp",
+                                      "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                      "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                    },
+                                    "else": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:pvp",
+                                          "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                          "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                        },
+                                        {
+                                          "type": "chorus:arithmetic",
+                                          "op": "mul",
+                                          "of": [
+                                            {
+                                              "type": "chorus:arithmetic",
+                                              "op": "add",
+                                              "of": [
+                                                {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+                                                {
+                                                  "type": "chorus:scale",
+                                                  "of": {
+                                                    "type": "chorus:pvp",
+                                                    "pve": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                                                    "pvp": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"}
+                                                  },
+                                                  "factor": -1,
+                                                  "from": "multiplier",
+                                                  "to": "multiplier"
+                                                }
+                                              ]
+                                            },
+                                            {"type": "chorus:result", "binding": "curve", "field": "value"}
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                    "op": "gt",
+                                    "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                    "op": "le",
+                                    "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                    "op": "ge",
+                                    "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                    "op": "le",
+                                    "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:damage_snapshot",
+                                  "snapshot": "burst",
+                                  "target": {"binding": "neighbor"},
+                                  "impact": {
+                                    "firefly_falloff": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                    "distance": {"type": "chorus:result", "binding": "neighbor", "field": "distance"}
+                                  }
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "if": {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:all",
+                                      "of": [
+                                        {
+                                          "type": "chorus:compare",
+                                          "left": {"type": "chorus:result", "binding": "falloff", "field": "value"},
+                                          "op": "eq",
+                                          "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                        },
+                                        {
+                                          "type": "chorus:compare",
+                                          "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                          "op": "ge",
+                                          "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                                        },
+                                        {
+                                          "type": "chorus:compare",
+                                          "left": {"type": "chorus:result", "binding": "curve", "field": "value"},
+                                          "op": "le",
+                                          "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "then": [{"type": "chorus:emit", "event": "chorus_d2:firefly_unresolved"}]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [{"type": "chorus:emit", "event": "chorus_d2:firefly_unresolved"}]
+            }
+          ]
+        },
+        {
+          "id": "unresolved_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:source_is", "source": "owner"},
+                  {"type": "chorus:source_is", "source": "this_weapon"},
+                  {"type": "chorus:event_tag", "tag": "chorus:weapon_kill"},
+                  {"type": "chorus:event_tag", "tag": "chorus:precision"}
+                ]
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:all",
+                  "of": [
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pve_damage"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "damage"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pvp_damage"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "damage"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "full_radius"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "meter"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "radius"},
+                      "op": "gt",
+                      "right": {"type": "chorus:source_parameter", "name": "full_radius"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "delay"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+                    },
+                    {"type": "chorus:event_position_observed", "target": "victim", "anchor": "feet"},
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pve_minimum_falloff"},
+                      "op": "le",
+                      "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"},
+                      "op": "ge",
+                      "right": {"type": "chorus:constant", "value": 0, "unit": "multiplier"}
+                    },
+                    {
+                      "type": "chorus:compare",
+                      "left": {"type": "chorus:source_parameter", "name": "pvp_minimum_falloff"},
+                      "op": "le",
+                      "right": {"type": "chorus:constant", "value": 1, "unit": "multiplier"}
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "do": [{"type": "chorus:emit", "event": "chorus_d2:firefly_unresolved"}]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {"type": "chorus:own_source"},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:firefly_reload"}]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "falloff",
+          "profile": "chorus_d2:firefly_outgoing",
+          "stage": "falloff",
+          "group": "falloff",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:firefly_falloff",
+          "if": {"type": "chorus:all", "of": [{"type": "chorus:source_is", "source": "this_weapon"}, {"type": "chorus:event_tag", "tag": "chorus_d2:firefly_damage"}]},
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:scale",
+                "of": {"type": "chorus:impact_number", "name": "firefly_falloff", "unit": "multiplier"},
+                "factor": 1,
+                "from": "multiplier",
+                "to": "delta"
+              },
+              {"type": "chorus:constant", "value": -1, "unit": "delta"}
+            ]
+          },
+          "confidence": "assumed",
+          "reference": "Explicit source-specific Firefly falloff profile and mode-specific minimum; Ace of Spades 9.5.0 is not a universal Legendary perk calibration."
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:firefly_reload",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "reload",
+          "profile": "chorus_d2:weapon_reload",
+          "stage": "perks",
+          "group": "reload",
+          "op": "add",
+          "stacking_key": "chorus_d2:firefly",
+          "value": {
+            "type": "chorus:enhanced",
+            "base": {"type": "chorus:constant", "value": 50, "unit": "stat_point"},
+            "enhanced": {"type": "chorus:constant", "value": 55, "unit": "stat_point"}
+          },
+          "reference": "Compendium original Weapon Perks C95, enhanced +55 highlighted yellow; snapshot C94.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:firefly_reload",
+        "version": "compendium-2026-10-05",
+        "duration": 6,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep"
+      },
+      "bundle": "chorus_d2:firefly_reload"
+    }
+  ]
+}

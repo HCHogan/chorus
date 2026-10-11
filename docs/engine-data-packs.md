@@ -2813,3 +2813,9 @@ RUNNING / PREPARED、未知格式和损坏数据会拒绝下次自动启动，�
 [Rewind Rounds 示例](../common/src/test/resources/effects/rewind_rounds.json) 组合 fire_accepted 的弹量 / 容量快照、set_contains_event_reference 和现有整数 refill。计数只接受本来源 owner / weapon 的有成本射击与合格伤害；待结算 Buff 保存射空 origin_source、预期组数和冻结的最低发射弹数。shot_resolved 用组 ID 去重并累计 complete 状态，最后一个预期组才可查询当前弹匣并尝试 refill。来源必须提供与实际发射结构一致的 groups 和足够的 settlement_seconds；引擎不从一个组的结束推导全次开火结束。
 
 minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction 是明确校准输入；普通 / 强化60 / 70%使用十进制乘法与向上取整。只有正数转移才清除计数并授予抑制 Buff，零转移不触发；reload_finished 与 source_detached 分别处理重置和清理。凭据窗口 receipt_seconds 独立于命中计数，忽略期也记住回执，使用 source-owned after 逐项清理。具体时间政策、来源证据和正式内容缺口见 [D2规则集](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
+
+### 固定元素爆炸、独立奖励与非零衰减下限
+
+[Firefly](d2-ruleset.md#firefly-的固定太阳爆炸与独立装填奖励) 复用 `capture_damage` 静态声明Solar，不从输入事件选择元素。装填奖励与需要历史位置的爆炸分别响应同一个确认精准击杀事实；爆炸信息不足时不丢弃可确定的装填奖励。装填Buff使用 `instanced_by: weapon`、`affects: instance_weapon`、`refresh: reset` 和 `on_stow: keep`；source_detached显式清理是内容政策。共享属性Profile接入武器reload的profiles序列，实际接受的换弹时长在Buff到期后保持。
+
+[firefly.json](../common/src/test/resources/effects/firefly.json) 要求7个来源参数：pve_damage / pvp_damage为damage，full_radius / radius为meter，delay为second，pve_minimum_falloff / pvp_minimum_falloff为multiplier。外部 `chorus_d2:firefly_outgoing` 负责输出缩放、`chorus_d2:firefly_falloff` 负责归一化过渡曲线；两者没有隐式默认校准。`ratio`、`arithmetic` 与 `scale` 已能组合出 `m+(1-m)*f`，平台1、边界m、半径外无目标；m和f越界明确诊断。最小倍率属于具体效果 / 来源配置，不是所有范围伤害的引擎硬编码。测试资源中的线性曲线和世界单位映射均不代表原作校准完成。

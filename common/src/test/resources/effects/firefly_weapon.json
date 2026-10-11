@@ -1,0 +1,255 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [{"id": "test:primary", "accepts": ["test:weapon"], "weapon": true}, {"id": "test:secondary", "accepts": ["test:weapon"], "weapon": true}],
+    "items": [
+      {
+        "id": "test:rifle",
+        "tags": ["test:weapon"],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {"bundle": "test:empty"},
+              "normal": {
+                "bundle": "chorus_d2:firefly",
+                "tags": [],
+                "parameters": {
+                  "pve_damage": "pve_damage",
+                  "pvp_damage": "pvp_damage",
+                  "full_radius": "full_radius",
+                  "radius": "radius",
+                  "delay": "delay",
+                  "pve_minimum_falloff": "pve_minimum_falloff",
+                  "pvp_minimum_falloff": "pvp_minimum_falloff"
+                }
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:firefly",
+                "tags": ["chorus:enhanced"],
+                "parameters": {
+                  "pve_damage": "pve_damage",
+                  "pvp_damage": "pvp_damage",
+                  "full_radius": "full_radius",
+                  "radius": "radius",
+                  "delay": "delay",
+                  "pve_minimum_falloff": "pve_minimum_falloff",
+                  "pvp_minimum_falloff": "pvp_minimum_falloff"
+                }
+              }
+            }
+          }
+        },
+        "parameters": {
+          "pve_damage": {"unit": "damage", "minimum": 0, "maximum": 100000, "integral": false},
+          "pvp_damage": {"unit": "damage", "minimum": 0, "maximum": 100000, "integral": false},
+          "full_radius": {"unit": "meter", "minimum": 0, "maximum": 100000, "integral": false},
+          "radius": {"unit": "meter", "minimum": 0, "maximum": 100000, "integral": false},
+          "delay": {"unit": "second", "minimum": 0, "maximum": 3600, "integral": false},
+          "pve_minimum_falloff": {"unit": "multiplier", "minimum": 0, "maximum": 1, "integral": false},
+          "pvp_minimum_falloff": {"unit": "multiplier", "minimum": 0, "maximum": 1, "integral": false}
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:rifle",
+      "ammunition": {"capacity": 5, "magazine": 5, "reserves": {"rounds": 12, "capacity": 20}},
+      "reload": {
+        "value": {"type": "chorus:constant", "value": 10, "unit": "stat_point"},
+        "profiles": ["chorus_d2:weapon_reload", "test:rifle_reload_time", "chorus_d2:reload_animation"]
+      },
+      "fire": {
+        "cost": {"type": "chorus:constant", "value": 1, "unit": "round"},
+        "interval": {"type": "chorus:constant", "value": 0.15, "unit": "second"},
+        "tags": ["test:primary_fire"],
+        "on_fire": [
+          {"action": {"type": "chorus:capture_position", "target": "self", "anchor": "eyes"}, "as": "muzzle"},
+          {"action": {"type": "chorus:capture_direction"}, "as": "aim"},
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {"type": "chorus:constant", "value": 10, "unit": "damage"},
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": ["chorus:weapon_damage", "chorus_d2:arc_damage"],
+              "kill_tags": ["chorus:weapon_kill"]
+            },
+            "as": "body"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {"type": "chorus:constant", "value": 15, "unit": "damage"},
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": ["chorus:weapon_damage", "chorus:precision", "chorus_d2:arc_damage"],
+              "kill_tags": ["chorus:weapon_kill"]
+            },
+            "as": "head"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {"type": "chorus:constant", "value": 20, "unit": "meter_per_second"},
+              "gravity": {"type": "chorus:constant", "value": 0, "unit": "meter_per_second_squared"},
+              "drag": {"type": "chorus:constant", "value": 1, "unit": "multiplier"},
+              "lifetime": {"type": "chorus:constant", "value": 1, "unit": "second"}
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "action": {
+                      "type": "chorus:calculate",
+                      "profile": "test:weapon_precision",
+                      "target": {"binding": "victim"},
+                      "victim": {"binding": "victim"},
+                      "input": {"type": "chorus:constant", "value": 0, "unit": "count"},
+                      "tags": ["test:weapon_geometry"],
+                      "numbers": {
+                        "x": {"type": "chorus:result", "binding": "impact", "field": "relative_x"},
+                        "y": {"type": "chorus:result", "binding": "impact", "field": "relative_y"},
+                        "z": {"type": "chorus:result", "binding": "impact", "field": "relative_z"}
+                      }
+                    },
+                    "as": "precision"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:compare",
+                      "op": "eq",
+                      "left": {"type": "chorus:result", "binding": "precision", "field": "value"},
+                      "right": {"type": "chorus:constant", "value": 1, "unit": "count"}
+                    },
+                    "then": [{"type": "chorus:damage_snapshot", "snapshot": "head", "target": {"binding": "victim"}}],
+                    "else": [{"type": "chorus:damage_snapshot", "snapshot": "body", "target": {"binding": "victim"}}]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {"id": "test:weapon_damage", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": []},
+    {
+      "id": "test:weapon_precision",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {"type": "chorus:apply", "id": "region", "operation": "replace", "group": {"name": "regions", "reduction": "max"}},
+        {
+          "type": "chorus:curve",
+          "id": "boolean_region",
+          "curve": {"type": "chorus:table", "points": [{"input": 0, "output": 0}, {"input": 1, "output": 1}], "interpolation": "exact", "boundary": "error"},
+          "output_unit": "count"
+        }
+      ]
+    },
+    {
+      "id": "test:rifle_reload_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_reload_seconds",
+          "curve": {"type": "chorus:polynomial", "coefficients": [2, -0.01], "minimum": 0, "maximum": 100, "boundary": "error"},
+          "output_unit": "second"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {"id": "test:empty"},
+    {"id": "test:power"},
+    {
+      "id": "test:projectile",
+      "rules": [{"id": "unresolved", "on": "chorus_d2:firefly_unresolved", "do": [{"type": "chorus:play_cue", "cue": "test:firefly_unresolved"}]}]
+    },
+    {
+      "id": "test:firefly_bonus",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "chorus_d2:firefly_outgoing",
+          "stage": "bonus",
+          "group": "bonus",
+          "op": "multiply",
+          "stacking_key": "test:firefly_bonus",
+          "if": {"type": "chorus:source_is", "source": "this_weapon"},
+          "value": {"type": "chorus:constant", "value": 0.5, "unit": "delta"},
+          "confidence": "assumed",
+          "reference": "Synthetic source snapshot bonus."
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_region",
+      "parameters": {"min_x": "multiplier", "max_x": "multiplier", "min_y": "multiplier", "max_y": "multiplier", "min_z": "multiplier", "max_z": "multiplier"},
+      "modifiers": [
+        {
+          "id": "region",
+          "profile": "test:weapon_precision",
+          "stage": "region",
+          "group": "regions",
+          "op": "replace",
+          "value": {"type": "chorus:constant", "value": 1, "unit": "count"},
+          "stacking_key": "test:region",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {"type": "chorus:event_tag", "tag": "test:weapon_geometry"},
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {"type": "chorus:event_number", "name": "x", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "min_x"}
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {"type": "chorus:event_number", "name": "x", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "max_x"}
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {"type": "chorus:event_number", "name": "y", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "min_y"}
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {"type": "chorus:event_number", "name": "y", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "max_y"}
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {"type": "chorus:event_number", "name": "z", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "min_z"}
+              },
+              {
+                "type": "chorus:compare",
+                "op": "le",
+                "left": {"type": "chorus:event_number", "name": "z", "unit": "multiplier"},
+                "right": {"type": "chorus:source_parameter", "name": "max_z"}
+              }
+            ]
+          },
+          "reference": "Synthetic target-owned axis-aligned hit region; no D2 enemy weakpoint catalogue or Minecraft default head claim",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

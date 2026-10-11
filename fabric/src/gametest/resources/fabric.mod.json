@@ -93,7 +93,7 @@
       "com.imdomestic.chorus.RampageGameTest",
       "com.imdomestic.chorus.PrecisionAmmoGameTest",
       "com.imdomestic.chorus.ReconstructionGameTest",
-      "com.imdomestic.chorus.RewindRoundsGameTest", "com.imdomestic.chorus.ChainReactionGameTest", "com.imdomestic.chorus.DragonflyGameTest",
+      "com.imdomestic.chorus.RewindRoundsGameTest", "com.imdomestic.chorus.ChainReactionGameTest", "com.imdomestic.chorus.DragonflyGameTest", "com.imdomestic.chorus.FireflyGameTest",
       "com.imdomestic.chorus.OverflowGameTest",
       "com.imdomestic.chorus.FrenzyGameTest",
       "com.imdomestic.chorus.DamageSnapshotComponentGameTest",

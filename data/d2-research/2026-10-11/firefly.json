@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "effect": "Firefly",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "cells": [
+        {
+          "original_cell": "A95",
+          "snapshot_cell": "A94",
+          "normalized_text": "Firefly",
+          "snapshot_text_sha256": "c924d48acda046cb9a2c7744a1aa7aa3013854b0105f8f74e44a1ac416729bec",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C95",
+          "snapshot_cell": "C94",
+          "normalized_text": "On Precision Kill: Target explodes, dealing up to 104 [80] Solar Damage in a 7.5 metre radius, and grants +50 +55 Reload Speed for 6 seconds. Reload Buff persists through stow. Damage against Combatants scales differently by Weapon Type and Combatant Rank :)",
+          "snapshot_text_sha256": "642dba66339c04b06ac42e7259c4f2d1f6c12eaedd52991e16c3c4d5041b35cd",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        }
+      ],
+      "format_evidence": "Original +55 reload value uses #ffd966 enhanced formatting. Snapshot flattening had removed this distinction."
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "finding": "Firefly 与其他击杀爆炸改用统一 perk 缩放；不沿用旧武器原型对战斗人员倍率。"
+    },
+    {
+      "kind": "official_patch",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "published_at": "2025-12-02",
+      "finding": "Ace of Spades 专属 Firefly 的PvE最大伤害65到100、最小0到20，范围6到7.5米，衰减起点从半径30%到50%。此前研究核对补丁，本轮正文检索失败，以下官方前瞻正文直接复核相同值。"
+    },
+    {
+      "kind": "official_preview",
+      "url": "https://www.bungie.net/7/en/News/Article/dev_insight_renegades_weapons",
+      "finding": "Ace of Spades段明确专属Firefly的100/20、7.5米与50%起点。最小/最大比0.2为推导；不能把此配置强加到所有传奇Firefly。"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/1561789734/firefly/?_=955",
+      "research_updated_at": "2026-07-14",
+      "finding": "436 PvE、80 PvP、7.5米范围、3.75米开始衰减；+50装填属性6秒。与原表及强化页面数值冲突，保持独立输入。"
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/1183436451/firefly/?_=328",
+      "finding": "强化条目给104/80、4米范围、+55装填属性6秒，并明确比普通多5点。研究未标更新时间；不从条目版本修改日期推断数值实测日期。"
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/firefly.json",
+    "consumer": "common/src/test/resources/effects/firefly_weapon.json",
+    "calibration": "common/src/test/resources/effects/firefly_test_calibration.json",
+    "required_parameters": {
+      "pve_damage": "damage",
+      "pvp_damage": "damage",
+      "full_radius": "meter",
+      "radius": "meter",
+      "delay": "second",
+      "pve_minimum_falloff": "multiplier",
+      "pvp_minimum_falloff": "multiplier"
+    },
+    "qualification": "Same owner and weapon; confirmed weapon_kill plus physical precision classification. Incoming element is irrelevant to fixed Solar output.",
+    "reload": "Independent reward rule; +50/+55 stat points for six seconds, reset refresh, keep on stow, per-weapon scope, remove on source detach. Invalid explosion geometry does not discard a qualified reload reward.",
+    "explosion": "Capture fixed weapon_damage/explosive_perk_damage/firefly_damage/solar_damage and weapon_kill credit; no precision inheritance, no global proc block. Normal and enhanced have identical configured base damage.",
+    "falloff": "Required external normalized curve f and mode-specific minimum m: full plateau=1, interior=m+(1-m)*f, outer edge=m, outside=no target. Validate f and m in [0,1]. Synthetic tests use linear f; explicit100/104/436 inputs remain distinct.",
+    "timing": "Historical feet center, capture source bonus at kill, explicit zero or detached positive delay, live enemy selection. Source removal before kill disables proc; removal after capture removes reload buff but preserves pending blast.",
+    "reload_calibration": "Shared weapon_reload -> synthetic rifle time (2-0.01*stat) -> reload_animation pipeline. Base10 gives1.9s, normal60 gives1.4s, enhanced65 gives1.35s. Accepted reload duration survives buff expiry.",
+    "world_units": "Synthetic 0.1 damage scale, body/head10/15, finite5-round magazines and12 reserves; contact weakpoint and projectile parameters are test inputs."
+  },
+  "validation": {
+    "unit_tests": "FireflyTest:11 passed; full JUnit suite1411 with zero failures, errors or skips.",
+    "world_tests": "FireflyGameTest:7 new shared scenarios. Fabric714 and NeoForge729 passed;713 shared scenarios total.",
+    "full_gate": "/tmp/chorus-firefly-gate.log BUILD SUCCESSFUL in1m47s, first full gate passed, both release jars built.",
+    "audits": "10 Compendium audit tests,76 reviewed entries, report consistency, original/snapshot hashes, release fixture exclusion and git diff --check passed."
+  },
+  "remaining": [
+    "原表104/80、强化公开索引104/80及4米、普通公开索引436/80及7.5米存在版本 / 基准差异；原表未给平台，3.75米平台仅作为显式研究输入。当前未独立校准完整统一perk、敌人等级 / 活动 / 异域缩放。",
+    "官方黑桃 A 的100最大 / 20最小仅用于证明非零下限表达；未完整实现黑桃 A、Memento Mori、催化剂及其他武器特例。普通Firefly的最小伤害和真实内部距离曲线未确定。",
+    "六秒刷新、收枪后晚到击杀、卸装清理、同武器隔离、确认击杀时取样及已接受换弹保持时长是当前内容政策，需原作边界与组合验收。",
+    "线性内部衰减、0/0.1秒延迟、0.1世界伤害映射、基础装填10与2-0.01×stat秒曲线、武器弹量 / 弹道 / 弱点均为合成校准；实际动画和HUD尚未接入。",
+    "正式内容目录 / 子职业装配、完整死亡 / 离线政策、所有伤害资格与护盾特例、实体投射物跨重启仍未完成。纯会话检查点不等于全世界持久化。"
+  ]
+}

@@ -43,7 +43,10 @@ class ChainReactionTest {
                     EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, weapon(tags, credit)).getOrThrow())), TAG, pvp);
         }
         Harness(CompiledEffects program, String burstTag, boolean pvp) {
-            this.program = program; this.burstTag = burstTag;
+            this(program, burstTag, pvp, calibration(false, .1), calibration(true, .1));
+        }
+        Harness(CompiledEffects program, String burstTag, boolean pvp, Map<String, Measure> normal, Map<String, Measure> enhanced) {
+            this.program = program; this.burstTag = burstTag; a = normal; b = enhanced;
             session = new EffectSession(program, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(pvp ? EffectState.Mode.PVP : EffectState.Mode.PVE), this::world);
             entity("player", 1000, -10); equip("normal", "enhanced", "primary"); bind("observer", "test:projectile", "");
         }

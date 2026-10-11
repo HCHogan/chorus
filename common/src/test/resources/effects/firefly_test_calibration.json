@@ -1,0 +1,34 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:firefly_outgoing",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {"type": "chorus:apply", "id": "bonus", "operation": "multiply", "group": {"name": "bonus", "reduction": "max"}},
+        {"type": "chorus:apply", "id": "unified_target", "operation": "multiply", "group": {"name": "unified_target", "reduction": "product"}},
+        {"type": "chorus:apply", "id": "falloff", "operation": "multiply", "group": {"name": "falloff", "reduction": "product"}},
+        {
+          "type": "chorus:curve",
+          "id": "world_units",
+          "curve": {"type": "chorus:polynomial", "coefficients": [0, 0.1], "minimum": 0, "maximum": 100000, "boundary": "error"},
+          "output_unit": "damage"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:firefly_falloff",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_linear",
+          "curve": {"type": "chorus:table", "interpolation": "linear", "boundary": "clamp", "points": [{"input": 0, "output": 1}, {"input": 1, "output": 0}]},
+          "output_unit": "multiplier"
+        }
+      ]
+    }
+  ]
+}

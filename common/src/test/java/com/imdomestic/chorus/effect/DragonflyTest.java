@@ -31,6 +31,9 @@ class DragonflyTest {
         Harness(Set<String> tags, boolean credit, boolean pvp) throws Exception {
             super(program(tags, credit), "chorus_d2:dragonfly_damage", pvp); a = calibration(8, .1); b = calibration(8, .1); equip("normal", "enhanced", "primary");
         }
+        Harness(CompiledEffects program, String burstTag, boolean pvp, Map<String, Measure> normal, Map<String, Measure> enhanced) {
+            super(program, burstTag, pvp, normal, enhanced);
+        }
         void region(String target) {
             var parameters = Map.of("min_x", new Measure(0, Unit.MULTIPLIER), "max_x", new Measure(1, Unit.MULTIPLIER),
                     "min_y", new Measure(.75, Unit.MULTIPLIER), "max_y", new Measure(1, Unit.MULTIPLIER), "min_z", new Measure(0, Unit.MULTIPLIER), "max_z", new Measure(1, Unit.MULTIPLIER));

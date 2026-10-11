@@ -1438,7 +1438,7 @@
       "name": "Firefly",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -1451,7 +1451,7 @@
           "text_sha256": "642dba66339c04b06ac42e7259c4f2d1f6c12eaedd52991e16c3c4d5041b35cd"
         }
       ],
-      "scope": "已核对需求；通用距离快照、曲线与真实范围扣血机制通过，尚不是该 perk 的实现",
+      "scope": "独立JSON：真实精准击杀固定太阳爆炸，普通/强化+50/+55装填属性6秒；按武器隔离、刷新/收枪/卸装、实际换弹储备转移、历史中心和显式非零衰减下限",
       "acceptance": [
         "精准击杀触发太阳伤害爆炸",
         "7.5 米范围与武器/敌人类别缩放",
@@ -1471,13 +1471,66 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/TargetSelectionGameTest.java",
           "symbol": "radialCurveChangesActualDamageUsingCapturedDistancesAfterTargetsMove"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firefly.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firefly_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firefly_test_calibration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireflyTest.java",
+          "symbol": "fixedSolarExplosionIgnoresIncomingElementWhileEnhancedOnlyChangesReload"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireflyTest.java",
+          "symbol": "reloadUsesActualStatsAndTransfersOwnReservesAtItsComputedDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireflyTest.java",
+          "symbol": "missingDeathPositionAndInvalidRadiusDoNotDiscardTheIndependentReloadReward"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireflyTest.java",
+          "symbol": "sourceSpecificMinimumAndConflictingBasesAreExplicitWithoutChangingPvpFloor"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireflyGameTest.java",
+          "symbol": "physicalPrecisionKillsAlwaysProduceSolarAndOnlyEnhancedReloadIsStronger"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireflyGameTest.java",
+          "symbol": "realReloadTransfersReservesForBothVariantsAndStowedBuffStillExpires"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireflyGameTest.java",
+          "symbol": "buffCanExpireDuringAnAcceptedReloadWithoutChangingItsCompletion"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireflyGameTest.java",
+          "symbol": "explicitMinimumAppliesAtTheOuterEdgeButNeverOutsideTheRadius"
         }
       ],
       "gaps": [
-        "具体 perk 数据定义与精准击杀接线",
-        "原文两个装填数值的含义及距离衰减曲线待核对",
-        "武器/敌人类别数值缩放与实际装填动画",
-        "9.0.0.1 官方已改为统一 perk 缩放；原表旧武器原型缩放不能直接作为当前公式。见 data/d2-research/2026-10-11/chain-reaction.json。"
+        "原表104/80、强化公开索引104/80及4米、普通公开索引436/80及7.5米存在版本 / 基准差异；原表未给平台，3.75米平台仅作为显式研究输入。当前未独立校准完整统一perk、敌人等级 / 活动 / 异域缩放。",
+        "官方黑桃 A 的100最大 / 20最小仅用于证明非零下限表达；未完整实现黑桃 A、Memento Mori、催化剂及其他武器特例。普通Firefly的最小伤害和真实内部距离曲线未确定。",
+        "六秒刷新、收枪后晚到击杀、卸装清理、同武器隔离、确认击杀时取样及已接受换弹保持时长是当前内容政策，需原作边界与组合验收。",
+        "线性内部衰减、0/0.1秒延迟、0.1世界伤害映射、基础装填10与2-0.01×stat秒曲线、武器弹量 / 弹道 / 弱点均为合成校准；实际动画和HUD尚未接入。",
+        "正式内容目录 / 子职业装配、完整死亡 / 离线政策、所有伤害资格与护盾特例、实体投射物跨重启仍未完成。纯会话检查点不等于全世界持久化。"
       ]
     },
     {
