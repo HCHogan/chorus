@@ -23,6 +23,10 @@ public final class ChorusClient implements ClientModInitializer {
         var finisher = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.finisher", InputConstants.KEY_H, KeyMapping.Category.GAMEPLAY));
         ClientTickEvents.END_CLIENT_TICK.register(client -> { while (finisher.consumeClick()) com.imdomestic.chorus.client.FinisherInputClient.press(ClientPlayNetworking::send,
                 () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.FinisherInputPayload.TYPE)); });
+        ClientPlayNetworking.registerGlobalReceiver(com.imdomestic.chorus.network.WeaponAimPayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponAimClient.accept(view));
+        var aim = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.aim", InputConstants.KEY_Z, KeyMapping.Category.GAMEPLAY));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> com.imdomestic.chorus.client.WeaponAimClient.tick(aim, ClientPlayNetworking::send,
+                () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.WeaponAimPayloads.Input.TYPE)));
         var grenade = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.grenade", InputConstants.KEY_V, KeyMapping.Category.GAMEPLAY));
         ClientTickEvents.END_CLIENT_TICK.register(client -> com.imdomestic.chorus.client.AbilityInputClient.tick(grenade, "chorus_d2:grenade", ClientPlayNetworking::send,
                 () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.AbilityInputPayload.TYPE)));

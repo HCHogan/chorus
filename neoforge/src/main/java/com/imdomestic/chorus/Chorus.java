@@ -36,6 +36,9 @@ public class Chorus {
             registrar.playToClient(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE, com.imdomestic.chorus.network.HorizontalSpeedPayload.CODEC);
             registrar.playToServer(com.imdomestic.chorus.network.FinisherInputPayload.TYPE, com.imdomestic.chorus.network.FinisherInputPayload.CODEC,
                     (payload, context) -> com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
+            registrar.playToClient(com.imdomestic.chorus.network.WeaponAimPayloads.View.TYPE, com.imdomestic.chorus.network.WeaponAimPayloads.View.CODEC);
+            registrar.playToServer(com.imdomestic.chorus.network.WeaponAimPayloads.Input.TYPE, com.imdomestic.chorus.network.WeaponAimPayloads.Input.CODEC,
+                    (payload, context) -> com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.AbilityInputPayload.TYPE, com.imdomestic.chorus.network.AbilityInputPayload.CODEC,
                     (payload, context) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.ProjectileCatchPayload.TYPE, com.imdomestic.chorus.network.ProjectileCatchPayload.CODEC,
@@ -51,12 +54,16 @@ public class Chorus {
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.RegisterCommandsEvent event) ->
                 com.imdomestic.chorus.platform.minecraft.EffectCommands.register(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel() instanceof ServerLevel level) { MinecraftEffectRuntime.tick(level); com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.tick(level); }
+            if (event.getLevel() instanceof ServerLevel level) { MinecraftEffectRuntime.tick(level); com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.tick(level); }
         });
         NeoForge.EVENT_BUS.addListener((LevelEvent.Unload event) -> {
             if (event.getLevel() instanceof ServerLevel level) MinecraftEffectRuntime.unload(level);
         });
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> MinecraftEffectRuntime.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.disconnected(player.connection);
+        });
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.stop(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.stop(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.stop(event.getServer()));

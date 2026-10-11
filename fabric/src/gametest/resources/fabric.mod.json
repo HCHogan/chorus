@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "name": "Chorus integration tests",
   "environment": "*",
-  "mixins": ["chorus-gametest.mixins.json"],
+  "mixins": ["chorus-gametest.mixins.json", "chorus-client-gametest.mixins.json"],
   "entrypoints": {
     "fabric-gametest": [
       "com.imdomestic.chorus.DamageGameTest",
@@ -45,6 +45,7 @@
       "com.imdomestic.chorus.WeaponStatHandlingGameTest",
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.WeaponAimGameTest",
+      "com.imdomestic.chorus.WeaponAimInputGameTest",
       "com.imdomestic.chorus.BoxBreathingGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
@@ -180,7 +181,8 @@
       "com.imdomestic.chorus.SlowClientGameTest",
       "com.imdomestic.chorus.BreakoutClientGameTest",
       "com.imdomestic.chorus.ConstructClientGameTest",
-      "com.imdomestic.chorus.AbilityInputClientGameTest"
+      "com.imdomestic.chorus.AbilityInputClientGameTest",
+      "com.imdomestic.chorus.WeaponAimClientGameTest"
     ]
   }
 }

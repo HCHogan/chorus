@@ -11141,7 +11141,8 @@
         "Compendium policy: default 40 percent weakspot damage; heavy sniper and glaive 30 percent; 10 percent aim-assist falloff distance. Clarity conflict stays visible.",
         "Source held state and prototype tags freeze at fire. Each impact supplies natural weakspot independently from its precision multiplier; release or unequip cannot rewrite an accepted flight.",
         "Shield removes the named precision factor while retaining weakspot damage; synthetic precision region receives no natural-weakspot bonus.",
-        "Wait and active buff survive checkpoint restore without restarting; unknown launch/hit outcomes never replay spent ammunition or physical work."
+        "Wait and active buff survive checkpoint restore without restarting; unknown launch/hit outcomes never replay spent ammunition or physical work.",
+        "Authenticated held keyboard or rebound mouse input activates the perk; heartbeats do not restart it. Reload recovery accepts a new aim entry and full wait, while release, GUI or focus loss cancels."
       ],
       "evidence": [
         {
@@ -11254,13 +11255,23 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/BoxBreathingTest.java",
           "symbol": "capturedBonusCannotLeakToAnotherWeaponOwnerOrExcludedDamageComponent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponAimInputGameTest.java",
+          "symbol": "HeartbeatsKeepBoxBreathingAndReloadRequiresANewFullWait"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/WeaponAimClientGameTest.java",
+          "symbol": "runTest"
         }
       ],
       "gaps": [
         "Production weapon, perk and target region catalog; consumer damage/precision/flight/ammo/ADS values and geometry remain synthetic.",
         "Continuous empty-magazine restart, source-attachment and all original-game cancellation/sampling boundaries are explicit Chorus policies, not fully calibrated.",
         "Aim assist is a numeric contribution, not physical magnetism; no actual Divinity bubble producer.",
-        "Mouse/FOV/animation/HUD and production loadout integration.",
+        "D2 mouse interaction mapping, FOV/animation/HUD, NeoForge graphical acceptance and production loadout integration.",
         "Physical world restart and full exceptional source/target combinations."
       ]
     }

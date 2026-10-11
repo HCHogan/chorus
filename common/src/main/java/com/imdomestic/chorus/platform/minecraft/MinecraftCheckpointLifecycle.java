@@ -104,6 +104,7 @@ public final class MinecraftCheckpointLifecycle {
         try {
             if (run.started) try {
                 if (SharedConstants.DEBUG_DONT_SAVE_WORLD) throw new IllegalStateException("Native world saving is disabled");
+                com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.quiesce(server);
                 run.boundary = MinecraftCheckpointBoundary.open(server);
                 run.bindings = MinecraftWorldSave.bindings(server);
                 run.pending = run.session.prepare(run.boundary.archive(), PARTS);

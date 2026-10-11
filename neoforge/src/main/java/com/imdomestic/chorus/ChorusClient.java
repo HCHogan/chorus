@@ -30,6 +30,11 @@ public final class ChorusClient {
         bus.addListener((RegisterKeyMappingsEvent event) -> event.register(finisher));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> { while (finisher.consumeClick()) com.imdomestic.chorus.client.FinisherInputClient.press(ClientPacketDistributor::sendToServer,
                 () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(com.imdomestic.chorus.network.FinisherInputPayload.TYPE)); });
+        bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(com.imdomestic.chorus.network.WeaponAimPayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponAimClient.accept(view)));
+        var aim = new KeyMapping("key.chorus.aim", InputConstants.KEY_Z, KeyMapping.Category.GAMEPLAY);
+        bus.addListener((RegisterKeyMappingsEvent event) -> event.register(aim));
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> com.imdomestic.chorus.client.WeaponAimClient.tick(aim, ClientPacketDistributor::sendToServer,
+                () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(com.imdomestic.chorus.network.WeaponAimPayloads.Input.TYPE)));
         var grenade = new KeyMapping("key.chorus.grenade", InputConstants.KEY_V, KeyMapping.Category.GAMEPLAY);
         bus.addListener((RegisterKeyMappingsEvent event) -> event.register(grenade));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> com.imdomestic.chorus.client.AbilityInputClient.tick(grenade, "chorus_d2:grenade", ClientPacketDistributor::sendToServer,

@@ -3230,7 +3230,7 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 }
 ```
 
-未配置时按下返回 NOT_CONFIGURED，空手返回 EMPTY_HANDS。与 handling 的正时长约束不同，开镜允许零秒并在同一逻辑边界完成；负数、非有限数、单位不匹配或计时溢出拒绝，不提交部分状态。输入为 `MinecraftEffectRuntime.aim(player, pressed)`，普通玩家命令 `/chorus weapon aim true|false` 只操作本人；武器、时长、token 和身份均由服务端确定。尚无鼠标绑定、客户端网络回执、FOV、瞄准动画或 HUD。
+未配置时按下返回 NOT_CONFIGURED，空手返回 EMPTY_HANDS。与 handling 的正时长约束不同，开镜允许零秒并在同一逻辑边界完成；负数、非有限数、单位不匹配或计时溢出拒绝，不提交部分状态。输入为 `MinecraftEffectRuntime.aim(player, pressed)`，普通玩家命令 `/chorus weapon aim true|false` 只操作本人；武器、时长、token 和身份均由服务端确定。客户端另有可重绑定的按住瞄准键（默认 Z，可设为鼠标键）及服务端阶段回执；尚无 FOV、瞄准动画或 HUD。
 
 | 状态 | held | ready | 待完成工作 |
 | --- | --- | --- | --- |
@@ -3252,11 +3252,25 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 
 事实携带 weapon、item、aim token、aim_phase、reason，以及秒数 duration / elapsed 和 aim_held / aim_ready 标志。elapsed 从该事实对应阶段起点计，ready 保留按下起点；ended 的两个标志总为 false，即使所携带的历史 Plan 为 AIMED。取消不伪造 released 输入。计时事实只接受当前 Plan 和准确期限，旧 token / 已取消期限不能覆盖新输入。
 
-`weapon_aim` 门槛检查按下 START 与进入完成 COMPLETE，松开不受该门槛阻止。它不隐含持续轮询，也不会自行清除已经完成的 AIMED；宿主需要立即取消时可调用显式 cancelAim，完整控制状态联动仍待内容接线。Freeze 的既有全面角色输入禁止已增加该入口，Boss 例外沿用原规则。手动换弹或不同目标切枪被接受时立即清理；满弹匣等拒绝和同目标选择不清理。效果直接补弹不隐含取消。装备实例 / 配置 / 槽位 / drawn 变化取消，无关护甲更新保留；运行时还清理死亡、离开当前世界和旁观者的状态。
+`weapon_aim` 门槛检查按下 START 与进入完成 COMPLETE，松开不受该门槛阻止。纯规则核心和单次命令不隐含持续轮询；宿主需要立即取消时可调用显式 cancelAim。网络按住通道每个服务端 tick 额外查询 CONTINUE，拒绝时取消当前阶段但保留仍按住的意图，限制解除后接受完整的新阶段。Freeze 的既有全面角色输入禁止已增加该入口，Boss 例外沿用原规则。手动换弹或不同目标切枪被接受时立即清理；满弹匣等拒绝和同目标选择不清理。效果直接补弹不隐含取消。装备实例 / 配置 / 槽位 / drawn 变化取消，无关护甲更新保留；运行时还清理死亡、离开当前世界和旁观者的状态。
 
 到期时通过 WeaponAim.Verify 查询实际玩家的同维度、存活、非旁观资格、当前 Plan 和物理容器。明确拒绝发布 ended；未知宿主结果停住会话，不重放。ready 状态提交之后的提示或反应失败保留已完成状态。运行时保存和恢复不重放阶段事实，恢复后的第一个 tick 即可核验已登记的在线容器。
 
 [pre-aim-handling-v2.json](../common/src/test/resources/persistence/pre-aim-handling-v2.json) 是扩展类型前真实会话的原始检查点，包含旧枚举、两把武器、0.5 时长来源和正在执行的 STOW。迁移补空瞄准状态并保留 100 ms 的收枪 / 250 ms 的举枪期限；外层仍为 format 1，旧 wire shape 全部冻结。[来源与哈希](../common/src/test/resources/persistence/pre-aim-handling-v2.md)。D2 ADS 曲线、连续瞄准 perk 的正式配置、原作反转 / 取消窗口及物理世界整体重启仍待校准和验收。
+
+### 客户端开镜意图与阶段回传
+
+Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑定到鼠标；当前不接管原版使用物品键，同一鼠标键还绑定原版操作时仍可能同时触发。完整 D2 操作映射与交互优先级留给客户端表现层。网络通道不需要装备界面保持打开，也不依赖客户端自行计算 perk 或开镜时长。
+
+`chorus:weapon_aim_input` 只有 sequence、gesture、dimension 和 PRESS / HOLD / RELEASE / CANCEL。服务端从连接得到玩家，从实际装备得到武器和数值；每条连接先消费递增 sequence，再检查资格。PRESS 的 gesture 等于 sequence；其他边沿必须匹配当前按住身份。重复 PRESS 不替换身份、不重计时、不续租；旧 RELEASE / HOLD、重复包、其他维度的包都不能改变当前瞄准。
+
+正常松开清除意图并接受 EXITING；GUI、失焦、死亡、旁观、玩家 / 世界变化、断线和超时强制清除。客户端直到再次松开再按下才重建取消后的操作，关闭 GUI 或重新获得焦点不会自动补按。每 10 个客户端 tick 发 HOLD，服务端超过或等于 40 tick 未获得有效 PRESS / HOLD 即超时；暂停服务器逻辑时不消耗租期。这是连接容错政策，不是 D2 时长或延迟补偿算法。
+
+切枪 / 手动换弹立即结束旧 WeaponAim，但连接中的按住意图可以等待 BUSY 结束；完整动作完成后重新接受 ENTERING。Box Breathing 从这次新的 `weapon_aim_started` 起算全部等待时间。WEAPON_AIM / CONTINUE 拒绝也结束旧阶段；意图仍按住时继续尝试 START，直到资格恢复。空手且没有换枪阶段，或武器没有 aiming 定义，结束本次意图，后续 HOLD 不会把它复活。没有接受完成确认之前，客户端不能自行宣称 ready。
+
+`chorus:weapon_aim_view` 回传单调 revision、已处理 sequence、gesture、本人 UUID / 维度、意图 held、状态、实际阶段、武器实例及服务端 startedAt / dueAt。held 表示连接仍请求瞄准，BUSY / RESTRICTED 时也可能为 true；**不能用它代替领域条件 `chorus:weapon_aiming`**。客户端提供只读 `WeaponAimClient.view()`，丢弃旧 revision 和其他身份 / 世界的投影；它不改变 FOV、攻击快照或规则状态。
+
+意图与输入序号不进入检查点。运行时恢复可先得到已有领域 Plan，但网络管理器遇到运行时替换会撤销旧连接意图及其恢复后的 Plan；必须重新按下。正常停服在检查点固定前调用 quiesce，先完成网络开镜结束事实再存档；锁定后的断线没有操作可重放。单次命令与显式领域检查点的原期限恢复契约保持不变。未知世界结果消耗已处理序号、结束自动重试，并保留已提交的领域或世界结果。
 
 ### Box Breathing 的持续瞄准与下一发快照
 

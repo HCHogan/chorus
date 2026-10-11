@@ -466,6 +466,28 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             refreshEquipment(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
+    /** Query the ongoing gate against the actual current aim, without accepting a new edge. */
+    public Optional<ActionGate.Decision> aimContinuation(ServerPlayer player) {
+        thread(); prepare();
+        if (!inputEligible(player) || failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Aim observation requires an eligible idle runtime");
+        var plan = view().aiming().get(player.getUUID().toString());
+        if (plan == null || !plan.held()) return Optional.empty();
+        var query = new EffectEvent(plan.holder(), plan.gear().instance(), plan.origin(), plan.origin().tags(), Map.of(),
+                Map.of("aim_held", true, "aim_ready", plan.phase() == com.imdomestic.chorus.effect.weapon.WeaponAim.Phase.AIMED),
+                Map.of("weapon", plan.gear().instance(), "item", plan.gear().definition(), "aim", plan.token(), "aim_phase", plan.phase().name().toLowerCase(java.util.Locale.ROOT)));
+        return Optional.of(program.checkAction(view(), ActionGate.Kind.WEAPON_AIM, ActionGate.Phase.CONTINUE, query));
+    }
+    /** Host cancellation may address a departed/dead holder; no physical input or exit animation is required. */
+    public void cancelAim(String holder, String reason) {
+        thread(); prepare();
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Aim cancellation requires a healthy idle runtime");
+        var before = view(); var ended = program.cancelAim(before, holder, reason);
+        if (ended.state().equals(before)) return;
+        try {
+            session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(before, ended.state()));
+            refreshEquipment(); refreshProjections();
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
     private com.imdomestic.chorus.effect.weapon.WeaponAim.Verified verifyAim(com.imdomestic.chorus.effect.weapon.WeaponAim.Verify query) {
         ServerPlayer player;
         try { player = equipmentOwners.get(java.util.UUID.fromString(query.plan().holder())); }
