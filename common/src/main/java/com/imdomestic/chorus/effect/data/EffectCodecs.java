@@ -810,10 +810,14 @@ public final class EffectCodecs {
                 ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(WeaponDefinition.Fire::tags),
                 step.listOf().fieldOf("on_fire").forGetter(WeaponDefinition.Fire::onFire)
         ).apply(i, WeaponDefinition.Fire::new)), Set.of("cost", "interval", "interval_profile", "if", "tags", "on_fire"));
+        Codec<WeaponDefinition.Handling> weaponHandling = strict(RecordCodecBuilder.create(i -> i.group(
+                reloadTiming.fieldOf("ready").forGetter(WeaponDefinition.Handling::ready), reloadTiming.fieldOf("stow").forGetter(WeaponDefinition.Handling::stow)
+        ).apply(i, WeaponDefinition.Handling::new)), Set.of("ready", "stow"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
-                weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire)
-        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire"));
+                weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire),
+                weaponHandling.optionalFieldOf("handling").forGetter(WeaponDefinition::handling)
+        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire", "handling"));
         Codec<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGate = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::id),
                 enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),

@@ -36,6 +36,10 @@ final class CompiledWeapons {
                 }
             });
             validateTiming(weapon.reload().value(), weapon.reload().profiles(), validation, profiles);
+            weapon.handling().ifPresent(handling -> {
+                validateTiming(handling.ready().value(), handling.ready().profiles(), validation, profiles);
+                validateTiming(handling.stow().value(), handling.stow().profiles(), validation, profiles);
+            });
             weapon.reload().insert().ifPresent(insert -> {
                 validateTiming(insert.repeat().value(), insert.repeat().profiles(), validation, profiles);
                 var unit = insert.rounds().unit(validation);

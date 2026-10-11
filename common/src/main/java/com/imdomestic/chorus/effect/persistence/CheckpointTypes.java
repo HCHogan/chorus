@@ -3,7 +3,7 @@ package com.imdomestic.chorus.effect.persistence;
 import com.imdomestic.chorus.core.codec.RecordTreeCodec;
 import java.util.LinkedHashMap;
 
-/** Explicit v1 storage IDs. Names from a save file never become Java class names. */
+/** Explicit storage IDs and retired-type migrations. Names from a save never become Java class names. */
 final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
@@ -469,7 +469,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/instant_reload/result", com.imdomestic.chorus.effect.weapon.InstantReload.Result.class);
         types.put("chorus:effect/weapon/instant_reload/selection", com.imdomestic.chorus.effect.weapon.InstantReload.Selection.class);
         types.put("chorus:effect/weapon/instant_reload/transfer", com.imdomestic.chorus.effect.weapon.InstantReload.Transfer.class);
-        types.put("chorus:effect/weapon/weapon_definition", com.imdomestic.chorus.effect.weapon.WeaponDefinition.class);
+        types.put("chorus:effect/weapon/weapon_definition", LegacyWeaponDefinitionV1.class);
+        types.put("chorus:effect/weapon/weapon_definition_v2", com.imdomestic.chorus.effect.weapon.WeaponDefinition.class);
+        types.put("chorus:effect/weapon/weapon_definition/handling", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Handling.class);
         types.put("chorus:effect/weapon/weapon_definition/ammunition", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Ammunition.class);
         types.put("chorus:effect/weapon/weapon_definition/fire", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Fire.class);
         types.put("chorus:effect/weapon/weapon_definition/insert", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Insert.class);
@@ -531,6 +533,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/ammo_actions/observe_equipped_weapons", com.imdomestic.chorus.effect.data.AmmoActions.ObserveEquippedWeapons.class);
         types.put("chorus:effect/data/ammo_actions/observe_drawn_weapon", com.imdomestic.chorus.effect.data.AmmoActions.ObserveDrawnWeapon.class);
         types.put("chorus:effect/data/value/equipped_reserve_space", com.imdomestic.chorus.effect.data.Value.EquippedReserveSpace.class);
-        return new RecordTreeCodec(types);
+        return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
+                LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current)));
     }
 }

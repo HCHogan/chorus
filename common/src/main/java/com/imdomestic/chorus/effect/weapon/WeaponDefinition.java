@@ -7,11 +7,16 @@ import com.imdomestic.chorus.effect.data.EffectProgram;
 import java.util.*;
 
 /** Weapon behavior belongs to an equipment prototype; ammunition belongs to its physical instance. */
-public record WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire) {
+public record WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire, Optional<Handling> handling) {
     public WeaponDefinition {
-        id(item); Objects.requireNonNull(ammunition); Objects.requireNonNull(reload); Objects.requireNonNull(fire);
+        id(item); Objects.requireNonNull(ammunition); Objects.requireNonNull(reload); Objects.requireNonNull(fire); Objects.requireNonNull(handling);
     }
+    public WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire) { this(item, ammunition, reload, fire, Optional.empty()); }
     public WeaponDefinition(String item, Ammunition ammunition, Reload reload) { this(item, ammunition, reload, Optional.empty()); }
+    /** Each phase has its own stat-to-duration pipeline. Omitted handling retains instantaneous selection. */
+    public record Handling(Timing ready, Timing stow) {
+        public Handling { Objects.requireNonNull(ready); Objects.requireNonNull(stow); }
+    }
     /** One accepted trigger; burst/charge and hit aggregation are separate behaviors. */
     public record Fire(Value cost, Value interval, Optional<String> intervalProfile, Condition condition, Set<String> tags, List<EffectProgram.Step> onFire) {
         public Fire {

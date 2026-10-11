@@ -3,14 +3,25 @@ package com.imdomestic.chorus.core.codec;
 import com.google.gson.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Function;
 
 /** Lossless data trees for explicitly registered records/enums. Never loads a class named by input. */
 public final class RecordTreeCodec {
     private record Schema(String id, Class<?> type, List<RecordComponent> fields, Constructor<?> constructor) {}
     private final Map<String, Schema> byId;
     private final Map<Class<?>, Schema> byClass;
+    private final Map<Class<?>, Migration<?, ?>> migrations;
+
+    /** Retired wire types remain readable; only their current replacement is written. */
+    public record Migration<A, B>(Class<A> from, Class<B> to, Function<A, B> convert) {
+        public Migration { Objects.requireNonNull(from); Objects.requireNonNull(to); Objects.requireNonNull(convert); }
+        private Object apply(Object input) { return to.cast(Objects.requireNonNull(convert.apply(from.cast(input)), "Null migration result")); }
+    }
 
     public RecordTreeCodec(Map<String, Class<?>> types) {
+        this(types, List.of());
+    }
+    public RecordTreeCodec(Map<String, Class<?>> types, List<Migration<?, ?>> upgrades) {
         var ids = new TreeMap<String, Schema>(); var classes = new HashMap<Class<?>, Schema>();
         types.forEach((id, type) -> {
             if (!id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || !(type.isRecord() || type.isEnum())
@@ -25,8 +36,25 @@ public final class RecordTreeCodec {
             } catch (ReflectiveOperationException error) { throw new IllegalArgumentException("Stored record needs a public constructor: " + id, error); }
         });
         byId = Map.copyOf(ids); byClass = Map.copyOf(classes);
+        var migrations = new HashMap<Class<?>, Migration<?, ?>>();
+        for (var migration : upgrades) {
+            if (!classes.containsKey(migration.from()) || !classes.containsKey(migration.to()))
+                throw new IllegalArgumentException("Migration types must both be registered");
+            if (migrations.putIfAbsent(migration.from(), migration) != null)
+                throw new IllegalArgumentException("Duplicate migration source: " + migration.from().getName());
+        }
+        for (var source : migrations.keySet()) {
+            var seen = new HashSet<Class<?>>(); Class<?> type = source;
+            while (migrations.containsKey(type)) {
+                if (!seen.add(type)) throw new IllegalArgumentException("Stored type migration cycle: " + source.getName());
+                type = migrations.get(type).to();
+            }
+        }
+        this.migrations = Map.copyOf(migrations);
     }
-    public Set<Class<?>> types() { return byClass.keySet(); }
+    /** Types emitted by this version, excluding retired migration inputs. */
+    public Set<Class<?>> types() { var types = new HashSet<>(byClass.keySet()); types.removeAll(migrations.keySet()); return Set.copyOf(types); }
+    public Set<Class<?>> retiredTypes() { return migrations.keySet(); }
     public JsonElement encode(Object value) { return write(value, "$"); }
     public <T> T decode(JsonElement input, Class<T> type) {
         var value = read(input, "$"); require(type, value, "$"); return type.cast(value);
@@ -70,6 +98,7 @@ public final class RecordTreeCodec {
                 return node(map instanceof NavigableMap<?, ?> ? "sorted_map" : "map", array);
             }
             Class<?> type = value instanceof Enum<?> e ? e.getDeclaringClass() : value.getClass();
+            if (migrations.containsKey(type)) throw new IllegalArgumentException("Cannot write retired stored type: " + type.getName());
             var schema = byClass.get(type);
             if (schema == null) throw new IllegalArgumentException("Unregistered stored type: " + type.getName());
             if (value instanceof Enum<?> e) return node(schema.id(), new JsonPrimitive(e.name()));
@@ -136,7 +165,7 @@ public final class RecordTreeCodec {
             }
             var schema = byId.get(kind);
             if (schema == null) throw new IllegalArgumentException("Unknown stored type: " + kind);
-            if (schema.type().isEnum()) return Enum.valueOf((Class) schema.type(), string(value));
+            if (schema.type().isEnum()) return upgrade(Enum.valueOf((Class) schema.type(), string(value)));
             var stored = value.getAsJsonObject();
             fields(stored, new HashSet<>(schema.fields().stream().map(RecordComponent::getName).toList()));
             var arguments = new Object[schema.fields().size()];
@@ -144,8 +173,15 @@ public final class RecordTreeCodec {
                 var field = schema.fields().get(i); var at = path + "." + field.getName();
                 arguments[i] = read(stored.get(field.getName()), at); require(field.getGenericType(), arguments[i], at);
             }
-            return schema.constructor().newInstance(arguments);
+            return upgrade(schema.constructor().newInstance(arguments));
         } catch (ReflectiveOperationException | RuntimeException error) { throw error(path, error); }
+    }
+    private Object upgrade(Object value) {
+        Class<?> type = value instanceof Enum<?> e ? e.getDeclaringClass() : value.getClass();
+        while (migrations.containsKey(type)) {
+            var migration = migrations.get(type); value = migration.apply(value); type = migration.to();
+        }
+        return value;
     }
     private static String string(JsonElement value) {
         if (!(value instanceof JsonPrimitive primitive) || !primitive.isString()) throw new IllegalArgumentException("Expected a string");

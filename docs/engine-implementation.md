@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-12：操控时间配置与旧武器定义迁移
+
+为真实举枪 / 收枪阶段准备可选的 `WeaponDefinition.Handling(ready, stow)`，两个独立 Timing 管线都在编译时校验输入 / 输出单位及引用。原三参数、四参数构造器与无 handling 的数据定义仍保持空配置。此阶段没有接入 PlayerEquipment.draw 的计时消费，实际切枪仍即时发生；不增加 Compendium 效果完成声明。
+
+RecordTreeCodec 新增显式 record / enum 类型迁移，保留旧 ID 的字段与泛型形状，在严格解码后转为当前类型，并在父记录 / 集合检查前完成转换。旧类型只读、新类型单独分配 ID；重复出口、未注册类型和迁移环在注册时拒绝，转换后的重复 Map 键 / Set 成员仍拒绝。迁移是存储数据结构转换，不改变游戏效果循环政策。首个实际使用者 LegacyWeaponDefinitionV1 将旧四字段武器定义转换为空 handling 的新定义，写出 `weapon_definition_v2`；外层 format 1 和 EffectState 结构均未修改。
+
+修改模型前从 0543f21 的真实换弹会话生成并保留原始检查点：50 ms 时拥有两把 Kill Clip 武器、击杀窗口及 200 ms 换弹期限。4 项迁移工具测试覆盖嵌套集合 / Map 键、连续迁移、枚举、严格旧字段、构造约束及冲突；4 项武器存储测试覆盖旧检查点实际继续换弹和 Buff、事件 / 帧序号保留、无恢复重放、新配置双 Codec 往返及非法管线拒绝。导出时最初使用未固定目录的旧测试会话 checkpoint 入口而被拒绝，随后显式配对其通用时间线检查点与准确目录，未放宽运行时保存条件。
+
+`/tmp/chorus-handling-storage-gate.log` BUILD SUCCESSFUL，2 分 42 秒：1656 项 JUnit（无失败 / 错误 / 跳过）、Fabric 882 项、NeoForge 897 项及双端发布 jar 全部通过，共享 Chorus 世界场景保持 881 项。10 项 Compendium 工具测试、107 条来源审阅与报告检查通过。旧 schema 全部逐键不变，只新增两个存储 ID；发布包继续排除验证资源和 GameTest。无客户端输入、同步或表现改动，本轮未重复图形客户端测试。
+
+下一阶段将保存切枪阶段和截止点，按收枪完成 / 举枪完成提交真实持握状态及事件，并加入开火 / 换弹限制和切换取消。ADS、原作时间曲线、100 Handling 收枪下限与正式 HUD 仍待实现和校准。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Weapons换弹时长完整门禁 `/tmp/chorus-weapons-reload-gate-2.log` BUILD SUCCESSFUL，2分28秒：1648项JUnit（无失败/错误/跳过）、Fabric882项、NeoForge897项及两端发布jar通过，共享Chorus世界场景881项。新增7项规则测试和5项共享世界场景；10项Compendium工具测试与107条来源/报告审计通过。没有新增生产Java类型、检查点字段或客户端协议，发布jar继续排除验证夹具，本轮未重复图形客户端测试。
 
 `weapon_stat_reload`把角色Weapons点数转换为独立的换弹时长乘数，100点达到0.9且更高属性不再缩短。它进入reload_animation的单独MAX阶段，位于武器装填属性、原型秒数曲线和已有动画乘数之后；不会把角色点数加到武器Reload Speed上，也不重复计算同一系统来源。命名因子可从已保存轨迹中单独移除。实际护甲和Font继续使用同一个派生角色属性，无新Buff缓存或独立计时器。

@@ -2665,11 +2665,19 @@ var resumed = EffectSession.restore(compiled, clock, 256, saved, worldExecutor);
 
 仅成功排空的边界可捕获。调用世界执行器期间、尚待回执、未处理事实 / Frame、未完成外部请求、失败或被放弃请求均拒绝。已完成回执不在检查点中保留：它们只用于原边界去重，恢复后所有 `< nextFrame` 的世界操作均已退休，晚到旧回执也不能恢复新动作。未知世界结果不能使用这个入口恢复或自动重试。
 
-JSON 顶层固定 `format / program / state / time_micros / next_event / next_frame`。两个数据树使用显式存储类型 ID；节点的 `$` 是类型，`v` 是字段或集合内容。全部字段必填，包括空 Optional / 集合；缺失观察不会解码成零值，空储备账户保持无限、零储备账户仍为有限。长整数和带类型的数值使用十进制字符串，浮点保留原 IEEE 值及负零。Map / Set 编码排序，列表保持顺序。类型表固定 500 个当前可达内置 record / enum；自定义扩展、Java 比较器或函数代码未注册时编码失败，不能静默删除。解码只构造数据，不执行任何 DSL 动作；装配和恢复仍须经过 CompiledEffects / EffectSession 校验。
+JSON 顶层固定 `format / program / state / time_micros / next_event / next_frame`。两个数据树使用显式存储类型 ID；节点的 `$` 是类型，`v` 是字段或集合内容。全部字段必填，包括空 Optional / 集合；缺失观察不会解码成零值，空储备账户保持无限、零储备账户仍为有限。长整数和带类型的数值使用十进制字符串，浮点保留原 IEEE 值及负零。Map / Set 编码排序，列表保持顺序。类型表显式登记当前可达内置 record / enum；自定义扩展、Java 比较器或函数代码未注册时编码失败，不能静默删除。解码只构造数据，不执行任何 DSL 动作；装配和恢复仍须经过 CompiledEffects / EffectSession 校验。
 
 `write` 先完成全量编码，再在目标同目录写临时文件并 force，最后以 ATOMIC_MOVE 替换；不支持原子移动时直接报错，没有非原子覆盖的退路。编码失败保留旧文件，临时文件在完成或失败后清理。该保证只针对单文件可见性，不保证它与 Minecraft 实体 / 物品文件共同提交，也不声称目录元数据的断电持久性。旧文件保留不能作为自动恢复已经发生未知世界写入的理由。
 
 存储 schema 有独立固定清单检查字段 / 泛型类型 / 枚举成员，且可达类型审计会发现新增内置类型漏注册。已有类型的结构变化需要显式版本迁移；只更新 v1 schema 清单不会让旧存档变得兼容。目前仅支持 format 1，未知版本拒绝。
+
+### 存储节点的版本迁移
+
+格式内部的节点类型可独立升级。RecordTreeCodec.Migration 显式登记只读旧类型、目标类型与纯数据转换；旧节点先完整校验，再升级，最后验证父记录或集合的元素类型。编码拒绝旧类型，迁移图不允许环或一个旧类型有多个出口，迁移后出现重复 Map 键 / Set 成员也拒绝。`schema()` 同时冻结旧、新 wire shape；`types()` 只列当前可写类型，`retiredTypes()` 列只读输入。Java 类名不成为可由存档控制的加载入口。
+
+`chorus:effect/weapon/weapon_definition` 保留原 item / ammunition / reload / fire 四字段，通过 LegacyWeaponDefinitionV1 转为新 `weapon_definition_v2`，新增 handling 默认为空。新定义可选 `handling: {ready: {value, profile 或 profiles}, stow: {value, profile 或 profiles}}`；两个管线均须输出正秒数，沿用 Timing 的单位和 Profile 检查。此阶段完成配置与存储兼容，实际 PlayerEquipment.draw 仍即时变化，后续切枪执行阶段才能消费该配置；不能据此声称举枪 / 收枪已实现。ADS、原作曲线与 100 Handling 收枪下限仍需内容接线和校准。
+
+[旧检查点夹具](../common/src/test/resources/persistence/pre-handling-reload-v1.json)由修改前的真实会话生成，包含两把已装备武器、击杀窗口及正在进行的换弹。迁移测试验证 50 ms 保存后仍在原 200 ms 截止点补弹和触发对应 Kill Clip，恢复本身不发世界动作，也不重置事件 / 帧编号。此夹具保留原字节，不用新版编码器重生成。
 
 ### Minecraft 运行时的恢复入口
 
