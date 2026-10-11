@@ -141,18 +141,22 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         thread();
         if (closed || failure.isPresent()) return false;
         if (!program.hasActionGates(ActionGate.Kind.PROJECTILE_TRACKING)) return true;
-        String victim = candidate.getUUID().toString();
-        long now = view().buffs().timeMicros();
-        var input = new EffectEvent(launch.owner(), victim, launch.origin(), Set.of("chorus:projectile_tracking"),
+        var input = new EffectEvent(launch.owner(), candidate.getUUID().toString(), launch.origin(), Set.of("chorus:projectile_tracking"),
                 Map.of("tracking_age", new com.imdomestic.chorus.stat.Measure(ageMicros / 1_000_000.0, com.imdomestic.chorus.stat.Unit.SECOND),
                         "tracking_distance", new com.imdomestic.chorus.stat.Measure(distance, com.imdomestic.chorus.stat.Unit.METER)),
                 Map.of("tracking_redirect", redirect), Map.of("projectile", projectile.getUUID().toString(), "emitter", launch.emitter(), "tracking_owner_kind", projectile.launchOwnerKind()));
-        var phase = acquire ? ActionGate.Phase.START : ActionGate.Phase.CONTINUE;
+        return authorizeProjectileTracking(input, candidate, acquire ? ActionGate.Phase.START : ActionGate.Phase.CONTINUE, List.of(launch.owner(), launch.emitter()));
+    }
+    boolean authorizeProjectileTracking(EffectEvent input, LivingEntity candidate, ActionGate.Phase phase, List<String> actors) {
+        thread();
+        if (closed || failure.isPresent()) return false;
+        String victim = candidate.getUUID().toString();
+        long now = view().buffs().timeMicros();
         try {
             var entities = new HashMap<String, Optional<EntityQuery.View>>();
             var positions = new HashMap<PositionQuery, Optional<WorldPosition>>();
             observeEntity(victim, Optional.of(candidate), entities, positions);
-            for (String id : List.of(launch.owner(), launch.emitter())) if (!id.isBlank() && !entities.containsKey(id)) {
+            for (String id : actors) if (!id.isBlank() && !entities.containsKey(id)) {
                 net.minecraft.world.entity.Entity entity = null;
                 try { entity = level.getEntity(java.util.UUID.fromString(id)); } catch (IllegalArgumentException ignored) { /* Logical identities remain explicitly unavailable. */ }
                 observeEntity(id, entity instanceof LivingEntity living && !living.isRemoved() && living.level() == level

@@ -2047,10 +2047,22 @@ Chorus `EffectProjectile` 在常规几何、关系、存活及视线检查通过
 
 查询 actor 是发射时的 owner，victim 是本次候选；source 从投射物捕获的 continuation scope 读取，包含原来源标签，不依赖武器 / 技能仍被选择或来源仍绑定。物理发射实体另放在 `references.emitter`。`references.tracking_owner_kind` 是宿主在发射时按信用 owner 捕获的 `player / mob / other / unavailable` 分类，owner 消失后仍保留；它不按物理 emitter、当前模式或来源标签猜测。该字段与下述当前实体观察分开：发射时的 mob 后来可以变为 unavailable 的当前实体，但原始分类不变。事件包含 `chorus:projectile_tracking`，numbers 提供 `tracking_age: second`、`tracking_distance: meter`（当前弹体到候选锚点），flags 提供 `tracking_redirect`，references 提供弹体 UUID `projectile`，并由门槛添加 `action / action_phase`。不要假设该查询还带普通技能输入的 on_ground 标志；姿态可从实体观察读取。
 
-宿主在当前逻辑时间观察 owner、emitter 与候选的实体资料及 feet / body / eyes 位置；缺失实体明确为 unavailable，逻辑身份不凭空变成玩家或战斗人员。纯核心允许 `projectile_tracking` 在 actor 为空、victim 明确时只查询目标侧限制，其他操作仍要求 actor。没有这种门槛的程序跳过查询和额外观察。`projectileTrackingReport()` 仅保存最近一次实际候选查询（不一定是最终选中者）的输入、阶段、Decision 或错误，不发布效果事件。无法计算条件是运行时错误，会停止运行时并移除其全部现存弹体，不能冒充正常拒绝并继续世界副作用。
+宿主在当前逻辑时间观察 owner、emitter 与候选的实体资料及 feet / body / eyes 位置；缺失实体明确为 unavailable，逻辑身份不凭空变成玩家或战斗人员。纯核心允许 `projectile_tracking` 在 actor 为空、victim 明确时只查询目标侧限制，其他操作仍要求 actor。没有这种门槛的程序跳过查询和额外观察。`projectileTrackingReport()` 仅保存最近一次实际候选查询（不一定是最终选中者）的输入、阶段、Decision 或错误，不发布效果事件。无法计算条件是运行时错误，会停止运行时并移除其全部关联 Chorus 弹体，不能冒充正常拒绝并继续世界副作用。
 
-该门槛不阻止实体碰撞或伤害；失去追踪的弹体仍可能沿弹道命中受保护目标。`destination` 的明确接收者、自动抵达与接回不使用自动选敌门槛。当前只连接 Chorus tracking；原版 AI 的目标选择 / 自带追踪弹和 Guardian 辅助瞄准仍待接线。Gambler's Dodge 已用上述 owner 分类在独立校准的动画窗口限制 Combatant 弹体，见 [规则集](d2-ruleset.md#gamblers-dodge-的位移与多充能回能)。`target_gates.json` 的 0.2 秒 Buff 是通用合成验收，不代表 D2 闪身时长，也不提升 Compendium 内容覆盖。
+该门槛不阻止实体碰撞或伤害；失去追踪的弹体仍可能沿弹道命中受保护目标。`destination` 的明确接收者、自动抵达与接回不使用自动选敌门槛。现已连接 Chorus tracking 与原版 ShulkerBullet（见下节）；其他 AI 的目标选择与 Guardian 辅助瞄准仍待接线。Gambler's Dodge 已用上述 owner 分类在独立校准的动画窗口限制 Combatant 弹体，见 [规则集](d2-ruleset.md#gamblers-dodge-的位移与多充能回能)。`target_gates.json` 的 0.2 秒 Buff 是通用合成验收，不代表 D2 闪身时长，也不提升 Compendium 内容覆盖。
 
+
+### 原版潜影贝子弹追踪
+
+`ShulkerBullet` 在服务器每次 tick 的原版转向前，针对已有的存活 LivingEntity 目标查询同一 `projectile_tracking` 门槛。首次允许使用 start，持续允许使用 continue，拒绝后再次尝试使用 start；每 tick 只查询一次。目标仍由原版选定，不增加最近敌人搜索。正常拒绝只让本次 tick 进入原版无目标分支，保留真实目标引用、现有速度与原版重力 / 碰撞 / 命中 / Levitation / 销毁；到期后可以继续原目标。目标确实消失时仍按原版清空引用。没有运行时或没有这类门槛时不执行规则查询。
+
+查询额外带 `chorus:native_projectile_tracking` 标签和 `native_projectile` 实体类型。actor 及信用分类 / 来源标签从原版 owner 首次可解析时捕获；首次 setOwner 即捕获，移除 owner 后保留，相同身份不会用后来的标签覆盖旧快照，重新指定其他 owner 会重建信用。原版 owner 不足以证明物理 emitter，`emitter` 留空，weapon / ability 也不猜测；source 使用弹体 UUID。当前位置观察与已捕获分类分开。距离使用目标 body 中心，`tracking_redirect` 为 false；飞行年龄使用已模拟服务器 tick 数，首 tick 查询为零，卸载期间不补时。
+
+原版 NBT 保存 `chorus:tracking_credit` 与 `chorus:tracking_age`；重载只接受与原版 Owner UUID 一致的信用，缺失 / 不匹配则重新解析，未知身份保持 unavailable。重载后的首次查询重新使用 start，年龄继续。整个 tick 中真实 Target 引用保持存在，避免保存或原版传送时因临时失锁丢失引用。此处只保存原版弹体的查询资料，尚不包含完整规则运行时 / Buff / 技能状态持久化。
+
+未知条件结果停止运行时并在运动 / 命中前移除当前原版弹体；其他受管理的原版追踪弹在下一次实际资格查询发现运行时失败后停止。它们不属于 Chorus 飞行物注册表，不声称故障瞬间清理全世界所有原版弹体。原版伤害归因仍由原版 DamageSource 负责，这个追踪适配器不重写伤害来源。忠诚三叉戟的明确返回、末影之眼的目的地导航，以及其他模组追踪弹未因此自动接线。
+
+`NativeTrackingGameTest` 的9项双端共享场景覆盖无运行时、两侧限制及阶段、重力和真实引用、owner 消失、存档 / 重指定 / 无效旧信用、实际伤害与飘浮、失败不重放，以及真实 Gambler 闪身的到期恢复和 Guardian 区别。Shulker 的原版转向与恢复策略属于 Minecraft 适配政策，不是 D2 原作弹道 / 重新锁定时序的校准证据。
 
 ### 指定目的地与返回阶段
 

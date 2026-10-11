@@ -16,6 +16,8 @@
     "BlazeRangedAttackMixin",
     "GhastRangedAttackMixin",
     "ShulkerRangedAttackMixin",
+    "ProjectileTrackingOwnerMixin",
+    "ShulkerTrackingMixin",
     "GuardianRangedAttackMixin",
     "BreezeRangedAttackMixin",
     "WardenRangedAttackMixin",

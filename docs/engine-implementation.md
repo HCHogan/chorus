@@ -6,7 +6,13 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-gambler-tracking-gate-3.log` BUILD SUCCESSFUL，2 分 16 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 585 项、NeoForge 595 项及两端发布 jar 全部通过，共享 Chorus 场景为 584 项。10 项 Compendium 审计、75 条审阅报告一致性、新归档 HTML / gzip 与三组单元格哈希通过。新增世界夹具先修正了 DSL 的 event_actor 名称，再将发射器移入测试区同一列，避免初始射线依赖区域外区块的模拟状态；未放宽内容资格或地形检查。发布包不含效果夹具 / GameTest；此轮没有客户端输入 / 协议变化，未新增图形客户端验收。
+最新门禁 `/tmp/chorus-native-tracking-gate-2.log` BUILD SUCCESSFUL，1 分 29 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 594 项、NeoForge 604 项及两端发布 jar 全部通过，共享 Chorus 场景为 593 项。10 项 Compendium 审计与75条报告一致性通过；发布 jar 包含原版追踪适配，未包含效果夹具 / GameTest。本轮没有客户端协议或输入变化，未新增图形客户端验收。首轮 Fabric 已通过；NeoForge 因新环境同时由 JSON 和代码注册而拒绝启动，移除重复 JSON 后完整重跑通过。
+
+原版 ShulkerBullet 已复用目标 / 发起者两侧的 projectile_tracking 资格，仍使用原版既定目标及其转向。临时拒绝保留真实目标引用，进入原版无目标的重力 / 飞行 / 碰撞分支，不获得伤害免疫；释放后重新使用 start。owner 分类与来源标签首次解析后捕获，来源消失仍保留，重新指定 owner 则更新。信用与已模拟飞行年龄随原版 NBT 保存，旧信用须与 Owner UUID 匹配；原版 owner 不被猜作物理 emitter 或武器 / 技能信用。未知查询移除当前弹体并停止运行时，其他受影响的原版弹体在下次查询时停止，不重放命中。
+
+新增9项 NativeTrackingGameTest 双端共享场景，包括实际闪身暂停 Combatant 的原版追踪、真实到期恢复、Guardian 追踪不受影响，以及失锁期间真实4点伤害与 Levitation。无运行时、原版目标清理、两侧门槛 / 阶段、重力、来源消失、保存 / 重载 / 重新指定及不匹配信用也通过。此阶段只保存原版弹体的查询资料，不代表完整规则状态存档；其他 AI / 模组弹体 / 辅助瞄准与原作时序校准仍待完成。Gambler 增加证据而保持 partial：75条审阅、61 partial、12 unimplemented、2 not_applicable、0 verified。
+
+上一阶段门禁 `/tmp/chorus-gambler-tracking-gate-3.log` BUILD SUCCESSFUL，2 分 16 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 585 项、NeoForge 595 项及两端发布 jar 全部通过，共享 Chorus 场景为 584 项。10 项 Compendium 审计、75 条审阅报告一致性、新归档 HTML / gzip 与三组单元格哈希通过。新增世界夹具先修正了 DSL 的 event_actor 名称，再将发射器移入测试区同一列，避免初始射线依赖区域外区块的模拟状态；未放宽内容资格或地形检查。发布包不含效果夹具 / GameTest；此轮没有客户端输入 / 协议变化，未新增图形客户端验收。
 
 Gambler's Dodge 新增独立的 `animation_duration` 校准参数，成功 / 零位移后授予目标侧追踪门槛。Minecraft 宿主在发射时保存信用 owner 的 player / mob / other / unavailable 分类，内容只拒绝 mob 对应的 Combatant；全局 PvE / PvP、物理 emitter 与后续 owner 消失不会重写分类。该窗口在技能取消选择后继续，到期恢复资格，确认死亡时清理；实际弹道仍可命中或击杀闪身者。Guardian 弹体保持追踪，辅助瞄准尚未接线。
 

@@ -31,17 +31,19 @@
   "implementation": {
     "definition": "common/src/test/resources/effects/gamblers_dodge.json",
     "unit_tests": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
-    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java"
+    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+    "native_world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/NativeTrackingGameTest.java"
   },
   "policies": {
     "qualification": "Chorus Minecraft adapter captures credit-owner kind (player/mob/other/unavailable) at launch. Content treats mob as Combatant, independently of world PvE/PvP mode and of a distinct physical emitter. Unknown owner is not inferred from source tags or emitter.",
     "window": "An observed APPLIED or UNCHANGED displacement grants a target-owned tracking gate for required animation_duration. It rejects START and CONTINUE, survives ability deselection, expires at the exact deadline and clears on holder death. Known movement rejection and unknown movement do not grant it.",
     "independence": "Tracking immunity is separate from physical collision and damage, and from the return_delay used for melee energy. Guardian projectile tracking remains eligible; aim assist requires a separate adapter.",
-    "calibration": "0.3-second animation window and test seeker geometry/speed/damage are synthetic; neither is claimed as Destiny physics."
+    "calibration": "0.3-second animation window and test seeker geometry/speed/damage are synthetic; neither is claimed as Destiny physics.",
+    "native_tracking": "Minecraft 26.3 ShulkerBullet uses the shared gate before native steering, retaining its target reference, physics and impacts during ordinary denial. Owner credit and simulated flight age are saved with the native projectile; reassigned owners replace credit. This is a Minecraft adapter policy, not evidence of Destiny re-acquisition timing or complete ruleset persistence."
   },
   "unresolved": [
     "Exact animation duration, active frames, re-acquisition timing and lifecycle interactions need original-game calibration.",
-    "Vanilla homing projectiles, AI target selection and Guardian aim assist remain unconnected.",
+    "Other vanilla/mod homing adapters, AI target selection and Guardian aim assist remain incomplete.",
     "Full dodge trajectory, Class-stat shield/curves, subclass/Aspect assembly and persistence remain incomplete."
   ]
 }
