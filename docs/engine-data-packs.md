@@ -544,6 +544,22 @@ target 默认 self；capacity 必须为有限正数，单位 charge_fraction。�
 
 这是显式动作，不会自动监听任意属性变化。多个来源决定容量时，先用 calculate 按接收者查询完整 Profile，再把结果交给 resize；应在来源或选择事务已提交后按内容规则重算，不能各自卸下时盲目设回基础容量。示例 [resource_capacity.json](../common/src/test/resources/effects/resource_capacity.json) 验证两个 +1 来源合成三格、接收者隔离和移除一个来源后保留另一个。缩容裁剪是该指令的明确语义，是否适用于某项 D2 换装效果仍需原作校准。
 
+### 按当前技能槽调整可用次数容量
+
+通用装备规则可用 `resize_ability_resource` 定位接收者当前基础选择的成本账户，不必列出所有技能的资源 ID：
+
+```json
+{"action":{"type":"chorus:resize_ability_resource","slot":"chorus_d2:melee",
+  "target":"self","capacity":{"type":"chorus:constant","value":3,"unit":"charge_fraction"}},
+ "as":"resized"}
+```
+
+slot 必填，target 默认 self，capacity 仍为有限正数 charge_fraction。执行时读取接收者的当前基础选择；临时施放替换不会改写目的账户。存在独立 recharge_resource 时只调整可用次数账户，进度的容量、余额和逻辑时间保留。旧单账户技能沿用同一账户。扩容不补能，缩容裁剪，不创建新账户、不迁移其他技能余额；发布的容量 / 裁剪事实与 resize_resource 相同。
+
+结果有 `resized`、`changed`、`no_selection`、`no_resource`、`not_resizable` 标志。空槽、无成本资源或不可变容量均返回对应结果，不求值 capacity、不改变状态，也不发布容量事实。这里不可变容量是动态目标不支持该动作的显式结果；直接指定资源的 resize_resource 继续在编译 / 执行时严格拒绝不可变声明。成功时 resized=true，即使相同容量使 changed=false；before / after / before_capacity / capacity / discarded 仅成功时可读，其他结果不伪造零值。Java 回执保存 holder、slot、所选 ability 和实际 Resource ResizeResult，可追溯当时选中的账户。
+
+延迟执行会作用于届时所选技能；期间清空槽位就返回 no_selection，不修改旧账户。技能切换或装备变化时是否重算由内容规则决定，动作不会遍历并改写所有未选账户。示例 [ability_capacity.json](../common/src/test/resources/effects/ability_capacity.json) 在 SOURCE / 选择事务后读取完整来源集合；等效物品替换不先缩再扩，重新选择旧技能时显式重算保留账户。两格 / 三格、半份每秒恢复和治疗观察都是合成输入，不是 Ophidia Spathe 的原作换装规则。
+
 D2 [grenade_energy.json](../common/src/test/resources/effects/grenade_energy.json) 已用 grenade_capacity_binding 组合自身 source_attached / source_detached 与持有者 abilities_changed，在完整来源提交后重算容量。手雷选择期来源及 [Spirit](../common/src/test/resources/effects/spirit_armamentarium.json) 共同复用；同一容量多次计算返回未变化结果，不重复发布容量事实。实际装备替换读取最终来源集合，避免等效替换先缩容再扩容；空槽卸装仍由旧来源的卸下反应完成协调。账户声明整格阈值 1 / 2，当前上限由时钟自动纳入。该内容绑定不覆盖任意 Buff / 条件变化，新增容量政策仍需声明对应重算入口；完整限制见 [D2 规则集](d2-ruleset.md#spirit-of-the-armamentarium-额外手雷充能)。
 
 ### 联动回充的独立进度与可用次数

@@ -1182,6 +1182,10 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 这些验证使用合成联动技能。Ophidia Spathe 的近期使用时窗、精确重置规则、Gambler's Dodge、飞刀击杀增伤与刷新、职业 / 近战资格及与 Lightweight Knife 的装配尚未实现。满可用次数时按槽回能返回 already_full，是当前防止隐藏储能的 Chorus 路由政策；不能据此宣称复现全部原作换装、重置或特殊退款行为。此阶段增加通用能力和已有 perk 的组合证据，不增加该金装的已实现或 partial 覆盖声明。
 
+通用 `resize_ability_resource` 进一步允许装备规则按槽定位当前基础选择的可用次数账户，保留独立进度。其空槽 / 无资源 / 固定容量分支不求值容量表达式；临时技能替换不重定向容量，延迟动作使用执行时选择。合成装备已覆盖完整来源集合、等效替换、切换到另一旧单账户、重选时重新计算及未知世界观察保留。它补齐通用装配接口，尚未赋予该金装任何未经确认的秒数或近战资格。
+
+本轮重新核对的[官方 9.0.0.1 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)明确最大 **PvE** 飞刀增伤提高至200%；原表当前列出67% / 133% / 200%，但这一单元格未单列 PvP 表。旧7.3.0的30% / 60% / 100%及“闪身刷新”不能自动充当当前完整PvP与所有闪身资格的证据。原表近期使用例外依然是 `? 秒`，精确时窗、当前PvP档位及原作循环 / 装卸行为继续保留为校准项。
+
 ## Icarus Dash 的条件充能与水平位移
 
 2026-10-11 核对[在线原表 Solar B148 / D148](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1186062409#gid=1186062409)，文本与固定 CSV B84 / D84 归一化一致；原 HTML、哈希、坐标和假设见 [研究记录](../data/d2-research/2026-10-11/icarus-dash.json)。[icarus_dash.json](../common/src/test/resources/effects/icarus_dash.json) 提供部分技能模板，使用独立 air_move 槽和同一对可用次数 / 进度账户。

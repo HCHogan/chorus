@@ -123,6 +123,7 @@
       "com.imdomestic.chorus.LinkedRechargeGameTest",
       "com.imdomestic.chorus.AbilityRechargeGameTest",
       "com.imdomestic.chorus.ResourceCycleYieldGameTest",
+      "com.imdomestic.chorus.AbilityCapacityGameTest",
       "com.imdomestic.chorus.IcarusDashGameTest",
       "com.imdomestic.chorus.IcarusCureGameTest"
     ],

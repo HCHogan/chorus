@@ -386,6 +386,11 @@ public final class EffectCodecs {
                         Codec.STRING.optionalFieldOf("event_reference").forGetter(Action.UpdateComponent::eventReference)).apply(i, Action.UpdateComponent::new)))
                 .register("chorus:grant_energy", EnergyActions.Grant.class, energyGrant(values))
                 .register("chorus:grant_ability_energy", EnergyActions.GrantAbility.class, abilityEnergyGrant(values))
+                .register("chorus:resize_ability_resource", ResourceCapacityActions.ResizeAbility.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(ResourceCapacityActions.ResizeAbility::slot),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(ResourceCapacityActions.ResizeAbility::target),
+                        values.fieldOf("capacity").forGetter(ResourceCapacityActions.ResizeAbility::capacity)
+                ).apply(i, ResourceCapacityActions.ResizeAbility::new)))
                 .register("chorus:observe_ability_energy", EnergyActions.ObserveAbility.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("slot").forGetter(EnergyActions.ObserveAbility::slot),
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EnergyActions.ObserveAbility::target)).apply(i, EnergyActions.ObserveAbility::new)))

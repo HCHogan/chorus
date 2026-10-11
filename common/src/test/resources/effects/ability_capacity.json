@@ -1,0 +1,564 @@
+{
+  "version": "test-ability-capacity-v1",
+  "resources": [
+    {
+      "id": "test:capacity_uses",
+      "capacity": 2,
+      "initial": 1,
+      "resizable": true
+    },
+    {
+      "id": "test:capacity_meter",
+      "capacity": 1,
+      "initial": 0.4,
+      "base_rate": 0,
+      "rate_profile": "test:capacity_rate"
+    },
+    {
+      "id": "test:capacity_legacy",
+      "capacity": 2,
+      "initial": 1,
+      "resizable": true
+    },
+    {
+      "id": "test:capacity_fixed",
+      "capacity": 1,
+      "initial": 1
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:capacity_rate",
+      "version": "test-ability-capacity-v1",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "baseline",
+          "operation": "replace",
+          "group": {
+            "name": "base",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:capacity_linked",
+      "slot": "chorus_d2:melee",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "cost": {
+        "resource": "test:capacity_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "test:capacity_meter",
+      "effects": {
+        "cycle": {
+          "bundle": "test:capacity_cycle"
+        }
+      }
+    },
+    {
+      "id": "test:capacity_legacy",
+      "slot": "chorus_d2:melee",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "cost": {
+        "resource": "test:capacity_legacy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      }
+    },
+    {
+      "id": "test:capacity_fixed",
+      "slot": "chorus_d2:melee",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "cost": {
+        "resource": "test:capacity_fixed",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      }
+    },
+    {
+      "id": "test:capacity_free",
+      "slot": "chorus_d2:melee",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:capacity_override",
+      "slot": "chorus_d2:melee",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "tags": [
+            "test:cast"
+          ],
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "cost": {
+        "resource": "test:capacity_fixed",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:capacity_inputs",
+      "includes": [
+        "test:capacity_binding"
+      ],
+      "rules": [
+        {
+          "id": "resize",
+          "on": "test:resize",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:resize_ability_resource",
+                "slot": "chorus_d2:melee",
+                "target": "victim",
+                "capacity": {
+                  "type": "chorus:event_number",
+                  "name": "amount",
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "resize"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "resize",
+                "field": "changed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:capacity_changed"
+                  ],
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:resize_ability_resource",
+                    "slot": "chorus_d2:melee",
+                    "target": "victim",
+                    "capacity": {
+                      "type": "chorus:event_number",
+                      "name": "amount",
+                      "unit": "charge_fraction"
+                    }
+                  },
+                  "as": "resize"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "resize",
+                    "field": "changed"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:heal",
+                      "tags": [
+                        "test:capacity_changed"
+                      ],
+                      "amount": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "damage"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:capacity_binding",
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:resize_ability_resource",
+                "slot": "chorus_d2:melee",
+                "target": "self",
+                "capacity": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:has_source_tag",
+                    "tag": "test:extra_capacity"
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "as": "resize"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "resize",
+                "field": "changed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:capacity_changed"
+                  ],
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:resize_ability_resource",
+                "slot": "chorus_d2:melee",
+                "target": "self",
+                "capacity": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:has_source_tag",
+                    "tag": "test:extra_capacity"
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "as": "resize"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "resize",
+                "field": "changed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:capacity_changed"
+                  ],
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "selection",
+          "on": "chorus:abilities_changed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:resize_ability_resource",
+                "slot": "chorus_d2:melee",
+                "target": "self",
+                "capacity": {
+                  "type": "chorus:choose",
+                  "if": {
+                    "type": "chorus:has_source_tag",
+                    "tag": "test:extra_capacity"
+                  },
+                  "then": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "charge_fraction"
+                  },
+                  "else": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "charge_fraction"
+                  }
+                }
+              },
+              "as": "resize"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "resize",
+                "field": "changed"
+              },
+              "then": [
+                {
+                  "type": "chorus:heal",
+                  "tags": [
+                    "test:capacity_changed"
+                  ],
+                  "amount": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:capacity_extra",
+      "includes": [
+        "test:capacity_binding"
+      ]
+    },
+    {
+      "id": "test:capacity_override",
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "chorus_d2:melee",
+          "ability": "test:capacity_linked",
+          "replace_with": "test:capacity_override",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "test:capacity_cycle",
+      "rules": [
+        {
+          "id": "cycle",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "test:capacity_meter",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "type": "chorus:complete_recharge",
+              "progress": "test:capacity_meter",
+              "resource": "test:capacity_uses"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "test:capacity_rate",
+          "stage": "baseline",
+          "group": "base",
+          "op": "replace",
+          "stacking_key": "test:capacity_rate",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "charge_fraction_per_second"
+          },
+          "if": {
+            "type": "chorus:compare",
+            "op": "gt",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "test:capacity_uses",
+              "field": "missing"
+            },
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          },
+          "reference": "Synthetic test cycle; no Ophidia or Solar knife cooldown claim",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:armor",
+        "accepts": [
+          "test:armor"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:capacity_armor",
+        "tags": [
+          "test:armor"
+        ],
+        "effects": {
+          "capacity": {
+            "bundle": "test:capacity_extra",
+            "tags": [
+              "test:extra_capacity"
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

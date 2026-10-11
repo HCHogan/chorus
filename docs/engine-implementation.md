@@ -6,7 +6,13 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-icarus-cure-gate-2.log` BUILD SUCCESSFUL，1 分 9 秒：1164 项 JUnit、Fabric 541 项、NeoForge 551 项及两端发布 jar 通过，共享 Chorus 场景为 540 项。新增 11 项 IcarusCureTest、6 项共享世界场景，验证确认击杀时的离地 / 分类观测、真实武器弹体、34 / 67 / 100 权重、五秒间隔、重复来源、共享 Cure 冷却、来源生命周期和未知治疗保留。10 项 Compendium 审计、报告一致性及来源归档哈希通过；仍为 72 条审阅：58 partial、12 unimplemented、2 not_applicable、0 verified。没有客户端输入 / 同步变化，本轮未新增图形客户端验收，17 项 Fabric 客户端为此前证据。
+最新门禁 `/tmp/chorus-ability-capacity-gate.log` BUILD SUCCESSFUL，1 分 25 秒：1172 项 JUnit、Fabric 545 项、NeoForge 555 项及两端发布 jar 通过，共享 Chorus 场景为 544 项。新增 8 项 AbilityCapacityTest、4 项共享世界场景，验证动态技能槽容量、独立进度不变、旧单账户、空槽 / 无成本 / 固定容量、临时替换、延迟切换、真实装备替换 / 裁剪和未知世界结果保留。10 项 Compendium 审计、报告一致性与来源归档哈希通过；发布包包含新动作且没有测试夹具 / GameTest。此轮无客户端输入 / 同步变更，没有新增图形客户端验收。
+
+`resize_ability_resource` 在执行时定位接收者当前基础选择的成本账户，委托既有 resize_resource 完成余额保留 / 裁剪及事实发布，不改变独立回充进度。不存在选择、没有成本或固定容量时返回不同标志，且不求值容量。成功回执保存实际技能 / 账户；未变化仍为成功，但不重复发布事实。它不隐式迁移账户或遍历未选技能；内容通过完整 SOURCE / 选择事务后的规则重算，等效装备替换不先缩再扩，延迟动作使用执行时选择。
+
+此轮补齐 Ophidia Spathe 等通用装备规则所需的按槽容量接口。合成案例的两格 / 三格、0.5/s恢复与治疗观察不作为原作数值；Ophidia 的未知近期使用时窗、当前PvP增伤表、飞刀 / Gambler's Dodge及正式装配仍未实现。覆盖保持72条审阅：58 partial、12 unimplemented、2 not_applicable、0 verified，不因新增通用动作提升该金装的覆盖状态。
+
+上一阶段门禁 `/tmp/chorus-icarus-cure-gate-2.log` BUILD SUCCESSFUL，1 分 9 秒：1164 项 JUnit、Fabric 541 项、NeoForge 551 项及两端发布 jar 通过，共享 Chorus 场景为 540 项。新增 11 项 IcarusCureTest、6 项共享世界场景，验证确认击杀时的离地 / 分类观测、真实武器弹体、34 / 67 / 100 权重、五秒间隔、重复来源、共享 Cure 冷却、来源生命周期和未知治疗保留。10 项 Compendium 审计、报告一致性及来源归档哈希通过；仍为 72 条审阅：58 partial、12 unimplemented、2 not_applicable、0 verified。没有客户端输入 / 同步变化，本轮未新增图形客户端验收，17 项 Fabric 客户端为此前证据。
 
 Icarus Dash 的常驻选择来源新增空中击杀 Cure 分支，直接组合现有历史实体观测、Buff 计数、死亡回执去重和共享 bundle 调用。攻击者落地、死亡反应移除尸体不会改写已经保存的资格；不存在移动或分类证据时不猜值。计数达到100%调用共享 Cure x1，五秒窗口与固定寿命回执桶各自计时；最后来源移除 / 持有者死亡清理计数，其他生产者共用一秒 Cure 冷却。
 
@@ -46,7 +52,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 
 手雷输入：两端已有可重绑定的 V 键与按下 / 松开 / 取消协议，服务端计量持续时间，匹配松开先消费输入再解析技能与付款。Bleak Watcher 可由显式来源在长按后转换所选暮域，消费暮域能量并部署真实炮台；实际五连发、Slow / Freeze、Durance 和构造物阵营继续复用现有机制。原作长按阈值、正式 Aspect 装备约束、其余未公开参数及正式技能目录仍待完成。
 
-2026-10-11：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 540 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。
+2026-10-11：纯数值、执行器、Buff 生命周期、逻辑时间轴及首批效果 DSL 已落地；JSON 可编译成规则、条件动作分支、查询期修饰、周期效果和按通道互斥的连续生命恢复。`MinecraftEffectRuntime` 显式安装到维度后，普通原版伤害自动进入规则队列，服务器 tick 推进逻辑时间，嵌套命中随世界回执排队。攻击 / 防御 Profile、Buff 护盾层和治疗命令已接入 Fabric、NeoForge 世界流程；两端运行相同的 544 项 Chorus 场景，NeoForge 另有 10 项伤害 / 治疗阶段和装备掉落测试通过。已验证 Kill Clip / Disruption Break 修饰实际扣血、按实际 HP 损失回血，以及 JSON Cure、Restoration 示例由真实 tick 调度，连续恢复保留到期残段。
 
 完整程序已通过数据包注册表加载、覆盖和重载，管理命令可以启动运行时并绑定来源；已有运行时保留旧定义。装备槽位、词条选择与类型化实例数值已能原子投影为来源；真实玩家物品容器、玩家 NBT 读写及死亡 / respawn 已接线。独立装备展示协议与最小配装页已接入两端；技能定义、基础选择及其常驻来源、条件替换、成本 / 参数快照、服务端施放命令和手雷按键也已接入。
 
@@ -78,6 +84,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | Icarus Dash 空中击杀 Cure | partial 内容；纯核心与双加载器世界测试通过 | `icarus_dash_cure.json / cure.json`；历史离地与分类、加权窗口、去重、共享冷却、实际HP及未知结果；原作姿态 / 边界 / 分类、完整Super与正式装配待校准 |
 | 技能扣费与回充账户分离 | 纯核心及双加载器 GameTest 通过 | `AbilityDefinition.rechargeResource / EnergyActions`；当前基础选择路由、双账户初始化 / 观察、已有回能 perk 组合、已满拒绝隐藏储能、付款退款隔离；parallel / 任意分组及生产金装未完成 |
 | 数据资源定义、恢复 Profile、阈值事实与成本分支 | 纯核心及双加载器 GameTest 通过 | `ResourceDefinition`、`ResourceProgramTest`；幂等初始化、环境倍率、Buff 到期分段、增减跨阈值、真实 tick 与实际治疗、解绑重挂不补能 |
+| 按当前技能槽调整可用次数容量 | 纯核心及双加载器 GameTest 通过 | `resize_ability_resource / AbilityCapacityTest`；基础选择、独立进度保留、三种不适用结果、延迟切换与装备事务；不自动迁移未选账户或实现金装数值政策 |
 | 同一账户的显式容量变更 | 纯核心及双加载器 GameTest 通过 | `Resources.resize / resize_resource`、`ResourceCapacityTest`；扩容不补能、缩容裁剪、独立事实、未来阈值、合成多来源归约、真实 tick / 治疗及未知结果不重放；Spirit 已接 SOURCE 装备协调，任意 Buff / 条件变化投影待实现 |
 | 同序列成本返还、完整充能与回执额度 | 纯核心及双加载器 GameTest 通过 | `refund_cost / grant_full_charge`、`ResourceRefundTest`；分支 / 未绑定结果 / 世界等待保留额度、重复回执、不向错误账户返还、溢出消耗额度、免费 / 失败支付不生能量 |
 | 有限期成本转交与异步退款 | 纯核心及双加载器 GameTest 通过 | `RetainedCosts`；after / 物理飞行共享退款额度、原回执封存、免费 / 溢出、到期 / 关闭及未知世界结果保留 |

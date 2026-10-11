@@ -51,12 +51,28 @@
         "single_yield_buff_seconds": 1
       },
       "boundary": "Generic source/Buff composition and actual equipment proof only. Does not establish original Ophidia equip/reset or recent-use behavior; no automatic migration of legacy single-account abilities."
+    },
+    "selected_capacity": {
+      "definition": "common/src/test/resources/effects/ability_capacity.json",
+      "action": "chorus:resize_ability_resource",
+      "policy": "Resolve the current base selection at execution and resize its usable cost account only. Empty, costless and fixed-capacity selections return distinct nonnumeric outcomes before evaluating capacity. The separate recharge meter and unselected accounts are unchanged.",
+      "composition": "Synthetic SOURCE and selection rules read the final source set, preserve balance on equivalent physical equipment replacement, and recompute retained accounts when reselected. Delayed actions use the selection at execution; temporary cast replacements do not redirect capacity.",
+      "boundary": "Generic engine capability only; the synthetic 2/3 capacities, 0.5/s cycle and healing observations do not implement or calibrate Ophidia Spathe."
     }
   },
   "unresolved": [
     "Recent-use exception duration and exact original-game cycle/reset behavior remain uncalibrated.",
     "The fixture is not Ophidia Spathe, Gambler dodge or a Solar knife. No Compendium entry is promoted by it.",
     "Arbitrary linked groups, parallel independent progress lanes, migration, persistence and UI are not implemented.",
-    "Production Ophidia Spathe still requires exotic/knife eligibility, exact recent-use and cycle-reset policy, Gambler dodge and knife-kill damage content. The generic routing proof does not validate those behaviors."
-  ]
+    "Production Ophidia Spathe still requires exotic/knife eligibility, exact recent-use and cycle-reset policy, Gambler dodge and knife-kill damage content. The generic routing proof does not validate those behaviors.",
+    "Original C91 includes a generic melee-colored 67/133/200-percent table but no separately marked PvP numbers; the current PvP table is not independently verified by the 2025 PvE-only change. No seconds are inferred for the recent-use exception."
+  ],
+  "official_damage_context": {
+    "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1",
+    "published_at": "2025-07-15",
+    "reviewed_at": "2026-10-11",
+    "claim": "Maximum PvE Throwing Knife damage bonus increased from 100% to 200%. This supports the current PvE maximum, not a complete current PvP table.",
+    "historical_url": "https://www.bungie.net/7/en/News/Article/update-7-3-0-patch-notes",
+    "historical_claim": "The 2023 update introduced three five-second knife-kill stacks with 30/60/100 percent and dodge refresh; do not substitute this historic table for currently uncalibrated PvP values or override current Compendium Gambler dodge qualification."
+  }
 }
