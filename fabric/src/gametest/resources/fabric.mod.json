@@ -68,6 +68,7 @@
       "com.imdomestic.chorus.FractionalHealingGameTest",
       "com.imdomestic.chorus.EffectCheckpointGameTest",
       "com.imdomestic.chorus.RuntimeRestoreGameTest",
+      "com.imdomestic.chorus.NativeSaveGameTest",
       "com.imdomestic.chorus.ProjectileDestinationGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",

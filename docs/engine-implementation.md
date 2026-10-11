@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-多维度归档与保存确认协议的最终门禁 `/tmp/chorus-world-store-final-gate-2.log` BUILD SUCCESSFUL，1 分 19 秒：1289 项 JUnit（无失败 / 错误 / 跳过）、Fabric 629 项、NeoForge 644 项及两端发布 jar 全部通过，共享场景为 628 项。10 项 Compendium 审计、76 条报告一致性与差异检查通过。发布包包含 CheckpointArchive / WorldCheckpointStore，不含效果 / 存储夹具或 GameTest；没有客户端协议 / 输入变更或新增图形客户端验收。
+原版同步保存证据门禁 `/tmp/chorus-native-save-gate.log` BUILD SUCCESSFUL，1 分 24 秒：1292 项 JUnit（无失败 / 错误 / 跳过）、Fabric 635 项、NeoForge 650 项及两端发布 jar 全部通过，共享场景为 634 项。10 项 Compendium 审计、76 条报告一致性及差异检查通过；发布包包含 MinecraftSaveCapture 与三项保存 Mixin / 配置，不含效果 / 存储夹具或 GameTest。本阶段没有客户端协议 / 输入变更或新增图形客户端验收。
+
+`MinecraftSaveCapture` 以调用方提供的准确预期路径观察 PlayerDataStorage.save 和实际 level.dat 写入，并记录原版 Util.safeReplaceFile 丢弃的替换返回值。原版重试 / 备份 / 回滚 / 异常行为不变；保存函数正常返回或旧文件仍存在都不再被当作成功证据。REPLACED、REPLACEMENT_FAILED、NO_REPLACEMENT、THREW 与未调用文件分开记录，窗口关闭且全部相关尝试成功才可供确认。之后成功不会覆盖同一窗口前面的失败，未完成或跨线程 / 错序关闭不能提前产生完成证明。
+
+3 项纯测试覆盖执行中捕获不可结束、异常身份与失败证据不被后来成功替换、线程隔离和清理。6 项共享 NativeSaveGameTest 使用独立临时存档及真实原版写入：成功玩家 NBT；父目录被文件占据时原版吞掉的写入前失败；非空备份目录导致替换返回 false、旧玩家文件保留和后续成功不掩盖失败；真实 level.dat 成功 / 替换失败；按准确玩家路径区分嵌套与缺失文件；原版文件失败使 WorldCheckpointStore 的该次保存不能提交或恢复，规则状态不被回滚或伪造成游戏失败。
+
+这里证明的是同步玩家 / level.dat 文件替换结果，调用方仍需提供正确的范围并将报告接到具名确认。自动服务器关闭 / 启动、区域存储异步故障与 flush、完整世界静止边界、短命实体遗留状态、离线 / 崩溃对账与迁移仍待接入；没有将这些临时存档场景称为服务器重启验收。Compendium 保持76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[同步保存观察协议](engine-data-packs.md#原版玩家与-leveldat-保存证据)。
+
+上一阶段多维度归档与保存确认协议的最终门禁 `/tmp/chorus-world-store-final-gate-2.log` BUILD SUCCESSFUL，1 分 19 秒：1289 项 JUnit（无失败 / 错误 / 跳过）、Fabric 629 项、NeoForge 644 项及两端发布 jar 全部通过，共享场景为 628 项。10 项 Compendium 审计、76 条报告一致性与差异检查通过。发布包包含 CheckpointArchive / WorldCheckpointStore，不含效果 / 存储夹具或 GameTest；没有客户端协议 / 输入变更或新增图形客户端验收。
 
 `CheckpointArchive` 的 format 1 编码各维度的目录 ID、世界时钟、装备所有者和完整会话，严格检查身份 / 字段 / 重复项，保留大整数。`EffectPrograms.checkpoint / restore(Entry)` 连接默认目录宿主，捕获时检查默认 Java 适配来源和完整目录；相同 DSL 的自定义执行器不能自动当作默认宿主。`WorldCheckpointStore` 在 begin 返回恢复数据前先写 RUNNING，候选为 PREPARED，具名世界保存步骤全部确认后才能 COMMITTED。未知 / 未完成状态保留而不自动回退空状态，旧 Save 回调不能确认新候选或覆盖新 run，晚到的同次失败可撤销过早提交。底层单文件写入复用 AtomicJsonFile，仍无跨文件或断电目录持久性保证。
 
@@ -271,6 +279,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | Minecraft 运行时检查点与恢复 | 双加载器 9 项共享世界场景通过 | `MinecraftEffectRuntime.Checkpoint / EffectPrograms.restore`；时钟 / 目录与实际配装预检、原版投影与观察器重建、结算边界拒绝、短命实体不重生；已有宿主归档，完整保存一致性及重启验收待接入 |
 | 实体 NBT 与临时最大生命恢复 | 双加载器 5 项共享世界场景通过 | `LivingAttributeLoadMixin / MinecraftAttributeProjection`；索引前目标属性重建、永久修饰与保存生命保留、过期 / 死亡 / 重复加载 / 失败隔离；启动安装先于实体载入仍由后续宿主保存协调负责 |
 | 多维度宿主归档与保存确认协议 | 11 项纯测试及双端实际文件 / 运行时恢复通过 | `CheckpointArchive / WorldCheckpointStore`；元数据 / 目录身份、候选与提交区分、运行前失效、完整具名确认和旧回调隔离；自动服务器钩子与真实全世界写入确认未接入 |
+| 原版玩家与 level.dat 同步保存证据 | 3 项纯测试与双加载器 6 项共享真实文件场景通过 | `MinecraftSaveCapture` 与保存入口 / 替换 Mixin；准确路径、写入前 / 替换失败与缺失文件、完整窗口与失败保留；区域异步存储和自动生命周期待接入 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

@@ -2610,6 +2610,25 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 新的 prepare 使旧 Save 句柄失效，旧异步回调不能确认 / 破坏新候选。若宿主过早确认后又收到同次保存失败，failed 会撤销该次 COMMITTED；已经进入下一 run 时拒绝旧回调，不写入新文件。修改过的候选不能被旧句柄提交。编码失败不覆盖原候选或替换它的句柄；磁盘错误继续向调用方传播。
 
-实际写入复用 `AtomicJsonFile`：完整编码后写同目录临时文件、force 文件、原子替换，无非原子回退；不是跨文件事务，也未提供目录元数据断电持久性保证。Store 不观察 Minecraft 内部的保存结果，不能把手工 confirm 当作原版保存成功的证据。原版玩家 / level.dat 的部分写入方法会捕获 I/O 异常并只记录日志，实体区域写入也有异步故障上报；自动宿主必须在真正写入 / flush 完成并确认这些故障通道以后提供对应确认。
+实际写入复用 `AtomicJsonFile`：完整编码后写同目录临时文件、force 文件、原子替换，无非原子回退；不是跨文件事务，也未提供目录元数据断电持久性保证。Store 自身不观察 Minecraft 内部的保存结果，不能把手工 confirm 当作原版保存成功的证据。原版玩家 / level.dat 的部分写入方法会捕获 I/O 异常并只记录日志，实体区域写入也有异步故障上报；自动宿主必须在真正写入 / flush 完成并确认这些故障通道以后提供对应确认。
 
-自动保存 / 启动加载、世界与玩家写入确认的钩子、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在同 tick 内已经变化的世界上宣称回滚。当前世界场景实际写入并读回两个夹具实体 NBT 后确认各自项目，再从归档恢复同一世界的运行时；不是完整世界保存或服务器重启验收。
+### 原版玩家与 level.dat 保存证据
+
+`MinecraftSaveCapture.observe(expectedPaths)` 按调用方提供的实际文件路径建立一个线程内观察窗口。PlayerSaveCaptureMixin 包围 PlayerDataStorage.save，LevelSaveCaptureMixin 包围实际写入 level.dat 的私有 saveLevelData；SaveReplacementMixin 观察 Util.safeReplaceFile 内原本被丢弃的布尔替换结果。原版重试、备份 / 回滚与异常处理路径保持原样，观察器不重写文件或把保存失败变成游戏效果失败。
+
+窗口内每次相关保存留下一个 Write：REPLACED、REPLACEMENT_FAILED、NO_REPLACEMENT 或 THREW，最后一种携带已观察到的异常摘要。写入临时文件前被原版吞掉的异常至少表现为 NO_REPLACEMENT，不能把 void 方法正常返回当作成功；返回 false 的替换失败会保留为 REPLACEMENT_FAILED，即使旧目标文件仍然存在。missing 另列根本没有调用保存的预期文件，不与已尝试但失败混淆。路径只做绝对化和 normalize，不根据存档输入扫描目录或猜测成功。
+
+Scope 关闭后，报告才可能 successful：全部预期文件必须实际参与保存，且本窗口内相关尝试全部成功。同一文件后来成功不会抹掉前一次失败；需要显式开启下一次完整保存窗口。嵌套观察分别保留证据，错误关闭顺序、保存尚在执行时关闭以及跨线程使用均拒绝。其他玩家 / 世界文件的成功不能替代缺少的预期路径；其他线程的操作不计入本同步窗口。
+
+```java
+var capture = MinecraftSaveCapture.observe(expectedPlayerPaths);
+try (capture) {
+    server.getPlayerList().saveAll();
+}
+capture.report().requireSuccess();
+pendingSave.confirm("players");
+```
+
+调用方必须先确定正确的玩家集合和对应路径，并在捕获失败时将本次保存标为 failed。level.dat 使用同一协议。该观察只证明原版同步文件替换的返回结果，不证明区域存储异步任务、全部实体 / 区块、硬件断电持久性或世界与规则状态共同提交。成功报告也不自动对 WorldCheckpointStore 作确认；完整生命周期协调仍需组合真实写入范围、静止边界及异步故障 / flush 证据。
+
+自动保存 / 启动加载、区域文件的异步写入确认、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在同 tick 内已经变化的世界上宣称回滚。当前世界场景包括归档恢复、两个夹具实体 NBT，以及真实 PlayerDataStorage / level.dat 的成功、写入前失败和备份替换失败；不是完整世界保存或服务器重启验收。
