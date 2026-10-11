@@ -29,7 +29,8 @@
           "group": {
             "name": "animation",
             "reduction": "product"
-          }
+          },
+          "factor": "chorus_d2:handling_animation"
         }
       ]
     }

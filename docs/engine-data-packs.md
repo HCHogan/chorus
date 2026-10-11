@@ -3182,7 +3182,7 @@ on_use 保留来源属性和弹药，impact 条件逐目标计算。重建带快
 
 新增 `weapon_handling_started` / `weapon_handling_finished` / `weapon_switch_finished` / `weapon_switch_cancelled` 事实，均以 `chorus:` 为前缀，保留阶段计划；DSL 可读 `weapon`、`item`、`switch`、`handling_phase`、`reason`、`duration` 和 `scheduled_duration`。`handling_phase` 为 stow 或 ready。开始与取消不是 `weapon_stowed` / `weapon_drawn` 的替代品；后两者只随真实持握变化发布。未知物理回执停止运行时且不重放，无法推断成功；若已提交持握后下游反应失败，物理状态和纯状态都保留完成结果。
 
-EffectState.handling 以 holder 为键保存当前计划，与计时器及装备状态一起进入检查点。旧 effect_state 形状经显式迁移补空表；旧 record 字段不改写。正常停服的整体世界保存仍要求原有宿主保存证据，纯会话恢复不等同于崩溃恢复。ADS、切枪动画 / 进度 HUD、专属切枪行动限制、D2 实际时间曲线及全部异常打断政策尚未实现；现有同步协议仅在接受请求和持握边界更新 revision / drawn。
+EffectState.handling 以 holder 为键保存当前计划，与计时器及装备状态一起进入检查点。旧 effect_state 形状经显式迁移补空表；旧 record 字段不改写。正常停服的整体世界保存仍要求原有宿主保存证据，纯会话恢复不等同于崩溃恢复。ADS、切枪动画 / 进度 HUD、专属切枪行动限制及全部异常打断政策尚未实现；D2 两种参考时间曲线的接线见下文。现有同步协议仅在接受请求和持握边界更新 revision / drawn。
 
 ## Weapons 属性对已接受换弹的时间贡献
 
@@ -3193,3 +3193,28 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 `WeaponReload.Plan`已经保存整条 CalculationPipeline.Result，无需新的定时器或状态字段。普通换弹在接受时求值一次；`insert.repeat.profiles`必须同样显式包含需要的时间管线，下一发只在前一发完成事实处理后求值，不能将最初的 Weapons 倍率缓存到整个重复装填循环。当前来源 / 护甲变化不修改正在等待的 Plan。没有经过这条时间管线的即时补弹或其他计时动作不会自动获得该倍率。
 
 实际动作计时仍由宿主与现有换弹协议执行。操控查询、动画表现以及完整武器曲线不是该模块自动提供的能力；参见 [数值与验收边界](d2-ruleset.md#weapons-属性的换弹时长)。
+
+## D2 操控点数与时间管线
+
+参考内容显式组合 `weapon_stats`、`amplified`、`character_stats`、属性来源、`weapon_stat_handling` 和 `weapon_handling_curves`。其中 `handling_animation` 仍由 amplified 定义；没有激活 Buff 时该阶段自然为单位倍率。每角色绑定 `chorus_d2:weapon_stat_handling` 系统来源后，`weapons_handling_duration` 独立 MAX 阶段才读取角色属性。两个相同提供者不重复乘算该收益。
+
+自动步枪的配置如下；基础 10 点只用于验收，正式原型必须提供正确的基础操控值：
+
+```json
+"handling": {
+  "ready": {
+    "value": {"type": "chorus:constant", "value": 10, "unit": "stat_point"},
+    "profiles": ["chorus_d2:weapon_handling", "chorus_d2:auto_rifle_ready_time", "chorus_d2:handling_animation", "chorus_d2:weapons_handling_duration"]
+  },
+  "stow": {
+    "value": {"type": "chorus:constant", "value": 10, "unit": "stat_point"},
+    "profiles": ["chorus_d2:weapon_handling", "chorus_d2:auto_rifle_stow_time", "chorus_d2:handling_animation", "chorus_d2:weapons_handling_duration", "chorus_d2:auto_rifle_stow_floor"]
+  }
+}
+```
+
+霰弹枪改用 shotgun 对应三个 Profile。各 stow_floor 的下限来自自身曲线在 100 点的值；Clamp 上界为有限 double 最大值，不是另设的游戏时长上限。最终时长仍须满足引擎正数和计时范围校验。收枪下限是 D2 内容的可配置步骤，不写入通用 WeaponHandling；其他内容包可用自己的行为。
+
+来源和事件同时保留该阶段武器的物品标签及 `chorus:weapon_ready / chorus:weapon_stow`，限定阶段的效果可用 event_source_tag，实例资格沿用 this_weapon。当前 Surplus 和 Amplified 均复用原定义；不把属性点数存入第二套 Buff，也不把整次切枪视为一个共同快照。保存的 CalculationPipeline.Result 包含点数、秒数曲线、两个命名倍率及收枪下限，恢复和诊断不查询已改变的来源。
+
+`weapon_handling_test_calibration.json` 是把两个参考时间管线装到现有合成武器上的测试配置，不是独立可加载的规则目录；实际组合后的 WeaponDefinition 及完整目录进入严格 Codec 和检查点验收。曲线出处、下限组合推断和原作校准缺口见 [D2 操控规则](d2-ruleset.md#weaponsamplified-与-surplus-的实际操控时长)。

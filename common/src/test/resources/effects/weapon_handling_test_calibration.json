@@ -1,0 +1,60 @@
+{
+  "test:rifle": {
+    "ready": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:auto_rifle_ready_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:weapons_handling_duration"
+      ]
+    },
+    "stow": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:auto_rifle_stow_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:weapons_handling_duration",
+        "chorus_d2:auto_rifle_stow_floor"
+      ]
+    }
+  },
+  "test:shotgun": {
+    "ready": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:shotgun_ready_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:weapons_handling_duration"
+      ]
+    },
+    "stow": {
+      "value": {
+        "type": "chorus:constant",
+        "value": 10,
+        "unit": "stat_point"
+      },
+      "profiles": [
+        "chorus_d2:weapon_handling",
+        "chorus_d2:shotgun_stow_time",
+        "chorus_d2:handling_animation",
+        "chorus_d2:weapons_handling_duration",
+        "chorus_d2:shotgun_stow_floor"
+      ]
+    }
+  }
+}

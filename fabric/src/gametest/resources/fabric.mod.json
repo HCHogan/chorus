@@ -42,6 +42,7 @@
       "com.imdomestic.chorus.SolarDamageScalingGameTest",
       "com.imdomestic.chorus.WeaponStatDamageGameTest",
       "com.imdomestic.chorus.WeaponStatReloadGameTest",
+      "com.imdomestic.chorus.WeaponStatHandlingGameTest",
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",

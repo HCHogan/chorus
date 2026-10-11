@@ -1707,4 +1707,29 @@ Weapons 属性伤害已按下一节接入；New Gear Bonus、活动 Surge / Over
 
 七项规则测试覆盖两模式 / 九属性点 / 两武器的 36 组时间查询、曲线与动画分层、重复与异主来源、已接受截止点、逐发重采样、切枪取消和计划序列化。五项共享世界场景使用真实护甲容器、低权限换弹命令、服务器 tick、储备转移和实际 Orb / Font。正式武器原型曲线、换弹动画 / 取消窗口与 HUD 仍未完成。
 
-通用引擎已有实际举枪 / 收枪阶段和可开火边界：武器可声明各自的 Handling 时间管线，接受切换即限制开火和手动换弹，收枪完成清空持握，举枪完成才激活新武器；其间可改选或取消。当前世界验收使用合成 0.2 / 0.3 秒和 0.5 时间倍率。D2 的 `weapon_handling`、`handling_animation`、角色 Weapons 倍率与原型曲线尚未组合成正式武器声明，仍不能把通用切枪验收算作 Weapons 操控收益已经实现。100 Handling 收枪下限的位置、ADS、原作取消窗口、增强弹药砖概率和完整产弹策略仍未完成，Weapons 条目保持 partial。
+通用引擎已有实际举枪 / 收枪阶段和可开火边界。D2 操控数值已按下节接入两种参考武器；完整生产目录、ADS、原作取消窗口、增强弹药砖概率和完整产弹策略仍未完成，Weapons 条目保持 partial。
+
+### Weapons、Amplified 与 Surplus 的实际操控时长
+
+`weapon_stat_handling`提供角色 Weapons 的独立时长乘数，`weapon_handling_curves`提供自动步枪与霰弹枪的参考秒数曲线；实际武器 `handling.ready / stow` 声明组合这些 Profile。Surplus 的当前完整技能充能档位和 Amplified 的 +40 仍进入武器 Handling 点数，Amplified 的 0.95 倍另外进入动画阶段。令 `H` 为武器操控点数经贡献及 0–100 限幅后的值，`S` 为角色 Weapons 汇总值，`A` 为合资格动画倍率乘积：
+
+```text
+W = 1 − 0.001 × min(S, 100)
+ready = readyCurve(H) × A × W
+stow  = max(stowCurve(100), stowCurve(H) × A × W)
+```
+
+收枪下限放在所有倍率之后。来源为 D2 Foundry / Oracle Engine 固定提交 `dcd0c7d302b056ffbb532edcb711d724a17ca8c1` 的 `HandlingFormula::calc_handling_times_formula`，它先乘全部 stow_scale，再按该原型 100 Handling 曲线值取下限，ready 不作对应限幅。Compendium Game Mechanics E203 另给角色 Weapons 的 0.9 倍及相同收枪限制。**把角色倍率纳入最终下限是依据两份来源组合的内容模型**；该版 Foundry 本身未实现角色 Weapons 属性，不能把这一步称为其原生算法或独立原作实测。[上游计算源码](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs#L141-L155)、[本地原文存档与校验](../data/d2-research/2026-10-12/weapons-stat-handling.json)。
+
+以下曲线来自同一提交的 `build_resources/weapon_formulas.json`，只引用两个武器类别的 default 记录。它们是社区拟合数据，未重新在原作测量，也不自动代表所有金装特例：
+
+| 原型 | Ready 秒数 | Stow 秒数 | 最短 Stow 秒数 |
+| --- | --- | --- | --- |
+| Auto Rifle / default | `0.51985381 − 0.00279338 × H` | `0.48414822 − 0.00268436 × H` | `0.21571222` |
+| Shotgun / default | `0.5388744939 − 0.003271255061 × H` | `0.5711336032 − 0.003388663968 × H` | `0.2322672064` |
+
+例如基础 Handling 10 的自动步枪，Surplus 三档 +60 与 Amplified +40 使点数限幅至 100，100 Weapons 时 Ready 为约 0.205641 秒；Stow 的原始乘算约 0.184434 秒，最终限为 0.21571222 秒。另一把没有 Surplus 的霰弹枪只获得自身基础 10 与 Amplified 40，不借用旧武器的 perk。`handling_animation` 与 `weapons_handling_duration` 是独立命名因子，回放轨迹时可分别剔除，并重新经过最终下限。
+
+每段接受时固定当前护甲 / Font、技能充能、Buff、原型及完整轨迹。收枪结束事实处理后再取样新枪的 Ready；中途消耗技能、支付 Armor Charge、换护甲、Amplified 到期均不重排已接受阶段。服务器按微秒向上取整并由真实 tick 完成物理持握变化，随后才允许实际开火。此取样和取消政策仍是 Chorus 约定，不能据执行测试宣称已经校准原作动画窗口。
+
+规则验收覆盖两模式 × 九个角色属性点 × 两原型 × 两阶段 × 三个基础 Handling 值的 216 组组合，以及 Surplus / Amplified、异主隔离、重复系统来源、阶段重取样、到期、两阶段检查点与缺失强化校准。双端世界场景覆盖真实装备、物理 Orb / Font、技能付款、切枪限制、实际发射及完成后未知回执。武器的基础 Handling 10、射速、弹量和换弹等仍为合成验收输入；数值曲线之外的动画、美术、ADS、全部原型与金装、完整来源资格、正式生产装配 / HUD 和物理世界重启未完成。

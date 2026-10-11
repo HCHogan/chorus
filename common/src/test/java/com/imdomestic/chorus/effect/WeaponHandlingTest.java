@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WeaponHandlingTest {
     static Loadout loadout(String drawn) { return new Loadout(Map.of("test:primary", WeaponReloadTest.gun("a"), "test:secondary", WeaponReloadTest.gun("b")), Optional.ofNullable(drawn).map(s -> "test:" + s)); }
-    static final class Harness {
+    static class Harness {
         final CompiledEffects program; EffectSession session; Loadout physical = Loadout.EMPTY;
         final List<WeaponHandling.Apply> applications = new ArrayList<>(); final List<String> cues = new ArrayList<>();
         final List<EffectState> observed = new ArrayList<>(); boolean allow = true, unknownApply, unknownCue; int sequence;

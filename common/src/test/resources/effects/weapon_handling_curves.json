@@ -1,0 +1,123 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:auto_rifle_ready_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "foundry_seconds",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.51985381,
+              -0.00279338,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:auto_rifle_stow_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "foundry_seconds",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.48414822,
+              -0.00268436,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:auto_rifle_stow_floor",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:clamp",
+          "id": "stow_floor",
+          "minimum": 0.21571222000000007,
+          "maximum": 1.7976931348623157e+308
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:shotgun_ready_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "foundry_seconds",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.5388744939,
+              -0.003271255061,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:shotgun_stow_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "foundry_seconds",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.5711336032,
+              -0.003388663968,
+              0
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:shotgun_stow_floor",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:clamp",
+          "id": "stow_floor",
+          "minimum": 0.23226720639999993,
+          "maximum": 1.7976931348623157e+308
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effects": [
+    "Weapons attribute handling duration",
+    "Amplified",
+    "Surplus"
+  ],
+  "sources": [
+    {
+      "kind": "upstream_calculation_source",
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+      "revision": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+      "path": "data/d2-research/2026-10-12/handling-foundry-calculation.rs.gz",
+      "raw_sha256": "5662ee9dea9e59547d73f81cd7c02872046266acb7b24017d2d09c123f31e5c2",
+      "gzip_sha256": "497c50ef1bcbf68b0cbf45bf52fc46a1a80b6749f0db02da7efe7630bb0267a0"
+    },
+    {
+      "kind": "upstream_calculation_source",
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/types/rs_types.rs",
+      "revision": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+      "path": "data/d2-research/2026-10-12/handling-foundry-types.rs.gz",
+      "raw_sha256": "faa476e6589d2362cf9ee8dd948410adfa7fa8507e8809f3cd10bb13ebba9b90",
+      "gzip_sha256": "932d7929c5edddc1d2ed5ae02e0c73c2b3b86e26c53b6187288795d813371bef"
+    },
+    {
+      "kind": "upstream_calculation_source",
+      "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build_resources/weapon_formulas.json",
+      "revision": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+      "path": "data/d2-research/2026-10-12/handling-foundry-formulas.json.gz",
+      "raw_sha256": "fed3a0e02c72e34b8fb6daac459ca776fa31ef90b7350905b5f6276ff9b3178d",
+      "gzip_sha256": "1a386d1075f5bf824073b4af78c1587e71a40c879a1bbb5fc07c86bc8b15ea13"
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "path": "data/d2-research/2026-10-12/handling-mechanics-source.html.gz",
+      "raw_sha256": "20f06944e41ffdb2db81acb61f1e2262c6279b182a510680912b39ee645b3a95",
+      "gzip_sha256": "d137bf7cec1d30f9872be3975f0a46974f30ef2381e3ee6a371921f17eda75b0",
+      "original_cell": "E203",
+      "snapshot_cell": "E48",
+      "matches_same_day_weapons_capture": true
+    },
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=618967225",
+      "path": "data/d2-research/2026-10-12/handling-arc-source.html.gz",
+      "raw_sha256": "6ebde301d29600a143d0cbf73dba6d8a2559e9ffbefff5be1cc48522be27f10a",
+      "gzip_sha256": "552e49ca05ae22fb99574ae2afe6f3de86034c3b0a7f04999b2447e467699e73",
+      "original_row": 6,
+      "matches_previous_amplified_capture": true
+    }
+  ],
+  "related_sources": [
+    "data/d2-research/2026-10-12/weapons-stat-reload.json",
+    "data/d2-research/2026-10-11/amplified.json"
+  ],
+  "curves": {
+    "Auto Rifle": {
+      "ready": {
+        "vpp": -0.00279338,
+        "offset": 0.51985381
+      },
+      "stow": {
+        "vpp": -0.00268436,
+        "offset": 0.48414822
+      },
+      "ads": {
+        "vpp": -0.001875,
+        "offset": 0.38975
+      }
+    },
+    "Shotgun": {
+      "ready": {
+        "vpp": -0.003271255061,
+        "offset": 0.5388744939
+      },
+      "stow": {
+        "vpp": -0.003388663968,
+        "offset": 0.5711336032
+      },
+      "ads": {
+        "vpp": -0.00233805668,
+        "offset": 0.451194332
+      }
+    }
+  },
+  "formula": {
+    "H": "clamp(base weapon Handling + qualified point contributions, 0, 100)",
+    "W": "1 - 0.001 * min(derived Weapons stat, 100)",
+    "ready": "ready_curve(H) * animation_multipliers * W",
+    "stow": "max(stow_curve(100), stow_curve(H) * animation_multipliers * W)"
+  },
+  "evidence_boundary": "Foundry applies a final stow floor to all stow scalars. The current Compendium separately supplies Weapons 0.9x and the 100-Handling floor. Combining them in one final floor is an explicit content model; Foundry does not itself implement the character Weapons stat in this revision. Curves are community fits, not fresh in-game measurements or a verified complete archetype catalog.",
+  "sampling_policy": "Each phase samples current equipment/attributes/buffs at acceptance. Stow facts resolve before sampling Ready. Previously accepted deadlines and traces stay immutable. This is Chorus policy pending original-game sampling calibration.",
+  "remaining": [
+    "ADS timeline, visual animations and cancel windows",
+    "All archetypes and exotic-specific curves; complete source/phase qualification",
+    "Production content/subclass/loadout/HUD assembly and physical-world restart",
+    "Independent original-game curve/scalar/floor interaction calibration"
+  ],
+  "upstream_license": "data/d2-research/2026-10-12/handling-foundry-UNLICENSE.txt"
+}

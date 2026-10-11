@@ -4387,7 +4387,7 @@
           "text_sha256": "3c8dbd6005f504936b52ae9d66ec02e53d43b2f4cf55c0fbfd2ec97ba9a255f3"
         }
       ],
-      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度；装填属性、两种原型曲线和动画倍率分段组合并保留全部轨迹；真实Surplus装填属性先入武器曲线，再与Weapons属性时长乘数独立组合",
+      "scope": "普通版稳定性/操控/装填分档；查询当前基础技能的完整充能份数、三档封顶、武器隔离；实际手动换弹使用属性Profile，真实Wellspring击杀可提高下一次换弹速度；装填属性、两种原型曲线和动画倍率分段组合并保留全部轨迹；真实Surplus装填属性先入武器曲线，再与Weapons属性时长乘数独立组合；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限",
       "acceptance": [
         "普通稳定性5/15/25、操控5/25/60、装填10/25/60；零档无加值",
         "各槽完整份数相加并封顶3，额外充能独立计数，Super和缺失槽不计入",
@@ -4514,14 +4514,24 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatReloadGameTest.java",
           "symbol": "actualArmorAndSurplusComposeAfterTheCurveAndExistingReloadKeepsItsDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "acceptedStowKeepsItsPerksWhileNextReadyReadsCurrentArmorAndCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "actualSurplusSwitchKeepsStowTimeAndUsesCurrentArmorForTheOtherWeapon"
         }
       ],
       "gaps": [
         "强化版只有Stronger Effect描述，没有数值；模板要求显式测量，自动换弹宿主尚不提供，因此强化自动换弹未完成",
         "额外份数和3档上限有历史第一手研究支持，当前全部异域/替换能力/共享池/并行充能仍需校准",
-        "2−0.01×属性和3−0.02×属性的秒数曲线、0.75动画倍率、弹数和射速均为合成测试原型；实际D2各武器曲线未实现",
+        "装填2−0.01×属性和3−0.02×属性、0.75装填动画倍率、弹数和射速仍为合成测试原型；操控已接自动步枪/霰弹枪的Foundry参考曲线，完整武器曲线与原作实测尚未完成。",
         "已接受换弹保持时长是Chorus政策，原作中途技能变化是否重新采样待校准",
-        "稳定性/操控目前只有数值结果，后坐力、举枪/开镜、HUD与完整子职业/存档仍未装配"
+        "操控点数已进入真实举枪/收枪截止点；后坐力、开镜、动画、HUD与完整子职业/存档装配仍未完成。"
       ]
     },
     {
@@ -6106,7 +6116,7 @@
           "text_sha256": "ca306435797e8d4c7a1f6288e127b7be896cdcd00b3071793d728216c980474a"
         }
       ],
-      "scope": "六秒电弧击杀加权进度、15秒共享增幅、接收者隔离、属性查询及PvE战斗人员15%减伤；使用真实移动观察进入极速准备，并与Rolling Storm组合",
+      "scope": "六秒电弧击杀加权进度、15秒共享增幅、接收者隔离、属性查询及PvE战斗人员15%减伤；使用真实移动观察进入极速准备，并与Rolling Storm组合；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限",
       "acceptance": [
         "普通1/精英与Guardian2/Miniboss及以上4个四分之一进度，六秒窗口逐次刷新，阈值消费后授予15秒增幅",
         "只有本持有者电弧击杀计数；回执分类未知/缺失不当成普通目标；卸下内在来源清理未完成进度",
@@ -6151,11 +6161,30 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmplifiedGameTest.java",
           "symbol": "independentCombatantResistancesChangeActualHealthAndExcludeUnclassifiedDamage"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "surplusAndAmplifiedPointsClampBeforeCurvesAndFinalStowFloorIncludesEveryDurationScalar"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "amplifiedAndSurplusReachTheFinalStowFloorWhileReadyRetainsBothScalars"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "actualAmplifiedExpiryDoesNotRetimeReadyButTheFollowingStowLosesBothBenefits"
         }
       ],
       "gaps": [
         "生产Arc子职业唯一内在来源、星相等其他获得来源、来源切换与持久化未自动装配",
-        "Mobility到实际移动曲线、操控实际动画、8.5米滑铲、战斗人员瞄准精度降低未实现；原版移动投影必须显式提供校准参数",
+        "+40 Handling与0.95动画倍率已接真实举枪/收枪，限幅后的时长由服务端执行；视觉动画、ADS、Mobility完整移动曲线、8.5米滑铲、战斗人员瞄准精度仍未完成。",
         "激活后计数重置、溢出丢弃、重施加取长、未标记非玩家按普通目标以及Champion分类均为当前内容政策，需原作边界校准",
         "真实伤害测试显式提供combatant来源标签；默认原版来源不会自动猜测D2战斗人员；HUD与完整多人体验未验收"
       ]
@@ -10078,7 +10107,7 @@
           "text_sha256": "d599fa28c87715f0ee3b502f2cb621ae7ce57d14a585fa8728bb0d810c3b7ad6"
         }
       ],
-      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合；物理Orb启用Font后改变实际换弹时长，消费共享池只影响后续已接受装填",
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合；物理Orb启用Font后改变实际换弹时长，消费共享池只影响后续已接受装填；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限",
       "acceptance": [
         "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
         "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
@@ -10140,6 +10169,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatReloadGameTest.java",
           "symbol": "actualOrbFontAndChargeSpendChangeOnlyTheNextReload"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "realOrbFontAndChargeConsumptionChangeTheFollowingHandlingPhase"
         }
       ],
       "gaps": [
@@ -10844,13 +10878,14 @@
           "text_sha256": "94930e200fb89db3763ef4ef228f8709f46241ca052300d54f4a455a59ff227f"
         }
       ],
-      "scope": "真实护甲与Font汇总后按0–100/101–200区间计算武器增伤；三种弹药原始归因、实际Guardian/等级分类、来源快照与逐目标结算；共享Radiant/Surge/Rampage及Incandescent派生Solar；Weapons换弹时长乘数已在原型曲线之后接入，真实护甲/Font变化保留当前计划并影响下一次装填",
+      "scope": "真实护甲与Font汇总后按0–100/101–200区间计算武器增伤；三种弹药原始归因、实际Guardian/等级分类、来源快照与逐目标结算；共享Radiant/Surge/Rampage及Incandescent派生Solar；Weapons换弹时长乘数已在原型曲线之后接入，真实护甲/Font变化保留当前计划并影响下一次装填；实际举枪/收枪已组合角色Weapons、武器Handling与独立动画倍率，使用两种Foundry参考曲线和最终100 Handling收枪下限",
       "acceptance": [
         "每点连续计算，汇总后0–200限幅；普通/精英与Boss/Miniboss/Champion分属不同区间，不双乘",
         "Primary/Special增强最高15%，Heavy增强最高10%，Guardian最高5%；低阶Heavy当前采用15%并标记来源冲突",
         "发射/首代Scorch冻结来源属性和弹药，命中时读取目标分类；重复提供者不叠乘，缺失/冲突元数据不猜资格",
         "实际Font与Surge共享充能，真实击杀Rampage独立相乘，支出只改变新攻击；未知伤害不重放",
-        "Weapons换弹时长按每点0.1%递减至100点0.9倍；超过100不再缩短，与装填属性和其他动画乘数分开，逐次装填分别取样；操控/增强弹药砖仍待实现"
+        "Weapons换弹时长按每点0.1%递减至100点0.9倍；超过100不再缩短，与装填属性和其他动画乘数分开，逐次装填分别取样；增强弹药砖仍待实现",
+        "实际两阶段分别冻结点数/秒数/倍率/下限轨迹；角色属性不加到武器Handling，100以上不再缩短；换装、技能支付、Font消费与Amplified到期只影响后续阶段。"
       ],
       "evidence": [
         {
@@ -11004,10 +11039,78 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatReloadGameTest.java",
           "symbol": "unknownReactionAfterScaledReloadKeepsTransferredAmmoAndAppliedHealing"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_stat_handling.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_handling_curves.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "twoPublishedCurvesAndBothPhasesConsumeCharacterDurationWithoutAddingHandlingPoints"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "surplusAndAmplifiedPointsClampBeforeCurvesAndFinalStowFloorIncludesEveryDurationScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "foreignBuffAndDuplicateSystemProvidersCannotContaminateTheWeaponOwner"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "acceptedStowKeepsItsPerksWhileNextReadyReadsCurrentArmorAndCharges"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "amplifiedExpiryDuringReadyDoesNotMoveItsAcceptedDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "savedPhasesKeepCurvesNamedFactorsAndExactDeadlinesAfterSourcesChange"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatHandlingTest.java",
+          "symbol": "enhancedHandlingRequiresItsCalibrationBeforeChangingThePhysicalSelection"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "actualSurplusSwitchKeepsStowTimeAndUsesCurrentArmorForTheOtherWeapon"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "amplifiedAndSurplusReachTheFinalStowFloorWhileReadyRetainsBothScalars"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "realOrbFontAndChargeConsumptionChangeTheFollowingHandlingPhase"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "actualAmplifiedExpiryDoesNotRetimeReadyButTheFollowingStowLosesBothBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatHandlingGameTest.java",
+          "symbol": "unknownReactionAfterScaledReadyKeepsCommittedPhysicalSelectionWithoutReplay"
         }
       ],
       "gaps": [
-        "Weapons换弹时长乘数已接真实重装/逐发装填；实际举枪/收枪/开镜、100操控收枪下限和增强弹药砖概率尚未实现，武器曲线/护甲数值为合成输入",
+        "Weapons换弹和操控时长已接真实服务端阶段；增强弹药砖、ADS、全部原型/金装曲线与动画窗口仍未实现或校准。当前两种操控曲线是固定Foundry社区模型；与角色倍率共用最终下限是明确来源组合推断，非独立原作实测。武器基础Handling、射速、弹量、换弹曲线及护甲输入仍是合成验收值。",
         "低阶Heavy当前15%与官方9.0.0.1历史10%冲突，已标记conflict，尚无独立原作实测；等级细分依据作者预览解释",
         "on_use与初始Scorch采样、混合交战分类为显式内容政策，原作换装/命中/来源特例仍待校准",
         "完整武器/异域伤害资格、正式敌人目录、New Gear/活动Surge/Overcharge、生产装配、HUD与物理世界恢复未完成"

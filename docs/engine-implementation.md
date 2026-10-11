@@ -6,6 +6,22 @@
 
 ## 当前证据
 
+### 2026-10-12：D2 操控属性与真实切枪时间管线
+
+`weapon_stat_handling` 将角色 Weapons 汇总值转换为独立时间倍率，100 点到 0.9，101–200 不继续加速；`weapon_handling_curves` 提供两种固定 Foundry 社区参考曲线。真实武器阶段依次计算自身 Handling、原型秒数、Amplified 等动画倍率和角色倍率，STOW 最后应用本原型 100 Handling 的时长下限。READY 无此最终下限。普通 Surplus 的完整技能充能档位、Amplified 的 +40 / 0.95 和既有护甲 / Font 均复用原来源，不增加缓存属性或引擎特判。
+
+数值政策来自当前原表 Game Mechanics E203、Arc D6、同日 Engineeeer 资料及 Oracle Engine 固定提交 dcd0c7d。新抓取的原表两行与此前存档相等，Foundry 源码 / 原型 JSON 和哈希已归档。Foundry 的最终收枪下限有直接源码证据；把 Compendium 角色倍率放进这一最终下限，是明确记录的跨来源模型组合。曲线为社区拟合引用，未独立测量原作；武器基础 Handling 10、弹量、射速及换弹继续是合成夹具参数。
+
+新增 7 项规则测试，包含 216 组模式 / 角色点数 / 武器 / 阶段 / 基础操控矩阵，以及点数限幅、最终下限、独立命名因子、异主隔离、重复系统来源、阶段重取样、Buff 到期、两阶段会话恢复和缺失强化校准拒绝。5 项共享世界场景从真实玩家容器执行 READY / STOW，验证技能支付、护甲更换、物理 Orb / Font 与共享充能消费、Amplified 到期、阶段间开火 / 换弹限制、实际新武器发射，以及物理提交后的未知提示回执不重放。
+
+最终门禁 `/tmp/chorus-d2-handling-gate-4.log` BUILD SUCCESSFUL，2 分 26 秒：1673 项 JUnit（无失败 / 错误 / 跳过）、Fabric 896 项、NeoForge 911 项与双端发布 jar 通过，共享 Chorus 世界场景 895 项。10 项 Compendium 工具测试、107 条来源审阅 / 报告一致性与六份原始存档哈希核对通过。没有修改生产 Java、检查点结构、客户端协议或界面；历史检查点哈希保持不变，本阶段未重复图形客户端测试。
+
+开发期先修正配置夹具命名不符合已有校准文件约定、世界测试 delay 的 long / int 类型，以及误从其他夹具带入的顶层 defense_profile 标量导致只合并数组的测试助手拒绝。没有放宽目录校验或数值断言。发布 jar 继续排除效果 / 校准夹具、持久化测试资源和 GameTest。
+
+Compendium 保持 107 条审阅（105 partial、2 not_applicable、0 verified），扩充 Weapons / Font / Surplus / Amplified 的实际操控证据。完整原型与金装曲线、ADS 时间线、动画 / HUD、原作取消和取样边界、增强弹药砖、正式生产装配及物理世界重启仍未完成。[算法和来源边界](d2-ruleset.md#weaponsamplified-与-surplus-的实际操控时长)、[内容配置](engine-data-packs.md#d2-操控点数与时间管线)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 ### 2026-10-12：真实举枪 / 收枪阶段与物理持握提交
 
 新增 WeaponHandling 计划表和 CompiledHandling 执行流程。切换接受时中断手动换弹，STOW 与 READY 分别固定时间管线结果、来源和截止点；收枪完成才清空物理持握并发布 weapon_stowed，收枪反应之后再计算新武器的 READY，举枪完成才提交目标武器及 weapon_drawn。两个阶段都阻止常规开火和手动换弹；来源和装备变化影响下一段，不重算已接受时长。无配置的旧武器仍即时选择，混用时零时长阶段不额外等待一个 tick。
