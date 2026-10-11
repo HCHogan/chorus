@@ -38,15 +38,22 @@ public final class EffectPrograms {
     }
     public static MinecraftEffectRuntime install(ServerLevel level, Identifier id, EffectState.Mode mode) {
         var program = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
-        var world = new MinecraftWorldActions(level, value -> living(level, value), command -> {
+        return MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode).withRandom(new com.imdomestic.chorus.effect.random.RandomState(new java.security.SecureRandom().nextLong(), 0)),
+                new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), world(level), MinecraftEffectRuntime::nativeSource);
+    }
+    public static MinecraftEffectRuntime restore(ServerLevel level, Identifier id, MinecraftEffectRuntime.Checkpoint checkpoint) {
+        var program = find(level.getServer(), id).orElseThrow(() -> new IllegalArgumentException("Unknown Chorus effect program: " + id));
+        return MinecraftEffectRuntime.restore(level, program, checkpoint, new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())),
+                world(level), MinecraftEffectRuntime::nativeSource);
+    }
+    private static MinecraftWorldActions world(ServerLevel level) {
+        return new MinecraftWorldActions(level, value -> living(level, value), command -> {
             var type = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.parse(command.damageType())));
             var owner = living(level, command.source().owner());
             return new DamageSource(type, null, owner);
         }, (target, check) -> true, cue -> {
             throw new IllegalArgumentException("No cue binding installed for " + cue.cue());
         });
-        return MinecraftEffectRuntime.install(level, program, EffectState.empty().withMode(mode).withRandom(new com.imdomestic.chorus.effect.random.RandomState(new java.security.SecureRandom().nextLong(), 0)),
-                new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), world, MinecraftEffectRuntime::nativeSource);
     }
     private static LivingEntity living(ServerLevel level, String id) {
         try { return level.getEntity(UUID.fromString(id)) instanceof LivingEntity entity ? entity : null; }

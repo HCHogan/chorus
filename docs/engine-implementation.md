@@ -6,7 +6,15 @@
 
 ## 当前证据
 
-检查点 JSON 编解码门禁 `/tmp/chorus-checkpoint-codec-gate.log` BUILD SUCCESSFUL，1 分 21 秒：当时 1275 项 JUnit、Fabric 615 项、NeoForge 630 项和两端发布 jar 全部通过。之后新增非空换弹 / 散弹、伤害组 / 统计账本、Buff 内快照 / 观察数据三项纯测试，完整 `/tmp/chorus-checkpoint-codec-final-unit.log` 的 1278 项 JUnit 通过（9 秒，无失败 / 错误 / 跳过）。共享世界场景仍为 614 项；已有恢复场景现在实际写入并读回 JSON 文件，再恢复原世界中的周期治疗。本轮没有客户端协议 / 输入变更或新增图形验收。
+Minecraft 运行时恢复门禁 `/tmp/chorus-runtime-restore-gate.log` BUILD SUCCESSFUL，1 分 18 秒：1278 项 JUnit（无失败 / 错误 / 跳过）、Fabric 623 项、NeoForge 638 项与两端发布 jar 全部通过，共享场景增至 622 项。10 项 Compendium 审计、76 条报告一致性与差异检查通过。两端发布包包含宿主 Checkpoint，不含效果 / 存储测试夹具或 GameTest。本阶段未更改客户端协议 / 输入，没有新增图形客户端验收。
+
+`MinecraftEffectRuntime.checkpoint / restore` 在纯会话检查点外保留维度、世界 tick 与实际 PlayerEquipment 持有者。捕获会先正常结算到当前世界时钟，伤害描述 / 原版结算 / 世界动作 / 物品转移等未完成边界拒绝。恢复校验世界身份与完整目录，安装前比较在线玩家的实际装备容器，再重建原版伤害观察器和属性 / 移动投影；不会重放初始化、世界动作或补满已付费资源。已登记的空装备容器仍能在后续刷新解除保存的配装，外部可信装备宿主不被强制替换为 PlayerEquipment。
+
+新增 8 项共享 RuntimeRestoreGameTest：目录恢复后原版命中继续触发反应，随机流 / 模式 / 计数与已付能量保留；临时最大生命 / 移速 / 重力重建且按原期限到期，外部 modifier 保留；同版本不同目录、错误世界 / tick 和重复安装拒绝；伤害来源描述和世界执行内禁止捕获；未知实际治疗不能保存或重放；实际物品错配拒绝且不移动物品、重复初始化，空容器继续跟踪；其他装备宿主保留；关闭时拾取物立即消失且恢复不生成奖励或新物体。
+
+本阶段是对应世界状态上的宿主恢复接口，不是服务器重启验收。宿主元数据仍为 Java 数据，尚未编码到 format 1 文件；自动保存 / 加载、实体与物品共同提交、短命实体遗留的持续状态、最大生命投影与实体 NBT 加载顺序、离线与崩溃恢复继续待接入。Compendium 保持 76 条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[宿主协议与限制](engine-data-packs.md#minecraft-运行时的恢复入口)。
+
+上一阶段检查点 JSON 编解码门禁 `/tmp/chorus-checkpoint-codec-gate.log` BUILD SUCCESSFUL，1 分 21 秒：当时 1275 项 JUnit、Fabric 615 项、NeoForge 630 项和两端发布 jar 全部通过。之后新增非空换弹 / 散弹、伤害组 / 统计账本、Buff 内快照 / 观察数据三项纯测试，完整 `/tmp/chorus-checkpoint-codec-final-unit.log` 的 1278 项 JUnit 通过（9 秒，无失败 / 错误 / 跳过）。共享世界场景仍为 614 项；已有恢复场景现在实际写入并读回 JSON 文件，再恢复原世界中的周期治疗。本轮没有客户端协议 / 输入变更或新增图形验收。
 
 最终类型审计另验证未知接口和不支持的泛型容器不能漏报；`/tmp/chorus-checkpoint-codec-final-audit.log` 的全部 1278 项单测通过（7 秒）。发布 jar 随最终源码重新构建，`/tmp/chorus-checkpoint-codec-release.log` 成功（5 秒），两端包含存储 Codec / 类型表，不含 effects、存储 schema 夹具或 GameTest。10 项 Compendium 审计和 76 条报告一致性通过。
 
@@ -240,6 +248,7 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 世界命令执行、会话内去重、失败停留 | 纯宿主及双加载器 GameTest 通过 | `EffectSession`、`OperationLedger`；结果未知不重试，跨重启恢复未实现 |
 | 成功边界检查点与会话恢复 | 纯核心及双加载器世界测试通过 | `TimelineEngine.Checkpoint / EffectSession.Checkpoint`；完整目录匹配、时钟 / 序号与全部领域状态保留、旧操作退休、未知结果拒绝；已有 JSON，Minecraft 存档与重启恢复未实现 |
 | 检查点 JSON 与单文件原子替换 | 纯核心文件 / 类型审计及双端世界场景通过 | `EffectCheckpointCodec / RecordTreeCodec`；215 份定义与全部领域字段的格式、500 种内置数据类型固定 schema、大整数 / 空值语义、复杂快照 / 聚合 / 换弹；完整世界保存一致性与自动重启恢复未接入 |
+| Minecraft 运行时检查点与恢复 | 双加载器 8 项共享世界场景通过 | `MinecraftEffectRuntime.Checkpoint / EffectPrograms.restore`；时钟 / 目录与实际配装预检、原版投影与观察器重建、结算边界拒绝、短命实体不重生；宿主元数据文件、完整保存一致性及重启验收待接入 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

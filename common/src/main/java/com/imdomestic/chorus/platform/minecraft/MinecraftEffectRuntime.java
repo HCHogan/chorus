@@ -66,6 +66,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final List<ShieldDamage.Write> shieldWrites = new ArrayList<>();
     private Optional<Failure> failure = Optional.empty();
     private boolean closed;
+    private int describingDamage;
     private Optional<MinecraftNativeActions.Report> nativeActionReport=Optional.empty();
     public record ProjectileTrackingReport(long timeMicros, EffectEvent input, ActionGate.Phase phase,
             Optional<ActionGate.Decision> decision, Optional<String> failure) {
@@ -77,6 +78,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private Optional<ProjectileTrackingReport> projectileTrackingReport = Optional.empty();
     private boolean transferringEquipment, refreshingEquipment;
     private final Map<java.util.UUID, ServerPlayer> equipmentOwners = new java.util.LinkedHashMap<>();
+    private final Set<java.util.UUID> equipmentOwnerIds = new java.util.LinkedHashSet<>();
     private record InputKey(java.util.UUID holder, String slot) {}
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
@@ -90,14 +92,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
 
     private MinecraftEffectRuntime(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
-            Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
+            Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources, Optional<EffectSession.Checkpoint> checkpoint) {
         this.level = Objects.requireNonNull(level); this.sources = Objects.requireNonNull(sources);
         this.program = Objects.requireNonNull(program);
         this.nativeAttributes = new MinecraftAttributeProjection(level,program);
         this.nativeMovement = new MinecraftMovementProjection(level,program);
         this.nativeHorizontalSpeed = new MinecraftHorizontalSpeedProjection(level,program);
         this.originTick = level.getGameTime(); this.originMicros = initial.buffs().timeMicros();
-        this.session = new EffectSession(program, clock, 256, initial, request -> {
+        Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> executor = request -> {
             if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
             operationFacts = new ArrayList<>();
             try {
@@ -111,12 +113,55 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 var writes = takeWrites();
                 return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
             } finally { operationFacts = null; }
-        });
+        };
+        this.session = checkpoint.map(saved -> EffectSession.restore(program, clock, 256, saved, executor))
+                .orElseGet(() -> new EffectSession(program, clock, 256, initial, executor));
     }
     public static MinecraftEffectRuntime install(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
-        var runtime = new MinecraftEffectRuntime(level, program, initial, clock, world, sources);
+        var runtime = new MinecraftEffectRuntime(level, program, initial, clock, world, sources, Optional.empty());
+        return attach(runtime);
+    }
+    /** Host metadata must match the corresponding world save; a clock match alone is not a world transaction. */
+    public record Checkpoint(String dimension, long gameTime, EffectSession.Checkpoint effects, Set<java.util.UUID> equipmentOwners) {
+        public Checkpoint {
+            net.minecraft.resources.Identifier.parse(dimension); Objects.requireNonNull(effects);
+            equipmentOwners = Set.copyOf(equipmentOwners);
+            if (gameTime < 0) throw new IllegalArgumentException("Invalid saved world clock");
+        }
+    }
+    public Checkpoint checkpoint() {
+        checkpointBoundary();
+        prepare(); // Settle the current world tick before pinning the relationship between the two clocks.
+        checkpointBoundary();
+        return new Checkpoint(level.dimension().identifier().toString(), level.getGameTime(), session.checkpoint(), equipmentOwnerIds);
+    }
+    private void checkpointBoundary() {
+        thread();
+        if (failure.isPresent() || session.running() || refreshingEquipment || describingDamage != 0 || operationFacts != null || combatView != null
+                || !activeDamage.isEmpty() || !reservations.isEmpty() || !completedDamage.isEmpty() || !shieldWrites.isEmpty() || !combatFacts.isEmpty())
+            throw new IllegalStateException("Checkpoint requires a settled Minecraft world boundary");
+    }
+    public static MinecraftEffectRuntime restore(ServerLevel level, CompiledEffects program, Checkpoint checkpoint, EffectClock clock,
+            Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
+        if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
+        if (!level.dimension().identifier().toString().equals(checkpoint.dimension()) || level.getGameTime() != checkpoint.gameTime())
+            throw new IllegalArgumentException("Checkpoint belongs to a different dimension or world save clock");
+        if (!program.program().equals(checkpoint.effects().program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
+        // A mismatch with an already-present player's physical container is not an equipment-change event to replay.
+        for (var player : level.players()) {
+            if (!checkpoint.equipmentOwners().contains(player.getUUID()) && PlayerEquipment.get(player).isEmpty()) continue;
+            var saved = checkpoint.effects().timeline().domain().equipment().getOrDefault(player.getUUID().toString(), com.imdomestic.chorus.effect.equipment.Loadout.EMPTY);
+            if (!saved.equals(PlayerEquipment.get(player).projection(program.equipment())))
+                throw new IllegalArgumentException("Checkpoint equipment differs from the current player container: " + player.getUUID());
+        }
+        var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()));
+        runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
+        return attach(runtime);
+    }
+    private static MinecraftEffectRuntime attach(MinecraftEffectRuntime runtime) {
+        var level = runtime.level;
         if (LIVE.putIfAbsent(level, runtime) != null) throw new IllegalStateException("Level already has a rule runtime");
         try { DamageCapture.install(level, runtime); runtime.refreshProjections(); }
         catch (RuntimeException error) { try { runtime.close(); } catch(RuntimeException cleanup) { error.addSuppressed(cleanup); } throw error; }
@@ -377,12 +422,15 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void trackEquipment(ServerPlayer player) {
         thread(); if (player.level() != level) throw new IllegalArgumentException("Equipment owner is in another level");
         equipmentOwners.put(player.getUUID(), player);
+        equipmentOwnerIds.add(player.getUUID());
     }
     private void refreshEquipment() {
         if (refreshingEquipment || session.running() || failure.isPresent()) return;
         refreshingEquipment = true;
         try {
-            for (var player : level.players()) if (!PlayerEquipment.get(player).isEmpty()) equipmentOwners.put(player.getUUID(), player);
+            for (var player : level.players()) if (!PlayerEquipment.get(player).isEmpty() || equipmentOwnerIds.contains(player.getUUID())) {
+                equipmentOwners.put(player.getUUID(), player); equipmentOwnerIds.add(player.getUUID());
+            }
             for (var entry : List.copyOf(equipmentOwners.entrySet())) {
                 var player = entry.getValue(); boolean present = !player.isRemoved() && player.level() == level;
                 var next = present && player.isAlive() ? PlayerEquipment.get(player).projection(program.equipment()) : com.imdomestic.chorus.effect.equipment.Loadout.EMPTY;
@@ -421,11 +469,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
         thread();
+        describingDamage++;
         try {
             var command = Objects.requireNonNull(sources.describe(target, source, amount));
             return failure.isPresent() ? command : program.prepareReactions(view(), command);
         }
         catch (RuntimeException error) { failed(error, List.of()); return nativeSource(target, source, amount); }
+        finally { describingDamage--; }
     }
     private EffectState attackView(DamageCommand command, String ownId) {
         return ConsumptionReservations.view(view(), command, ownId, List.copyOf(reservations.values()));
@@ -588,11 +638,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); abilityInputs.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
         abandonProjectiles();
         var constructs = new ArrayList<EffectConstruct>();
-        for (var entity : level.getAllEntities()) if (entity instanceof EffectConstruct construct && construct.ownedBy(this)) constructs.add(construct);
+        var pickups = new ArrayList<EffectObject>();
+        for (var entity : level.getAllEntities()) {
+            if (entity instanceof EffectConstruct construct && construct.ownedBy(this)) constructs.add(construct);
+            if (entity instanceof EffectObject pickup && pickup.ownedBy(this)) pickups.add(pickup);
+        }
         constructs.forEach(EffectConstruct::discard);
+        pickups.forEach(EffectObject::discard);
         RuntimeException cleanup=null;
         try { nativeAttributes.close(); } catch(RuntimeException error) { cleanup=error; }
         try { nativeMovement.close(); } catch(RuntimeException error) { if(cleanup==null)cleanup=error;else cleanup.addSuppressed(error); }

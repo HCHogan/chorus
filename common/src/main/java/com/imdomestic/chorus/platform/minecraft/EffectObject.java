@@ -37,6 +37,7 @@ public final class EffectObject extends Entity implements ItemSupplier {
     }
     private WorldPosition point(Vec3 p) { return new WorldPosition(level().dimension().identifier().toString(), p.x, p.y, p.z); }
     private void abandon() { consumed = true; discard(); }
+    boolean ownedBy(MinecraftEffectRuntime candidate) { return runtime == candidate; }
     @Override public void tick() {
         if (consumed || isRemoved()) return;
         super.tick();
