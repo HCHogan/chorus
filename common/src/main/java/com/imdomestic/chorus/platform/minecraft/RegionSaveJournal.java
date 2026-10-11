@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 /** One native I/O worker's lifetime evidence, including failures already removed from its pending queue. */
 public final class RegionSaveJournal {
-    public enum Kind { WRITE, DRAIN, FLUSH, CLOSE }
+    public enum Kind { ENCODE, WRITE, DRAIN, FLUSH, CLOSE }
     public record Operation(long sequence, Kind kind, String target) {}
     public record Failure(Operation operation, String cause) {}
     public record Report(long sequence, long latestWrite, long flushedThrough, boolean closed,
@@ -73,6 +73,13 @@ public final class RegionSaveJournal {
                 return result;
             } catch (RuntimeException | Error error) { attempt.complete(error); throw error; }
         }
+    }
+    /** Upstream synchronous serialization can fail or produce partial output before any worker write is submitted. */
+    public <T> T encode(String target, Function<Attempt, T> original) {
+        var attempt = begin(Kind.ENCODE, target);
+        if (attempt.afterClose) attempt.failed(new IllegalStateException("Serialization submitted after region worker closed"));
+        try { var result = original.apply(attempt); attempt.complete(null); return result; }
+        catch (RuntimeException | Error error) { attempt.complete(error); throw error; }
     }
     /** For native close errors caught internally, which cannot be inferred from close() returning. */
     public void failedClose(Throwable error) {

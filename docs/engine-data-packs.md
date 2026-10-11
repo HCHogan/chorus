@@ -2616,7 +2616,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 `MinecraftSaveCapture.observe(expectedPaths)` 按调用方提供的实际文件路径建立一个线程内观察窗口。PlayerSaveCaptureMixin 包围 PlayerDataStorage.save，LevelSaveCaptureMixin 包围实际写入 level.dat 的私有 saveLevelData；SaveReplacementMixin 观察 Util.safeReplaceFile 内原本被丢弃的布尔替换结果。原版重试、备份 / 回滚与异常处理路径保持原样，观察器不重写文件或把保存失败变成游戏效果失败。
 
-窗口内每次相关保存留下一个 Write：REPLACED、REPLACEMENT_FAILED、NO_REPLACEMENT 或 THREW，最后一种携带已观察到的异常摘要。写入临时文件前被原版吞掉的异常至少表现为 NO_REPLACEMENT，不能把 void 方法正常返回当作成功；返回 false 的替换失败会保留为 REPLACEMENT_FAILED，即使旧目标文件仍然存在。missing 另列根本没有调用保存的预期文件，不与已尝试但失败混淆。路径只做绝对化和 normalize，不根据存档输入扫描目录或猜测成功。
+窗口内每次相关保存留下一个 Write：REPLACED、REPLACEMENT_FAILED、NO_REPLACEMENT、SERIALIZATION_FAILED 或 THREW；后两者携带已观察到的诊断摘要。写入临时文件前被原版吞掉的异常至少表现为 NO_REPLACEMENT，不能把 void 方法正常返回当作成功；返回 false 的替换失败会保留为 REPLACEMENT_FAILED，即使旧目标文件仍然存在。保存范围内的 ScopedCollector 序列化问题会留下 SERIALIZATION_FAILED，即使文件随后成功替换也不能清除。missing 另列根本没有调用保存的预期文件，不与已尝试但失败混淆。路径只做绝对化和 normalize，不根据存档输入扫描目录或猜测成功。
 
 Scope 关闭后，报告才可能 successful：全部预期文件必须实际参与保存，且本窗口内相关尝试全部成功。同一文件后来成功不会抹掉前一次失败；需要显式开启下一次完整保存窗口。嵌套观察分别保留证据，错误关闭顺序、保存尚在执行时关闭以及跨线程使用均拒绝。其他玩家 / 世界文件的成功不能替代缺少的预期路径；其他线程的操作不计入本同步窗口。
 
@@ -2633,7 +2633,7 @@ pendingSave.confirm("players");
 
 ### 区域存储的异步写入与 flush 证据
 
-每个原版 `IOWorker` 通过 `MinecraftRegionSaveAccess` 持有独立的 `RegionSaveJournal`。`SimpleRegionStorage.chunkScanner()` 可取得该 worker；区块、实体和 POI 底层共用这个协议。日志从 worker 建立时开始，记录所有已提交 WRITE / DRAIN / FLUSH / CLOSE 的序号、尚未观察完成的任务、最后写入和成功 flush 的覆盖位置，以及该实例生命周期内的失败。不同存储实例即使 level / dimension / type 标签相同也不共享证据。
+每个原版 `IOWorker` 通过 `MinecraftRegionSaveAccess` 持有独立的 `RegionSaveJournal`。`SimpleRegionStorage.chunkScanner()` 可取得该 worker；区块、实体和 POI 底层共用这个协议。日志从 worker 建立时开始，记录 ENCODE / WRITE / DRAIN / FLUSH / CLOSE 的序号、尚未观察完成的任务、最后写入和成功 flush 的覆盖位置，以及该实例生命周期内的失败。不同存储实例即使 level / dimension / type 标签相同也不共享证据。
 
 原版失败的 PendingStore 会从队列移走，后续 synchronize(true) 可以成功。因此失败必须保留，不能仅观察关闭前的一次 flush。Journal 的成功报告要求没有未完成任务、没有历史失败，且至少一次成功的 synchronize(true) 覆盖最后一次提交的写入。synchronize(false)、close 正常返回、写入已排队、文件存在都不能替代这个条件。删除区域条目也算写入；flush 开始以后新提交的写入使旧 flush 不足以确认当前状态。
 
@@ -2648,7 +2648,11 @@ pendingSave.confirm("region");
 
 completion 等待调用时已经提交的观察，或在已知失败时提前返回失败报告，不发起保存 / flush，也不取消仍在执行的原版任务。supplier 抛错且原版 future 永不结束时，失败报告仍能返回，并保留 pending；宿主不能把它当作 I/O 已停止。返回时会重新取当前报告，期间新增但未完成或未 flush 的工作仍会使报告失败。报告是不可变快照，后续写入或关闭失败不会修改旧对象；确认前必须等待所有相关工作并读取当前报告，宿主还必须保证世界不再变化。生命周期失败没有自动清除入口，之后一次成功不能证明原先失败的其他区块也已修复；显式恢复政策另行处理。调用方仍需枚举本次保存的全部存储实例，不能以一个 worker 成功替代整个世界。
 
-本协议覆盖已经到达 IOWorker 的任务，不覆盖在提交之前的区块 / 实体 / POI 序列化失败或未提交的脏状态。SavedDataStorage 使用下面的独立观察协议，不能拿区域文件的报告替代。
+上层 ChunkMap.save、EntityStorage.storeEntities 和 SectionStorage.writeChunk 已通过 ENCODE 操作接到各自真实 worker 的 Journal。编码范围中的异常、ScopedCollector 报告和 SectionStorage 的 DataResult 部分 / 缺失结果都保留为失败，不要求它们继续抛到服务器顶层。NeoForge 对 Entity.save 和 BlockEntity.saveWithFullMetadata 的吞错 / 丢弃行为保留，诊断在被捕获之前记录；ChunkMap 直接报告的保存异常也进入当前范围。异步区块编码抛错仍由 worker supplier 的已有观察记录。
+
+`MinecraftRegionStorageAccess` 返回实体 / section 存储的准确 SimpleRegionStorage，供宿主枚举；ChunkMap 本身就是 SimpleRegionStorage。SaveSerializationCapture 只在当前调用线程已打开的编码范围内记录诊断，嵌套范围使用当前写入者，结束后清理；无关的读取 / 保存诊断不归入另一个存储实例。正常返回 false 的不保存实体不会仅因被跳过就被标为错误。原版日志、部分 NBT、dirty 清理和异常传播继续保持原样；证明失败不自动回滚文件或重新标记脏数据。
+
+这些入口覆盖原版已调用的编码 / 保存路径，不证明所有需要保存的对象都被调用，也不覆盖在观察范围之外创建的 level.dat 内容或任意模组的自定义存储。SavedDataStorage 使用下面的独立观察协议，不能拿区域文件的报告替代。
 
 ### 世界附加数据的保存证据
 
@@ -2665,4 +2669,4 @@ pendingSave.confirm("saved_data");
 
 成功报告要求该实例至少实际调用过一次 scheduleSave、所有观察任务完成且没有该实例生命周期内的失败；真正无脏数据的空批次可以成功。completion 等待调用时已经存在的任务，或在已知失败时提前返回当前失败报告，不取消仍在执行的 I/O；期间新增的未完成任务仍会显示在返回报告里。关闭后的旧批次仍可在原版继续写入，报告会保留 pending，不能在这时删除世界文件或提交检查点。DIRECTORY / WRITE / SCHEDULE / CLOSE 各有错误来源，实际目录 / 文件记录规范化绝对路径；已完成的成功文件不逐个永久保存在 Journal 中。
 
-报告仍是不可变时点快照，不能检测保存调用之后新变 dirty 的对象；宿主须先冻结世界并调用正确存储实例的保存，再等待当前报告和所有关闭结果。它证明的是所观察原版编码与文件操作的返回结果，不提供 fsync / 目录断电持久性、跨文件事务、自动修复或整服重启保证。上层区块 / 实体 / POI 提交前序列化的故障、自动保存 / 启动加载和所有实例的协调、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在已经变化的世界上宣称回滚。
+报告仍是不可变时点快照，不能检测保存调用之后新变 dirty 的对象；宿主须先冻结世界并调用正确存储实例的保存，再等待当前报告和所有关闭结果。它证明的是所观察原版编码与文件操作的返回结果，不提供 fsync / 目录断电持久性、跨文件事务、自动修复或整服重启保证。自动保存 / 启动加载、所有实例与保存范围的协调、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在已经变化的世界上宣称回滚。

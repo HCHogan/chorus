@@ -71,6 +71,7 @@
       "com.imdomestic.chorus.NativeSaveGameTest",
       "com.imdomestic.chorus.RegionSaveGameTest",
       "com.imdomestic.chorus.SavedDataSaveGameTest",
+      "com.imdomestic.chorus.SaveSerializationGameTest",
       "com.imdomestic.chorus.ProjectileDestinationGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",

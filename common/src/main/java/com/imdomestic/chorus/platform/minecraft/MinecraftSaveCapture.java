@@ -6,7 +6,7 @@ import java.util.*;
 /** Synchronous native player/level.dat save evidence; does not infer success from void methods returning. */
 public final class MinecraftSaveCapture {
     private MinecraftSaveCapture() {}
-    public enum Outcome { REPLACED, REPLACEMENT_FAILED, NO_REPLACEMENT, THREW }
+    public enum Outcome { REPLACED, REPLACEMENT_FAILED, NO_REPLACEMENT, SERIALIZATION_FAILED, THREW }
     public record Write(Path target, Outcome outcome, Optional<String> failure) {
         public Write { target = path(target); Objects.requireNonNull(outcome); Objects.requireNonNull(failure); }
     }
@@ -31,6 +31,7 @@ public final class MinecraftSaveCapture {
             if (outcome == Outcome.NO_REPLACEMENT || outcome == Outcome.REPLACED) outcome = success ? Outcome.REPLACED : Outcome.REPLACEMENT_FAILED;
         }
         void failed(Throwable error) { outcome = Outcome.THREW; failure = Optional.of(error.getClass().getSimpleName() + ": " + error.getMessage()); }
+        void encodingFailed(String message) { outcome = Outcome.SERIALIZATION_FAILED; failure = Optional.of(message); }
     }
     public static final class Scope implements AutoCloseable {
         private final Thread thread = Thread.currentThread();
@@ -60,7 +61,7 @@ public final class MinecraftSaveCapture {
         if (recipients.isEmpty()) { original.run(); return; }
         var attempt = new Attempt(file, recipients); recipients.forEach(scope -> scope.openAttempts++);
         if (ATTEMPTS.get() == null) ATTEMPTS.set(new ArrayDeque<>()); ATTEMPTS.get().push(attempt);
-        try { original.run(); }
+        try { SaveSerializationCapture.observe(attempt::encodingFailed, () -> { original.run(); return null; }); }
         catch (RuntimeException | Error error) { attempt.failed(error); throw error; }
         finally {
             ATTEMPTS.get().pop(); if (ATTEMPTS.get().isEmpty()) ATTEMPTS.remove();
