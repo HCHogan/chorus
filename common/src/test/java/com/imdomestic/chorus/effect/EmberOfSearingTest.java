@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 class EmberOfSearingTest {
     static final String ENERGY="test:searing_melee_energy", FRAGMENT="chorus_d2:ember_of_searing";
-    static CompiledEffects program()throws Exception{return link("ember_of_searing","searing_test_calibration","searing_inputs","solar","solar_test_calibration","solar_test_source","character_stats","threaded_spike_energy","firesprite","firesprite_test_calibration");}
+    static CompiledEffects program()throws Exception{return link("ember_of_searing","searing_test_calibration","searing_inputs","solar","empowering_damage","solar_test_calibration","solar_test_source","character_stats","threaded_spike_energy","firesprite","firesprite_test_calibration");}
     static class Harness extends SolarTest.Harness {
         final List<WorldPickup.Spawn> pickups=new ArrayList<>();final List<Action.CueCommand> cues=new ArrayList<>();
         DamageReceipt.Outcome outcome=DamageReceipt.Outcome.APPLIED;boolean prevented, omitObservation;int entityReads;Runnable afterObservation=()->{};

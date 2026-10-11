@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+Solar共享增伤接线通过1632项完整JUnit（无失败/错误/跳过，`/tmp/chorus-solar-scaling-gate.log`的单元测试阶段）；最终双端门禁 `/tmp/chorus-solar-scaling-world-3.log` BUILD SUCCESSFUL，2分55秒：Fabric870项、NeoForge885项及两端发布jar通过，共享Chorus世界场景869项。新增7项Solar组合规则测试和5项共享世界场景；10项Compendium审计、106条报告一致性及原表存档哈希通过。本阶段没有新增生产Java执行器、检查点类型或客户端协议。
+
+参考Solar输出Profile共享公共empowering、weapon_surge和perks阶段，复用原来的Radiant、六元素Surge及合资格武器perk定义。四个Scorch / Ignition伤害出口根据实际受击者的已有观察传入radiant_champion。初始Scorch来源及on_use贡献保留，后续施加、充能消耗、卸装、Radiant到期不会重写该代攻击；新一代重新取样。grenade / melee / super信用即使带weapon身份，也不借用武器增伤。Incandescent的直接爆炸仍保留独立Profile。
+
+纯核心验证三档涌动×Radiant×Rampage、PvP表与非致命、错误元素、逐目标勇士、后续施加者和新旧快照。实际世界通过物理Orb、两把Incandescent武器的40+60层点燃、真实Rampage击杀和后续Scorch，验证已移除来源的快照、武器隔离及未知点燃回执不重放。首次世界组合暴露测试模块imports元数据、重复占位定义及未导入Orb校准；最终直接扩展既有Incandescent场景，并显式复用Orb数值Profile后通过，未改动生产链接器的严格检查或数值断言。Rampage适配逐项核对与原定义一致，仅改Profile / group目的地。
+
+2026-10-12原表Solar D10–D12与此前存档一致，HTML、校验和、固定CSV映射和官方近战缩放边界已归档。Weapon Stat、New Gear Bonus、活动Surge / Overcharge、全部技能增伤与异域来源、原作取样校准和正式生产装配仍未完成。更新Scorch / Ignition / Radiant / Weapon Surge / Incandescent既有审阅，仍为104 partial、2 not_applicable、0 verified，不把组合通过算作全表支持。[规则及限制](d2-ruleset.md#武器来源-solar-的共享增伤阶段)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 通用共享数值阶段门禁 `/tmp/chorus-shared-stages-gate.log` BUILD SUCCESSFUL，2分14秒：1625项JUnit（无失败/错误/跳过）、Fabric865项、NeoForge880项及两端发布jar通过，共享Chorus世界场景864项。新增8项规则测试与3项共享世界场景；10项Compendium审计与106条报告一致性通过。检查点仅新增CalculationStep.Shared类型，既有类型字段完全未变；没有客户端协议变化，本轮未重跑图形客户端。
 
 `chorus:shared_apply`允许独立Profile共享同名阶段的贡献，保留原攻击上下文与修饰器资格，在一个MAX / PRODUCT分组中同时选择本地与导入来源。引用可多层展开，每个实际modifier只访问一次；父Profile的转换和其他阶段不会被重复应用。链接检查完整Apply布局与贡献单位，拒绝缺失、分组冲突或循环别名。on_use继续冻结来源状态，目标条件与on_hit保留实时求值；有实时贡献时，目标Profile必须与快照布局兼容。

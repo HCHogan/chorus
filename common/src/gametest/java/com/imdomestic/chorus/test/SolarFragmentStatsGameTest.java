@@ -17,7 +17,7 @@ public class SolarFragmentStatsGameTest {
     static double chunk(double stat){return 1.625-.625*StrictMath.cos(StrictMath.PI*stat/100);}
     static double passive(double stat){return stat>=70?2.10898698+.00639461*stat:1+.004273626*stat+.000300195*stat*stat-6.37618e-7*stat*stat*stat;}
     static void solar(JsonObject data){
-        for(String name:List.of("solar","solar_test_calibration","ember_of_char","ember_of_eruption"))
+        for(String name:List.of("solar","empowering_damage","solar_test_calibration","ember_of_char","ember_of_eruption"))
             for(var field:ThreadedSpikeGameTest.json(name).entrySet())if(field.getValue().isJsonArray()){
                 if(!data.has(field.getKey()))data.add(field.getKey(),new JsonArray());field.getValue().getAsJsonArray().forEach(v->data.getAsJsonArray(field.getKey()).add(v));
             }

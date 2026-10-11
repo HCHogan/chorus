@@ -135,7 +135,7 @@ Buff 的 [damage_snapshots 组件](engine-data-packs.md#在-buff-中保存伤害
 | ignition_radius | meter → meter | Solar 自带，基础 8 米；原始 Scorch 来源持有者在达到阈值时取样，Eruption 的 MAX 组增加 25% 至 10 米；结果随待执行爆炸保留 |
 | solar_outgoing | damage → damage | 必须包含 payload / payload 的 ADD 阶段，接收 `solar_payload` 命中测量；之后声明来源允许的缩放与世界伤害单位换算 |
 
-宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；武器属性、武器 New Gear Bonus 的 5%、战斗单位等级倍率、Radiant、Surge、Verity 等具体资格及特殊来源仍需装配，当前没有声明这些 perk 全部生效。
+宿主须在攻击捕获前为每位施加者绑定 `chorus_d2:solar_scaling`，它把每次 tick / 点燃的原始伤害测量放入 payload 阶段；建议该组使用 MAX，避免重复装配叠加原始伤害。该贡献也随攻击冻结，因此卸下后仍可计算。Solar 使用独立 Profile，不自动套用近战 Profile；当前通过共享阶段接入 Radiant、Weapon Surge 和合资格 Rampage，详见下方新增章节。武器属性、武器 New Gear Bonus 的 5%、完整战斗单位等级倍率、Verity 等技能增伤和特殊来源仍需装配，当前没有声明全部 perk 生效。
 
 **施加入口契约：** 所有生产者在 apply_status 前检查目标没有 `chorus_d2:scorch_lockout`。共享 Buff 生命周期不提供隐式的状态授予否决；直接 grant_buff 绕过该契约属于错误装配。[solar_test_source.json](../common/src/test/resources/effects/solar_test_source.json) 只是合成输入及反应探针，未连接生产武器 / 技能。Incandescent 已从真实武器击杀入口遵守同一契约，见上节。
 
@@ -1658,4 +1658,17 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 
 当前普通武器使用on_use快照：开火时固定Armor Charge资格、当前副本及贡献，随后消费充能、卸模组/武器或四档到期不重写已发射的弹丸；新攻击查询当前状态。原作各种武器的开火/命中/切换取样边界尚未校准，这是明确的Chorus政策。未知实际伤害回执保留已扣弹药与已经发生的伤害，不重放。
 
-11项规则测试包括六元素×三档×两模式的36组矩阵、同元素MAX、不同元素隔离、满/空充能、独立计时、会话检查点与资格；8项共享世界场景验证真实Orb、装备容器换枪、物理射弹、Radiant/Rampage组合、真实十秒/二十秒周期、Font、Kickstart和未知结果。独立四档目前由合成Buff提供，尚无完整金装/神器触发；活动Surge/Overcharge、Golden Gun/偃月等特殊资格、独立Solar Scorch/Ignition及其他伤害Profile的接线、正式护腿插槽/三能量预算/总副本限制、HUD与物理世界持久化仍待完成。此处合成混合副本组合只验证算术，不代表合法原作配装；整条Weapon Surge审阅仍为partial。
+11项规则测试包括六元素×三档×两模式的36组矩阵、同元素MAX、不同元素隔离、满/空充能、独立计时、会话检查点与资格；8项共享世界场景验证真实Orb、装备容器换枪、物理射弹、Radiant/Rampage组合、真实十秒/二十秒周期、Font、Kickstart和未知结果。独立四档目前由合成Buff提供，尚无完整金装/神器触发；活动Surge/Overcharge、Golden Gun/偃月等特殊资格、其他伤害Profile的接线（Solar Scorch/Ignition已接共享阶段）、正式护腿插槽/三能量预算/总副本限制、HUD与物理世界持久化仍待完成。此处合成混合副本组合只验证算术，不代表合法原作配装；整条Weapon Surge审阅仍为partial。
+
+
+### 武器来源 Solar 的共享增伤阶段
+
+2026-10-12 重新取得的[原表 Solar D10–D12](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D12)与此前存档文本一致。D12 明确首个灼烧来源决定后续 Scorch / Ignition 的伤害信用；武器来源可受合资格武器 perk、Radiant 和 Solar Weapon Surge 影响。技能来源保留自身类型，不能因为 Origin 中有 weapon 字段就变成武器伤害。[官方近战改动说明](https://www.bungie.net/7/en/News/Article/twid_06_19_2025)也明确移除了近战增伤对 Scorch / Ignition 的缩放。原表 HTML、哈希、坐标映射和待完成范围保存在 [solar-damage-scaling.json](../data/d2-research/2026-10-12/solar-damage-scaling.json)。
+
+参考 `solar_outgoing` 在原来的 payload / bonus 与世界单位换算之间加入三个 `shared_apply`：empowering、weapon_surge、perks，均引用 `chorus_d2:empowering_damage` 的同名贡献阶段。这样复用已有 Radiant 家族优先级、元素与副本 / Armor Charge 资格，以及独立 perk 的分组；不会复制一份 Buff，也不会重复乘父 Profile 的最终结果。Rampage 验收适配仅改修饰器目的 Profile / group，保持原来的触发、作用武器和排除条件。Incandescent 自身最多 30 伤害的直接爆炸继续使用独立 Profile；本阶段接入的是它产生的 Scorch / Ignition。
+
+Solar 的每个真实 tick 和每个点燃受击目标都已执行 inspect_entity；`radiant_champion` 从该次观察的实体 / 类型标签产生，不能借用施加者或最初灼烧对象的分类。初始应用时捕获来源侧贡献，后来的施加者、充能消费、卸装、perk 移除或 Radiant 到期不重写该代 Scorch / Ignition；新一代使用新的资格与数值。此 on_use 取样与命中时目标分类仍是明确 Chorus 政策，不能宣称原作所有换装 / 飞行 / 延迟边界已经校准。
+
+规则与双端场景覆盖三档涌动、PvE / PvP、原武器 Rampage 资格、后续施加者、勇士逐目标分类和技能来源排除。真实 Incandescent 两枪以 40+60 层触发点燃，物理 Orb 提供充能；实际 Rampage 武器击杀后，只有该武器信用的 Solar 伤害继承其增幅。来源被卸下后已有 Scorch 继续结算；未知伤害回执保留物理扣血及 lockout，不重复执行。
+
+Weapon Stat、New Gear Bonus、活动 Surge / Overcharge、全套技能增伤与异域特例仍未补齐。原来的 PvE 衰减、PvP 曲线 / 距离、世界单位转换及点燃延迟校准缺口继续保留；Incandescent 是否排除通用 Scorch 非 Boss 倍率也仍需校准。定义仍是可验收参考内容，没有完成生产装备 / 子职业装配、HUD 或物理世界存档；相关条目维持 partial。

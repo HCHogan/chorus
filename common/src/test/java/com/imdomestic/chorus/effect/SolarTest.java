@@ -18,7 +18,7 @@ class SolarTest {
     static EffectSource source(String owner, String credit) { return new EffectSource(owner, "test:scorch_source", owner,
             new BuffInstance.Origin(owner, owner, owner + "-weapon", owner + "-ability", Set.of("chorus:" + credit + "_damage")), Set.of()); }
     static final EffectSource FIRST = source("first", "weapon"), SECOND = source("second", "grenade");
-    static CompiledEffects program() throws Exception { return link("solar", "solar_test_calibration", "solar_test_source"); }
+    static CompiledEffects program() throws Exception { return link("solar", "empowering_damage", "solar_test_calibration", "solar_test_source"); }
     static class Harness {
         final CompiledEffects program; final EffectSession session;
         final Map<String, EntityQuery.View> views = new HashMap<>();

@@ -18,7 +18,7 @@ class ArmorStatInputsTest {
     static final String GRENADE = SolarFragmentStatsTest.GRENADE, MELEE = SolarFragmentStatsTest.MELEE;
     static CompiledEffects program() throws Exception {
         return link("threaded_spike", "combat_damage", "strand_defense", "continuity", "threaded_spike_energy", "grenade_energy", "arcbolt_energy", "character_stats",
-                "solar", "solar_test_calibration", "ember_of_char", "ember_of_eruption", "solar_attribute_inputs", "armor_stats", "armor_stat_inputs");
+                "solar", "empowering_damage", "solar_test_calibration", "ember_of_char", "ember_of_eruption", "solar_attribute_inputs", "armor_stats", "armor_stat_inputs");
     }
     static Loadout.Gear gear(String instance, String slot, double value) {
         var points = new TreeMap<String, Measure>(); STATS.forEach(stat -> points.put(stat, new Measure(value, Unit.STAT_POINT)));

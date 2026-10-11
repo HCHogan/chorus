@@ -145,6 +145,47 @@
           }
         },
         {
+          "type": "chorus:shared_apply",
+          "profile": "chorus_d2:empowering_damage",
+          "apply": {
+            "id": "empowering",
+            "operation": "multiply",
+            "group": {
+              "name": "empowering",
+              "reduction": "max",
+              "families": {
+                "chorus_d2:radiance": {
+                  "kind": "priority"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "chorus:shared_apply",
+          "profile": "chorus_d2:empowering_damage",
+          "apply": {
+            "id": "weapon_surge",
+            "operation": "multiply",
+            "group": {
+              "name": "weapon_surge",
+              "reduction": "max"
+            }
+          }
+        },
+        {
+          "type": "chorus:shared_apply",
+          "profile": "chorus_d2:empowering_damage",
+          "apply": {
+            "id": "perks",
+            "operation": "multiply",
+            "group": {
+              "name": "perks",
+              "reduction": "product"
+            }
+          }
+        },
+        {
           "type": "chorus:curve",
           "id": "world_units",
           "curve": {

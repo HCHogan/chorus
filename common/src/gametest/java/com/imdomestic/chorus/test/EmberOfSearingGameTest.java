@@ -16,7 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class EmberOfSearingGameTest {
     static void prepare(JsonObject data){
-        for(String fixture:List.of("ember_of_searing","searing_test_calibration","searing_inputs","solar","solar_test_calibration","solar_test_source","threaded_spike_energy")){
+        for(String fixture:List.of("ember_of_searing","searing_test_calibration","searing_inputs","solar","empowering_damage","solar_test_calibration","solar_test_source","threaded_spike_energy")){
             var fragment=ThreadedSpikeGameTest.json(fixture);
             for(var entry:fragment.entrySet()){
                 if(entry.getKey().equals("version"))continue;

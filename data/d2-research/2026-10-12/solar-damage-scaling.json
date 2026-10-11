@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "retrieved_at": "2026-10-11T18:21:07.959474+00:00",
+  "effects": [
+    "Scorch",
+    "Ignition",
+    "Radiant",
+    "Weapon Surge",
+    "Rampage"
+  ],
+  "sources": [
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "path": "data/d2-research/2026-10-12/solar-scaling-source.html.gz",
+      "html_sha256": "2930236da235405752e5255b95f77da192b2b4c325fe958fa28c48a2cc7d9dd5",
+      "gzip_sha256": "25a52876522f58672f23f7ae392b3921fc6cc5c4d081f7c67e2868ce63cc824f",
+      "coordinate_system": "original_google_sheet",
+      "cells": [
+        {
+          "cell": "D10",
+          "snapshot_cell": "D8",
+          "normalized_text_matches_2026_10_10_capture": true,
+          "text_sha256": "3320a5dfb738f39312409fa1ed369f4fc093e7389b095b743df969b6f768e487"
+        },
+        {
+          "cell": "D11",
+          "snapshot_cell": "D9",
+          "normalized_text_matches_2026_10_10_capture": true,
+          "text_sha256": "020f6b1ec075fed9a8ab1036e93a45802f6aee78c83a58090822ce1f0d61b7f1"
+        },
+        {
+          "cell": "D12",
+          "snapshot_cell": "D10",
+          "normalized_text_matches_2026_10_10_capture": true,
+          "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
+        }
+      ]
+    },
+    {
+      "kind": "official_systemic_change",
+      "url": "https://www.bungie.net/7/en/News/Article/twid_06_19_2025",
+      "claim": "Melee damage increases no longer scale melee-generated Scorch or Ignition."
+    },
+    {
+      "kind": "existing_calibrated_damage_tables",
+      "paths": [
+        "data/d2-research/2026-10-12/weapon-surge.json",
+        "data/d2-research/2026-10-10/rampage.json"
+      ]
+    }
+  ],
+  "implemented": [
+    "solar_outgoing shares empowering, weapon_surge and perks contribution stages without importing parent payloads or conversions",
+    "Weapon credit comes from the first Scorch application; a weapon identity alone cannot grant weapon-buff eligibility",
+    "Actual Solar recipients supply radiant_champion from observed entity/type tags for each Scorch tick and each Ignition victim",
+    "Existing Surge element/copy/Armor Charge conditions, Radiant family and Rampage weapon scope remain authoritative",
+    "Incandescent direct explosion keeps its separate profile; this change concerns Scorch and Ignition"
+  ],
+  "sampling_policy": {
+    "status": "explicit_chorus_policy_not_fully_calibrated",
+    "source_bonuses": "Captured with the first Scorch damage snapshots; removal/spending/expiry does not rewrite this generation. Later appliers cannot replace the snapshots.",
+    "recipient": "Each actual hit inspects its recipient; Champion-dependent Radiant magnitude is resolved at impact."
+  },
+  "remaining": [
+    "Weapon Stat, permanent New Gear Bonus, activity Solar Surge/Overcharge and complete enemy-rank scalars are not supplied by this adapter",
+    "All grenade/super/all-ability scaling providers and weapon/exotic special cases remain incomplete; melee multipliers are not imported",
+    "Incandescent rank exemption versus generic Scorch non-boss bonus remains uncalibrated",
+    "PvE decay, PvP curve/falloff, world damage conversion, ignition windup and original-game sampling boundaries remain explicit calibration gaps",
+    "Production loadout/subclass assembly, HUD and physical-world persistence remain incomplete"
+  ]
+}

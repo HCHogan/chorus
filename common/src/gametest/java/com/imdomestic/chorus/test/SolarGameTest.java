@@ -44,7 +44,7 @@ public class SolarGameTest {
             target.setHealth(100); neighbor.setHealth(100); if(pvp) neighbor.addTag("chorus_d2:construct");
             a=source(first,"weapon"); b=source(second,"grenade");
             var fragments=new ArrayList<EffectProgram>();
-            for(String name:List.of("solar","solar_test_calibration","solar_test_source")) {
+            for(String name:List.of("solar","empowering_damage","solar_test_calibration","solar_test_source")) {
                 var json=ThreadedSpikeGameTest.json(name);
                 if(name.equals("solar_test_calibration")) for(var entry:json.getAsJsonObject().getAsJsonArray("profiles")) {
                     var p=entry.getAsJsonObject();
