@@ -48,7 +48,12 @@ public class LightweightKnifeGameTest {
     static Optional<BuffInstance> buff(ProjectileGameTest.Harness t,String name){return state(t).buffs().instances().values().stream().filter(b->b.key().holder().equals(owner(t))&&b.definition().id().equals(D+name)).findFirst();}
     static void region(ProjectileGameTest.Harness t,LivingEntity target){String id=target.getUUID().toString();t.runtime.bind(new EffectSource("region/"+id,"test:knife_region",id,new BuffInstance.Origin(id,"region/"+id,"",""),Set.of(),Map.of("min_x",new Measure(-1,Unit.MULTIPLIER),"max_x",new Measure(2,Unit.MULTIPLIER),"min_y",new Measure(.75,Unit.MULTIPLIER),"max_y",new Measure(1.125,Unit.MULTIPLIER),"min_z",new Measure(-1,Unit.MULTIPLIER),"max_z",new Measure(2,Unit.MULTIPLIER))));}
     static LivingEntity target(ProjectileGameTest.Harness t,double relativeY,float health){var e=ThreadedSpikeGameTest.target(t,2.5,40,8.5,health);e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1024);e.setHealth(health);e.setPos(t.owner.getX(),t.owner.getEyeY()-e.getBoundingBox().getYsize()*relativeY,e.getZ());return e;}
-    static void hit(ProjectileGameTest.Harness t,int flight){var p=t.projectiles.get(flight);int before=t.hits.size();for(int i=0;i<40&&!p.isRemoved();i++)p.tick();t.h.assertTrue(p.isRemoved(),"knife continued after first contact");t.h.assertValueEqual(t.hits.size(),before+1,"actual knife contact did not damage exactly once");}
+    static void hit(ProjectileGameTest.Harness t,int flight){
+        var p=t.projectiles.get(flight);int before=t.hits.size();for(int i=0;i<40&&!p.isRemoved();i++)p.tick();
+        t.h.assertTrue(p.isRemoved(),"knife continued after first contact");
+        t.h.assertValueEqual(t.hits.size(),before+1,"actual knife contact did not damage exactly once; flight="+flight+", ticks="+p.tickCount
+                +", owner="+t.owner.position()+", end="+p.position()+", progress="+p.progress()+", cues="+t.cues.stream().map(c->c.cue()).toList()+", failure="+t.runtime.failure());
+    }
     static void equip(ProjectileGameTest.Harness t){var gear=new ItemStack(Items.STRING);gear.set(ChorusComponents.EQUIPMENT.get(),new Loadout.Gear("ophidia","test:ophidia",Map.of(),OphidiaSpatheGameTest.calibration()));t.owner.getInventory().setItem(0,gear);var e=PlayerEquipment.get(t.owner);e.swap(t.owner,"test:chest",0,e.revision());}
     @GameCase public void physicalBodyAndConfiguredPrecisionContactsApplyKnownDamageAndRadiant(GameTestHelper h)throws Exception{
         try(var t=open(h)){
