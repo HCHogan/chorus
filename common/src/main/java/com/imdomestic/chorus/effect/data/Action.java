@@ -320,6 +320,27 @@ public interface Action {
         @Override public EffectEvent event() { return ResourceFacts.granted(result, source, reason); }
     }
     record ComponentResult(double before, double after, boolean applied) implements RuleEngine.ActionResult {}
+    /** Forget only the named event identity; an expired/missing instance is already clean. */
+    record ForgetSetEntry(String buff, Evaluation.Target target, String component, String eventReference) implements Action {
+        @Override public ResultShape validate(Validation v) {
+            v.target(target);
+            if (!v.buff(buff).components().sets().contains(component)) throw new IllegalArgumentException("Undeclared set component: " + component);
+            if (eventReference.isBlank()) throw new IllegalArgumentException("Missing set identity reference");
+            return new ResultShape(java.util.Map.of("before", new ResultShape.Field(Unit.COUNT, r -> ((ComponentResult) r).before()),
+                    "after", new ResultShape.Field(Unit.COUNT, r -> ((ComponentResult) r).after())),
+                    java.util.Map.of("applied", r -> ((ComponentResult) r).applied()));
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            String identity = e.event().references().get(eventReference);
+            if (identity == null || identity.isBlank()) throw new IllegalArgumentException("Missing set identity: " + eventReference);
+            var key = e.key(buff, target); var instance = e.state().buffs().active(key);
+            if (instance.isEmpty()) return new RuleEngine.Local<>(e.state(), new ComponentResult(0, 0, false), List.of());
+            var components = instance.orElseThrow().components(); var members = components.sets().get(component);
+            if (!members.contains(identity)) return new RuleEngine.Local<>(e.state(), new ComponentResult(members.size(), members.size(), false), List.of());
+            return new RuleEngine.Local<>(e.state().withBuffs(Buffs.components(e.state().buffs(), key, components.forget(component, identity))),
+                    new ComponentResult(members.size(), members.size() - 1, true), List.of());
+        }
+    }
     record UpdateComponent(String buff, Evaluation.Target target, String component, BuffComponents.Update operation, Value value,
             Optional<String> onceSet, Optional<String> eventReference) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target);

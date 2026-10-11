@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Triple Tap",
+    "Fourth Time’s the Charm"
+  ],
+  "reviewed_at": "2026-10-11",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "sheet": "Weapon Perks",
+      "cells": [
+        {
+          "original_cell": "A100",
+          "snapshot_cell": "A99",
+          "normalized_text": "Fourth Time's The Charm",
+          "snapshot_text_sha256": "961edf24cd09a89e129d412041d783097c2ec0342f932794d5d9f51a957d5504",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C100",
+          "snapshot_cell": "C99",
+          "normalized_text": "Scoring 4 Precision Hits within 2 ↑3 seconds of each generates 2 Ammo to Magazine. Ammo Generation cannot generate ammo past Base Magazine Size. Timer between hits persists through stow.",
+          "snapshot_text_sha256": "c43ca92fb3cda77371a68b4be1a8e93002ccf132ebc437e73798131e4428b63e",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "A236",
+          "snapshot_cell": "A235",
+          "normalized_text": "Triple Tap",
+          "snapshot_text_sha256": "560f1da5c27bb310ff3d13617c26481c42c55f762f95587b70302504286ba33d",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C236",
+          "snapshot_cell": "C235",
+          "normalized_text": "Scoring 3 Precision Hits within 2 ↑3 seconds of each generates 1 Ammo to Magazine. Ammo Generation cannot generate ammo past Base Magazine Size. Timer between hits persists through stow.",
+          "snapshot_text_sha256": "888b394599c3680129c78c25736dfcf722406f2d662dcd3741fb80a2bd1c4bef",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "compendium_csv_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    }
+  ],
+  "numbers": {
+    "triple_tap": {
+      "precision_hits": 3,
+      "generated_rounds": 1
+    },
+    "fourth_times_the_charm": {
+      "precision_hits": 4,
+      "generated_rounds": 2
+    },
+    "maximum_gap_seconds": {
+      "normal": 2,
+      "enhanced": 3
+    }
+  },
+  "source_behavior": [
+    "Gap is between hits and persists while stowed.",
+    "Generate creates ammunition without consuming reserves, up to base magazine capacity; already overflown magazines receive no new rounds."
+  ],
+  "content_policies": [
+    "Only APPLIED, explicitly weapon_damage + precision credited receipts qualify; explosive_perk_damage is excluded. Immune/blocked hits do not count. No positive-health-loss requirement is added.",
+    "Each perk, holder and weapon instance has independent state. Stow keeps the clock and in-flight credit; removing or changing the perk clears counters and receipts and cancels source-owned cleanup.",
+    "Each unique hit refreshes a half-open 2/3 second gap. Expiration at a timestamp occurs before a new hit. Body hits, misses and reloads do not reset or refresh this counter.",
+    "Every threshold consumes the count even when generation is clamped to zero. Both perks can trigger on the same hit; per-round base-capacity clamping is shared.",
+    "damage_id deduplication is retained for exactly three seconds per accepted hit, independent of counter resets. Scheduled forgetting bounds retained receipts to the recent window; replay after that window is outside this policy. This is not a gameplay cycle limit.",
+    "Counter/receipt state uses the perk binding at impact. Same-instance socket replacement in flight follows current equipment qualification. These boundary policies are Chorus choices pending independent D2 calibration."
+  ],
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/precision_ammo_weapon.json",
+    "confidence": "synthetic_not_measured_D2_archetype",
+    "magazine": 12,
+    "reserves": 30,
+    "body_damage": 10,
+    "precision_damage": 15,
+    "shot_interval_seconds": 0.15,
+    "reload_seconds": 0.2,
+    "projectile_speed_m_per_s": 20,
+    "geometry": "Explicit target-owned normalized hit region; no default Minecraft head or complete D2 weakpoint catalogue"
+  },
+  "gaps": [
+    "D2 edge-case calibration of counter resets, exact timing boundaries, credit and immune/blocked/multi-component qualification.",
+    "Actual weapon taxonomy, heat weapons, exotic variants, damage and weakpoint catalogues.",
+    "Production content assembly, HUD and independent physical weapon persistence/restart acceptance."
+  ]
+}

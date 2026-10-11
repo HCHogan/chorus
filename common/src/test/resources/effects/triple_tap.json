@@ -1,0 +1,267 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:triple_tap_counter",
+        "version": "compendium-2026-10-05",
+        "duration": 2,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "components": {
+          "numbers": {
+            "hits": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": []
+        }
+      },
+      "bundle": "chorus_d2:triple_tap_state"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:triple_tap_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 3,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "components": {
+          "numbers": {
+            "hits": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "damage_ids"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:triple_tap_state"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:triple_tap",
+      "rules": [
+        {
+          "id": "precision",
+          "on": "chorus:hit",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:precision"
+              },
+              {
+                "type": "chorus:event_flag",
+                "name": "applied"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:explosive_perk_damage"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff",
+                      "buff": "chorus_d2:triple_tap_receipts"
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:triple_tap_receipts"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:update_component",
+                    "buff": "chorus_d2:triple_tap_receipts",
+                    "component": "hits",
+                    "op": "set",
+                    "value": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    },
+                    "once_set": "damage_ids",
+                    "event_reference": "damage_id"
+                  },
+                  "as": "receipt"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "receipt",
+                    "field": "applied"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:refresh_buff",
+                      "buff": "chorus_d2:triple_tap_receipts",
+                      "duration": {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "second"
+                      }
+                    },
+                    {
+                      "after": {
+                        "type": "chorus:constant",
+                        "value": 3,
+                        "unit": "second"
+                      },
+                      "lifetime": "source",
+                      "do": [
+                        {
+                          "type": "chorus:forget_set_entry",
+                          "buff": "chorus_d2:triple_tap_receipts",
+                          "component": "damage_ids",
+                          "event_reference": "damage_id"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:triple_tap_counter",
+                      "duration": {
+                        "type": "chorus:choose",
+                        "if": {
+                          "type": "chorus:source_tag",
+                          "tag": "chorus:enhanced"
+                        },
+                        "then": {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "second"
+                        },
+                        "else": {
+                          "type": "chorus:constant",
+                          "value": 2,
+                          "unit": "second"
+                        }
+                      }
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:update_component",
+                        "buff": "chorus_d2:triple_tap_counter",
+                        "component": "hits",
+                        "op": "add",
+                        "value": {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "count"
+                        }
+                      },
+                      "as": "count"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:compare",
+                        "op": "ge",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "count",
+                          "field": "after"
+                        },
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 3,
+                          "unit": "count"
+                        }
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:triple_tap_counter",
+                          "component": "hits",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:grant_ammo",
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "round"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:triple_tap_counter"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:triple_tap_receipts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:triple_tap_state",
+      "scope": "buff"
+    }
+  ]
+}

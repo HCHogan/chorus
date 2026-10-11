@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+精准补弹词条的最终门禁 `/tmp/chorus-precision-ammo-final-gate.log` BUILD SUCCESSFUL，1 分 25 秒：1320 项 JUnit（无失败 / 错误 / 跳过）、Fabric 674 项、NeoForge 689 项及两端发布 jar 通过，共享场景为673项。10 项 Compendium 审计、76条报告一致性及差异检查通过。发布包包含通用 ForgetSetEntry 动作，不含效果 / 存储 / GameTest 夹具。本阶段没有客户端协议或图形表现变更，未新增图形客户端验收。
+
+Triple Tap 与 Fourth Time’s the Charm 已有独立数据定义：普通 / 强化 2 / 3 秒相邻精准窗口、三次一发 / 四次两发、收枪保留、同武器独立计数和组合触发；根据实际回执归因，生成至当前基础容量而不扣储备或减少已有溢出。通用 `forget_set_entry` 配合 after 为逐个 damage_id 安排三秒清理，计数归零不会立即忘掉本次凭据，持续射击也不积累永久去重集合。它不限制合法效果循环。检查点类型仅增加新动作 ID，既有 v1 字段形状保持不变。
+
+新增9项纯测试覆盖计数组合、刷新窗口、精确边界、重复 / 不合格命中、实例隔离、容量与溢出、连续200次命中的凭据清理、卸装任务取消及纯会话 checkpoint 恢复。5项共享 PrecisionAmmoGameTest 从真实物品容器和开火命令开始，验证物理部位碰撞、双词条补弹、手动换弹的储备消耗与计数保留、正常 / 强化收枪窗口、body / immune / 无武器信用、卸装后命中，以及未知世界结果不推导补弹、不重放。
+
+首轮开发修正了测试调用的绑定接口及凭据 Buff 刷新策略；首次完整门禁新场景均通过，但 NeoForge 旧飞刀坐标快照场景的横向移位把目标移到未加载区块。测试改为同列垂直移动并断言目标仍可用，保留移动后的快照验收，随后完整回归通过；这项夹具修正独立提交。
+
+Compendium 更新为76条审阅、65 partial、9 unimplemented、2 not_applicable、0 verified。原表时间 / 弹数已逐格核对；半开边界、body / miss / reload 不重置、免疫 / 格挡资格和卸装取样仍为明确内容政策。三秒回执保留不是永久防重放保证，合成武器与目标区域也不代表完整 D2 原型 / 弱点。正式生产装配、HUD 和物理武器重启验收仍待完成。[精准补弹定义与边界](d2-ruleset.md#triple-tap-与-fourth-times-the-charm-的精准补弹)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 构造物结束事实的完整门禁 `/tmp/chorus-construct-ended-gate-2.log` BUILD SUCCESSFUL，1 分 33 秒：1311 项 JUnit（无失败 / 错误 / 跳过）、Fabric 669 项、NeoForge 684 项及两端发布 jar 通过，共享场景为668项。10 项 Compendium 审计、76条报告一致性和差异检查通过。发布包包含 WorldConstruct.End 与实体宿主，不含效果 / 存储 / GameTest 夹具。本阶段没有客户端协议或图形表现变更，未新增图形客户端验收。首轮修正了 Fabric 测试转发方法的编译错误，随后完整回归通过。
 
 `chorus:construct_ended` 已由成功加入世界的构造物第一次原版 onRemoval 产生；覆盖 remove 和区块卸载所用的 setRemoved，分别标明 destroyed / expired / removed、原版原因、年龄、原施放者信用和最后位置。回调只记录事实；世界动作中的结束事实随成功回执处理，父 Frame 先完成，未知结果不重放。直接移除可在下一宿主边界取消对应行为 Buff / 定时器，不按 UUID 删除其他实体保留的来源和攻击信用，也不再发送一次 kill。通用构造物示例和 Bleak Watcher 的行为均已接入。

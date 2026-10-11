@@ -110,6 +110,7 @@
   "chorus:effect/data/action/check_status": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "stacks:com.imdomestic.chorus.effect.data.Value", "tier:com.imdomestic.chorus.effect.data.Value", "duration:java.util.Optional<com.imdomestic.chorus.effect.data.Value>", "allowDead:boolean"],
   "chorus:effect/data/action/close_retained_cost": ["cost:java.lang.String"],
   "chorus:effect/data/action/component_result": ["before:double", "after:double", "applied:boolean"],
+  "chorus:effect/data/action/forget_set_entry": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "component:java.lang.String", "eventReference:java.lang.String"],
   "chorus:effect/data/action/consume_buff": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "stacks:com.imdomestic.chorus.effect.data.Value"],
   "chorus:effect/data/action/cue": ["cue:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/action/cue_command": ["cue:java.lang.String", "target:java.lang.String", "source:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],

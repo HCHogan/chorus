@@ -2734,7 +2734,7 @@
       "name": "Fourth Time's The Charm",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -2752,30 +2752,49 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "scope": "独立 JSON 普通 / 强化相邻精准窗口、每武器计数和同枪组合、三秒逐项去重清理、有效基础容量内生成；实际装备 / 开火 / 部位碰撞 / 伤害回执 / 手动换弹与未知结果；纯会话检查点恢复",
       "acceptance": [
-        "相邻精准命中间隔不超过2 / 强化3秒，四次后生成2发弹药",
+        "相邻精准命中间隔小于2 / 强化3秒（半开边界为待校准内容政策），四次后生成2发弹药",
         "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留"
       ],
       "evidence": [
         {
-          "kind": "design",
-          "path": "docs/d2-ruleset.md"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fourth_times_the_charm.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/precision_ammo_weapon.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/precision-ammo.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
-          "symbol": "generationDoesNotDebitReservesAndLowerCeilingsNeverDestroyExistingOverflow"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionAmmoTest.java",
+          "symbol": "bothPerksCountIndependentlyAndCanRepeatOnTheSameWeaponForBothVariants"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionAmmoTest.java",
+          "symbol": "receiptCleanupAndCountersSurviveCheckpointWithoutDuplicateAmmo"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
-          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionAmmoGameTest.java",
+          "symbol": "repeatedRealPrecisionShotsComposeBothPerksAndReloadAloneConsumesReserves"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionAmmoGameTest.java",
+          "symbol": "realBodyContactDoesNotRefreshGapAndEnhancedCounterSurvivesStowForLonger"
         }
       ],
       "gaps": [
-        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
-        "精准命中资格、逐次计数 / 重复事实识别、边界与计数重置策略及真实射击输入未装配"
+        "窗口半开边界、body / miss / reload 不重置、APPLIED 资格、容量裁剪仍消费及命中时配装取样为明确 Chorus 政策，待原作逐项校准；免疫 / 格挡与多分量信用、热量武器和异域分支未完全覆盖",
+        "回执逐项保留三秒，超期重放不在去重保证内；不是永久防重放协议，也不限制合法效果循环",
+        "12 发弹匣、射速 / 换弹 / 伤害 / 弹道与目标部位均为合成输入；完整 D2 武器和弱点目录、正式装备自动装配、HUD 与物理武器独立重启验收仍待完成"
       ]
     },
     {
@@ -2934,7 +2953,7 @@
       "name": "Triple Tap",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -2952,30 +2971,49 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "scope": "独立 JSON 普通 / 强化相邻精准窗口、每武器计数和同枪组合、三秒逐项去重清理、有效基础容量内生成；实际装备 / 开火 / 部位碰撞 / 伤害回执 / 手动换弹与未知结果；纯会话检查点恢复",
       "acceptance": [
-        "相邻精准命中间隔不超过2 / 强化3秒，三次后生成1发弹药",
+        "相邻精准命中间隔小于2 / 强化3秒（半开边界为待校准内容政策），三次后生成1发弹药",
         "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留"
       ],
       "evidence": [
         {
-          "kind": "design",
-          "path": "docs/d2-ruleset.md"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/triple_tap.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/precision_ammo_weapon.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/precision-ammo.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
-          "symbol": "generationDoesNotDebitReservesAndLowerCeilingsNeverDestroyExistingOverflow"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionAmmoTest.java",
+          "symbol": "bothPerksCountIndependentlyAndCanRepeatOnTheSameWeaponForBothVariants"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PrecisionAmmoTest.java",
+          "symbol": "receiptCleanupAndCountersSurviveCheckpointWithoutDuplicateAmmo"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
-          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionAmmoGameTest.java",
+          "symbol": "repeatedRealPrecisionShotsComposeBothPerksAndReloadAloneConsumesReserves"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PrecisionAmmoGameTest.java",
+          "symbol": "realBodyContactDoesNotRefreshGapAndEnhancedCounterSurvivesStowForLonger"
         }
       ],
       "gaps": [
-        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
-        "精准命中资格、逐次计数 / 重复事实识别、边界与计数重置策略及真实射击输入未装配"
+        "窗口半开边界、body / miss / reload 不重置、APPLIED 资格、容量裁剪仍消费及命中时配装取样为明确 Chorus 政策，待原作逐项校准；免疫 / 格挡与多分量信用、热量武器和异域分支未完全覆盖",
+        "回执逐项保留三秒，超期重放不在去重保证内；不是永久防重放协议，也不限制合法效果循环",
+        "12 发弹匣、射速 / 换弹 / 伤害 / 弹道与目标部位均为合成输入；完整 D2 武器和弱点目录、正式装备自动装配、HUD 与物理武器独立重启验收仍待完成"
       ]
     },
     {

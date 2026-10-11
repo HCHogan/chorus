@@ -1264,3 +1264,16 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 [物理夹具](../common/src/test/resources/effects/shield_throw_test_calibration.json) 的20m/s、4m/s²、两秒寿命、12米扫描、3600度/秒、180度角、每目标一次和四次共享继续预算均为合成参数。后者允许五次接触，专门验证引擎计数，不能声称原作固定打五个敌人；原表四次ricochet是否包含首次命中、是否与墙面共享仍不明确。每类独立反弹/穿透预算设置为4，具体共享预算由显式校准给出。接触伤害夹具为恒等，不代表没有原作距离/弹跳衰减。
 
 5项ShieldThrowTest、4项VoidOvershieldTest和7项双端共享世界场景覆盖真实付费投掷、连续接触、实际400/70伤害、15至45的补盾、来源卸下后命中、原版Mob/Player/环境伤害、破盾溢出/FIFO、重力/墙面不授盾、实际到期和未知结果。测试用50%受益者时长修饰只证明扩展入口，不代表已完成Echo of Persistence及其职业属性代价。盾HP当前与引擎damage同单位，最终D2生命到Minecraft的缩放、自然恢复与盾伤不打断恢复、其他来源/金装、共享近战能量迁移、正式子职业装配、界面与活动状态存档仍未完成。两项均保持partial，定义仍是验收资源，尚未作为生产内容随发布jar提供。
+
+
+## Triple Tap 与 Fourth Time’s the Charm 的精准补弹
+
+2026-10-11 原表 Weapon Perks A236/C236、A100/C100 与 C251（固定 CSV A235/C235、A99/C99、C250）已逐格核对。普通 / 强化的相邻精准命中窗口为 2 / 3 秒，分别每三次生成一发、每四次生成两发，收枪期间窗口继续；Generate 不扣储备，不能超过基础弹匣。原表 HTML、压缩文件和文本哈希、坐标对应及边界政策保存在 [来源记录](../data/d2-research/2026-10-11/precision-ammo.json)。
+
+[triple_tap.json](../common/src/test/resources/effects/triple_tap.json) 与 [fourth_times_the_charm.json](../common/src/test/resources/effects/fourth_times_the_charm.json) 是独立数据定义，无词条专用 Java 分支。每个持有者 / 武器 / 词条独立计数，使用实际 hit 的 weapon_damage / precision 标签与 APPLIED 回执，排除 explosive_perk_damage。每个新 damage_id 刷新相邻命中时间；三 / 四次后归零并通过通用 grant_ammo 生成，读取当前有效基础容量，不把临时 overflow 上限当作基础容量。已溢出时不减弹、不补弹；两词条可在同次命中独立触发。
+
+窗口采用半开区间，到期先于同时间命中；body / miss / reload 不清除或刷新精准计数；免疫 / 格挡不计数；达到门槛即消费计数，即使生成被容量裁剪为零。装备中但收枪的旧投射物可继续计数，卸下 / 替换词条清理其状态。上述原表没有明确的边界均是当前 Chorus 内容政策，仍待独立原作校准。
+
+去重集合独立于触发计数：每个已接受 damage_id 保留三秒，之后用 forget_set_entry 删除，重复事实不延长保留期。来源任务在卸装时取消，持续射击不留下永久集合。回执超期重放不保证去重；三秒不是玩法循环限制。纯会话 checkpoint 已覆盖计数、凭据及延迟清理恢复，不代表正式物品 / 生产目录的双端重启验收。
+
+[precision_ammo_weapon.json](../common/src/test/resources/effects/precision_ammo_weapon.json) 仅用于验收：真实容器和开火命令、按发扣弹、物理碰撞的归一化部位坐标、目标侧区域 Profile、实际伤害回执与手动换弹均参与链路。12 发弹匣、30 储备、10 / 15 伤害、0.15 秒射击间隔、0.2 秒换弹及 20 米/秒弹道都是合成参数；区域不是原版全生物头部判定，也没有完整 D2 弱点目录。正式武器原型、热量武器 / 异域分支、细分伤害信用、自动内容装配和 HUD 仍未完成，两条审阅状态为 partial。

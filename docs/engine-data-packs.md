@@ -1389,11 +1389,25 @@ Buff 生命周期事实现提供通用 EffectEvent 投影。numbers 的 `request
 
 上例是同一批的两个分量。每个已确认的伤害回执仍有独立 `references.damage_id`；由该回执产生的 hit / damage_taken / shield / death / kill 事实共用 `references.batch_id`。未声明 batch 的伤害以自己的 damage_id 生成单独批次；原版观察入口也遵循此默认值。Java 宿主明确知道分量关系时，可对各 DamageCommand 使用同一个 `withBatch(DamageBatch)`。批次引用是不可解析的内部身份，不应依赖其字符串格式或跨运行时重用。
 
-规则可用现有 `update_component` 的 `once_set` 与 `event_reference: "batch_id"` 按批计数，改用 `damage_id` 则按实例计数。集合属于指定 Buff 实例，生命周期由该 Buff 管理；长期存活的累计集合仍需内容提供重建 / 到期策略。需要按有效伤害计数时，再检查 effective_damage 等实测字段；免疫 / 格挡可以有 hit 事实，取消 / 失败没有命中事实。
+规则可用现有 `update_component` 的 `once_set` 与 `event_reference: "batch_id"` 按批计数，改用 `damage_id` 则按实例计数。集合属于指定 Buff 实例，生命周期由该 Buff 管理；长期存活的累计集合由内容显式提供到期策略，不能把根事件去重当作循环限制。需要按有效伤害计数时，再检查 effective_damage 等实测字段；免疫 / 格挡可以有 hit 事实，取消 / 失败没有命中事实。
 
 `capture_damage` 不接受 batch。可复用数值快照不会冻结“未来所有命中属于一批”；应在 `damage_snapshot` 上绑定批次。物理投射物可以在 impact body 内创建批次，再让直击 / 爆炸等多个分量引用；同一 shot 的多个接触是否共享批次须由内容决定。句柄可像其他不可变结果一样显式传入 after / projectile；这只表达内容声明的逻辑关系，不证明两个回执在现实时间同时发生。延迟脉冲若应分批，就在每次延迟体内创建新句柄。
 
 root、shot、服务器 tick 和批次之间不做自动映射；派生伤害默认创建自己的单例批次，正常循环与事件传播保持原行为。该机制仅提供身份及按批记账，不提供最终 batch_resolved 事件或全批原子结算。多分量共用一次性 Buff 资格由下述独立的 damage_group 显式声明，不由 batch 自动推导。完整合成夹具见 [damage_batch.json](../common/src/test/resources/effects/damage_batch.json)，它不是完整 Bolt Charge。
+
+### 单个集合凭据到期
+
+`chorus:forget_set_entry` 从指定 Buff 的已声明集合删除当前事件引用指向的一项：
+
+```json
+{"after": {"type": "chorus:constant", "value": 3, "unit": "second"}, "lifetime": "source", "do": [
+  {"type": "chorus:forget_set_entry", "buff": "chorus_d2:triple_tap_receipts", "component": "damage_ids", "event_reference": "damage_id"}
+]}
+```
+
+`target` 默认为 self，并按该 Buff 定义及绑定来源计算实例键。返回 before / after 集合大小（count）和 applied 标志；凭据已删除或 Buff 已到期时 applied=false，不重新创建状态。未声明的集合在链接时拒绝；事件缺少非空身份则在执行时拒绝。其他集合、数值、引用、位置和快照保持原值。它只处理当前找到的实例；需要限制代际时，应使用 Buff 绑定的生命周期或来源卸载清理。
+
+`after` 保留原命中事件，因此延迟删除的是该次 damage_id。Triple Tap / Fourth Time’s the Charm 只在 `update_component.once_set` 接受新身份后刷新凭据 Buff 并安排一次三秒清理：计数达到门槛后归零，去重凭据仍保留；持续射击时集合只包含最近三秒的身份，卸下词条取消来源任务并删除状态。三秒是这组内容的回执保留政策，超期重放不在保障范围，也不会禁止新伤害形成的合法效果循环。
 
 ## 保留攻击释放时的反应规则
 

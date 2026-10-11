@@ -58,6 +58,13 @@ public record BuffComponents(Map<String, Double> numbers, Map<String, Set<String
         var copy = new HashMap<>(references); copy.put(name, value);
         return new BuffComponents(numbers, sets, copy, targetSets, positions, damageSnapshots);
     }
+    public BuffComponents forget(String name, String value) {
+        if (!sets.containsKey(name)) throw new IllegalArgumentException("Missing set component: " + name);
+        var copy = new HashMap<>(sets);
+        var members = new HashSet<>(sets.get(name));
+        members.remove(value); copy.put(name, members);
+        return new BuffComponents(numbers, copy, references, targetSets, positions, damageSnapshots);
+    }
     public BuffComponents targets(String name, com.imdomestic.chorus.effect.target.Targets.Identities value) {
         if (!targetSets.containsKey(name)) throw new IllegalArgumentException("Missing target set component: " + name);
         var copy = new HashMap<>(targetSets); copy.put(name, value);
