@@ -230,3 +230,13 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/threaded_spike_test_calibration.json'
     }
 }
+
+// Dedicated disposable world for explicit multi-process checkpoint acceptance.
+if (providers.gradleProperty("chorusRestartPhase").isPresent()) {
+    loom.runs.named("gameTest") {
+        def fixture = providers.gradleProperty("chorusRestartRun").getOrElse("")
+        if (!(fixture ==~ /[a-zA-Z0-9_-]*/)) throw new GradleException("Invalid restart fixture name")
+        runDir("build/run/checkpointRestart" + (fixture ? "/${fixture}" : ""))
+        vmArg("-Dchorus.test.restart.phase=" + providers.gradleProperty("chorusRestartPhase").get())
+    }
+}

@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Run real, sequential save/restore processes in uniquely named disposable GameTest worlds."""
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import uuid
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def world(loader, fixture):
+    if loader == "fabric":
+        return ROOT / "fabric/build/run/checkpointRestart" / fixture / "world"
+    return ROOT / "neoforge/build/runs/checkpointRestart" / fixture / "gametestserver/gametestworld"
+
+
+def checkpoint(folder):
+    return json.loads((folder / "chorus-checkpoint.json").read_text(encoding="utf-8"))
+
+
+def committed(folder):
+    saved = checkpoint(folder)
+    require(saved["phase"] == "COMMITTED" and saved["failure"] is None, f"Uncommitted checkpoint: {folder}")
+    require(set(saved["required"]) == set(saved["confirmed"]) == {
+        "native_files", "region_stores", "saved_data", "rule_boundary"
+    }, f"Missing real save/close evidence: {folder}")
+    entries = saved["archive"]["dimensions"]
+    require({row["dimension"] for row in entries} == {"minecraft:overworld", "minecraft:the_nether"},
+            f"Missing dimension archive: {folder}")
+    player = (folder / "chorus-restart-fixture-player.txt").read_text(encoding="utf-8")
+    require((folder / "players/data" / f"{player}.dat").is_file(), f"No native player file: {folder}")
+    return saved
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--loader", choices=["fabric", "neoforge", "both"], default="both")
+    parser.add_argument("--java-home", help="Optional Gradle Java home; JDK21 is inherited from the environment")
+    args = parser.parse_args()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+    output = ROOT / "build/checkpoint-restart" / stamp
+    output.mkdir(parents=True)
+    rows = []
+    print(f"Restart acceptance artifacts: {output}", flush=True)
+
+    def execute(loader, fixture, phase, expected_failure=False):
+        command = [str(ROOT / "gradlew")]
+        if args.java_home:
+            command.append("-Dorg.gradle.java.home=" + args.java_home)
+        task = ":fabric:runGameTest" if loader == "fabric" else ":neoforge:runGameTestServer"
+        command += [f"-PchorusRestartRun={fixture}", f"-PchorusRestartPhase={phase}", task, "--console=plain"]
+        log = output / f"{loader}-{phase}.log"
+        print(f"{loader}: {phase}", flush=True)
+        with log.open("w", encoding="utf-8") as stream:
+            process = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, timeout=300)
+        text = log.read_text(encoding="utf-8")
+        require((process.returncode != 0) == expected_failure, f"Unexpected exit {process.returncode}; inspect {log}")
+        if expected_failure:
+            require("World checkpoint has no completed save" in text, f"Startup failed for an unrelated reason: {log}")
+            require("All 1 required tests passed" not in text, f"Unclean checkpoint reached live tests: {log}")
+        else:
+            require("All 1 required tests passed" in text, f"Restart scenario did not actually pass: {log}")
+        rows.append({"loader": loader, "phase": phase, "returncode": process.returncode, "log": str(log.relative_to(ROOT))})
+
+    for loader in ([args.loader] if args.loader != "both" else ["fabric", "neoforge"]):
+        good = stamp + "-clean"
+        folder = world(loader, good)
+        require(not folder.exists(), f"Refusing to reuse existing test world: {folder}")
+        execute(loader, good, "save")
+        first = committed(folder)
+        execute(loader, good, "restore")
+        second = committed(folder)
+        require(first["run"] != second["run"] and first["save"] != second["save"], "Restart reused old run/save identity")
+        require(first["archive"]["dimensions"][0]["equipment_owners"] == second["archive"]["dimensions"][0]["equipment_owners"],
+                "Real player's equipment ownership changed across restart")
+
+        bad = stamp + "-failure"
+        folder = world(loader, bad)
+        require(not folder.exists(), f"Refusing to reuse existing test world: {folder}")
+        execute(loader, bad, "save_failure")
+        failed = checkpoint(folder)
+        require(failed["phase"] == "PREPARED" and failed["failure"], f"Failed player write was marked recoverable: {folder}")
+        file = folder / "chorus-checkpoint.json"
+        before = file.read_bytes()
+        execute(loader, bad, "restore_failure", expected_failure=True)
+        require(file.read_bytes() == before, f"Rejected startup changed retained failed checkpoint: {folder}")
+        rows[-1]["retained_checkpoint_sha256"] = hashlib.sha256(before).hexdigest()
+
+    report = output / "report.json"
+    report.write_text(json.dumps({"status": "passed", "processes": rows}, indent=2) + "\n", encoding="utf-8")
+    print(f"Passed clean restart and rejected failed-save restart: {report}", flush=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -32,6 +32,7 @@ abstract class RegionSaveCaptureMixin implements MinecraftRegionSaveAccess {
     }
     @WrapMethod(method = "close")
     private void chorus$close(Operation<Void> original) {
+        MinecraftCheckpointLifecycle.beforeRegionClose((IOWorker) (Object) this);
         chorus$saveJournal.submit(RegionSaveJournal.Kind.CLOSE, "worker", _ -> { original.call(); return CompletableFuture.completedFuture(null); });
     }
     @WrapOperation(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/storage/RegionFileStorage;close()V"))

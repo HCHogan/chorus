@@ -22,6 +22,8 @@
     "ServerLevelSaveAccessor",
     "EntityStorageSaveAccessor",
     "PlayerStorageSaveAccessor",
+    "ServerCheckpointLifecycleMixin",
+    "LevelCheckpointLifecycleMixin",
     "PlayerEquipmentMixin",
     "ServerPlayerEquipmentMixin",
     "EffectProgramReloadMixin",

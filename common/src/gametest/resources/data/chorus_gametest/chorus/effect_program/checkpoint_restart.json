@@ -1,0 +1,17 @@
+{
+  "version": "checkpoint-fixture-1",
+  "imports": ["chorus_gametest:checkpoint_equipment"],
+  "resources": [{"id": "test:restart_energy", "capacity": 1, "initial": 1}],
+  "bundles": [{"id": "test:restart_skill", "rules": [
+    {"id": "initialize", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
+      {"type": "chorus:initialize_resource", "resource": "test:restart_energy"},
+      {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+    ]},
+    {"id": "cast", "on": "test:restart_cast", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+      {"action": {"type": "chorus:spend_resource", "resource": "test:restart_energy", "payment": "cast", "amount": {"type": "chorus:constant", "value": 1, "unit": "charge_fraction"}}, "as": "cost"},
+      {"if": {"type": "chorus:result_flag", "binding": "cost", "field": "succeeded"}, "then": [
+        {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}
+      ]}
+    ]}
+  ]}]
+}

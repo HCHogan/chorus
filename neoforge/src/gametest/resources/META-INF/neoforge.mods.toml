@@ -11,3 +11,6 @@ type="required"
 versionRange="[26.3.0.0,)"
 ordering="AFTER"
 side="BOTH"
+
+[[mixins]]
+config="chorus-gametest.mixins.json"

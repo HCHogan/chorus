@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+自动停服保存与启动恢复的最终门禁 `/tmp/chorus-checkpoint-lifecycle-final-gate.log` BUILD SUCCESSFUL，1 分 35 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 663 项、NeoForge 678 项及两端发布 jar 通过，共享场景为662项。10 项 Compendium 审计和76条报告一致性通过。发布包包含生命周期类与两项必需 Mixin，不含效果 / 存储 / GameTest 夹具或测试专用 Mixin。本阶段没有客户端协议 / 输入行为变更，也没有新增图形客户端验收。
+
+`MinecraftCheckpointLifecycle` 在原版世界锁内接入启动和正常停服：启动先将旧提交标成 RUNNING，预检目录 / 维度 / 世界时钟，并在每个 ServerLevel 构造结束时恢复规则；停服先固定规则并写 PREPARED，等待实际玩家 / level.dat 写入、全部区域最后 flush / close、SavedData 批次 / close 与规则复核，再在世界锁释放之前提交。断线可清理非持久输入句柄，加载器 unload / stopped 的运行时清理延后到规则边界释放。写入或关闭错误保留失败状态，继续原版清理。
+
+`tools/checkpoint_restart.py` 的双端八进程验收通过，报告为 `build/checkpoint-restart/20261011T083001Z-91914971/report.json`。正常场景保留两个维度的运行时，通过实际 PrepareSpawnTask / 玩家 NBT 登录验证29 / 30生命、独立物品容器、已消耗技能能量和无初始化重放；异常场景制造真实玩家备份替换障碍，核对 PREPARED 诊断、下次进程因未完成保存而拒绝启动，以及检查点字节完全保留。测试使用唯一目录，专用 Mixin 只在 opt-in 重启验收时纠正 GameTest 默认删除世界 / 新建 level.dat 的行为，不随发布包提供。
+
+当前支持正常关闭后的匹配恢复。运行中的 autosave 不生成可恢复规则检查点，崩溃留下的 RUNNING / PREPARED 不自动重放或清空；不补算离线时长。短命实体遗留规则 / 引用、崩溃对账、规则 / 格式迁移，以及任意模组的存储和生命周期兼容仍未完成；统计 / 进度旁文件不在保存证明范围。Compendium 仍为76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[生命周期协议与验收](engine-data-packs.md#自动停服保存与启动恢复)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 保存期间规则边界的最终门禁 `/tmp/chorus-checkpoint-boundary-final-gate.log` BUILD SUCCESSFUL，1 分 22 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 662 项、NeoForge 677 项与两端发布 jar 全部通过，共享场景为661项。10 项 Compendium 审计、76条报告一致性和差异检查通过；发布包包含 MinecraftCheckpointBoundary，不含效果 / 存储 / GameTest 夹具。此阶段没有客户端协议 / 输入变更或新增图形客户端验收。
 
 `MinecraftCheckpointBoundary` 先结算所有维度，再统一捕获全部默认目录宿主。范围内固定运行时 / 目录、完整会话、装备持有者与世界时钟；固定后拒绝规则入口、安装 / 恢复、嵌套边界和运行时关闭。被 catch 的拒绝仍留下边界失败，观察到的时钟或物理装备变化即使被改回也不能清除失败。`saveNative()` 在实际服务器级保存前后复核，原有文件 / 区域 / 附加数据报告仍分别检查。实体 NBT 可读取已固定状态重建属性上限，不推进规则或补发治疗。
@@ -13,8 +23,6 @@
 7 项共享 CheckpointBoundaryGameTest 覆盖两个维度的完整会话、已支付技能与真实玩家文件读回、拒绝施法 / 关闭且不改变状态、空维度的新运行时 / 嵌套边界 / 跨线程释放拒绝、旧句柄不释放新边界、实际 SavedData 序列化回调吞掉违规施法异常后仍禁止确认检查点、时钟改回仍失败、自定义 Java 宿主的写入前拒绝，以及固定状态下 NBT 保留27 / 30生命、直接更改物理装备造成的不一致与无隐式装卸。首轮编译修正了夹具的26.3世界时钟访问；随后六场景门禁和新增 NBT / 装备场景的最终门禁均通过。
 
 这一步提供 Chorus 规则隔离，没有自动冻结原版 / 任意模组的全部世界字段。范围释放只允许继续正常处理，不使旧报告成为可恢复世界快照；断线清理 / 运行时卸载的停服顺序、最后文件关闭确认、启动恢复、短命状态引用与崩溃 / 离线政策仍待接入。Compendium 保持76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[保存期间的规则边界](engine-data-packs.md#保存期间的规则边界)。
-
-以下为此前阶段的证据及其当时的未完成范围。
 
 服务器级保存汇总的门禁 `/tmp/chorus-world-save-gate.log` BUILD SUCCESSFUL，1 分 36 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 655 项、NeoForge 670 项及两端发布 jar 通过，共享场景为654项。10 项 Compendium 审计、76条报告一致性及差异检查通过。两端发布包包含汇总入口 / 路径接口 / 三项访问器和必需 Mixin 注册，不含效果 / 存储测试夹具或 GameTest。此阶段没有客户端协议 / 输入变更或新增图形客户端验收。
 
@@ -319,18 +327,19 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 静态来源与 Buff 的查询期数值修饰 | 已有组合测试 | JSON 规则施加 Buff 后，通过 `CalculationProfile` 算出伤害；每层独立贡献与明确资格条件 |
 | 攻击 / 防御 Profile 到实际世界伤害 | 纯核心及双加载器 GameTest 通过 | `CompiledEffects.outgoing / defense`、`DamageCapture`；显式 scaling_profile、目标 defense_profile、完整轨迹、玩家委托不重算、原版门槛与嵌套命中 |
 | origin/current 反应绑定 | 纯核心及双加载器 GameTest 通过 | `ReactionSnapshot`；来源规则在释放时捕获身份 / 标签，命中和击杀可在解绑后执行；当前规则独立读取新来源；多版本目录并存与 Buff 规则继承未实现；proc 排除已另行接入 |
-| 世界命令执行、会话内去重、失败停留 | 纯宿主及双加载器 GameTest 通过 | `EffectSession`、`OperationLedger`；结果未知不重试，跨重启恢复未实现 |
-| 成功边界检查点与会话恢复 | 纯核心及双加载器世界测试通过 | `TimelineEngine.Checkpoint / EffectSession.Checkpoint`；完整目录匹配、时钟 / 序号与全部领域状态保留、旧操作退休、未知结果拒绝；已有 JSON，Minecraft 存档与重启恢复未实现 |
-| 检查点 JSON 与单文件原子替换 | 纯核心文件 / 类型审计及双端世界场景通过 | `EffectCheckpointCodec / RecordTreeCodec`；215 份定义与全部领域字段的格式、500 种内置数据类型固定 schema、大整数 / 空值语义、复杂快照 / 聚合 / 换弹；完整世界保存一致性与自动重启恢复未接入 |
-| Minecraft 运行时检查点与恢复 | 双加载器 9 项共享世界场景通过 | `MinecraftEffectRuntime.Checkpoint / EffectPrograms.restore`；时钟 / 目录与实际配装预检、原版投影与观察器重建、结算边界拒绝、短命实体不重生；已有宿主归档，完整保存一致性及重启验收待接入 |
-| 实体 NBT 与临时最大生命恢复 | 双加载器 5 项共享世界场景通过 | `LivingAttributeLoadMixin / MinecraftAttributeProjection`；索引前目标属性重建、永久修饰与保存生命保留、过期 / 死亡 / 重复加载 / 失败隔离；启动安装先于实体载入仍由后续宿主保存协调负责 |
-| 多维度宿主归档与保存确认协议 | 11 项纯测试及双端实际文件 / 运行时恢复通过 | `CheckpointArchive / WorldCheckpointStore`；元数据 / 目录身份、候选与提交区分、运行前失效、完整具名确认和旧回调隔离；自动服务器钩子与真实全世界写入确认未接入 |
-| 原版玩家与 level.dat 同步保存证据 | 3 项纯测试与双加载器 6 项共享真实文件场景通过 | `MinecraftSaveCapture` 与保存入口 / 替换 Mixin；准确路径、写入前 / 替换失败与缺失文件、完整窗口与失败保留；区域任务另用独立 Journal，自动生命周期待接入 |
-| 区域文件异步保存证据 | 6 项纯测试与双加载器 5 项共享真实区域文件场景通过 | `RegionSaveJournal / MinecraftRegionSaveAccess / RegionSaveCaptureMixin`；pending、flush 覆盖最后写入、失败不被后来成功掩盖、吞掉的关闭错误与 supplier 不结束；上层编码已接 ENCODE，完整生命周期协调仍待接入 |
-| 写入前的实体 / section / 区块序列化 | 4 项纯测试与双加载器 6 项共享真实存储场景通过 | `SaveSerializationCapture / MinecraftSaveSerialization`；部分结果、报告字段问题、提交前异常与 NeoForge 吞错 / 丢弃，正常跳过不误报；全部对象保存范围与自动生命周期待接入 |
-| 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；全局 / 维度实例已接服务器级入口，自动生命周期待接入 |
-| 服务器级原版保存汇总 | 双加载器 3 项共享世界场景通过 | `MinecraftWorldSave / MinecraftPlayerSaveAccess`；实际存储 / 玩家范围、原版保存、补充 flush / 批次等待、前后身份检查和各项结果；无自动冻结 / 检查点提交 / 关闭 / 重启，统计 / 进度旁文件不在证明范围 |
-| 保存期间的规则状态隔离 | 双加载器 7 项共享世界场景通过 | `MinecraftCheckpointBoundary`；全维度先结算后捕获、阻止运行时操作 / 替换、持久违规诊断、真实原版保存和物理配装复核、固定 NBT 属性投影；不冻结任意世界字段，不自动提交或接管停服 / 启动 |
+| 世界命令执行、会话内去重、失败停留 | 纯宿主及双加载器 GameTest 通过 | `EffectSession`、`OperationLedger`；结果未知不重试，未知结果的跨重启对账未实现 |
+| 成功边界检查点与会话恢复 | 纯核心及双加载器世界测试通过 | `TimelineEngine.Checkpoint / EffectSession.Checkpoint`；完整目录匹配、时钟 / 序号与全部领域状态保留、旧操作退休、未知结果拒绝；默认宿主已接正常停服恢复 |
+| 检查点 JSON 与单文件原子替换 | 纯核心文件 / 类型审计及双端世界场景通过 | `EffectCheckpointCodec / RecordTreeCodec`；215 份定义与全部领域字段的格式、500 种内置数据类型固定 schema、大整数 / 空值语义、复杂快照 / 聚合 / 换弹；无跨文件事务或迁移 |
+| Minecraft 运行时检查点与恢复 | 双加载器 9 项共享世界场景及独立进程验收通过 | `MinecraftEffectRuntime.Checkpoint / EffectPrograms.restore`；时钟 / 目录与实际配装预检、原版投影与观察器重建、结算边界拒绝；短命实体不重生，其引用政策待完成 |
+| 实体 NBT 与临时最大生命恢复 | 双加载器 5 项共享世界场景及实际重启登录通过 | `LivingAttributeLoadMixin / MinecraftAttributeProjection`；索引前目标属性重建、永久修饰与保存生命保留、过期 / 死亡 / 重复加载 / 失败隔离；启动恢复早于正常实体载入 |
+| 多维度宿主归档与保存确认协议 | 11 项纯测试及双端文件 / 运行时 / 独立进程恢复通过 | `CheckpointArchive / WorldCheckpointStore`；元数据 / 目录身份、候选与提交区分、运行前失效、完整具名确认和旧回调隔离；正常停服已接自动确认，崩溃恢复待完成 |
+| 原版玩家与 level.dat 同步保存证据 | 3 项纯测试与双加载器 6 项共享真实文件场景通过 | `MinecraftSaveCapture` 与保存入口 / 替换 Mixin；准确路径、写入前 / 替换失败与缺失文件、完整窗口与失败保留；已进入自动停服，区域任务另用独立 Journal |
+| 区域文件异步保存证据 | 6 项纯测试与双加载器 5 项共享真实区域文件场景通过 | `RegionSaveJournal / MinecraftRegionSaveAccess / RegionSaveCaptureMixin`；pending、flush 覆盖最后写入、失败不被后来成功掩盖、吞掉的关闭错误与 supplier 不结束；自动停服核验最终 flush / close |
+| 写入前的实体 / section / 区块序列化 | 4 项纯测试与双加载器 6 项共享真实存储场景通过 | `SaveSerializationCapture / MinecraftSaveSerialization`；部分结果、报告字段问题、提交前异常与 NeoForge 吞错 / 丢弃，正常跳过不误报；自动停服另观察 level.dat 构建，不推断任意模组对象已保存 |
+| 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；自动停服等待全局 / 维度实例关闭 |
+| 服务器级原版保存汇总 | 双加载器 3 项共享世界场景通过 | `MinecraftWorldSave / MinecraftPlayerSaveAccess`；实际存储 / 玩家范围、原版保存、补充 flush / 批次等待、前后身份检查和各项结果；显式工具本身不提交检查点，统计 / 进度旁文件不在证明范围 |
+| 保存期间的规则状态隔离 | 双加载器 7 项共享世界场景通过 | `MinecraftCheckpointBoundary`；全维度先结算后捕获、阻止运行时操作 / 替换、持久违规诊断、真实原版保存和物理配装复核、固定 NBT 属性投影；已用于正常停服，不冻结任意世界字段 |
+| 正常停服保存与启动恢复 | 双端八个独立进程验收及完整回归通过 | `MinecraftCheckpointLifecycle / tools/checkpoint_restart.py`；世界锁内提交、两个维度、真实玩家 NBT / 装备 / 已付能量、失败保存后拒绝启动并保留原文件；运行中检查点 / 崩溃对账 / 迁移未实现 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

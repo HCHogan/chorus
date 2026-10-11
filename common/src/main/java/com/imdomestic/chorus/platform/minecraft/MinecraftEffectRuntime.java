@@ -333,7 +333,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public static void cancelAbilityInputs(net.minecraft.server.network.ServerGamePacketListenerImpl connection) {
         for (var runtime : LIVE.values()) if (runtime.level.getServer() == connection.player.level().getServer()) {
-            runtime.thread(); runtime.abilityInputs.entrySet().removeIf(e -> e.getValue().player().connection == connection);
+            runtime.ownerThread(); // Disconnection retires non-persistent input handles, including during pinned shutdown.
+            runtime.abilityInputs.entrySet().removeIf(e -> e.getValue().player().connection == connection);
         }
     }
     /** One input consumes at most one eligible loaded flight, nearest first with UUID tie-breaking. */
@@ -652,8 +653,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         try { runtime.prepare(); runtime.maintainProjectiles(); runtime.start(new RuleEngine.Signal("chorus:tick", RuleEngine.Empty.INSTANCE)); }
         catch (RuntimeException error) { runtime.failed(error, List.of()); }
     }
-    public static void unload(ServerLevel level) { var runtime = LIVE.get(level); if (runtime != null) runtime.close(); }
+    public static void unload(ServerLevel level) {
+        if (MinecraftCheckpointLifecycle.deferUnload(level)) return;
+        var runtime = LIVE.get(level); if (runtime != null) runtime.close();
+    }
     public static void stop(MinecraftServer server) {
+        if (MinecraftCheckpointLifecycle.deferStop(server)) return;
         List.copyOf(LIVE.values()).stream().filter(runtime -> runtime.level.getServer() == server).forEach(MinecraftEffectRuntime::close);
         DamageCapture.clear(server);
     }
