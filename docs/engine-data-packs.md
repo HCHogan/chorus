@@ -2629,6 +2629,23 @@ capture.report().requireSuccess();
 pendingSave.confirm("players");
 ```
 
-调用方必须先确定正确的玩家集合和对应路径，并在捕获失败时将本次保存标为 failed。level.dat 使用同一协议。该观察只证明原版同步文件替换的返回结果，不证明区域存储异步任务、全部实体 / 区块、硬件断电持久性或世界与规则状态共同提交。成功报告也不自动对 WorldCheckpointStore 作确认；完整生命周期协调仍需组合真实写入范围、静止边界及异步故障 / flush 证据。
+调用方必须先确定正确的玩家集合和对应路径，并在捕获失败时将本次保存标为 failed。level.dat 使用同一协议。该观察只证明原版同步文件替换的返回结果，不证明区域存储异步任务、全部实体 / 区块、硬件断电持久性或世界与规则状态共同提交。成功报告也不自动对 WorldCheckpointStore 作确认；完整生命周期协调仍需组合真实写入范围、静止边界及下面的异步故障 / flush 证据。
 
-自动保存 / 启动加载、区域文件的异步写入确认、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在同 tick 内已经变化的世界上宣称回滚。当前世界场景包括归档恢复、两个夹具实体 NBT，以及真实 PlayerDataStorage / level.dat 的成功、写入前失败和备份替换失败；不是完整世界保存或服务器重启验收。
+### 区域存储的异步写入与 flush 证据
+
+每个原版 `IOWorker` 通过 `MinecraftRegionSaveAccess` 持有独立的 `RegionSaveJournal`。`SimpleRegionStorage.chunkScanner()` 可取得该 worker；区块、实体和 POI 底层共用这个协议。日志从 worker 建立时开始，记录所有已提交 WRITE / DRAIN / FLUSH / CLOSE 的序号、尚未观察完成的任务、最后写入和成功 flush 的覆盖位置，以及该实例生命周期内的失败。不同存储实例即使 level / dimension / type 标签相同也不共享证据。
+
+原版失败的 PendingStore 会从队列移走，后续 synchronize(true) 可以成功。因此失败必须保留，不能仅观察关闭前的一次 flush。Journal 的成功报告要求没有未完成任务、没有历史失败，且至少一次成功的 synchronize(true) 覆盖最后一次提交的写入。synchronize(false)、close 正常返回、写入已排队、文件存在都不能替代这个条件。删除区域条目也算写入；flush 开始以后新提交的写入使旧 flush 不足以确认当前状态。
+
+提交顺序与原版入队顺序一致，异步完成使用独立状态锁，原版 close 等待 I/O 时不会阻塞完成记录。原始 CompletableFuture、异常与取消结果保留；观察器不重试或修复原版文件。合并到同一个 PendingStore 的多个写入分别等待原始结果，不承诺中间 NBT 版本全部落盘。完成的成功任务不永久保留。写入 supplier 抛错会提前留下失败，即使原版返回的 future 没有结束，也不能生成成功证明；关闭文件时被原版吞掉的 IOException 同样保留。禁用世界写入的原版调试配置不能产生有效写入证据。
+
+```java
+var journal = ((MinecraftRegionSaveAccess) storage.chunkScanner()).chorus$regionSaves();
+storage.synchronize(true).join();
+journal.completion().join().requireSuccess();
+pendingSave.confirm("region");
+```
+
+completion 等待调用时已经提交的观察，或在已知失败时提前返回失败报告，不发起保存 / flush，也不取消仍在执行的原版任务。supplier 抛错且原版 future 永不结束时，失败报告仍能返回，并保留 pending；宿主不能把它当作 I/O 已停止。返回时会重新取当前报告，期间新增但未完成或未 flush 的工作仍会使报告失败。报告是不可变快照，后续写入或关闭失败不会修改旧对象；确认前必须等待所有相关工作并读取当前报告，宿主还必须保证世界不再变化。生命周期失败没有自动清除入口，之后一次成功不能证明原先失败的其他区块也已修复；显式恢复政策另行处理。调用方仍需枚举本次保存的全部存储实例，不能以一个 worker 成功替代整个世界。
+
+本协议覆盖已经到达 IOWorker 的任务，不覆盖在提交之前的区块 / 实体 / POI 序列化失败、SavedDataStorage 吞掉的文件异常，或未提交的脏状态。自动保存 / 启动加载、上述故障通道与所有存储实例的协调、短命物体遗留状态、崩溃后的世界结果对账、离线政策和显式迁移仍待接入。维度与 tick 相等不证明世界状态相等，不能把旧检查点套在同 tick 内已经变化的世界上宣称回滚。实际文件测试不等于完整世界保存或服务器重启验收。
