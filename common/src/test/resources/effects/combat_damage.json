@@ -27,7 +27,12 @@
                 "name": "one_two_or_frozen",
                 "reduction": "max"
               }
-            ]
+            ],
+            "families": {
+              "chorus_d2:ophidia_knife": {
+                "kind": "max"
+              }
+            }
           }
         },
         {

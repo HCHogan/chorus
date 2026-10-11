@@ -1,0 +1,443 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:scissor_fingers",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "max_stacks": 3,
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:ophidia_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:ophidia_recent_melee",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:ophidia_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:ophidia_kill_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 5,
+        "refresh": "none",
+        "components": {
+          "numbers": {
+            "accepted": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "deaths"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:ophidia_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:ophidia_spathe",
+      "parameters": {
+        "recent_use_seconds": "second",
+        "pvp_one": "delta",
+        "pvp_two": "delta",
+        "pvp_three": "delta"
+      },
+      "includes": [
+        "chorus_d2:solar_melee_capacity_binding"
+      ],
+      "rules": [
+        {
+          "id": "knife_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_kill"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:throwing_knife_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:ophidia_kill_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:ophidia_kill_receipts"
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:ophidia_kill_receipts",
+                "component": "accepted",
+                "op": "add",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "deaths",
+                "event_reference": "death_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:scissor_fingers"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "recent",
+          "on": "chorus:ability_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_ability"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:solar_melee"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:ophidia_recent_melee",
+              "duration": {
+                "type": "chorus:source_parameter",
+                "name": "recent_use_seconds"
+              }
+            }
+          ]
+        },
+        {
+          "id": "dodge",
+          "on": "chorus:ability_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:gamblers_dodge"
+              },
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:scissor_fingers"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:refresh_buff",
+              "buff": "chorus_d2:scissor_fingers",
+              "duration": {
+                "type": "chorus:constant",
+                "value": 5,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "cleanup",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_source"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_source_tag",
+                  "tag": "chorus_d2:ophidia_spathe"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:scissor_fingers"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:ophidia_recent_melee"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:ophidia_kill_receipts"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "extra",
+          "profile": "chorus_d2:solar_melee_capacity",
+          "stage": "extra",
+          "group": "extra",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "stacking_key": "chorus_d2:solar_second_charge",
+          "reference": "Compendium Hunter Exotic Armor CSV A62/C62; original A91/C91, checked 2026-10-11",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:has_source_tag",
+            "tag": "chorus_d2:solar_melee"
+          }
+        },
+        {
+          "id": "linked",
+          "profile": "chorus_d2:solar_melee_cycle_yield",
+          "stage": "output",
+          "group": "output",
+          "op": "replace",
+          "value": {
+            "type": "chorus:ability_energy",
+            "slot": "chorus_d2:melee",
+            "field": "missing"
+          },
+          "stacking_key": "chorus_d2:ophidia_yield",
+          "reference": "Compendium Hunter Exotic Armor CSV A62/C62; original A91/C91, checked 2026-10-11",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:solar_melee"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:ophidia_recent_melee"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "knife_bonus",
+          "profile": "chorus_d2:outgoing",
+          "stage": "melee",
+          "group": "melee",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:buff_count",
+                  "buff": "chorus_d2:scissor_fingers"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": 0.67,
+                "unit": "delta"
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:compare",
+                  "op": "eq",
+                  "left": {
+                    "type": "chorus:buff_count",
+                    "buff": "chorus_d2:scissor_fingers"
+                  },
+                  "right": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "count"
+                  }
+                },
+                "then": {
+                  "type": "chorus:constant",
+                  "value": 1.33,
+                  "unit": "delta"
+                },
+                "else": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "delta"
+                }
+              }
+            },
+            "pvp": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:buff_count",
+                  "buff": "chorus_d2:scissor_fingers"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:source_parameter",
+                "name": "pvp_one"
+              },
+              "else": {
+                "type": "chorus:choose",
+                "if": {
+                  "type": "chorus:compare",
+                  "op": "eq",
+                  "left": {
+                    "type": "chorus:buff_count",
+                    "buff": "chorus_d2:scissor_fingers"
+                  },
+                  "right": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "count"
+                  }
+                },
+                "then": {
+                  "type": "chorus:source_parameter",
+                  "name": "pvp_two"
+                },
+                "else": {
+                  "type": "chorus:source_parameter",
+                  "name": "pvp_three"
+                }
+              }
+            }
+          },
+          "stacking_key": "chorus_d2:ophidia_knife",
+          "reference": "Compendium Hunter Exotic Armor CSV A62/C62; original A91/C91, checked 2026-10-11",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:scissor_fingers"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:melee_damage"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:throwing_knife_damage"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus_d2:scorch_damage"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus_d2:ignition_damage"
+                }
+              }
+            ]
+          },
+          "evaluate": "on_hit"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:ophidia_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:scissor_fingers"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:ophidia_recent_melee"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:ophidia_kill_receipts"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

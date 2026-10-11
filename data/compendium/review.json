@@ -6634,7 +6634,7 @@
         "Initial account creation gives the base resource initial value only. Equipping preserves absolute energy, shrinking clips excess, and empty-slot source removal still reconciles capacity. These are explicit Chorus policies; original-game equip/swap/death energy penalties have not been calibrated.",
         "Duplicate Armamentarium-family sources use MAX. A distinct synthetic capacity source verifies three charges; it is not a full Touch of Thunder implementation.",
         "SOURCE attach/detach and ability selection reconcile against the complete committed source set. Capacity-changing Buff lifecycles and arbitrary condition changes require their own reconciliation rules; generic automatic projection is not implemented.",
-        "Sequential shared regeneration is retained without multiplying rate or grants by capacity. Ophidia Spathe linked recovery and parallel charge timelines are not implemented."
+        "Sequential shared grenade regeneration is retained without multiplying rate or grants by capacity. Ophidia Spathe now has separate partial Solar linked-recovery content; parallel charge timelines remain unimplemented."
       ]
     },
     {
@@ -6788,6 +6788,91 @@
         "首次使用重置 / 中途再次使用保留进度、模式切换保留进度、扩容不赠能和缩容裁剪是显式测试政策；原作充能恢复起点、额外次数即时授予、两次冲刺间隔和Daybreak能量特例待校准",
         "Heat Rises / Song of Flame / Daybreak只识别已授予标签，近战资格依赖选择来源标记；测试使用合成状态和近战生产者，不是完整原作能力",
         "正式子职业 / Aspect装配、空中移动按键、HUD、存档和双端图形表现未实现"
+      ]
+    },
+    {
+      "id": "armor/ophidia_spathe",
+      "name": "Ophidia Spathe",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Exotic Armors",
+          "cell": "A62",
+          "text_sha256": "064a4c7c6668debf734f88575486160aef68bda2675aa165e06cd4ee1f37a748"
+        },
+        {
+          "sheet": "Exotic Armors",
+          "cell": "C62",
+          "text_sha256": "ba24f6262081e0f3f14b7f0b23566aa88fe74e0f2f11017b6ec8c23156305102"
+        }
+      ],
+      "scope": "Solar近战额外容量与固有第二次充能取高；共享进度的条件联动回充；确认飞刀击杀三层五秒增伤，赌徒闪身仅刷新已有层；真实装备、死亡/伤害与tick验收，技能生产者仍为合成输入",
+      "acceptance": [
+        "当前Solar选择限定额外充能，普通一格变两格，固有两格不变三格；扩容不赠能",
+        "同一双账户普通逐次/金装联动恢复，近期使用边界与外部按槽回能、当前属性和CES组合",
+        "本人确认飞刀击杀按67/133/200% PvE叠至三层，五秒刷新，重复来源/死亡回执不重复累计",
+        "赌徒闪身刷新已有层，其他闪身或精确到期后不刷新/复活",
+        "伤害接入近战加算阶段，不应用于普通近战、Scorch或Ignition；PvP参数独立",
+        "实际装备等效替换保留状态、最后卸装清理、死亡保护无击杀，未知世界结果不回滚或重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ophidia_spathe.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_melee_energy.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
+          "symbol": "recentUseYieldsOneAndExactExpiryRestoresAllMissingThroughSlotBasedGains"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
+          "symbol": "knifeKillsBuildThreeSharedStacksAndUseThePreKillDamageState"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
+          "symbol": "qualifyingDodgeRefreshesOnlyExistingStacksAndExactExpiryDoesNotReviveThem"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
+          "symbol": "statChangesScaleLaterIntervalsAndBaseGainsButNotFixedGrants"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java",
+          "symbol": "equipmentReplacementAndSolarSelectionRecomputeCapacityWithoutFreeCharges"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java",
+          "symbol": "recentUseExceptionAndNaturalLinkedRecoveryRunOnRealServerTicks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java",
+          "symbol": "confirmedDeathsStackKnifeDamageAndProtectedDeathsDoNot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java",
+          "symbol": "knifeBonusAddsToExistingMeleeFamilyOnActualDamage"
+        }
+      ],
+      "gaps": [
+        "原表近期使用时窗为?秒；近期仅恢复一份、首次使用重置、初始化/换装/切换政策仍需校准，测试0.2秒不是D2默认值",
+        "当前PvP增伤未知，必须显式提供三档delta；合成11/22/33%不作原作结论",
+        "Solar飞刀与闪身是独立合成生产者，完整刀种/弹体/精准/爆炸信用、闪身位移与附近敌人资格、正式职业与子职业装配未实现",
+        "on_hit当前来源取样、飞行期间换装及延迟死亡信用未按原作校准；五秒回执桶不是永久去重",
+        "HUD/素材绑定、活动状态持久化、任意linked分组和parallel独立进度尚未完成"
       ]
     }
   ]

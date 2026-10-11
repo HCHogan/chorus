@@ -1,0 +1,418 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:non_solar_uses",
+      "capacity": 1,
+      "initial": 1,
+      "resizable": true
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:solar_knife",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus_d2:solar_melee"
+      ],
+      "cost": {
+        "resource": "chorus_d2:solar_melee_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:solar_melee_progress",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "effects": {
+        "cycle": {
+          "bundle": "chorus_d2:solar_melee_cycle",
+          "parameters": {
+            "base_rate": {
+              "value": 1,
+              "unit": "charge_fraction_per_second"
+            },
+            "chunk_scalar": {
+              "value": 0.5,
+              "unit": "multiplier"
+            },
+            "intrinsic_extra": {
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "test:solar_two_knives",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus_d2:solar_melee"
+      ],
+      "cost": {
+        "resource": "chorus_d2:solar_melee_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:solar_melee_progress",
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ],
+      "effects": {
+        "cycle": {
+          "bundle": "chorus_d2:solar_melee_cycle",
+          "parameters": {
+            "base_rate": {
+              "value": 1,
+              "unit": "charge_fraction_per_second"
+            },
+            "chunk_scalar": {
+              "value": 0.5,
+              "unit": "multiplier"
+            },
+            "intrinsic_extra": {
+              "value": 1,
+              "unit": "charge_fraction"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "test:non_solar_melee",
+      "slot": "chorus_d2:melee",
+      "tags": [
+        "chorus:melee_ability"
+      ],
+      "cost": {
+        "resource": "test:non_solar_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:gamblers_dodge",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus_d2:gamblers_dodge"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:grant_ability_energy",
+          "slot": "chorus_d2:melee",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          },
+          "value_basis": "fixed"
+        }
+      ]
+    },
+    {
+      "id": "test:other_dodge",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus_d2:other_dodge"
+      ],
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:ophidia_inputs",
+      "rules": [
+        {
+          "id": "knife",
+          "on": "test:knife",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "origin": "event",
+              "tags": [
+                "chorus:melee_damage",
+                "chorus_d2:throwing_knife_damage"
+              ],
+              "kill_tags": [
+                "chorus:melee_kill",
+                "chorus_d2:throwing_knife_kill"
+              ],
+              "scaling_profile": "chorus_d2:outgoing"
+            }
+          ]
+        },
+        {
+          "id": "melee",
+          "on": "test:melee",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "origin": "event",
+              "tags": [
+                "chorus:melee_damage"
+              ],
+              "kill_tags": [
+                "chorus:melee_kill"
+              ],
+              "scaling_profile": "chorus_d2:outgoing"
+            }
+          ]
+        },
+        {
+          "id": "scorch",
+          "on": "test:scorch",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "origin": "event",
+              "tags": [
+                "chorus:melee_damage",
+                "chorus_d2:throwing_knife_damage",
+                "chorus_d2:scorch_damage"
+              ],
+              "kill_tags": [
+                "chorus:melee_kill"
+              ],
+              "scaling_profile": "chorus_d2:outgoing"
+            }
+          ]
+        },
+        {
+          "id": "ignition",
+          "on": "test:ignition",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "origin": "event",
+              "tags": [
+                "chorus:melee_damage",
+                "chorus_d2:throwing_knife_damage",
+                "chorus_d2:ignition_damage"
+              ],
+              "kill_tags": [
+                "chorus:melee_kill"
+              ],
+              "scaling_profile": "chorus_d2:outgoing"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "on": "test:fixed",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "on": "test:base",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:melee_bonus",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "chorus_d2:outgoing",
+          "stage": "melee",
+          "group": "melee/one_two_or_frozen",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1.5,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:synthetic_melee",
+          "reference": "Synthetic same-family composition probe",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "chorus:melee_damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:solar_melee_stat",
+      "parameters": {
+        "points": "stat_point"
+      },
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "chorus_d2:melee_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "points"
+          },
+          "stacking_key": "test:melee_stat",
+          "reference": "Synthetic current Melee stat input",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:chest",
+        "accepts": [
+          "test:chest"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:ophidia",
+        "tags": [
+          "test:chest"
+        ],
+        "parameters": {
+          "recent_use_seconds": {
+            "unit": "second",
+            "minimum": 1e-06,
+            "maximum": 1.7976931348623157e+308
+          },
+          "pvp_one": {
+            "unit": "delta",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "pvp_two": {
+            "unit": "delta",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "pvp_three": {
+            "unit": "delta",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          }
+        },
+        "effects": {
+          "exotic": {
+            "bundle": "chorus_d2:ophidia_spathe",
+            "tags": [
+              "chorus_d2:ophidia_spathe"
+            ],
+            "parameters": {
+              "recent_use_seconds": "recent_use_seconds",
+              "pvp_one": "pvp_one",
+              "pvp_two": "pvp_two",
+              "pvp_three": "pvp_three"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

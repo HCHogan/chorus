@@ -1,0 +1,21 @@
+{
+  "parameters": {
+    "recent_use_seconds": {
+      "value": 0.2,
+      "unit": "second"
+    },
+    "pvp_one": {
+      "value": 0.11,
+      "unit": "delta"
+    },
+    "pvp_two": {
+      "value": 0.22,
+      "unit": "delta"
+    },
+    "pvp_three": {
+      "value": 0.33,
+      "unit": "delta"
+    }
+  },
+  "note": "Synthetic 0.2s recent-use window and 11/22/33% PvP bonuses, not D2 values. Skill cycle 1s, CES .5, test damage 10; ability body heals 1 solely to expose payment/world receipt behavior."
+}

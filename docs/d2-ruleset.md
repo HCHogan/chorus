@@ -1146,7 +1146,7 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 原表 Stasis 第 39 / 103 行已再次在线读取并与存档归一化一致，记录保存在来源文件的 aspect_recheck。**共用余额和空槽暂停是当前 Chorus 装配政策；原作换手雷 / 子职业的额外扣减尚未校准。** 装备来源的额外容量已由下面的 Spirit of the Armamentarium 示例接入，任意 Buff / 条件变化的自动容量投影、跨规则集存档迁移和正式子职业装配仍未完成。旧运行时仍固定旧目录；测试资源改名不会自动迁移旧存档。
 
-额外充能的核心基础现有 `resizable` / `resize_resource`，可在同一账户扩容或缩容，不生成备用独立冷却。[官方 9.5.0 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)明确修复 Lightning Grenade 在 Touch of Thunder 与 Armamentarium 组合下被限制为两格的问题，因此引擎不设“两格”的硬上限。Compendium 当前 Exotic Armors F16、Exotic Class F17 声明额外手雷充能，而 Ophidia Spathe 的 C62 另有同时回充及未知秒数限制；它们需要不同的内容策略。Spirit 的装备来源协调已验证，完整 Armamentarium、Touch of Thunder 和联动回充仍未装配。保留绝对余额／缩容裁剪不等于这些金装的完整原作换装规则。
+额外充能的核心基础现有 `resizable` / `resize_resource`，可在同一账户扩容或缩容，不生成备用独立冷却。[官方 9.5.0 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)明确修复 Lightning Grenade 在 Touch of Thunder 与 Armamentarium 组合下被限制为两格的问题，因此引擎不设“两格”的硬上限。Compendium 当前 Exotic Armors F16、Exotic Class F17 声明额外手雷充能，而 Ophidia Spathe 的 C62 另有同时回充及未知秒数限制；它们需要不同的内容策略。Spirit 的装备来源协调已验证，完整 Armamentarium、Touch of Thunder 尚未装配；Ophidia 联动回充的部分内容见下文。保留绝对余额／缩容裁剪不等于这些金装的完整原作换装规则。
 
 部署弹体在实体或方块接触点尝试生成构造物；无有效接触不生成。当前位置用接触点作为脚底，生成遭遇阻挡时保留已支付能量；落点偏移、弹跳和退款政策未作原作校准。构造物与行为期限同时捕获，Durance 后续卸下不缩短已有期限。每组第一枚直接调用发射 bundle，其余四枚由行为拥有的延迟回调触发；每枚发射前再次观察炮台存活并重新选目标。目标不合格或实际发射被拒绝时保持 67% 减伤，首个 `launch_as.launched` 回执才写入 fired 状态。该开火边界是明确的 Chorus 政策。
 
@@ -1170,21 +1170,23 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 定义仍位于测试资源，测试物品原型为合成输入。正式 perk 选择、棱镜 / 职业 / 解锁和金装数量限制、美术、HUD、能量持久化、原作装卸 / 死亡能量政策尚未完成。此绑定仅协调 SOURCE 与选择事务；容量受 Buff 生命周期或任意条件变化影响时，内容还需相应重算规则。通用自动投影、parallel 及完整 linked 技能装配仍未实现，审阅保持 **partial**。
 
-## Ophidia Spathe 的联动回充需求与边界
+## Ophidia Spathe 的条件回充与飞刀增伤
 
-2026-10-11 重新读取[在线原表 Exotic Armors](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1500097863#gid=1500097863)，原表 A91 / C91 与 CSV 快照 A62 / C62 归一化一致。它要求 Solar 近战额外次数、同时恢复全部次数，并保留一个未知秒数的近期使用例外；[来源记录](../data/d2-research/2026-10-11/ophidia-spathe-recharge.json) 保存坐标、原 HTML、哈希及未确定项。[官方 8.0.0.1 更新](https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1)曾明确 Lightweight Knife 额外充能因这种特殊回充方式不与 Ophidia Spathe 叠加；这是历史设计约束，不能据此确定当前全部行为。
+2026-10-11 核对[在线原表 Exotic Armors A91 / C91](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1500097863#gid=1500097863)，与 CSV A62 / C62 归一化一致。[来源记录](../data/d2-research/2026-10-11/ophidia-spathe-recharge.json) 保存原 HTML、坐标、哈希及未确定项。[ophidia_spathe.json](../common/src/test/resources/effects/ophidia_spathe.json) 现为 partial 内容，组合既有动作与 Profile，无金装专用 Java 分支。
 
-核心现可用两个资源加 complete_recharge 表达“一轮进度完成，一起恢复全部次数”：施放只扣可用次数，回能先进入单轮进度，完成时清零进度并补满当前次数上限。合成测试覆盖先用一次、中途再用一次、两次都在同一轮末尾恢复，以及一份外部周期能量恢复全部缺口。详细协议见 [联动回充](engine-data-packs.md#联动回充的独立进度与可用次数)。测试的 2 秒周期、0.5 CES 和首次使用重置 / 再次使用保留进度都是合成政策，不是该金装的原作参数。
+[solar_melee_energy.json](../common/src/test/resources/effects/solar_melee_energy.json) 提供共享的可用次数 / 单轮进度账户。当前选中技能的常驻来源提供 `base_rate`、`chunk_scalar`、`intrinsic_extra`，带有组合标签 `chorus_d2:solar_melee`；不能由不同来源上的 Solar 与 melee 两个标签拼出资格。容量从1加上固有额外次数或 Ophidia 额外次数，同一 `solar_second_charge` 家族取高，所以固有双充能仍为两次。[官方8.0.0.1](https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1)曾明确 Lightweight Knife 不与该金装叠加，这是历史约束；引擎不设所有额外充能都不能超过2的全局上限。
 
-技能的 recharge_resource 已接通独立进度路由；原 Pugilist 定义通过真实装备、扣弹和投射物击杀将收益写入进度，完成一轮后可再次施放两次。施放中途改变基础选择时，后来的击杀使用新进度账户及其 CES；临时技能替换不改变外部回能路由，退款仍退实际支付的可用次数账户。Surplus 继续按可用次数计算，Wellspring 按可用账户资格分配后把收益送到进度；这两项已有组合单元测试。
+普通一轮恢复一次；装备金装且近期使用 Buff 不存在时，一轮恢复当前全部缺口。自然回充和按槽外部回能走同一进度账户，当前 Melee 属性与选中技能 CES 分别参与恢复和基础收益；fixed 收益不再乘 CES。近期使用时窗要求显式 `recent_use_seconds`，没有原作默认值。原表只说近期使用后“不恢复全部”，当前选择恢复一次，仍是待校准的内容政策。
 
-通用完成动作进一步支持可选 amount，由完成时查询的 Profile 决定一轮恢复一份或当前全部缺口。[周期收益合成示例](../common/src/test/resources/effects/resource_cycle_yield.json) 从一开始共用两个账户，让装备 / Buff 改变产出；真实装备中途装卸不重置进度，等效物品替换不赠送能量。纯核心验证当前容量、重复来源、Buff 优先级和精确到期，两端世界验证实际施放、自然回充与未知观察结果保留。它证明这类模式切换无需制造备用技能账户；一秒周期、装卸保留进度和临时 Buff 都不是 Ophidia Spathe 的原作参数。
+账户初次初始化为2/2，选择事务立即计算容量：普通单充能首次选择裁剪为1/1，固有双充能首次选择保留2/2。之后扩容保留绝对余额、不赠能，缩容裁剪；切换及等效装备替换保留进度，空槽 / 非 Solar 暂停这对账户。首次从满次数使用清零进度，再次使用保留进度。这些初始化、装卸与重置策略都是 Chorus 当前政策，不能从测试反推原作行为。其他未选账户不会隐式迁移；详细动作协议见 [联动回充](engine-data-packs.md#联动回充的独立进度与可用次数)。
 
-这些验证使用合成联动技能。Ophidia Spathe 的近期使用时窗、精确重置规则、Gambler's Dodge、飞刀击杀增伤与刷新、职业 / 近战资格及与 Lightweight Knife 的装配尚未实现。满可用次数时按槽回能返回 already_full，是当前防止隐藏储能的 Chorus 路由政策；不能据此宣称复现全部原作换装、重置或特殊退款行为。此阶段增加通用能力和已有 perk 的组合证据，不增加该金装的已实现或 partial 覆盖声明。
+本人确认飞刀击杀增加 Scissor Fingers，一至三层提供 PvE +67% / +133% / +200%，持续5秒，满层击杀仍刷新；单次伤害使用击杀前的层数。需要显式 `melee_kill` 与 `throwing_knife_kill` 信用，不能把所有近战击杀推作飞刀。Gambler's Dodge 使用只刷新现有层，不增加层数，过期后也不重新授予。多个装备来源共享一个固定五秒、不滑动延长的死亡回执集合，防止同一击杀重复叠层；它不是无限期的重放缓存。
 
-通用 `resize_ability_resource` 进一步允许装备规则按槽定位当前基础选择的可用次数账户，保留独立进度。其空槽 / 无资源 / 固定容量分支不求值容量表达式；临时技能替换不重定向容量，延迟动作使用执行时选择。合成装备已覆盖完整来源集合、等效替换、切换到另一旧单账户、重选时重新计算及未知世界观察保留。它补齐通用装配接口，尚未赋予该金装任何未经确认的秒数或近战资格。
+增伤在当前命中时查询，加入既有 outgoing 的 melee 加算阶段；同一 Ophidia 家族取高，重复来源不会翻倍。只修饰显式 throwing_knife_damage + melee_damage，排除 scorch_damage / ignition_damage。[官方2025-06-19说明](https://www.bungie.net/7/en/News/article/twid_06_19_2025)规定近战加算、近战属性独立乘算，并取消普通近战增伤对灼烧 / 点燃的缩放。[9.0.0.1更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)明确最大 **PvE** 飞刀增伤到200%；当前PvP三档未知，要求独立的 `pvp_one/two/three` delta 参数，不复用旧表猜值。
 
-本轮重新核对的[官方 9.0.0.1 更新](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1)明确最大 **PvE** 飞刀增伤提高至200%；原表当前列出67% / 133% / 200%，但这一单元格未单列 PvP 表。旧7.3.0的30% / 60% / 100%及“闪身刷新”不能自动充当当前完整PvP与所有闪身资格的证据。原表近期使用例外依然是 `? 秒`，精确时窗、当前PvP档位及原作循环 / 装卸行为继续保留为校准项。
+最后一个金装来源移除或持有者死亡清理增伤、近期使用和回执 Buff；完整来源批次中的等效替换保留它们。来源参数检查存在性和单位，实际装备实例还校验正数时窗 / 非负增伤。绕过装备直接绑定的非法时窗会在动作执行时失败，不声称能在原技能扣费之前检查这类语义值。
+
+[独立验收输入](../common/src/test/resources/effects/ophidia_spathe_inputs.json)与[校准文件](../common/src/test/resources/effects/ophidia_spathe_test_calibration.json)使用0.2秒近期窗口、11/22/33% PvP增伤、1秒周期、0.5 CES和10点伤害，技能体治疗1HP仅用于观察支付后世界动作。它们不是 Solar 飞刀 / 赌徒闪身的完整实现，也不是原作测量。15项核心测试和6项双端共享场景覆盖实际装备替换、自然tick、真实死亡 / 保护及后续增伤、加算和未知结果保留。完整刀种、物理飞刀 / 精准 / 爆炸信用、闪身位移 / 附近敌人资格、职业 / 子职业正式装配、时序校准、HUD和状态持久化仍未完成。
 
 ## Icarus Dash 的条件充能与水平位移
 

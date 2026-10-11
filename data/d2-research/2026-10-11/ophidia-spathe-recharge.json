@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Recharge requirement research only; Ophidia Spathe content is not implemented by the linked-cycle fixture",
+  "status": "Partial Ophidia content implemented; explicit calibration required for recent-use seconds and PvP damage, synthetic skill/dodge producers",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1500097863",
     "retrieved_at": "2026-10-10T23:58:28.130968+00:00",
@@ -26,7 +26,7 @@
   "requirements": [
     "Solar melee gets an extra charge.",
     "All melee charges recharge simultaneously, with an unspecified recent-use exception.",
-    "Gambler dodge and knife-kill damage stacks require separate content integration."
+    "Throwing Knife kills grant three five-second damage stacks; Gambler dodge refreshes the active duration."
   ],
   "official_context": {
     "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1",
@@ -61,11 +61,11 @@
     }
   },
   "unresolved": [
-    "Recent-use exception duration and exact original-game cycle/reset behavior remain uncalibrated.",
-    "The fixture is not Ophidia Spathe, Gambler dodge or a Solar knife. No Compendium entry is promoted by it.",
-    "Arbitrary linked groups, parallel independent progress lanes, migration, persistence and UI are not implemented.",
-    "Production Ophidia Spathe still requires exotic/knife eligibility, exact recent-use and cycle-reset policy, Gambler dodge and knife-kill damage content. The generic routing proof does not validate those behaviors.",
-    "Original C91 includes a generic melee-colored 67/133/200-percent table but no separately marked PvP numbers; the current PvP table is not independently verified by the 2025 PvE-only change. No seconds are inferred for the recent-use exception."
+    "Recent-use seconds, one-charge exception yield, cycle reset, equip/unequip, shared-account selection and initial-charge policies require original-game calibration.",
+    "Current PvP damage table remains unverified. The synthetic 11/22/33 percent values are acceptance inputs, not fallback game values.",
+    "Actual Solar knife catalogue, physical knife flight/precision/explosion producers, full Gambler dodge displacement/near-enemy eligibility and class/subclass restrictions are not implemented by these synthetic producers.",
+    "Damage on-hit sampling, posthumous/in-flight source swaps, precise throwing-knife kill credit (including secondary explosions) and dedup retention beyond its bounded receipt bucket require original-game interaction review.",
+    "Formal production equipment/subclass assembly, arbitrary linked groups, parallel lanes, legacy-account migration, active-state persistence, HUD and visuals remain incomplete."
   ],
   "official_damage_context": {
     "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1",
@@ -73,6 +73,40 @@
     "reviewed_at": "2026-10-11",
     "claim": "Maximum PvE Throwing Knife damage bonus increased from 100% to 200%. This supports the current PvE maximum, not a complete current PvP table.",
     "historical_url": "https://www.bungie.net/7/en/News/Article/update-7-3-0-patch-notes",
-    "historical_claim": "The 2023 update introduced three five-second knife-kill stacks with 30/60/100 percent and dodge refresh; do not substitute this historic table for currently uncalibrated PvP values or override current Compendium Gambler dodge qualification."
+    "historical_claim": "The 2023 update introduced three five-second knife-kill stacks with 30/60/100 percent and dodge refresh; do not substitute this historic table for currently uncalibrated PvP values or override current Compendium Gambler dodge qualification.",
+    "additive_url": "https://www.bungie.net/7/en/News/article/twid_06_19_2025",
+    "additive_claim": "Melee bonuses add; Melee stat remains multiplicative. Ordinary melee bonuses do not scale melee-generated Scorch/Ignition. Reopened 2026-10-11."
+  },
+  "content": {
+    "definitions": [
+      "common/src/test/resources/effects/solar_melee_energy.json",
+      "common/src/test/resources/effects/ophidia_spathe.json"
+    ],
+    "inputs": "common/src/test/resources/effects/ophidia_spathe_inputs.json",
+    "calibration": "common/src/test/resources/effects/ophidia_spathe_test_calibration.json",
+    "eligibility": "Current selected ability carries the combined chorus_d2:solar_melee source tag; no element/melee qualification inferred from separate unrelated sources. Knife kills need owned confirmed death plus melee_kill and throwing_knife_kill credit. Dodge refresh requires explicit gamblers_dodge ability tag.",
+    "capacity": "Input 1 plus MAX family of selected intrinsic extra and exotic extra. Native two-charge knife plus Ophidia remains two; independent future families may add further charges. This is not an engine-wide cap.",
+    "initialization": "Shared usable resource first initializes at 2/2, then selection source immediately computes current capacity. Ordinary Solar first selection clips to 1/1; intrinsic double first selection retains 2/2. Subsequent expansion preserves absolute balance and grants no energy.",
+    "recharge": "One persistent Solar uses/progress pair. Selected SOURCE supplies base rate/CES/intrinsic extra, current Melee stat fit scales rate and base gains. Empty/non-Solar selection pauses this pair. Ordinary cycle yields one; equipped Ophidia outside recent-use window yields current missing. Within the window yields one: explicit uncalibrated exception policy, not a measured claim.",
+    "reset": "First spend from full resets progress; additional spending preserves it. Equipment/selection changes retain progress, shrinking clips usable balance; unselected accounts are not migrated or resized until reselected.",
+    "damage": "PvE deltas .67/1.33/2, three shared five-second stacks, on-hit current source evaluation, additive with existing melee families. Same Ophidia MAX family prevents duplicate equipped sources adding multiple bonuses. Excludes explicit scorch_damage and ignition_damage even if input also carries knife/melee tags.",
+    "lifecycle": "Capped kills reset five-second expiry; Gambler dodge only refreshes existing stacks. Fixed non-refreshing five-second shared death-ID bucket deduplicates concurrent source reactions. Equivalent full-set source replacement retains Buffs; removing the last tagged source or holder death clears all three Buffs. No permanent replay ledger.",
+    "parameters": "recent_use_seconds SECOND and pvp_one/two/three DELTA must be bound explicitly. Equipment instance schema requires positive seconds and nonnegative deltas; generic SOURCE parameters enforce presence/units, not semantic ranges. Invalid direct-source duration fails when its action executes, not before the original ability payment.",
+    "synthetic_values": {
+      "recent_use_seconds": 0.2,
+      "pvp_deltas": [
+        0.11,
+        0.22,
+        0.33
+      ],
+      "cycle_seconds": 1,
+      "recipient_scalar": 0.5,
+      "damage": 10,
+      "ability_body": "heal 1 as an observable paid world action, not knife behavior"
+    },
+    "tests": [
+      "common/src/test/java/com/imdomestic/chorus/effect/OphidiaSpatheTest.java",
+      "common/src/gametest/java/com/imdomestic/chorus/test/OphidiaSpatheGameTest.java"
+    ]
   }
 }

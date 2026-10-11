@@ -1,0 +1,557 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "chorus_d2:solar_melee_uses",
+      "capacity": 2,
+      "initial": 2,
+      "resizable": true
+    },
+    {
+      "id": "chorus_d2:solar_melee_progress",
+      "capacity": 1,
+      "initial": 0,
+      "base_rate": 0,
+      "rate_profile": "chorus_d2:solar_melee_regeneration",
+      "gain_profile": "chorus_d2:solar_melee_gain",
+      "gain_scalar_profile": "chorus_d2:solar_melee_recipient_scalar"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:solar_melee_capacity",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "extra",
+          "operation": "add",
+          "group": {
+            "name": "extra",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:solar_second_charge": {
+                "kind": "max"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_melee_regeneration",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "baseline",
+          "operation": "replace",
+          "group": {
+            "name": "baseline",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_melee_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "stat",
+          "operation": "multiply",
+          "group": {
+            "name": "stat",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "trigger",
+          "operation": "multiply",
+          "group": {
+            "name": "trigger",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_melee_recipient_scalar",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "scalar",
+          "operation": "replace",
+          "group": {
+            "name": "scalar",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_melee_cycle_yield",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "output",
+          "operation": "replace",
+          "group": {
+            "name": "output",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:solar_melee_capacity_binding",
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:solar_melee"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:solar_melee_capacity",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "charge_fraction"
+                    }
+                  },
+                  "as": "capacity"
+                },
+                {
+                  "type": "chorus:resize_ability_resource",
+                  "slot": "chorus_d2:melee",
+                  "capacity": {
+                    "type": "chorus:result",
+                    "binding": "capacity",
+                    "field": "value"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:solar_melee"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:solar_melee_capacity",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "charge_fraction"
+                    }
+                  },
+                  "as": "capacity"
+                },
+                {
+                  "type": "chorus:resize_ability_resource",
+                  "slot": "chorus_d2:melee",
+                  "capacity": {
+                    "type": "chorus:result",
+                    "binding": "capacity",
+                    "field": "value"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "selection",
+          "on": "chorus:abilities_changed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:solar_melee"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:solar_melee_capacity",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "charge_fraction"
+                    }
+                  },
+                  "as": "capacity"
+                },
+                {
+                  "type": "chorus:resize_ability_resource",
+                  "slot": "chorus_d2:melee",
+                  "capacity": {
+                    "type": "chorus:result",
+                    "binding": "capacity",
+                    "field": "value"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_melee_cycle",
+      "parameters": {
+        "base_rate": "charge_fraction_per_second",
+        "chunk_scalar": "multiplier",
+        "intrinsic_extra": "charge_fraction"
+      },
+      "includes": [
+        "chorus_d2:solar_melee_capacity_binding"
+      ],
+      "rules": [
+        {
+          "id": "complete",
+          "on": "chorus:resource_changed",
+          "if": {
+            "type": "chorus:resource_crossed",
+            "resource": "chorus_d2:solar_melee_progress",
+            "threshold": 1,
+            "direction": "up"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate",
+                "profile": "chorus_d2:solar_melee_cycle_yield",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                }
+              },
+              "as": "yield"
+            },
+            {
+              "type": "chorus:complete_recharge",
+              "progress": "chorus_d2:solar_melee_progress",
+              "resource": "chorus_d2:solar_melee_uses",
+              "amount": {
+                "type": "chorus:result",
+                "binding": "yield",
+                "field": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "start",
+          "on": "chorus:resource_spent",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "resource",
+                "is": "chorus_d2:solar_melee_uses"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "eq",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "before",
+                  "unit": "charge_fraction"
+                },
+                "right": {
+                  "type": "chorus:event_number",
+                  "name": "capacity",
+                  "unit": "charge_fraction"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:spend_resource",
+              "resource": "chorus_d2:solar_melee_progress",
+              "amount": {
+                "type": "chorus:resource",
+                "resource": "chorus_d2:solar_melee_progress"
+              },
+              "payment": "start_solar_cycle"
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "rate",
+          "profile": "chorus_d2:solar_melee_regeneration",
+          "stage": "baseline",
+          "group": "baseline",
+          "op": "replace",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "base_rate"
+          },
+          "stacking_key": "chorus_d2:solar_melee_base",
+          "reference": "Current selected Solar melee supplies its own base cooldown; no class-wide cooldown assumption",
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:compare",
+            "op": "gt",
+            "left": {
+              "type": "chorus:resource",
+              "resource": "chorus_d2:solar_melee_uses",
+              "field": "missing"
+            },
+            "right": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          }
+        },
+        {
+          "id": "scalar",
+          "profile": "chorus_d2:solar_melee_recipient_scalar",
+          "stage": "scalar",
+          "group": "scalar",
+          "op": "replace",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "chunk_scalar"
+          },
+          "stacking_key": "chorus_d2:solar_melee_base",
+          "reference": "Current selected Solar melee supplies its own recipient scalar",
+          "confidence": "assumed"
+        },
+        {
+          "id": "intrinsic",
+          "profile": "chorus_d2:solar_melee_capacity",
+          "stage": "extra",
+          "group": "extra",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "intrinsic_extra"
+          },
+          "stacking_key": "chorus_d2:solar_second_charge",
+          "reference": "Bungie update 8.0.0.1 (2024-06-04): Lightweight Knife two charges do not stack with Ophidia; historical constraint, current combinations uncalibrated",
+          "confidence": "assumed"
+        },
+        {
+          "id": "passive",
+          "profile": "chorus_d2:solar_melee_regeneration",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:melee_stat",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:attribute",
+                "profile": "chorus_d2:melee_stat",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
+                }
+              },
+              "op": "ge",
+              "right": {
+                "type": "chorus:constant",
+                "value": 100,
+                "unit": "stat_point"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 1.75,
+              "unit": "delta"
+            },
+            "else": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:melee_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "op": "ge",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 70,
+                  "unit": "stat_point"
+                }
+              },
+              "then": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:melee_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    1.10898698,
+                    0.00639461
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              },
+              "else": {
+                "type": "chorus:curve",
+                "of": {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:melee_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                "curve": {
+                  "type": "chorus:polynomial",
+                  "coefficients": [
+                    0,
+                    0.004273626,
+                    0.000300195,
+                    -6.37618e-07
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "boundary": "clamp"
+                },
+                "from": "stat_point",
+                "to": "delta"
+              }
+            }
+          },
+          "reference": "Shared current Melee stat fit; data/d2-research/2026-10-10/armor-energy.json, original passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11. Solar cooldown and CES supplied independently by selected ability.",
+          "confidence": "fitted"
+        },
+        {
+          "id": "energy_gained",
+          "profile": "chorus_d2:solar_melee_gain",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:melee_stat",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "add",
+            "of": [
+              {
+                "type": "chorus:constant",
+                "value": 0.625,
+                "unit": "delta"
+              },
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:melee_stat",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
+                      }
+                    },
+                    "factor": 0.031415926535897934,
+                    "from": "stat_point",
+                    "to": "radian"
+                  },
+                  "from": "radian",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:cosine",
+                    "minimum": 0,
+                    "maximum": 3.141592653589793,
+                    "boundary": "clamp"
+                  }
+                },
+                "factor": -0.625,
+                "from": "multiplier",
+                "to": "delta"
+              }
+            ]
+          },
+          "reference": "Shared current Melee stat fit; data/d2-research/2026-10-10/armor-energy.json, original passive D9:N9 and chunk D10:N10 reconfirmed 2026-10-11. Solar cooldown and CES supplied independently by selected ability.",
+          "confidence": "fitted"
+        }
+      ]
+    }
+  ]
+}
