@@ -229,6 +229,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/directional_movement_attributes.json'
         include 'effects/echo_of_domineering.json'
         include 'effects/domineering_inputs.json'
+        include 'effects/finisher.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'
         include 'effects/starvation_inputs.json'

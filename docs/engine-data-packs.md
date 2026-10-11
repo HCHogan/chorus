@@ -2909,3 +2909,49 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 `suppression.json` 现在提供 `chorus_d2:suppression_application`。用 `invoke_bundle` 调用 `chorus_d2:apply_suppression`，明确传入 `combatant_duration` 与 `guardian_duration`（均为正 second），并保留真实动作 origin / victim。施加器观察目标是否存在、存活及是否玩家，然后执行 `apply_status`；授权成功后由引擎提交 `status_applied`，不是由内容包自行伪造。`chorus_d2:clear_suppression` 是显式清除入口，目标死亡也会清理活动状态。
 
 Domineering内容链接 `suppression`、`character_stats`、`directional_movement_attributes` 与共享 `void_breach`，Fragment来源须给出正 `receipt_seconds`。实际抑制施加后，当前申请者四秒内最多一次获得十秒收益及持握武器补弹；击杀条件读取历史抑制并独立调用Breach。详细规则、源版本冲突和当前物理边界见[D2规则](d2-ruleset.md#echo-of-domineering-的抑制施加信用与持握补弹)。`domineering_inputs.json` 是合成武器与命中施加器的验收夹具，不是发布中的完整技能目录。
+
+## 终结技的占用、确认与取消
+
+`chorus:begin_finisher` 是数据包可调用的动作。它先请求服务器观察资格，再原子授予施放者与目标各一个占用 Buff，保存伤害请求和截止时间，发布 `chorus:finisher_started`。普通 `ability_started`、纯授予 Buff 或带 `finisher_kill` 标签的任意伤害都不代替这个过程。当前接口由可信效果来源调用；正式终结技输入和动画尚未接入。
+
+```json
+{
+  "action": {
+    "type": "chorus:begin_finisher",
+    "target": "victim",
+    "actor_buff": "example:finishing",
+    "target_buff": "example:being_finished",
+    "duration": {"type":"chorus:constant","value":0.3,"unit":"second"},
+    "policy": {
+      "maximum_health_fraction": 0.2,
+      "range": 3,
+      "eligible_tag": "example:finishable",
+      "line_of_sight": true
+    },
+    "damage": {"type":"chorus:constant","value":1000,"unit":"damage"},
+    "damage_type": "example:finisher",
+    "tags": ["chorus:kinetic"]
+  },
+  "as": "attempt"
+}
+```
+
+结果提供 `accepted` / `busy` / `rejected` 布尔字段。`origin` 默认为 `bound`，可显式选择 `event`；其 owner 必须等于当前规则 holder。可选 `damage_profile` 指定输出伤害 Profile。上述 0.3 秒、20%、3 米、1000 点和 Kinetic 都是示例输入，绝不是全体 D2 终结技的默认值。伤害类型也须由宿主映射到实际 DamageSource。
+
+两个 Buff 都必须是 `attach: target`、`instanced_by: none`、`max_stacks: 1`、`duration: permanent`、`timer_mode: shared`、`on_stow: keep`，并带 `chorus:finisher_participant` 标签。省略字段时仍须符合相应默认值。角色可以共用一个定义，也可以使用不同定义；占用检查读取共同标签，因此不同终结技来源也不能争抢同一参与者。同一原子写入保存两端 generation；释放只移除本次占用，不能删除后来替换的 Buff。动作、移动限制以及期间护盾等内容应绑定这些占用 Buff；单独监听开始事件不足以证明稍后仍在终结技中。
+
+Minecraft 宿主要求双方存在、存活、同维度，施放者不是旁观者、乘客或睡眠状态，目标不是玩家、自己或盟友，并且目标具有 `eligible_tag` 对应的**实体标签**。未知阵营也拒绝。接受时以原版当前 HP / 最大 HP 检查闭区间上限，不将 Absorption 或 Chorus 护盾并入分母；之后不因目标恢复血量而撤销已接受动作。距离使用双方脚底位置，视线使用施放者眼睛到目标身体；只观察已有区块。完整 D2 敌人目录、血条阈值、吸附位置、等级限制和技能例外由内容/宿主另行校准。
+
+计划以现有 detached 单次计时器保存，每 50 ms 或最终截止点重新检查两端 generation 和世界资格。Buff 被移除、实体消失/死亡、距离或视线不再允许时，释放两端并发布 `chorus:finisher_cancelled`。50 ms 是本实现的观察间隔，不是原作动作时长或触发冷却。来源解绑不撤销已经接受的计划。显式取消可调用：
+
+```json
+{"type":"chorus:cancel_finisher","participant":"self","reason":"example:input_cancelled"}
+```
+
+取消读取该参与者正在等待的计划，立即释放对应两端与计时器，重复取消不补发事实；它不影响其他独立配对。内容可以据此接死亡、中断或用户取消事件，普通失联由 watchdog 最迟在下一次观察时发现。
+
+截止点检查通过后，伤害进入现有 `prepareDamage → 世界执行 → DamageReceipt` 管线。输出数值的动态修饰在出手时计算，基础伤害、类型、标签、来源和 Profile 已在接受时捕获。引擎补充 `chorus:finisher_damage` / `chorus:finisher_kill`，不隐式赋予普通近战或武器信用，不改变其他连锁策略，也不自动赋予目标免伤。
+
+只有实际回执包含确认死亡，才在普通 hit / damage_taken / death / kill 事实之后发布 `chorus:finisher`。该完成事实沿用 kill 的 `damage_id`、`death_id`、历史 Buff、实体和位置观察，并加入 `finisher_id`，不会重新查询已移除的尸体。两端占用在这些反应执行前已释放。已知未致死结果发布取消（`not_lethal` 或 `death_prevented`）；世界结果未知则停止会话，保留已提交状态，不猜测完成、不自动重放伤害。
+
+开始/取消带 `finisher_id` 和接受时的 `duration`，取消另带 `reason`。目前实际击杀点就是计划结束点；动画中途击杀后继续收尾、第三人称表现、输入/目标提示、目标保护政策和正式 D2 终结技内容仍待实现。纯会话检查点可保留计划、两端占用和时序；这不等于 Minecraft 实体/动画已经完成跨重启恢复。实现与验收见 [FinisherActions](../common/src/main/java/com/imdomestic/chorus/effect/data/FinisherActions.java)、[规则测试](../common/src/test/java/com/imdomestic/chorus/effect/FinisherTest.java)和[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/FinisherGameTest.java)。

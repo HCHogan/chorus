@@ -1530,3 +1530,14 @@ Starvation调用共享`devour_application`，初始五秒经过独立`starvation
 已经授予的十秒收益在Fragment解绑后继续，死亡清理活动收益，冷却按原期限继续；这些以及空手触发、排队时查询持握武器的顺序，是明确Chorus内容政策，原作同帧/换装边界仍待校准。未知抑制授权不生成成功收益，真实裂口已写入但回执未知时停止并保留已经提交的补弹/属性，不重放物体。
 
 [10项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/DomineeringTest.java)和[7项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/DomineeringGameTest.java)验证实际状态授权、当前施加者、储备补弹、真实四秒/十秒时序、飞行中装卸、历史死亡与实体拾取。物理生产链使用付费 Shield Throw 加显式合成命中施加器；这不表示 Shield Throw 原生具有抑制。正式 Fragment/子职业目录、压制手雷/牵引等全部来源、Bombardiers例外、完整属性曲线、HUD/美术和物理世界持久化仍保持 partial。本阶段复用已有引擎动作与宿主接口，没有新增Java动作、协议或检查点字段。
+
+
+## 终结技事件的三种触发时机
+
+Compendium 的 `Armor Mods!P13` 将 Proximity Ward 限定在终结技期间；`Exotic Armors!I92` 将 Winter’s Guile 的续时放在动画开始，将三层奖励放在终结技；`Void!D13` 的 Cessation 则要求终结技触发附近易爆。这些坐标属于固定 CSV 快照。因此单一“按下终结技”事件不能同时表达开始、期间和击杀收益。
+
+[Bungie 2.6.0.1](https://www.bungie.net/7/en/News/article/48198)说明输入针对濒死战斗人员；[7.0.0.1](https://www.bungie.net/7/en/News/article/update_7_0_0_1)引入 Cessation 的终结技范围效果；[9.5.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0)将 Winter’s Guile 的三层奖励明确关联终结技 final blow。这里仅使用这些文献支持触发语义，不用历史补丁替代当前快照数值，也没有从文献推定统一血量阈值、半径或动画时长。研究索引见 [finisher.json](../data/d2-research/2026-10-12/finisher.json)。
+
+通用执行协议现提供 `finisher_started`、配对占用 Buff、确认击杀后的 `finisher` 和 `finisher_cancelled`。开始时已经通过世界资格并占用双方，实际伤害发生在明确时长之后；目标不可用、越界、视线阻隔或占用被中断会取消。期间属性/护盾适合跟随施放者占用的生命周期，不能在开始时直接发放本应依赖击杀的收益。伤害使用独立 finisher 信用，元素、伤害类型、输出 Profile、目标保护和特殊近战信用由内容声明。
+
+当前世界验收采用20%原版HP、3块脚底距离、0.3秒及1000点伤害，全部为合成输入。程序没有专用终结技按键/目标选择、吸附或动画；也没有将它误装成普通技能槽以默认继承 Suppression 等技能禁用规则。Cessation、Proximity Ward、Winter’s Guile 和其他模组的完整来源装配仍未完成，本阶段不新增或升级 Compendium 效果完成状态。

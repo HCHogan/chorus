@@ -8,6 +8,16 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/data/finisher_actions/cancel", com.imdomestic.chorus.effect.data.FinisherActions.Cancel.class);
+        types.put("chorus:effect/finisher/finisher/policy", com.imdomestic.chorus.effect.finisher.Finisher.Policy.class);
+        types.put("chorus:effect/finisher/finisher/decision", com.imdomestic.chorus.effect.finisher.Finisher.Decision.class);
+        types.put("chorus:effect/finisher/finisher/check", com.imdomestic.chorus.effect.finisher.Finisher.Check.class);
+        types.put("chorus:effect/finisher/finisher/checked", com.imdomestic.chorus.effect.finisher.Finisher.Checked.class);
+        types.put("chorus:effect/finisher/finisher/plan", com.imdomestic.chorus.effect.finisher.Finisher.Plan.class);
+        types.put("chorus:effect/finisher/finisher/outcome", com.imdomestic.chorus.effect.finisher.Finisher.Outcome.class);
+        types.put("chorus:effect/finisher/finisher/result", com.imdomestic.chorus.effect.finisher.Finisher.Result.class);
+        types.put("chorus:effect/data/finisher_actions/begin", com.imdomestic.chorus.effect.data.FinisherActions.Begin.class);
+
         types.put("chorus:effect/bundle_invocation", com.imdomestic.chorus.effect.BundleInvocation.class);
         types.put("chorus:effect/effect_clock/resource_changed", com.imdomestic.chorus.effect.EffectClock.ResourceChanged.class);
         types.put("chorus:effect/effect_continuations/lifetime", com.imdomestic.chorus.effect.EffectContinuations.Lifetime.class);

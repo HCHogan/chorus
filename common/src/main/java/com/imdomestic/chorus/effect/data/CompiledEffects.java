@@ -230,6 +230,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         sourceRules.values().forEach(definitions::addAll); definitions.addAll(buffRules.definitions());
         definitions.add(weaponRule(true)); definitions.add(weaponRule(false));
         definitions.addAll(Recovery.definitions());
+        definitions.addAll(FinisherActions.definitions(this));
         definitions.add(new RuleEngine.EventRule<>(DamageGroups.DUE, DamageGroups.DUE, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> DamageGroups.close(state, (DamageGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(ShotGroups.DUE, ShotGroups.DUE, (_, _) -> true,
@@ -1004,6 +1005,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));
         }
         if (event.signal().type().equals(Recovery.EVENT)) return Recovery.resolve(event);
+        if (event.signal().type().equals(com.imdomestic.chorus.effect.finisher.Finisher.PULSE) || event.signal().type().equals(com.imdomestic.chorus.effect.finisher.Finisher.STRIKE))
+            return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE) || event.signal().type().equals(WeaponReload.NEXT))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));

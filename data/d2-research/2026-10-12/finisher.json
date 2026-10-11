@@ -1,0 +1,50 @@
+{
+  "retrieved": "2026-10-12",
+  "scope": "Finisher lifecycle semantic dependencies; not calibrated Destiny finisher content",
+  "snapshot": "data/compendium/2026-10-05/rows.jsonl",
+  "coordinate_system": "csv_snapshot_not_original_sheet",
+  "cells": [
+    {
+      "sheet": "Armor Mods",
+      "gid": "1934379638",
+      "cell": "P13",
+      "text": "During a Finisher:\nGrants a 200 HP Overshield.",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1934379638"
+    },
+    {
+      "sheet": "Void",
+      "gid": "1907852650",
+      "cell": "D13",
+      "text": "Finishers inflicting Volatile to enemies within ? metres.\nKilling Volatile Enemies spawns a Void Breach.",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1907852650"
+    },
+    {
+      "sheet": "Exotic Armors",
+      "gid": "1500097863",
+      "cell": "I92",
+      "text": "Melee Kills and Glaive Melee Kills grant a stack of Warlord's Sigil for 4.75 seconds, up to a maximum of 10 stacks.\n Finishers grant 3 Warlord's Sigil stacks. Scorch DoT Kills do not grant stacks.\nWarlord's Sigil stacks decay one at a time. Finishers refresh the stack duration on animation start.\n\nWarlord's Sigil grants increased Melee Damage per stack.\nx1 = 67.5% | x2 = 122% | x3 = 166% | x4 = 202% | x5 = 228%\nx6 = 249% | x7 = 265% | x8 = 278% | x9 = 289% | x10 = 300%\n\nUpon reaching or refreshing x10 Warlord's Sigil:\nGain a Melee Ability Charge.\n Grants Warlord's Fury Ready for 8 seconds and cannot be refreshed by Finishers.\nNot triggering Warlord's Fury will return the buff to Warlord's Sigil x10.\n\nOn Melee/Glaive Melee Usage while Warlord's Fury Ready is active:\n400% increased Melee Damage, 0.8x Melee Duration, and 38.4x👀 Melee Regeneration Speed for 10 seconds.\nCannot gain Warlord's Sigil while Warlord's Fury is active. Resets Warlord's Sigil to x0 stacks on buff end.",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1500097863"
+    }
+  ],
+  "primary_sources": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/48198",
+      "supports": "Finisher input is for critically wounded combatants; no universal numeric threshold inferred."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/update_7_0_0_1",
+      "supports": "Cessation finisher burst and volatile kill Void Breach dependency."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "supports": "Winters Guile grants three stacks for finisher final blows; historical values not adopted over fixed snapshot."
+    }
+  ],
+  "unresolved": [
+    "D2 health/shield thresholds and enemy eligibility catalogue",
+    "Target protection, actor mitigation, snap and animation timing",
+    "Impact before animation end and recovery duration",
+    "Cessation unknown radius and full producers",
+    "Dedicated input, HUD, formal loadout and physical world restart"
+  ]
+}

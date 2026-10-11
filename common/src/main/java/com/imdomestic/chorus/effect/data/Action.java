@@ -194,7 +194,7 @@ public interface Action {
     private static DamageCommand prepareDamage(Evaluation e, DamageCommand command) {
         return e.program().map(p -> p.prepareDamage(e.state(), command)).orElse(command);
     }
-    private static RuleEngine.Local<EffectState> finishDamage(EffectState state, DamageCommand command, DamageReceipt receipt, java.util.Map<String, String> attribution) {
+    static RuleEngine.Local<EffectState> finishDamage(EffectState state, DamageCommand command, DamageReceipt receipt, java.util.Map<String, String> attribution) {
         if (receipt.observedBuffs().isEmpty() && !receipt.consumptionSettled())
             receipt = receipt.withObservedBuffs(com.imdomestic.chorus.effect.buff.BuffObservation.capture(state.buffs(), command.source().owner(), command.target()));
         var consumed = BuffConsumption.finish(state, command, receipt);

@@ -75,6 +75,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 if(target==null||target.isRemoved()||target.level()!=level)yield com.imdomestic.chorus.effect.combat.HealthPayment.Receipt.unavailable(id,payment,com.imdomestic.chorus.effect.combat.HealthPayment.Outcome.MISSING);
                 yield MinecraftHealthPaymentExecutor.execute(id,target,payment);
             }
+            case com.imdomestic.chorus.effect.finisher.Finisher.Check check -> finisher(check);
             case StatusResult.Check check -> {
                 var target = entities.apply(check.target());
                 var decision = target == null || target.isRemoved() || target.level() != level ? StatusResult.Decision.MISSING
@@ -224,6 +225,20 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     static WorldPosition observePosition(LivingEntity entity, TargetQuery.Anchor anchor) {
         double y = switch (anchor) { case FEET -> entity.getY(); case BODY -> entity.getBoundingBox().getCenter().y; case EYES -> entity.getEyeY(); };
         return new WorldPosition(entity.level().dimension().identifier().toString(), entity.getX(), y, entity.getZ());
+    }
+    private com.imdomestic.chorus.effect.finisher.Finisher.Checked finisher(com.imdomestic.chorus.effect.finisher.Finisher.Check q) {
+        var actor = entities.apply(q.actor()); var target = entities.apply(q.target());
+        var decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.ALLOWED;
+        if (!present(actor) || !present(target)) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.MISSING;
+        else if (!actor.isAlive() || !target.isAlive()) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.DEAD;
+        else if (actor.isSpectator() || actor.isPassenger() || actor.isSleeping()) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.INVALID_ACTOR;
+        else if (actor == target || target instanceof net.minecraft.world.entity.player.Player || target.isSpectator()) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.INVALID_TARGET;
+        else if (MinecraftRelations.allied(actor, target).orElse(true)) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.ALLIED;
+        else if (!target.entityTags().contains(q.policy().eligibleTag())) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.INELIGIBLE;
+        else if (q.starting() && (double) target.getHealth() / target.getMaxHealth() > q.policy().maximumHealthFraction()) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.HEALTH;
+        else if (actor.distanceToSqr(target) > q.policy().range() * q.policy().range()) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.RANGE;
+        else if (q.policy().lineOfSight() && !MinecraftVisibility.visible(level, position(actor, TargetQuery.Anchor.EYES), position(target, TargetQuery.Anchor.BODY))) decision = com.imdomestic.chorus.effect.finisher.Finisher.Decision.OBSTRUCTED;
+        return new com.imdomestic.chorus.effect.finisher.Finisher.Checked(q, decision);
     }
     private boolean present(LivingEntity entity) { return entity != null && !entity.isRemoved() && entity.level() == level; }
 }

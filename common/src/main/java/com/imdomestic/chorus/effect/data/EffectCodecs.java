@@ -303,6 +303,24 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("weapon", Evaluation.Target.THIS_WEAPON).forGetter(AmmoActions.Spend::weapon),
                         enumeration(com.imdomestic.chorus.effect.ammo.Ammunition.Pool.class).optionalFieldOf("pool", com.imdomestic.chorus.effect.ammo.Ammunition.Pool.MAGAZINE).forGetter(AmmoActions.Spend::pool),
                         values.fieldOf("amount").forGetter(AmmoActions.Spend::amount)).apply(i, AmmoActions.Spend::new)))
+                .register("chorus:cancel_finisher", FinisherActions.Cancel.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("participant", Evaluation.Target.SELF).forGetter(FinisherActions.Cancel::participant),
+                        ID.fieldOf("reason").forGetter(FinisherActions.Cancel::reason)).apply(i, FinisherActions.Cancel::new)))
+                .register("chorus:begin_finisher", FinisherActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.fieldOf("target").forGetter(FinisherActions.Begin::target),
+                        ID.fieldOf("actor_buff").forGetter(FinisherActions.Begin::actorBuff), ID.fieldOf("target_buff").forGetter(FinisherActions.Begin::targetBuff),
+                        values.fieldOf("duration").forGetter(FinisherActions.Begin::duration),
+                        RecordCodecBuilder.<com.imdomestic.chorus.effect.finisher.Finisher.Policy>create(p -> p.group(
+                            Codec.DOUBLE.fieldOf("maximum_health_fraction").forGetter(com.imdomestic.chorus.effect.finisher.Finisher.Policy::maximumHealthFraction),
+                            Codec.DOUBLE.fieldOf("range").forGetter(com.imdomestic.chorus.effect.finisher.Finisher.Policy::range),
+                            ID.fieldOf("eligible_tag").forGetter(com.imdomestic.chorus.effect.finisher.Finisher.Policy::eligibleTag),
+                            Codec.BOOL.fieldOf("line_of_sight").forGetter(com.imdomestic.chorus.effect.finisher.Finisher.Policy::lineOfSight)
+                        ).apply(p, com.imdomestic.chorus.effect.finisher.Finisher.Policy::new)).fieldOf("policy").forGetter(FinisherActions.Begin::policy),
+                        values.fieldOf("damage").forGetter(FinisherActions.Begin::damage), ID.fieldOf("damage_type").forGetter(FinisherActions.Begin::damageType),
+                        ID.listOf().xmap(java.util.Set::copyOf, java.util.List::copyOf).optionalFieldOf("tags", java.util.Set.of()).forGetter(FinisherActions.Begin::tags),
+                        ID.optionalFieldOf("damage_profile").forGetter(FinisherActions.Begin::damageProfile),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(FinisherActions.Begin::origin)
+                ).apply(i, FinisherActions.Begin::new)))
                 .register("chorus:reload_weapons", ReloadActions.Reload.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("holder", Evaluation.Target.SELF).forGetter(ReloadActions.Reload::holder),
                         enumeration(com.imdomestic.chorus.effect.weapon.InstantReload.Selection.class).fieldOf("selection").forGetter(ReloadActions.Reload::selection),

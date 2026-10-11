@@ -42,6 +42,11 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                     && (plan.phase() != com.imdomestic.chorus.effect.weapon.WeaponReload.Phase.WAITING || !signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponReload.DUE) || !plan.timerId().equals(id)
                     || dueAt != plan.dueAt() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Reload differs from its one-shot timer");
+            if (signal.payload() instanceof com.imdomestic.chorus.effect.finisher.Finisher.Plan plan
+                    && (!signal.type().equals(com.imdomestic.chorus.effect.finisher.Finisher.PULSE) || !plan.timerId().equals(id)
+                    || dueAt <= plan.startedAt() || dueAt > plan.dueAt() || remaining != 1 || intervalMicros != 0
+                    || lifetime.isPresent() || pausedRemaining.isPresent()))
+                throw new IllegalArgumentException("Finisher differs from its detached watchdog");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.projectile.ShotGroups.Handle shot
                     && (!signal.type().equals(com.imdomestic.chorus.effect.projectile.ShotGroups.DUE) || !shot.timerId().equals(id)
                     || dueAt != shot.dueAt() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))

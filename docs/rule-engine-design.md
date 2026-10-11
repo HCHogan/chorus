@@ -144,7 +144,9 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:ability_used` | 槽位、技能 id、同一份接受回执 | 执行 on_use、On Class Ability Usage（29 条）、On Super Cast |
 | `chorus:reload_finished` | 哪个持有者的哪把武器完成合格换弹；不等同于开始换弹或弹药补充 | Kill Clip、Voltshot；已接实际容器的整弹匣 / 逐次装填；每次实际装入可发完成；技能换弹可显式选择武器和零转移资格，排热待扩展 |
 | `chorus:pickup` | 物体类型（能量球、弹药砖、离子痕迹……） | On Orb of Power Pickup（15 条） |
-| `chorus:finisher` | 目标 | On Finisher（15 条） |
+| `chorus:finisher_started` | 施放者、目标、finisher_id、计划时长 | 已通过服务器资格且同时占用双方；用于开始时效果，不能视作击杀 |
+| `chorus:finisher` | 施放者、目标、finisher_id、真实死亡回执及历史观察 | 接受的终结技实际确认击杀后发布；On Finisher 奖励；未致死/取消/未知结果均不发布 |
+| `chorus:finisher_cancelled` | 同一 finisher_id、reason | 已接受流程被中断或已知未致死，释放对应 generation 的占用；重复取消不重复发事件 |
 | `chorus:health_threshold` | 跨过的阈值 | Upon reaching Critical Health |
 | `chorus:shield_damaged` / `chorus:shield_broken` | 目标、护盾定义与 generation、层标签、实际容量损失和剩余容量、关联 damage id | 回充延迟、Press The Advantage；破盾只在实际减少到零时产生 |
 | `chorus:shield_restored` | 补充者来源、接收层定义 / generation / 标签、requested / effective / overflow、补前和补后容量、maximum / full | 显式补盾正增加时产生；不刷新层生命周期，不与生命治疗共用 heal id |
@@ -1549,3 +1551,10 @@ common 只依赖原版，下面每一项在 fabric 和 neoforge 各写一层薄�
 ### 共享增量护盾内容的实际验收
 
 Void Overshield与Shield Throw现用已有Buff身份、增量restore_shield、盾层预算和投射物continuation组合实现。受益者共享容量，当前授予者额度与层的首来源信用分别保留；补盾不重排FIFO，完全破盾后重建获得新代。攻击源的战斗人员资格只修饰当前盾层预算，破盾余量不能继承该层减伤。已知FAILED伤害与未知执行分开，后者不允许猜测授盾或重放。原版伤害描述器仅捕获实际owner类别和标签，不自动推断武器/技能信用；细节和原作未校准项见[共享护盾规则](d2-ruleset.md#共享-void-overshield-与-shield-throw)。
+
+
+### 终结技是跨时间的执行流程
+
+`(状态, 事件) → (新状态, 动作列表)` 仍适用于终结技：输入发起资格观察，确认回执原子写入两端 Buff 占用和 detached 计划，再发布开始事实；后续 tick 观察资格，到期的伤害回执决定完成或取消。配对和时序放在现有可检查点的 Buff/计时器状态中，世界对象不进入纯状态。不能用开始输入、伤害请求量、标签或实体消失直接推断完成。
+
+通用动作已提供 `begin_finisher` / `cancel_finisher`。数据包显式声明可终结目标标签、血量阈值、距离/视线、持续时间、伤害与限制 Buff；未知原作参数不由引擎猜测。开始时、期间和确认击杀时的效果分别接开始事实、占用 Buff 和完成事实。正式输入、角色装配、目标保护、吸附/动画及动画中途击杀后的独立收尾尚未完成，不能将通用流程计作全部终结技模组覆盖。协议与故障/存档边界见[终结技的占用、确认与取消](engine-data-packs.md#终结技的占用确认与取消)。
