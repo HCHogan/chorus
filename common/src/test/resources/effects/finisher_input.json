@@ -1,0 +1,112 @@
+{
+  "version": "test-1",
+  "bundles": [
+    {
+      "id": "test:finisher_input",
+      "rules": [
+        {
+          "id": "request",
+          "on": "chorus:finisher_requested",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_direction",
+                "target": "self"
+              },
+              "as": "aim"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": "self",
+                "area": {
+                  "type": "chorus:cone",
+                  "length": {
+                    "type": "chorus:constant",
+                    "value": 3,
+                    "unit": "meter"
+                  },
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "meter"
+                  },
+                  "direction": "aim"
+                },
+                "relation": "not_allied",
+                "relative_to": "self",
+                "exclude": [
+                  "self"
+                ],
+                "order": "nearest",
+                "line_of_sight": true,
+                "target_anchor": "body"
+              },
+              "as": "candidates"
+            },
+            {
+              "for_each": "candidates",
+              "as": "candidate",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:has_buff_tag",
+                      "target": "self",
+                      "tag": "chorus:finisher_participant"
+                    }
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:begin_finisher",
+                      "target": {
+                        "binding": "candidate"
+                      },
+                      "actor_buff": "test:finishing",
+                      "target_buff": "test:being_finished",
+                      "duration": {
+                        "type": "chorus:constant",
+                        "value": 0.3,
+                        "unit": "second"
+                      },
+                      "policy": {
+                        "maximum_health_fraction": 0.2,
+                        "range": 3,
+                        "eligible_tag": "test:finishable",
+                        "line_of_sight": true
+                      },
+                      "damage": {
+                        "type": "chorus:constant",
+                        "value": 1000,
+                        "unit": "damage"
+                      },
+                      "damage_type": "test:finisher",
+                      "tags": [
+                        "chorus:kinetic"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:block_abilities",
+      "action_gates": [
+        {
+          "id": "abilities",
+          "action": "ability_use"
+        }
+      ]
+    }
+  ]
+}

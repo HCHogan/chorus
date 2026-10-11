@@ -20,6 +20,9 @@ public final class ChorusClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(EquipmentPayloads.View.TYPE, (view, context) -> EquipmentClient.accept(view));
         var open = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.equipment", InputConstants.KEY_K, KeyMapping.Category.INVENTORY));
         var catchProjectile = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.catch_projectile", InputConstants.KEY_G, KeyMapping.Category.GAMEPLAY));
+        var finisher = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.finisher", InputConstants.KEY_H, KeyMapping.Category.GAMEPLAY));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { while (finisher.consumeClick()) com.imdomestic.chorus.client.FinisherInputClient.press(ClientPlayNetworking::send,
+                () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.FinisherInputPayload.TYPE)); });
         var grenade = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.grenade", InputConstants.KEY_V, KeyMapping.Category.GAMEPLAY));
         ClientTickEvents.END_CLIENT_TICK.register(client -> com.imdomestic.chorus.client.AbilityInputClient.tick(grenade, "chorus_d2:grenade", ClientPlayNetworking::send,
                 () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.AbilityInputPayload.TYPE)));

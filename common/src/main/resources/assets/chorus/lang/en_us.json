@@ -1,4 +1,5 @@
 {
+  "key.chorus.finisher": "Finisher",
   "attribute.name.chorus.forward_ground_speed": "Forward Ground Speed Multiplier",
   "item.chorus.engram": "Engram",
   "item.chorus.engram.decrypted": "Decrypted: %s",

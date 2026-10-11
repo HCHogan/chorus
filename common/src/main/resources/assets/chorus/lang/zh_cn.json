@@ -1,4 +1,5 @@
 {
+  "key.chorus.finisher": "终结技",
   "attribute.name.chorus.forward_ground_speed": "向前地面移动倍率",
   "item.chorus.engram": "印痕",
   "item.chorus.engram.decrypted": "解密获得：%s",

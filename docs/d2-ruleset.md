@@ -1540,4 +1540,4 @@ Compendium 的 `Armor Mods!P13` 将 Proximity Ward 限定在终结技期间；`E
 
 通用执行协议现提供 `finisher_started`、配对占用 Buff、确认击杀后的 `finisher` 和 `finisher_cancelled`。开始时已经通过世界资格并占用双方，实际伤害发生在明确时长之后；目标不可用、越界、视线阻隔或占用被中断会取消。期间属性/护盾适合跟随施放者占用的生命周期，不能在开始时直接发放本应依赖击杀的收益。伤害使用独立 finisher 信用，元素、伤害类型、输出 Profile、目标保护和特殊近战信用由内容声明。
 
-当前世界验收采用20%原版HP、3块脚底距离、0.3秒及1000点伤害，全部为合成输入。程序没有专用终结技按键/目标选择、吸附或动画；也没有将它误装成普通技能槽以默认继承 Suppression 等技能禁用规则。Cessation、Proximity Ward、Winter’s Guile 和其他模组的完整来源装配仍未完成，本阶段不新增或升级 Compendium 效果完成状态。
+当前世界验收采用20%原版HP、3块脚底距离、0.3秒及1000点伤害，全部为合成输入。专用终结技H键/自助命令及服务器数据化候选选择已接入，吸附/动画和原作目标选择校准仍未完成；输入独立于普通技能槽，不默认继承 Suppression 等技能禁用规则。Cessation、Proximity Ward、Winter’s Guile 和其他模组的完整来源装配仍未完成，本阶段不新增或升级 Compendium 效果完成状态。

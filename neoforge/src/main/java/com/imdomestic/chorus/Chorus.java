@@ -34,6 +34,8 @@ public class Chorus {
             var registrar = event.registrar("1").optional();
             registrar.playToClient(com.imdomestic.chorus.network.MovementInputPayload.TYPE, com.imdomestic.chorus.network.MovementInputPayload.CODEC);
             registrar.playToClient(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE, com.imdomestic.chorus.network.HorizontalSpeedPayload.CODEC);
+            registrar.playToServer(com.imdomestic.chorus.network.FinisherInputPayload.TYPE, com.imdomestic.chorus.network.FinisherInputPayload.CODEC,
+                    (payload, context) -> com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.AbilityInputPayload.TYPE, com.imdomestic.chorus.network.AbilityInputPayload.CODEC,
                     (payload, context) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.request((ServerPlayer) context.player(), payload));
             registrar.playToServer(com.imdomestic.chorus.network.ProjectileCatchPayload.TYPE, com.imdomestic.chorus.network.ProjectileCatchPayload.CODEC,
@@ -58,6 +60,10 @@ public class Chorus {
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.stop(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.ProjectileCatchNetworkServer.LIVE.stop(event.getServer()));
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE.stop(event.getServer()));
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE.disconnected(player.connection);
+        });
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
             if (event.getEntity() instanceof ServerPlayer player) com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.disconnected(player.connection);
         });

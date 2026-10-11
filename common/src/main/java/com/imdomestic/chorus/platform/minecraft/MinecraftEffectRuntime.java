@@ -351,6 +351,19 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             runtime.abilityInputs.entrySet().removeIf(e -> e.getValue().player().connection == connection);
         }
     }
+    /** Self-owned intent only. Installed content selects and authorizes the target on the server. */
+    public boolean requestFinisher(ServerPlayer player) {
+        thread(); prepare();
+        if (!inputEligible(player)) throw new IllegalArgumentException("Player cannot request a finisher here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Finisher input requires a healthy idle runtime");
+        String holder = player.getUUID().toString();
+        if (com.imdomestic.chorus.effect.finisher.Finisher.busy(view(), holder)) return false;
+        var event = new com.imdomestic.chorus.effect.EffectEvent(holder, holder, new BuffInstance.Origin(holder, "", "", ""),
+                Set.of("chorus:finisher_input"), Map.of(), Map.of("on_ground", player.onGround(), "sprinting", player.isSprinting(), "crouching", player.isCrouching()),
+                Map.of("request_id", java.util.UUID.randomUUID().toString()));
+        start(new RuleEngine.Signal("chorus:finisher_requested", event));
+        return true;
+    }
     /** One input consumes at most one eligible loaded flight, nearest first with UUID tie-breaking. */
     public Optional<java.util.UUID> catchProjectile(ServerPlayer player) {
         thread(); prepare();

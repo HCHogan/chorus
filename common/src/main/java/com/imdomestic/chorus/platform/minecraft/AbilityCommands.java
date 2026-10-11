@@ -30,6 +30,8 @@ public final class AbilityCommands {
         runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(slots))); return "Chorus abilities: " + slots;
     }
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("chorus").then(Commands.literal("finisher").executes(c -> execute(c.getSource(), (p, r) ->
+                r.requestFinisher(p) ? "Chorus finisher requested" : "Chorus finisher already in progress"))));
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("ability")
                 .then(Commands.literal("catch").executes(c -> execute(c.getSource(), (p, r) ->
                         r.catchProjectile(p).map(id -> "Chorus caught: " + id).orElse("No catchable projectile"))))

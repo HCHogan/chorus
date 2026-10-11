@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+终结技输入门禁 `/tmp/chorus-finisher-input-gate.log` BUILD SUCCESSFUL，2分7秒：1534项JUnit、Fabric808项、NeoForge823项及两端发布jar通过，共享Chorus世界场景807项。新增7项共享世界场景；随后 `/tmp/chorus-finisher-input-client.log` BUILD SUCCESSFUL，1分44秒，Fabric注册/处理资源中的19项客户端场景全部完成，包含新增真实H键场景。10项Compendium审计和报告一致性通过；没有新增检查点类型或改变旧结构。
+
+两端注册独立FinisherInputPayload、按键和连接清理；服务器只接sequence/dimension，消费序号后检查实际发送者、维度、运行时与占用状态。`requestFinisher`发出意图事件，由绑定来源按服务器方向选择候选并调用已有begin_finisher。无来源不产生默认执行，忙碌输入不排队，不经普通技能槽、AbilityUse或能量消耗。低权限`/chorus finisher`走同一运行时入口。
+
+世界场景验证最近不合格目标后的下一个合格目标、前向/转向选择、一次只占用一组、序号与维度、忙碌后旧输入不复活、死亡/旁观拒绝、普通技能限制独立、来源解绑及开始提示写入后未知结果。真实客户端通过注册H键和网络完成两次实际延迟击杀，中间背包界面按键既不执行也不在关闭后补发。两端服务端门禁与Fabric真实客户端门禁首轮通过；NeoForge真实客户端仍未运行。
+
+这里3块圆锥长度、2块末端半径及已有20%HP/0.3秒/1000点均为明确验收输入，正式D2目标提示、吸附/动画、资格目录、装配和数值政策仍待完成。Compendium审阅仍84条，不把输入入口计作新效果覆盖。[协议](engine-data-packs.md#独立终结技输入)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 终结技完整门禁 `/tmp/chorus-finisher-gate.log` BUILD SUCCESSFUL，2分5秒：当次1533项JUnit、Fabric801项、NeoForge816项及两端发布jar通过，共享Chorus世界场景800项。之后只补充一项旧计划/新占用交错的规则测试，`/tmp/chorus-finisher-final-unit.log` 全量1534项JUnit通过（无失败/错误/跳过）；世界生产代码未再变化。新增合计11项规则测试、8项共享世界场景；10项Compendium审计及84条报告一致性通过。发布jar包含终结技核心类且不含效果/GameTest/持久化夹具。
 
 `begin_finisher`先请求实际世界资格，确认后原子写入施放者/目标的永久共享占用Buff与detached watchdog计划，再发布finisher_started。同一参与者不能被其他来源或另一目标再次占用。每50ms/最终截止点检查两端generation、存在/存活、敌我、距离和视线；到期经现有伤害管线执行，真实死亡回执才发布finisher。历史Buff/实体/位置、来源与伤害/死亡ID沿用真实kill事实，尸体移除后仍可用。已知失效、非致死、显式cancel_finisher释放占用；未知授权/世界写入停止，不补造完成或重放。旧计划的取消不会删除新generation占用，其他独立配对不受影响。

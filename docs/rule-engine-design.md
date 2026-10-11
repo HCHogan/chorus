@@ -144,6 +144,7 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:ability_used` | 槽位、技能 id、同一份接受回执 | 执行 on_use、On Class Ability Usage（29 条）、On Super Cast |
 | `chorus:reload_finished` | 哪个持有者的哪把武器完成合格换弹；不等同于开始换弹或弹药补充 | Kill Clip、Voltshot；已接实际容器的整弹匣 / 逐次装填；每次实际装入可发完成；技能换弹可显式选择武器和零转移资格，排热待扩展 |
 | `chorus:pickup` | 物体类型（能量球、弹药砖、离子痕迹……） | On Orb of Power Pickup（15 条） |
+| `chorus:finisher_requested` | 服务器从连接确定施放者，request_id；不携带客户端目标/伤害 | 独立终结技输入意图；数据包选择候选并调用 begin_finisher，不能直接发完成奖励 |
 | `chorus:finisher_started` | 施放者、目标、finisher_id、计划时长 | 已通过服务器资格且同时占用双方；用于开始时效果，不能视作击杀 |
 | `chorus:finisher` | 施放者、目标、finisher_id、真实死亡回执及历史观察 | 接受的终结技实际确认击杀后发布；On Finisher 奖励；未致死/取消/未知结果均不发布 |
 | `chorus:finisher_cancelled` | 同一 finisher_id、reason | 已接受流程被中断或已知未致死，释放对应 generation 的占用；重复取消不重复发事件 |
@@ -1557,4 +1558,4 @@ Void Overshield与Shield Throw现用已有Buff身份、增量restore_shield、�
 
 `(状态, 事件) → (新状态, 动作列表)` 仍适用于终结技：输入发起资格观察，确认回执原子写入两端 Buff 占用和 detached 计划，再发布开始事实；后续 tick 观察资格，到期的伤害回执决定完成或取消。配对和时序放在现有可检查点的 Buff/计时器状态中，世界对象不进入纯状态。不能用开始输入、伤害请求量、标签或实体消失直接推断完成。
 
-通用动作已提供 `begin_finisher` / `cancel_finisher`。数据包显式声明可终结目标标签、血量阈值、距离/视线、持续时间、伤害与限制 Buff；未知原作参数不由引擎猜测。开始时、期间和确认击杀时的效果分别接开始事实、占用 Buff 和完成事实。正式输入、角色装配、目标保护、吸附/动画及动画中途击杀后的独立收尾尚未完成，不能将通用流程计作全部终结技模组覆盖。协议与故障/存档边界见[终结技的占用、确认与取消](engine-data-packs.md#终结技的占用确认与取消)。
+通用动作已提供 `begin_finisher` / `cancel_finisher`。数据包显式声明可终结目标标签、血量阈值、距离/视线、持续时间、伤害与限制 Buff；未知原作参数不由引擎猜测。开始时、期间和确认击杀时的效果分别接开始事实、占用 Buff 和完成事实。H按键、独立网络请求和自助命令已接入；正式角色装配、目标提示、目标保护、吸附/动画及动画中途击杀后的独立收尾尚未完成，不能将通用流程计作全部终结技模组覆盖。协议与故障/存档边界见[终结技的占用、确认与取消](engine-data-packs.md#终结技的占用确认与取消)。

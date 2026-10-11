@@ -25,6 +25,9 @@ public class Chorus implements ModInitializer {
         com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
         com.imdomestic.chorus.network.FabricProjectileCatchNetworking.init();
         com.imdomestic.chorus.network.FabricAbilityInputNetworking.init();
+        com.imdomestic.chorus.network.FabricFinisherInputNetworking.init();
+        ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE::stop);
+        ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.FinisherInputNetworkServer.LIVE.disconnected(listener));
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE::stop);
         ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.disconnected(listener));
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::stop);

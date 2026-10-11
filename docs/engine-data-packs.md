@@ -2912,7 +2912,7 @@ Domineering内容链接 `suppression`、`character_stats`、`directional_movemen
 
 ## 终结技的占用、确认与取消
 
-`chorus:begin_finisher` 是数据包可调用的动作。它先请求服务器观察资格，再原子授予施放者与目标各一个占用 Buff，保存伤害请求和截止时间，发布 `chorus:finisher_started`。普通 `ability_started`、纯授予 Buff 或带 `finisher_kill` 标签的任意伤害都不代替这个过程。当前接口由可信效果来源调用；正式终结技输入和动画尚未接入。
+`chorus:begin_finisher` 是数据包可调用的动作。它先请求服务器观察资格，再原子授予施放者与目标各一个占用 Buff，保存伤害请求和截止时间，发布 `chorus:finisher_started`。普通 `ability_started`、纯授予 Buff 或带 `finisher_kill` 标签的任意伤害都不代替这个过程。当前接口由可信效果来源调用；下文独立输入会向这些来源发出终结技请求，动画仍未接入。
 
 ```json
 {
@@ -2954,4 +2954,19 @@ Minecraft 宿主要求双方存在、存活、同维度，施放者不是旁观�
 
 只有实际回执包含确认死亡，才在普通 hit / damage_taken / death / kill 事实之后发布 `chorus:finisher`。该完成事实沿用 kill 的 `damage_id`、`death_id`、历史 Buff、实体和位置观察，并加入 `finisher_id`，不会重新查询已移除的尸体。两端占用在这些反应执行前已释放。已知未致死结果发布取消（`not_lethal` 或 `death_prevented`）；世界结果未知则停止会话，保留已提交状态，不猜测完成、不自动重放伤害。
 
-开始/取消带 `finisher_id` 和接受时的 `duration`，取消另带 `reason`。目前实际击杀点就是计划结束点；动画中途击杀后继续收尾、第三人称表现、输入/目标提示、目标保护政策和正式 D2 终结技内容仍待实现。纯会话检查点可保留计划、两端占用和时序；这不等于 Minecraft 实体/动画已经完成跨重启恢复。实现与验收见 [FinisherActions](../common/src/main/java/com/imdomestic/chorus/effect/data/FinisherActions.java)、[规则测试](../common/src/test/java/com/imdomestic/chorus/effect/FinisherTest.java)和[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/FinisherGameTest.java)。
+开始/取消带 `finisher_id` 和接受时的 `duration`，取消另带 `reason`。目前实际击杀点就是计划结束点；动画中途击杀后继续收尾、第三人称表现、目标提示、目标保护政策和正式 D2 终结技内容仍待实现。纯会话检查点可保留计划、两端占用和时序；这不等于 Minecraft 实体/动画已经完成跨重启恢复。实现与验收见 [FinisherActions](../common/src/main/java/com/imdomestic/chorus/effect/data/FinisherActions.java)、[规则测试](../common/src/test/java/com/imdomestic/chorus/effect/FinisherTest.java)和[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/FinisherGameTest.java)。
+
+
+### 独立终结技输入
+
+Fabric / NeoForge均注册 `chorus:finisher_input` C2S包和可改绑的 `key.chorus.finisher`（默认H），同时提供无管理员权限的自助命令 `/chorus finisher`。客户端包只有正整数sequence和dimension；目标、玩家身份、坐标、资格、时长、元素、伤害等都不从客户端接收。打开界面、窗口失焦、死亡/旁观或服务器不支持该通道时，客户端不发请求，也不会在关闭界面后补发此前按键。
+
+服务器先按连接消费单调递增sequence，再检查发送者与维度，因此重复、旧维度、拒绝和未知结果都不能重放。断线清理连接序号，停服清理对应服务器的连接；进行中的计划由既有世界资格检查处理失联。运行时必须健康、空闲，已经参与终结技的持有者直接返回BUSY且不扫描/排队。输入没有附加玩法冷却。
+
+合法请求发出 `chorus:finisher_requested`：actor/victim都为实际发送者，origin仅带其owner，标签`chorus:finisher_input`，引用`request_id`由服务器生成，并观察on_ground/sprinting/crouching。该事实是意图，DISPATCHED只表示已派发，不代表存在可终结目标。没有绑定对应内容来源时，不会创建默认终结技、伤害或技能账户。
+
+数据来源应先限定self==event_actor，再用服务器方向、目标查询、候选顺序和 `begin_finisher` 的实际资格检查选中目标。[finisher_input.json](../common/src/test/resources/effects/finisher_input.json)展示一个明确的合成策略：当前朝向圆锥长3块、末端半径2块、敌方/视线筛选、距离升序/身份并列排序；遍历全部候选，跳过无资格者，首次占用成功后不再尝试其他候选。因此最近但血量过高的目标不会挡住下一个合格目标。该策略不是已校准的D2准星/吸附算法。
+
+终结技独立于 `AbilityUse`，不选择或支付普通技能槽，也不默认继承 `ability_use` 限制；终结技专属禁用条件仍由来源条件、世界资格及占用Buff定义。正式职业/终结技目录、敌人资格标签生产、HUD目标提示、视觉动画和所有原作控制/保护特例尚未完成。网络序号是连接输入状态，不是玩法存档；本阶段未改变效果检查点结构。
+
+共享世界验收覆盖低权限命令、当前服务器朝向、候选筛选、实际击杀、重复/错误维度/忙碌请求、真实发送者资格、来源解绑和开始回调未知结果。Fabric客户端场景使用真实H键、注册包、服务器选敌和实际延迟击杀，并验证背包界面阻止输入以及关闭后不补发。NeoForge当前验证服务端链路和编解码，尚无同等真实客户端运行证据。
