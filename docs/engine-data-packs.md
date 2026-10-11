@@ -2819,3 +2819,9 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Firefly](d2-ruleset.md#firefly-的固定太阳爆炸与独立装填奖励) 复用 `capture_damage` 静态声明Solar，不从输入事件选择元素。装填奖励与需要历史位置的爆炸分别响应同一个确认精准击杀事实；爆炸信息不足时不丢弃可确定的装填奖励。装填Buff使用 `instanced_by: weapon`、`affects: instance_weapon`、`refresh: reset` 和 `on_stow: keep`；source_detached显式清理是内容政策。共享属性Profile接入武器reload的profiles序列，实际接受的换弹时长在Buff到期后保持。
 
 [firefly.json](../common/src/test/resources/effects/firefly.json) 要求7个来源参数：pve_damage / pvp_damage为damage，full_radius / radius为meter，delay为second，pve_minimum_falloff / pvp_minimum_falloff为multiplier。外部 `chorus_d2:firefly_outgoing` 负责输出缩放、`chorus_d2:firefly_falloff` 负责归一化过渡曲线；两者没有隐式默认校准。`ratio`、`arithmetic` 与 `scale` 已能组合出 `m+(1-m)*f`，平台1、边界m、半径外无目标；m和f越界明确诊断。最小倍率属于具体效果 / 来源配置，不是所有范围伤害的引擎硬编码。测试资源中的线性曲线和世界单位映射均不代表原作校准完成。
+
+### 超能结束反应与基础容量组合
+
+[Timelost Magazine](d2-ruleset.md#timelost-magazine-的超能结束与基础弹匣) 的结束输入为内容事件 `chorus_d2:super_ended`，必须带 `chorus:super_ability` 并保留实际owner。生产者负责区分自然结束、移除和取消；不能将 `ability_started` 或任意Buff结束当作超能结束。测试生产者通过实际付款后创建的持续Buff自然到期发出该事实，直接移除不触发。
+
+定义要求两个未知回能校准参数 `base_super_gain` / `enhanced_super_gain`（charge_fraction），以及外部 `chorus_d2:magazine_capacity` 的base_bonus阶段和共享reload_insert_rounds Profile。先授容量Buff再refill_magazine，可让真实补弹、后续Overflow、逐发装填查询同一派生容量；原始capacity仍为稳定Profile输入。修改容量与修改已装弹数是不同动作，到期不会自动删除超额弹药。Buff按武器隔离且收枪保留，来源卸下显式清理；这些组合全部复用现有DSL。参考 [timelost_magazine.json](../common/src/test/resources/effects/timelost_magazine.json)。

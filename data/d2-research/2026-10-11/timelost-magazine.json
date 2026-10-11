@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "effect": "Timelost Magazine",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "cells": [
+        {
+          "original_cell": "A430",
+          "snapshot_cell": "A409",
+          "normalized_text": "Timelost Magazine Vault of Glass Raid",
+          "snapshot_text_sha256": "27d74ebdd1507d462cfb9988ecb94890f523f41b96022e80c6cb6fa5e99f6ce5",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C430",
+          "snapshot_cell": "C409",
+          "normalized_text": "Weapon Kills grant additional +1?% ↑+?% Super Ability Energy. On Super Ability End: Refills Magazine. 100% Increased Base Magazine Capacity for 20 ↑+21 seconds. Found Verdict reloads 2 shells at a time. Base Magazine Increases change the base value, meaning it stacks with Increased Magazine Capacity effects like Overflow. This also means it changes mag-based effects such as gaining Bolt Charge. Buff can be activated while stowed, and persists through stow.",
+          "snapshot_text_sha256": "89b62f077f91687f627f97e2cf6aa50f3af9b60b7b0809ffa54d772c47bbd71d",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true,
+          "comparison": "whitespace-normalized text"
+        }
+      ]
+    },
+    {
+      "kind": "community_research_search_index",
+      "url": "https://www.light.gg/db/items/2589407652/timelost-magazine/?_=837",
+      "research_updated_at": "2025-07-29",
+      "finding": "1?%额外超能能量仍不确定；超能结束从储备补弹、基础容量增加100%持续20秒、Found Verdict每次2发、收枪可触发，增加的基础容量供Overflow使用。"
+    },
+    {
+      "kind": "manifest_search_index",
+      "url": "https://www.light.gg/db/compare/949871",
+      "finding": "强化Timelost Magazine条目ID716643564可发现，直接条目抓取402；强化21秒仍使用原表，强化回能未知值不填成事实。"
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/timelost_magazine.json",
+    "consumer": "common/src/test/resources/effects/timelost_weapon.json",
+    "calibration": "common/src/test/resources/effects/timelost_test_calibration.json",
+    "required_parameters": {
+      "base_super_gain": "charge_fraction",
+      "enhanced_super_gain": "charge_fraction"
+    },
+    "super_ended_contract": "chorus_d2:super_ended is a trusted content lifecycle event for the owner, tagged chorus:super_ability. The test producer emits once on expiration of an actually paid synthetic super state; it never emits from cast rejection or explicit removal.",
+    "capacity": "Grant weapon-scoped20/21-second resettable buff before reserve refill. External magazine_capacity profile carries base_bonus; test input5 becomes10. Expiry/detach changes derived capacity but retains existing loaded rounds.",
+    "reload": "Found Verdict source tag contributes +1 shell to a one-shell baseline through existing reload_insert_rounds. Accepted insertion keeps its captured portion; next insertion observes current buff/capacity.",
+    "energy": "Weapon owner and weapon_kill credit required. Each kill uses that source variant mandatory base fraction, targets the currently selected super account through grant_ability_energy and normal recipient scaling; no selection is explicit no grant.",
+    "combination": "Overflow uses current derived capacity. Physical one-round ammo brick is synthetic allocation; enhanced Overflow can turn10 baseline into22 loaded rounds using own reserves.",
+    "scope": "Test data and real runtime mechanics only; no production super/weapon catalogue or numerical calibration claim."
+  },
+  "validation": {
+    "unit_tests": "TimelostMagazineTest10 scenarios passed; full suite1421, zero failures/errors/skips.",
+    "world_tests": "TimelostMagazineGameTest7 new shared scenarios. Fabric721 and NeoForge736 passed;720 shared scenarios total.",
+    "full_gate": "/tmp/chorus-timelost-final-gate.log BUILD SUCCESSFUL in1m40s, both release jars built.",
+    "development": "Initial parse failure corrected grant_resource requested field. First world gate found fixture socket replacement discarded overflow selection and wrong special-ammo item tag; preserve other choices and use chorus:special_ammo, then full gate passed.",
+    "audits": "10 Compendium audits,76-entry report consistency, original/snapshot cell and archive hashes, release fixture exclusion and git diff --check passed."
+  },
+  "remaining": [
+    "原表与可访问公开研究仍将击杀回能标为1?%，强化值未知；当前base_super_gain / enhanced_super_gain为必填校准参数，测试1% / 2%不代表原作测定值。",
+    "超能来源为实际付费的合成技能与0.2秒持续Buff到期，证明生命周期接线；所有正式超能、瞬发 / 漫游 / 多段、死亡 / 取消 / 抑制及能量耗尽边界尚未接入。移除该合成状态不触发到期奖励不代表所有原作取消政策。",
+    "先扩容后补弹、到期保留已装超额弹药、当前装备决定结束时收益、卸下perk立即删Buff和进行中逐发装填保留接受弹数，均为当前内容策略，原作组合仍需校准。",
+    "Found Verdict每次增加1发以形成基础1+1；共享MAX额外弹数与其他逐发装填perk的组合需校准。测试武器容量5、弹量、射速 / 物理弹道和0.2 / 0.1秒换弹均为合成，未实现正式枪械动画。",
+    "已验证Overflow使用扩容后的基础值及真实弹药砖；Bolt Charge按弹匣收益、全部基础容量改写效果 / 热量武器 / 异域组合、超能激活期间回能政策与完整Super属性曲线尚未完成。",
+    "正式内容 / 物品 / 子职业装配、HUD及全世界 / 物理弹丸跨重启未完成；纯会话检查点只证明状态和计时恢复。"
+  ]
+}

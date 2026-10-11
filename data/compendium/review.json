@@ -3362,7 +3362,7 @@
       "name": "Timelost Magazine",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -3380,7 +3380,7 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "已审阅需求；当前基础容量 Profile、按容量收益和溢出组合有机制验收，尚无该词条的数据定义",
+      "scope": "独立JSON：付费合成超能自然到期驱动20/21秒基础容量翻倍与储备补弹；收枪/卸装、真实Overflow弹药砖、Found Verdict两发装填、当前超能账户的显式参数击杀回能",
       "acceptance": [
         "超能结束时补充弹匣，100%增加基础弹匣容量持续20 / 强化21秒，收枪可触发和保留",
         "基础容量与Overflow叠加并影响Bolt Charge；Found Verdict每次装填2发",
@@ -3400,12 +3400,67 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoCapacityGameTest.java",
           "symbol": "realExpiryPreservesOverflowAndDetachedCapacitySnapshot"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/timelost_magazine.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/timelost_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/timelost_test_calibration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TimelostMagazineTest.java",
+          "symbol": "paidSuperExpiryDoublesAndRefillsBothHeldAndStowedWeaponsWithoutManualReloadFacts"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TimelostMagazineTest.java",
+          "symbol": "foundVerdictLoadsTwoShellsOnlyDuringItsWindowAndNextStepResamplesAfterExpiry"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TimelostMagazineTest.java",
+          "symbol": "realWeaponKillUsesItsOwnConfiguredGainAndCurrentSuperSelection"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/TimelostMagazineTest.java",
+          "symbol": "checkpointRestoresActiveSuperAndWindowsWithoutRepeatingReserveTransfers"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TimelostMagazineGameTest.java",
+          "symbol": "paidSuperEndsOnceAndStowedNormalEnhancedWindowsExpireWithoutDeletingLoadedRounds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TimelostMagazineGameTest.java",
+          "symbol": "foundVerdictUsesTwoActualShellTransfersAfterFourPaidShots"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TimelostMagazineGameTest.java",
+          "symbol": "physicalWeaponKillsCreditTheSelectedSuperAtImpactUsingOnlyTheirOwnPerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/TimelostMagazineGameTest.java",
+          "symbol": "realAmmoBrickUsesExpandedBaseForEnhancedOverflowAndConservesReserves"
         }
       ],
       "gaps": [
-        "尚未提供独立内容定义；通用合成夹具不能证明该 perk 的触发、数值和实际玩法已实现",
-        "超能结束输入、先扩容还是先补弹及到期弹数策略尚需内容 / 原作验收",
-        "击杀回能问号保留未知；真实超能账户、Found Verdict逐发装填、Bolt Charge和物品装配未实现"
+        "原表与可访问公开研究仍将击杀回能标为1?%，强化值未知；当前base_super_gain / enhanced_super_gain为必填校准参数，测试1% / 2%不代表原作测定值。",
+        "超能来源为实际付费的合成技能与0.2秒持续Buff到期，证明生命周期接线；所有正式超能、瞬发 / 漫游 / 多段、死亡 / 取消 / 抑制及能量耗尽边界尚未接入。移除该合成状态不触发到期奖励不代表所有原作取消政策。",
+        "先扩容后补弹、到期保留已装超额弹药、当前装备决定结束时收益、卸下perk立即删Buff和进行中逐发装填保留接受弹数，均为当前内容策略，原作组合仍需校准。",
+        "Found Verdict每次增加1发以形成基础1+1；共享MAX额外弹数与其他逐发装填perk的组合需校准。测试武器容量5、弹量、射速 / 物理弹道和0.2 / 0.1秒换弹均为合成，未实现正式枪械动画。",
+        "已验证Overflow使用扩容后的基础值及真实弹药砖；Bolt Charge按弹匣收益、全部基础容量改写效果 / 热量武器 / 异域组合、超能激活期间回能政策与完整Super属性曲线尚未完成。",
+        "正式内容 / 物品 / 子职业装配、HUD及全世界 / 物理弹丸跨重启未完成；纯会话检查点只证明状态和计时恢复。"
       ]
     },
     {

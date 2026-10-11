@@ -1,0 +1,178 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:timelost_magazine_active",
+        "version": "compendium-2026-10-05",
+        "duration": 20,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "keep",
+        "tags": [
+          "chorus_d2:timelost_magazine"
+        ]
+      },
+      "bundle": "chorus_d2:timelost_magazine_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:timelost_magazine",
+      "parameters": {
+        "base_super_gain": "charge_fraction",
+        "enhanced_super_gain": "charge_fraction"
+      },
+      "rules": [
+        {
+          "id": "super_end",
+          "on": "chorus_d2:super_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:super_ability"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:timelost_magazine_active",
+                  "duration": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 20,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 21,
+                      "unit": "second"
+                    }
+                  }
+                },
+                {
+                  "type": "chorus:refill_magazine"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "weapon_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:super",
+              "amount": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:source_parameter",
+                  "name": "base_super_gain"
+                },
+                "enhanced": {
+                  "type": "chorus:source_parameter",
+                  "name": "enhanced_super_gain"
+                }
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:timelost_magazine_active"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:timelost_magazine_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "base_capacity",
+          "profile": "chorus_d2:magazine_capacity",
+          "stage": "base_bonus",
+          "group": "base_bonus",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:timelost_magazine",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "confidence": "measured",
+          "reference": "Compendium original Weapon Perks C430 / snapshot C409: 100% base magazine increase."
+        },
+        {
+          "id": "found_verdict_insert",
+          "profile": "chorus_d2:reload_insert_rounds",
+          "stage": "extra_rounds",
+          "group": "extra_rounds",
+          "op": "add",
+          "stacking_key": "chorus_d2:timelost_magazine",
+          "if": {
+            "type": "chorus:source_tag",
+            "tag": "chorus_d2:found_verdict"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "round"
+          },
+          "confidence": "assumed",
+          "reference": "Compendium C430: Found Verdict loads two shells. This contribution adds one to a one-shell baseline; cross-perk MAX policy is explicit calibration."
+        }
+      ]
+    }
+  ]
+}

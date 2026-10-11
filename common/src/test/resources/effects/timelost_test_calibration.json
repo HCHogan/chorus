@@ -1,0 +1,171 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:magazine_capacity",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "base_bonus",
+          "operation": "multiply",
+          "group": {
+            "name": "base_bonus",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "integer",
+          "rounding": "ceil"
+        }
+      ]
+    },
+    {
+      "id": "test:super_gain",
+      "version": "compendium-2026-10-05",
+      "input_unit": "charge_fraction",
+      "steps": []
+    },
+    {
+      "id": "chorus_d2:special_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_one_round",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:heavy_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_one_round",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              1
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "round"
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "test:super_energy",
+      "capacity": 1,
+      "initial": 1,
+      "gain_profile": "test:super_gain"
+    },
+    {
+      "id": "test:alternate_super_energy",
+      "capacity": 1,
+      "initial": 0,
+      "gain_profile": "test:super_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:super",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus:super_ability"
+      ],
+      "if": {
+        "type": "chorus:not",
+        "of": {
+          "type": "chorus:has_buff",
+          "buff": "test:super_active"
+        }
+      },
+      "cost": {
+        "resource": "test:super_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "type": "chorus:grant_buff",
+          "buff": "test:super_active"
+        }
+      ]
+    },
+    {
+      "id": "test:alternate_super",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus:super_ability"
+      ],
+      "cost": {
+        "resource": "test:alternate_super_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:super_active",
+        "version": "compendium-2026-10-05",
+        "duration": 0.2,
+        "attach": "holder",
+        "instanced_by": "none",
+        "tags": [
+          "chorus:super_ability"
+        ]
+      },
+      "bundle": "test:super_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:super_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "end",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:own_buff",
+            "reason": "expired"
+          },
+          "do": [
+            {
+              "type": "chorus:emit",
+              "event": "chorus_d2:super_ended"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

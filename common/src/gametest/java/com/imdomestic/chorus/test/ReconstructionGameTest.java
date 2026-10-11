@@ -40,7 +40,8 @@ public class ReconstructionGameTest {
         equipment.swap(t.owner, "test:" + slot, 0, equipment.revision());
         if (variant == null) return;
         var stack = t.owner.getInventory().getItem(0); var before = stack.get(ChorusComponents.EQUIPMENT.get());
-        stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(before.instance(), before.definition(), Map.of("perk", variant), before.parameters()));
+        var choices = new TreeMap<>(before.choices()); choices.put("perk", variant);
+        stack.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear(before.instance(), before.definition(), choices, before.parameters()));
         equipment.swap(t.owner, "test:" + slot, 0, equipment.revision());
     }
     @GameCase(environment = "chorus_gametest:reconstruction_cadence", maxTicks = 390)
