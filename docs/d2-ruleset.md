@@ -1416,3 +1416,17 @@ Found Verdict来源标签在Buff中保留，并向共享 `reload_insert_rounds` 
 容量奖励写入 `chorus_d2:magazine_capacity` 的 `base_add` 阶段，先增加基础发数，再由后续基础倍率阶段和 Overflow 使用。五发测试武器满层容量为十发，真实特殊弹药砖触发强化 Overflow 后从本枪储备装到二十二发；武器击杀将派生容量恢复为五，却保留已经装入的超额弹药。增加容量自身不会补弹，也不产生换弹完成事实。Shotgun 标签按共享 `reload_insert_rounds` 的额外发数 MAX 组增加单次插入量，实际手动换弹每次两发、储备相应扣二；真实所有霰弹枪曲线、与 Timelost / Dual Loader 的组合仍需校准。
 
 共享 `weapon_range` / `weapon_aim_assist` Profile 已可查询按武器隔离、钳制到 0..100 的属性结果，但尚未连接真实武器距离衰减、准星磁性或目标获取。`FailDeadlyTest` 验证不同容量、两变体、层数上限、重复回执、清层、收枪 / 卸装、Overflow、逐发装填、纯会话检查点与未知结果；`FailDeadlyGameTest` 使用真实玩家容器、低权限武器命令、物理弹丸和实体弹药砖验收这些链路。双伤害火箭测试只证明两个独立实例的计数与已知容量档位，不代表完整火箭直击 / 爆炸原型；Bipod 的基础容量二来自显式夹具，不代表已实现 Bipod 本身。Bolt Charge、热量 / 异域、全部真实武器、正式装配 / HUD 与物理世界跨重启仍未完成。
+
+## 共享 Weaken 与可续时的强削弱
+
+[weaken.json](../common/src/test/resources/effects/weaken.json) 为普通削弱和可由其他 Weaken 续时的强削弱提供共享目标状态，来源依据为 Void 原表 B13 / D13、固定快照 B11 / D11；原 HTML 与快照文本及哈希见[研究记录](../data/d2-research/2026-10-11/weaken.json)。原表给出普通战员承伤 +15%、Guardian +7.5%、移动速度降低 20%，默认时长分别 6 / 2.5 秒；具体生产者可以另给时长，例如 Singularity Blade 两种命中环境均需按其条目传入 6 秒。这一共享定义不代表神器反应规则已经实现。
+
+`chorus_d2:weaken_application` 接受四个必填参数：`combatant_duration` / `guardian_duration`（second）和 `combatant_strength` / `guardian_strength`（delta）。可信来源发出 `chorus_d2:apply_weaken`，携带自身 source_instance / bundle 和真实 victim；应用时明确观察目标存在 / 存活及 player 标志，再请求 `apply_status` 授权。普通调用者传入 6 / 2.5 秒与 0.15 / 0.075。当前以真实玩家识别 Guardian，不按整个世界的 PvP 开关选值；混合交战、NPC Guardian、特殊生产者与敌人类型仍需进一步分类校准。四参数必须为正，缺参在链接 / 来源验证时失败，缺失或死亡目标不请求施加，授权拒绝不改变既有状态。
+
+状态按目标共享，不按施加者拆实例。成功施加后，strength 组件保存当前值与新输入的较大值，时间采用 MAX_REMAINING：`deadline = max(old_deadline, now + incoming_duration)`。这表达原表中 Fafnir / Felwinter / Tractor 的强削弱可被其他 Weaken 延长；普通刷新不会把强值降回 15%，到期 / 清除后下一次普通应用则从 15% 开始。跨来源保留首个来源信用与代号、较短刷新不缩短时间、较弱刷新延长整个强值窗口，是这里明确的内容策略，仍需原作全部顺序边界校准。Moebius / Deadfall 的持续束缚生命周期及 30 / 35% 等特例必须由独立生产者和贡献表达，不能把此续时政策泛化为所有 tether。
+
+承伤修饰进入共享 `chorus_d2:incoming` 的 `global_debuff` 阶段，以 MAX 聚合后再乘独立 resistance 阶段。该阶段添加在现有 [strand_defense.json](../common/src/test/resources/effects/strand_defense.json) 中，空阶段不改变此前结算。目标普通 Weaken 15% 和另一个 30% 全局减益组合时，100 输入成为 130；再乘独立 50% 减伤成为 65，不把两个全局减益相乘。目标防御在实际命中时读取，适用于实际原版伤害管线；攻击快照不冻结目标后来获得 / 失去的削弱。所有特殊伤害类型的增幅资格仍须内容分类。
+
+移动修饰复用共享 movement_speed_contribution 的 status 乘法阶段，再投影到原版 movement_speed 属性。单个 Weaken 贡献 -0.2 delta，重复施加不会重复扣速；到期、清除和确认死亡移除贡献。它不禁止移动 / 跳跃，原作战员准确性降低、完整空中移动和动画变化未由这一属性投影实现。施加者来源卸下不清除已经留在目标上的状态；可信 `chorus_d2:clear_weaken` 可清除，确认死亡会清理实时 Buff，但伤害回执保留死亡前 Buff 观察，后续“击杀被削弱目标”可使用事件历史条件。
+
+`WeakenTest` 覆盖实际目标分类、两模式、共享 / 非叠加、强值续时、与独立减伤组合、拒绝施加、无效输入、到期 / 清除 / 死亡、施加者解绑、纯会话检查点与未知授权不重放。`WeakenGameTest` 覆盖真实玩家与战员扣血、移动属性、服务器 tick 的 2.5 / 6 秒到期、实际强值续时、全局减益最高值、独立减伤、状态拒绝及致死伤害的历史观察。来源均为测试宿主显式绑定；完整神器、技能 / 武器施加、原作强值来源特例、AI 精度、HUD 和物理世界持久化仍未完成。

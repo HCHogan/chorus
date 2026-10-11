@@ -1,0 +1,155 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:weaken",
+        "version": "compendium-2026-10-05",
+        "duration": 6,
+        "attach": "target",
+        "refresh": "max_remaining",
+        "tags": ["chorus_d2:weaken", "chorus_d2:void_debuff"],
+        "components": {"numbers": {"strength": {"initial": 0, "unit": "delta"}}}
+      },
+      "bundle": "chorus_d2:weaken_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:weaken_application",
+      "parameters": {"combatant_duration": "second", "combatant_strength": "delta", "guardian_duration": "second", "guardian_strength": "delta"},
+      "rules": [
+        {
+          "id": "apply",
+          "on": "chorus_d2:apply_weaken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {"type": "chorus:all", "of": [{"type": "chorus:source_is", "source": "owner"}, {"type": "chorus:own_source"}]},
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "combatant_duration"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+              },
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "combatant_strength"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "delta"}
+              },
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "guardian_duration"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "second"}
+              },
+              {
+                "type": "chorus:compare",
+                "left": {"type": "chorus:source_parameter", "name": "guardian_strength"},
+                "op": "gt",
+                "right": {"type": "chorus:constant", "value": 0, "unit": "delta"}
+              }
+            ]
+          },
+          "do": [
+            {"action": {"type": "chorus:inspect_entity", "target": "victim"}, "as": "recipient"},
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "available"},
+                  {"type": "chorus:result_flag", "binding": "recipient", "field": "alive"}
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:apply_status",
+                    "buff": "chorus_d2:weaken",
+                    "target": "victim",
+                    "duration": {
+                      "type": "chorus:choose",
+                      "if": {"type": "chorus:result_flag", "binding": "recipient", "field": "player"},
+                      "then": {"type": "chorus:source_parameter", "name": "guardian_duration"},
+                      "else": {"type": "chorus:source_parameter", "name": "combatant_duration"}
+                    }
+                  },
+                  "as": "status"
+                },
+                {
+                  "if": {"type": "chorus:result_flag", "binding": "status", "field": "applied"},
+                  "then": [
+                    {
+                      "type": "chorus:update_component",
+                      "buff": "chorus_d2:weaken",
+                      "target": "victim",
+                      "component": "strength",
+                      "op": "set",
+                      "value": {
+                        "type": "chorus:arithmetic",
+                        "op": "max",
+                        "of": [
+                          {"type": "chorus:component", "buff": "chorus_d2:weaken", "component": "strength", "target": "victim"},
+                          {
+                            "type": "chorus:choose",
+                            "if": {"type": "chorus:result_flag", "binding": "recipient", "field": "player"},
+                            "then": {"type": "chorus:source_parameter", "name": "guardian_strength"},
+                            "else": {"type": "chorus:source_parameter", "name": "combatant_strength"}
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "chorus_d2:clear_weaken",
+          "if": {"type": "chorus:all", "of": [{"type": "chorus:source_is", "source": "owner"}, {"type": "chorus:own_source"}]},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:weaken", "target": "victim"}]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weaken_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "received_damage",
+          "profile": "chorus_d2:incoming",
+          "stage": "global_debuff",
+          "group": "global_debuff",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weaken",
+          "evaluate": "on_hit",
+          "value": {"type": "chorus:component", "buff": "chorus_d2:weaken", "component": "strength"},
+          "reference": "Compendium original Void D13 / CSV D11. Recipient-shared refreshable Weaken; MAX_REMAINING, first-source credit and host movement projection require interaction calibration.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "ground_speed",
+          "profile": "chorus_d2:movement_speed_contribution",
+          "stage": "status",
+          "group": "status",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weaken/ground_speed",
+          "value": {"type": "chorus:constant", "value": -0.2, "unit": "delta"},
+          "reference": "Compendium original Void D13 / CSV D11. Recipient-shared refreshable Weaken; MAX_REMAINING, first-source credit and host movement projection require interaction calibration.",
+          "confidence": "assumed"
+        }
+      ],
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {"type": "chorus:target_is", "left": "self", "right": "victim"},
+          "do": [{"type": "chorus:remove_buff", "buff": "chorus_d2:weaken"}]
+        }
+      ]
+    }
+  ]
+}

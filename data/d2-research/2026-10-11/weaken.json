@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "effect": "Weaken",
+  "reviewed_at": "2026-10-11",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-11/void-overshield-source.html.gz",
+      "sha256": "9f4e40e99a24e5d4112b671e6e2bc66a0116419d7312c33985e4aeeea4fbb3a5",
+      "gzip_sha256": "4872de5d90a5375a3d11638fab4f4dc789c19a4f4389141f51c27258f6356b4c",
+      "cells": [
+        {
+          "original_cell": "B13",
+          "snapshot_cell": "B11",
+          "snapshot_text_sha256": "b79af8b27fbe0553211eb8a2de6c134e9296fb1fe09b982c07ea631c566dc44c",
+          "normalized_text": "Weaken",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D13",
+          "snapshot_cell": "D11",
+          "snapshot_text_sha256": "ff1ee32afbd546aa9dc04820eaac0bbe351379958a5fddef35caed776988b69a",
+          "normalized_text": "Weakened Enemies receive 15% [7.5%] increased damage and 20% Decreased Movement Speed for 6 [2.5] seconds. Weakened Combatants become less accurate and slower. Unique Weaken Effects: Certain sources of Weaken inflict a dramatically stronger weaken that grants 30% [generally 50%] increased damage. Shadowshot: Moebius grants 30% [50%] increased damage against tethered enemies. Felwinter's Helm's Warlord's End grants 30% [30%] increased damage against enemies affected by its weakening burst. Tractor Cannon's Repulsor Force and Fafnir (Quantum Nova Active) grants 30% [50%] increased damage against enemies it damages. Fafnir's, Felwinter's, Tractor's weaken duration can be extended by any other Weaken effect. Shadowshot: Deadfall uniquely grants 35% [50%?] increased damage against tethered enemies.",
+          "matches_snapshot": true
+        }
+      ]
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/weaken.json",
+    "inputs": "common/src/test/resources/effects/weaken_inputs.json",
+    "incoming_profile": "common/src/test/resources/effects/strand_defense.json",
+    "movement_profile": "common/src/test/resources/effects/movement_attributes.json",
+    "source_parameters": {
+      "combatant_duration": "second",
+      "guardian_duration": "second",
+      "combatant_strength": "delta",
+      "guardian_strength": "delta"
+    },
+    "classification": "Observe live recipient before status authorization; native player selects Guardian parameters, independently of global world mode. Normal callers use6/2.5 seconds and.15/.075 delta.",
+    "sharing": "One target instance; MAX_REMAINING deadline and max(old,new) strength; first origin/generation retained. Supports refreshable strong Weaken content; does not implement tether lifecycle.",
+    "damage": "Live target defense global_debuff MAX before independent resistance. Existing empty profiles remain neutral.",
+    "movement": "-0.2 delta in shared multiplicative status stage of movement speed; actual native attribute projection only.",
+    "lifecycle": "Explicit cleanse, expiry and confirmed death clean target state; source detach retains already applied status. Kill facts retain pre-death Buff observation.",
+    "errors": "Nonpositive inputs, unavailable/dead recipient or rejected status never write a new strength; unknown authorization stops without invented status or replay."
+  },
+  "validation": {
+    "unit_tests": "WeakenTest9 scenarios; full suite1439, zero failures/errors/skips.",
+    "world_tests": "WeakenGameTest5 new shared scenarios. Fabric733 and NeoForge748 passed;732 shared scenarios total.",
+    "full_gate": "/tmp/chorus-weaken-gate.log BUILD SUCCESSFUL in1m45s, both release jars built.",
+    "development": "Initial test fixture modifiers lacked required stacking_key; added explicit keys. Checkpoint test then exposed a session created without pinned catalogue; use the existing data-defined session constructor. Nine dedicated unit tests and first full world gate passed.",
+    "audits": "10 Compendium audits,77-entry report consistency, original/snapshot cell and archive hashes, release fixture exclusion and git diff --check passed."
+  },
+  "remaining": [
+    "Singularity Blade命中期资格和4米击杀扩散尚未实现，本轮只补其共享Weaken依赖；所有正式技能 / 武器 / 神器来源装配仍待完成。",
+    "MAX_REMAINING、强值与最长剩余时间分别取大、跨来源首信用及施加者解绑后保留是明确政策；原作全部顺序 / 刷新 / 击杀归属尚需实测。原表确认Fafnir / Felwinter / Tractor可被其他Weaken续时，不代表所有Tether可如此续时。",
+    "Moebius / Deadfall持续束缚生命周期、所有独立全局减益分组、原表Deadfall Guardian50%?和各强值来源时长仍未校准；测试30% / 50%输入只验证共享强值保留，不代表完成具体技能或异域。",
+    "当前Guardian使用真实玩家分类；NPC Guardian、混合交战与全部特殊伤害增幅资格尚需校准。原表普通6 / 2.5秒不覆盖所有生产者，调用者须显式给出参数。",
+    "20%减速已进入原版movement_speed；战员AI准确性、完整空中 / 特殊移动、动画、HUD和正式内容未实现。独立50%减伤 / 30%全局减益是合成组合输入。",
+    "纯会话检查点覆盖状态 / 强值 / 截止点，物理世界跨重启与完整角色来源自动装配仍未完成。"
+  ]
+}

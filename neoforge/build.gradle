@@ -228,6 +228,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/fail_deadly.json'
         include 'effects/fail_deadly_weapon.json'
         include 'effects/fail_deadly_test_calibration.json'
+        include 'effects/weaken.json'
+        include 'effects/weaken_inputs.json'
         include 'effects/chain_reaction_test_calibration.json'
         include 'effects/overflow.json'
         include 'effects/ammo_pickups.json'

@@ -1,0 +1,86 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:weaken_inputs",
+      "rules": [
+        {
+          "id": "damage",
+          "on": "test:damage",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "weakened_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:event_has_buff",
+            "buff": "chorus_d2:weaken"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:weakened_kill"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:strong_debuff",
+      "modifiers": [
+        {
+          "id": "damage",
+          "profile": "chorus_d2:incoming",
+          "stage": "global_debuff",
+          "group": "global_debuff",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.3,
+            "unit": "delta"
+          },
+          "reference": "Synthetic separate global debuff; not a tether implementation.",
+          "confidence": "assumed",
+          "stacking_key": "test:strong_debuff"
+        }
+      ]
+    },
+    {
+      "id": "test:independent_resistance",
+      "modifiers": [
+        {
+          "id": "resist",
+          "profile": "chorus_d2:incoming",
+          "stage": "resistance",
+          "group": "resistance",
+          "op": "resist",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "resistance"
+          },
+          "reference": "Synthetic independent resistance.",
+          "confidence": "assumed",
+          "stacking_key": "test:independent_resistance"
+        }
+      ]
+    }
+  ]
+}

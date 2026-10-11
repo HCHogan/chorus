@@ -2833,3 +2833,9 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 `observe_ammo.unmodified_capacity` 在第一次命中时建立本周期的固定层数基准，避免修改后的容量形成自增长。`fail_deadly_magazine` 接收 COUNT（普通层数、火箭层数乘 0.5）并返回 ROUND；`fail_deadly_range` / `fail_deadly_aim_assist` 接收和返回 MULTIPLIER，`fail_deadly_insert` 接收 MULTIPLIER 返回整数 ROUND，四者都能读取 base_capacity / stack_limit / stacks。数据包必须显式提供这些 Profile，以及 `magazine_capacity` 的 base_add 阶段、共享 weapon_range / weapon_aim_assist 与 reload_insert_rounds；未提供的依赖不能被当作已校准默认值。
 
 `receipt_seconds`（second）、`enhanced_range` / `enhanced_aim_assist`（stat_point）是词条参数；后两项在原表未知。实例 Buff 通过组件为容量增加发数、为两项属性增加点数，逐发装填仍由已接受步骤的共享查询处理。容量值独立于已装弹数，清层不删除已有溢出，也不会自动补弹。参考 [完整定义](../common/src/test/resources/effects/fail_deadly.json) 和 [合成曲线](../common/src/test/resources/effects/fail_deadly_test_calibration.json)；射程 / 辅瞄 Profile 当前只证明属性查询，不能算成真实距离衰减 / 瞄准行为验收。
+
+### 目标共享的承伤状态
+
+[Weaken](d2-ruleset.md#共享-weaken-与可续时的强削弱) 复用 `inspect_entity`、`apply_status` 和带单位的组件写入，在状态授权成功后才更新目标共享的 strength。跨来源不重复建层；状态配置 MAX_REMAINING，组件显式取 MAX，两者分别控制时间与强度，不能假设选强度会自动选择同一来源的时长。固定时长、强度和保留来源的政策均属于内容定义。
+
+目标 `defense_profile` 的 global_debuff 组以 MAX 归并承伤增幅，随后 resistance 组计算独立减伤。它与攻击端伤害快照分别求值，新的目标状态无需重建已发射攻击；来源归因仍是原攻击。共享 `movement_attributes` 的 status 组投影原版移动属性，到期和死亡清理沿用通用 Buff 生命周期。此例没有新增检查点类型或引擎 Java 分支。

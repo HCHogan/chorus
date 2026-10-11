@@ -3,6 +3,7 @@
   "defense_profile": "chorus_d2:incoming",
   "profiles": [
     {"id": "chorus_d2:incoming", "version": "compendium-2026-10-05", "input_unit": "damage", "steps": [
+      {"type": "chorus:apply", "id": "global_debuff", "operation": "multiply", "group": {"name": "global_debuff", "reduction": "max"}},
       {"type": "chorus:apply", "id": "resistance", "operation": "resist", "group": {"name": "resistance", "reduction": "resist"}}
     ]}
   ],
