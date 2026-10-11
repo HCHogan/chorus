@@ -880,6 +880,246 @@
                                               "value": 0,
                                               "unit": "count"
                                             }
+                                          },
+                                          "weapons_stat_target": {
+                                            "type": "chorus:choose",
+                                            "if": {
+                                              "type": "chorus:result_flag",
+                                              "binding": "observed",
+                                              "field": "player"
+                                            },
+                                            "then": {
+                                              "type": "chorus:constant",
+                                              "value": 3,
+                                              "unit": "count"
+                                            },
+                                            "else": {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:all",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:any",
+                                                    "of": [
+                                                      {
+                                                        "type": "chorus:any",
+                                                        "of": [
+                                                          {
+                                                            "type": "chorus:observed_entity_tag",
+                                                            "binding": "observed",
+                                                            "source": "entity",
+                                                            "tag": "chorus_d2:rank_and_file"
+                                                          },
+                                                          {
+                                                            "type": "chorus:observed_entity_tag",
+                                                            "binding": "observed",
+                                                            "source": "type",
+                                                            "tag": "chorus_d2:rank_and_file"
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "chorus:any",
+                                                        "of": [
+                                                          {
+                                                            "type": "chorus:observed_entity_tag",
+                                                            "binding": "observed",
+                                                            "source": "entity",
+                                                            "tag": "chorus_d2:elite"
+                                                          },
+                                                          {
+                                                            "type": "chorus:observed_entity_tag",
+                                                            "binding": "observed",
+                                                            "source": "type",
+                                                            "tag": "chorus_d2:elite"
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
+                                                  },
+                                                  {
+                                                    "type": "chorus:not",
+                                                    "of": {
+                                                      "type": "chorus:any",
+                                                      "of": [
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:boss"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:boss"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:miniboss"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:miniboss"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:champion"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:champion"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 1,
+                                                "unit": "count"
+                                              },
+                                              "else": {
+                                                "type": "chorus:choose",
+                                                "if": {
+                                                  "type": "chorus:all",
+                                                  "of": [
+                                                    {
+                                                      "type": "chorus:any",
+                                                      "of": [
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:boss"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:boss"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:miniboss"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:miniboss"
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "entity",
+                                                              "tag": "chorus_d2:champion"
+                                                            },
+                                                            {
+                                                              "type": "chorus:observed_entity_tag",
+                                                              "binding": "observed",
+                                                              "source": "type",
+                                                              "tag": "chorus_d2:champion"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "type": "chorus:not",
+                                                      "of": {
+                                                        "type": "chorus:any",
+                                                        "of": [
+                                                          {
+                                                            "type": "chorus:any",
+                                                            "of": [
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "entity",
+                                                                "tag": "chorus_d2:rank_and_file"
+                                                              },
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "type",
+                                                                "tag": "chorus_d2:rank_and_file"
+                                                              }
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "chorus:any",
+                                                            "of": [
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "entity",
+                                                                "tag": "chorus_d2:elite"
+                                                              },
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "type",
+                                                                "tag": "chorus_d2:elite"
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                "then": {
+                                                  "type": "chorus:constant",
+                                                  "value": 2,
+                                                  "unit": "count"
+                                                },
+                                                "else": {
+                                                  "type": "chorus:constant",
+                                                  "value": 0,
+                                                  "unit": "count"
+                                                }
+                                              }
+                                            }
                                           }
                                         }
                                       },
@@ -1217,6 +1457,246 @@
                                                   "type": "chorus:constant",
                                                   "value": 0,
                                                   "unit": "count"
+                                                }
+                                              },
+                                              "weapons_stat_target": {
+                                                "type": "chorus:choose",
+                                                "if": {
+                                                  "type": "chorus:result_flag",
+                                                  "binding": "observed",
+                                                  "field": "player"
+                                                },
+                                                "then": {
+                                                  "type": "chorus:constant",
+                                                  "value": 3,
+                                                  "unit": "count"
+                                                },
+                                                "else": {
+                                                  "type": "chorus:choose",
+                                                  "if": {
+                                                    "type": "chorus:all",
+                                                    "of": [
+                                                      {
+                                                        "type": "chorus:any",
+                                                        "of": [
+                                                          {
+                                                            "type": "chorus:any",
+                                                            "of": [
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "entity",
+                                                                "tag": "chorus_d2:rank_and_file"
+                                                              },
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "type",
+                                                                "tag": "chorus_d2:rank_and_file"
+                                                              }
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "chorus:any",
+                                                            "of": [
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "entity",
+                                                                "tag": "chorus_d2:elite"
+                                                              },
+                                                              {
+                                                                "type": "chorus:observed_entity_tag",
+                                                                "binding": "observed",
+                                                                "source": "type",
+                                                                "tag": "chorus_d2:elite"
+                                                              }
+                                                            ]
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "chorus:not",
+                                                        "of": {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:boss"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:boss"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:miniboss"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:miniboss"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:champion"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:champion"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      }
+                                                    ]
+                                                  },
+                                                  "then": {
+                                                    "type": "chorus:constant",
+                                                    "value": 1,
+                                                    "unit": "count"
+                                                  },
+                                                  "else": {
+                                                    "type": "chorus:choose",
+                                                    "if": {
+                                                      "type": "chorus:all",
+                                                      "of": [
+                                                        {
+                                                          "type": "chorus:any",
+                                                          "of": [
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:boss"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:boss"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:miniboss"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:miniboss"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "chorus:any",
+                                                              "of": [
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "entity",
+                                                                  "tag": "chorus_d2:champion"
+                                                                },
+                                                                {
+                                                                  "type": "chorus:observed_entity_tag",
+                                                                  "binding": "observed",
+                                                                  "source": "type",
+                                                                  "tag": "chorus_d2:champion"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        {
+                                                          "type": "chorus:not",
+                                                          "of": {
+                                                            "type": "chorus:any",
+                                                            "of": [
+                                                              {
+                                                                "type": "chorus:any",
+                                                                "of": [
+                                                                  {
+                                                                    "type": "chorus:observed_entity_tag",
+                                                                    "binding": "observed",
+                                                                    "source": "entity",
+                                                                    "tag": "chorus_d2:rank_and_file"
+                                                                  },
+                                                                  {
+                                                                    "type": "chorus:observed_entity_tag",
+                                                                    "binding": "observed",
+                                                                    "source": "type",
+                                                                    "tag": "chorus_d2:rank_and_file"
+                                                                  }
+                                                                ]
+                                                              },
+                                                              {
+                                                                "type": "chorus:any",
+                                                                "of": [
+                                                                  {
+                                                                    "type": "chorus:observed_entity_tag",
+                                                                    "binding": "observed",
+                                                                    "source": "entity",
+                                                                    "tag": "chorus_d2:elite"
+                                                                  },
+                                                                  {
+                                                                    "type": "chorus:observed_entity_tag",
+                                                                    "binding": "observed",
+                                                                    "source": "type",
+                                                                    "tag": "chorus_d2:elite"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "then": {
+                                                      "type": "chorus:constant",
+                                                      "value": 2,
+                                                      "unit": "count"
+                                                    },
+                                                    "else": {
+                                                      "type": "chorus:constant",
+                                                      "value": 0,
+                                                      "unit": "count"
+                                                    }
+                                                  }
                                                 }
                                               }
                                             }
@@ -1684,6 +2164,246 @@
                             "value": 0,
                             "unit": "count"
                           }
+                        },
+                        "weapons_stat_target": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "observed",
+                            "field": "player"
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 3,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:any",
+                                  "of": [
+                                    {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "entity",
+                                          "tag": "chorus_d2:rank_and_file"
+                                        },
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "type",
+                                          "tag": "chorus_d2:rank_and_file"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "entity",
+                                          "tag": "chorus_d2:elite"
+                                        },
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "type",
+                                          "tag": "chorus_d2:elite"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "chorus:not",
+                                  "of": {
+                                    "type": "chorus:any",
+                                    "of": [
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:boss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:boss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:miniboss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:miniboss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:champion"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:champion"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:any",
+                                    "of": [
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:boss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:boss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:miniboss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:miniboss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:champion"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:champion"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:rank_and_file"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "type",
+                                              "tag": "chorus_d2:rank_and_file"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:elite"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "type",
+                                              "tag": "chorus_d2:elite"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -1735,6 +2455,246 @@
                             "type": "chorus:constant",
                             "value": 0,
                             "unit": "count"
+                          }
+                        },
+                        "weapons_stat_target": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "observed",
+                            "field": "player"
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 3,
+                            "unit": "count"
+                          },
+                          "else": {
+                            "type": "chorus:choose",
+                            "if": {
+                              "type": "chorus:all",
+                              "of": [
+                                {
+                                  "type": "chorus:any",
+                                  "of": [
+                                    {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "entity",
+                                          "tag": "chorus_d2:rank_and_file"
+                                        },
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "type",
+                                          "tag": "chorus_d2:rank_and_file"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "entity",
+                                          "tag": "chorus_d2:elite"
+                                        },
+                                        {
+                                          "type": "chorus:observed_entity_tag",
+                                          "binding": "observed",
+                                          "source": "type",
+                                          "tag": "chorus_d2:elite"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "chorus:not",
+                                  "of": {
+                                    "type": "chorus:any",
+                                    "of": [
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:boss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:boss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:miniboss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:miniboss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:champion"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:champion"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            },
+                            "then": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "count"
+                            },
+                            "else": {
+                              "type": "chorus:choose",
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:any",
+                                    "of": [
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:boss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:boss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:miniboss"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:miniboss"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:champion"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "observed",
+                                            "source": "type",
+                                            "tag": "chorus_d2:champion"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:any",
+                                      "of": [
+                                        {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:rank_and_file"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "type",
+                                              "tag": "chorus_d2:rank_and_file"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:elite"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "observed",
+                                              "source": "type",
+                                              "tag": "chorus_d2:elite"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "count"
+                              },
+                              "else": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
                           }
                         }
                       }

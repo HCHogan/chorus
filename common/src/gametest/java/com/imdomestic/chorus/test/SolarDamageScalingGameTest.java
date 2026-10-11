@@ -15,13 +15,15 @@ import net.minecraft.world.item.ItemStack;
 
 /** Real Orb charge, weapon kills, shared Solar generations and native damage receipts. */
 public class SolarDamageScalingGameTest {
-    static ProjectileGameTest.Harness openSolar(GameTestHelper h)throws Exception {
+    static ProjectileGameTest.Harness openSolar(GameTestHelper h)throws Exception {return openSolar(h,_ -> {});}
+    static ProjectileGameTest.Harness openSolar(GameTestHelper h,java.util.function.Consumer<com.google.gson.JsonObject> edit)throws Exception {
         var t=IncandescentGameTest.harness(h,true,true,data->{
             RadiantGameTest.merge(data,"weapon_surge","radiant","weapon_surge_inputs","solar_test_source","solar_damage_perks",
                     "armor_charge","armor_charge_mods","armor_charge_inputs","orb_of_power");
             // Reuse the explicit Orb calibration without importing unrelated subclass/test sources.
             for(var profile:ThreadedSpikeGameTest.json("starvation_inputs").getAsJsonArray("profiles"))
                 if(profile.getAsJsonObject().get("id").getAsString().equals("chorus_d2:orb_of_power_base_energy"))data.getAsJsonArray("profiles").add(profile);
+            edit.accept(data);
         });
         try {
             t.runtime.bind(system(t.owner.getUUID().toString()));bind(t,"armor_inputs","test:armor_charge_inputs","");

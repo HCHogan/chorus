@@ -14,10 +14,13 @@ import org.junit.jupiter.api.Test;
 class SolarDamageScalingTest {
     static final String D="chorus_d2:";
     static class Harness extends SolarTest.Harness {
-        Harness(EffectState.Mode mode)throws Exception {
-            super(link("solar","solar_test_calibration","solar_test_source","empowering_damage","radiant",
+        static String[] modules(String... additional) {
+            var modules=new ArrayList<>(List.of("solar","solar_test_calibration","solar_test_source","empowering_damage","radiant",
                     "weapon_surge","weapon_surge_inputs","armor_charge","armor_charge_mods","armor_charge_inputs",
-                    "character_stats","solar_damage_perks"),mode);
+                    "character_stats","solar_damage_perks"));modules.addAll(List.of(additional));return modules.toArray(String[]::new);
+        }
+        Harness(EffectState.Mode mode,String... additional)throws Exception {
+            super(link(modules(additional)),mode);
             for(var s:List.of(SolarTest.FIRST,SolarTest.SECOND)) {
                 views.put(s.holder(),SolarTest.view(false,false));bind(ArmorChargeTest.system(s.holder()));
                 for(String name:List.of("armor_charge_inputs","surge_inputs"))bind(new EffectSource(name+"/"+s.holder(),"test:"+name,s.holder(),s.origin(),Set.of()));

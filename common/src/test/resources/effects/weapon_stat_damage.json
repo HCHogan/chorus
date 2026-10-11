@@ -1,0 +1,760 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:weapon_stat_damage",
+      "modifiers": [
+        {
+          "id": "low_primary_special",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_stat",
+          "group": "weapon_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:ability_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:grenade_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:melee_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:class_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_source_tag",
+                        "tag": "chorus_d2:primary_ammo"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:special_ammo"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:heavy_ammo"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_source_tag",
+                        "tag": "chorus_d2:special_ammo"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:primary_ammo"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:heavy_ammo"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weapons_stat_target",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "min",
+              "of": [
+                {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:weapons_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  "target": "self"
+                },
+                {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "stat_point"
+                }
+              ]
+            },
+            "factor": 0.0015,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "reference": "Compendium Game Mechanics E48 / original E203; current Engineeeer Armor Stat Info; PvP cap: Bungie 9.0.0.4. Classification and heavy low-rank source conflict: data/d2-research/2026-10-12/weapons-stat-damage.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "low_heavy",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_stat",
+          "group": "weapon_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:ability_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:grenade_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:melee_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:class_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:heavy_ammo"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:primary_ammo"
+                    }
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:special_ammo"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weapons_stat_target",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "min",
+              "of": [
+                {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:weapons_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  },
+                  "target": "self"
+                },
+                {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "stat_point"
+                }
+              ]
+            },
+            "factor": 0.0015,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "reference": "Compendium Game Mechanics E48 / original E203; current Engineeeer Armor Stat Info; PvP cap: Bungie 9.0.0.4. Classification and heavy low-rank source conflict: data/d2-research/2026-10-12/weapons-stat-damage.json.",
+          "confidence": "conflict"
+        },
+        {
+          "id": "high_primary_special",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_stat",
+          "group": "weapon_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:ability_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:grenade_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:melee_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:class_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_source_tag",
+                        "tag": "chorus_d2:primary_ammo"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:special_ammo"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:heavy_ammo"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_source_tag",
+                        "tag": "chorus_d2:special_ammo"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:primary_ammo"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:heavy_ammo"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weapons_stat_target",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "max",
+              "of": [
+                {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
+                },
+                {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:weapons_stat",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
+                      },
+                      "target": "self"
+                    },
+                    {
+                      "type": "chorus:constant",
+                      "value": -100,
+                      "unit": "stat_point"
+                    }
+                  ]
+                }
+              ]
+            },
+            "factor": 0.0015,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "reference": "Compendium Game Mechanics E48 / original E203; current Engineeeer Armor Stat Info; PvP cap: Bungie 9.0.0.4. Classification and heavy low-rank source conflict: data/d2-research/2026-10-12/weapons-stat-damage.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "high_heavy",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_stat",
+          "group": "weapon_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:ability_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:grenade_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:melee_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:class_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_source_tag",
+                    "tag": "chorus_d2:heavy_ammo"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:primary_ammo"
+                    }
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:special_ammo"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weapons_stat_target",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "max",
+              "of": [
+                {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
+                },
+                {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:weapons_stat",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
+                      },
+                      "target": "self"
+                    },
+                    {
+                      "type": "chorus:constant",
+                      "value": -100,
+                      "unit": "stat_point"
+                    }
+                  ]
+                }
+              ]
+            },
+            "factor": 0.001,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "reference": "Compendium Game Mechanics E48 / original E203; current Engineeeer Armor Stat Info; PvP cap: Bungie 9.0.0.4. Classification and heavy low-rank source conflict: data/d2-research/2026-10-12/weapons-stat-damage.json.",
+          "confidence": "measured"
+        },
+        {
+          "id": "guardian",
+          "profile": "chorus_d2:empowering_damage",
+          "stage": "weapon_stat",
+          "group": "weapon_stat",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:weapons_stat_damage",
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus:weapon_damage"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:any",
+                      "of": [
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:ability_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:grenade_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:melee_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:super_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:class_damage"
+                        },
+                        {
+                          "type": "chorus:event_tag",
+                          "tag": "chorus:glaive_melee"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:event_source_tag",
+                            "tag": "chorus_d2:primary_ammo"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:event_source_tag",
+                              "tag": "chorus_d2:special_ammo"
+                            }
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:event_source_tag",
+                              "tag": "chorus_d2:heavy_ammo"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:event_source_tag",
+                            "tag": "chorus_d2:special_ammo"
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:event_source_tag",
+                              "tag": "chorus_d2:primary_ammo"
+                            }
+                          },
+                          {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:event_source_tag",
+                              "tag": "chorus_d2:heavy_ammo"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:event_source_tag",
+                        "tag": "chorus_d2:heavy_ammo"
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:primary_ammo"
+                        }
+                      },
+                      {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:event_source_tag",
+                          "tag": "chorus_d2:special_ammo"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:impact_number",
+                  "name": "weapons_stat_target",
+                  "unit": "count"
+                },
+                "op": "eq",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 3,
+                  "unit": "count"
+                }
+              }
+            ]
+          },
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "max",
+              "of": [
+                {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "stat_point"
+                },
+                {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:attribute",
+                      "profile": "chorus_d2:weapons_stat",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "stat_point"
+                      },
+                      "target": "self"
+                    },
+                    {
+                      "type": "chorus:constant",
+                      "value": -100,
+                      "unit": "stat_point"
+                    }
+                  ]
+                }
+              ]
+            },
+            "factor": 0.0005,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "reference": "Compendium Game Mechanics E48 / original E203; current Engineeeer Armor Stat Info; PvP cap: Bungie 9.0.0.4. Classification and heavy low-rank source conflict: data/d2-research/2026-10-12/weapons-stat-damage.json.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

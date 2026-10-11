@@ -3139,6 +3139,16 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 
 ## Solar 对共享增伤阶段的接线
 
-参考 `solar_test_calibration` 的 `chorus_d2:solar_outgoing` 现在依赖 `empowering_damage`，显式共享 empowering / weapon_surge / perks，保留独立 payload、测试 bonus 和世界单位换算；所有显式组合该校准片段的目录必须同时提供公共 Profile。Incandescent 的 ProgramModule imports 已声明此依赖。单独的 `solar.json` 仍要求宿主提供完整的 Solar 数值校准。
+参考 `solar_test_calibration` 的 `chorus_d2:solar_outgoing` 现在依赖 `empowering_damage`，显式共享 weapon_stat / empowering / weapon_surge / perks，保留独立 payload、测试 bonus 和世界单位换算；所有显式组合该校准片段的目录必须同时提供公共 Profile。Incandescent 的 ProgramModule imports 已声明此依赖。单独的 `solar.json` 仍要求宿主提供完整的 Solar 数值校准。
 
 四个 Solar damage_snapshot 出口都为实际受击者传入 radiant_champion；它来自已有 observed 观察，不从来源标签推测。共享修改不会更改初始来源的 weapon / grenade / melee / super 分支及 kill_tags，也不把独立 Incandescent 直接爆炸自动归入相同乘区。`solar_damage_perks` 是现有 Rampage 到公共 Profile 的验收适配，不是新建一套宽泛的“全部武器增伤”规则。参见 [规则依据及未完成范围](d2-ruleset.md#武器来源-solar-的共享增伤阶段)。
+
+## Weapons 属性伤害的内容契约
+
+`weapon_stat_damage` 提供常驻修饰器，目标为 `chorus_d2:empowering_damage / weapon_stat`，使用 `attribute(self, chorus_d2:weapons_stat, 0 stat_point)`；MAX 分组与统一 stacking_key 避免重复系统来源相乘。Solar 以完整相同的 Apply 布局共享该阶段，包含命名 factor `chorus_d2:weapons_stat`。添加模块本身不自动给所有伤害出口补齐上下文。
+
+生产者必须明确 `chorus:weapon_damage` 信用，并在原攻击 Origin tags 保留恰好一种 `chorus_d2:primary_ammo`、`special_ammo`、`heavy_ammo`。资格通过 event_source_tag 读取攻击来源，不读取全局修饰器自身的 tags，也不从当前所持武器反查旧弹丸。装备来源投影和实际开火都需保留元数据；Incandescent 参考武器已接通这两条路径。只有 weapon 身份或混合 / 缺失弹药标签均不授予属性增伤。
+
+每个真实伤害出口通过 `ImpactData` 传入 `weapons_stat_target: count`：0 未分类 / 冲突、1 普通 / 精英、2 Boss / Miniboss / Champion、3 实际玩家。分类由该次 inspect_entity 的 observed.player 与 entity/type tags 产生，玩家优先；两个 PvE 组必须互斥。该数字是 D2 内容约定，不是新增引擎枚举。四个 Solar damage_snapshot 出口与三种验收武器的物理接触均已接线；其他生产者必须显式提供，不能把缺少必需命中数据当作已知零值。
+
+on_use 保留来源属性和弹药，impact 条件逐目标计算。重建带快照的 DamageCommand 时需保留 shield profile、reaction snapshot、proc policy 等全部捕获字段，不能用短构造器意外丢失它们。已存在的 DamageSnapshot.command(target, impact) 可以直接构造完整保存的攻击；本次没有改变执行器或检查点结构。数值、资料冲突与未完成项见 [Weapons 分段规则](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)。

@@ -1665,10 +1665,30 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 
 2026-10-12 重新取得的[原表 Solar D10–D12](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit#gid=1186062409&range=D12)与此前存档文本一致。D12 明确首个灼烧来源决定后续 Scorch / Ignition 的伤害信用；武器来源可受合资格武器 perk、Radiant 和 Solar Weapon Surge 影响。技能来源保留自身类型，不能因为 Origin 中有 weapon 字段就变成武器伤害。[官方近战改动说明](https://www.bungie.net/7/en/News/Article/twid_06_19_2025)也明确移除了近战增伤对 Scorch / Ignition 的缩放。原表 HTML、哈希、坐标映射和待完成范围保存在 [solar-damage-scaling.json](../data/d2-research/2026-10-12/solar-damage-scaling.json)。
 
-参考 `solar_outgoing` 在原来的 payload / bonus 与世界单位换算之间加入三个 `shared_apply`：empowering、weapon_surge、perks，均引用 `chorus_d2:empowering_damage` 的同名贡献阶段。这样复用已有 Radiant 家族优先级、元素与副本 / Armor Charge 资格，以及独立 perk 的分组；不会复制一份 Buff，也不会重复乘父 Profile 的最终结果。Rampage 验收适配仅改修饰器目的 Profile / group，保持原来的触发、作用武器和排除条件。Incandescent 自身最多 30 伤害的直接爆炸继续使用独立 Profile；本阶段接入的是它产生的 Scorch / Ignition。
+参考 `solar_outgoing` 在原来的 payload / bonus 与世界单位换算之间共享 weapon_stat、empowering、weapon_surge、perks，均引用 `chorus_d2:empowering_damage` 的同名贡献阶段。这样复用 Weapons 属性、Radiant 家族优先级、元素与副本 / Armor Charge 资格，以及独立 perk 的分组；不会复制一份 Buff，也不会重复乘父 Profile 的最终结果。Rampage 验收适配仅改修饰器目的 Profile / group，保持原来的触发、作用武器和排除条件。Incandescent 自身最多 30 伤害的直接爆炸继续使用独立 Profile；本阶段接入的是它产生的 Scorch / Ignition。
 
 Solar 的每个真实 tick 和每个点燃受击目标都已执行 inspect_entity；`radiant_champion` 从该次观察的实体 / 类型标签产生，不能借用施加者或最初灼烧对象的分类。初始应用时捕获来源侧贡献，后来的施加者、充能消费、卸装、perk 移除或 Radiant 到期不重写该代 Scorch / Ignition；新一代使用新的资格与数值。此 on_use 取样与命中时目标分类仍是明确 Chorus 政策，不能宣称原作所有换装 / 飞行 / 延迟边界已经校准。
 
 规则与双端场景覆盖三档涌动、PvE / PvP、原武器 Rampage 资格、后续施加者、勇士逐目标分类和技能来源排除。真实 Incandescent 两枪以 40+60 层触发点燃，物理 Orb 提供充能；实际 Rampage 武器击杀后，只有该武器信用的 Solar 伤害继承其增幅。来源被卸下后已有 Scorch 继续结算；未知伤害回执保留物理扣血及 lockout，不重复执行。
 
-Weapon Stat、New Gear Bonus、活动 Surge / Overcharge、全套技能增伤与异域特例仍未补齐。原来的 PvE 衰减、PvP 曲线 / 距离、世界单位转换及点燃延迟校准缺口继续保留；Incandescent 是否排除通用 Scorch 非 Boss 倍率也仍需校准。定义仍是可验收参考内容，没有完成生产装备 / 子职业装配、HUD 或物理世界存档；相关条目维持 partial。
+Weapons 属性伤害已按下一节接入；New Gear Bonus、活动 Surge / Overcharge、全套技能增伤与异域特例仍未补齐。原来的 PvE 衰减、PvP 曲线 / 距离、世界单位转换及点燃延迟校准缺口继续保留；Incandescent 是否排除通用 Scorch 非 Boss 倍率也仍需校准。定义仍是可验收参考内容，没有完成生产装备 / 子职业装配、HUD 或物理世界存档；相关条目维持 partial。
+
+### Weapons 属性的分段增伤与来源弹药
+
+[weapon_stat_damage.json](../common/src/test/resources/effects/weapon_stat_damage.json)读取施加者派生 `weapons_stat`，使用已有护甲 / Fragment / Font 汇总后 0–200 限幅的属性。设 `S` 为该值，`L=min(S,100)`，`H=max(S-100,0)`；当前参考规则使用以下独立乘数：
+
+| 实际受击者 | Primary / Special | Heavy |
+| --- | --- | --- |
+| Rank-and-File / Elite | `1 + 0.0015 L` | `1 + 0.0015 L`，有来源冲突 |
+| Boss / Miniboss / Champion | `1 + 0.0015 H` | `1 + 0.001 H` |
+| Guardian | `1 + 0.0005 H` | `1 + 0.0005 H` |
+
+两个属性区间按目标选择，不把低阶目标的乘数再乘到 Boss 上。实际玩家优先于实体等级标签，混合交战中也不由全局活动模式把玩家算成战斗人员。等级来自本次受击者的 entity/type 观察；低阶与增强两组同时出现或缺少等级时，当前内容不授予猜测的等级增伤。Champion / Miniboss 的分组参考 [Court 所在研究团队的机制解释](https://www.patreon.com/PodcastVersusEnemies/posts/episode-142-pt1-131049106)，该文是 2025-06-10 的预览说明，完整现代敌人目录仍需校准。
+
+原表 Game Mechanics C203/E203 与固定 CSV C48/E48 规范化匹配；每点斜率来自原表，Engineeeer 的当前 Armor Stat Info 表核对了 100/150/200 端点。研究表 H2 写 45 而 H31 为 6%，该列不用于推导连续公式。[9.0.0.4 官方更新](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_4)明确将玩家上限由 6% 改成 5%。低阶 Heavy 则仍有冲突：[9.0.0.1 历史更新](https://www.bungie.net/7/en/news/article/destiny_update_9_0_0_1)写 10%，当前 Compendium 与研究表泛用低阶行写 15%；参考定义跟随当前表使用 15%，但贡献置信度为 `conflict`。不能把这个选择声称为已独立实测的原作修复。[来源、哈希、端点和剩余项](../data/d2-research/2026-10-12/weapons-stat-damage.json)完整保留这些边界。
+
+伤害需明确武器信用，且原攻击来源恰有一种 primary/special/heavy 弹药标签；有武器 ID 不足以获得资格。能力、手雷、近战、超能、职业技能和偃月近战信用被排除。`weapon_stat` 是公共 Profile 中独立的 MAX 阶段，命名因子 `chorus_d2:weapons_stat` 可单独从计算中移除；它与 empowering、Weapon Surge、perks 相乘，重复提供者不会重复乘属性值。
+
+来源属性与弹药按 on_use 冻结，目标类别逐次观察。Incandescent 的装备来源与开火定义都保留 Primary 弹药元数据，首次 Scorch 应用把来源属性保存在伤害快照中；后续施加者、换装、解绑或消费 Armor Charge 不改写旧代。真实世界场景以 140 护甲属性加三份 Font 的 50 点得到 190，物理 Orb 同时启用 Font 和三档 Surge；真实 Rampage 击杀后，旧弹丸使用 `10 × 1.135 × 1.22 × 1.2 × 1.1`，消费共享充能后新一发使用 `10 × 1.06 × 1.2 × 1.1`。取样时机和混合交战策略仍是明确 Chorus 政策，不等同于原作所有特例已校准。
+
+九项规则测试包括两模式 × 八属性值 × 三弹药 × 四目标类别的 192 组矩阵、来源隔离、重复贡献、命名因子、会话 / 攻击往返及实际 Solar 代际。七项共享世界场景验证真实护甲 / 武器容器、24 次等级接触、飞行中换装、实际玩家、Font / Surge / Radiant / Rampage、两目标各自点燃的四次伤害、延迟 Scorch 与未知世界回执。Weapons 操控 / 换弹时长乘数、增强弹药砖概率、全部武器 / 异域资格、正式装配 / HUD / 物理世界恢复仍未完成；合成武器、护甲值和伤害单位不代表合法原作配装，条目保持 partial。

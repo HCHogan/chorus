@@ -1605,3 +1605,9 @@ Proximity Ward 已使用上述观察组合200 HP终结阶段护盾。身份收�
 数值 Profile 可用 `chorus:shared_apply`复用另一 Profile 同名阶段的贡献，并保留完整的本地 Apply 布局；链接时检查布局与贡献单位一致。共享阶段先汇集本地与导入贡献，再执行一次分组，不将另一个 Profile 的最终值视作独立乘区。这个机制用于独立伤害分量与通用增伤共存，例如武器来源灼烧 / 点燃复用涌动阶段，同时保留其独立基础伤害和单位转换。
 
 原事件上下文、伤害信用、来源作用域、资格条件、provider 和快照时机不变，不隐式扩大武器 / 近战增伤范围。阶段可多层共享，每个实际 modifier 只访问一次；仅拒绝无定义的循环数值别名，不限制跨事件效果循环。快照持有完整布局，on_hit 混合查询仍要求当前目标 Profile 与捕获布局兼容。具体格式与边界见 [不同 Profile 共享数值阶段](engine-data-packs.md#不同-profile-共享数值阶段)。
+
+### Weapons 属性与逐目标分段
+
+Weapons 属性作为独立命名乘区加入公共武器 Profile，并由武器来源 Solar 共享。护甲与 Font 仍通过派生属性汇总；来源点数和原弹药种类按内容的 on_use 策略捕获，目标等级由每次命中的实际观察提供。普通 / 精英使用 0–100 区间，Boss / Miniboss / Champion 与 Guardian 使用超过 100 的区间，两段不会对同一目标再次相乘。玩家分类优先于等级标签，跨组冲突或未分类目标不猜增伤。
+
+这层使用既有 attribute、Origin tags、ImpactData、shared_apply 与快照协议，没有新增 Weapons 专用 Java 状态。资料冲突继续进入贡献 confidence；通用运行时不把社区与历史官方数值差异静默变成确定事实。来源元数据、实装范围、明确的采样政策和未完成的换弹 / 操控 / 弹药砖分支见 [规则集](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)与 [内容契约](engine-data-packs.md#weapons-属性伤害的内容契约)。

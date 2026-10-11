@@ -4649,7 +4649,7 @@
           "text_sha256": "11162d9024cafb11de94fce8b9e3839bfe98f491c56fb19a15d8278bb9b77586"
         }
       ],
-      "scope": "真实玩家物品 / 开火 / 物理击杀到 4 / 8 米范围伤害、八种普通 / 强化 / Ashes 层数、共享 Scorch / 点燃与首个武器归属；未知原作数值要求显式校准；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类",
+      "scope": "真实玩家物品 / 开火 / 物理击杀到 4 / 8 米范围伤害、八种普通 / 强化 / Ashes 层数、共享 Scorch / 点燃与首个武器归属；未知原作数值要求显式校准；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
       "acceptance": [
         "同施加者同武器 weapon_kill；收枪飞行保持归属，卸掉词条或无击杀信用不触发",
         "一般目标 4 米 / 强目标与 Guardian 8 米；原表全部八种层数；敌友 / 死亡中心 / 距离筛选",
@@ -4751,6 +4751,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarDamageScalingGameTest.java",
           "symbol": "actualRampageKillOnlyScalesSolarSnapshotsCreditedToThatWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
         }
       ],
       "gaps": [
@@ -4784,7 +4794,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -4851,6 +4861,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarDamageScalingGameTest.java",
           "symbol": "actualRampageKillOnlyScalesSolarSnapshotsCreditedToThatWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
         }
       ],
       "gaps": [
@@ -4859,7 +4879,7 @@
         "共享来源缩放目录、来源特例和状态持久化 / 跨维度迁移未完成",
         "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配",
         "Incandescent 的等级倍率排除与通用非 Boss 20% 的关系未确认，需显式 scorch_nonboss_factor 校准",
-        "Radiant/Weapon Surge/合资格Rampage已接；Weapon Stat、New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
+        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
       ]
     },
     {
@@ -4885,7 +4905,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -4967,6 +4987,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarDamageScalingGameTest.java",
           "symbol": "actualRampageKillOnlyScalesSolarSnapshotsCreditedToThatWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
         }
       ],
       "gaps": [
@@ -4975,7 +5005,7 @@
         "当前 on_use 攻击冻结与实时目标分类为明确内容政策；近战倍率需继续与 Solar 专属 Profile 隔离",
         "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 已有 partial 实际武器接线",
         "阈值至爆炸延迟需要显式 Profile；0 / 1 / 2 秒验收均为合成参数。当前固定阈值位置与禁用起算点待原作校准",
-        "Radiant/Weapon Surge/合资格Rampage已接；Weapon Stat、New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
+        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
       ]
     },
     {
@@ -10038,7 +10068,7 @@
           "text_sha256": "d599fa28c87715f0ee3b502f2cb621ae7ce57d14a585fa8728bb0d810c3b7ad6"
         }
       ],
-      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时",
+      "scope": "当前1/2/3副本在共享Armor Charge存在时给予20/40/50属性，消耗完或卸装后撤回；参与同一个被动衰减计时；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
       "acceptance": [
         "通过真实拾取、当前来源装配和既有Profile/层数协议执行，不能将测试来源绑定等同于正式插槽装配。",
         "依照表中副本数与参数执行；相同持有者共享充能池和衰减时钟，独立持有者互不借用。"
@@ -10085,6 +10115,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorChargeGameTest.java",
           "symbol": "removingTheLastPassiveStopsDecayWhileNonPassiveModsKeepThePool"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "actualFontSurgeRadiantAndRampageComposeAndSpendingOnlyChangesFutureShots"
         }
       ],
       "gaps": [
@@ -10695,7 +10735,7 @@
           "text_sha256": "77bfe73e19880da5f6bf04057640b475a50d32caef4b2c8fffe9080df96d5b26"
         }
       ],
-      "scope": "六种元素按当前副本使用两种模式的涌动表，共用Armor Charge衰减；同元素高低档取最大值，与Radiant/真实Rampage独立乘算。；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类",
+      "scope": "六种元素按当前副本使用两种模式的涌动表，共用Armor Charge衰减；同元素高低档取最大值，与Radiant/真实Rampage独立乘算。；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
       "acceptance": [
         "六元素、1–3副本、两种模式共36组，并验证不同层数不改变档位、第四副本不能制造四档。",
         "真实Orb、六种装备武器、换枪、Rampage击杀、Radiant、共享计时、Kickstart消费、飞行中解绑及未知伤害回执验证。",
@@ -10753,12 +10793,145 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarDamageScalingGameTest.java",
           "symbol": "actualRampageKillOnlyScalesSolarSnapshotsCreditedToThatWeapon"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "actualFontSurgeRadiantAndRampageComposeAndSpendingOnlyChangesFutureShots"
         }
       ],
       "gaps": [
         "四档提供者目前是独立合成Buff，完整金装/神器触发与持续时间、活动Surge/Overcharge及特殊武器/超能资格未实现。",
         "on_use取样为明确Chorus政策，原作开火/命中/切换时机尚待校准；Solar Scorch/Ignition已接共享阶段，其他独立伤害Profile仍需逐项接入。",
         "正式三能量预算、总插槽/副本数、生产装配、HUD与物理世界重启未完成；非法注入组合只验证归约边界。"
+      ]
+    },
+    {
+      "id": "mechanics/weapons-stat",
+      "name": "Weapons attribute",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Game Mechanics",
+          "cell": "C48",
+          "text_sha256": "aafc7b0e9b9e48bdd9f860937e6e80ea5a9a02942e9cdc42e8135210212a89aa"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "cell": "E48",
+          "text_sha256": "94930e200fb89db3763ef4ef228f8709f46241ca052300d54f4a455a59ff227f"
+        }
+      ],
+      "scope": "真实护甲与Font汇总后按0–100/101–200区间计算武器增伤；三种弹药原始归因、实际Guardian/等级分类、来源快照与逐目标结算；共享Radiant/Surge/Rampage及Incandescent派生Solar",
+      "acceptance": [
+        "每点连续计算，汇总后0–200限幅；普通/精英与Boss/Miniboss/Champion分属不同区间，不双乘",
+        "Primary/Special增强最高15%，Heavy增强最高10%，Guardian最高5%；低阶Heavy当前采用15%并标记来源冲突",
+        "发射/首代Scorch冻结来源属性和弹药，命中时读取目标分类；重复提供者不叠乘，缺失/冲突元数据不猜资格",
+        "实际Font与Surge共享充能，真实击杀Rampage独立相乘，支出只改变新攻击；未知伤害不重放",
+        "尚需完整操控/换弹时间、增强弹药砖与原作特例验证"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_stat_damage.json"
+        },
+        {
+          "kind": "design",
+          "path": "docs/d2-ruleset.md"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "continuousStatAmmoAndRecipientMatrixUsesActualRecipientInsteadOfActivityMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "onlyTheAttackOwnersWeaponsAttributeContributes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponIdentityCannotInventCreditAndContradictoryAmmoOrAbilityTagsDoNotQualify"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "allArmorSourcesSumBeforeTheCapAndDuplicateScalingProvidersDoNotMultiply"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "sourceStatAndAmmoAreCapturedWhileEveryVictimSelectsItsOwnCurrentBracket"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "weaponsFontsShareChargeWithSurgesAndStatFactorStaysSeparateFromRadiantAndPerks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "namedStatFactorCanBeOmittedWithoutErasingOtherContributionsAndHeavyConflictIsVisible"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "sessionAndAttackRoundTripsKeepAttributeStateAndPinnedSourceValues"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WeaponStatDamageTest.java",
+          "symbol": "actualSolarGenerationKeepsInitialAmmoAndStatAfterGearChangesAndASecondApplier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "threeAmmoOriginsUsePhysicalArmorAndObservedRanksWithoutGuessingUnknownTargets"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "inFlightWeaponKeepsLaunchStatAndAmmoButReadsTheVictimsCurrentRank"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "actualFontSurgeRadiantAndRampageComposeAndSpendingOnlyChangesFutureShots"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "actualGuardianUsesItsOwnBracketEvenInPveAndWithConflictingRankTags"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "actualScorchTickKeepsInitialWeaponsStatAfterArmorAndProviderRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
+          "symbol": "unknownStatScaledImpactKeepsHealthAndAmmoWithoutReplay"
+        }
+      ],
+      "gaps": [
+        "Weapons操控/换弹时长乘数、增强弹药砖概率尚未实现；三种参考武器及护甲数值为合成输入",
+        "低阶Heavy当前15%与官方9.0.0.1历史10%冲突，已标记conflict，尚无独立原作实测；等级细分依据作者预览解释",
+        "on_use与初始Scorch采样、混合交战分类为显式内容政策，原作换装/命中/来源特例仍待校准",
+        "完整武器/异域伤害资格、正式敌人目录、New Gear/活动Surge/Overcharge、生产装配、HUD与物理世界恢复未完成"
       ]
     }
   ]

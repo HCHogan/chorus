@@ -148,6 +148,19 @@
           "type": "chorus:shared_apply",
           "profile": "chorus_d2:empowering_damage",
           "apply": {
+            "id": "weapon_stat",
+            "operation": "multiply",
+            "group": {
+              "name": "weapon_stat",
+              "reduction": "max"
+            },
+            "factor": "chorus_d2:weapons_stat"
+          }
+        },
+        {
+          "type": "chorus:shared_apply",
+          "profile": "chorus_d2:empowering_damage",
+          "apply": {
             "id": "empowering",
             "operation": "multiply",
             "group": {

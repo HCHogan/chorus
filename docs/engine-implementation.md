@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Weapons属性伤害通过1641项完整JUnit（无失败/错误/跳过，`/tmp/chorus-weapons-stat-gate.log`单元阶段）；最终双端门禁 `/tmp/chorus-weapons-stat-world-2.log` BUILD SUCCESSFUL，9分21秒：Fabric877项、NeoForge892项及两端发布jar通过，共享Chorus世界场景876项。新增9项规则测试与7项共享世界场景；10项Compendium工具测试、107条来源/报告审计、两个原始存档哈希和差异检查通过。没有新增生产Java类型、检查点字段或客户端协议，发布jar继续排除验证夹具，本轮未重复图形客户端测试。
+
+`weapon_stat_damage`以既有attribute查询实际护甲/Font汇总后的Weapons点数，在公共weapon_stat MAX阶段贡献独立命名因子，并由Solar共享。来源必须具备明确武器信用与唯一弹药类型；0–100点作用于普通/精英，超过100点按Primary/Special、Heavy或实际Guardian使用独立斜率。实际玩家优先于标签，未知/跨组冲突不猜等级。来源属性和弹药按on_use捕获，每次命中读取当前受击者；原Incandescent装备与开火元数据补充Primary弹药并延续到首次Scorch快照。
+
+纯规则的192组矩阵检查两种活动模式、八个属性边界、三种弹药与四类受击者，另验证来源隔离、200上限、重复贡献、单独移除命名因子、资料冲突置信度、会话/攻击持久化及Solar代际。实际世界通过24次等级接触、真实玩家、飞行中换装/解绑、物理Orb、三份Font的准确50点、Rampage真实击杀及共享Surge/Radiant组合；支出前的弹丸保留190点和涌动，支出后新攻击只读140点。真实Incandescent的40+60让两个目标各自点燃，两次爆炸分别按每个目标的等级结算；延迟Scorch在卸除属性后保留首次值，未知物理伤害保持扣血/扣弹且不重放。
+
+定向测试修正了夹具重建DamageCommand时丢失已捕获reaction/proc等字段，以及误把存活目标标成死亡的问题。首轮世界组合只因漏计第二个满层目标自己的点燃而失败；最终断言明确四次伤害和两个完整爆炸量后通过，没有限制合法连锁或修改引擎执行行为。
+
+原表C203/E203与固定CSV C48/E48一致，当前Engineeeer表的100/150/200端点和官方9.0.0.4玩家5%上限已核对。低阶Heavy当前15%与9.0.0.1历史10%差异保留为conflict；研究表45点标题与6%值不吻合也明确记录，未拿该列拟合斜率。新增Weapons属性partial，累计105 partial、2 not_applicable、0 verified。操控/换弹时长、增强弹药砖、全部来源资格、完整敌人目录、New Gear/活动乘区、原作采样校准与正式生产装配/HUD/物理世界恢复仍有缺口。[规则与来源](d2-ruleset.md#weapons-属性的分段增伤与来源弹药)、[内容契约](engine-data-packs.md#weapons-属性伤害的内容契约)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Solar共享增伤接线通过1632项完整JUnit（无失败/错误/跳过，`/tmp/chorus-solar-scaling-gate.log`的单元测试阶段）；最终双端门禁 `/tmp/chorus-solar-scaling-world-3.log` BUILD SUCCESSFUL，2分55秒：Fabric870项、NeoForge885项及两端发布jar通过，共享Chorus世界场景869项。新增7项Solar组合规则测试和5项共享世界场景；10项Compendium审计、106条报告一致性及原表存档哈希通过。本阶段没有新增生产Java执行器、检查点类型或客户端协议。
 
 参考Solar输出Profile共享公共empowering、weapon_surge和perks阶段，复用原来的Radiant、六元素Surge及合资格武器perk定义。四个Scorch / Ignition伤害出口根据实际受击者的已有观察传入radiant_champion。初始Scorch来源及on_use贡献保留，后续施加、充能消耗、卸装、Radiant到期不会重写该代攻击；新一代重新取样。grenade / melee / super信用即使带weapon身份，也不借用武器增伤。Incandescent的直接爆炸仍保留独立Profile。

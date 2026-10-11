@@ -21,7 +21,8 @@
       {
         "id": "test:rifle",
         "tags": [
-          "test:weapon"
+          "test:weapon",
+          "chorus_d2:primary_ammo"
         ],
         "sockets": {
           "perk": {
@@ -81,7 +82,8 @@
           "unit": "second"
         },
         "tags": [
-          "test:primary_fire"
+          "test:primary_fire",
+          "chorus_d2:primary_ammo"
         ],
         "on_fire": [
           {

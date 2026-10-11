@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effects": [
+    "Weapons attribute damage",
+    "Scorch",
+    "Ignition",
+    "Weapons Font",
+    "Weapon Surge"
+  ],
+  "sources": [
+    {
+      "kind": "original_google_sheet_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "path": "data/d2-research/2026-10-12/weapons-stat-source.html.gz",
+      "raw_sha256": "655e15a806da629f16608c4d62316ebb6b47e69565c5bbefe153f865fc536e2b",
+      "gzip_sha256": "8114a5d9526b25fdc74e94c61c8cc60b5f17cab85ce98e47435e9fcb3c159603",
+      "capture_file_mtime_utc": "2026-10-11T18:30:27.576308+00:00",
+      "coordinate_system": "original_google_sheet",
+      "cells": [
+        {
+          "cell": "C203",
+          "snapshot_cell": "C48",
+          "text_sha256": "aafc7b0e9b9e48bdd9f860937e6e80ea5a9a02942e9cdc42e8135210212a89aa",
+          "normalized_matches_snapshot": true
+        },
+        {
+          "cell": "E203",
+          "snapshot_cell": "E48",
+          "text_sha256": "94930e200fb89db3763ef4ef228f8709f46241ca052300d54f4a455a59ff227f",
+          "normalized_matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "community_research_table_capture",
+      "url": "https://docs.google.com/spreadsheets/d/1g5JSR7oa5P2DHwGDBALjQNWD5M8fwXwli_I5naAzSOQ/gviz/tq?headers=0&tqx=out:json&sheet=Armor%20Stat%20Info",
+      "path": "data/d2-research/2026-10-12/weapons-stat-engineeeer.json.gz",
+      "raw_sha256": "d2cdeeb1cf2da3b44a0a7578cef5677394e108d6b67f6c2829a7a9e4a8d56eb6",
+      "gzip_sha256": "0166b754307e51d77704afe80df625a5b70fd8125f8cccfa88e8e75ee607d784",
+      "capture_file_mtime_utc": "2026-10-11T18:31:02.775484+00:00",
+      "sheet": "Armor Stat Info",
+      "coordinate_system": "original_google_sheet_with_headers_0",
+      "checked_endpoints": {
+        "N31": {
+          "stat": 100,
+          "bonus": 0.15
+        },
+        "S31": {
+          "stat": 150,
+          "bonus": 0.15
+        },
+        "X31": {
+          "stat": 200,
+          "bonus": 0.15
+        },
+        "N33": {
+          "stat": 100,
+          "bonus": 0
+        },
+        "S33": {
+          "stat": 150,
+          "bonus": 0.075
+        },
+        "X33": {
+          "stat": 200,
+          "bonus": 0.15
+        },
+        "N34": {
+          "stat": 100,
+          "bonus": 0
+        },
+        "S34": {
+          "stat": 150,
+          "bonus": 0.05
+        },
+        "X34": {
+          "stat": 200,
+          "bonus": 0.1
+        }
+      },
+      "header_anomaly": {
+        "H2": 45.0,
+        "H31": 0.06,
+        "policy": "H2 is 45 while H31 is 0.06; do not derive the per-point formula from this mismatched column. Compendium E203 supplies the continuous slope."
+      }
+    },
+    {
+      "kind": "official_update",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_4",
+      "published_at": "2025-07-29",
+      "claim": "Weapons maximum bonus against players changed from 6 percent to 5 percent; old 6 percent values are superseded."
+    },
+    {
+      "kind": "historical_official_update",
+      "url": "https://www.bungie.net/7/en/news/article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "claim": "Introduced per-point 1-100 and enhanced 101-200 brackets; historical minor/major Heavy maximum was 10 percent, conflicting with current community tables."
+    },
+    {
+      "kind": "research_authors_preview_explanation",
+      "url": "https://www.patreon.com/PodcastVersusEnemies/posts/episode-142-pt1-131049106",
+      "published_at": "2025-06-10",
+      "claim": "Court separates Rank-and-File/Elite in the initial bracket from Champions/Minibosses/Bosses in the enhanced bracket.",
+      "limit": "Pre-release authored explanation, not an independent measurement of the current game."
+    }
+  ],
+  "formula": {
+    "stat": "S = clamp(sum armor/fragment/Font contributions, 0, 200)",
+    "low": "L=min(S,100)",
+    "enhanced": "H=max(S-100,0)",
+    "rank_and_file_or_elite": {
+      "primary_special": "1 + 0.0015 L",
+      "heavy": "1 + 0.0015 L (conflict)"
+    },
+    "boss_miniboss_champion": {
+      "primary_special": "1 + 0.0015 H",
+      "heavy": "1 + 0.001 H"
+    },
+    "guardian": "1 + 0.0005 H for each ammo kind"
+  },
+  "conflict": {
+    "branch": "heavy weapon versus Rank-and-File/Elite",
+    "historical_official_maximum": 0.1,
+    "current_compendium_and_research_table_maximum": 0.15,
+    "selected_maximum": 0.15,
+    "confidence": "conflict",
+    "policy": "Follow the supplied/current Compendium while surfacing the unresolved discrepancy in contribution confidence. No independent original-game measurement is claimed."
+  },
+  "implemented": [
+    "Separate named weapon_stat multiplicative stage in empowering_damage and shared solar_outgoing; MAX/same stacking key prevents duplicate providers multiplying the same stat bonus",
+    "Exactly one explicit primary_ammo/special_ammo/heavy_ammo origin tag and weapon damage credit; ability/grenade/melee/super/class/glaive-melee credit is excluded",
+    "Actual player takes precedence over rank tags; observed low and enhanced groups must not overlap; unclassified/conflicting targets receive no invented rank contribution",
+    "Incandescent equipment and fire origin retain primary ammo metadata into first-application Solar snapshots",
+    "Real gear and Weapons Font points feed the same derived attribute; spending Armor Charge removes future Font and Surge benefits independently"
+  ],
+  "sampling_policy": {
+    "status": "explicit_chorus_policy_not_fully_calibrated",
+    "source": "on_use freezes owner stat and attack ammunition origin; first Scorch generation owns all later ticks and ignition snapshots",
+    "recipient": "each physical contact, Scorch tick and Ignition recipient supplies current observed classification; actual Guardian is independent of activity mode",
+    "separate_scalars": "Do not apply the initial bracket again to enhanced targets; stat, empowering, weapon_surge and perks remain separate stages"
+  },
+  "remaining": [
+    "Weapons handling/reload duration scaling and enhanced ammo brick chance are not implemented by this damage bundle",
+    "Complete native weapon/ability/exotic producer metadata, enemy taxonomy and production loadout/HUD integration are incomplete",
+    "New Gear Bonus, activity Surge/Overcharge and complete weapon/enemy/difficulty scaling remain separate incomplete work",
+    "Source timing, mixed-combat behavior and all original-game special cases need calibration; only defined policy is verified locally",
+    "Synthetic weapons, armor rolls and world damage units are not claims of legal D2 gear or calibrated original-game physics",
+    "Physical-world restart and complete release-content assembly remain incomplete"
+  ]
+}
