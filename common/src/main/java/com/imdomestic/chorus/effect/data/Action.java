@@ -131,7 +131,9 @@ public interface Action {
             var applied = Buffs.grant(e.state().buffs(), request.definition(), request.target(), request.target(), request.source(), request.stacks(), request.tier(), request.duration());
             var instance = applied.store().active(key).orElseThrow();
             var result = new StatusResult(cause, true, before, instance.count(), Optional.of(new EffectState.Lifetime(key, instance.generation())), checked.decision());
-            return new RuleEngine.Local<>(e.state().withBuffs(applied.store()), result, applied.signals());
+            var signals = new java.util.ArrayList<>(applied.signals());
+            signals.add(StatusFacts.applied(e.context().operation(), request, result));
+            return new RuleEngine.Local<>(e.state().withBuffs(applied.store()), result, signals);
         }
     }
     record CapturedValue(com.imdomestic.chorus.stat.Measure value) implements RuleEngine.ActionResult {

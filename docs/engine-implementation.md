@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+状态施加事实门禁 `/tmp/chorus-status-application-gate-3.log` BUILD SUCCESSFUL，1分59秒：1506项JUnit（无失败/错误/跳过）、Fabric776项、NeoForge791项及两端发布jar通过，共享Chorus场景775项。新增9项规则测试和4项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过，发布jar包含StatusFacts且不含效果/GameTest/持久化夹具。
+
+通用apply_status现在在世界授权通过、状态提交后发出chorus:status_applied。本次actor/source来自当前授权请求，和目标共享Buff保留的最初origin分开；同一目标被其他来源再次施加、满层或截止点未变时也有独立status_id。事件带Buff身份、前后层数和可选damage_id，不补造世界历史观察。拒绝、死亡、目标缺失、纯授予、只读授权和单独续时不发此事实。规则测试还验证先前生命周期反应移除状态不会抹掉已发生的施加信用、检查点操作身份及未知结果不重放；世界测试用实际目标授权和真实HP奖励验证当前施加者。
+
+首轮新场景因测试资源清单遗漏而初始化失败，补齐两端status_application.json后四个场景通过。此前两次完整运行另出现一次Bleak Watcher盟友场景和一次Duskfield Guardian周期次数失败；后者单独运行及最终双端完整运行均通过。保留Duskfield失败时的周期数、目标位置/HP、场中心和弹体tick诊断，没有放宽断言，也没有把原因未定位的偶发失败写成已修复。Fabric verify会并发复制场景，与每维度单运行时测试宿主冲突，故不把该诊断尝试当作有效回归结果。
+
+这一步补齐Domineering所需的实际施加信用，尚未完成该Fragment的持握武器补弹、四秒触发冷却、十秒属性/前移收益及击杀裂口。Compendium审阅仍为83条，不增加完成声明。只读check_status后手动grant的复合状态不会自动获得新事实，后续按生产者逐项迁移。接口及边界见[状态施加事实](engine-data-packs.md#状态施加事实与共享状态来源)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Harvest完整门禁 `/tmp/chorus-harvest-gate.log` BUILD SUCCESSFUL，2分8秒：1497项JUnit（无失败/错误/跳过）、Fabric772项、NeoForge787项及两端发布jar通过，共享Chorus场景771项。新增12项规则测试和8项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过，两端发布jar确认不含效果/GameTest/持久化夹具。本轮只增加内容定义、验收和文档，没有新增引擎Java动作、检查点结构或客户端协议。
 
 Echo of Harvest以实际死亡的历史Weaken与位置为依据，接受非精准、非限定元素及他人施加的削弱，生成2.5%能量球并调用共享Void Breach。共享Orb模板使用现有spawn_as结果与emit发出确认回调；组合包保留临时调用上下文，只有Orb确认成功才启动十秒冷却。目标共享pending关联death_id，有限回执记录冷却/预约期间的击杀，重复来源和旧事实不会多生成。已知拒绝释放预约，未知结果保留未解决状态并停止；Breach的五秒冷却独立。

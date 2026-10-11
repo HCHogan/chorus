@@ -2878,3 +2878,14 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Harvest](d2-ruleset.md#echo-of-harvest-的削弱击杀与确认生成)示范“生成成功才冷却”的内容组合。调用者先保存带death_id的共享pending，再`invoke_bundle`一个include通用Orb模板的组合包。`pickup.spawn_as`返回世界确认结果；模板按结果`emit`成功/拒绝事件，事件保留完整调用载荷。组合包回调检查`own_source`与pending中的身份后，才提交冷却、释放预约并调用下一种拾取物。没有新增同步函数返回语法，也不把排队调用当作世界成功。
 
 原来源卸下后，已接纳临时调用仍能收到自己的回执；其他实时来源不能代为消费该回调。已知拒绝可由内容继续尝试独立收益，未知结果则遵循运行时停止规则。pending期间到来的新击杀在本内容中被记录并跳过，不能在回执返回后补发成一次新的激活；具体排队政策不应默认为所有内容的通用规则。
+
+
+### 状态施加事实与共享状态来源
+
+`apply_status`收到ALLOWED并提交Buff后，在该次Buff生命周期事实之后排队`chorus:status_applied`。actor/source来自这一次世界授权请求，victim是接受者；共享Buff仍保留原先的origin与generation。例如A压制目标后，B再次成功压制，B获得本次施加信用，目标状态的最初来源仍是A。直接监听`buff_gained`的旧来源不能表达这项区别。
+
+事实以`EffectEvent`携带Buff定义标签，numbers为`requested`、`stacks_before`、`stacks_after`（count），flags为`applied=true`和`new_instance`。references包含`status_id`、`buff_definition`、`buff_holder`、`buff_instance`、`buff_generation`，有伤害原因时另含`damage_id`。status_id由授权操作的frame/pc/invocation生成；同一Buff、同一damage_id的两次独立施加也有不同身份。检查点延续操作序号；它不承诺任意独立新会话之间的全局唯一性。
+
+授权通过、状态提交即产生一次信用，即使满层或max_remaining使层数/截止点没有增加。DENIED/DEAD/MISSING、只读`check_status`、纯`grant_buff`、直接`refresh_buff`及移除均不发此事实。采用check_status后手动grant的复合内容也不会自动发布，迁移或显式内容事实须另行决定。事件不补造实体/位置/Buff历史观察，不将先前伤害快照冒充本次授权观测。
+
+动作仍先提交状态，再执行排队反应；回调的未知世界结果不能撤销状态或重试本次施加。后续规则判断是否仍有该状态应查询当前has_buff，不能把已发生的施加事实当作永久存在保证。此接口供Domineering等“成功施加后获益”规则使用，接口验收本身不等于这些Fragment已经完成。
