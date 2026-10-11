@@ -140,6 +140,10 @@ public final class EffectCodecs {
                         enumeration(Condition.Source.class).fieldOf("source").forGetter(Condition.SourceIs::source)).apply(i, Condition.SourceIs::new)))
                 .register("chorus:own_source", Condition.OwnSource.class, MapCodec.unit(new Condition.OwnSource()))
                 .register("chorus:weapon_drawn", Condition.WeaponDrawn.class, MapCodec.unit(new Condition.WeaponDrawn()))
+                .register("chorus:weapon_aiming", Condition.WeaponAiming.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.WeaponAiming::target),
+                        Codec.BOOL.optionalFieldOf("ready", false).forGetter(Condition.WeaponAiming::ready)
+                ).apply(i, Condition.WeaponAiming::new)))
                 .register("chorus:own_shield", Condition.OwnShield.class, MapCodec.unit(new Condition.OwnShield()))
                 .register("chorus:resource_crossed", Condition.ResourceCrossed.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("resource").forGetter(Condition.ResourceCrossed::resource), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.ResourceCrossed::target),
@@ -813,11 +817,14 @@ public final class EffectCodecs {
         Codec<WeaponDefinition.Handling> weaponHandling = strict(RecordCodecBuilder.create(i -> i.group(
                 reloadTiming.fieldOf("ready").forGetter(WeaponDefinition.Handling::ready), reloadTiming.fieldOf("stow").forGetter(WeaponDefinition.Handling::stow)
         ).apply(i, WeaponDefinition.Handling::new)), Set.of("ready", "stow"));
+        Codec<WeaponDefinition.Aiming> weaponAiming = strict(RecordCodecBuilder.create(i -> i.group(
+                reloadTiming.fieldOf("enter").forGetter(WeaponDefinition.Aiming::enter), reloadTiming.fieldOf("exit").forGetter(WeaponDefinition.Aiming::exit)
+        ).apply(i, WeaponDefinition.Aiming::new)), Set.of("enter", "exit"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
                 weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire),
-                weaponHandling.optionalFieldOf("handling").forGetter(WeaponDefinition::handling)
-        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire", "handling"));
+                weaponHandling.optionalFieldOf("handling").forGetter(WeaponDefinition::handling), weaponAiming.optionalFieldOf("aiming").forGetter(WeaponDefinition::aiming)
+        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire", "handling", "aiming"));
         Codec<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGate = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::id),
                 enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),

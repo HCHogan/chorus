@@ -119,6 +119,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 var actual = switch (request.command()) {
                     case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
                     case com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command -> applyHandling(command);
+                    case com.imdomestic.chorus.effect.weapon.WeaponAim.Verify command -> verifyAim(command);
                     case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
                     default -> world.apply(request);
                 };
@@ -448,6 +449,32 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         boolean applied = eligible && PlayerEquipment.get(player).applyHandling(player, command.change(), program.equipment());
         return new com.imdomestic.chorus.effect.weapon.WeaponHandling.Applied(command, applied);
     }
+    /** An aim edge carries only intent; duration, weapon and holder come from server-owned state. */
+    public com.imdomestic.chorus.effect.weapon.WeaponAim.Receipt aim(ServerPlayer player, boolean pressed) {
+        thread(); prepare();
+        if (player.level() != level || player.isRemoved() || !player.isAlive() || player.isSpectator()) throw new IllegalArgumentException("Player cannot aim here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Aim requires a healthy idle runtime");
+        String holder = player.getUUID().toString();
+        if (!PlayerEquipment.get(player).projection(program.equipment()).equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)))
+            throw new IllegalStateException("Aim differs from physical ownership");
+        trackEquipment(player);
+        var before = view(); var resolved = program.aim(before, new com.imdomestic.chorus.effect.weapon.WeaponAim.Request(holder, java.util.UUID.randomUUID().toString(), pressed));
+        var receipt = (com.imdomestic.chorus.effect.weapon.WeaponAim.Receipt) resolved.result();
+        if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponAim.Outcome.ACCEPTED) return receipt;
+        try {
+            session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(before, resolved.state()));
+            refreshEquipment(); refreshProjections(); return receipt;
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private com.imdomestic.chorus.effect.weapon.WeaponAim.Verified verifyAim(com.imdomestic.chorus.effect.weapon.WeaponAim.Verify query) {
+        ServerPlayer player;
+        try { player = equipmentOwners.get(java.util.UUID.fromString(query.plan().holder())); }
+        catch (IllegalArgumentException invalid) { player = null; }
+        boolean allowed = player != null && !player.isRemoved() && player.level() == level && player.isAlive() && !player.isSpectator()
+                && query.plan().equals(view().aiming().get(query.plan().holder()))
+                && query.plan().matches(PlayerEquipment.get(player).projection(program.equipment()));
+        return new com.imdomestic.chorus.effect.weapon.WeaponAim.Verified(query, allowed);
+    }
     /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
     public com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt fire(ServerPlayer player) {
         thread(); prepare();
@@ -517,6 +544,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 String holder = entry.getKey().toString();
                 var before = view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY);
                 if (!before.equals(next)) equip(new com.imdomestic.chorus.effect.equipment.EquipmentChange(holder, before, next));
+                if (player.isSpectator() && view().aiming().containsKey(holder)) {
+                    var aimBefore = view(); var ended = program.cancelAim(aimBefore, holder, "spectator");
+                    session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(aimBefore, ended.state()));
+                }
                 // An empty container can acquire and lose an item within one reaction boundary (e.g. attach kills its owner).
                 // Keep live owners tracked until they leave, so the final empty projection still reconciles that boundary.
                 if (!present) equipmentOwners.remove(entry.getKey());

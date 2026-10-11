@@ -13,6 +13,16 @@ public final class WeaponCommands {
     private static final DynamicCommandExceptionType ERROR = new DynamicCommandExceptionType(value -> Component.literal(String.valueOf(value)));
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("weapon")
+                .then(Commands.literal("aim").then(Commands.argument("pressed", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(context -> {
+                    var player = context.getSource().getPlayerOrException();
+                    try {
+                        var runtime = MinecraftEffectRuntime.installed(player.level()).orElseThrow(() -> new IllegalStateException("No active Chorus runtime"));
+                        var receipt = runtime.aim(player, com.mojang.brigadier.arguments.BoolArgumentType.getBool(context, "pressed"));
+                        if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponAim.Outcome.ACCEPTED && receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponAim.Outcome.UNCHANGED)
+                            throw new IllegalArgumentException("Aim rejected: " + receipt.outcome());
+                        return 1;
+                    } catch (IllegalArgumentException | IllegalStateException invalid) { throw ERROR.create(invalid.getMessage()); }
+                })))
                 .then(Commands.literal("fire").executes(context -> {
                     var player = context.getSource().getPlayerOrException();
                     try {

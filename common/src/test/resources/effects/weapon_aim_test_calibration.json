@@ -1,0 +1,18 @@
+{
+  "enter": {
+    "value": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "second"
+    },
+    "profile": "test:aim_time"
+  },
+  "exit": {
+    "value": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "second"
+    },
+    "profile": "test:aim_time"
+  }
+}

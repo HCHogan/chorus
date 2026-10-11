@@ -31,6 +31,15 @@ public interface Condition {
         @Override public boolean test(Evaluation e) { return !value.test(e); }
     }
     enum Source { THIS_WEAPON, THIS_ABILITY, OWNER }
+    /** Held input includes entering ADS; ready requires the host-confirmed completed transition. */
+    record WeaponAiming(Evaluation.Target target, boolean ready) implements Condition {
+        public WeaponAiming { java.util.Objects.requireNonNull(target); }
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) {
+            var aim = e.state().aiming().get(e.target(target));
+            return aim != null && aim.held() && (!ready || aim.phase() == com.imdomestic.chorus.effect.weapon.WeaponAim.Phase.AIMED);
+        }
+    }
     record WeaponDrawn() implements Condition {
         @Override public void validate(Validation v) {}
         @Override public boolean test(Evaluation e) {

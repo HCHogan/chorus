@@ -40,6 +40,10 @@ final class CompiledWeapons {
                 validateTiming(handling.ready().value(), handling.ready().profiles(), validation, profiles);
                 validateTiming(handling.stow().value(), handling.stow().profiles(), validation, profiles);
             });
+            weapon.aiming().ifPresent(aim -> {
+                validateAimTiming(aim.enter(), validation, profiles);
+                validateAimTiming(aim.exit(), validation, profiles);
+            });
             weapon.reload().insert().ifPresent(insert -> {
                 validateTiming(insert.repeat().value(), insert.repeat().profiles(), validation, profiles);
                 var unit = insert.rounds().unit(validation);
@@ -53,6 +57,11 @@ final class CompiledWeapons {
                 }
             });
         }
+    }
+    private static void validateAimTiming(WeaponDefinition.Timing timing, Validation validation, Map<String, CalculationProfile> profiles) {
+        if (timing.profiles().isEmpty() && timing.value() instanceof Value.Constant c) {
+            Validation.same(c.unit(validation), Unit.SECOND); WeaponHandling.micros(new Measure(c.value(), c.unit(validation)));
+        } else validateTiming(timing.value(), timing.profiles(), validation, profiles);
     }
     private static void validateTiming(Value value, List<String> ids, Validation validation, Map<String, CalculationProfile> profiles) {
         var input = value.unit(validation);
@@ -72,6 +81,7 @@ final class CompiledWeapons {
         var applied = change.apply(state, equipment); var updated = applied.state();
         var facts = new ArrayList<>(applied.emitted());
         var handling = CompiledHandling.reconcile(updated, change.holder()); updated = handling.state(); facts.addAll(handling.emitted());
+        var aim = CompiledAiming.reconcile(updated, change.holder()); updated = aim.state(); facts.addAll(aim.emitted());
         for (var entry : change.after().slots().entrySet()) {
             var gear = entry.getValue(); var definition = definitions.get(gear.definition()); if (definition == null) continue;
             if (equipment.schema().slots().stream().noneMatch(slot -> slot.id().equals(entry.getKey()) && slot.weapon()))
@@ -152,9 +162,10 @@ final class CompiledWeapons {
         if (ammunition.read(AmmoState.Field.MISSING) == 0) return reject(state, WeaponReload.Outcome.FULL);
         if (ammunition.account().reserve().filter(reserve -> reserve.rounds() == 0).isPresent()) return reject(state, WeaponReload.Outcome.NO_RESERVES);
         var plan = plan(state, request.holder(), request.token(), weapon, 0, program);
-        var updated = state.withReload(plan).schedule(plan.timer());
-        return new RuleEngine.Local<>(updated, new WeaponReload.Receipt(WeaponReload.Outcome.ACCEPTED, Optional.of(plan)),
-                List.of(fact("chorus:reload_started", plan, "manual", Map.of())));
+        var aim = CompiledAiming.cancel(state, request.holder(), "reload_accepted");
+        var updated = aim.state().withReload(plan).schedule(plan.timer());
+        var facts = new ArrayList<>(aim.emitted()); facts.add(fact("chorus:reload_started", plan, "manual", Map.of()));
+        return new RuleEngine.Local<>(updated, new WeaponReload.Receipt(WeaponReload.Outcome.ACCEPTED, Optional.of(plan)), facts);
     }
     private EffectEvent reloadQuery(String holder,String token,Loadout.Gear weapon,int step){
         var reload = definitions.get(weapon.definition()).reload();

@@ -1,0 +1,168 @@
+{
+  "version": "test-1",
+  "profiles": [
+    {
+      "id": "test:aim_time",
+      "version": "test-1",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          },
+          "factor": "test:aim_time"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:aim_fast",
+      "modifiers": [
+        {
+          "id": "fast",
+          "profile": "test:aim_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:aim_fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:weapon"
+          },
+          "reference": "synthetic aim transition acceptance fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_denied",
+      "action_gates": [
+        {
+          "id": "aim",
+          "action": "weapon_aim"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_bonus",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "test:aim_bonus",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:weapon_aiming",
+            "target": "self",
+            "ready": true
+          },
+          "reference": "synthetic aim transition acceptance fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_target_bonus",
+      "modifiers": [
+        {
+          "id": "bonus",
+          "profile": "test:weapon_damage",
+          "stage": "perks",
+          "group": "weapon_perk",
+          "op": "multiply",
+          "stacking_key": "test:aim_target_bonus",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:weapon_aiming",
+            "target": "victim",
+            "ready": true
+          },
+          "reference": "synthetic aim transition acceptance fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:aim_observer",
+      "rules": [
+        {
+          "id": "started",
+          "on": "chorus:weapon_aim_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_started"
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus:weapon_aim_ready",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ready"
+            }
+          ]
+        },
+        {
+          "id": "released",
+          "on": "chorus:weapon_aim_released",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_released"
+            }
+          ]
+        },
+        {
+          "id": "ended",
+          "on": "chorus:weapon_aim_ended",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:aim_ended"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

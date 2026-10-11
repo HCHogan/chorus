@@ -9,7 +9,7 @@ import java.util.*;
 /** Query-only action restrictions. All matching denials apply; none implicitly undo an accepted action. */
 public final class ActionGate {
     private ActionGate() {}
-    public enum Kind { ABILITY_USE, WEAPON_FIRE, WEAPON_RELOAD, RANGED_ATTACK, MELEE_ATTACK, MOVEMENT_INPUT, JUMP, HORIZONTAL_MOTION, VERTICAL_MOTION, PROJECTILE_TRACKING }
+    public enum Kind { ABILITY_USE, WEAPON_FIRE, WEAPON_RELOAD, WEAPON_AIM, RANGED_ATTACK, MELEE_ATTACK, MOVEMENT_INPUT, JUMP, HORIZONTAL_MOTION, VERTICAL_MOTION, PROJECTILE_TRACKING }
     public enum Phase { START, CONTINUE, COMPLETE }
     public enum Subject { ACTOR, VICTIM;
         public String holder(EffectEvent event) { return this == ACTOR ? event.actor() : event.victim(); }

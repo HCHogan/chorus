@@ -1819,7 +1819,7 @@ SOURCE / BUFF Bundle 可用 `action_gates` 声明禁止条件。`if` 为真表�
 }
 ```
 
-Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / ranged_attack / melee_attack / movement_input / jump / horizontal_motion / vertical_motion / projectile_tracking`。每条声明可选 `subject: actor | victim`，默认 actor；仅在 SOURCE / BUFF 的持有者等于查询相应身份时参与。目标侧限制不会交换事件 actor / victim，也不把第三方施加者当作持有者；条件中的 self 与参数仍属于声明持有者。BUFF 须有效、未暂停并适用于本次来源武器 / 技能。subject 所指身份为空时不匹配，不遍历其他人的声明来猜目标。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
+Buff 目录通过 `bundle` 字段关联上述 Bundle。`action` 支持 `ability_use / weapon_fire / weapon_reload / weapon_aim / ranged_attack / melee_attack / movement_input / jump / horizontal_motion / vertical_motion / projectile_tracking`。每条声明可选 `subject: actor | victim`，默认 actor；仅在 SOURCE / BUFF 的持有者等于查询相应身份时参与。目标侧限制不会交换事件 actor / victim，也不把第三方施加者当作持有者；条件中的 self 与参数仍属于声明持有者。BUFF 须有效、未暂停并适用于本次来源武器 / 技能。subject 所指身份为空时不匹配，不遍历其他人的声明来猜目标。各声明独立求值，任意一项拒绝就不能执行；没有可覆盖其他拒绝的 allow 优先级。例外应写入该条禁止条件，如“禁止技能，地面上的 Super 除外”；另一条禁止技能的效果仍可拒绝该 Super。
 
 查询带 `chorus:action_gate_query` 标签，references 包含 `action` 和 `action_phase`（`start / continue / complete`），并保留对应操作的标签、字段与来源。技能在全部替换解析完成后查询，能读取最终定义标签及 `ability / base_ability / ability_slot / cast`，但此时尚未计算 `param.*`、支付能量或发布 accepted 事实。宿主技能输入提供当前原版 `on_ground / sprinting / crouching`；未观测字段不猜成 false。武器查询含 `weapon / item`；开火另有 `shot`，换弹另有 `reload / reload_step / incremental`。技能施放和原版 ranged_attack 输入带上述原版移动标志，不能假定武器查询也有。
 
@@ -2675,7 +2675,7 @@ JSON 顶层固定 `format / program / state / time_micros / next_event / next_fr
 
 格式内部的节点类型可独立升级。RecordTreeCodec.Migration 显式登记只读旧类型、目标类型与纯数据转换；旧节点先完整校验，再升级，最后验证父记录或集合的元素类型。编码拒绝旧类型，迁移图不允许环或一个旧类型有多个出口，迁移后出现重复 Map 键 / Set 成员也拒绝。`schema()` 同时冻结旧、新 wire shape；`types()` 只列当前可写类型，`retiredTypes()` 列只读输入。Java 类名不成为可由存档控制的加载入口。
 
-`chorus:effect/weapon/weapon_definition` 保留原 item / ammunition / reload / fire 四字段，通过 LegacyWeaponDefinitionV1 转为新 `weapon_definition_v2`，新增 handling 默认为空。新定义可选 `handling: {ready: {value, profile 或 profiles}, stow: {value, profile 或 profiles}}`；两个管线均须输出正秒数，沿用 Timing 的单位和 Profile 检查。PlayerEquipment.draw 已消费该配置，时序见[服务端举枪与收枪阶段](#服务端举枪与收枪阶段)。旧 `effect_state` ID 保留原十五字段，通过 LegacyEffectStateV1 迁移到带空 handling 表的 `effect_state_v2`；已有计时器、资源、Buff、弹药和编号不重建。ADS、原作曲线与 100 Handling 收枪下限仍需内容接线和校准。
+`chorus:effect/weapon/weapon_definition` 保留原 item / ammunition / reload / fire 四字段，`weapon_definition_v2` 保留带 handling 的五字段，分别通过 LegacyWeaponDefinitionV1 / V2 转为当前 `weapon_definition_v3`；缺失的 handling / aiming 只补空配置。handling 的 ready / stow 管线均须输出正秒数，PlayerEquipment.draw 已消费该配置，时序见[服务端举枪与收枪阶段](#服务端举枪与收枪阶段)。旧 `effect_state` / `effect_state_v2` 分别保留十五 / 十六字段，通过 LegacyEffectStateV1 / V2 转为当前 `effect_state_v3`，只补原先没有的 handling / aiming 表；已有计时器、资源、Buff、弹药和编号不重建。旧 `action_gate/kind` 保留原十个枚举成员，新 `kind_v2` 增加 WEAPON_AIM，旧值按同名纯数据迁移。
 
 [旧检查点夹具](../common/src/test/resources/persistence/pre-handling-reload-v1.json)由修改前的真实会话生成，包含两把已装备武器、击杀窗口及正在进行的换弹。迁移测试验证 50 ms 保存后仍在原 200 ms 截止点补弹和触发对应 Kill Clip，恢复本身不发世界动作，也不重置事件 / 帧编号。此夹具保留原字节，不用新版编码器重生成。
 
@@ -3218,3 +3218,42 @@ EffectState.handling 以 holder 为键保存当前计划，与计时器及装备
 来源和事件同时保留该阶段武器的物品标签及 `chorus:weapon_ready / chorus:weapon_stow`，限定阶段的效果可用 event_source_tag，实例资格沿用 this_weapon。当前 Surplus 和 Amplified 均复用原定义；不把属性点数存入第二套 Buff，也不把整次切枪视为一个共同快照。保存的 CalculationPipeline.Result 包含点数、秒数曲线、两个命名倍率及收枪下限，恢复和诊断不查询已改变的来源。
 
 `weapon_handling_test_calibration.json` 是把两个参考时间管线装到现有合成武器上的测试配置，不是独立可加载的规则目录；实际组合后的 WeaponDefinition 及完整目录进入严格 Codec 和检查点验收。曲线出处、下限组合推断和原作校准缺口见 [D2 操控规则](d2-ruleset.md#weaponsamplified-与-surplus-的实际操控时长)。
+
+### 服务端开镜输入与阶段
+
+武器原型可选 `aiming`，enter / exit 都是必填 Timing，支持单个 profile 或有序 profiles。下面的 0.2 / 0.1 秒为合成示例：
+
+```json
+"aiming": {
+  "enter": {"value": {"type": "chorus:constant", "value": 0.2, "unit": "second"}},
+  "exit": {"value": {"type": "chorus:constant", "value": 0.1, "unit": "second"}}
+}
+```
+
+未配置时按下返回 NOT_CONFIGURED，空手返回 EMPTY_HANDS。与 handling 的正时长约束不同，开镜允许零秒并在同一逻辑边界完成；负数、非有限数、单位不匹配或计时溢出拒绝，不提交部分状态。输入为 `MinecraftEffectRuntime.aim(player, pressed)`，普通玩家命令 `/chorus weapon aim true|false` 只操作本人；武器、时长、token 和身份均由服务端确定。尚无鼠标绑定、客户端网络回执、FOV、瞄准动画或 HUD。
+
+| 状态 | held | ready | 待完成工作 |
+| --- | --- | --- | --- |
+| 无状态 | false | false | 无 |
+| ENTERING | true | false | 到期确认当前玩家和持握武器，再进入 AIMED |
+| AIMED | true | true | 保留按下起点及已完成期限，不留阶段计时器 |
+| EXITING | false | false | 到期确认后清除状态 |
+
+相同 pressed 值是无变化请求；反向输入取消旧阶段并重新取样完整新阶段，不按动画已完成比例折算。每条已接受边沿固定 input、秒数、Pipeline 轨迹和期限；期间来源移除、属性变化不重算，下一边沿再读当前值。事件来源包含武器物品标签与 `chorus:weapon_aim_enter / chorus:weapon_aim_exit`，可用 this_weapon 和 event_source_tag 限定贡献。
+
+`chorus:weapon_aiming` 的 `target` 默认 self，`ready` 默认 false（查询 held），true 则要求 AIMED。该条件查询指定角色的状态；要限定当前贡献所属武器仍应组合 this_weapon / weapon_drawn 等现有条件。ON_USE 攻击快照捕获来源侧条件，目标侧条件仍在命中求值；离开开镜不改写已发射攻击。
+
+| 事实 | 时机 |
+| --- | --- |
+| `chorus:weapon_aim_started` | 接受按下，状态已为 ENTERING |
+| `chorus:weapon_aim_ready` | 到期且宿主、COMPLETE 门槛均通过，状态已为 AIMED |
+| `chorus:weapon_aim_released` | 接受松开，状态已为 EXITING |
+| `chorus:weapon_aim_ended` | 正常退出完成或强制取消，状态已清除 |
+
+事实携带 weapon、item、aim token、aim_phase、reason，以及秒数 duration / elapsed 和 aim_held / aim_ready 标志。elapsed 从该事实对应阶段起点计，ready 保留按下起点；ended 的两个标志总为 false，即使所携带的历史 Plan 为 AIMED。取消不伪造 released 输入。计时事实只接受当前 Plan 和准确期限，旧 token / 已取消期限不能覆盖新输入。
+
+`weapon_aim` 门槛检查按下 START 与进入完成 COMPLETE，松开不受该门槛阻止。它不隐含持续轮询，也不会自行清除已经完成的 AIMED；宿主需要立即取消时可调用显式 cancelAim，完整控制状态联动仍待内容接线。Freeze 的既有全面角色输入禁止已增加该入口，Boss 例外沿用原规则。手动换弹或不同目标切枪被接受时立即清理；满弹匣等拒绝和同目标选择不清理。效果直接补弹不隐含取消。装备实例 / 配置 / 槽位 / drawn 变化取消，无关护甲更新保留；运行时还清理死亡、离开当前世界和旁观者的状态。
+
+到期时通过 WeaponAim.Verify 查询实际玩家的同维度、存活、非旁观资格、当前 Plan 和物理容器。明确拒绝发布 ended；未知宿主结果停住会话，不重放。ready 状态提交之后的提示或反应失败保留已完成状态。运行时保存和恢复不重放阶段事实，恢复后的第一个 tick 即可核验已登记的在线容器。
+
+[pre-aim-handling-v2.json](../common/src/test/resources/persistence/pre-aim-handling-v2.json) 是扩展类型前真实会话的原始检查点，包含旧枚举、两把武器、0.5 时长来源和正在执行的 STOW。迁移补空瞄准状态并保留 100 ms 的收枪 / 250 ms 的举枪期限；外层仍为 format 1，旧 wire shape 全部冻结。[来源与哈希](../common/src/test/resources/persistence/pre-aim-handling-v2.md)。D2 ADS 曲线、连续瞄准 perk 的正式配置、原作反转 / 取消窗口及物理世界整体重启仍待校准和验收。

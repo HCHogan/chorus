@@ -603,6 +603,31 @@
           }
         },
         {
+          "id": "weapon_aim",
+          "action": "weapon_aim",
+          "if": {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:by_buff_tier",
+              "values": [
+                1,
+                1,
+                0,
+                1,
+                1,
+                1
+              ],
+              "unit": "count"
+            },
+            "op": "eq",
+            "right": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        },
+        {
           "id": "weapon_reload",
           "action": "weapon_reload",
           "if": {
