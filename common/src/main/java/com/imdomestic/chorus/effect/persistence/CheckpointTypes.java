@@ -17,6 +17,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/finisher/finisher/outcome", com.imdomestic.chorus.effect.finisher.Finisher.Outcome.class);
         types.put("chorus:effect/finisher/finisher/result", com.imdomestic.chorus.effect.finisher.Finisher.Result.class);
         types.put("chorus:effect/data/finisher_actions/begin", com.imdomestic.chorus.effect.data.FinisherActions.Begin.class);
+        types.put("chorus:effect/data/finisher_actions/observe", com.imdomestic.chorus.effect.data.FinisherActions.Observe.class);
+        types.put("chorus:effect/finisher/finisher/observation", com.imdomestic.chorus.effect.finisher.Finisher.Observation.class);
 
         types.put("chorus:effect/bundle_invocation", com.imdomestic.chorus.effect.BundleInvocation.class);
         types.put("chorus:effect/effect_clock/resource_changed", com.imdomestic.chorus.effect.EffectClock.ResourceChanged.class);

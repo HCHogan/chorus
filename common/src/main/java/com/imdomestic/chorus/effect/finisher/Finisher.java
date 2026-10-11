@@ -50,6 +50,22 @@ public final class Finisher {
         }
     }
     public enum Outcome { ACCEPTED, BUSY, REJECTED }
+    /** Pure actor-side observation; absence is distinct from an execution with zero remaining time. */
+    public record Observation(String actor, long at, Optional<Plan> plan) implements RuleEngine.ActionResult {
+        public Observation {
+            identity(actor); Objects.requireNonNull(plan);
+            if (at < 0 || plan.filter(p -> !p.event().actor().equals(actor) || at < p.startedAt() || at >= p.dueAt()).isPresent())
+                throw new IllegalArgumentException("Invalid finisher observation");
+        }
+        public Plan active() { return plan.orElseThrow(() -> new IllegalArgumentException("No active finisher")); }
+    }
+    public static Observation observe(EffectState state, String actor, Optional<String> identity) {
+        long now = state.buffs().timeMicros();
+        var found = state.timers().values().stream().map(t -> t.signal().payload()).filter(Plan.class::isInstance).map(Plan.class::cast)
+                .filter(p -> p.event().actor().equals(actor) && identity.map(p.id()::equals).orElse(true)
+                        && p.startedAt() <= now && now < p.dueAt() && p.active(state)).findFirst();
+        return new Observation(actor, now, found);
+    }
     public record Result(Outcome outcome, Optional<Checked> check, Optional<Plan> plan) implements RuleEngine.ActionResult {
         public Result {
             Objects.requireNonNull(outcome); Objects.requireNonNull(check); Objects.requireNonNull(plan);

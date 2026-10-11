@@ -306,6 +306,9 @@ public final class EffectCodecs {
                 .register("chorus:cancel_finisher", FinisherActions.Cancel.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("participant", Evaluation.Target.SELF).forGetter(FinisherActions.Cancel::participant),
                         ID.fieldOf("reason").forGetter(FinisherActions.Cancel::reason)).apply(i, FinisherActions.Cancel::new)))
+                .register("chorus:observe_finisher", FinisherActions.Observe.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("actor", Evaluation.Target.SELF).forGetter(FinisherActions.Observe::actor),
+                        Codec.BOOL.optionalFieldOf("match_event", false).forGetter(FinisherActions.Observe::matchEvent)).apply(i, FinisherActions.Observe::new)))
                 .register("chorus:begin_finisher", FinisherActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.fieldOf("target").forGetter(FinisherActions.Begin::target),
                         ID.fieldOf("actor_buff").forGetter(FinisherActions.Begin::actorBuff), ID.fieldOf("target_buff").forGetter(FinisherActions.Begin::targetBuff),

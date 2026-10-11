@@ -1,4 +1,6 @@
 {
+  "chorus:effect/finisher/finisher/observation": ["actor:java.lang.String", "at:long", "plan:java.util.Optional<com.imdomestic.chorus.effect.finisher.Finisher$Plan>"],
+  "chorus:effect/data/finisher_actions/observe": ["actor:com.imdomestic.chorus.effect.data.Evaluation$Target", "matchEvent:boolean"],
   "chorus:effect/data/finisher_actions/cancel": ["participant:com.imdomestic.chorus.effect.data.Evaluation$Target", "reason:java.lang.String"],
   "chorus:effect/data/finisher_actions/begin": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "actorBuff:java.lang.String", "targetBuff:java.lang.String", "duration:com.imdomestic.chorus.effect.data.Value", "policy:com.imdomestic.chorus.effect.finisher.Finisher$Policy", "damage:com.imdomestic.chorus.effect.data.Value", "damageType:java.lang.String", "tags:java.util.Set<java.lang.String>", "damageProfile:java.util.Optional<java.lang.String>", "origin:com.imdomestic.chorus.effect.data.ActionOrigin"],
   "chorus:effect/finisher/finisher/check": ["actor:java.lang.String", "target:java.lang.String", "policy:com.imdomestic.chorus.effect.finisher.Finisher$Policy", "starting:boolean"],

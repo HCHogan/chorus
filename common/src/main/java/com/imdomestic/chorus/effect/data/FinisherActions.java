@@ -15,6 +15,22 @@ public final class FinisherActions {
             "accepted", r -> ((Finisher.Result) r).outcome() == Finisher.Outcome.ACCEPTED,
             "busy", r -> ((Finisher.Result) r).outcome() == Finisher.Outcome.BUSY,
             "rejected", r -> ((Finisher.Result) r).outcome() == Finisher.Outcome.REJECTED));
+    public static final ResultShape OBSERVATION = new ResultShape(Map.of(
+            "remaining", new ResultShape.Field(Unit.SECOND, r -> { var o=(Finisher.Observation)r; return (o.active().dueAt()-o.at())/1_000_000.0; }),
+            "elapsed", new ResultShape.Field(Unit.SECOND, r -> { var o=(Finisher.Observation)r; return (o.at()-o.active().startedAt())/1_000_000.0; }),
+            "duration", new ResultShape.Field(Unit.SECOND, r -> { var p=((Finisher.Observation)r).active(); return (p.dueAt()-p.startedAt())/1_000_000.0; })),
+            Map.of("active", r -> ((Finisher.Observation)r).plan().isPresent()));
+    public record Observe(Evaluation.Target actor, boolean matchEvent) implements Action {
+        public Observe { Objects.requireNonNull(actor); }
+        @Override public ResultShape validate(Validation v) { v.target(actor); return OBSERVATION; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            String holder=e.target(actor);
+            var identity=EffectTimers.event(e.context().event().signal().payload()).map(event -> event.references().get("finisher_id")).filter(id -> !id.isBlank());
+            var observed=matchEvent && identity.isEmpty() ? new Finisher.Observation(holder,e.state().buffs().timeMicros(),Optional.empty())
+                    : Finisher.observe(e.state(),holder,matchEvent ? identity : Optional.empty());
+            return new RuleEngine.Local<>(e.state(),observed,List.of());
+        }
+    }
     public record Begin(Evaluation.Target target, String actorBuff, String targetBuff, Value duration,
             Finisher.Policy policy, Value damage, String damageType, Set<String> tags, Optional<String> damageProfile,
             ActionOrigin origin) implements Action {

@@ -3037,3 +3037,22 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 `armor_finisher_receipts` 是目标共享 Buff，记录包括“没钱”“已满”和模式冲突在内的已处理完成事实。来源移除不清掉它；同一身份在窗口内不能通过换装、重新获得资源或受伤再次获益。detach 延迟清理按身份执行，新 finisher_id 正常参与后续效果循环。来源移除也不收回已授予的共享护盾或资源。
 
 实际充能来源和当前模组选择都在完成时读取，能量通过选中的基础槽回充目的账户，允许该账户的既有收益 Profile 修饰。满资源、多充能和 Bulwark 刷新政策及原作未定标边界见 [D2 规则集](d2-ruleset.md#消费-armor-charge-的终结技模组)。
+
+### 只读观察当前终结阶段
+
+```json
+{
+  "action": {
+    "type": "chorus:observe_finisher",
+    "actor": "self",
+    "match_event": true
+  },
+  "as": "phase"
+}
+```
+
+`observe_finisher` 查询 actor 当前拥有的有效终结计划；两个参与者占用 Buff 的 generation 必须仍有效，逻辑时间必须在接受与计划截止点之间。目标受害者的“被终结占用”不算自己正在执行终结。`actor` 默认 self；`match_event` 默认 false，设为 true 时还要求当前事件的 `finisher_id` 与计划相同，缺失或空身份返回 inactive。
+
+结果提供 `active` 标志，以及以 second 为单位的 `remaining`、`elapsed` 和 `duration`。先判断 active，再读取数值；不存在计划时不伪造零时长。它不发世界请求、不修改状态、不产生事件，得到的回执也不会随后续时间或新计划变化。该回执只证明会话中的计划与占用，不能代替世界存活、距离或视线检查；这些仍由终结 watchdog 检查。查询的是当前可继续的阶段，完成/取消事件里的历史身份不等于仍在执行；到达截止点后即使世界结果未知，也不能用旧开始事件重新取得完整时长。
+
+持久化新增 `FinisherActions.Observe` 与 `Finisher.Observation` 两个类型，不改变已有 Plan、EffectState 或字段结构。观察回执可随等待中的动作帧保存，当前有效计划仍使用原有两侧占用与 detached watchdog 协议。
