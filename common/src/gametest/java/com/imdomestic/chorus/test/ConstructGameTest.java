@@ -23,16 +23,43 @@ public class ConstructGameTest {
         final GameTestHelper h; final LivingEntity owner; final EffectSource source;
         final MinecraftWorldActions world; final MinecraftEffectRuntime runtime;
         final List<WorldConstruct.Receipt> receipts = new ArrayList<>(); final List<Action.CueCommand> cues = new ArrayList<>();
-        WorldPosition point; boolean fail;
-        Harness(GameTestHelper h) {
+        WorldPosition point; boolean fail, eraseThrows; EffectConstruct erase;
+        Harness(GameTestHelper h) { this(h, false); }
+        Harness(GameTestHelper h, boolean observeEnds) {
             this.h = h; owner = h.spawnWithNoFreeWill(EntityTypes.COW, 1, 40, 1); owner.setNoGravity(true);
             String id = owner.getUUID().toString(); source = new EffectSource("source", "test:construct", id, new BuffInstance.Origin(id, "cast", "", "test:ability"), Set.of());
             var pos = h.absoluteVec(new Vec3(3.5, 40, 3.5)); point = new WorldPosition(h.getLevel().dimension().identifier().toString(), pos.x, pos.y, pos.z);
             world = new MinecraftWorldActions(h.getLevel(), ref -> h.getLevel().getEntity(UUID.fromString(ref)) instanceof LivingEntity e ? e : null,
                     _ -> h.getLevel().damageSources().generic(), (_, _) -> true, cues::add);
-            runtime = MinecraftEffectRuntime.install(h.getLevel(), program(), EffectState.empty().withSource(source), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
+            var definition = ThreadedSpikeGameTest.json("construct");
+            if (observeEnds) {
+                var rules = definition.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("rules");
+                var extra = com.google.gson.JsonParser.parseString("""
+                    [
+                      {"id":"observe_end","on":"chorus:construct_ended","if":{"type":"chorus:source_is","source":"owner"},"do":[
+                        {"action":{"type":"chorus:read_event_position","target":"victim"},"as":"last_position"},
+                        {"type":"chorus:play_cue","cue":"test:construct_ended","target":"victim"}
+                      ]},
+                      {"id":"observe_kill","on":"chorus:kill","if":{"type":"chorus:source_is","source":"owner"},"do":[
+                        {"type":"chorus:play_cue","cue":"test:kill","target":"victim"}
+                      ]},
+                      {"id":"erase","on":"test:erase","if":{"type":"chorus:source_is","source":"owner"},"do":[
+                        {"type":"chorus:play_cue","cue":"test:erase"},
+                        {"type":"chorus:play_cue","cue":"test:after_erase"}
+                      ]}
+                    ]
+                    """).getAsJsonArray();
+                extra.forEach(rules::add);
+            }
+            var compiled = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, definition).getOrThrow();
+            runtime = MinecraftEffectRuntime.install(h.getLevel(), compiled, EffectState.empty().withSource(source), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 if (request.command() instanceof PositionQuery q) return new PositionQuery.Result(q, Optional.of(point));
                 var result = world.apply(request);
+                if (request.command() instanceof Action.CueCommand cue && cue.cue().equals("test:erase")) {
+                    erase.discard(); if (eraseThrows) throw new IllegalStateException("Unknown removal outcome");
+                }
+                if (request.command() instanceof Action.CueCommand cue && cue.cue().equals("test:after_erase"))
+                    h.assertTrue(behavior(erase), "construct fact recursively entered the parent action frame");
                 if (result instanceof WorldConstruct.Receipt receipt) { receipts.add(receipt); if (fail) throw new IllegalStateException("Unknown construct spawn outcome"); }
                 return result;
             }, MinecraftEffectRuntime::nativeSource);

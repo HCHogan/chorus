@@ -34,6 +34,7 @@ final class MinecraftConstructExecutor {
             entity.initialize(command, runtime);
             if (!level.noCollision(entity, entity.getBoundingBox())) return reject(entity, command, OBSTRUCTED);
             if (!level.addFreshEntity(entity) || entity.isRemoved()) return reject(entity, command, REJECTED);
+            entity.admitted();
             return new WorldConstruct.Receipt(command, SPAWNED, Optional.of(entity.getUUID().toString()));
         } catch (RuntimeException error) { entity.discard(); throw error; }
     }

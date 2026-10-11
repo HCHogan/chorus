@@ -1,14 +1,32 @@
 package com.imdomestic.chorus.effect.object;
 
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.EffectEvent;
 import com.imdomestic.chorus.effect.target.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.Numbers;
+import com.imdomestic.chorus.stat.Measure;
+import com.imdomestic.chorus.stat.Unit;
 import java.util.*;
 
 /** A damageable entity with its own identity, physical dimensions and finite lifetime. */
 public final class WorldConstruct {
     private WorldConstruct() {}
+    public static final String ENDED = "chorus:construct_ended";
+    public enum End { DESTROYED, EXPIRED, REMOVED }
+    /** A host-confirmed disappearance, not damage, a kill, a refund or an implicit state deletion. */
+    public static RuleEngine.Signal ended(Spawn spawn, String entity, End end, String reason, long ageMicros) {
+        Objects.requireNonNull(spawn); Objects.requireNonNull(end);
+        if (entity == null || entity.isBlank() || reason == null || reason.isBlank() || ageMicros < 0
+                || spawn.position().isEmpty() || end == End.EXPIRED && ageMicros < spawn.parameters().lifetimeMicros())
+            throw new IllegalArgumentException("Invalid construct end evidence");
+        var tags = new HashSet<>(spawn.tags()); tags.add("chorus:construct"); tags.add(spawn.kind());
+        var event = new EffectEvent(spawn.origin().owner(), entity, spawn.origin(), tags,
+                Map.of("age", new Measure(ageMicros / 1_000_000d, Unit.SECOND)),
+                Map.of("destroyed", end == End.DESTROYED, "expired", end == End.EXPIRED, "removed", end == End.REMOVED),
+                Map.of("construct", entity, "construct_kind", spawn.kind(), "reason", reason));
+        return new RuleEngine.Signal(ENDED, event);
+    }
     public record Parameters(double health, double width, double height, long lifetimeMicros) {
         public Parameters {
             positive(health, "construct health"); positive(width, "construct width"); positive(height, "construct height");

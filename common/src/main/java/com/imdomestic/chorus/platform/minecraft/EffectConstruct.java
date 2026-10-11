@@ -1,6 +1,9 @@
 package com.imdomestic.chorus.platform.minecraft;
 
 import com.imdomestic.chorus.effect.object.WorldConstruct;
+import com.imdomestic.chorus.effect.EffectEvent;
+import com.imdomestic.chorus.effect.target.*;
+import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import net.minecraft.network.syncher.*;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +20,9 @@ public final class EffectConstruct extends Mob implements ItemSupplier {
     private static final EntityDataAccessor<Float> HEIGHT = SynchedEntityData.defineId(EffectConstruct.class, EntityDataSerializers.FLOAT);
     private WorldConstruct.Spawn spawn;
     private MinecraftEffectRuntime runtime;
-    private long expiresAt;
+    private long createdAt, expiresAt;
+    private boolean admitted;
+    private Optional<RuleEngine.Signal> ended = Optional.empty();
 
     public EffectConstruct(EntityType<? extends EffectConstruct> type, Level level) {
         super(type, level); setNoAi(true); setNoGravity(true); setPersistenceRequired();
@@ -38,7 +43,8 @@ public final class EffectConstruct extends Mob implements ItemSupplier {
     void initialize(WorldConstruct.Spawn command, MinecraftEffectRuntime owner) {
         if (spawn != null || level().isClientSide()) throw new IllegalStateException("Construct is already initialized or not authoritative");
         spawn = Objects.requireNonNull(command); runtime = Objects.requireNonNull(owner);
-        expiresAt = Math.addExact(runtime.state().engine().timeMicros(), spawn.parameters().lifetimeMicros());
+        createdAt = runtime.state().engine().timeMicros();
+        expiresAt = Math.addExact(createdAt, spawn.parameters().lifetimeMicros());
         var p = command.parameters(); var at = command.position().orElseThrow();
         setPos(at.x(), at.y(), at.z());
         entityData.set(WIDTH, (float) p.width()); entityData.set(HEIGHT, (float) p.height());
@@ -48,6 +54,29 @@ public final class EffectConstruct extends Mob implements ItemSupplier {
         setPos(at.x(), at.y(), at.z());
     }
     public Optional<WorldConstruct.Spawn> construct() { return Optional.ofNullable(spawn); }
+    void admitted() {
+        if (spawn == null || admitted || isRemoved()) throw new IllegalStateException("Construct was not successfully added");
+        admitted = true;
+    }
+    public Optional<RuleEngine.Signal> ended() { return ended; }
+    /** Entity.setRemoved also calls this hook for chunk unload, which bypasses Entity.remove. */
+    @Override public void onRemoval(RemovalReason reason) {
+        super.onRemoval(reason);
+        if (!admitted || ended.isPresent() || !(level() instanceof ServerLevel server)) return;
+        long now = runtime.nowMicros();
+        var cause = reason == RemovalReason.KILLED || getHealth() <= 0 ? WorldConstruct.End.DESTROYED
+                : now >= expiresAt ? WorldConstruct.End.EXPIRED : WorldConstruct.End.REMOVED;
+        var signal = WorldConstruct.ended(spawn, getUUID().toString(), cause, reason.name().toLowerCase(Locale.ROOT), Math.subtractExact(now, createdAt));
+        var positions = new HashMap<PositionQuery, Optional<WorldPosition>>();
+        for (var anchor : TargetQuery.Anchor.values()) {
+            var point = switch (anchor) { case FEET -> position(); case BODY -> getBoundingBox().getCenter(); case EYES -> getEyePosition(); };
+            positions.put(new PositionQuery(getUUID().toString(), anchor), Optional.of(new WorldPosition(server.dimension().identifier().toString(), point.x, point.y, point.z)));
+        }
+        // The removed entity is unavailable now, but its last positions remain historical evidence.
+        var observation = new EntityObservation(now, Map.of(getUUID().toString(), Optional.empty()), positions);
+        ended = Optional.of(new RuleEngine.Signal(signal.type(), ((EffectEvent) signal.payload()).withObservedEntities(Optional.of(observation))));
+        runtime.constructEnded(ended.orElseThrow());
+    }
     boolean ownedBy(MinecraftEffectRuntime candidate) { return runtime == candidate; }
     private boolean active() {
         return runtime != null && level() instanceof ServerLevel server && MinecraftEffectRuntime.installed(server).orElse(null) == runtime

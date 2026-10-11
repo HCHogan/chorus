@@ -65,6 +65,42 @@ class ConstructTest {
             h.spawn(150, .5); h.until(500_000); assertTrue(h.cues.isEmpty()); assertTrue(h.state().timers().isEmpty()); assertTrue(h.alive.isEmpty());
         }
     }
+    @Test void endFactsCancelOnlyTheRemovedConstructWithoutPollingOrErasingCasterState() throws Exception {
+        var h = new Harness(); h.spawn(150, 10); h.spawn(100, 10);
+        h.send(SourceChange.remove("source"));
+        var signal = WorldConstruct.ended(h.spawns.getFirst(), "construct-1", WorldConstruct.End.REMOVED, "unloaded_to_chunk", 0);
+        h.send(signal);
+        assertTrue(h.state().buffs().instances().values().stream().noneMatch(b -> b.key().holder().equals("construct-1")));
+        assertTrue(h.state().buffs().instances().values().stream().anyMatch(b -> b.key().holder().equals("construct-2")));
+        assertTrue(h.state().buffs().instances().values().stream().anyMatch(b -> b.key().holder().equals("owner")));
+        assertEquals(1, h.state().timers().size()); assertTrue(h.cues.isEmpty());
+        h.send(signal); assertEquals(1, h.state().timers().size());
+        // The test's observation still says alive: cleanup came from the explicit fact, not a later query.
+        assertEquals(true, h.alive.get("construct-1"));
+        h.until(100_000); assertEquals(1, h.cues.size());
+    }
+    @Test void endEvidenceKeepsOriginIdentityAgeAndExclusiveCauses() throws Exception {
+        var h = new Harness(); h.spawn(150, .5); var spawn = h.spawns.getFirst();
+        for (var end : WorldConstruct.End.values()) {
+            var signal = WorldConstruct.ended(spawn, "construct-1", end, "host_reason", 500_000);
+            assertEquals("chorus:construct_ended", signal.type()); var event = (EffectEvent) signal.payload();
+            assertEquals("owner", event.actor()); assertEquals("construct-1", event.victim()); assertEquals(ORIGIN, event.source());
+            assertEquals(new Measure(.5, Unit.SECOND), event.numbers().get("age"));
+            assertEquals(Map.of("construct", "construct-1", "construct_kind", "test:turret", "reason", "host_reason"), event.references());
+            assertTrue(event.tags().containsAll(Set.of("chorus:construct", "test:turret", "test:damageable")));
+            assertEquals(1, event.flags().values().stream().filter(Boolean::booleanValue).count());
+            assertEquals(true, event.flags().get(end.name().toLowerCase(Locale.ROOT)));
+        }
+    }
+    @Test void impossibleEndEvidenceIsRejected() throws Exception {
+        var h = new Harness(); h.spawn(1, 1); var spawn = h.spawns.getFirst();
+        assertThrows(IllegalArgumentException.class, () -> WorldConstruct.ended(spawn, "", WorldConstruct.End.REMOVED, "discarded", 0));
+        assertThrows(IllegalArgumentException.class, () -> WorldConstruct.ended(spawn, "construct-1", WorldConstruct.End.REMOVED, "", 0));
+        assertThrows(IllegalArgumentException.class, () -> WorldConstruct.ended(spawn, "construct-1", WorldConstruct.End.REMOVED, "discarded", -1));
+        assertThrows(IllegalArgumentException.class, () -> WorldConstruct.ended(spawn, "construct-1", WorldConstruct.End.EXPIRED, "discarded", 999_999));
+        var missing = new WorldConstruct.Spawn(Optional.empty(), spawn.kind(), spawn.origin(), spawn.parameters(), spawn.tags(), spawn.version());
+        assertThrows(IllegalArgumentException.class, () -> WorldConstruct.ended(missing, "construct-1", WorldConstruct.End.REMOVED, "discarded", 0));
+    }
     @Test void unknownAndMismatchedOutcomesKeepPriorCommitAndNeverRespawn() throws Exception {
         for (boolean mismatch : List.of(false, true)) {
             var h = new Harness(); h.mismatch = mismatch; h.fail = !mismatch;

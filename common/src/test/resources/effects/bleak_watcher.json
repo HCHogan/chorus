@@ -1203,6 +1203,21 @@
               "buff": "chorus_d2:bleak_watcher_behavior"
             }
           ]
+        },
+        {
+          "id": "construct_ended",
+          "on": "chorus:construct_ended",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:bleak_watcher_behavior"
+            }
+          ]
         }
       ]
     },

@@ -43,6 +43,28 @@ public class CheckpointBoundaryGameTest {
     private static final SavedDataType<Probe> PROBE = new SavedDataType<>(Identifier.parse("chorus_gametest:checkpoint_boundary_probe"), Probe::new, CODEC, DataFixTypes.SAVED_DATA_COMMAND_STORAGE);
 
     @GameCase(environment = ENVIRONMENT)
+    public void pendingConstructRemovalInvalidatesPinnedArchiveBeforeAnyRulesExecute(GameTestHelper h) {
+        try (var runtime = EffectPrograms.install(h.getLevel(), PROGRAM, EffectState.Mode.PVE)) {
+            var p = h.absoluteVec(new net.minecraft.world.phys.Vec3(3.5, 40, 3.5));
+            var point = new com.imdomestic.chorus.effect.target.WorldPosition(h.getLevel().dimension().identifier().toString(), p.x, p.y, p.z);
+            var command = new com.imdomestic.chorus.effect.object.WorldConstruct.Spawn(Optional.of(point), "test:boundary_construct",
+                    new BuffInstance.Origin("owner", "source", "", ""), new com.imdomestic.chorus.effect.object.WorldConstruct.Parameters(10, .5, .5, 10_000_000),
+                    Set.of(), runtime.program().program().version());
+            var world = new MinecraftWorldActions(h.getLevel(), _ -> null, _ -> h.getLevel().damageSources().generic(), (_, _) -> true, _ -> {});
+            var spawned = (com.imdomestic.chorus.effect.object.WorldConstruct.Receipt) world.apply(new RuleEngine.WorldRequest(new RuleEngine.OperationId(99, 0, 0), command));
+            var entity = h.getLevel().getEntity(UUID.fromString(spawned.entity().orElseThrow()));
+            var before = runtime.state();
+            try (var boundary = MinecraftCheckpointBoundary.open(h.getLevel().getServer())) {
+                entity.discard(); h.assertValueEqual(runtime.state(), before, "removal callback ran rules inside pinned boundary");
+                refused(h, boundary::requireUnchanged); refused(h, boundary::archive);
+                h.assertTrue(!boundary.issues().isEmpty(), "pending committed world fact did not invalidate archive");
+            }
+            runtime.prepare(); runtime.checkpoint();
+            h.assertTrue(runtime.failure().isEmpty(), "releasing boundary did not allow normal pending fact processing");
+        } h.succeed();
+    }
+
+    @GameCase(environment = ENVIRONMENT)
     public void capturesAllDefaultRuntimesAndSavesRealNativeFilesWithoutReplayingRules(GameTestHelper h) throws Exception {
         var server = h.getLevel().getServer(); var nether = server.getLevel(Level.NETHER);
         var player = NativeMeleeGameTest.player(h); player.setHealth(3); String holder = player.getUUID().toString();

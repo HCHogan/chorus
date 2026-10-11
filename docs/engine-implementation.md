@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+构造物结束事实的完整门禁 `/tmp/chorus-construct-ended-gate-2.log` BUILD SUCCESSFUL，1 分 33 秒：1311 项 JUnit（无失败 / 错误 / 跳过）、Fabric 669 项、NeoForge 684 项及两端发布 jar 通过，共享场景为668项。10 项 Compendium 审计、76条报告一致性和差异检查通过。发布包包含 WorldConstruct.End 与实体宿主，不含效果 / 存储 / GameTest 夹具。本阶段没有客户端协议或图形表现变更，未新增图形客户端验收。首轮修正了 Fabric 测试转发方法的编译错误，随后完整回归通过。
+
+`chorus:construct_ended` 已由成功加入世界的构造物第一次原版 onRemoval 产生；覆盖 remove 和区块卸载所用的 setRemoved，分别标明 destroyed / expired / removed、原版原因、年龄、原施放者信用和最后位置。回调只记录事实；世界动作中的结束事实随成功回执处理，父 Frame 先完成，未知结果不重放。直接移除可在下一宿主边界取消对应行为 Buff / 定时器，不按 UUID 删除其他实体保留的来源和攻击信用，也不再发送一次 kill。通用构造物示例和 Bleak Watcher 的行为均已接入。
+
+新增3项纯测试检查结束证据、输入校验及无轮询的独立行为清理；5项共享 ConstructLifecycleGameTest 验证真实直接移除、setRemoved 卸载入口、自然到期、原版死亡不重复击杀、不可用实体的历史位置、重复移除、父 Frame 顺序、未知结果与关闭静默。第8项 CheckpointBoundaryGameTest 验证规则状态尚未改变时，新出现的未消费结束事实仍使已固定归档失败。显式 checkpoint 会先结算这些事实，正常关闭不补发游戏奖励。
+
+保存时仍然存活的 noSave 实体，及其恢复后的持续规则 / 聚合组 / 引用处置尚未完成；这一步没有把普通结束通知当作整个短命对象持久化方案。运行时故障、关闭 / 替换与正常停服固定阶段不执行结束奖励，仍活动的外发投射物不因行为 Buff 移除而被误删。Compendium 仍为76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[构造物生命周期协议](engine-data-packs.md#可受伤构造物)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 自动停服保存与启动恢复的最终门禁 `/tmp/chorus-checkpoint-lifecycle-final-gate.log` BUILD SUCCESSFUL，1 分 35 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 663 项、NeoForge 678 项及两端发布 jar 通过，共享场景为662项。10 项 Compendium 审计和76条报告一致性通过。发布包包含生命周期类与两项必需 Mixin，不含效果 / 存储 / GameTest 夹具或测试专用 Mixin。本阶段没有客户端协议 / 输入行为变更，也没有新增图形客户端验收。
 
 `MinecraftCheckpointLifecycle` 在原版世界锁内接入启动和正常停服：启动先将旧提交标成 RUNNING，预检目录 / 维度 / 世界时钟，并在每个 ServerLevel 构造结束时恢复规则；停服先固定规则并写 PREPARED，等待实际玩家 / level.dat 写入、全部区域最后 flush / close、SavedData 批次 / close 与规则复核，再在世界锁释放之前提交。断线可清理非持久输入句柄，加载器 unload / stopped 的运行时清理延后到规则边界释放。写入或关闭错误保留失败状态，继续原版清理。
@@ -13,8 +23,6 @@
 `tools/checkpoint_restart.py` 的双端八进程验收通过，报告为 `build/checkpoint-restart/20261011T083001Z-91914971/report.json`。正常场景保留两个维度的运行时，通过实际 PrepareSpawnTask / 玩家 NBT 登录验证29 / 30生命、独立物品容器、已消耗技能能量和无初始化重放；异常场景制造真实玩家备份替换障碍，核对 PREPARED 诊断、下次进程因未完成保存而拒绝启动，以及检查点字节完全保留。测试使用唯一目录，专用 Mixin 只在 opt-in 重启验收时纠正 GameTest 默认删除世界 / 新建 level.dat 的行为，不随发布包提供。
 
 当前支持正常关闭后的匹配恢复。运行中的 autosave 不生成可恢复规则检查点，崩溃留下的 RUNNING / PREPARED 不自动重放或清空；不补算离线时长。短命实体遗留规则 / 引用、崩溃对账、规则 / 格式迁移，以及任意模组的存储和生命周期兼容仍未完成；统计 / 进度旁文件不在保存证明范围。Compendium 仍为76条审阅、63 partial、11 unimplemented、2 not_applicable、0 verified。[生命周期协议与验收](engine-data-packs.md#自动停服保存与启动恢复)。
-
-以下为此前阶段的证据及其当时的未完成范围。
 
 保存期间规则边界的最终门禁 `/tmp/chorus-checkpoint-boundary-final-gate.log` BUILD SUCCESSFUL，1 分 22 秒：1308 项 JUnit（无失败 / 错误 / 跳过）、Fabric 662 项、NeoForge 677 项与两端发布 jar 全部通过，共享场景为661项。10 项 Compendium 审计、76条报告一致性和差异检查通过；发布包包含 MinecraftCheckpointBoundary，不含效果 / 存储 / GameTest 夹具。此阶段没有客户端协议 / 输入变更或新增图形客户端验收。
 
@@ -338,8 +346,9 @@ Spirit 阶段门禁 `/tmp/chorus-spirit-armamentarium-gate.log` BUILD SUCCESSFUL
 | 写入前的实体 / section / 区块序列化 | 4 项纯测试与双加载器 6 项共享真实存储场景通过 | `SaveSerializationCapture / MinecraftSaveSerialization`；部分结果、报告字段问题、提交前异常与 NeoForge 吞错 / 丢弃，正常跳过不误报；自动停服另观察 level.dat 构建，不推断任意模组对象已保存 |
 | 世界附加数据保存证据 | 6 项纯测试与双加载器 6 项共享真实文件 / 批次场景通过 | `SavedDataSaveJournal / MinecraftSavedDataSaveAccess`；目录 / 文件吞错、部分编码与 dirty 清除、空批次 / close 不能掩盖旧 pending，Fabric / NeoForge 必需写入钩子；自动停服等待全局 / 维度实例关闭 |
 | 服务器级原版保存汇总 | 双加载器 3 项共享世界场景通过 | `MinecraftWorldSave / MinecraftPlayerSaveAccess`；实际存储 / 玩家范围、原版保存、补充 flush / 批次等待、前后身份检查和各项结果；显式工具本身不提交检查点，统计 / 进度旁文件不在证明范围 |
-| 保存期间的规则状态隔离 | 双加载器 7 项共享世界场景通过 | `MinecraftCheckpointBoundary`；全维度先结算后捕获、阻止运行时操作 / 替换、持久违规诊断、真实原版保存和物理配装复核、固定 NBT 属性投影；已用于正常停服，不冻结任意世界字段 |
+| 保存期间的规则状态隔离 | 双加载器 8 项共享世界场景通过 | `MinecraftCheckpointBoundary`；全维度先结算后捕获、阻止运行时操作 / 替换、持久违规诊断、真实原版保存和物理配装复核、固定 NBT 属性投影、新的未消费构造物结束事实拒绝；已用于正常停服，不冻结任意世界字段 |
 | 正常停服保存与启动恢复 | 双端八个独立进程验收及完整回归通过 | `MinecraftCheckpointLifecycle / tools/checkpoint_restart.py`；世界锁内提交、两个维度、真实玩家 NBT / 装备 / 已付能量、失败保存后拒绝启动并保留原文件；运行中检查点 / 崩溃对账 / 迁移未实现 |
+| 构造物结束事实与行为清理 | 3 项纯测试、5 项双加载器共享生命周期场景及检查点边界通过 | `WorldConstruct.ended / EffectConstruct.onRemoval`；销毁 / 到期 / 直接移除原因、身份 / 信用 / 最后位置、一次发布、父 Frame 完成后反应、未知结果与关闭静默；内容声明清理自身 Buff，不隐式删除其他实体历史引用 |
 | Minecraft 显式伤害命令、死亡确认、状态资格查询 | 双加载器 GameTest 通过 | 原版护甲、吸收、图腾、玩家死亡、格挡、免疫、取消、非致死下限及 Chorus 护盾 |
 | 显式生命治疗、实际量 / 过量治疗、结果依赖 | 纯核心及双加载器 GameTest 通过 | `HealingCommand / Receipt / Facts`、`MinecraftHealingExecutor`、`HealingCapture`；生命上限、玩家、周期信号、伤害后回血与去重；NeoForge 取消 / 改量 / 重入隔离；自然治疗观察尚未接入 |
 | 维度运行时、普通伤害自动分发、tick 与卸载接线 | 双加载器 GameTest 通过 | `MinecraftEffectRuntime`；原版来源归属、玩家继承链去重、嵌套回调、自动到期与故障隔离；运行时仍需显式安装 |

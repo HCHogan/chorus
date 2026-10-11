@@ -2303,9 +2303,17 @@ Minecraft 使用 `chorus:effect_construct`，具有独立 UUID、真实生命值
 
 生命周期为 `[creation, expiry)`。到期即不再被存活查询选中，随后实体 tick 清理；施放者卸下来源、死亡或被移除不自动结束构造物。程序运行时关闭立即清理自己生成的构造物；运行时失败时实体失活并在下一次 tick 清理。实体不写存档。
 
-行为 Buff 是内容声明，未由 spawn 隐式创建。推荐让它持有相同期限的自有定时器，在每次攻击前检查 self 的 available / alive；在 `chorus:death` 的 victim 等于 self 时移除该行为。这样摧毁只取消对应实例的未来行为，已脱离行为生命周期的投射物可以继续。删除实体也会由下一次查询观察为 missing，进而移除行为；这里没有新增专用 despawn / construct_destroyed 事实。内容仍须声明友敌参照、施放者失联策略、攻击规则和伤害归属。Minecraft 的目标查询与投射物追踪现按构造物的原始 owner 投影阵营；同 owner 可直接确认为 allied，其他关系须解析双方 owner 后读取当前原版队伍，解析失败为 unknown。该投影不递归遍历所有权链，不替换原版 AI 的队伍逻辑，也不隐式禁止伤害动作。
+行为 Buff 是内容声明，未由 spawn 隐式创建。推荐让它持有相同期限的自有定时器，在每次攻击前检查 self 的 available / alive；在 `chorus:death` 及 `chorus:construct_ended` 的 victim 等于 self 时移除该行为。这样只取消对应实例的未来行为，已脱离行为生命周期的投射物可以继续。直接删除或区块卸载也有结束事实，不必等下一次攻击轮询才移除行为。引擎不按 UUID 批量删除所有相关状态：其他实体上保留的施加来源、攻击信用与历史引用继续存在。
 
-验证：`ConstructTest` 的身份、归属、独立 Buff / 定时器、失败和单位检查；共享 `ConstructGameTest` 的真实生命损失 / 死亡、独立实例、到期、未知结果及不加载区块；`ConstructClientGameTest` 的同步尺寸、生命值、占位渲染和关闭移除。`BleakWatcherTest / BleakWatcherGameTest` 进一步验证内容驱动的寻敌连发、首次成功发射前减伤和在途弹体脱离已销毁炮台的生命周期。技能仍需原作参数校准及正式子职业装配。
+成功加入世界的构造物首次移除时发布 `chorus:construct_ended`。actor / source 保留生成时的原施放者与完整 Origin，victim 和 references.construct 是被移除的构造物；references.construct_kind 为种类，reason 为原版移除原因（如 discarded / unloaded_to_chunk）。flags 的 destroyed / expired / removed 互斥：实际生命已为零或 KILLED 原因属于 destroyed，其次已到期限属于 expired，其余为 removed；numbers.age 为移除时捕获的秒数。它不是伤害回执，不再产生一次 death / kill，也不隐式退款、爆炸或授予奖励。监听当前已绑定规则，保留信用不表示重新装配已卸下的来源。
+
+事实的 observedEntities 记录该实体已不可用，同时保存最后 FEET / BODY / EYES 位置。`read_event_position` 可读取移除位置以声明后续范围效果；实时 capture_position 仍按当时世界查询，不因历史快照伪造一个存活实体。重复 remove / setRemoved 不重写原因、位置或发布第二份事实；生成拒绝和未加入世界的临时对象没有结束事实。
+
+原版 onRemoval 回调只记录事实，不递归进入规则。世界动作内的移除附在该动作的成功回执上，父 Frame 完成后才运行派生反应；外部移除在下一次宿主事件 / prepare 边界处理，普通死亡事实仍先按伤害管线结算。未知世界结果停止且不重放结束反应。显式 checkpoint 会先结算待处理事实；已经固定的检查点遇到新移除事实则复核失败，不能保存一个尚未处理的结束事件。运行时关闭、替换和正常停服的固定保存阶段继续静默清理，不发送游戏奖励事件；保存时仍活动的短命实体在重启后的规则处置另待实现，不能由这一事实入口宣称已解决全部短命状态持久化。
+
+内容仍须声明友敌参照、施放者失联策略、攻击规则和伤害归属。Minecraft 的目标查询与投射物追踪现按构造物的原始 owner 投影阵营；同 owner 可直接确认为 allied，其他关系须解析双方 owner 后读取当前原版队伍，解析失败为 unknown。该投影不递归遍历所有权链，不替换原版 AI 的队伍逻辑，也不隐式禁止伤害动作。
+
+验证：`ConstructTest` 的身份、归属、独立 Buff / 定时器、结束原因 / 信用、失败和单位检查；共享 `ConstructGameTest` 的真实生命损失 / 死亡、独立实例、到期、未知结果及不加载区块；`ConstructLifecycleGameTest` 的直接移除、原版 setRemoved 卸载入口、自然到期、死亡不重复击杀、历史位置、父 Frame 顺序、未知结果与关闭静默；检查点边界另验证未消费的结束事实使归档失效。`ConstructClientGameTest` 的同步尺寸、生命值、占位渲染和关闭移除为此前图形验收，本次事实接线没有新增图形客户端验证。`BleakWatcherTest / BleakWatcherGameTest` 继续覆盖内容驱动的寻敌连发、首次成功发射前减伤和在途弹体脱离已销毁炮台的生命周期。技能仍需原作参数校准及正式子职业装配。
 
 ### 当前阵营观测
 
