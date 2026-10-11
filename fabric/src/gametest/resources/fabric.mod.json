@@ -130,7 +130,8 @@
       "com.imdomestic.chorus.IcarusDashGameTest",
       "com.imdomestic.chorus.IcarusCureGameTest",
       "com.imdomestic.chorus.CyclicRechargeGameTest",
-      "com.imdomestic.chorus.GamblersDodgeGameTest"
+      "com.imdomestic.chorus.GamblersDodgeGameTest",
+      "com.imdomestic.chorus.GamblersTrackingGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

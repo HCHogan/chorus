@@ -146,7 +146,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var input = new EffectEvent(launch.owner(), victim, launch.origin(), Set.of("chorus:projectile_tracking"),
                 Map.of("tracking_age", new com.imdomestic.chorus.stat.Measure(ageMicros / 1_000_000.0, com.imdomestic.chorus.stat.Unit.SECOND),
                         "tracking_distance", new com.imdomestic.chorus.stat.Measure(distance, com.imdomestic.chorus.stat.Unit.METER)),
-                Map.of("tracking_redirect", redirect), Map.of("projectile", projectile.getUUID().toString(), "emitter", launch.emitter()));
+                Map.of("tracking_redirect", redirect), Map.of("projectile", projectile.getUUID().toString(), "emitter", launch.emitter(), "tracking_owner_kind", projectile.launchOwnerKind()));
         var phase = acquire ? ActionGate.Phase.START : ActionGate.Phase.CONTINUE;
         try {
             var entities = new HashMap<String, Optional<EntityQuery.View>>();

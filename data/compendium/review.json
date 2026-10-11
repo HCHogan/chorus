@@ -7000,14 +7000,16 @@
           "text_sha256": "621a528dd763b2f8ae83e9de5b587f4fba5c46207566ce412e3902f83c2439fa"
         }
       ],
-      "scope": "地面施放、实际碰撞位移与延迟近战回能；当前近战属性0–100线性收益，PvE/PvP与15米近敌加倍；轻量飞刀多充能、Ophidia真实装备/击杀/刷新联动",
+      "scope": "地面施放、实际碰撞位移与延迟近战回能；当前近战属性0–100线性收益，PvE/PvP与15米近敌加倍；轻量飞刀多充能、Ophidia真实装备/击杀/刷新联动；独立校准的动画窗口限制Combatant来源的Chorus追踪弹，来源分类保留发射快照",
       "acceptance": [
         "缺少位移/时序校准或外部职业回充Profile时拒绝；已接受技能先扣费，实际位移保留原技能信用",
         "回能时读取当前近战属性、选择与附近敌人；每属性点1%/0.35%，100封顶，15米内加倍，fixed不再乘接收者CES或属性倍率",
         "一次恢复两把轻量飞刀并实际发射扣血；剩余进度继续自然恢复，填满后不积存第三轮",
         "实际队友与15米外目标不加倍；15米边界包括在内，墙体裁剪不退款且仍可获得已接受闪身收益",
         "已装备Ophidia的真实飞刀击杀产生层数，真实闪身刷新已有层数；一周期联动恢复两把，固有两次不叠成三次",
-        "失去实体/查询资格不猜测基础收益，未知世界结果保留付款和位移且不重放"
+        "失去实体/查询资格不猜测基础收益，未知世界结果保留付款和位移且不重放",
+        "动画时长独立于回能延迟；目标侧限制同时拒绝获得和保持追踪，不以全局PvE/PvP模式或物理发射者猜信用owner",
+        "真实闪身解除Combatant锁定，到期可重新获得，来源/选择卸下仍保留已支付窗口；Guardian/未知owner不被拒绝，实际碰撞仍可造成伤害及确认死亡后清理"
       ],
       "evidence": [
         {
@@ -7063,11 +7065,61 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersDodgeGameTest.java",
           "symbol": "unknownNativeDisplacementRetainsMovementAndCostWithoutEnergyOrReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+          "symbol": "combatantOriginAloneQualifiesInBothModesAndForBothTrackingPhases"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+          "symbol": "independentAnimationWindowSurvivesDeselectionAndEndsExactlyAtItsDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+          "symbol": "rejectedInputsAndUnobservedMovementDoNotGrantOrExtendProtection"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+          "symbol": "onlyTheHoldersDeathClearsTheWindowEvenAfterSelectionWasRemoved"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+          "symbol": "animationCalibrationIsRequiredIndependentlyOfMovementAndReturnCalibration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+          "symbol": "combatantLockBreaksDuringActualDodgeAndReturnsAfterExpiryDespiteSourceRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+          "symbol": "guardianProjectileKeepsLockThroughActualDodgeRegardlessOfPveMode"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+          "symbol": "immuneTrackingStillAllowsPhysicalDamageDuringTheDodgeWindow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+          "symbol": "confirmedDeathClearsTrackingWindowAfterActualLethalImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java",
+          "symbol": "unavailableCreditOwnerIsNotInferredFromTheMobThatEmittedTheProjectile"
         }
       ],
       "gaps": [
-        "3米位移、0.2秒回能与中性Class属性缩放仅为合成校准；原作移动曲线/动画/回能帧、完整Class被动与块状收益曲线未完成",
-        "战员投射物追踪移除、Guardian辅助瞄准中断、增强Class护盾和伤害收益未实现",
+        "3米位移、0.2秒回能、0.3秒动画窗口与中性Class属性缩放仅为合成校准；原作移动曲线/动画/回能帧、追踪重新获得时序、完整Class被动与块状收益曲线未完成",
+        "追踪限制已接Chorus实体；原版自带追踪弹/AI、Guardian辅助瞄准中断、增强Class护盾和伤害收益未实现，原版mob到Combatant映射及构造物信用仍依赖生产宿主",
         "body锚点/无视线/回能时取样、死亡/取消选择/碰撞拒绝的政策仍需原作校准，混合PvE/PvP模式不从附近目标自动猜测",
         "其他多充能近战、完整金装/Aspect转换、共享职业能量迁移/换装惩罚、正式职业与子职业装配、按键/HUD/素材和活动状态持久化仍未完成"
       ]

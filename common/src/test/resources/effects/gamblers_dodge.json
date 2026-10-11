@@ -31,6 +31,39 @@
           "confidence": "assumed"
         }
       ]
+    },
+    {
+      "id": "chorus_d2:gamblers_dodge_tracking",
+      "scope": "buff",
+      "action_gates": [
+        {
+          "id": "combatant_tracking",
+          "action": "projectile_tracking",
+          "subject": "victim",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "tracking_owner_kind",
+            "is": "mob"
+          }
+        }
+      ],
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:gamblers_dodge_tracking"
+            }
+          ]
+        }
+      ]
     }
   ],
   "abilities": [
@@ -73,6 +106,13 @@
             "name": "calibration.return_delay",
             "unit": "second"
           }
+        },
+        "animation_duration": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.animation_duration",
+            "unit": "second"
+          }
         }
       },
       "on_use": [
@@ -106,6 +146,16 @@
             "field": "observed"
           },
           "then": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:gamblers_dodge_tracking",
+              "target": "self",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "param.animation_duration",
+                "unit": "second"
+              }
+            },
             {
               "after": {
                 "type": "chorus:event_number",
@@ -322,6 +372,16 @@
           ]
         }
       ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:gamblers_dodge_tracking",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent"
+      },
+      "bundle": "chorus_d2:gamblers_dodge_tracking"
     }
   ]
 }

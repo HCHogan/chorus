@@ -2045,11 +2045,11 @@ SOURCE 或 BUFF Bundle 可以拒绝针对持有者的自动追踪：
 
 Chorus `EffectProjectile` 在常规几何、关系、存活及视线检查通过后查询此门槛。获得目标及接触后重定向使用 `start`，保留已有目标使用 `continue`。不限定阶段的声明会同时阻止二者；若只拒绝 continue，同 tick 后续 start 仍可能再次选中该目标。拒绝会失去锁定并尝试其他合格候选；没有候选就保留当前弹道。目标不存在永久黑名单，Buff 到期 / 来源移除后可以重新获得锁定。`subject: actor` 则限制发射者对应弹体的追踪，多个 actor / victim 拒绝继续合并。
 
-查询 actor 是发射时的 owner，victim 是本次候选；source 从投射物捕获的 continuation scope 读取，包含原来源标签，不依赖武器 / 技能仍被选择或来源仍绑定。物理发射实体另放在 `references.emitter`。事件包含 `chorus:projectile_tracking`，numbers 提供 `tracking_age: second`、`tracking_distance: meter`（当前弹体到候选锚点），flags 提供 `tracking_redirect`，references 提供弹体 UUID `projectile`，并由门槛添加 `action / action_phase`。不要假设该查询还带普通技能输入的 on_ground 标志；姿态可从实体观察读取。
+查询 actor 是发射时的 owner，victim 是本次候选；source 从投射物捕获的 continuation scope 读取，包含原来源标签，不依赖武器 / 技能仍被选择或来源仍绑定。物理发射实体另放在 `references.emitter`。`references.tracking_owner_kind` 是宿主在发射时按信用 owner 捕获的 `player / mob / other / unavailable` 分类，owner 消失后仍保留；它不按物理 emitter、当前模式或来源标签猜测。该字段与下述当前实体观察分开：发射时的 mob 后来可以变为 unavailable 的当前实体，但原始分类不变。事件包含 `chorus:projectile_tracking`，numbers 提供 `tracking_age: second`、`tracking_distance: meter`（当前弹体到候选锚点），flags 提供 `tracking_redirect`，references 提供弹体 UUID `projectile`，并由门槛添加 `action / action_phase`。不要假设该查询还带普通技能输入的 on_ground 标志；姿态可从实体观察读取。
 
 宿主在当前逻辑时间观察 owner、emitter 与候选的实体资料及 feet / body / eyes 位置；缺失实体明确为 unavailable，逻辑身份不凭空变成玩家或战斗人员。纯核心允许 `projectile_tracking` 在 actor 为空、victim 明确时只查询目标侧限制，其他操作仍要求 actor。没有这种门槛的程序跳过查询和额外观察。`projectileTrackingReport()` 仅保存最近一次实际候选查询（不一定是最终选中者）的输入、阶段、Decision 或错误，不发布效果事件。无法计算条件是运行时错误，会停止运行时并移除其全部现存弹体，不能冒充正常拒绝并继续世界副作用。
 
-该门槛不阻止实体碰撞或伤害；失去追踪的弹体仍可能沿弹道命中受保护目标。`destination` 的明确接收者、自动抵达与接回不使用自动选敌门槛。当前只连接 Chorus tracking；原版 AI 的目标选择 / 自带追踪弹、Guardian 辅助瞄准和真实 Dodge 动画期间的资格仍待接线。`target_gates.json` 的 0.2 秒 Buff 是通用合成验收，不代表 D2 闪身时长，也不提升 Compendium 内容覆盖。
+该门槛不阻止实体碰撞或伤害；失去追踪的弹体仍可能沿弹道命中受保护目标。`destination` 的明确接收者、自动抵达与接回不使用自动选敌门槛。当前只连接 Chorus tracking；原版 AI 的目标选择 / 自带追踪弹和 Guardian 辅助瞄准仍待接线。Gambler's Dodge 已用上述 owner 分类在独立校准的动画窗口限制 Combatant 弹体，见 [规则集](d2-ruleset.md#gamblers-dodge-的位移与多充能回能)。`target_gates.json` 的 0.2 秒 Buff 是通用合成验收，不代表 D2 闪身时长，也不提升 Compendium 内容覆盖。
 
 
 ### 指定目的地与返回阶段

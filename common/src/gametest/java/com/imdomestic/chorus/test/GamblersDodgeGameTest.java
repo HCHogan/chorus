@@ -19,9 +19,12 @@ public class GamblersDodgeGameTest {
     static final String D="chorus_d2:", SLOT=D+"class", ABILITY=D+"gamblers_dodge";
     static void merge(JsonObject data,JsonObject part){for(var e:part.entrySet())if(!e.getKey().equals("version")){if(e.getValue().isJsonArray()){if(!data.has(e.getKey()))data.add(e.getKey(),new JsonArray());e.getValue().getAsJsonArray().forEach(data.getAsJsonArray(e.getKey())::add);}else data.add(e.getKey(),e.getValue());}}
     static ProjectileGameTest.Harness open(GameTestHelper h)throws Exception {
+        return open(h, _ -> {});
+    }
+    static ProjectileGameTest.Harness open(GameTestHelper h,java.util.function.Consumer<JsonObject> edit)throws Exception {
         var t=new ProjectileGameTest.Harness(h,"lightweight_knife",data->{
             LightweightKnifeGameTest.prepare(data);var dodge=ThreadedSpikeGameTest.json("gamblers_dodge");var calibration=ThreadedSpikeGameTest.json("gamblers_dodge_test_calibration");
-            calibration.getAsJsonObject("parameters").entrySet().forEach(e->dodge.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));merge(data,dodge);merge(data,calibration.getAsJsonObject("program"));
+            calibration.getAsJsonObject("parameters").entrySet().forEach(e->dodge.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));merge(data,dodge);merge(data,calibration.getAsJsonObject("program"));edit.accept(data);
         },true);
         t.owner.getFoodData().setFoodLevel(0);select(t,true);return t;
     }

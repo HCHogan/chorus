@@ -1,0 +1,103 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:gambler_seeker",
+      "rules": [
+        {
+          "id": "fire",
+          "on": "test:seeker",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "body"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction"
+              },
+              "as": "aim"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "emitter": "self",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "tracking": {
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 20,
+                    "unit": "meter"
+                  },
+                  "turn_rate": {
+                    "type": "chorus:constant",
+                    "value": 720,
+                    "unit": "degree_per_second"
+                  },
+                  "acquisition_angle": {
+                    "type": "chorus:constant",
+                    "value": 180,
+                    "unit": "degree"
+                  },
+                  "target_anchor": "body",
+                  "relation": "any",
+                  "line_of_sight": true
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "for_each": "impact",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "type": "chorus:damage",
+                      "target": {
+                        "binding": "victim"
+                      },
+                      "amount": {
+                        "type": "chorus:constant",
+                        "value": 4,
+                        "unit": "damage"
+                      },
+                      "damage_type": "minecraft:generic"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

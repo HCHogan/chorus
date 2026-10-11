@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-11",
-  "status": "Partial executable ability composed from generic motion, observation, current-slot energy and cyclic recharge; explicit calibration and production gaps remain",
+  "status": "Partial executable ability composed from generic motion, target-owned tracking gates, observation, current-slot energy and cyclic recharge; explicit calibration and production gaps remain",
   "source": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
     "path": "data/d2-research/2026-10-11/gamblers-dodge-source.html.gz",
@@ -52,7 +52,7 @@
   "unresolved": [
     "Actual dodge displacement, animation duration and energy-return frame require calibration.",
     "Proximity origin/anchor, visibility, sampling time, mixed-mode enemy eligibility and selection changes during the dodge require original-game verification.",
-    "Dodge tracking/aim-assist removal, enhanced Class-stat shield, full Class passive/chunk curves, Aspect conversions, equipment combinations and production assembly remain incomplete."
+    "Chorus tracking removal is partially composed; vanilla homing projectiles, AI and Guardian aim assist, enhanced Class-stat shield, full Class passive/chunk curves, Aspect conversions, equipment combinations and production assembly remain incomplete."
   ],
   "implementation": {
     "definition": "common/src/test/resources/effects/gamblers_dodge.json",
@@ -69,12 +69,14 @@
     "lifecycle": "Paid detached return survives class deselection; dead/missing caster or unavailable target query skips return. Runtime closure discards pending work.",
     "recharge": "56-second baseline is supplied only by the selected ability source; the full gamblers_dodge_regeneration and class_gain profiles must be linked externally. Test profiles do not supply a measured Class-stat curve.",
     "ophidia": "Accepted real dodge refreshes existing Scissor Fingers without creating stacks; the current Solar cycle-yield policy applies when the packet completes cycles.",
-    "class_account": "This ability currently owns one independent class account; switching to other class abilities does not migrate balances or implement original-game swap penalties."
+    "class_account": "This ability currently owns one independent class account; switching to other class abilities does not migrate balances or implement original-game swap penalties.",
+    "tracking": "See gamblers-dodge-tracking.json: required independent animation_duration; target-owned Combatant tracking gate, physical damage unchanged, original owner kind captured at launch."
   },
   "synthetic_inputs": {
     "displacement_m": 3,
     "return_delay_seconds": 0.2,
     "class_stat_scaling": "neutral fixture, not a measured Class curve",
-    "ophidia": "existing separate 0.2-second recent-use/PvP calibration fixture"
+    "ophidia": "existing separate 0.2-second recent-use/PvP calibration fixture",
+    "animation_duration_seconds": 0.3
   }
 }

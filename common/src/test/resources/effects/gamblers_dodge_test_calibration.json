@@ -1,5 +1,5 @@
 {
-  "note": "Synthetic 3-meter collision-resolved relocation and 0.2-second return delay, not a measured Destiny dodge animation; Class-stat scaling is neutral in both fixtures, preserving the known 56-second baseline without claiming a calibrated Class curve.",
+  "note": "Synthetic 3-meter collision-resolved relocation and 0.2-second return delay, not a measured Destiny dodge animation; Class-stat scaling is neutral in both fixtures, preserving the known 56-second baseline without claiming a calibrated Class curve. The independent 0.3-second animation window is also synthetic; every actual grant overrides the buff template duration.",
   "parameters": {
     "distance": {
       "type": "chorus:constant",
@@ -9,6 +9,11 @@
     "return_delay": {
       "type": "chorus:constant",
       "value": 0.2,
+      "unit": "second"
+    },
+    "animation_duration": {
+      "type": "chorus:constant",
+      "value": 0.3,
       "unit": "second"
     }
   },

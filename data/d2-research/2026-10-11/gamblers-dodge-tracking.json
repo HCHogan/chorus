@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-11",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+    "path": "data/d2-research/2026-10-11/gamblers-dodge-tracking-source.html.gz",
+    "html_sha256": "96ee9491aac94a0e98f493711e409dec4ab998565bd0c1adefb90694bd660a61",
+    "gzip_sha256": "b290d9a7374bf569dd05c49935431e36f57024b3fde2b8f5839026ad529a2706"
+  },
+  "cells": [
+    {
+      "original_cell": "B7",
+      "snapshot_cell": "B5",
+      "snapshot_text_sha256": "a96b4a7e6326309f34f702bcbf067b2fc929b625f5f7fbfa75191eea328f5159",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "D7",
+      "snapshot_cell": "D5",
+      "snapshot_text_sha256": "0c9bf57887309481aa7fb15db8dd09ac4f3f47877062a27ff0214153b4c06fd5",
+      "normalized_text_matches_snapshot": true
+    },
+    {
+      "original_cell": "N7",
+      "snapshot_cell": "N5",
+      "snapshot_text_sha256": "621a528dd763b2f8ae83e9de5b587f4fba5c46207566ce412e3902f83c2439fa",
+      "normalized_text_matches_snapshot": true
+    }
+  ],
+  "excerpt": "Removes Combatant Projectile Tracking, as well as Aim Assist against Guardians during the Dodge Animation.",
+  "implementation": {
+    "definition": "common/src/test/resources/effects/gamblers_dodge.json",
+    "unit_tests": "common/src/test/java/com/imdomestic/chorus/effect/GamblersTrackingTest.java",
+    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/GamblersTrackingGameTest.java"
+  },
+  "policies": {
+    "qualification": "Chorus Minecraft adapter captures credit-owner kind (player/mob/other/unavailable) at launch. Content treats mob as Combatant, independently of world PvE/PvP mode and of a distinct physical emitter. Unknown owner is not inferred from source tags or emitter.",
+    "window": "An observed APPLIED or UNCHANGED displacement grants a target-owned tracking gate for required animation_duration. It rejects START and CONTINUE, survives ability deselection, expires at the exact deadline and clears on holder death. Known movement rejection and unknown movement do not grant it.",
+    "independence": "Tracking immunity is separate from physical collision and damage, and from the return_delay used for melee energy. Guardian projectile tracking remains eligible; aim assist requires a separate adapter.",
+    "calibration": "0.3-second animation window and test seeker geometry/speed/damage are synthetic; neither is claimed as Destiny physics."
+  },
+  "unresolved": [
+    "Exact animation duration, active frames, re-acquisition timing and lifecycle interactions need original-game calibration.",
+    "Vanilla homing projectiles, AI target selection and Guardian aim assist remain unconnected.",
+    "Full dodge trajectory, Class-stat shield/curves, subclass/Aspect assembly and persistence remain incomplete."
+  ]
+}

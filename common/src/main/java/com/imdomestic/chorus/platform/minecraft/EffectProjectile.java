@@ -25,6 +25,9 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     private ProjectileFlight.Progress progress = ProjectileFlight.Progress.EMPTY;
     private final Set<UUID> inside = new HashSet<>();
     private UUID trackingTarget;
+    private String launchOwnerKind = "unavailable";
+    /** Host classification captured before an owner can disappear; physical emitter is a separate identity. */
+    String launchOwnerKind() { return launchOwnerKind; }
     private static final double SEPARATION = 1e-5;
     public ProjectileFlight.Progress progress() { return progress; }
     public Optional<String> trackingTarget() { return Optional.ofNullable(trackingTarget).map(UUID::toString); }
@@ -35,6 +38,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     public void initialize(ProjectileFlight.Launch launch, MinecraftEffectRuntime runtime, Entity owner) {
         if (this.launch != null || level().isClientSide()) throw new IllegalStateException("Projectile already initialized or not authoritative");
         this.launch = launch; this.runtime = runtime;
+        launchOwnerKind = owner instanceof net.minecraft.world.entity.player.Player ? "player" : owner instanceof Mob ? "mob" : owner == null ? "unavailable" : "other";
         var point = launch.position().orElseThrow(); var direction = launch.direction().orElseThrow(); var parameters = launch.parameters();
         setPos(point.x(), point.y(), point.z()); setOwner(owner);
         setDeltaMovement(direction.x() * parameters.speed() / 20, direction.y() * parameters.speed() / 20, direction.z() * parameters.speed() / 20);

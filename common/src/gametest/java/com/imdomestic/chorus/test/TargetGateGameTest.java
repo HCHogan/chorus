@@ -62,6 +62,7 @@ public class TargetGateGameTest {
             h.assertValueEqual(retained.phase(), ActionGate.Phase.CONTINUE, "retained identity checks continue phase");
             h.assertValueEqual(retained.input().references().get("projectile"), id(p), "actual projectile identity");
             h.assertValueEqual(retained.input().references().get("emitter"), id(t.owner), "physical emitter remains explicit");
+            h.assertValueEqual(retained.input().references().get("tracking_owner_kind"), "player", "launch owner classified independently of source tags");
             near(h, retained.input().numbers().get("tracking_age").value(), .1, "flight age is observed");
             h.assertValueEqual(retained.input().numbers().get("tracking_age").unit(), Unit.SECOND, "age unit");
             h.assertTrue(retained.input().numbers().get("tracking_distance").value() > 0, "tracking anchor distance is measured");
@@ -80,6 +81,7 @@ public class TargetGateGameTest {
             t.runtime.unbind("hidden"); t.owner.discard(); p.tick(); healthy(t);
             h.assertValueEqual(p.trackingTarget(), Optional.of(id(target)), "ANY relation can reacquire after owner disappears");
             h.assertTrue(t.runtime.projectileTrackingReport().orElseThrow().input().observedEntities().orElseThrow().require(id(t.owner)).isEmpty(), "missing owner is explicitly unavailable");
+            h.assertValueEqual(t.runtime.projectileTrackingReport().orElseThrow().input().references().get("tracking_owner_kind"), "player", "owner removal does not erase launch classification");
         } h.succeed();
     }
 

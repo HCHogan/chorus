@@ -106,7 +106,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/resource_cycle_yield.json', 'effects/ability_capacity.json'
         include 'effects/solar_melee_energy.json', 'effects/ophidia_spathe.json', 'effects/ophidia_spathe_inputs.json', 'effects/ophidia_spathe_test_calibration.json'
         include 'effects/cyclic_recharge.json'
-        include 'effects/gamblers_dodge.json', 'effects/gamblers_dodge_test_calibration.json'
+        include 'effects/gamblers_dodge.json', 'effects/gamblers_dodge_test_calibration.json', 'effects/gamblers_tracking_inputs.json'
         include 'effects/lightweight_knife.json', 'effects/lightweight_knife_test_calibration.json', 'effects/lightweight_knife_precision_test_calibration.json'
         include 'effects/icarus_dash.json', 'effects/icarus_dash_inputs.json', 'effects/icarus_dash_cure.json', 'effects/icarus_cure_inputs.json'
         include 'effects/ability_recharge_inputs.json'

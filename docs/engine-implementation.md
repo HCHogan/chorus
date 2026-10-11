@@ -6,13 +6,19 @@
 
 ## 当前证据
 
-最新门禁 `/tmp/chorus-target-gates-gate-2.log` BUILD SUCCESSFUL，3 分 9 秒：1228 项 JUnit（无失败 / 错误 / 跳过）、Fabric 580 项、NeoForge 590 项及两端发布 jar 全部通过，共享 Chorus 场景为 579 项。10 项 Compendium 审计与 75 条审阅报告一致性通过。首轮新增世界夹具的 Buff 版本与投射物程序不一致，修正测试组合版本后完整重跑通过。本阶段没有客户端协议 / 输入变化，未新增图形客户端验收；发布包检查不包含效果夹具或 GameTest。
+最新门禁 `/tmp/chorus-gambler-tracking-gate-3.log` BUILD SUCCESSFUL，2 分 16 秒：1233 项 JUnit（无失败 / 错误 / 跳过）、Fabric 585 项、NeoForge 595 项及两端发布 jar 全部通过，共享 Chorus 场景为 584 项。10 项 Compendium 审计、75 条审阅报告一致性、新归档 HTML / gzip 与三组单元格哈希通过。新增世界夹具先修正了 DSL 的 event_actor 名称，再将发射器移入测试区同一列，避免初始射线依赖区域外区块的模拟状态；未放宽内容资格或地形检查。发布包不含效果夹具 / GameTest；此轮没有客户端输入 / 协议变化，未新增图形客户端验收。
+
+Gambler's Dodge 新增独立的 `animation_duration` 校准参数，成功 / 零位移后授予目标侧追踪门槛。Minecraft 宿主在发射时保存信用 owner 的 player / mob / other / unavailable 分类，内容只拒绝 mob 对应的 Combatant；全局 PvE / PvP、物理 emitter 与后续 owner 消失不会重写分类。该窗口在技能取消选择后继续，到期恢复资格，确认死亡时清理；实际弹道仍可命中或击杀闪身者。Guardian 弹体保持追踪，辅助瞄准尚未接线。
+
+新增5项 GamblersTrackingTest和5项共享世界场景；已有目标侧通用场景另补发射分类与来源移除检查。原表Class Abilities B7 / D7 / N7重新抓取，与CSV B5 / D5 / N5归一化一致，独立归档与政策见 [研究记录](../data/d2-research/2026-10-11/gamblers-dodge-tracking.json)。0.3秒动画窗口、测试追踪弹速度 / 转向 / 伤害均为合成参数，原作活跃帧和重新获得目标的时点仍须校准。现有Gambler条目增加证据但保持partial，仍为75条审阅、61 partial、12 unimplemented、2 not_applicable、0 verified。
+
+上一阶段门禁 `/tmp/chorus-target-gates-gate-2.log` BUILD SUCCESSFUL，3 分 9 秒：1228 项 JUnit（无失败 / 错误 / 跳过）、Fabric 580 项、NeoForge 590 项及两端发布 jar 全部通过，共享 Chorus 场景为 579 项。10 项 Compendium 审计与 75 条审阅报告一致性通过。首轮新增世界夹具的 Buff 版本与投射物程序不一致，修正测试组合版本后完整重跑通过。本阶段没有客户端协议 / 输入变化，未新增图形客户端验收；发布包检查不包含效果夹具或 GameTest。
 
 目标侧限制新增 `action_gates.subject: actor | victim`（默认 actor），拒绝证据显式保留声明持有者与第三方来源。事件身份不交换，多个发起者 / 目标来源独立拒绝；Buff 的有效期、暂停和武器适用范围沿用既有规则。`projectile_tracking` 已接 Chorus 实体的获得、保持及接触后重定向边界，查询携带发射时的来源信用、当前实体 / 位置观察、飞行年龄与距离。限制消失后可重新获得目标，正常拒绝保留弹道与物理伤害，固定 destination 返回不受自动选敌门槛影响。
 
 未知条件证据会记录失败并停止运行时、移除全部关联弹体；该路径不伪造正常拒绝，也不重放碰撞。新增 7 项 TargetGateTest 与 8 项共享世界场景，覆盖两侧叠加、持有者 / 施加者区别、阶段、暂停 / 过期 / 武器范围、来源卸下、实际重新锁定、命中与重定向、返回、故障清理及原版近战目标限制。原 Freeze 测试同时明确：角色冻结不会额外取消已发射弹体的追踪。
 
-本阶段是通用能力，尚未把真实 Dodge 动画期间的追踪移除装配到技能；原版寻敌 / 自带追踪弹和 Guardian 辅助瞄准也未接入。0.2 秒为合成 Buff 验收时长，不作为原作数值。Compendium 仍为 75 条审阅、61 partial、12 unimplemented、2 not_applicable、0 verified。字段见 [目标侧追踪限制](engine-data-packs.md#目标侧追踪限制)。
+该通用能力阶段尚未把 Dodge 动画期间的追踪移除装配到技能；原版寻敌 / 自带追踪弹和 Guardian 辅助瞄准也未接入。0.2 秒为合成 Buff 验收时长，不作为原作数值。Compendium 仍为 75 条审阅、61 partial、12 unimplemented、2 not_applicable、0 verified。字段见 [目标侧追踪限制](engine-data-packs.md#目标侧追踪限制)。
 
 上一阶段门禁 `/tmp/chorus-gambler-gate.log` BUILD SUCCESSFUL，8 分 36 秒：1221 项 JUnit、Fabric 572 项、NeoForge 582 项及两端发布 jar 全部通过，共享 Chorus 场景为 571 项。新增 9 项 GamblersDodgeTest 和 6 项共享世界场景；10 项 Compendium 审计、75 条审阅报告、原表 HTML / gzip 与三组对应单元格哈希核对通过。发布包仍不包含效果验收夹具 / GameTest；此轮没有客户端协议或输入变化，未新增图形客户端验收。
 
