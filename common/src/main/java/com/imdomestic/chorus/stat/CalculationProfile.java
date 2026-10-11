@@ -22,6 +22,7 @@ public record CalculationProfile(String id, String version, Unit inputUnit, List
         units.put("base", inputUnit);
         Unit current = inputUnit;
         for (var step : steps) {
+            step = CalculationStep.local(step);
             if (step.id().isBlank() || units.containsKey(step.id())) {
                 throw new IllegalArgumentException("Empty or duplicate stage: " + step.id());
             }
@@ -74,7 +75,7 @@ public record CalculationProfile(String id, String version, Unit inputUnit, List
         var inputs = new Inputs(this, base, contributions, omittedFactors);
         var seen = new HashSet<String>();
         for (var c : contributions) if (!seen.add(c.id())) throw new IllegalArgumentException("Duplicate contribution: " + c.id());
-        Map<String, CalculationStep> stageDefinitions = steps.stream().collect(Collectors.toMap(CalculationStep::id, s -> s));
+        Map<String, CalculationStep> stageDefinitions = steps.stream().collect(Collectors.toMap(CalculationStep::id, CalculationStep::local));
         for (var c : contributions) {
             if (!(stageDefinitions.get(c.stage()) instanceof CalculationStep.Apply apply)) {
                 throw new IllegalArgumentException("Contribution references missing or non-modifiable stage: " + c.stage());
@@ -91,12 +92,13 @@ public record CalculationProfile(String id, String version, Unit inputUnit, List
         var omitted = new HashSet<String>();
         Measure current = base;
         for (var step : steps) {
+            step = CalculationStep.local(step);
             Measure before = current;
             List<NumericGroup.Evaluation> groupTrace = List.of();
             switch (step) {
                 case CalculationStep.Apply apply -> {
                     Unit expected = contributionUnit(apply, current.unit());
-                    List<NumericContribution> stageInput = contributions.stream().filter(c -> c.stage().equals(step.id())).toList();
+                    List<NumericContribution> stageInput = contributions.stream().filter(c -> c.stage().equals(apply.id())).toList();
                     for (var c : stageInput) if (!c.amount().unit().equals(expected)) {
                         throw new IllegalArgumentException("Wrong contribution unit in " + c.id() + ": expected " + expected);
                     }
@@ -128,6 +130,7 @@ public record CalculationProfile(String id, String version, Unit inputUnit, List
                     case CEIL -> Math.ceil(current.value());
                     case NEAREST_EVEN -> Math.rint(current.value());
                 }, current.unit());
+                case CalculationStep.Shared ignored -> throw new AssertionError("Shared stage was not unwrapped");
             }
             values.put(step.id(), current);
             trace.add(new CalculationTrace.StepTrace(step.id(), before, current, groupTrace));

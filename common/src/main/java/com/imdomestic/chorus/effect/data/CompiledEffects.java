@@ -34,6 +34,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private final Map<String, BuffDefinition> buffs;
     private final Map<String, EffectProgram.Bundle> bundles;
     private final Map<String, CalculationProfile> profiles;
+    private final SharedStages sharedStages;
     private final Map<String, ResourceDefinition> resources;
     private final Map<String, EffectProgram.Shield> shields;
     private final Map<String, BuffConsumption.Policy> consumptions;
@@ -99,6 +100,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             if (bundle(id).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipment requires a source-scoped bundle: " + id);
         }, id -> bundle(id).parameters());
         this.profiles = index(program.profiles(), CalculationProfile::id);
+        this.sharedStages = new SharedStages(profiles);
         index(program.nativeAttributes(),NativeAttributeBinding::id);
         var attributeOperations=new HashSet<String>();
         for(var binding:program.nativeAttributes()){
@@ -548,8 +550,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var contributions = new ArrayList<>(captured);
         visitModifiers(state, holder, event, profile.id(), site -> {
             if (site.modifier().evaluate() != EffectProgram.Evaluate.ON_HIT) return;
-            var current = profiles.get(site.modifier().profile());
-            if (!current.inputUnit().equals(profile.inputUnit()) || !current.steps().equals(profile.steps())) {
+            var current = profiles.get(profile.id());
+            if (current == null || !current.inputUnit().equals(profile.inputUnit()) || !current.steps().equals(profile.steps())) {
                 throw new IllegalArgumentException("Live on_hit modifier disagrees with the captured profile layout");
             }
             if (site.modifier().condition().test(site.evaluation())) contributions.add(site.numeric(site.modifier().value().evaluate(site.evaluation())));
@@ -1095,6 +1097,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var validation = validation(bundle, Map.of()); modifier.condition().validate(validation);
         Unit expected = profile.inputUnit(); boolean found = false;
         for (var step : profile.steps()) {
+            step = CalculationStep.local(step);
             if (step instanceof CalculationStep.Transform transform) expected = transform.outputUnit();
             if (!step.id().equals(modifier.stage())) continue;
             if (!(step instanceof CalculationStep.Apply apply) || apply.operation() != modifier.operation() || !apply.percentOf().equals(modifier.percentOf())) {
@@ -1273,7 +1276,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             EffectProgram.Bundle bundle, String profile, BuffInstance buff, String holder, String victim, java.util.function.Consumer<ModifierSite> visitor) {
         var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of());
         for (var modifier : bundle.modifiers()) {
-            if (!modifier.profile().equals(profile)) continue;
+            if (!sharedStages.accepts(profile, modifier.profile(), modifier.stage())) continue;
             String provider = modifier.provider() == EffectProgram.ModifierProvider.VICTIM ? victim : holder;
             if (provider.isBlank() || !evaluation.self().equals(provider)) continue;
             if (modifier.multiplicity() == EffectProgram.Multiplicity.STACK) {

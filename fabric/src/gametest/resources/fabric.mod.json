@@ -38,6 +38,7 @@
       "com.imdomestic.chorus.TargetSelectionGameTest",
       "com.imdomestic.chorus.VolatileGameTest",
       "com.imdomestic.chorus.DamageSnapshotGameTest",
+      "com.imdomestic.chorus.SharedStagesGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
       "com.imdomestic.chorus.KineticTremorsGameTest",

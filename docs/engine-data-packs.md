@@ -3116,3 +3116,22 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 被动衰减仍只有Armor Charge控制器的一份计时，涌动不自行创建每元素倒计时、不按命中扣层；移除来源只撤回它的当前数值与被动贡献。独立高档Buff应保留自己的到期时间，不能通过删除/暂停低档来源实现覆盖。当前on_use捕获把profile_value副本查询及充能资格固定进攻击，后续来源/充能变化作用于新攻击；原作时序仍需逐武器校准。
 
 验收武器的六种分量显式选择这个伤害Profile，使用真实容器、服务器开火和物理接触。已有Rampage定义仅映射数值目的地，测试断言其他内容保持一致；合成四档Buff不冒充任何具体金装。其他独立伤害Profile不会因为链接了此模块自动继承涌动，尤其Scorch/Ignition仍需显式适配及来源资格验收。正式数据包装配、三能量成本、特殊伤害例外和HUD未完成。[数值与来源](d2-ruleset.md#weapon-surge-的元素档位与独立计时)。
+
+
+## 不同 Profile 共享数值阶段
+
+`chorus:shared_apply`让目标 Profile 接收另一个 Profile 同名阶段的贡献。它保留完整的本地 `apply` 布局，链接时要求被引用阶段的操作、分组树、家族政策、百分比基准、命名因子及贡献单位一致。例如独立的持续伤害 Profile 可以共享武器增伤阶段，前后仍使用自己的伤害载荷与单位转换：
+
+```json
+{"type":"chorus:shared_apply","profile":"chorus_d2:empowering_damage",
+ "apply":{"id":"weapon_surge","operation":"multiply",
+          "group":{"name":"weapon_surge","reduction":"max"}}}
+```
+
+共享的是贡献入口，父 Profile 的转换、其他阶段和计算结果不会进入目标计算。目标阶段同时收集自己的贡献与导入贡献，在一个分组中执行 MAX / PRODUCT 等规则；不能先算父 Profile 的最终倍率再相乘，否则会破坏互斥分组。局部贡献也不会反向流入父 Profile。可继续引用另一个 shared_apply；相同真实 modifier 每次只访问一次，跨层共享不会复制副本。
+
+查询保留原来的攻击、武器 / 技能、伤害标签、施加者与实际目标。原 modifier 的条件、provider、Buff 作用域、逐层身份及 on_use / on_hit 策略全部保留。和隔离攻击上下文的 profile_value 不同，这个接口适用于攻击阶段复用。共享数值阶段不会自动授予武器信用、扩大 perk 的资格或导入全部近战增伤；内容仍须声明准确的条件。
+
+快照保存共享阶段的完整布局及已捕获贡献。卸装、来源 Buff 到期或目录替换后，on_use 仍用旧值；on_hit 从当前目录收集实际持有者 / 目标的贡献，目标 Profile 的布局若与快照不兼容则拒绝混算。只复用贡献单位：multiply 的 delta 可跨不同输入单位，add / replace 必须与所在阶段的实际单位一致。缺失阶段、布局不一致和循环阶段别名在链接时失败；此检查不限制效果事件循环或点燃连锁。
+
+检查点仅新增 `CalculationStep.Shared` 类型，旧 record 字段不变。`shared_stages.json`、SharedStagesTest 与 SharedStagesGameTest 验证多层导入、分组、身份、取样、持久化、真实扣血和未知世界结果不重放。这个通用接口本身不代表 Solar 的全部增伤资格和取样时机已校准。

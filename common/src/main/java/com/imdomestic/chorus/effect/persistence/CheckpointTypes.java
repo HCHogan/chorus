@@ -502,6 +502,7 @@ final class CheckpointTypes {
         types.put("chorus:stat/calculation_profile/inputs", com.imdomestic.chorus.stat.CalculationProfile.Inputs.class);
         types.put("chorus:stat/calculation_profile/result", com.imdomestic.chorus.stat.CalculationProfile.Result.class);
         types.put("chorus:stat/calculation_step/apply", com.imdomestic.chorus.stat.CalculationStep.Apply.class);
+        types.put("chorus:stat/calculation_step/shared", com.imdomestic.chorus.stat.CalculationStep.Shared.class);
         types.put("chorus:stat/calculation_step/clamp", com.imdomestic.chorus.stat.CalculationStep.Clamp.class);
         types.put("chorus:stat/calculation_step/round", com.imdomestic.chorus.stat.CalculationStep.Round.class);
         types.put("chorus:stat/calculation_step/rounding", com.imdomestic.chorus.stat.CalculationStep.Rounding.class);

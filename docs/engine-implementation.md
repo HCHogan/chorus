@@ -6,6 +6,14 @@
 
 ## 当前证据
 
+通用共享数值阶段门禁 `/tmp/chorus-shared-stages-gate.log` BUILD SUCCESSFUL，2分14秒：1625项JUnit（无失败/错误/跳过）、Fabric865项、NeoForge880项及两端发布jar通过，共享Chorus世界场景864项。新增8项规则测试与3项共享世界场景；10项Compendium审计与106条报告一致性通过。检查点仅新增CalculationStep.Shared类型，既有类型字段完全未变；没有客户端协议变化，本轮未重跑图形客户端。
+
+`chorus:shared_apply`允许独立Profile共享同名阶段的贡献，保留原攻击上下文与修饰器资格，在一个MAX / PRODUCT分组中同时选择本地与导入来源。引用可多层展开，每个实际modifier只访问一次；父Profile的转换和其他阶段不会被重复应用。链接检查完整Apply布局与贡献单位，拒绝缺失、分组冲突或循环别名。on_use继续冻结来源状态，目标条件与on_hit保留实时求值；有实时贡献时，目标Profile必须与快照布局兼容。
+
+规则验收覆盖原武器身份、单向导入、局部单位转换、多层贡献、逐层Buff、目标提供者、程序/快照序列化与旧布局。真实世界验证来源到期/卸下后的存储攻击、共享MAX与目标侧乘区、未知回执保留已扣生命且不重放。开发测试修正了测试lambda的Java捕获约束，并按Codec实际返回的IllegalStateException校验链接错误；完整门禁通过，未放宽引擎验证。这个提交提供Solar接线所需的通用能力，Solar内容尚未迁移；Compendium仍为104 partial、2 not_applicable、0 verified。[格式与边界](engine-data-packs.md#不同-profile-共享数值阶段)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Weapon Surge完整门禁 `/tmp/chorus-weapon-surge-gate.log` BUILD SUCCESSFUL，2分8秒：1617项JUnit（无失败/错误/跳过）、Fabric862项、NeoForge877项与两端发布jar通过，共享Chorus世界场景861项。新增11项规则测试（含六元素×三档×两模式的36组矩阵）与8项共享世界场景；10项Compendium审计、106条报告一致性、来源哈希及差异检查通过。没有新增Java执行器、客户端协议或检查点类型，发布jar继续排除验证夹具，本轮未重复图形客户端门禁。
 
 六种Weapon Surge来源贡献各自副本及Armor Charge被动配置，通过profile_value直接读取当前副本数，按PvE/PvP表生成10/17/22%或3/4.5/5.5%伤害贡献。独立weapon_surge MAX阶段同时接受四档25/6%的提供者，与empowering/perks分开。充能层数不改变档位，第四份模组被限在三档；攻击要求实际武器信用与对应分量元素。共享充能衰减不按元素/副本重复，也不因外部高档覆盖而暂停。

@@ -495,6 +495,7 @@
   "chorus:stat/calculation_profile/inputs": ["profile:com.imdomestic.chorus.stat.CalculationProfile", "base:com.imdomestic.chorus.stat.Measure", "contributions:java.util.List<com.imdomestic.chorus.stat.NumericContribution>", "omittedFactors:java.util.Set<java.lang.String>"],
   "chorus:stat/calculation_profile/result": ["output:com.imdomestic.chorus.stat.Measure", "trace:com.imdomestic.chorus.stat.CalculationTrace", "inputs:com.imdomestic.chorus.stat.CalculationProfile$Inputs"],
   "chorus:stat/calculation_step/apply": ["id:java.lang.String", "operation:com.imdomestic.chorus.stat.NumericContribution$Operation", "group:com.imdomestic.chorus.stat.NumericGroup", "percentOf:java.lang.String", "factor:java.lang.String"],
+  "chorus:stat/calculation_step/shared": ["profile:java.lang.String", "apply:com.imdomestic.chorus.stat.CalculationStep$Apply"],
   "chorus:stat/calculation_step/clamp": ["id:java.lang.String", "minimum:double", "maximum:double"],
   "chorus:stat/calculation_step/round": ["id:java.lang.String", "rounding:com.imdomestic.chorus.stat.CalculationStep$Rounding"],
   "chorus:stat/calculation_step/rounding": ["FLOOR", "CEIL", "NEAREST_EVEN"],

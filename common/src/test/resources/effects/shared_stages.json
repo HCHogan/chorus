@@ -1,0 +1,141 @@
+{
+  "version": "test-snapshot-v1",
+  "profiles": [
+    {
+      "id": "test:derived",
+      "version": "test-snapshot-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:shared_apply",
+          "profile": "test:attack_damage",
+          "apply": {
+            "id": "empowering",
+            "operation": "multiply",
+            "group": {
+              "name": "empowering",
+              "reduction": "max"
+            }
+          }
+        },
+        {
+          "type": "chorus:shared_apply",
+          "profile": "test:attack_damage",
+          "apply": {
+            "id": "perks",
+            "operation": "multiply",
+            "group": {
+              "name": "perks",
+              "reduction": "product"
+            }
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "world_units",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.5
+            ],
+            "minimum": 0,
+            "maximum": 100000,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    },
+    {
+      "id": "test:nested",
+      "version": "test-snapshot-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:shared_apply",
+          "profile": "test:derived",
+          "apply": {
+            "id": "empowering",
+            "operation": "multiply",
+            "group": {
+              "name": "empowering",
+              "reduction": "max"
+            }
+          }
+        },
+        {
+          "type": "chorus:shared_apply",
+          "profile": "test:derived",
+          "apply": {
+            "id": "perks",
+            "operation": "multiply",
+            "group": {
+              "name": "perks",
+              "reduction": "product"
+            }
+          }
+        },
+        {
+          "type": "chorus:curve",
+          "id": "world_units",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.5
+            ],
+            "minimum": 0,
+            "maximum": 100000,
+            "boundary": "error"
+          },
+          "output_unit": "damage"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:local",
+      "modifiers": [
+        {
+          "id": "local",
+          "profile": "test:derived",
+          "stage": "empowering",
+          "group": "empowering",
+          "op": "multiply",
+          "stacking_key": "test:local",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.35,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:victim",
+      "modifiers": [
+        {
+          "id": "victim",
+          "profile": "test:attack_damage",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "stacking_key": "test:victim",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic snapshot protocol acceptance; not a calibrated Destiny effect",
+          "confidence": "assumed",
+          "evaluate": "on_hit",
+          "provider": "victim"
+        }
+      ]
+    }
+  ]
+}

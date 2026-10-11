@@ -7,6 +7,18 @@ import com.imdomestic.chorus.stat.NumericContribution.Operation;
 public sealed interface CalculationStep {
     String id();
 
+    /** Reuse another profile's contribution channel, not its already calculated output. */
+    record Shared(String profile, Apply apply) implements CalculationStep {
+        public Shared {
+            Objects.requireNonNull(profile); Objects.requireNonNull(apply);
+            if (!profile.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid shared profile: " + profile);
+        }
+        @Override public String id() { return apply.id(); }
+    }
+
+    /** Shared stages keep their complete mathematical layout in snapshots and calculation traces. */
+    static CalculationStep local(CalculationStep step) { return step instanceof Shared shared ? shared.apply() : step; }
+
     record Apply(String id, Operation operation, NumericGroup group, String percentOf, String factor) implements CalculationStep {
         public Apply {
             Objects.requireNonNull(id);

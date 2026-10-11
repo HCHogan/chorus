@@ -21,13 +21,19 @@ public class DamageSnapshotComponentGameTest {
         final CompiledEffects program; final MinecraftEffectRuntime runtime;
         final List<DamageCommand> commands = new ArrayList<>(); final List<DamageReceipt> receipts = new ArrayList<>();
         boolean failAfterDamage;
-        Harness(GameTestHelper h) throws Exception {
+        Harness(GameTestHelper h) throws Exception { this(h, false); }
+        Harness(GameTestHelper h, boolean sharedStages) throws Exception {
             this.h = h; owner = h.spawnWithNoFreeWill(EntityTypes.COW, 1, 40, 1); victim = h.spawnWithNoFreeWill(EntityTypes.COW, 3, 40, 1);
             owner.setNoGravity(true); victim.setNoGravity(true); victim.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100); victim.setHealth(100);
             victim.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
             origin = new BuffInstance.Origin(owner.getUUID().toString(), "original", "original-weapon", "");
-            program = CompiledEffects.link(List.of(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("damage_snapshot")).getOrThrow(),
-                    EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("stored_damage_snapshot")).getOrThrow()));
+            var storage = ThreadedSpikeGameTest.json("stored_damage_snapshot");
+            if (sharedStages) storage = com.google.gson.JsonParser.parseString(storage.toString().replace("test:attack_damage", "test:derived")).getAsJsonObject();
+            var fragments = new ArrayList<EffectProgram>();
+            fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("damage_snapshot")).getOrThrow());
+            fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, storage).getOrThrow());
+            if (sharedStages) fragments.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, ThreadedSpikeGameTest.json("shared_stages")).getOrThrow());
+            program = CompiledEffects.link(fragments);
             String holder = origin.owner();
             var state = EffectState.empty().withSource(new EffectSource("storage", "test:storage", holder, origin, Set.of()))
                     .withSource(new EffectSource("attack", "test:attack", holder, origin, Set.of()))

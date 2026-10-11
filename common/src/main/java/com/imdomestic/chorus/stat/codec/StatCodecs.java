@@ -138,9 +138,14 @@ public final class StatCodecs {
     ).apply(i, CalculationStep.Round::new));
 
     private record ProfileData(String id, String version, Unit inputUnit, List<CalculationStep> steps) {}
+    private static final MapCodec<CalculationStep.Shared> SHARED = RecordCodecBuilder.mapCodec(i -> i.group(
+            Codec.STRING.fieldOf("profile").forGetter(CalculationStep.Shared::profile),
+            APPLY.codec().fieldOf("apply").forGetter(CalculationStep.Shared::apply)
+    ).apply(i, CalculationStep.Shared::new));
     public static Codec<CalculationProfile> profile(Codec<Curve> curves) {
         Codec<CalculationStep> steps = new TypeRegistry<CalculationStep>()
                 .register("chorus:apply", CalculationStep.Apply.class, APPLY)
+                .register("chorus:shared_apply", CalculationStep.Shared.class, SHARED)
                 .register("chorus:clamp", CalculationStep.Clamp.class, CLAMP)
                 .register("chorus:curve", CalculationStep.Transform.class, transform(curves))
                 .register("chorus:round", CalculationStep.Round.class, ROUND).build();
