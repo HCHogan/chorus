@@ -19,8 +19,9 @@ import net.minecraft.world.entity.LivingEntity;
 public class StarvationGameTest {
     static final String D = "chorus_d2:";
     static EffectSource fragment(ProjectileGameTest.Harness t, String id, double cap) { return new EffectSource(id, D + "echo_of_starvation", owner(t), new BuffInstance.Origin(owner(t), id, "", ""), Set.of(), Map.of("cap", new Measure(cap, Unit.SECOND), "receipt_seconds", new Measure(1, Unit.SECOND))); }
-    static ProjectileGameTest.Harness open(GameTestHelper h, boolean enhanced) throws Exception {
-        var t = FeedTheVoidGameTest.open(h, false, false, "echo_of_starvation", "void_breach", "orb_of_power", "starvation_inputs");
+    static ProjectileGameTest.Harness open(GameTestHelper h, boolean enhanced, String... additional) throws Exception {
+        var modules = new ArrayList<>(List.of("echo_of_starvation", "void_breach", "orb_of_power", "starvation_inputs")); modules.addAll(List.of(additional));
+        var t = FeedTheVoidGameTest.open(h, false, false, modules.toArray(String[]::new));
         try { if (!enhanced) t.runtime.unbind("aspect"); t.runtime.bind(fragment(t, "starvation", 10)); IncandescentGameTest.bind(t, "starvation_inputs", "test:starvation_inputs", ""); select(t, "class", "class_a"); select(t, "super", "super"); return t; } catch (Exception | Error e) { t.close(); throw e; }
     }
     static void select(ProjectileGameTest.Harness t, String slot, String ability) { var before = state(t).abilities().getOrDefault(owner(t), AbilityLoadout.EMPTY); var slots = new HashMap<>(before.slots()); if (ability == null) slots.remove(D + slot); else slots.put(D + slot, "test:" + ability); t.runtime.abilities(new AbilityChange(owner(t), before, new AbilityLoadout(slots))); }

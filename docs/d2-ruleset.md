@@ -1495,4 +1495,21 @@ Starvation调用共享`devour_application`，初始五秒经过独立`starvation
 
 `pickup`的source仍保留生产者，actor/victim为实际收集者。Starvation不会把队友产生的Orb奖励发给队友，也不要求回能大于零才授予Devour。物体宿主先消费，再执行基础奖励及派生pickup反应；未知治疗保留已经提交的能量/生命，不重放物体。断言重复tick不重放和回执有限去重不能代替物理世界存档/故障恢复。
 
-[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java)覆盖真实碰撞、满能量/满生命、动态装卸、外来生产者、账号切换、五秒Devour、五秒生成冷却、25秒裂口到期及写入后故障。生成请求目前由可信宿主测试提供；Harvest/Cessation/Domineering及全体Super/护甲模组真实生成链、队友Orb副本策略、射击拾取、完整Persistence、正式装配、视觉/HUD及物理世界持久化仍待实现，三个条目保持partial。
+[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/StarvationTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/StarvationGameTest.java)覆盖真实碰撞、满能量/满生命、动态装卸、外来生产者、账号切换、五秒Devour、五秒生成冷却、25秒裂口到期及写入后故障。Harvest的真实削弱击杀生产链现已接入，见下一节；Cessation/Domineering及全体Super/护甲模组真实生成链、队友Orb副本策略、射击拾取、完整Persistence、正式装配、视觉/HUD及物理世界持久化仍待实现，三个条目保持partial。
+
+
+## Echo of Harvest 的削弱击杀与确认生成
+
+[echo_of_harvest.json](../common/src/test/resources/effects/echo_of_harvest.json)监听持有者的确认击杀，以死亡回执中的Weaken标签判断资格，再调用共享Orb与Void Breach模板。原表Void B21/D21/N21与快照B18/D18/N18逐格匹配：削弱击杀产生2.5% Super能量球及虚空裂口，成功创建能量球后十秒冷却，当前没有负属性。[官方7.1.0](https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0)已移除精准击杀要求；当前原表及固定Clarity条目见[来源记录](../data/d2-research/2026-10-12/harvest.json)。不限制攻击元素、武器或削弱施加者，奖励归击杀者。
+
+死亡清理可能先移除实时Weaken，尸体也可能在反应前消失。因此资格使用`event_buffs_available`和`event_has_buff_tag`，生成点读取死亡时脚底位置；没有历史证据时不从当前实体猜测。尚未装配的削弱来源和派生击杀信用仍需逐项验收，标签接口存在不等于完整内容已经支持。
+
+`invoke_bundle`排队执行，调用被接纳不表示世界物体已经生成。Harvest先授予目标共享`harvest_pending`，以death_id关联本次尝试，再调用组合包`harvest_spawn`。该包include共享Orb模板；模板通过`spawn_as`读取世界生成回执，发出`orb_spawned`、`orb_spawn_rejected`或`orb_position_unobserved`。`emit`保留调用载荷，组合包在已接纳的临时调用上下文中匹配`own_source`及pending身份，不依赖Fragment继续绑定。
+
+成功Orb回执才授予十秒`harvest_cooldown`，随后释放pending并请求Void Breach。已知Orb拒绝或位置未观察释放pending，不花Harvest冷却，仍独立请求Breach；裂口沿用自己的五秒共享生成冷却，不能撤销已经成功的Orb。Orb回执未知则停止执行，保留未解决的pending，不猜测成功、不补发Breach，也不自动重放世界写入。已知单种生成失败仍尝试另一种、排队时只允许一次尝试、已接纳调用跨解绑继续，均是明确Chorus执行政策；原作同帧失败/换装顺序仍待校准。
+
+独立目标共享`harvest_receipts`保存有限death_ids，冷却或pending期间的合格击杀也会记录，防止旧击杀在冷却结束后重放变成新奖励。重复Fragment共享预约、冷却与回执；卸下Fragment不清空这些已接纳状态，纯会话检查点保留它们。`receipt_seconds`必须给出，测试十二秒只用于验收跨十秒冷却的有限重放窗口，不是新增游戏冷却。独立新击杀在十秒到期后可再次产生奖励，未添加全局效果链限制。
+
+`orb_lifetime`与`orb_collection_radius`必填，测试二十秒/半米仍是合成校准。Breach基础回能、Orb收球许可与基础收益均复用上一节定义，Harvest只产生指定持有者的私有逻辑副本；队友Orb复制、完整Super账户和活动倍率、物理表现/存档没有因这一生产者接入而完成。
+
+[12项规则测试](../common/src/test/java/com/imdomestic/chorus/effect/HarvestTest.java)与[8项共享世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/HarvestGameTest.java)验证普通原版攻击、付费Shield Throw物理击杀、他人施加Weaken、尸体移除、飞行中装卸、重复来源、实际十秒冷却、共享裂口冷却、接收者消失造成已知拒绝，以及真实Orb已写入但回执未知。两种拾取物的实际碰撞接入Starvation，后续原版击杀接入共享Devour；Feed the Void组合验证当前强化与初次击杀不重复发回能。跨职业技能组合只证明引擎机制，正式职业/Fragment装配、完整数值和HUD仍保持partial。本阶段没有新增引擎Java动作或检查点结构。

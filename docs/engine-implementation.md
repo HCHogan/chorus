@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+Harvest完整门禁 `/tmp/chorus-harvest-gate.log` BUILD SUCCESSFUL，2分8秒：1497项JUnit（无失败/错误/跳过）、Fabric772项、NeoForge787项及两端发布jar通过，共享Chorus场景771项。新增12项规则测试和8项共享世界场景。10项Compendium审计、83条报告一致性及差异检查通过，两端发布jar确认不含效果/GameTest/持久化夹具。本轮只增加内容定义、验收和文档，没有新增引擎Java动作、检查点结构或客户端协议。
+
+Echo of Harvest以实际死亡的历史Weaken与位置为依据，接受非精准、非限定元素及他人施加的削弱，生成2.5%能量球并调用共享Void Breach。共享Orb模板使用现有spawn_as结果与emit发出确认回调；组合包保留临时调用上下文，只有Orb确认成功才启动十秒冷却。目标共享pending关联death_id，有限回执记录冷却/预约期间的击杀，重复来源和旧事实不会多生成。已知拒绝释放预约，未知结果保留未解决状态并停止；Breach的五秒冷却独立。
+
+真实世界验收使用付费Shield Throw物理击杀与普通原版死亡，生成实际Orb/Breach并碰撞收集，接入Starvation/普通或强化Devour和后续击杀回能。覆盖尸体在反应前移除、飞行中Fragment装卸、重复来源、十秒实际tick、生成后卸装、另一裂口生产者、接收者消失及实际Orb创建后的未知回执。纯会话检查点还验证跨解绑/冷却的有限身份保留。首轮纯测试两处断言分别误假定夹具带武器身份、对浮点回能精确相等，修正为真实伤害来源比较和容差后，完整双端回归首次通过。
+
+原表Harvest三个单元格与快照文本规范化匹配，Clarity固定提交与归档哈希核对通过。新增Harvest partial审阅，累计83条：81 partial、2 not_applicable、0 verified，仍不是全表分母。正式Fragment/职业装配、其他真实生产者、队友Orb副本、同帧失败/换装原作政策、完整数值校准、HUD及物理世界持久化仍未完成。二十秒/半米Orb参数、十二秒回执保留与Breach归一化均为显式验收输入。[规则及来源边界](d2-ruleset.md#echo-of-harvest-的削弱击杀与确认生成)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 Starvation与真实拾取物门禁 `/tmp/chorus-starvation-gate.log` BUILD SUCCESSFUL，1分59秒：1485项JUnit（无失败/错误/跳过）、Fabric764项、NeoForge779项及两端发布jar通过，共享Chorus场景763项。新增12项规则测试、8项共享世界场景。10项Compendium审计、82条报告一致性、原表五个单元格及归档哈希检查通过，发布包不含效果/GameTest/持久化夹具。本轮仅增加内容定义、验收与文档，没有新增引擎Java动作、检查点结构或客户端协议。
 
 Echo of Starvation按实际pickup的收集者授予五秒共享Devour，当前Feed the Void使其治疗变为140HP；重新拾取走已有状态的五/八秒续时，不附加击杀手雷能量。−10Class属性进入已有Profile。来源绑定的能力Buff提供满Super收球许可，解绑只撤回本来源许可；先检查账户可用性，缺失Super不冒充空账户。Starvation本身仍可在缺失选择时提供拾取收益。目标共享有限pickup_ids防止重复事实或重复来源重复治疗，清除Devour/重绑/纯会话检查点保留期限内幂等。

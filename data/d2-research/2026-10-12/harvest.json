@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Echo of Harvest"
+  ],
+  "reviewed_at": "2026-10-12",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1907852650",
+      "archived_html": "data/d2-research/2026-10-12/devour-source.html.gz",
+      "sha256": "887ea9277cc2230d42e21887806cf6c08d81c17ea94a92357224d39b354b4688",
+      "gzip_sha256": "9ff3b59d314ff5656a076dcae5839847747b68b3571772126cafedddc933fe9e",
+      "cells": [
+        {
+          "original_cell": "B21",
+          "snapshot_cell": "B18",
+          "snapshot_text_sha256": "c91ab8b61d373c0cb1cce94713f161e259f77172c8c08467ecacd138169ea364",
+          "normalized_text": "Harvest",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "D21",
+          "snapshot_cell": "D18",
+          "snapshot_text_sha256": "591e8bcf06cb307571bd5dfdd08cafdf577cfa7dc379498d613698f5b2ee9f37",
+          "normalized_text": "Killing Weakened Enemies creates an Orb of Power that grants 2.5% Super Energy and a Void Breach. Incurs a 10 second cooldown upon creating an Orb of Power.",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "N21",
+          "snapshot_cell": "N18",
+          "snapshot_text_sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+          "normalized_text": "-",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "primary_community_research",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "archived_json": "data/d2-research/2026-10-12/harvest-clarity.json",
+      "sha256": "138d877df0c7a70c872cfb218bc25840e2142fcbade1030fd222899728f81067",
+      "item_hash": 2661180601,
+      "finding": "Weakened kills spawn a Void Breach and a 2.5% Super Orb; ten seconds between activations."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0",
+      "short_excerpt": "No longer requires a precision kill to activate.",
+      "finding": "7.1.0 removed precision kill qualification from Echo of Harvest."
+    },
+    {
+      "kind": "official",
+      "url": "https://static01.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "finding": "Negative Void Fragment stats removed except stated exceptions; current Harvest row has no penalty."
+    }
+  ],
+  "implemented": [
+    "Confirmed holder kill with historical Weaken creates a private 2.5% Orb and requests shared Void Breach; no precision or element requirement.",
+    "Historical position and Weaken evidence survive death cleanup and actual corpse removal; foreign Weaken grantor does not receive collector rewards.",
+    "Orb template emits explicit spawned/rejected/unobserved events retaining transient invocation context. Harvest starts ten-second cooldown only on successful Orb creation.",
+    "Holder-shared pending reservation and bounded death receipts suppress duplicate sources and queued repeat attempts; accepted invocation survives source detach.",
+    "Actual paid Shield Throw and native deaths produce physical pickups, current Starvation heals/extends Devour and grants base current-account energy; enhanced Feed composition tested.",
+    "Known missing recipient rejects both physical spawns without cooldown; injected unknown receipt after actual Orb write stops before Breach and cannot replay."
+  ],
+  "gaps": [
+    "完整Fragment/子职业装配、全部削弱来源与派生击杀信用、其他Orb/Breach生产者及多人Orb副本政策尚未完成；当前只实现本持有者私有副本。",
+    "原表明确Orb成功生成后十秒冷却。已知Orb失败仍独立尝试Breach、Breach自身五秒共享冷却、排队期间只接纳一次尝试以及卸下来源不取消已接纳调用，均为明确Chorus故障/调度政策，原作同帧失败与换装边界仍待校准。",
+    "回执death_ids按receipt_seconds有界保留，记录冷却或pending期间被抑制的击杀；十二秒测试输入不是原作冷却。不能据此承诺永久幂等、宿主无限迟到事实或物理世界故障恢复。",
+    "Orb寿命与收集半径必须提供，二十秒/半米为合成输入；Orb 2.5%与Harvest十秒取原表，但完整Super属性/活动/active Super收益仍未装配。",
+    "Breach 11.25%输入、外部归一化与当前Class账户复用上一阶段；测试归一化0.444444及CES .5/.75不当作完整原作校准。",
+    "Shield Throw加Feed the Void只验证引擎组合，不宣称合法Titan/Warlock跨职业配装。正式内容目录、HUD/动画/美术、多人可见性与实体跨维度/重启仍未完成。"
+  ]
+}

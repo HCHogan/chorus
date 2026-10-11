@@ -42,7 +42,7 @@ public class ProjectileGameTest {
         Consumer<Action.CueCommand> onCue = _ -> {};
         final Set<String> deniedStatusTargets = new HashSet<>();
         java.util.function.BiConsumer<DamageCommand, DamageReceipt> afterDamageReceipt = (_, _) -> {};
-        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue, failAfterDisplacement;
+        final Map<BlockPos, BlockState> blocks = new HashMap<>(); boolean failAfterDamage, failAfterHealing, failAfterCue, failAfterDisplacement, failAfterPickup;
         Harness(GameTestHelper h) throws Exception { this(h, _ -> {}); }
         Harness(GameTestHelper h, Consumer<JsonObject> edit) throws Exception { this(h, "projectile", edit); }
         Harness(GameTestHelper h, String fixture, Consumer<JsonObject> edit) throws Exception { this(h, fixture, edit, false); }
@@ -71,6 +71,7 @@ public class ProjectileGameTest {
                 if (request.command() instanceof com.imdomestic.chorus.effect.motion.Displacement.Command && failAfterDisplacement) throw new IllegalStateException("Injected unknown displacement outcome");
                 if (result instanceof ProjectileFlight.Receipt receipt && receipt.entity().isPresent()) projectiles.add((EffectProjectile) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
                 if (result instanceof WorldPickup.Receipt receipt && receipt.entity().isPresent()) pickups.add((EffectObject) h.getLevel().getEntity(UUID.fromString(receipt.entity().orElseThrow())));
+                if (request.command() instanceof WorldPickup.Spawn && failAfterPickup) throw new IllegalStateException("Injected unknown pickup creation outcome");
                 if (request.command() instanceof Action.CueCommand && failAfterCue) throw new IllegalStateException("Injected unknown pickup cue outcome");
                 if (result instanceof DamageReceipt receipt) { var damage = (DamageCommand) request.command(); hits.add(damage); receipts.add(receipt); afterDamageReceipt.accept(damage, receipt); if (failAfterDamage) throw new IllegalStateException("Injected unknown projectile damage outcome"); }
                 if (request.command() instanceof HealingCommand && failAfterHealing) throw new IllegalStateException("Injected unknown projectile healing outcome");

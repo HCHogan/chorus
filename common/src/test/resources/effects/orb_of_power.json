@@ -113,6 +113,26 @@
                         }
                       ]
                     }
+                  ],
+                  "spawn_as": "created"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "created",
+                    "field": "spawned"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:orb_spawned"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:emit",
+                      "event": "chorus_d2:orb_spawn_rejected"
+                    }
                   ]
                 }
               ],

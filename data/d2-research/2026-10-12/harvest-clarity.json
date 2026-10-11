@@ -1,0 +1,54 @@
+{
+  "source_url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+  "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+  "observed_at": "2026-10-12",
+  "full_source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+  "selected_entries": {
+    "2661180601": {
+      "hash": 2661180601,
+      "name": "Echo of Harvest",
+      "lastUpload": 1697894818765,
+      "type": "Subclass Fragment",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Killing "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Weakened enemies spawns a "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Breach and an Orb of Power that grants 2.5% Super Energy."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "10 second cooldown between activations."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

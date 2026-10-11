@@ -2871,3 +2871,10 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 [Starvation](d2-ruleset.md#starvationvoid-breach-与能量球收集)同时需要接触前许可与消费后奖励。内容用按来源的能力Buff表达`orb_pickup_permission`，`collect_if`实时检查收集者的Super账户或该许可；解绑撤销许可但不删除已经生成的物体。已存在/缺失账户先用`ability_energy_flag(available)`区分，再读取full状态；缺失不是空能量。
 
 `chorus:pickup`来源保留生成者，actor/victim才是收集者；被动奖励使用`target_is(self,event_actor)`，不能用`source_is(owner)`把他人产生的Orb拒绝掉。真实物体在奖励前先消费，奖励动作中的已知满账户/无选择不会撤销拾取事实；未知世界动作则按既有顺序停止后续执行。Starvation通过独立有限pickup_id集合保证反应幂等，不能把它推广成外部重复contact可安全重放所有基础收益。
+
+
+### 组合调用中的生成回执与冷却
+
+[Harvest](d2-ruleset.md#echo-of-harvest-的削弱击杀与确认生成)示范“生成成功才冷却”的内容组合。调用者先保存带death_id的共享pending，再`invoke_bundle`一个include通用Orb模板的组合包。`pickup.spawn_as`返回世界确认结果；模板按结果`emit`成功/拒绝事件，事件保留完整调用载荷。组合包回调检查`own_source`与pending中的身份后，才提交冷却、释放预约并调用下一种拾取物。没有新增同步函数返回语法，也不把排队调用当作世界成功。
+
+原来源卸下后，已接纳临时调用仍能收到自己的回执；其他实时来源不能代为消费该回调。已知拒绝可由内容继续尝试独立收益，未知结果则遵循运行时停止规则。pending期间到来的新击杀在本内容中被记录并跳过，不能在回执返回后补发成一次新的激活；具体排队政策不应默认为所有内容的通用规则。

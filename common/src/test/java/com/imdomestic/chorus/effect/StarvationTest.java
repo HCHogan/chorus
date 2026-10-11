@@ -17,11 +17,12 @@ class StarvationTest {
     static final WorldPosition POINT = new WorldPosition("test:world", 4, 40, 3);
     static EffectSource fragment(String id, double cap) { return new EffectSource(id, D + "echo_of_starvation", "player", new BuffInstance.Origin("player", id, "", ""), Set.of(), Map.of("cap", new Measure(cap, Unit.SECOND), "receipt_seconds", new Measure(1, Unit.SECOND))); }
     static EffectSource producer(String kind, String creator) { return new EffectSource("producer/" + kind, D + (kind.equals("orb_of_power") ? "orb_of_power_application" : "void_breach_system"), "player", new BuffInstance.Origin(creator, "producer", "", ""), Set.of(), kind.equals("orb_of_power") ? Map.of("super_energy", new Measure(.025, Unit.CHARGE), "lifetime", new Measure(20, Unit.SECOND), "collection_radius", new Measure(.5, Unit.METER)) : Map.of()); }
-    static final class Harness extends DevourTest.Harness {
+    static class Harness extends DevourTest.Harness {
         final List<WorldPickup.Spawn> spawns = new ArrayList<>(); WorldPickup.Outcome spawnOutcome = WorldPickup.Outcome.SPAWNED; boolean failSpawn;
-        Harness() throws Exception {
-            super("echo_of_starvation", "void_breach", "orb_of_power", "starvation_inputs", "character_stats"); bind("starvation_inputs", "test:starvation_inputs", "player"); selectMore("class", "class_a"); selectMore("super", "super"); equip(fragment("starvation", 10));
+        Harness(String... additional) throws Exception {
+            super(modules(additional)); bind("starvation_inputs", "test:starvation_inputs", "player"); selectMore("class", "class_a"); selectMore("super", "super"); equip(fragment("starvation", 10));
         }
+        static String[] modules(String[] additional) { var names = new ArrayList<>(List.of("echo_of_starvation", "void_breach", "orb_of_power", "starvation_inputs", "character_stats")); names.addAll(List.of(additional)); return names.toArray(String[]::new); }
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r) {
             if (r.command() instanceof WorldPickup.Spawn spawn) { spawns.add(spawn); if (failSpawn) throw new IllegalStateException("unknown pickup creation"); var outcome = spawn.position().isEmpty() ? WorldPickup.Outcome.MISSING_POSITION : spawnOutcome; return new WorldPickup.Receipt(spawn, outcome, outcome == WorldPickup.Outcome.SPAWNED ? Optional.of("pickup/" + spawns.size()) : Optional.empty()); }
             return super.world(r);
