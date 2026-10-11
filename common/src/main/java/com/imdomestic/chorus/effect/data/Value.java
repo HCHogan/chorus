@@ -203,6 +203,19 @@ public interface Value {
             return new Measure(result.doubleValue(), first.unit());
         }
     }
+    /** A dimensionless ratio of two measurements of the same unit. No implicit zero-denominator policy. */
+    record Ratio(Value numerator, Value denominator) implements Value {
+        public Ratio { java.util.Objects.requireNonNull(numerator); java.util.Objects.requireNonNull(denominator); }
+        @Override public Unit unit(Validation v) {
+            Validation.same(numerator.unit(v), denominator.unit(v)); return Unit.MULTIPLIER;
+        }
+        @Override public Measure evaluate(Evaluation e) {
+            var n = numerator.evaluate(e); var d = denominator.evaluate(e); Validation.same(n.unit(), d.unit());
+            if (d.value() == 0) throw new IllegalArgumentException("Ratio denominator is zero");
+            var result = java.math.BigDecimal.valueOf(n.value()).divide(java.math.BigDecimal.valueOf(d.value()), java.math.MathContext.DECIMAL128);
+            return new Measure(result.doubleValue(), Unit.MULTIPLIER);
+        }
+    }
     /** Explicit conversion, such as charge_fraction per credited stack. No implicit unit coercion. */
     record Scale(Value input, double factor, Unit from, Unit to) implements Value {
         @Override public Unit unit(Validation v) { Numbers.finite(factor, "conversion factor"); Validation.same(input.unit(v), from); return to; }

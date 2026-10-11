@@ -101,6 +101,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 
 当前已实现 Value / Condition / Action 的开放类型分派和编译，程序根结构及完整 JSON / 需先链接的片段示例见 [engine-implementation.md](engine-implementation.md) 和 `common/src/test/resources/effects/`。完整 EffectProgram 已注册到服务端可重载的 `chorus:effect_program`，数据包覆盖、坏包拒绝、运行时保留旧定义和管理命令均通过两端 GameTest，具体使用见 [engine-data-packs.md](engine-data-packs.md)。同版本片段先用 PROGRAM 解码，再由 CompiledEffects.link 在完整目录上校验引用 / 单位；不覆盖重复定义，不在导入依赖内混合版本。数据包可用 imports / fragment 在同一 effect_program 目录声明模块；所有文件解码后统一链接可执行根，整次重载成功才发布。菱形与互引按模块身份去重，运行时效果链不受导入图限制；已有运行时保留旧编译目录。本节其他片段仍是目标 DSL 示意，客户端同步与细粒度内容注册表尚未接入。当前 `while` 行为可通过查询期 modifier 的 `if` 表达，顶层 `while` 语法糖尚未实现。
 
+同单位相除使用通用 `chorus:ratio` Value，输出 multiplier；来源快照与目标 / impact 延迟读取沿用各操作数语义，零分母和异单位明确拒绝。距离归一化等内容算法可组合该表达式与曲线 Profile，具体 JSON 与精度契约见 [同单位比值](engine-data-packs.md#同单位比值)。
+
 ### 两种规则
 
 - **事件规则**（`on`）：事件发生的那一刻触发一次。

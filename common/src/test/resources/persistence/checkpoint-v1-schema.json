@@ -301,6 +301,7 @@
   "chorus:effect/data/value/resource": ["resource:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target", "field:com.imdomestic.chorus.effect.data.Value$ResourceField"],
   "chorus:effect/data/value/resource_field": ["VALUE", "CAPACITY", "MISSING"],
   "chorus:effect/data/value/result": ["binding:java.lang.String", "field:java.lang.String"],
+  "chorus:effect/data/value/ratio": ["numerator:com.imdomestic.chorus.effect.data.Value", "denominator:com.imdomestic.chorus.effect.data.Value"],
   "chorus:effect/data/value/round": ["input:com.imdomestic.chorus.effect.data.Value", "mode:com.imdomestic.chorus.effect.data.Value$Rounding"],
   "chorus:effect/data/value/rounding": ["FLOOR", "CEILING", "HALF_UP"],
   "chorus:effect/data/value/scale": ["input:com.imdomestic.chorus.effect.data.Value", "factor:double", "from:com.imdomestic.chorus.stat.Unit", "to:com.imdomestic.chorus.stat.Unit"],

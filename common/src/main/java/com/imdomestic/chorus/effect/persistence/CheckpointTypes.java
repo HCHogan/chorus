@@ -307,6 +307,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/value/ability_energy", com.imdomestic.chorus.effect.data.Value.AbilityEnergy.class);
         types.put("chorus:effect/data/value/ammo", com.imdomestic.chorus.effect.data.Value.Ammo.class);
         types.put("chorus:effect/data/value/arithmetic", com.imdomestic.chorus.effect.data.Value.Arithmetic.class);
+        types.put("chorus:effect/data/value/ratio", com.imdomestic.chorus.effect.data.Value.Ratio.class);
         types.put("chorus:effect/data/value/attribute", com.imdomestic.chorus.effect.data.Value.Attribute.class);
         types.put("chorus:effect/data/value/buff_count", com.imdomestic.chorus.effect.data.Value.BuffCount.class);
         types.put("chorus:effect/data/value/by_buff_tier", com.imdomestic.chorus.effect.data.Value.ByBuffTier.class);

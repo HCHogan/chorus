@@ -944,6 +944,20 @@ lower / upper 是同单位 Value；结果提供同单位的 value / lower / uppe
 
 DSL arithmetic 的 add / mul 对有限操作数采用 BigDecimal.valueOf 的规范十进制运算，当前表达式节点最终仍返回 double；min / max 保持同单位比较。显式 round 再按声明的 floor / ceiling / half_up 取整，避免二进制乘法残差让 `100 × 1.1` 被 ceil 成 111；不会用 epsilon 把真正的非整数当成整数。Profile 阶段、曲线与已捕获测量的各自精度契约保持原有定义。
 
+### 同单位比值
+
+`chorus:ratio` 的 numerator / denominator 为同单位 Value，结果单位固定为 multiplier。例如把爆炸衰减区间内的距离换成 0～1：
+
+```json
+{"type":"chorus:ratio",
+ "numerator":{"type":"chorus:event_number","name":"distance_past_plateau","unit":"meter"},
+ "denominator":{"type":"chorus:event_number","name":"falloff_width","unit":"meter"}}
+```
+
+两个操作数在编译和求值时都检查单位；分母为正零或负零明确失败，不返回默认值。允许负比值，范围裁剪由调用方的 min / max 或条件决定。采用规范十进制 DECIMAL128 除法，节点输出仍为有限 double；无法表示的溢出失败，非终止小数按该精度舍入。快照分别处理两个操作数，来源读数冻结，victim / impact 读数保留到每个目标结算。JSON 和检查点注册了独立的 Ratio 类型，原有检查点记录字段不变。
+
+[Chain Reaction](d2-ruleset.md#chain-reaction-的击杀爆炸与来源校准) 用 `(distance − full_radius) / (radius − full_radius)` 归一化，再查询显式提供的衰减 Profile；不会把一组固定米数曲线写死在通用引擎里。
+
 ### 服务端单次开火
 
 weapons 中可选的 fire 为当前物品原型声明一次触发。缺省时拒绝开火；不会回退到原版近战或偷偷生成弹药。完整示例见 [weapon_fire.json](../common/src/test/resources/effects/weapon_fire.json)，与 kill_clip.json 链接；其中弹量、0.15 秒射击间隔、0.2 秒换弹与 10 点基础伤害都是机制测试参数。

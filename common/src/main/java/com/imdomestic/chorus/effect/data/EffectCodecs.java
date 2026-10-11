@@ -103,6 +103,9 @@ public final class EffectCodecs {
                 .register("chorus:arithmetic", Value.Arithmetic.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         enumeration(Value.Operator.class).fieldOf("op").forGetter(Value.Arithmetic::operation), self.listOf().fieldOf("of").forGetter(Value.Arithmetic::operands)
                 ).apply(i, Value.Arithmetic::new)))
+                .register("chorus:ratio", Value.Ratio.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        self.fieldOf("numerator").forGetter(Value.Ratio::numerator), self.fieldOf("denominator").forGetter(Value.Ratio::denominator)
+                ).apply(i, Value.Ratio::new)))
                 .register("chorus:scale", Value.Scale.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         self.fieldOf("of").forGetter(Value.Scale::input), FINITE.fieldOf("factor").forGetter(Value.Scale::factor),
                         StatCodecs.UNIT.fieldOf("from").forGetter(Value.Scale::from), StatCodecs.UNIT.fieldOf("to").forGetter(Value.Scale::to)

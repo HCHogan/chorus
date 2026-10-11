@@ -35,6 +35,7 @@ public final class SnapshotExpressions {
             case Value.EventNumber v -> literal(v, e);
             case Value.ImpactNumber v -> v;
             case Value.Arithmetic v -> new Value.Arithmetic(v.operation(), v.operands().stream().map(x -> x.snapshot(e)).toList());
+            case Value.Ratio v -> new Value.Ratio(v.numerator().snapshot(e), v.denominator().snapshot(e));
             case Value.Scale v -> new Value.Scale(v.input().snapshot(e), v.factor(), v.from(), v.to());
             case Value.CurveValue v -> new Value.CurveValue(v.input().snapshot(e), v.curve(), v.from(), v.to());
             case Value.Enhanced v -> (e.enhanced() ? v.enhanced() : v.base()).snapshot(e);
