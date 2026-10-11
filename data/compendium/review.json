@@ -2802,7 +2802,7 @@
       "name": "Overflow",
       "kind": "effect",
       "archived": false,
-      "status": "unimplemented",
+      "status": "partial",
       "sources": [
         {
           "sheet": "Weapon Perks",
@@ -2820,31 +2820,79 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "已审阅弹药需求；通用整数账户、转移 / 生成和取整已验收，尚无该 perk 的独立内容定义",
+      "scope": "独立 JSON：特殊 / 重型物理弹药砖领取后，先按当前装备逐武器补储备，再让各满溢武器按当前基础容量2 / 强化2.2倍上取整并从自己的储备补弹；收枪、实际玩家装备 / 射击 / 换弹、换装、多砖、未知结果和纯会话恢复已验，完整弹药经济待校准",
       "acceptance": [
         "拾取特殊或重型弹药砖后补充弹匣并增加100% / 强化120%容量；收枪可触发",
         "按C250溢出取整；特殊 / 威能补弹从储备转移，不能触发换弹词条"
       ],
       "evidence": [
         {
-          "kind": "design",
-          "path": "docs/d2-ruleset.md"
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/overflow.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ammo_pickups.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/overflow_weapon.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-11/overflow.json"
         },
         {
           "kind": "unit_test",
-          "path": "common/src/test/java/com/imdomestic/chorus/effect/AmmunitionTest.java",
-          "symbol": "refillConservesFiniteRoundsAndRespectsSourceAndDestinationLimits"
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OverflowTest.java",
+          "symbol": "specialBrickCommitsReservesBeforeAllNormalAndEnhancedStowedOverflowRules"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OverflowTest.java",
+          "symbol": "normalAndEnhancedCeilingsAreExactForSmallMagazinesAndDecimalBoundaryCapacities"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OverflowTest.java",
+          "symbol": "fullCorrespondingReservesKeepBrickEvenWithEmptyMagazineOrOtherAmmoSpace"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/OverflowTest.java",
+          "symbol": "checkpointPreservesCommittedOverflowAndDoesNotReplayOldPickup"
         },
         {
           "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AmmoGameTest.java",
-          "symbol": "independentWeaponsCommitConservedRefillsBeforeNativeActionsWithoutFakingReload"
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OverflowGameTest.java",
+          "symbol": "specialBrickTriggersNormalEnhancedAndOtherAmmoWeaponsWhileStowedThenFeedsActualFire"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OverflowGameTest.java",
+          "symbol": "fullSpecialBrickWaitsForActualManualReloadThenGrantsReservesBeforeOverflow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OverflowGameTest.java",
+          "symbol": "replacingWeaponsBeforeContactUsesNewAllocationAndOnlyCurrentPerks"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OverflowGameTest.java",
+          "symbol": "successiveBricksUseSpaceFreedByOverflowThenRetainTheFirstUnneededUnit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/OverflowGameTest.java",
+          "symbol": "unknownPostRefillWorldReactionKeepsTransferredAmmoAndNeverReclaimsBrick"
         }
       ],
       "gaps": [
-        "尚无该词条的数据定义、实际武器来源装配和完整时间线验收；通用弹药测试不代表内容已实现",
-        "弹药砖资格、拾取增加储备与本词条转移的先后、不同弹药种类交互未验收",
-        "临时补弹上限与动态基础弹匣容量已分开；与具体容量词条的组合顺序和取整还需内容验收"
+        "倍数 / 上取整和 Refills 术语已核对原表；对应有限储备缺口才领取、先储备后满溢、跨弹药类别同时触发及换装时机是明确内容政策，完整原作边界仍待实测",
+        "弹药砖掉落、Finder / Scavenger / Shoot to Loot / Lead from Gold、双特殊分摊、PvP 与特殊满弹资格未校准；外部 Profile 必须提供每武器整数分配，示例12 / 4发、10秒和0.5米均为合成输入",
+        "当前生成需显式请求和可解析位置实体；自动掉落、尸体历史位置、队友副本 / 公共抢占、热量武器、全部原型和容量 / 换弹组合未完成",
+        "规则仍在测试资源；正式内容目录、专用外观 / HUD 和物理武器或短命砖跨重启验收尚未完成"
       ]
     },
     {

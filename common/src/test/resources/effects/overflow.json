@@ -1,0 +1,87 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:overflow",
+      "rules": [
+        {
+          "id": "pickup",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_reference",
+                    "name": "pickup_kind",
+                    "is": "chorus_d2:special_ammo"
+                  },
+                  {
+                    "type": "chorus:event_reference",
+                    "name": "pickup_kind",
+                    "is": "chorus_d2:heavy_ammo"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:refill_magazine",
+                  "ceiling": {
+                    "type": "chorus:round",
+                    "mode": "ceiling",
+                    "input": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:result",
+                          "binding": "ammo",
+                          "field": "capacity"
+                        },
+                        {
+                          "type": "chorus:enhanced",
+                          "base": {
+                            "type": "chorus:constant",
+                            "value": 2,
+                            "unit": "multiplier"
+                          },
+                          "enhanced": {
+                            "type": "chorus:constant",
+                            "value": 2.2,
+                            "unit": "multiplier"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

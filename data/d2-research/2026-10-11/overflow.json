@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "effect": "Overflow and ammunition pickup routing",
+  "reviewed_at": "2026-10-11",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "sheet": "Weapon Perks",
+      "cells": [
+        {
+          "original_cell": "A161",
+          "snapshot_cell": "A160",
+          "normalized_text": "Overflow",
+          "snapshot_text_sha256": "17b8dcf53e4ba045ddf86985ba6f75857065b73c202aaf596d3501f71dba9f97",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C161",
+          "snapshot_cell": "C160",
+          "normalized_text": "On Special or Heavy Ammo Brick Pickup: Refills Magazine and grants 100 ↑120% Increased Magazine Capacity. Buff can be activated while stowed. ↑Ammo Brick Pickup grants 120% Increased Magazine Capacity.",
+          "snapshot_text_sha256": "e0375bd3ee01a7a76341251e9d0cc238780a61071e85289693bc64531a833cff",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "pinned_csv_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/article/51707",
+      "published_at": "2022-08-23",
+      "claim": "Historical update fixed excessive Enhanced Overflow ammunition when combined with Shoot to Loot. This is not evidence of a new numeric multiplier or proof that this implementation covers Shoot to Loot."
+    },
+    {
+      "kind": "published_community_research",
+      "url": "https://www.light.gg/db/fr/items/3643424744/d%C3%A9bordement/",
+      "claim": "Search-index Community Research corroborates normal refill from reserves and 100 percent overfill.",
+      "retrieval": "Search-index text only; direct enhanced-item URL https://www.light.gg/db/items/2682205016/overflow/?_=988 returned 402. Numeric implementation is grounded in the supplied Compendium rather than inaccessible page details."
+    }
+  ],
+  "numbers": {
+    "normal_ceiling_multiplier": 2,
+    "enhanced_ceiling_multiplier": 2.2,
+    "rounding": "ceiling",
+    "arithmetic": "canonical decimal multiplication followed by explicit rounding; 25 * 2.2 = 55, not 56"
+  },
+  "content_policies": [
+    "Only chorus:pickup with special_ammo or heavy_ammo kind, whose actor matches the currently equipped perk holder, triggers Overflow. Producer ownership does not identify the collector. Every equipped Overflow weapon, including stowed and other ammo categories, uses its own account.",
+    "Refill uses the current effective base magazine capacity and transfers the missing amount from that weapon reserve up to the normal/enhanced ceiling. Unlimited reserves stay unlimited; low reserves limit the actual transfer. Already loaded higher overflow is retained. No base-capacity mutation or reload_finished fact is introduced.",
+    "Private brick generation is explicitly requested for the factory holder, at a currently resolvable victim position. Lifetime and collection radius are mandatory source parameters. This module does not infer drop rates, choose a nearest player, or require the original producer to remain bound.",
+    "Physical collection requires positive free finite reserve space in current matching weapon definitions. Magazine deficit, another ammo category and unlimited reserve do not satisfy this condition. This pickup-eligibility policy still needs original-game calibration with ammo finder, PvP and exotic exceptions.",
+    "Collection snapshots current matching equipped weapon identities, then queries each external per-weapon round allocation profile and caps each reserve grant. All grants commit before queued pickup reactions. Query holder is collector and victim is receiving weapon; neither silently rewrites producer credit.",
+    "Allocation profiles must supply calibrated nonnegative integral rounds, with a positive allocation for an ordinary eligible brick. There is no built-in split ratio, inventory stat table, scavenger modifier or per-weapon amount. Tests use explicit synthetic quantities.",
+    "Changing equipment/perks before contact affects both allocation and current pickup reactions. Detaching the factory after spawn does not erase the physical brick or its captured attribution.",
+    "Successive bricks observe reserves after prior grants and Overflow transfers. The same physical unit is consumed before reward; an unknown subsequent world outcome preserves committed ammunition and does not replay.",
+    "Pure session checkpoint round-trips the program, equipped rolls and committed ammo without repeating pickup; no claim is made that noSave physical bricks survive restart."
+  ],
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/overflow_weapon.json",
+    "confidence": "synthetic_not_measured_D2_archetypes",
+    "primary": {
+      "capacity": 5,
+      "magazine": 1,
+      "reserves": "unlimited"
+    },
+    "special": {
+      "capacity": 5,
+      "magazine": 0,
+      "reserves": 0,
+      "reserve_capacity": 30,
+      "brick_rounds": 12
+    },
+    "heavy": {
+      "capacity": 1,
+      "magazine": 0,
+      "reserves": 6,
+      "reserve_capacity": 10,
+      "brick_rounds": 4
+    },
+    "other_inputs": {
+      "damage": 10,
+      "shot_interval_seconds": 0.15,
+      "reload_seconds": 0.2,
+      "projectile_speed_m_per_s": 20,
+      "brick_lifetime_seconds": 10,
+      "collection_radius_m": 0.5
+    }
+  },
+  "gaps": [
+    "D2 brick economy, Finder/Scavenger/Shoot to Loot/Lead from Gold interactions, multi-special allocation, activity/PvP and full-ammo pickup exceptions are not calibrated.",
+    "No automatic drop producers, historical corpse position fallback, teammate copies or shared claim distribution; caller explicitly provides a current spawn anchor and private recipient.",
+    "Heat weapons, complete weapon archetypes, exotic and other overflow/reload/capacity combinations require further content and original-game timing calibration.",
+    "Production content catalogue, distinct ammo-brick visuals, HUD and physical-item persistence/restart remain incomplete."
+  ]
+}

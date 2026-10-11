@@ -1,0 +1,778 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:power",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:primary",
+        "tags": [
+          "test:weapon",
+          "chorus:primary_ammo"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:overflow"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:overflow",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "observe": {
+            "bundle": "test:overflow_observer"
+          },
+          "yield": {
+            "bundle": "test:brick_yield",
+            "parameters": {
+              "rounds": "brick_rounds"
+            }
+          }
+        },
+        "parameters": {
+          "brick_rounds": {
+            "unit": "round",
+            "minimum": 1,
+            "maximum": 1000,
+            "integral": true
+          }
+        }
+      },
+      {
+        "id": "test:special",
+        "tags": [
+          "test:weapon",
+          "chorus:special_ammo"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:overflow"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:overflow",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "observe": {
+            "bundle": "test:overflow_observer"
+          },
+          "yield": {
+            "bundle": "test:brick_yield",
+            "parameters": {
+              "rounds": "brick_rounds"
+            }
+          }
+        },
+        "parameters": {
+          "brick_rounds": {
+            "unit": "round",
+            "minimum": 1,
+            "maximum": 1000,
+            "integral": true
+          }
+        }
+      },
+      {
+        "id": "test:heavy",
+        "tags": [
+          "test:weapon",
+          "chorus:heavy_ammo"
+        ],
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "normal": {
+                "bundle": "chorus_d2:overflow"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:overflow",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        },
+        "effects": {
+          "observe": {
+            "bundle": "test:overflow_observer"
+          },
+          "yield": {
+            "bundle": "test:brick_yield",
+            "parameters": {
+              "rounds": "brick_rounds"
+            }
+          }
+        },
+        "parameters": {
+          "brick_rounds": {
+            "unit": "round",
+            "minimum": 1,
+            "maximum": 1000,
+            "integral": true
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:primary",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 1,
+        "reserves": "unlimited",
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:special",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 0,
+        "reserves": {
+          "rounds": 0,
+          "capacity": 30
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "item": "test:heavy",
+      "ammunition": {
+        "capacity": 1,
+        "magazine": 0,
+        "reserves": {
+          "rounds": 6,
+          "capacity": 10
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        }
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.15,
+          "unit": "second"
+        },
+        "tags": [
+          "test:primary_fire"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_position",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "muzzle"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_direction"
+            },
+            "as": "aim"
+          },
+          {
+            "action": {
+              "type": "chorus:capture_damage",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "scaling_profile": "test:weapon_damage",
+              "tags": [
+                "chorus:weapon_damage"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            },
+            "as": "shot"
+          },
+          {
+            "projectile": {
+              "position": "muzzle",
+              "direction": "aim",
+              "speed": {
+                "type": "chorus:constant",
+                "value": 20,
+                "unit": "meter_per_second"
+              },
+              "gravity": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter_per_second_squared"
+              },
+              "drag": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "multiplier"
+              },
+              "lifetime": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              }
+            },
+            "as": "impact",
+            "do": [
+              {
+                "for_each": "impact",
+                "as": "victim",
+                "do": [
+                  {
+                    "type": "chorus:damage_snapshot",
+                    "snapshot": "shot",
+                    "target": {
+                      "binding": "victim"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:magazine",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "add",
+          "group": {
+            "name": "capacity",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:special_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "rounds",
+          "operation": "add",
+          "group": {
+            "name": "rounds",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:heavy_brick_rounds",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "rounds",
+          "operation": "add",
+          "group": {
+            "name": "rounds",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:extended_mag",
+      "modifiers": [
+        {
+          "id": "capacity",
+          "profile": "test:magazine",
+          "stage": "capacity",
+          "group": "capacity",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "round"
+          },
+          "stacking_key": "test:extended_mag",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "reference": "Synthetic +4 base magazine capacity; not a D2 magazine perk calibration",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:overflow_observer",
+      "rules": [
+        {
+          "id": "refill",
+          "on": "chorus:ammo_refilled",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:refilled"
+            }
+          ]
+        },
+        {
+          "id": "reload",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:reloaded"
+            }
+          ]
+        },
+        {
+          "id": "reserve",
+          "on": "test:reserve",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "pool": "reserves",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend",
+          "on": "test:spend",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "pool": "reserves",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "spend_magazine",
+          "on": "test:spend_magazine",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:spend_ammo",
+              "pool": "magazine",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              }
+            }
+          ]
+        },
+        {
+          "id": "generate_magazine",
+          "on": "test:generate_magazine",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ammo",
+              "pool": "magazine",
+              "amount": {
+                "type": "chorus:event_number",
+                "name": "amount",
+                "unit": "round"
+              },
+              "ceiling": {
+                "type": "chorus:constant",
+                "value": 1000,
+                "unit": "round"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:pickup_observer",
+      "rules": [
+        {
+          "id": "pickup",
+          "on": "chorus:pickup",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:collected"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:brick_yield",
+      "parameters": {
+        "rounds": "round"
+      },
+      "modifiers": [
+        {
+          "id": "special",
+          "profile": "chorus_d2:special_brick_rounds",
+          "stage": "rounds",
+          "group": "rounds",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "rounds"
+          },
+          "stacking_key": "test:brick_yield",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "this_weapon",
+            "right": "victim"
+          },
+          "reference": "Synthetic per-weapon brick allocation; not measured Destiny ammunition economy",
+          "confidence": "assumed"
+        },
+        {
+          "id": "heavy",
+          "profile": "chorus_d2:heavy_brick_rounds",
+          "stage": "rounds",
+          "group": "rounds",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "rounds"
+          },
+          "stacking_key": "test:brick_yield",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "this_weapon",
+            "right": "victim"
+          },
+          "reference": "Synthetic per-weapon brick allocation; not measured Destiny ammunition economy",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

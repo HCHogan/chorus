@@ -1,0 +1,268 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ammo_pickups",
+      "parameters": {
+        "lifetime": "second",
+        "radius": "meter"
+      },
+      "rules": [
+        {
+          "id": "spawn_special",
+          "on": "chorus_d2:spawn_special_ammo",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "place"
+            },
+            {
+              "pickup": {
+                "position": "place",
+                "kind": "chorus_d2:special_ammo",
+                "recipient": "self",
+                "lifetime": {
+                  "type": "chorus:source_parameter",
+                  "name": "lifetime"
+                },
+                "radius": {
+                  "type": "chorus:source_parameter",
+                  "name": "radius"
+                }
+              },
+              "collect_if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:equipped_reserve_space",
+                  "holder": "self",
+                  "tags": [
+                    "chorus:special_ammo"
+                  ]
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "round"
+                }
+              },
+              "as": "contact",
+              "do": [
+                {
+                  "for_each": "contact",
+                  "as": "collector",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:observe_equipped_weapons",
+                        "holder": {
+                          "binding": "collector"
+                        },
+                        "tags": [
+                          "chorus:special_ammo"
+                        ]
+                      },
+                      "as": "weapons"
+                    },
+                    {
+                      "for_each": "weapons",
+                      "as": "weapon",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:observe_ammo",
+                            "weapon": {
+                              "binding": "weapon"
+                            }
+                          },
+                          "as": "ammo"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "ammo",
+                            "field": "finite_reserves"
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:special_brick_rounds",
+                                "target": {
+                                  "binding": "collector"
+                                },
+                                "victim": {
+                                  "binding": "weapon"
+                                },
+                                "tags": [
+                                  "chorus_d2:special_ammo"
+                                ],
+                                "input": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "round"
+                                }
+                              },
+                              "as": "gain"
+                            },
+                            {
+                              "type": "chorus:grant_ammo",
+                              "weapon": {
+                                "binding": "weapon"
+                              },
+                              "pool": "reserves",
+                              "amount": {
+                                "type": "chorus:result",
+                                "binding": "gain",
+                                "field": "value"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spawn_heavy",
+          "on": "chorus_d2:spawn_heavy_ammo",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim"
+              },
+              "as": "place"
+            },
+            {
+              "pickup": {
+                "position": "place",
+                "kind": "chorus_d2:heavy_ammo",
+                "recipient": "self",
+                "lifetime": {
+                  "type": "chorus:source_parameter",
+                  "name": "lifetime"
+                },
+                "radius": {
+                  "type": "chorus:source_parameter",
+                  "name": "radius"
+                }
+              },
+              "collect_if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:equipped_reserve_space",
+                  "holder": "self",
+                  "tags": [
+                    "chorus:heavy_ammo"
+                  ]
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "round"
+                }
+              },
+              "as": "contact",
+              "do": [
+                {
+                  "for_each": "contact",
+                  "as": "collector",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:observe_equipped_weapons",
+                        "holder": {
+                          "binding": "collector"
+                        },
+                        "tags": [
+                          "chorus:heavy_ammo"
+                        ]
+                      },
+                      "as": "weapons"
+                    },
+                    {
+                      "for_each": "weapons",
+                      "as": "weapon",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:observe_ammo",
+                            "weapon": {
+                              "binding": "weapon"
+                            }
+                          },
+                          "as": "ammo"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "ammo",
+                            "field": "finite_reserves"
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:heavy_brick_rounds",
+                                "target": {
+                                  "binding": "collector"
+                                },
+                                "victim": {
+                                  "binding": "weapon"
+                                },
+                                "tags": [
+                                  "chorus_d2:heavy_ammo"
+                                ],
+                                "input": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "round"
+                                }
+                              },
+                              "as": "gain"
+                            },
+                            {
+                              "type": "chorus:grant_ammo",
+                              "weapon": {
+                                "binding": "weapon"
+                              },
+                              "pool": "reserves",
+                              "amount": {
+                                "type": "chorus:result",
+                                "binding": "gain",
+                                "field": "value"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

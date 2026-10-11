@@ -216,12 +216,12 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 | --- | --- | --- |
 | Fourth Time's The Charm，C99 | 四次精准命中、相邻命中 2 秒 / 强化 3 秒窗，生成 2 发，基础弹匣上限 | 精准命中去重 / 信用、计数窗、收枪保留和武器装配 |
 | Triple Tap，C235 | 三次精准命中、相同 2 / 3 秒窗，生成 1 发，基础弹匣上限 | 对应计数、精准命中与真实枪械接线 |
-| Overflow，C160 | 拾取特殊 / 重型弹药砖后 refill，临时 ceiling 为基础容量的 2 / 强化 2.2 倍；收枪可触发 | 拾取资格 / 储备增加与 refill 的顺序、真实物品和词条装配 |
+| Overflow，C160 | 拾取特殊 / 重型弹药砖后 refill，临时 ceiling 为基础容量的 2 / 强化 2.2 倍；收枪可触发 | partial：独立规则、物理弹药砖、当前装备分配与先储备后 refill；原作弹药经济和完整组合仍待校准 |
 | Reconstruction，C178 | 停火 6 / 强化 5.5 秒后按相同周期 refill 基础容量的 25%，最多溢出到 2 倍；收枪保留 | 已接实际装备、接受射击和服务端计时；向上取整有公开研究依据，装配 / 同刻 / 换装等边界仍为待校准政策，见后文 |
 | Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | 每发 / 每 bolt 计数与射空资格；适应爆发线融为 14%；补弹后计数屏蔽 `1?` 秒仍是未知 |
 | Clown Cartridge，C47 | 合格换弹后一次随机取值，以有效基础容量计算溢出上限并上取整，从储备 refill | partial：独立 JSON / 实际装备与换弹 / 随机回执已验；分布与组合顺序仍待校准 |
 
-Clown Cartridge、Triple Tap、Fourth Time's The Charm 与 Reconstruction 已推进到 partial，具体定义和验收边界见下文；Overflow 与 Rewind Rounds 仍为 unimplemented。通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表其余词条已经实现。新增条件拾取与当前装备武器 / 储备空间查询，已用合成每武器三发的示例验证“储备满则保留实体、留出空间后领取、先完成各武器储备入账再处理拾取反应”；它尚未定义 D2 弹药砖数量、分配或满溢内容。Overflow 的基础容量倍数和转移规则来自 C160 / C250 的组合解释，具体内容顺序仍需验收；来源有问号的参数保留未知。
+Clown Cartridge、Triple Tap、Fourth Time's The Charm、Reconstruction 与 Overflow 已推进到 partial，具体定义和验收边界见下文；Rewind Rounds 仍为 unimplemented。通用 [ammunition.json](../common/src/test/resources/effects/ammunition.json) 证明账户、转移、取整及动作结果组合，不代表其余词条已经实现。条件拾取 / 当前装备查询已接入满溢内容，但弹药砖数量、分配政策和原作组合仍待校准；来源有问号的参数保留未知。
 
 ### Clown Cartridge 的随机溢出与验收边界
 
@@ -236,6 +236,20 @@ Clown Cartridge、Triple Tap、Fourth Time's The Charm 与 Reconstruction 已推
 8 项纯核心测试覆盖持有者移交后的旧事实拒绝、普通 / 强化下界、动态容量、再次抽样、两实例、有限 / 无限储备、补弹与取消隔离、未知结果保留；3 项共享游戏测试把真实物品的词条选择、普通玩家换弹命令和真实 tick 接起来，检查最终弹数 / 储备以及以实际转移量驱动的世界治疗。另修正 DSL arithmetic 的规范十进制加乘后再输出 double，使 `ceil(100 × 1.1)` 为 110，`ceil(50 × 0.28)` 为 14；真正高于整数的量仍向上取整，不使用容差吞掉分数。
 
 覆盖为 partial。除随机分布外，上述基础换弹 / 溢出阶段、容量快照、基础容量不变及多种 on-reload 效果的顺序仍需原作交互验收。技能换弹、完整 D2 原型、弹药存档与 HUD 尚未完成；clown_weapon.json 的 5 发初始容量与 0.2 秒换弹为合成夹具。
+
+### Overflow 与特殊 / 重型弹药砖
+
+[overflow.json](../common/src/test/resources/effects/overflow.json) 根据 `chorus:pickup` 的实际 actor 匹配当前持有者，且 pickup_kind 必须是 `chorus_d2:special_ammo` 或 `chorus_d2:heavy_ammo`。它不按砖生成者匹配，不把普通储备增加、Firesprite 或砖到期当作拾取。当前装备中每把满溢武器均可响应，收枪不移除来源；每把武器只从自己的储备 refill 至 `ceil(当前有效基础容量 × 2 / 强化 2.2)`，储备不足就只转入可用量，主弹药的无限储备不改成有限账户。一次溢出不修改基础容量、不产生 reload_finished，也不裁掉已有更高溢出。
+
+倍数和上取整来自固定快照 Weapon Perks C160 / C250；2026-10-11 保存的在线原表 C161 / C251 内容相同。乘法使用现有 arithmetic 的规范十进制规则，再单独 ceiling；例如强化25发弹匣得到55发，1发弹匣得到3发。官方 [6.2.0 更新](https://www.bungie.net/7/en/News/article/51707) 曾修复 Shoot to Loot 与强化满溢过量补弹，只作为后续组合验收线索，不据此添加额外倍率或声称已实现 Shoot to Loot。[来源、坐标和政策记录](../data/d2-research/2026-10-11/overflow.json) 保留这一区别。
+
+[ammo_pickups.json](../common/src/test/resources/effects/ammo_pickups.json) 是独立弹药砖模板。给收集者绑定 `chorus_d2:ammo_pickups`，显式提供 lifetime（second）和 radius（meter）；`chorus_d2:spawn_special_ammo / spawn_heavy_ammo` 的 actor 指定该持有者，victim 指定当前可解析的生成位置实体。模板生成该持有者的私有单位，生成者归因独立保留；卸下工厂来源不会取消已经生成的砖。自动掉落概率、尸体历史位置回退、队友副本与共享领取尚未装配。
+
+领取条件读取收集者当前装备的对应 `chorus:special_ammo / chorus:heavy_ammo` 物品标签，只在有限储备存在缺口时成立。弹匣缺弹、其他弹药类别缺口或无限储备不会让这个砖合格。领取动作体再查询当前装备（包含收枪）并逐把计算 `chorus_d2:special_brick_rounds / heavy_brick_rounds`，从外部 Profile 获得非负整数 round，按各自储备上限入账；普通合格砖应配置正收益。Profile 的 holder 是收集者，victim 是正在收款的武器实例，可根据其当前装备来源参数计算实际分配。所有入账先于排队的满溢反应，因此特殊砖可触发重武器满溢，但不会把特殊弹药直接给重武器储备。第二个砖看到第一个的入账与溢出转移后的状态。
+
+上述领取资格、先入账再响应、跨弹药类别同时触发和换装时机是明确的内容政策，尚非全套原作实测。外部 Profile 没有默认弹数或默认多武器分摊比例；[overflow_weapon.json](../common/src/test/resources/effects/overflow_weapon.json) 中主弹药5发 / 无限储备、特殊5发 / 30储备上限 / 每砖12发、重型1发 / 10储备上限 / 每砖4发，以及10秒寿命、0.5米领取半径，全部是合成验收参数。真实 D2 原型、Finder / Scavenger / Lead from Gold / Shoot to Loot、双特殊分配、PvP、热量武器和其他容量 / 换弹组合仍待校准；空 Profile 或任意合成数值不能当作真实弹药经济。
+
+11 项 OverflowTest 验证普通 / 强化、整数边界、有限 / 无限储备、类别 / 持有者隔离、当前容量、换装、错误事件、到期、未知结果与纯会话检查点。6 项共享 OverflowGameTest 从真实玩家独立物品容器开始，覆盖物理特殊 / 重型砖、普通 / 强化收枪、真实射击消耗溢出弹、手动换弹留出缺口后领取、多武器独立分配、连续多个砖到满储备后保留多余砖，以及世界反应失败不重领。发布覆盖仍为 partial；定义位于测试资源，正式内容目录、弹药砖外观、HUD 和物理武器 / 短命实体跨重启验收仍未完成。
 
 ### 动态基础容量与溢出
 

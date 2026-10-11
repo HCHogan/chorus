@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+Overflow 的完整门禁 `/tmp/chorus-overflow-final-gate.log` BUILD SUCCESSFUL，1 分 40 秒：1349 项 JUnit（无失败 / 错误 / 跳过）、Fabric 690 项、NeoForge 705 项及两端发布 jar 通过，共享场景为689项。10 项 Compendium 审计、76条报告一致性与差异检查通过。此阶段只增加内容 / 测试 / 文档，未修改引擎 Java、客户端协议或检查点类型；发布包没有混入效果夹具和 GameTest。
+
+新增 `overflow.json` 在实际收集者的特殊 / 重型 pickup 事实后，对各当前装备来源执行普通 / 强化2 / 2.2倍有效基础容量的 ceiling refill。十进制乘法先于取整，25×2.2得到55。每把武器只从自己的储备转移，有限储备不足时受限，无限主弹药保持无限；收枪可触发，不改变基础容量、不删除已有更高溢出、不发布普通换弹完成事实。
+
+`ammo_pickups.json` 通过上一阶段的 collect_if 与当前装备查询生成私有特殊 / 重型砖。显式 lifetime / radius 和两项外部整数分配 Profile 是必需输入；领取时先按当前对应类别武器逐把补储备，再执行排队的满溢反应。Profile 接收收集者 holder 与收款武器 victim，原生成者归因保持独立。卸下生成来源不删除旧砖；换装影响下一次领取。原表 A161 / C161 / C251 与固定 A160 / C160 / C250 已逐格核对，研究记录复用当天保存的 HTML 及哈希。
+
+11 项 OverflowTest 覆盖普通 / 强化、有限 / 无限、1 / 25等取整边界、类别和持有者、当前容量变化、换装、错误类型 / 过期、纯会话恢复与未知结果。6 项共享 OverflowGameTest 使用真实玩家容器、物理砖、射击和手动换弹，验证收枪和跨弹药类别响应、满储备保留实体、先入账再溢出、晚换装与逐武器分配、多个砖使用溢出腾出的储备空间并保留多余单位，以及已提交补弹后的世界反应故障不重领。开发时修正了未知世界结果测试的异常断言和新夹具对包内 equipment projection 的访问，随后完整门禁通过。
+
+Compendium 更新为76条审阅、67 partial、7 unimplemented、2 not_applicable、0 verified。主 / 特 / 重测试容量、每砖12 / 4发、10秒寿命 / 0.5米半径等仍明确是合成参数；领取资格、先后顺序与全武器响应政策有完整本地验收，尚未完成原作全部边界实测。自动掉落、Finder / Scavenger / Shoot to Loot / Lead from Gold、PvP / 双特殊分配、热量武器、正式内容目录 / 外观 / HUD和物理武器跨重启仍有缺口。[满溢定义、原表和校准边界](d2-ruleset.md#overflow-与特殊--重型弹药砖)。
+
+以下为此前阶段的证据及其当时的未完成范围。
+
 条件拾取与装备弹药查询的完整门禁 `/tmp/chorus-conditional-pickup-gate.log` BUILD SUCCESSFUL，1 分 51 秒：1338 项 JUnit（无失败 / 错误 / 跳过）、Fabric 684 项、NeoForge 699 项以及两端发布 jar 通过，共享场景为683项。10 项 Compendium 审计、76条报告一致性与差异检查通过。此阶段没有客户端协议 / 图形变更，未新增图形客户端验收。
 
 新增 `collect_if` 在物理领取前读取当前状态，false 不消费实体也不执行奖励，后续 tick 重新判断；到期不受阻拦。生成时的来源、原因和词法结果保持捕获语义，不隐式把 self / victim 改成收集者。查询通过已编译的 pickup 续体定义解析，错误版本、未知定义或求值失败不能产生奖励。ConditionalPickup 是新增的检查点类型，旧 Pickup / Spawn / Parameters 等全部 v1 字段形状不变。
