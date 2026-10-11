@@ -209,6 +209,8 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/triple_tap.json'
         include 'effects/fourth_times_the_charm.json'
         include 'effects/precision_ammo_weapon.json'
+        include 'effects/reconstruction.json'
+        include 'effects/reconstruction_weapon.json'
         include 'effects/surplus_weapon.json'
         include 'effects/weapon_stats.json'
         include 'effects/frenzy.json'

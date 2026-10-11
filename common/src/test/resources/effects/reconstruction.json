@@ -1,0 +1,162 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:reconstruction",
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "reconstruction",
+              "event": "chorus_d2:reconstruction_tick",
+              "delay": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 6,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              },
+              "interval": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 6,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              },
+              "repeat": -1,
+              "policy": "replace"
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "chorus:fire_accepted",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "reconstruction",
+              "event": "chorus_d2:reconstruction_tick",
+              "delay": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 6,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              },
+              "interval": {
+                "type": "chorus:enhanced",
+                "base": {
+                  "type": "chorus:constant",
+                  "value": 6,
+                  "unit": "second"
+                },
+                "enhanced": {
+                  "type": "chorus:constant",
+                  "value": 5.5,
+                  "unit": "second"
+                }
+              },
+              "repeat": -1,
+              "policy": "replace"
+            }
+          ]
+        },
+        {
+          "id": "refill",
+          "on": "chorus_d2:reconstruction_tick",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "reconstruction"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:observe_ammo"
+              },
+              "as": "ammo"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "ammo",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "type": "chorus:refill_magazine",
+                  "amount": {
+                    "type": "chorus:round",
+                    "input": {
+                      "type": "chorus:scale",
+                      "of": {
+                        "type": "chorus:result",
+                        "binding": "ammo",
+                        "field": "capacity"
+                      },
+                      "factor": 0.25,
+                      "from": "round",
+                      "to": "round"
+                    },
+                    "mode": "ceiling"
+                  },
+                  "ceiling": {
+                    "type": "chorus:round",
+                    "input": {
+                      "type": "chorus:scale",
+                      "of": {
+                        "type": "chorus:result",
+                        "binding": "ammo",
+                        "field": "capacity"
+                      },
+                      "factor": 2,
+                      "from": "round",
+                      "to": "round"
+                    },
+                    "mode": "ceiling"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

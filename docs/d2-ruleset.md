@@ -217,7 +217,7 @@ Kill Clip 继续标 partial：窗口收枪保留仍为内容假设，夹具 5 �
 | Fourth Time's The Charm，C99 | 四次精准命中、相邻命中 2 秒 / 强化 3 秒窗，生成 2 发，基础弹匣上限 | 精准命中去重 / 信用、计数窗、收枪保留和武器装配 |
 | Triple Tap，C235 | 三次精准命中、相同 2 / 3 秒窗，生成 1 发，基础弹匣上限 | 对应计数、精准命中与真实枪械接线 |
 | Overflow，C160 | 拾取特殊 / 重型弹药砖后 refill，临时 ceiling 为基础容量的 2 / 强化 2.2 倍；收枪可触发 | 拾取资格 / 储备增加与 refill 的顺序、真实物品和词条装配 |
-| Reconstruction，C178 | 停火 6 / 强化 5.5 秒后按相同周期 refill 基础容量的 25%，最多溢出到 2 倍；收枪保留 | 首次时点、停火重置、25% 发数取整须明确；不能把合成的 1 秒定时测试当成该词条 |
+| Reconstruction，C178 | 停火 6 / 强化 5.5 秒后按相同周期 refill 基础容量的 25%，最多溢出到 2 倍；收枪保留 | 已接实际装备、接受射击和服务端计时；向上取整有公开研究依据，装配 / 同刻 / 换装等边界仍为待校准政策，见后文 |
 | Rewind Rounds，C187 | 射空弹匣后 refill 命中伤害次数的 60% / 强化 70%，上取整；至少射出 ceil(基础容量 × 28.5%) | 每发 / 每 bolt 计数与射空资格；适应爆发线融为 14%；补弹后计数屏蔽 `1?` 秒仍是未知 |
 | Clown Cartridge，C47 | 合格换弹后一次随机取值，以有效基础容量计算溢出上限并上取整，从储备 refill | partial：独立 JSON / 实际装备与换弹 / 随机回执已验；分布与组合顺序仍待校准 |
 
@@ -1277,3 +1277,16 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 去重集合独立于触发计数：每个已接受 damage_id 保留三秒，之后用 forget_set_entry 删除，重复事实不延长保留期。来源任务在卸装时取消，持续射击不留下永久集合。回执超期重放不保证去重；三秒不是玩法循环限制。纯会话 checkpoint 已覆盖计数、凭据及延迟清理恢复，不代表正式物品 / 生产目录的双端重启验收。
 
 [precision_ammo_weapon.json](../common/src/test/resources/effects/precision_ammo_weapon.json) 仅用于验收：真实容器和开火命令、按发扣弹、物理碰撞的归一化部位坐标、目标侧区域 Profile、实际伤害回执与手动换弹均参与链路。12 发弹匣、30 储备、10 / 15 伤害、0.15 秒射击间隔、0.2 秒换弹及 20 米/秒弹道都是合成参数；区域不是原版全生物头部判定，也没有完整 D2 弱点目录。正式武器原型、热量武器 / 异域分支、细分伤害信用、自动内容装配和 HUD 仍未完成，两条审阅状态为 partial。
+
+
+## Reconstruction 的停火计时与周期补弹
+
+2026-10-11 原表 Weapon Perks A179/C179、C251（固定 CSV A178/C178、C250）与已保存原始 HTML 逐格一致。[来源记录](../data/d2-research/2026-10-11/reconstruction.json) 保留坐标、哈希和政策。[7.1.0 官方补丁](https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0) 将首次延迟与后续补弹间隔统一；[8.1.0](https://www.bungie.net/7/en/News/article/destiny_update_8_1_0) 增加普通 / 强化启动时间两秒；[9.0.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1) 把每次转移量从10%提高到25%。当前原表明确普通 / 强化均按6 / 5.5秒间隔补弹。
+
+[reconstruction.json](../common/src/test/resources/effects/reconstruction.json) 只组合现有 source_attached、fire_accepted、schedule、own_timer、observe_ammo 和 refill_magazine：装配来源时开启一个命名循环计时器；本持有者本武器的接受射击替换它，首个与后续补弹均等待一次对应间隔。收枪、其他枪射击、拒绝的开火、投射物命中和手动换弹不会重置它；卸下来源由通用生命周期取消。不存在单独的 Java Reconstruction 分支。
+
+每个 pulse 读取当时有效基础容量，一次转移 `ceil(capacity × 0.25)`，上限 `ceil(capacity × 2)`；有限储备逐发守恒，无限储备保持无限。不能转移时不产生 ammo_refilled，也不停止周期；后来获得储备可在下一周期转移。基础容量变化在下一次补弹读取，已有超上限弹药不被裁剪，临时溢出不改变基础容量。Refill 不发布 reload_finished。[公开 Community Research](https://www.light.gg/db/items/461595545/reconstruction/?_=516) 明示25%向上取整；本轮只取得搜索索引中的研究段落，直接页面抓取不可用，且页面显示旧更新时间，因此只作为公开研究依据，不宣称独立原作实测。
+
+装配时首个周期、只按接受射击重置、满弹 / 空储备继续原相位、到点先补弹后处理同刻外部射击、替换词条从新装配时刻重新计时，均是明确的 Chorus 政策。手动换弹不推迟重建的计时有验收，但原作精确边界仍待校准；死亡、离线、所有热量武器和容量词条交互也没有从这段原文中推断为已完成。
+
+10项纯测试覆盖整数边界、来源 / 武器隔离、有限与无限储备、动态容量、换装 / 所有者转移、同刻结算、纯会话检查点及未知结果；5项共享世界测试使用真实物品插槽、低权限开火 / 换弹命令、物理击杀与服务器 tick 验证对应链路。测试武器的五发容量、30储备、10伤害、0.15秒射速、0.2秒换弹与20米/秒弹道均为合成参数。正式内容装配、武器原型、HUD / 动画及物理武器独立重启验收仍待完成，状态为 partial。

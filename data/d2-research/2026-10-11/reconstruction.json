@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "effect": "Reconstruction",
+  "reviewed_at": "2026-10-11",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "archived_html": "data/d2-research/2026-10-11/precision-ammo-source.html.gz",
+      "sha256": "b179c300128a59642171855f6dcd84c1e0398e34f0add940d5bcfeb9f9541d7a",
+      "gzip_sha256": "8a3f4d8d6ebd3fa440bbc1f1a21de29354fd0ed01c494c0f3b88cea640a6b8ca",
+      "sheet": "Weapon Perks",
+      "cells": [
+        {
+          "original_cell": "A179",
+          "snapshot_cell": "A178",
+          "normalized_text": "Reconstruction",
+          "snapshot_text_sha256": "14947a56d0bb0e5f09ed8eb9557f76939de076e6893163be4b1bf961ba7b3a33",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C179",
+          "snapshot_cell": "C178",
+          "normalized_text": "Every 6 ↑5.5 seconds, after not shooting for 6 ↑5.5 seconds: Refills 25% of Magazine Capacity. Refill can overflow magazine up to 100% Increased Magazine Capacity. Buff can be activated while stowed, and persists through stow.",
+          "snapshot_text_sha256": "a04d3ed98f74d827954e22a2b149f690b3c6b25aecf935e68cc664740ed5d5ee",
+          "matches_snapshot": true
+        },
+        {
+          "original_cell": "C251",
+          "snapshot_cell": "C250",
+          "normalized_text": "Reload Perk Notes: Generate = Grants Ammo to Magazine out of thin air, up to its Base Magazine Size. Does not work with Overflown Magazines. Overflow = Increases Base Magazine Capacity by a certain amount, rounded up. Refill = Reload, but does not have an animation and doesn't proc on-reload perks. Pulls from reserves on Special and Power Weapons. For Heat Weapons, it will instead be \"Dissipates X Heat\" to discern it from manual venting Reload = Procs on-reload perks. Manual Reload, Marksman's Dodge, and Dragon's Shadow all count as regular reloads. For Heat Weapons, finishing a manual vent will count as a regular reload.",
+          "snapshot_text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208",
+          "matches_snapshot": true
+        }
+      ]
+    },
+    {
+      "kind": "compendium_csv_snapshot",
+      "path": "data/compendium/2026-10-05/rows.jsonl",
+      "coordinate_system": "csv_snapshot_not_original_sheet"
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/article/season-deep-update-7-1-0",
+      "published_at": "2023-05-23",
+      "claim": "Unified activation delay and successive-refill interval; historical normal/enhanced values were 4/3.5 seconds."
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_8_1_0",
+      "published_at": "2024-10-08",
+      "claim": "Increased time to start reloading by two seconds for both versions. Current repeated 6/5.5-second cadence is also stated explicitly in Compendium."
+    },
+    {
+      "kind": "bungie_patch_notes",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "claim": "Increased ammunition transferred per activation from 10% to 25%."
+    },
+    {
+      "kind": "published_community_research",
+      "url": "https://www.light.gg/db/items/461595545/reconstruction/?_=516",
+      "claim": "Published Community Research specifies 25% of magazine capacity rounded up, transferred from reserves, up to double normal capacity.",
+      "retrieval": "Search-index text was accessible; direct page fetch failed. The displayed Last Updated 2023-02-12 is not treated as proof of current measurement. Rounding remains community-source confidence, not independent original-game testing."
+    }
+  ],
+  "numbers": {
+    "delay_and_interval_seconds": {
+      "normal": 6,
+      "enhanced": 5.5
+    },
+    "refill_fraction": 0.25,
+    "ceiling_multiplier": 2,
+    "refill_rounding": "ceiling",
+    "ceiling_rounding": "ceiling"
+  },
+  "content_policies": [
+    "A named repeating timer starts when the perk source attaches, including stowed equipped weapons; it is replaced only by accepted fire credited to that owner and weapon. Rejected fire, contact timing, other weapons, stow and manual reload do not reset the clock.",
+    "First refill is at one interval after source attachment or last accepted shot, not at twice the interval. Due timer facts settle before external fire at exactly the same timestamp. These boundary/attachment policies still need D2 edge-case calibration.",
+    "Each pulse samples current effective base capacity once, rounds 25% up, and transfers from the weapon own finite reserve up to twice that same capacity. Unlimited reserves stay unlimited. Capacity changes do not trim existing loaded overflow.",
+    "Full/empty-reserve pulses keep the cadence with no transferred fact; later reserve gains can be consumed by a subsequent pulse. Refill never emits reload_finished.",
+    "Detaching/replacing the perk cancels its source-owned timer; replacing normal with enhanced starts a fresh enhanced interval. Ammunition already committed stays on the physical weapon instance.",
+    "Equipment sources retain their clocks while stowed; no new dead-holder or disconnect policy is inferred from the Compendium. Host lifecycle and matching checkpoint rules still apply.",
+    "Pure session checkpoint preserves future timers and magazine/reserve balances without replaying the attachment or earlier transfers; this is not independent production weapon persistence acceptance."
+  ],
+  "consumer_fixture": {
+    "path": "common/src/test/resources/effects/reconstruction_weapon.json",
+    "confidence": "synthetic_not_measured_D2_archetype",
+    "base_magazine": 5,
+    "initial_magazine": 5,
+    "reserves": 30,
+    "damage": 10,
+    "shot_interval_seconds": 0.15,
+    "reload_seconds": 0.2,
+    "projectile_speed_m_per_s": 20
+  },
+  "gaps": [
+    "Independent rounding and exact trigger-boundary calibration for all weapon families, heat weapons, death/disconnect and re-equip policies.",
+    "Original D2 archetypes and interactions with other base-capacity/overflow perks and ammunition categories.",
+    "Production content assembly, UI/animation and physical weapon restart acceptance."
+  ]
+}
