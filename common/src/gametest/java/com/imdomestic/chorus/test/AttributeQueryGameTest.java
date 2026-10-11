@@ -19,11 +19,12 @@ public class AttributeQueryGameTest {
     static class Harness implements AutoCloseable {
         final GameTestHelper h;final LivingEntity owner,target;final MinecraftEffectRuntime runtime;final BuffInstance.Origin origin;
         DamageSnapshot attack;
-        Harness(GameTestHelper h)throws Exception {
+        Harness(GameTestHelper h)throws Exception { this(h,"attribute_queries"); }
+        Harness(GameTestHelper h,String fixture)throws Exception {
             this.h=h;owner=h.spawnWithNoFreeWill(EntityTypes.COW,2,40,2);target=h.spawnWithNoFreeWill(EntityTypes.COW,4,40,2);
             for(var e:List.of(owner,target)){e.setNoGravity(true);e.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);e.setHealth(100);}
             owner.setHealth(10);origin=new BuffInstance.Origin(id(owner),"test:original","weapon","");
-            var program=EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json("attribute_queries")).getOrThrow();
+            var program=EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,ThreadedSpikeGameTest.json(fixture)).getOrThrow();
             var state=EffectState.empty().withSource(source("driver","driver",owner)).withSource(source("attack","attack",owner)).withSource(source("boost","boost",owner));
             var world=new MinecraftWorldActions(h.getLevel(),ref->h.getLevel().getEntity(UUID.fromString(ref)) instanceof LivingEntity living?living:null,_ ->h.getLevel().damageSources().mobAttack(owner),(_,_) ->true,_ ->{});
             runtime=MinecraftEffectRuntime.install(h.getLevel(),program,state,new EffectClock((_,_) ->new EffectClock.Rate(0,List.of())),world,

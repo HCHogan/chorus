@@ -143,6 +143,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/bundle_invocation_slow.json'
         include 'effects/ember_of_eruption.json'
         include 'effects/attribute_queries.json'
+        include 'effects/profile_values.json'
         include 'effects/incandescent.json'
         include 'effects/incandescent_weapon.json'
         include 'effects/incandescent_test_calibration.json'

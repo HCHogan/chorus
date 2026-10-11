@@ -2264,7 +2264,7 @@ Woven Mail 的 defense Profile 从受击者读取。守护者攻击分类使用 
  "input":{"type":"chorus:constant","value":0,"unit":"stat_point"}}
 ```
 
-`target` 默认 self，也支持现有目标引用。input 在调用处求值；Profile 在被查询实体的独立上下文中计算：actor / victim / source.owner 均为该实体，source.source 为 Profile ID，武器 / 技能、标签、测量、引用及历史观察为空。属性修饰自己的绑定来源仍可读取。这样外层武器击杀等条件不会意外参与实体属性；需要触发上下文或任意单位转换的查询继续使用下面的 calculate 动作。
+`target` 默认 self，也支持现有目标引用。input 在调用处求值；Profile 在被查询实体的独立上下文中计算：actor / victim / source.owner 均为该实体，source.source 为 Profile ID，武器 / 技能、标签、测量、引用及历史观察为空。属性修饰自己的绑定来源仍可读取。这样外层武器击杀等条件不会意外参与实体属性；其他单位或单位转换可用下面的profile_value，需要保留触发上下文的查询仍用calculate动作。
 
 查询不写状态、不发事件、不执行世界请求，缺失 Profile / 错误单位 / 显式组件输入缺失明确失败。CompiledEffects.attribute 返回包含基础输入及贡献的完整 CalculationProfile.Result，表达式读取其输出；外层轨迹保存最终贡献数值，暂不自动嵌套属性的子轨迹。
 
@@ -2563,7 +2563,7 @@ Bundle 可声明 `horizontal_speed_limits`，适用于 SOURCE 与 BUFF。每项�
 }
 ```
 
-`CompiledEffects.horizontalSpeedLimit(state, input)` 是纯查询：读取 actor 自身来源及作用于该接收者、未暂停且仍有效的 Buff，按实例与声明 id 排序，取所有匹配上限的最小值，同时保留各项 Bundle、实例、施加者与数值。空结果与零独立表示。上下文增加 `chorus:horizontal_speed_query` 标签；条件为假时不读取该项 speed。使用既有 Value / Condition 的类型与作用域规则，不提供虚构的历史动作回执。可读取已写入的 Buff 数值组件；若需要数值 Profile，应先由已有 calculate 动作计算并写入相应组件。
+`CompiledEffects.horizontalSpeedLimit(state, input)` 是纯查询：读取 actor 自身来源及作用于该接收者、未暂停且仍有效的 Buff，按实例与声明 id 排序，取所有匹配上限的最小值，同时保留各项 Bundle、实例、施加者与数值。空结果与零独立表示。上下文增加 `chorus:horizontal_speed_query` 标签；条件为假时不读取该项 speed。使用既有 Value / Condition 的类型与作用域规则，不提供虚构的历史动作回执。可读取已写入的 Buff 数值组件，也可用profile_value查询当前实体的数值Profile；若数值依赖原触发事件，应先由calculate捕获相应结果。
 
 Minecraft 以每游戏 tick 20 分之一秒换算速度。宿主限制 X/Z 合成速度的长度，不分别限制两轴，因此斜向移动不会获得额外额度；Y 保留原语义，也可叠加 vertical_motion。move 先限制请求，再运行原版碰撞；实际坐标写入消耗该实体本 tick 的水平路程额度，普通 setPos / setPosRaw 与重复位置包共享额度。坐标写入前计账，回调内再次移动也不能刷新额度。碰撞未走出的路程不消耗额度；闲置 tick 不积攒额度，同 tick 更换或删除后重新添加来源也不重置已用路程。
 
@@ -3083,3 +3083,21 @@ Fragment的击杀分支以独立`death_ids`去重，使用死亡时历史Volatil
 现有合成输入以两充能容量、0.5接收者系数和可选×2收益验证组合；真实Shield Throw验证其既有0.9Profile。共享池归零后Font属性与衰减计时由Armor Charge控制器正常撤除，没有新增专用Java执行器或检查点类型。只保存纯会话身份不等于整个Minecraft世界已持久化。
 
 延后标签当前是显式排除契约，不能声明已实现落地触发。未来Grapple如果必须等接触Tangle才确定免费使用，也需要先延后对应资格，不能追溯修改已发布的`paid/free`或自动撤回已经产生的其他效果。已经明确为免费的施放应以实际零成本接受；一般回能/返还则不自动成为免费使用。具体表格、官方多充能修复和未完成特例见[Kickstart规则](d2-ruleset.md#kickstart-的完整付费充能与回能表)。
+
+### 公式内的通用单位查询
+
+`chorus:profile_value`把一个实体的数值Profile输出作为Value使用；输入单位必须匹配被查询Profile的input_unit，输出单位由该Profile的最后一步推导，可改变单位。与仅允许stat_point→stat_point的`chorus:attribute`分开，旧属性表达式仍按原有契约验证。例如验收夹具将副本数汇总为count，再将count经独立曲线转换为second，用于真实延迟动作：
+
+```json
+{"type":"chorus:profile_value","profile":"test:duration","target":"self",
+ "input":{"type":"chorus:profile_value","profile":"test:copies",
+          "input":{"type":"chorus:constant","value":0,"unit":"count"}}}
+```
+
+`target`默认self；在调用处先解析目标和input，再进入该实体的独立上下文。actor/victim/source.owner均为查询实体，source.source为Profile ID，外层攻击/击杀的武器、技能、标签、测量、标志、引用及历史观察不继承。参与贡献的真实来源参数与来源归属仍可读取。需要原事件数据时，应显式作为input在调用处求值，或使用保留事件上下文的calculate动作；不能把未知字段当作零。
+
+该查询不写状态、不发布事件、不调用世界。Java的`CompiledEffects.profileValue`返回CalculationProfile.Result及当前查询轨迹；Value只取output，外层轨迹不会自动嵌套子查询轨迹。缺少Profile、输入单位不符、输出不能满足消费者、未知目标绑定或不兼容的当前定义都会失败。现有归约、限幅、模式、来源选择和单位转换仍由Profile本身负责。
+
+on_use捕获来源侧查询时，input与查询必须当场可求值，结果固定成常量。victim侧保留表达式，其input的来源侧操作数先冻结，impact_number可保持符号等待实际命中；每次命中读取该目标的当前Profile与来源。来源侧的查询如果需要尚不存在的impact输入，会明确失败，不推测数值。延迟动作中的普通表达式则到执行时重新读取；需要保留接受时结果应先capture_value。
+
+数值依赖仍按实体+Profile身份追踪，与attribute及动态弹匣查询共享同一路径；允许跨实体相同Profile及独立重复查询，拒绝直接或相互自依赖的公式。这里仅检查一次数值求值是否存在未定义递归，不限制游戏效果事件的循环或新施放。持久化只新增Value.ProfileValue类型，NumericQuery及旧record字段不变；纯会话检查点保留表达式、已捕获结果和延迟时间。10项规则测试与真实延迟治疗/原版伤害场景验证此接口；尚不表示Weapon Surge完整内容或正式装备装配已实现。

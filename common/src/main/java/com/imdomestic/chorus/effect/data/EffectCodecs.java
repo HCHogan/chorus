@@ -87,6 +87,9 @@ public final class EffectCodecs {
                 .register("chorus:attribute", Value.Attribute.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("profile").forGetter(Value.Attribute::profile),self.fieldOf("input").forGetter(Value.Attribute::input),
                         TARGET.optionalFieldOf("target",Evaluation.Target.SELF).forGetter(Value.Attribute::target)).apply(i,Value.Attribute::new)))
+                .register("chorus:profile_value", Value.ProfileValue.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("profile").forGetter(Value.ProfileValue::profile), self.fieldOf("input").forGetter(Value.ProfileValue::input),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Value.ProfileValue::target)).apply(i, Value.ProfileValue::new)))
                 .register("chorus:by_stacks", Value.ByStacks.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         FINITE.listOf().fieldOf("values").forGetter(Value.ByStacks::values), StatCodecs.UNIT.fieldOf("unit").forGetter(Value.ByStacks::quantity)
                 ).apply(i, Value.ByStacks::new)))

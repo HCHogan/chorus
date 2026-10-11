@@ -129,6 +129,20 @@ public interface Value {
                     .attribute(e.state(),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload())).output();
         }
     }
+    /** A subject-local numeric profile query; units come from the profile rather than an assumed attribute kind. */
+    record ProfileValue(String profile, Value input, Evaluation.Target target) implements Value {
+        public ProfileValue { java.util.Objects.requireNonNull(profile); java.util.Objects.requireNonNull(input); java.util.Objects.requireNonNull(target); }
+        @Override public Unit unit(Validation v) {
+            v.target(target);
+            var definition = v.numericProfile(profile);
+            Validation.same(input.unit(v), definition.inputUnit());
+            return definition.outputUnit();
+        }
+        @Override public Measure evaluate(Evaluation e) {
+            return e.program().orElseThrow(() -> new IllegalStateException("Profile value requires a compiled program"))
+                    .profileValue(e.state(), e.target(target), profile, input.evaluate(e), NumericQuery.Path.from(e.context().event().signal().payload())).output();
+        }
+    }
     record ByStacks(List<Double> values, Unit quantity) implements Value {
         public ByStacks { values = List.copyOf(values); }
         @Override public Unit unit(Validation v) {

@@ -297,6 +297,7 @@
   "chorus:effect/data/value/ammo": ["weapon:com.imdomestic.chorus.effect.data.Evaluation$Target", "field:com.imdomestic.chorus.effect.ammo.AmmoState$Field"],
   "chorus:effect/data/value/arithmetic": ["operation:com.imdomestic.chorus.effect.data.Value$Operator", "operands:java.util.List<com.imdomestic.chorus.effect.data.Value>"],
   "chorus:effect/data/value/attribute": ["profile:java.lang.String", "input:com.imdomestic.chorus.effect.data.Value", "target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
+  "chorus:effect/data/value/profile_value": ["profile:java.lang.String", "input:com.imdomestic.chorus.effect.data.Value", "target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/value/buff_count": ["buff:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/value/by_buff_tier": ["values:java.util.List<java.lang.Double>", "quantity:com.imdomestic.chorus.stat.Unit"],
   "chorus:effect/data/value/by_source_tag": ["values:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.data.Value>"],

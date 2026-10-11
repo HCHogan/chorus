@@ -29,5 +29,11 @@ public record NumericQuery(EffectEvent event, Path path) implements EffectEvent.
             if(!next.add(key))throw new IllegalArgumentException("Circular attribute expression: "+holder+" / "+profile);
             return new Path(ammunition,next);
         }
+        /** Reuse the persisted holder/profile dependency identity, including legacy attribute queries. */
+        public Path profile(String holder, String profile) {
+            var key = new Attribute(holder, profile); var next = new HashSet<>(attributes);
+            if (!next.add(key)) throw new IllegalArgumentException("Circular numeric profile expression: " + holder + " / " + profile);
+            return new Path(ammunition, next);
+        }
     }
 }

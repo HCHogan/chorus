@@ -39,6 +39,11 @@ public record Validation(Map<String, BuffDefinition> buffs, Map<String, ResultSh
         if(profile==null)throw new IllegalArgumentException("Unknown attribute profile: "+id);
         same(profile.inputUnit(),Unit.STAT_POINT);same(profile.outputUnit(),Unit.STAT_POINT);return profile;
     }
+    public CalculationProfile numericProfile(String id) {
+        var profile = profiles.get(id);
+        if (profile == null) throw new IllegalArgumentException("Unknown numeric profile: " + id);
+        return profile;
+    }
     public CalculationProfile multiplierProfile(String id) {
         var profile = profiles.get(id);
         if (profile == null) throw new IllegalArgumentException("Unknown multiplier profile: " + id);

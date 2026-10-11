@@ -1172,6 +1172,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var query=new EffectEvent(holder,holder,new BuffInstance.Origin(holder,profile,"",""),java.util.Set.of(),Map.of());
         return calculateEvent(state,holder,queryEvent(state,new NumericQuery(query,path)),profile,input,List.of());
     }
+    /** Read only the subject's sources in an isolated context; never inherit a caller's attack or proc facts. */
+    public CalculationProfile.Result profileValue(EffectState state, String holder, String profile, Measure input, NumericQuery.Path dependencies) {
+        var definition = new Validation(buffs, Map.of(), false, profiles).numericProfile(profile);
+        Validation.same(input.unit(), definition.inputUnit());
+        var path = dependencies.profile(holder, profile);
+        var query = new EffectEvent(holder, holder, new BuffInstance.Origin(holder, profile, "", ""), java.util.Set.of(), Map.of());
+        return calculateEvent(state, holder, queryEvent(state, new NumericQuery(query, path)), profile, input, List.of());
+    }
     private void settled(EffectState state) {
         validateState(state);
         if (state.buffs().nextDeadline() <= state.buffs().timeMicros()) throw new IllegalStateException("Query requires settled buff expirations");

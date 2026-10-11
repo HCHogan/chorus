@@ -1,0 +1,367 @@
+{
+  "version": "attribute-query-test",
+  "profiles": [
+    {
+      "id": "test:copies",
+      "version": "attribute-query-test",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "cap",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "test:other",
+      "version": "attribute-query-test",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "cap",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "test:damage",
+      "version": "attribute-query-test",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "multiply",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:capacity",
+      "version": "attribute-query-test",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:duration",
+      "version": "attribute-query-test",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "duration",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0,
+              0.05
+            ],
+            "minimum": 0,
+            "maximum": 3,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "test:legacy",
+      "version": "attribute-query-test",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "bonuses",
+          "operation": "add",
+          "group": {
+            "name": "bonuses",
+            "reduction": "sum"
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:boost",
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "test:copies",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "count"
+          },
+          "stacking_key": "test:copies",
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "trap",
+          "profile": "test:copies",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1000,
+            "unit": "count"
+          },
+          "stacking_key": "test:trap",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:contamination"
+          },
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:penalty",
+      "modifiers": [
+        {
+          "id": "penalty",
+          "profile": "test:copies",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": -60,
+            "unit": "count"
+          },
+          "stacking_key": "test:penalty",
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:attack",
+      "modifiers": [
+        {
+          "id": "owner",
+          "profile": "test:damage",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "test:copies",
+              "target": "self",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "factor": 0.1,
+            "from": "count",
+            "to": "delta"
+          },
+          "stacking_key": "test:owner",
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "victim",
+          "profile": "test:damage",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "test:copies",
+              "target": "victim",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "factor": 0.1,
+            "from": "count",
+            "to": "delta"
+          },
+          "stacking_key": "test:victim",
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:driver",
+      "rules": [
+        {
+          "id": "now",
+          "on": "test:now",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:profile_value",
+                  "profile": "test:copies",
+                  "target": "self",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "count"
+                  }
+                }
+              },
+              "as": "points"
+            },
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:result",
+                  "binding": "points",
+                  "field": "value"
+                },
+                "factor": 3,
+                "from": "count",
+                "to": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "later",
+          "on": "test:later",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:profile_value",
+                  "profile": "test:copies",
+                  "target": "self",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "count"
+                  }
+                }
+              },
+              "as": "points"
+            },
+            {
+              "after": {
+                "type": "chorus:profile_value",
+                "profile": "test:duration",
+                "input": {
+                  "type": "chorus:result",
+                  "binding": "points",
+                  "field": "value"
+                }
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:result",
+                      "binding": "points",
+                      "field": "value"
+                    },
+                    "factor": 3,
+                    "from": "count",
+                    "to": "damage"
+                  }
+                },
+                {
+                  "type": "chorus:heal",
+                  "amount": {
+                    "type": "chorus:scale",
+                    "of": {
+                      "type": "chorus:profile_value",
+                      "profile": "test:copies",
+                      "target": "self",
+                      "input": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "count"
+                      }
+                    },
+                    "factor": 3,
+                    "from": "count",
+                    "to": "damage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:single",
+      "modifiers": [
+        {
+          "id": "points",
+          "profile": "test:copies",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "test:single",
+          "reference": "Synthetic count and unit-changing profile query acceptance; not a complete Surge mod.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}
