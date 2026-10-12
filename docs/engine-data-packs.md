@@ -3603,3 +3603,17 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 宿主调用 `forceSetRotation(yaw, true, pitch, true)`，玩家走原生旋转专用包；不改位置、速度，不传送、不取消骑乘。客户端在自己的当前角度上叠加请求并按原生限制裁剪，再通过原生旋转输入回传服务器。回执只证明同步服务器写入，**不是客户端已确认**；网络在途期间的鼠标移动可以使客户端最终角度或极限裁剪不同。当前协议不增加瞄准锁、预测、确认屏障或反作弊政策。非玩家会改变即时 look/head，但后续 AI 可再次转头，不能把这个动作当作 PvE stagger 或眩晕。
 
 未知写入结果保留已经施加的旋转和支付，不发完成事实、不继续后续动作、不重试。延迟动作仍遵循 source/detached 生命周期；恢复的是数据续体，执行时取目标当时的角度，不恢复世界或客户端朝向。[合成验收定义](../common/src/test/resources/effects/aim_impulse.json) 用 3°/−12° 与 0.5 倍测试修饰，均非原作数值。原作恢复曲线、稳定性/武器原型映射、受伤至 flinch 的换算和视觉晃动需要另行装配。
+
+### 受击抗抖的实际消费者与 No Distractions
+
+`weapon_flinch.json` 定义 degree → degree 的 `chorus_d2:incoming_flinch` Profile：Stability、Health 各为独立 MAX 家族，perk 家族之间相乘，同一 No Distractions 家族去重。属性与曲线来自 [数值说明](d2-ruleset.md#no-distractions-与实际受击抗抖)，没有新增 Java 原语。
+
+每件武器只安装一个 `chorus_d2:weapon_flinch_receiver`，传入基础 `stability: stat_point`；另外安装稳定性和 Health 数值 Bundle。消费者监听本持有者的 `damage_taken`，仅当前持握武器处理带 `chorus_d2:flinch_input` 标签的伤害。攻击必须显式提供 `impact.flinch_yaw/pitch: degree`，二者均可有符号；未声明输入不推测角度，声明却缺字段则按严格数据规则失败。正的护盾、Absorption 或生命损失可以产生事实，免疫/取消/零损失不产生受击角度。
+
+受击时先用**防守武器的 bound 来源**查询 `weapon_stability`，让本武器点数与减益限幅生效；再将其作为 `stability` 数值传入两轴的 incoming_flinch 查询。最后 `apply_aim_impulse` 使用 **event 来源**保留攻击者信用。攻击者的武器属性、收起的枪和其他持有者的修饰不能混入。数值查询重用 Profile 与来源过滤，实际位移使用既有回执/未知结果协议；不能把同一枪的多个 receiver 当作数值家族去重。
+
+`no_distractions.json` 从 `weapon_aim_started` 起计时。普通等待 1 秒，强化读取必需的 `enhanced_delay: second` 参数；参考装备约束为正且不超过 60 秒，验收显式选择 0.9 秒。原表仍有问号，Clarity 提供 0.9 秒交叉证据。等待中 `fire_accepted` 重置整段等待，激活后成功开火保持 Buff；被拒绝的射击不重置。它不要求弹匣有弹。释放/结束 ADS、收枪与来源卸下删除本武器计时和 Buff；已经 ADS 时新装来源从安装时重新等待。
+
+计时从输入开始，Health 和已激活 perk 的修饰仅在 AIMED 阶段消费；长进入动画可能先达到计时门槛，再到完成 ADS 时获得抗抖。这是明确的 Chorus 取样政策。基础 Stability 影响当前持握武器的 hipfire/ADS 输入，不能将它等同于已经实现的原作后坐力或准确性。
+
+[独立装备参考](../common/src/test/resources/effects/no_distractions_weapon.json) 包含两把枪和独立头部护甲：Health 从护甲参数进入现有角色属性 Profile，受伤时重新读取；头部替换不重启枪上的 perk。真实瞬时射线每发扣弹并产生显式 flinch 输入。1 点伤害、2°/−10°、20 米、基础 Stability 50、ADS/射速/弹量均为合成验收输入；完整原作基础角度、特殊原型、视觉恢复和生产装配仍待校准。

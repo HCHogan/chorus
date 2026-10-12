@@ -1,0 +1,380 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:incoming_flinch",
+      "version": "compendium-2026-10-05",
+      "input_unit": "degree",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "stability",
+          "operation": "multiply",
+          "group": {
+            "name": "stability",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "health",
+          "operation": "multiply",
+          "group": {
+            "name": "health",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "perks",
+            "reduction": "product",
+            "families": {
+              "chorus_d2:no_distractions": {
+                "kind": "max"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:weapon_flinch_stability",
+      "modifiers": [
+        {
+          "id": "stability_flinch",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "stability",
+          "group": "stability",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:arithmetic",
+            "op": "mul",
+            "of": [
+              {
+                "type": "chorus:scale",
+                "of": {
+                  "type": "chorus:arithmetic",
+                  "op": "add",
+                  "of": [
+                    {
+                      "type": "chorus:event_number",
+                      "name": "stability",
+                      "unit": "stat_point"
+                    },
+                    {
+                      "type": "chorus:constant",
+                      "value": -20,
+                      "unit": "stat_point"
+                    }
+                  ]
+                },
+                "factor": -0.0125,
+                "from": "stat_point",
+                "to": "delta"
+              },
+              {
+                "type": "chorus:by_source_tag",
+                "values": {
+                  "chorus_d2:auto_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.25,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:smg": {
+                    "type": "chorus:constant",
+                    "value": 0.25,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:bow": {
+                    "type": "chorus:constant",
+                    "value": 0.25,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:pulse_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.2,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:scout_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.2,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:sidearm": {
+                    "type": "chorus:constant",
+                    "value": 0.2,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:machine_gun": {
+                    "type": "chorus:constant",
+                    "value": 0.2,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:hand_cannon": {
+                    "type": "chorus:constant",
+                    "value": 0.15,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:trace_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.25,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:fusion_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:shotgun": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:sniper_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:grenade_launcher": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:linear_fusion_rifle": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  },
+                  "chorus_d2:rocket_launcher": {
+                    "type": "chorus:constant",
+                    "value": 0.1,
+                    "unit": "multiplier"
+                  }
+                }
+              }
+            ]
+          },
+          "stacking_key": "chorus_d2:stability_flinch",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              }
+            ]
+          },
+          "reference": "Foundry oracle_engine dcd0c7d calc_flinch_resist stability branch; current Health follows original Compendium E172, not the legacy resilience argument; data/d2-research/2026-10-12/no-distractions.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:health_flinch",
+      "modifiers": [
+        {
+          "id": "health_flinch",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "health",
+          "group": "health",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:scale",
+            "of": {
+              "type": "chorus:arithmetic",
+              "op": "min",
+              "of": [
+                {
+                  "type": "chorus:attribute",
+                  "profile": "chorus_d2:health_stat",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "stat_point"
+                  }
+                },
+                {
+                  "type": "chorus:constant",
+                  "value": 100,
+                  "unit": "stat_point"
+                }
+              ]
+            },
+            "factor": -0.001,
+            "from": "stat_point",
+            "to": "delta"
+          },
+          "stacking_key": "chorus_d2:health_flinch",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Foundry oracle_engine dcd0c7d calc_flinch_resist stability branch; current Health follows original Compendium E172, not the legacy resilience argument; data/d2-research/2026-10-12/no-distractions.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_flinch_receiver",
+      "parameters": {
+        "stability": "stat_point"
+      },
+      "rules": [
+        {
+          "id": "hit",
+          "on": "chorus:damage_taken",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:weapon_drawn"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:flinch_input"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:calculate_pipeline",
+                "profiles": [
+                  "chorus_d2:weapon_stability"
+                ],
+                "input": {
+                  "type": "chorus:source_parameter",
+                  "name": "stability"
+                },
+                "victim": "self",
+                "tags": [
+                  "chorus_d2:flinch_stability_query"
+                ]
+              },
+              "as": "stability"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate_pipeline",
+                "profiles": [
+                  "chorus_d2:incoming_flinch"
+                ],
+                "input": {
+                  "type": "chorus:impact_number",
+                  "name": "flinch_yaw",
+                  "unit": "degree"
+                },
+                "victim": "self",
+                "tags": [
+                  "chorus_d2:incoming_flinch_query"
+                ],
+                "numbers": {
+                  "stability": {
+                    "type": "chorus:result",
+                    "binding": "stability",
+                    "field": "value"
+                  }
+                }
+              },
+              "as": "yaw"
+            },
+            {
+              "action": {
+                "type": "chorus:calculate_pipeline",
+                "profiles": [
+                  "chorus_d2:incoming_flinch"
+                ],
+                "input": {
+                  "type": "chorus:impact_number",
+                  "name": "flinch_pitch",
+                  "unit": "degree"
+                },
+                "victim": "self",
+                "tags": [
+                  "chorus_d2:incoming_flinch_query"
+                ],
+                "numbers": {
+                  "stability": {
+                    "type": "chorus:result",
+                    "binding": "stability",
+                    "field": "value"
+                  }
+                }
+              },
+              "as": "pitch"
+            },
+            {
+              "action": {
+                "type": "chorus:apply_aim_impulse",
+                "yaw": {
+                  "type": "chorus:result",
+                  "binding": "yaw",
+                  "field": "value"
+                },
+                "pitch": {
+                  "type": "chorus:result",
+                  "binding": "pitch",
+                  "field": "value"
+                },
+                "origin": "event",
+                "tags": [
+                  "chorus_d2:flinch"
+                ]
+              },
+              "as": "flinch"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "flinch",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:flinch_applied"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

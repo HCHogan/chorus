@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T08:23:51.608492+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "5d73ca2d5b6678e8d8586360d424e79a611e3ca5ced11d174031c78f51806b95"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/no_distractions",
+      "label": "No Distractions",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label_cell": "A152",
+      "image_cell": "B152",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B152",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLYedIJON3MG4dTk0I_-Y7bkVWCPrHFPzI6FB4n9_SrCCUlVCfa_TWpf7I2JaGrABJw6cJbLVzNEdR4IDsxcbP2rpJLUqUuAA1FBZzoEp5c6miS-TT7VMjOxFus0f5FJMYeb8hgipDyjylTFPG2qiq1YiqNjQWGMScfC=w70-h104",
+      "retrieved_at": "2026-10-12T08:23:52.880011+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/no_distractions.png",
+      "texture": "chorus_d2:textures/gui/perks/no_distractions.png",
+      "sha256": "5b37cb84b862a0c1ffaa8382d249fee98081a623fadfba1bf3f597bce932f9ff",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

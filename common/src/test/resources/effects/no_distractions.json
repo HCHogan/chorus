@@ -1,0 +1,334 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:no_distractions",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "refresh": "none",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove"
+      },
+      "bundle": "chorus_d2:no_distractions_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:no_distractions",
+      "parameters": {
+        "enhanced_delay": "second"
+      },
+      "rules": [
+        {
+          "id": "begin",
+          "on": "chorus:weapon_aim_started",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "no_distractions"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:no_distractions"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "no_distractions",
+                  "event": "chorus_d2:no_distractions_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:source_parameter",
+                      "name": "enhanced_delay"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "on": "chorus:fire_accepted",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:no_distractions",
+                  "match": "bound"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "no_distractions"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "no_distractions",
+                  "event": "chorus_d2:no_distractions_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:source_parameter",
+                      "name": "enhanced_delay"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "release",
+          "on": "chorus:weapon_aim_released",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "no_distractions"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:no_distractions"
+            }
+          ]
+        },
+        {
+          "id": "end",
+          "on": "chorus:weapon_aim_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "no_distractions"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:no_distractions"
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:cancel_timer",
+              "name": "no_distractions"
+            },
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:no_distractions"
+            }
+          ]
+        },
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "no_distractions",
+                  "event": "chorus_d2:no_distractions_ready",
+                  "delay": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:source_parameter",
+                      "name": "enhanced_delay"
+                    }
+                  },
+                  "policy": "replace"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus_d2:no_distractions_ready",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_timer",
+                "name": "no_distractions"
+              },
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:weapon_aiming"
+                  },
+                  {
+                    "type": "chorus:weapon_drawn"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:no_distractions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:no_distractions_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "no_distractions",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "perks",
+          "group": "perks",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.35,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:no_distractions",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Original Compendium Weapon Perks C152 / fixed C151; Clarity 2866798147/3974407819. Enhanced delay is an explicit calibration parameter because the Compendium retains a question mark.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

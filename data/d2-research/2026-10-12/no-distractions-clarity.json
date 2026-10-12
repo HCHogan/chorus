@@ -1,0 +1,126 @@
+{
+  "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+  "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+  "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+  "entries": {
+    "777589556": {
+      "hash": 777589556,
+      "name": "No Distractions",
+      "itemHash": 1983149589,
+      "itemName": "Whisper of the Worm",
+      "lastUpload": 1768684436352,
+      "type": "Weapon Trait Exotic",
+      "uploadedBy": "Hawkmoona",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Grants 35% Flinch Resistance after 1 second of Aiming Down Sights (ADS) without firing. Remains active until you're no longer ADS."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Timer starts as soon as the ADS input is pressed."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2866798147": {
+      "hash": 2866798147,
+      "name": "No Distractions",
+      "lastUpload": 1738687242983,
+      "type": "Weapon Trait",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Grants 35% Flinch Resistance after 1 second of Aiming Down Sights (ADS) without firing. Remains active until you're no longer ADS."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Timer starts as soon as the ADS input is pressed."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3974407819": {
+      "hash": 3974407819,
+      "name": "No Distractions",
+      "lastUpload": 1676844056332,
+      "type": "Weapon Trait Enhanced",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "Grants 35% Flinch Resistance after "
+              },
+              {
+                "text": "🡅",
+                "classNames": [
+                  "enhancedArrow"
+                ]
+              },
+              {
+                "text": "0.9 seconds of Aiming Down Sights (ADS) without firing. Remains active until you're no longer ADS."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Timer starts as soon as the ADS input is pressed."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "🡅",
+                "classNames": [
+                  "enhancedArrow"
+                ]
+              },
+              {
+                "text": " Activation time is decreased by 0.1 seconds."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effect": "No Distractions and incoming flinch pipeline",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T08:23:51.608492+00:00",
+      "path": "data/compendium/assets/2026-10-12-no-distractions/sheets/1662574278.html.gz",
+      "raw_sha256": "5d73ca2d5b6678e8d8586360d424e79a611e3ca5ced11d174031c78f51806b95",
+      "gzip_sha256": "d97672457c3e5585b98dce5e20881b07b929ad72a9f170e4b11e6b317b7e90da",
+      "cell_checks": [
+        {
+          "sheet": "Weapon Perks",
+          "snapshot_cell": "A151",
+          "original_cell": "A152",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "8e7a7818b93c97ee205676785ba0557e99aac9ab5650ec3d966a54ece12db50e",
+          "original_text_sha256": "8e7a7818b93c97ee205676785ba0557e99aac9ab5650ec3d966a54ece12db50e"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "snapshot_cell": "C151",
+          "original_cell": "C152",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "2819606cf0ec1fef50022a7b81ede695d904ffa73020b6acfda631451ae789f2",
+          "original_text_sha256": "2819606cf0ec1fef50022a7b81ede695d904ffa73020b6acfda631451ae789f2"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1800463143",
+      "retrieved_at": "2026-10-12T08:12:02.637081+00:00",
+      "path": "data/d2-research/2026-10-12/flinch-1800463143.html.gz",
+      "raw_sha256": "20e0648d70d4bb7487e1994d58183d12930e9352347424d7ef690ffdba3126df",
+      "gzip_sha256": "21e03e91e38c43d915457188ac0bd9eb65e86e6b8ebf042552bead7fe1caa247",
+      "cell_checks": [
+        {
+          "sheet": "Game Mechanics",
+          "snapshot_cell": "C22",
+          "original_cell": "C172",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "55898449eb74fb2e348d13e5a5d84ab019bb87ea92687b50b3d3302eb409b784",
+          "original_text_sha256": "55898449eb74fb2e348d13e5a5d84ab019bb87ea92687b50b3d3302eb409b784"
+        },
+        {
+          "sheet": "Game Mechanics",
+          "snapshot_cell": "E22",
+          "original_cell": "E172",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "917cc1bf2ca867cf9a100d1dbb7f884373315687659af041438d467a8999f7c1",
+          "original_text_sha256": "917cc1bf2ca867cf9a100d1dbb7f884373315687659af041438d467a8999f7c1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "retrieved_at": "2026-10-12T08:12:06.192277+00:00",
+      "path": "data/d2-research/2026-10-12/flinch-1934379638.html.gz",
+      "raw_sha256": "a433c67f6198f97e1ff3fcde68f8e8694d5bbfa1184e2fe78db072b07dce10e0",
+      "gzip_sha256": "e97197c839bfba88a3aecadaaed09777d238975bf6d0ccfdba5973d4301d3296",
+      "cell_checks": [
+        {
+          "sheet": "Armor Mods",
+          "snapshot_cell": "H8",
+          "original_cell": "H8",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "9a6f87a1f3d8770e16f6be888fe4d7431fc7fc2aaf664efaf2f793919c48f6b0",
+          "original_text_sha256": "9a6f87a1f3d8770e16f6be888fe4d7431fc7fc2aaf664efaf2f793919c48f6b0"
+        },
+        {
+          "sheet": "Armor Mods",
+          "snapshot_cell": "J8",
+          "original_cell": "J8",
+          "normalized_equal": true,
+          "snapshot_text_sha256": "0c6dc100de2994a91b2694bece2fcdbe204306672f5357ce20ceecd2c9b96960",
+          "original_text_sha256": "0c6dc100de2994a91b2694bece2fcdbe204306672f5357ce20ceecd2c9b96960"
+        }
+      ]
+    }
+  ],
+  "clarity": {
+    "path": "data/d2-research/2026-10-12/no-distractions-clarity.json",
+    "sha256": "ba179213ea1ec634d012f1012d9f264747d31b28023150c9b0541b75d33543f9",
+    "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "selected_hashes": [
+      "777589556",
+      "2866798147",
+      "3974407819"
+    ]
+  },
+  "oracle": {
+    "commit": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+    "full_file_sha256": "5662ee9dea9e59547d73f81cd7c02872046266acb7b24017d2d09c123f31e5c2",
+    "excerpt_path": "data/d2-research/2026-10-12/flinch-oracle-dcd0c7d.rs",
+    "excerpt_sha256": "16f70efa1926e5d94f5552353303966089b8b3a2f8ac9a8b539c708975c00222",
+    "used": "Only Stability branch and weapon-family coefficients. Legacy Resilience branch explicitly replaced by current Health/ADS rule."
+  },
+  "primary_context": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/50339",
+      "claim": "Historical Update 3.2.0 establishes 1 second / 35 percent No Distractions."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/twid_06_05_2025",
+      "claim": "Armor 3.0 renames Resilience to Health and lists 0..10 percent flinch resistance."
+    }
+  ],
+  "algorithm": {
+    "stability": "S = clamp(base + eligible point modifiers followed by declared stat multipliers, 0, 100); multiplier = 1 - (S - 20)/80 * archetype_max_resistance",
+    "health": "H = clamp(character Health, 0, 200); multiplier = 1 - min(H,100)*0.001 while completed ADS, otherwise 1",
+    "perk": "No Distractions multiplier 0.65 while active and completed ADS",
+    "angle": "incoming signed degree input * Stability multiplier * Health multiplier * product(perk families); then native float/pitch bounds",
+    "families": {
+      "0.25": [
+        "auto_rifle",
+        "smg",
+        "bow",
+        "trace_rifle"
+      ],
+      "0.20": [
+        "pulse_rifle",
+        "scout_rifle",
+        "sidearm",
+        "machine_gun"
+      ],
+      "0.15": [
+        "hand_cannon"
+      ],
+      "0.10": [
+        "fusion_rifle",
+        "shotgun",
+        "sniper_rifle",
+        "grenade_launcher",
+        "linear_fusion_rifle",
+        "rocket_launcher"
+      ]
+    }
+  },
+  "policies": [
+    "Normal quiet interval is one second from ADS input. Accepted shots during windup restart it; rejected shots do not. Once active, shooting does not remove the buff. Empty magazine is eligible. Release, stow and source removal clear the wait and benefit.",
+    "Enhanced interval is a required positive equipment parameter. Reference gear supplies 0.9 seconds, corroborated by current Clarity; Compendium retains a question mark, so this is explicit selected calibration rather than silently resolved certainty.",
+    "Completed ADS is the Chorus sampling boundary for Health and active perk resistance. The perk timer itself runs from input and may become ready while a long enter animation is pending. Exact original interpolation windows need calibration.",
+    "Current original Health rule takes precedence over Foundry legacy resilience. Original three-mod Unflinching factor is 0.65 rather than Foundry 0.6; the mod itself is not implemented in this change.",
+    "Explicit input tag and two typed impact angles are required. Positive shield/absorption/health loss can emit damage_taken; immune/cancelled/zero loss and undeclared damage do not invent a base angle. Dead/spectator/other host rejection remains an unapplied aim receipt.",
+    "The receiver calculates using the defending weapon origin but applies aim with original attacker provenance. Only one receiver is configured per weapon. Numeric same-perk, Health and Stability families deduplicate; future new content must not install duplicate receiver hooks.",
+    "The fixture uses a real independent rifle and helmet container. Base Stability 50, one damage, 2/-10 degree attack, 20 metre hitscan, ammunition/fire rate and ADS duration are synthetic acceptance inputs.",
+    "This does not calibrate base incoming flinch by attacker/receiver archetype, visual shake, recoil/recovery, aim assist, stagger, special exotic classification, production content/UI or physical-world restart."
+  ],
+  "asset_manifest": "data/compendium/assets/2026-10-12-no-distractions/manifest.json"
+}

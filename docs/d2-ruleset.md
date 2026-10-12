@@ -1947,3 +1947,15 @@ Range 先进入现有 0–100 属性管线，再计算射程端点；反弹命�
 后续数值接线须处理来源差异：2026-10-12 查验 Foundry main 仍为 `dcd0c7d`，其 [calc_flinch_resist](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs) 使用旧 Resilience 0–10 参数；固定快照 Game Mechanics C22/E22 则把角色收益定义为 Health 每点 0.1%、最多 10%，且要求 ADS。三件 Unflinching 模组在 [Foundry](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs) 为 0.6 倍，快照 Armor Mods H8/J8 为 0.65 倍。两处冲突已记录，角色属性/模组原表需随内容接线再核验；本批不引入旧韧性模型，也不静默选取冲突值。
 
 通用 `apply_aim_impulse` 现支持 Profile 求值后的双轴 degree 请求、真实宿主旋转和玩家原生相对旋转包。它为 recoil/flinch 提供实际瞄准消费者，但尚不包含各武器的基础强度、Stability 曲线、伤害到 flinch 的换算、恢复曲线和 PvE stagger。测试角度、0.5 倍修饰与采样时机为 Chorus 合成验收配置；本批没有新增完成的 Compendium 条目，也没有把 Ricochet 的 Stability 自动接成原作后坐力。客户端回传和鼠标保留的协议边界见 [接口说明](engine-data-packs.md#真实瞄准的角度冲量)。
+
+### No Distractions 与实际受击抗抖
+
+后续内容已用 `weapon_flinch.json` 将稳定性、Health 和 No Distractions 接到真实受击角度。原表新抓取核验 Weapon Perks A152/C152（快照 A151/C151）、Game Mechanics C172/E172（快照 C22/E22）、Armor Mods H8/J8；原件、逐格哈希、固定 Foundry 源码摘录和 Clarity 记录见 [研究记录](../data/d2-research/2026-10-12/no-distractions.json)。[官方 3.2.0](https://www.bungie.net/7/en/News/article/50339) 支持普通 1 秒/35% 的历史调整，[Armor 3.0 说明](https://www.bungie.net/7/en/News/Article/twid_06_05_2025) 支持当前 Health 命名与 0–10% 抗抖；精确每点数值和 ADS 条件采用当前原表。
+
+计算为：`S = clamp(基础 Stability + 合资格点数，再应用声明的属性倍率, 0, 100)`；`F_stability = 1 − (S − 20) / 80 × C`。C 采用固定 Foundry 函数：Auto Rifle/SMG/Bow/Trace Rifle 为 0.25；Pulse/Scout/Sidearm/Machine Gun 为 0.20；Hand Cannon 为 0.15；Fusion/Shotgun/Sniper/Grenade Launcher/Linear Fusion/Rocket Launcher 为 0.10。20 以下保留增加 flinch 的惩罚，例如自动步枪 S=0 时 F=1.0625；未知或冲突原型标签不静默当作零收益。异域例外和全目录分类仍待确认。
+
+`F_health = 1 − min(Health,100) × 0.001`，仅完成 ADS 时生效；Health 仍由现有 0–200 角色属性 Profile 查询。No Distractions 激活且完成 ADS 时 `F_perk = 0.65`。最终有符号角度为 `输入角度 × F_stability × F_health × 各 perk 家族乘积`，最后才接受宿主 float 精度和俯仰限制。它不修改实际伤害。S=50、Health=100、自动步枪并已激活 perk 的例子，倍率为 `0.90625 × 0.9 × 0.65 = 0.53015625`。
+
+普通版从 ADS 输入后安静等待 1 秒；等待中成功开火重新计时，已激活后开火保留到退出 ADS。空弹匣不阻止等待。强化版要求显式时长参数，验收采用 Clarity 支持的 0.9 秒，原表问号保留为校准边界。计时与完成 ADS 分离、装备变更时机、取消/取样窗口为 Chorus 政策。三件 Unflinching 模组已由原表确认 0.65 倍，保留与 Foundry 0.6 的冲突；本批没有装配该模组。
+
+八项核心测试覆盖 480 组武器/模式/稳定性/Health 配置及三个 ADS 阶段、两版计时、成功/失败射击、空弹匣、来源隔离/限幅、卸装和恢复。六项共享世界场景使用真实独立武器与头部装备，验证实际受伤/Absorption、瞄准旋转、发射后仍保留抗抖、属性重取样、切枪和未知结果不重放。绝对基础 flinch 仍由攻击显式输入；参考 2°/−10°、基础伤害/属性、射程、弹量、射速和 ADS 时长均非原作测量。后坐力恢复、视觉晃动、PvE stagger、正式内容/HUD 与物理世界重启未完成，条目保持 partial。B152 图标已原样导入并目视核对，[素材清单](../data/compendium/assets/2026-10-12-no-distractions/manifest.json) 保留原始坐标，尚未绑定 UI。
