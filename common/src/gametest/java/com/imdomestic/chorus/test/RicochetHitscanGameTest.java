@@ -43,6 +43,23 @@ public class RicochetHitscanGameTest {
     static BlockPos wall(ProjectileGameTest.Harness t){var p=BlockPos.containing(t.owner.getX()+7.5,t.owner.getEyeY(),t.owner.getZ()+7.5);for(int z=-1;z<=1;z++)block(t,p.offset(0,0,z));return p;}
     static LivingEntity target(ProjectileGameTest.Harness t,double x,double z){var v=t.cow(2.5,50,2.5);v.setPos(t.owner.getX()+x,t.owner.getEyeY()-v.getBbHeight()/2,t.owner.getZ()+z);return v;}
     static RicochetHitscan.Query query(ProjectileGameTest.Harness t,WorldPosition p,WorldDirection d,double range,int pierces,int bounces,boolean origin){return new RicochetHitscan.Query(HitscanGameTest.query(t,p,d,range,0),pierces,bounces,origin);}
+    @GameCase(environment="chorus_gametest:ricochet_seam")
+    public void largeCoordinateBlockSeamsReflectFromTheExposedFaceInBothOrientations(GameTestHelper h)throws Exception {
+        for(boolean rotate:List.of(false,true))try(var t=open(h,1,false,"normal")){
+            double x=rotate?-1056701.5:9380754.5,z=rotate?9380754.5:-1056701.5;
+            // Explicit fixture preparation, not production query loading.
+            h.getLevel().getChunk(((int)Math.floor(x))>>4,((int)Math.floor(z))>>4);t.owner.setPos(x,128,z);
+            var wall=BlockPos.containing(x+7.5,t.owner.getEyeY(),z+7.5);
+            for(int n=-1;n<=1;n++)block(t,rotate?wall.offset(n,0,0):wall.offset(0,0,n));
+            var p=HitscanGameTest.point(t,t.owner.getEyePosition());var look=t.owner.getLookAngle();
+            // These distant fixture chunks are readable but not entity-simulated; geometry must not
+            // pretend relocated mobs are queryable. Existing simulated scenes verify real damage.
+            var path=MinecraftHitscan.trace(h.getLevel(),query(t,p,new WorldDirection(p.dimension(),look.x,look.y,look.z),12,0,1,false));
+            var face=path.contacts().getFirst().observed().orElseThrow();near(h,rotate?face.normalZ():face.normalX(),-1,"exposed face normal");
+            h.assertValueEqual(path.contacts().size(),2,"seam added a phantom contact");h.assertValueEqual(path.contacts().getLast().outcome(),Hitscan.Outcome.RANGE,"short reflected path should remain loaded");near(h,path.contacts().getLast().distance(),12,"seam reset travel budget");
+            var direction=path.contacts().getLast().query().direction().orElseThrow();h.assertTrue(rotate?direction.z()<0 && direction.x()>0:direction.x()<0 && direction.z()>0,"reflected direction differs from wall orientation");
+        }h.succeed();
+    }
     @GameCase(environment="chorus_gametest:ricochet_damage")
     public void obliqueWallReflectionUsesCumulativeTravelForTwoActualDamageContacts(GameTestHelper h)throws Exception {
         try(var t=open(h,1,false,"normal")){wall(t);var first=target(t,5,10);var second=target(t,3,12);ArmorPiercingRoundsGameTest.fire(t);

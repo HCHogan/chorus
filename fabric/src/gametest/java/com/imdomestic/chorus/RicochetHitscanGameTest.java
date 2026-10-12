@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class RicochetHitscanGameTest extends com.imdomestic.chorus.test.RicochetHitscanGameTest {
+    @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:ricochet_seam",maxTicks=100) @Override
+    public void largeCoordinateBlockSeamsReflectFromTheExposedFaceInBothOrientations(GameTestHelper h)throws Exception{super.largeCoordinateBlockSeamsReflectFromTheExposedFaceInBothOrientations(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:ricochet_damage",maxTicks=100) @Override
     public void obliqueWallReflectionUsesCumulativeTravelForTwoActualDamageContacts(GameTestHelper h)throws Exception{super.obliqueWallReflectionUsesCumulativeTravelForTwoActualDamageContacts(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:ricochet_zero",maxTicks=100) @Override
