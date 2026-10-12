@@ -27,6 +27,9 @@ public class UnflinchingGameTest {
     }
     static ProjectileGameTest.Harness open(GameTestHelper h) throws Exception { return NoDistractionsGameTest.open(h, false, UnflinchingGameTest::prepare); }
     static void mods(ProjectileGameTest.Harness t, String... elements) {
+        var equipment = com.imdomestic.chorus.platform.minecraft.PlayerEquipment.get(t.owner);
+        var grants = new HashSet<>(equipment.grants()); grants.add(D + "unlock/unflinching");
+        equipment.grants(t.owner, grants, equipment.revision());
         var choices = new HashMap<String, String>();
         for (int i = 0; i < 3; i++) choices.put("mod_" + i, i < elements.length ? elements[i] : "none");
         put(t, "chest", new Loadout.Gear("chest-" + UUID.randomUUID(), "test:unflinching_chest", choices));

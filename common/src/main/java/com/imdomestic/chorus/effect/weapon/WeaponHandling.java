@@ -48,7 +48,7 @@ public final class WeaponHandling {
         }
         public EquipmentChange change(Loadout before) {
             if (completed || !matches(before)) throw new IllegalArgumentException("Handling no longer owns this selection");
-            return new EquipmentChange(holder, before, new Loadout(before.slots(), phase == Phase.STOW ? Optional.empty() : targetSlot));
+            return new EquipmentChange(holder, before, new Loadout(before.slots(), phase == Phase.STOW ? Optional.empty() : targetSlot, before.grants()));
         }
     }
     public record Receipt(Outcome outcome, Optional<Plan> plan) implements RuleEngine.ActionResult {

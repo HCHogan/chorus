@@ -51,7 +51,17 @@ public final class EquipmentCommands {
                 .then(Commands.literal("move").then(Commands.argument("from", IdentifierArgument.id()).then(Commands.argument("to", IdentifierArgument.id())
                         .then(Commands.argument("revision", LongArgumentType.longArg(0)).executes(c -> execute(c.getSource(), p -> PlayerEquipment.get(p).move(p,
                                 c.getArgument("from", Identifier.class).toString(), c.getArgument("to", Identifier.class).toString(), LongArgumentType.getLong(c, "revision"))))))))
+                .then(grantCommand("grant", true)).then(grantCommand("revoke", false))
                 .then(stampCommand("stamp", false)).then(stampCommand("stamp_roll", true))));
+    }
+    private static LiteralArgumentBuilder<CommandSourceStack> grantCommand(String name, boolean add) {
+        return Commands.literal(name).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(Commands.argument("grant", IdentifierArgument.id()).then(Commands.argument("revision", LongArgumentType.longArg(0))
+                        .executes(c -> execute(c.getSource(), p -> {
+                            var equipment = PlayerEquipment.get(p); var grants = new java.util.HashSet<>(equipment.grants());
+                            String grant = c.getArgument("grant", Identifier.class).toString(); if (add) grants.add(grant); else grants.remove(grant);
+                            equipment.grants(p, grants, LongArgumentType.getLong(c, "revision"));
+                        }))));
     }
     private static LiteralArgumentBuilder<CommandSourceStack> stampCommand(String name, boolean structured) {
         return Commands.literal(name).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -71,7 +81,7 @@ public final class EquipmentCommands {
                             data.addProperty("instance", UUID.randomUUID().toString());
                             data.addProperty("definition", c.getArgument("definition", Identifier.class).toString());
                             var gear = EquipmentCodecs.GEAR.parse(JsonOps.INSTANCE, data).getOrThrow();
-                            runtime.program().equipment().validate(new Loadout(Map.of(c.getArgument("slot", Identifier.class).toString(), gear), Optional.empty()));
+                            runtime.program().equipment().validate(new Loadout(Map.of(c.getArgument("slot", Identifier.class).toString(), gear), Optional.empty(), PlayerEquipment.get(p).grants()));
                             held.set(ChorusComponents.EQUIPMENT.get(), gear); p.getInventory().setChanged(); p.inventoryMenu.broadcastChanges();
                         })))));
     }

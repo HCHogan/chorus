@@ -12,13 +12,13 @@ final class CompiledHandling {
     private CompiledHandling() {}
     static boolean configured(EffectState state, String holder, Optional<String> slot, CompiledWeapons weapons, CompiledEffects program) {
         var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
-        var desired = new Loadout(loadout.slots(), slot); program.equipment().validate(desired);
+        var desired = new Loadout(loadout.slots(), slot, loadout.grants()); program.equipment().validate(desired);
         return state.handling().containsKey(holder) || List.of(loadout, desired).stream().map(WeaponReload::drawn)
                 .flatMap(Optional::stream).map(g -> weapons.definition(g.definition())).filter(Objects::nonNull).anyMatch(w -> w.handling().isPresent());
     }
     static RuleEngine.Local<EffectState> begin(EffectState state, WeaponHandling.Request request, CompiledWeapons weapons, CompiledEffects program) {
         var loadout = state.equipment().getOrDefault(request.holder(), Loadout.EMPTY);
-        program.equipment().validate(new Loadout(loadout.slots(), request.slot()));
+        program.equipment().validate(new Loadout(loadout.slots(), request.slot(), loadout.grants()));
         var previous = state.handling().get(request.holder());
         if (previous != null && previous.targetSlot().equals(request.slot()) || previous == null && loadout.drawn().equals(request.slot()))
             return result(state, WeaponHandling.Outcome.UNCHANGED);

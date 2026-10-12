@@ -20,20 +20,23 @@ public final class PlayerEquipment {
     public interface Owner { PlayerEquipment chorus$equipment(); }
     public static PlayerEquipment get(Player player) { return ((Owner) player).chorus$equipment(); }
     private static final String SAVE_KEY = "chorus:equipment";
-    public record Stored(Map<String, ItemStack> items, Optional<String> drawn, long revision) {
+    public record Stored(Map<String, ItemStack> items, Optional<String> drawn, long revision, Set<String> grants) {
+        public Stored(Map<String, ItemStack> items, Optional<String> drawn, long revision) { this(items, drawn, revision, Set.of()); }
         public Stored {
-            items = copy(items); Objects.requireNonNull(drawn);
+            items = copy(items); Objects.requireNonNull(drawn); grants = new Loadout(Map.of(), Optional.empty(), grants).grants();
             if (revision < 0) throw new IllegalArgumentException("Negative equipment revision");
         }
         @Override public Map<String, ItemStack> items() { return copy(items); }
         public static final Codec<Stored> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.unboundedMap(Codec.STRING, ItemStack.CODEC).fieldOf("items").forGetter(Stored::items),
                 Codec.STRING.optionalFieldOf("drawn").forGetter(Stored::drawn),
-                Codec.LONG.optionalFieldOf("revision", 0L).forGetter(Stored::revision)
+                Codec.LONG.optionalFieldOf("revision", 0L).forGetter(Stored::revision),
+                com.imdomestic.chorus.core.codec.DataCodecs.ID.listOf().xmap(Set::copyOf, values -> values.stream().sorted().toList()).optionalFieldOf("grants", Set.of()).forGetter(Stored::grants)
         ).apply(i, Stored::new));
     }
     private Map<String, ItemStack> items = Map.of();
     private Optional<String> drawn = Optional.empty();
+    private Set<String> grants = Set.of();
     private Optional<String> inactiveReason = Optional.empty();
     private long revision;
     private boolean changing, transferCommitted;
@@ -46,16 +49,23 @@ public final class PlayerEquipment {
     public boolean isEmpty() { return items.isEmpty(); }
     public long revision() { return revision; }
     public ItemStack item(String slot) { return items.getOrDefault(slot, ItemStack.EMPTY).copy(); }
-    public Stored snapshot() { return new Stored(items, drawn, revision); }
+    public Stored snapshot() { return new Stored(items, drawn, revision, grants); }
+    public Set<String> grants() { return grants; }
+    /** Trusted server progression input. There is no corresponding client request operation. */
+    public void grants(ServerPlayer player, Set<String> next, long expectedRevision) {
+        check(player, expectedRevision); next = new Loadout(Map.of(), Optional.empty(), next).grants();
+        if (grants.equals(next)) return;
+        change(player, items, drawn, next, expectedRevision, true, () -> {}, () -> {});
+    }
     public Optional<String> inactiveReason() { return inactiveReason; }
     /** Persistence retains unknown prototypes/slots; validation only determines whether their effects are active. */
     public void save(ValueOutput output) { output.store(SAVE_KEY, Stored.CODEC, snapshot()); }
     public void load(ValueInput input) {
         if (changing) throw new IllegalStateException("Cannot load equipment during a transfer");
         var stored = input.read(SAVE_KEY, Stored.CODEC).orElseGet(() -> new Stored(Map.of(), Optional.empty(), 0));
-        items = stored.items(); drawn = stored.drawn(); revision = stored.revision(); inactiveReason = Optional.empty();
+        items = stored.items(); drawn = stored.drawn(); grants = stored.grants(); revision = stored.revision(); inactiveReason = Optional.empty();
     }
-    private static Loadout metadata(Map<String, ItemStack> items, Optional<String> drawn) {
+    private static Loadout metadata(Map<String, ItemStack> items, Optional<String> drawn, Set<String> grants) {
         var slots = new TreeMap<String, Loadout.Gear>();
         items.forEach((slot, stack) -> {
             if (stack.getCount() != 1) throw new IllegalArgumentException("Equipment slot must own exactly one item: " + slot);
@@ -63,13 +73,13 @@ public final class PlayerEquipment {
             if (gear == null) throw new IllegalArgumentException("Item has no equipment identity: " + slot);
             slots.put(slot, gear);
         });
-        return new Loadout(slots, drawn);
+        return new Loadout(slots, drawn, grants);
     }
     Loadout projection(CompiledEquipment schema) {
         try {
-            var result = metadata(items, drawn); schema.validate(result); inactiveReason = Optional.empty(); return result;
+            var result = metadata(items, drawn, grants); schema.validate(result); inactiveReason = Optional.empty(); return result;
         } catch (IllegalArgumentException invalid) {
-            inactiveReason = Optional.of(invalid.getMessage()); return Loadout.EMPTY;
+            inactiveReason = Optional.of(invalid.getMessage()); return new Loadout(Map.of(), Optional.empty(), grants);
         }
     }
     private void check(ServerPlayer player, long expected) {
@@ -92,7 +102,7 @@ public final class PlayerEquipment {
         boolean retrieval = incoming.isEmpty();
         if (!retrieval && runtime == null) throw new IllegalStateException("Equip requires an installed ruleset");
         if (!retrieval) {
-            var desired = metadata(next, nextDrawn); runtime.program().equipment().validate(desired);
+            var desired = metadata(next, nextDrawn, grants); runtime.program().equipment().validate(desired);
             String instance = Objects.requireNonNull(incoming.get(ChorusComponents.EQUIPMENT.get())).instance();
             for (var stack : items.values()) {
                 var gear = stack.get(ChorusComponents.EQUIPMENT.get());
@@ -131,6 +141,7 @@ public final class PlayerEquipment {
     boolean applyHandling(ServerPlayer player, EquipmentChange change, CompiledEquipment schema) {
         check(player, revision);
         if (!change.holder().equals(player.getUUID().toString()) || !change.before().slots().equals(change.after().slots())
+                || !change.before().grants().equals(change.after().grants())
                 || !projection(schema).equals(change.before())) return false;
         schema.validate(change.after()); long next = Math.incrementExact(revision);
         drawn = change.after().drawn(); revision = next; inactiveReason = Optional.empty();
@@ -138,22 +149,26 @@ public final class PlayerEquipment {
     }
     private void change(ServerPlayer player, Map<String, ItemStack> desired, Optional<String> nextDrawn, long expected,
             boolean retrieval, Runnable checkInventory, Runnable transferInventory) {
+        change(player, desired, nextDrawn, grants, expected, retrieval, checkInventory, transferInventory);
+    }
+    private void change(ServerPlayer player, Map<String, ItemStack> desired, Optional<String> nextDrawn, Set<String> nextGrants, long expected,
+            boolean allowInactive, Runnable checkInventory, Runnable transferInventory) {
         var nextItems = copy(desired); long nextRevision = Math.incrementExact(revision);
         var runtime = MinecraftEffectRuntime.installed(player.level()).orElse(null);
-        if (runtime == null && !retrieval) throw new IllegalStateException("Equip requires an installed ruleset");
-        Loadout target = Loadout.EMPTY;
+        if (runtime == null && !allowInactive) throw new IllegalStateException("Equip requires an installed ruleset");
+        Loadout target = new Loadout(Map.of(), Optional.empty(), nextGrants);
         if (runtime != null) {
-            try { target = metadata(nextItems, nextDrawn); runtime.program().equipment().validate(target); }
-            catch (IllegalArgumentException invalid) { if (!retrieval) throw invalid; target = Loadout.EMPTY; }
+            try { target = metadata(nextItems, nextDrawn, nextGrants); runtime.program().equipment().validate(target); }
+            catch (IllegalArgumentException invalid) { if (!allowInactive) throw invalid; target = new Loadout(Map.of(), Optional.empty(), nextGrants); }
             runtime.trackEquipment(player); runtime.prepare();
         }
         check(player, expected); checkInventory.run(); // clock/attach reactions may have changed inventory
         changing = true; transferCommitted = false;
         try {
             Runnable transfer = () -> {
-                transferInventory.run(); items = nextItems; drawn = nextDrawn; revision = nextRevision; inactiveReason = Optional.empty(); transferCommitted = true;
+                transferInventory.run(); items = nextItems; drawn = nextDrawn; grants = nextGrants; revision = nextRevision; inactiveReason = Optional.empty(); transferCommitted = true;
             };
-            if (runtime == null || runtime.failure().isPresent() && retrieval) transfer.run();
+            if (runtime == null || runtime.failure().isPresent() && allowInactive) transfer.run();
             else {
                 String holder = player.getUUID().toString();
                 var before = runtime.state().engine().domain().equipment().getOrDefault(holder, Loadout.EMPTY);
@@ -165,10 +180,10 @@ public final class PlayerEquipment {
     /** Ownership moves, rather than copying, when Minecraft replaces the ServerPlayer during respawn. */
     public void transferFrom(PlayerEquipment old) {
         if (old == this) return;
-        if (changing || old.changing || !items.isEmpty()) throw new IllegalStateException("Invalid player equipment transfer");
+        if (changing || old.changing || !items.isEmpty() || !grants.isEmpty()) throw new IllegalStateException("Invalid player equipment transfer");
         long nextRevision = Math.incrementExact(Math.max(revision, old.revision));
-        items = old.items; drawn = old.drawn; revision = nextRevision; inactiveReason = Optional.empty();
-        old.items = Map.of(); old.drawn = Optional.empty(); old.revision = nextRevision; old.inactiveReason = Optional.empty();
+        items = old.items; drawn = old.drawn; grants = old.grants; revision = nextRevision; inactiveReason = Optional.empty();
+        old.items = Map.of(); old.drawn = Optional.empty(); old.grants = Set.of(); old.revision = nextRevision; old.inactiveReason = Optional.empty();
     }
     public void dropOnDeath(ServerPlayer player) {
         if (player.level().getGameRules().get(GameRules.KEEP_INVENTORY)) return;

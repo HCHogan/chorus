@@ -92,7 +92,7 @@ class EquipmentBudgetTest {
         assertEquals(p, EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, p).getOrThrow()).getOrThrow());
         assertEquals(p, EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(p), EffectProgram.class));
         var current = p.equipment().items().getFirst(); var old = EffectCheckpointCodec.DATA.encode(current).getAsJsonObject();
-        old.addProperty("$", "chorus:effect/equipment/equipment_schema/item"); old.getAsJsonObject("v").remove("budgets");
+        old.addProperty("$", "chorus:effect/equipment/equipment_schema/item"); old.getAsJsonObject("v").remove("budgets"); old.getAsJsonObject("v").remove("requires");
         var migrated = EffectCheckpointCodec.DATA.decode(old, EquipmentSchema.Item.class); assertTrue(migrated.budgets().isEmpty()); assertEquals(current.sockets(), migrated.sockets());
         old.getAsJsonObject("v").add("budgets", new JsonObject()); assertThrows(IllegalArgumentException.class, () -> EffectCheckpointCodec.DATA.decode(old, EquipmentSchema.Item.class));
     }

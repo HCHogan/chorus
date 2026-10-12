@@ -175,20 +175,44 @@ actor、flags、impact、历史观察及其他 references 继续来自当前事�
 可信服务端宿主调用：
 
 ```java
+Loadout before = runtime.state().engine().domain().equipment().getOrDefault(holder, Loadout.EMPTY);
 Loadout next = new Loadout(Map.of("test:weapon_a",
     new Loadout.Gear(itemInstanceId, "test:rifle", Map.of("perk", "enhanced"))),
-    Optional.of("test:weapon_a"));
-Loadout before = runtime.state().engine().domain().equipment().getOrDefault(holder, Loadout.EMPTY);
+    Optional.of("test:weapon_a"), before.grants());
 runtime.equip(new EquipmentChange(holder, before, next));
 ```
 
-`EquipmentCodecs.LOADOUT` 提供对应的 slots / drawn JSON 读写。`Gear` 保存 instance / definition / choices / parameters 元数据，没有 ItemStack、数量或耐久；`equip` 不证明玩家拥有物品，不能直接作为客户端请求处理器。玩家物品应通过下面的 PlayerEquipment 容器接口转移，物品组件与效果元数据分开保存。
+`EquipmentCodecs.LOADOUT` 提供对应的 slots / drawn / grants JSON 读写。普通装配修改应保留持有者既有 grants，显式授权事务才能改变它。`Gear` 保存 instance / definition / choices / parameters 元数据，没有 ItemStack、数量、耐久或授权；`equip` 不证明玩家拥有物品，不能直接作为客户端请求处理器。玩家物品应通过下面的 PlayerEquipment 容器接口转移，物品组件与效果元数据分开保存。
 
 事务先追赶逻辑时间、验证 before 装配和其全部来源，再一次提交新来源、装配及现有武器 Buff 的 stow / draw 迁移。事实随后依次入队：weapon_stowed / weapon_drawn 及其 Buff 生命周期事实、按来源身份排序的全部 source_detached、全部 source_attached、equipment_changed。`equipment_changed` 的 Fact 携带完整 Receipt 和 before / after；事件数字 equipped_count 为 COUNT。清理动作读取旧来源标签，但看到的全局装备与来源已是新装配。世界动作随后失败时保留已提交状态和待确认操作，不自动重放或伪造回滚。
 
 `on_stow` 是切枪时对已有 Buff 的迁移策略；它不阻止收枪后新授予 Buff。需要这项限制的规则显式检查 `weapon_drawn`。该条件按绑定来源的 owner + weapon 查询装配；无装备记录或无武器归属返回 false，攻击 on_use 快照固定捕获时结果。
 
 非装备宿主可用 `runtime.replaceSources(SourceBatch)` 批量更新其他来源。每项带 before / after，先核对全部旧值再整体提交；即使某项不变也参与旧值验证，任何不一致均拒绝。相等重绑无事实且不重置定时器，替换取消旧来源绑定的定时器；独立 Buff 和 detached 延迟动作按其自身生命周期保留，需要清理的状态由旧来源自己的 detached 规则明确处理。`bind / unbind / replaceSources` 均拒绝直接修改 equipment/ 来源。
+
+### 装备和选项的持有者授权
+
+`items[].requires` 可声明整件物品和指定选项需要的授权。所有集合按 AND 判断，未列出的选项没有额外要求；缺省 requires 表示无要求。未知插槽/选项、非法授权 ID 和未知字段在编译时拒绝。例：
+
+```json
+"requires": {
+  "all": ["example:armor_unlocked"],
+  "choices": {
+    "mod_0": {
+      "normal": ["example:mod_unlocked"],
+      "discounted": ["example:mod_unlocked", "example:artifact_selected"]
+    }
+  }
+}
+```
+
+授权来源是 `Loadout.grants` 中该持有者的服务端快照，原生宿主由 `PlayerEquipment.grants` 保存并投影。Gear、物品/效果标签、Buff、其他玩家和客户端请求都不能提供授权。选项的授权校验与预算独立：有资格仍可能超预算，有空余额也不能绕过资格。空装备的授权快照会保留；纯核心 equip 是可信宿主接口，不能把客户端自报的 grants 传入。
+
+可信服务端通过 `PlayerEquipment.get(player).grants(player, nextGrants, expectedRevision)` 替换完整集合。管理入口 `chorus equipment grant <id> <revision>` / `revoke <id> <revision>` 需要 GAMEMASTERS 权限，仅操作命令发起玩家；普通玩家没有对应授权写入操作。变化使用同一个装备 revision 和物理提交边界，旧页面请求随后失效；相同集合不改 revision、不重放 attach。资格仍满足的来源保持身份；撤销后非法整套装配沿用 inactive 投影政策，物品保留、效果卸载，合法性恢复时重新挂载，仍可无条件取回。不会自动把优惠选项换为普通版本。
+
+授权属于持有者，存于玩家 `chorus:equipment.grants` NBT，不进入物品组件；死亡不清除，ServerPlayer 替换转移后清空旧对象。空容器加载、领域检查点和切枪阶段都保留授权；checkpoint 与当前玩家授权不同仍拒绝直接恢复。旧 Loadout 存储读为无授权，旧 item/item_v2 读为无 requires，新存储分别写 loadout_v2/item_v3，历史结构不重写。
+
+现有 equipment_view 只传展示信息，仍不传授权集合；revision/status 变化足以让旧请求失效和页面显示非法装备。`equipment_access.json` 验证通用链路，Unflinching 的普通/神器选项已有实际消费者。当前是按玩家持有者保存的通用授权入口，没有实现账号共享、Guardian Rank 进度、神器页面/点数树、赛季可用性、过期策略或外部账号同步；这些生产者须验证自己的条件后调用该入口。
 
 ### 每件装备的插槽预算
 
@@ -210,9 +234,9 @@ runtime.equip(new EquipmentChange(holder, before, next));
 
 每个预算至少列一个参与插槽；该插槽的全部选项必须逐项标价，免费选项明确写零，未知/遗漏选项及未知插槽在编译时拒绝。预算未列出的插槽不参与该预算，可选插槽未选择时费用为零。费用按实际选择相加，使用 long 累加避免 int 溢出；`drawn` 未激活、超能/武器元素不匹配或退出 ADS 都不会释放已占费用。它不是可消费/恢复的战斗资源，也不扣 Armor Charge。
 
-所有纯装备投影、管理赋值、物理交换/移动和客户端请求复用 `CompiledEquipment.validate`，超额在物品转移及来源提交前拒绝。拒绝保留背包、装备、revision 和已有来源；规则重载使现有装备超额时，沿用整套投影停用/显示原因的策略，物品仍可取回。物品保存容量参数，规则程序保存预算目录；旧 item 存储类型经显式迁移得到空预算，新预算写入 item_v2。目录更改后仍需遵循既有程序相等性要求，不能绕过检查恢复旧会话。
+所有纯装备投影、管理赋值、物理交换/移动和客户端请求复用 `CompiledEquipment.validate`，超额在物品转移及来源提交前拒绝。拒绝保留背包、装备、revision 和已有来源；规则重载使现有装备超额时，沿用整套投影停用/显示原因的策略，物品仍可取回。物品保存容量参数，规则程序保存预算目录；旧 item 存储类型经显式迁移得到空预算，预算版 item_v2 也继续可读，当前带授权要求的目录写入 item_v3。目录更改后仍需遵循既有程序相等性要求，不能绕过检查恢复旧会话。
 
-`equipment_budget.json` 验证固定/参数容量、多预算、可选插槽、收枪费用、拒绝和存储迁移；双端世界场景验证真实网络请求、物品组件/NBT 及更严目录下的取回。Unflinching 参考胸甲已采用普通固定属性 3 / Harmonic 2 费用。账号解锁、神器优惠版本资格、Tier/升级目录、动态改价和 UI 费用显示仍需后续接入。
+`equipment_budget.json` 验证固定/参数容量、多预算、可选插槽、收枪费用、拒绝和存储迁移；双端世界场景验证真实网络请求、物品组件/NBT 及更严目录下的取回。Unflinching 参考胸甲已采用普通固定属性 3 / Harmonic 2 费用，显式神器选项费用为 1 且需要对应授权。账号进度与神器选择的生产者、Tier/升级目录、动态改价和 UI 费用显示仍需后续接入。
 
 ### 每件装备的数值参数
 
@@ -3660,8 +3684,8 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 
 模组只在完成 ADS、查询带 `chorus_d2:incoming_flinch_query` 且查询来源持有者匹配时生效。`event_source_tag` 读取防守武器的 `chorus_d2:<element>`，不使用模组自身标签或攻击的伤害属性。件数查询采用持有者局部 `profile_value`，无需继承武器身份；不同元素各有 Profile，不会将不匹配来源计入。内容须提供当前武器的单一元素标签；Osmosis/Permeability 等变色行为的实际来源更新需另行接入。
 
-`unflinching_equipment.json` 提供独立 chest 栏与三个必选 mod 插槽，每槽可选 none、六种固定元素之一或 harmonic。空选择不贡献来源，缺失、未知、第四选项及错误装备栏由既有装备验证拒绝。护甲替换立即改变下一次受击的查询结果，未变更的武器 perk 来源继续计时/生效。非装备路径注入第四来源最多第三档；这不代表额外插槽可用。
+`unflinching_equipment.json` 提供独立 chest 栏与三个必选 mod 插槽，每槽可选 none、六种固定元素之一、harmonic 或对应的显式 *_artifact 优惠版本。空选择不贡献来源，缺失、未知、第四选项及错误装备栏由既有装备验证拒绝。护甲替换立即改变下一次受击的查询结果，未变更的武器 perk 来源继续计时/生效。非装备路径注入第四来源最多第三档；这不代表额外插槽可用。
 
 `chorus_d2:unflinching_harmonic` 用 `selected_ability_tag` 查询当前持有者 `chorus_d2:super` 槽的五种元素标签，仅向所选超能的元素件数 Profile 贡献一件。空超能槽、他人的超能、其它槽的匹配技能和来源标签不能赋予资格；没有动能超能变体。固定属性与匹配 Harmonic 先合并件数再查档位，这是已明确标注、仍待原作混装实测的 Chorus 政策。改变超能选择影响下一次查询，不重启未变化的武器来源。`harmonic_selection.json` 提供不可施放的超能/手雷元数据夹具，不声明虚假的常驻效果，也不代表完整超能或棱镜目录。
 
-该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。参考胸甲的 energy 预算为 10，三个插槽的 none/固定属性/Harmonic 分别占 0/3/2；费用不随当前超能或收益是否生效变化。预算在装备事务写入容器前校验，与战斗资源分开；普通版本费用来自固定 Bungie Manifest，费用为 1 的神器版本没有自动混入。账号解锁、神器资格、完整护甲目录与 UI 尚未接入，研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。
+该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。参考胸甲的 energy 预算为 10，三个插槽的 none/固定属性/Harmonic 分别占 0/3/2；费用不随当前超能或收益是否生效变化。每个非 none 选项要求 `chorus_d2:unlock/unflinching`；七种 `<element>_artifact` 选项各占 1，额外要求 `chorus_d2:artifact/unflinching_<element>`，调用与普通版相同的抗抖 Bundle。none 不需要解锁，只有别的属性授权不能装上当前优惠选项。资格撤销使非法装配停用、保留物品，不自动改选或改价；完整护甲目录、账号/神器进度生产者与 UI 尚未接入。研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。

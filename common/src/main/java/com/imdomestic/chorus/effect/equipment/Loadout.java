@@ -3,8 +3,9 @@ package com.imdomestic.chorus.effect.equipment;
 import java.util.*;
 
 /** Immutable equipment metadata projected from the authoritative item container; never an ItemStack copy. */
-public record Loadout(Map<String, Gear> slots, Optional<String> drawn) {
+public record Loadout(Map<String, Gear> slots, Optional<String> drawn, Set<String> grants) {
     public static final Loadout EMPTY = new Loadout(Map.of(), Optional.empty());
+    public Loadout(Map<String, Gear> slots, Optional<String> drawn) { this(slots, drawn, Set.of()); }
     public record Gear(String instance, String definition, Map<String, String> choices, Map<String, com.imdomestic.chorus.stat.Measure> parameters) {
         public Gear {
             if (instance == null || instance.isBlank()) throw new IllegalArgumentException("Missing equipment instance");
@@ -15,7 +16,7 @@ public record Loadout(Map<String, Gear> slots, Optional<String> drawn) {
         public Gear(String instance, String definition, Map<String, String> choices) { this(instance, definition, choices, Map.of()); }
     }
     public Loadout {
-        slots = Collections.unmodifiableMap(new TreeMap<>(slots)); Objects.requireNonNull(drawn);
+        slots = Collections.unmodifiableMap(new TreeMap<>(slots)); Objects.requireNonNull(drawn); grants = Set.copyOf(grants); grants.forEach(EquipmentSchema::id);
         slots.keySet().forEach(EquipmentSchema::id);
         if (drawn.isPresent() && !slots.containsKey(drawn.orElseThrow())) throw new IllegalArgumentException("Drawn slot is empty");
         var instances = new HashSet<String>();

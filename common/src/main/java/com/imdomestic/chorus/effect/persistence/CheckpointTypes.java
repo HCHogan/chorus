@@ -411,13 +411,16 @@ final class CheckpointTypes {
         types.put("chorus:effect/equipment/equipment_schema/activation", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Activation.class);
         types.put("chorus:effect/equipment/equipment_schema/effect", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Effect.class);
         types.put("chorus:effect/equipment/equipment_schema/item", LegacyEquipmentItemV1.class);
-        types.put("chorus:effect/equipment/equipment_schema/item_v2", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class);
+        types.put("chorus:effect/equipment/equipment_schema/item_v2", LegacyEquipmentItemV2.class);
+        types.put("chorus:effect/equipment/equipment_schema/item_v3", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class);
+        types.put("chorus:effect/equipment/equipment_schema/requirements", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Requirements.class);
         types.put("chorus:effect/equipment/equipment_schema/budget", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Budget.class);
         types.put("chorus:effect/equipment/equipment_schema/limit", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Limit.class);
         types.put("chorus:effect/equipment/equipment_schema/parameter", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Parameter.class);
         types.put("chorus:effect/equipment/equipment_schema/slot", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Slot.class);
         types.put("chorus:effect/equipment/equipment_schema/socket", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Socket.class);
-        types.put("chorus:effect/equipment/loadout", com.imdomestic.chorus.effect.equipment.Loadout.class);
+        types.put("chorus:effect/equipment/loadout", LegacyLoadoutV1.class);
+        types.put("chorus:effect/equipment/loadout_v2", com.imdomestic.chorus.effect.equipment.Loadout.class);
         types.put("chorus:effect/equipment/loadout/gear", com.imdomestic.chorus.effect.equipment.Loadout.Gear.class);
         types.put("chorus:effect/input/action_gate/cancelled", com.imdomestic.chorus.effect.input.ActionGate.Cancelled.class);
         types.put("chorus:effect/input/action_gate/decision", com.imdomestic.chorus.effect.input.ActionGate.Decision.class);
@@ -641,6 +644,8 @@ final class CheckpointTypes {
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV1::current),
+                new RecordTreeCodec.Migration<>(LegacyEquipmentItemV2.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV2::current),
+                new RecordTreeCodec.Migration<>(LegacyLoadoutV1.class, com.imdomestic.chorus.effect.equipment.Loadout.class, LegacyLoadoutV1::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargingV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class, LegacyWeaponChargingV1::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargePlanV1.class, com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class, LegacyWeaponChargePlanV1::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargingV2.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class, LegacyWeaponChargingV2::current),

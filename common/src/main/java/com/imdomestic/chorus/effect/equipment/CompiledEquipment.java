@@ -20,6 +20,10 @@ public final class CompiledEquipment {
         index(schema.limits(), EquipmentSchema.Limit::id);
         for (var limit : schema.limits()) if (!slots.keySet().containsAll(limit.slots())) throw new IllegalArgumentException("Limit references unknown equipment slot");
         for (var item : items.values()) {
+            item.requires().choices().forEach((name, choices) -> {
+                var socket = item.sockets().get(name);
+                if (socket == null || !socket.options().keySet().containsAll(choices.keySet())) throw new IllegalArgumentException("Requirements reference unknown equipment option: " + name);
+            });
             Consumer<EquipmentSchema.Effect> validate = effect -> {
                 validateBundle.accept(effect.bundle());
                 var declared = bundleParameters.apply(effect.bundle());
@@ -56,12 +60,14 @@ public final class CompiledEquipment {
         for (var entry : loadout.slots().entrySet()) {
             var slot = slots.get(entry.getKey()); var gear = entry.getValue(); var item = items.get(gear.definition());
             if (slot == null || item == null) throw new IllegalArgumentException("Unknown equipment slot or item");
+            requireGrants(loadout.grants(), item.requires().all(), item.id());
             if (Collections.disjoint(slot.accepts(), item.tags())) throw new IllegalArgumentException("Item is not accepted by slot: " + slot.id());
             if (!item.parameters().keySet().equals(gear.parameters().keySet())) throw new IllegalArgumentException("Equipment parameter names do not match item declaration");
             item.parameters().forEach((name, spec) -> spec.validate(gear.parameters().get(name)));
             for (var choice : gear.choices().entrySet()) {
                 var socket = item.sockets().get(choice.getKey());
                 if (socket == null || !socket.options().containsKey(choice.getValue())) throw new IllegalArgumentException("Unknown equipment socket choice");
+                requireGrants(loadout.grants(), item.requires().choices().getOrDefault(choice.getKey(), Map.of()).getOrDefault(choice.getValue(), Set.of()), item.id() + "/" + choice.getKey() + "/" + choice.getValue());
             }
             for (var socket : item.sockets().entrySet()) if (socket.getValue().required() && !gear.choices().containsKey(socket.getKey())) throw new IllegalArgumentException("Missing required equipment socket: " + socket.getKey());
             item.budgets().forEach((name, budget) -> {
@@ -81,6 +87,10 @@ public final class CompiledEquipment {
                     .filter(entry -> items.get(entry.getValue().definition()).tags().contains(limit.tag())).count();
             if (count > limit.maximum()) throw new IllegalArgumentException("Equipment limit exceeded: " + limit.id());
         }
+    }
+    private static void requireGrants(Set<String> granted, Set<String> required, String subject) {
+        var missing = new TreeSet<>(required); missing.removeAll(granted);
+        if (!missing.isEmpty()) throw new IllegalArgumentException("Equipment requires grants: " + subject + " " + missing);
     }
     private static Map<String, EquipmentSchema.Effect> effects(EquipmentSchema.Item item, Loadout.Gear gear) {
         var effects = new TreeMap<String, EquipmentSchema.Effect>();

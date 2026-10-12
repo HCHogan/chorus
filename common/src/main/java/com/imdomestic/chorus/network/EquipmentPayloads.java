@@ -39,6 +39,7 @@ public final class EquipmentPayloads {
             if (slots.size() > 1024 || equipment.items().size() > 1024 || inventory.size() > 256) throw new IllegalArgumentException("Equipment view exceeds protocol limits");
         }
         @Override public List<ItemStack> inventory() { return copy(inventory); }
+        // Holder grants are server-only progression input, intentionally absent from this presentation protocol.
         public boolean same(Content other) {
             if (other == null || !slots.equals(other.slots) || status != other.status || !presentation.equals(other.presentation) || !version.equals(other.version)
                     || equipment.revision() != other.equipment.revision() || !equipment.drawn().equals(other.equipment.drawn()) || inventory.size() != other.inventory.size()) return false;

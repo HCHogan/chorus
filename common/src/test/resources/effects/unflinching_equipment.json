@@ -41,6 +41,27 @@
               },
               "harmonic": {
                 "bundle": "chorus_d2:unflinching_harmonic"
+              },
+              "kinetic_artifact": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc_artifact": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar_artifact": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void_artifact": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis_artifact": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand_artifact": {
+                "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic_artifact": {
+                "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
             "required": true
@@ -69,6 +90,27 @@
                 "bundle": "chorus_d2:unflinching_strand"
               },
               "harmonic": {
+                "bundle": "chorus_d2:unflinching_harmonic"
+              },
+              "kinetic_artifact": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc_artifact": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar_artifact": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void_artifact": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis_artifact": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand_artifact": {
+                "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic_artifact": {
                 "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
@@ -99,6 +141,27 @@
               },
               "harmonic": {
                 "bundle": "chorus_d2:unflinching_harmonic"
+              },
+              "kinetic_artifact": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc_artifact": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar_artifact": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void_artifact": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis_artifact": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand_artifact": {
+                "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic_artifact": {
+                "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
             "required": true
@@ -116,7 +179,14 @@
                 "void": 3,
                 "stasis": 3,
                 "strand": 3,
-                "harmonic": 2
+                "harmonic": 2,
+                "kinetic_artifact": 1,
+                "arc_artifact": 1,
+                "solar_artifact": 1,
+                "void_artifact": 1,
+                "stasis_artifact": 1,
+                "strand_artifact": 1,
+                "harmonic_artifact": 1
               },
               "mod_1": {
                 "none": 0,
@@ -126,7 +196,14 @@
                 "void": 3,
                 "stasis": 3,
                 "strand": 3,
-                "harmonic": 2
+                "harmonic": 2,
+                "kinetic_artifact": 1,
+                "arc_artifact": 1,
+                "solar_artifact": 1,
+                "void_artifact": 1,
+                "stasis_artifact": 1,
+                "strand_artifact": 1,
+                "harmonic_artifact": 1
               },
               "mod_2": {
                 "none": 0,
@@ -136,8 +213,172 @@
                 "void": 3,
                 "stasis": 3,
                 "strand": 3,
-                "harmonic": 2
+                "harmonic": 2,
+                "kinetic_artifact": 1,
+                "arc_artifact": 1,
+                "solar_artifact": 1,
+                "void_artifact": 1,
+                "stasis_artifact": 1,
+                "strand_artifact": 1,
+                "harmonic_artifact": 1
               }
+            }
+          }
+        },
+        "requires": {
+          "choices": {
+            "mod_0": {
+              "kinetic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_kinetic"
+              ],
+              "arc_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_arc"
+              ],
+              "solar_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_solar"
+              ],
+              "void_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_void"
+              ],
+              "stasis_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_stasis"
+              ],
+              "strand_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_strand"
+              ],
+              "harmonic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_harmonic"
+              ],
+              "kinetic": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "arc": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "solar": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "void": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "stasis": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "strand": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "harmonic": [
+                "chorus_d2:unlock/unflinching"
+              ]
+            },
+            "mod_1": {
+              "kinetic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_kinetic"
+              ],
+              "arc_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_arc"
+              ],
+              "solar_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_solar"
+              ],
+              "void_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_void"
+              ],
+              "stasis_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_stasis"
+              ],
+              "strand_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_strand"
+              ],
+              "harmonic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_harmonic"
+              ],
+              "kinetic": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "arc": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "solar": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "void": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "stasis": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "strand": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "harmonic": [
+                "chorus_d2:unlock/unflinching"
+              ]
+            },
+            "mod_2": {
+              "kinetic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_kinetic"
+              ],
+              "arc_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_arc"
+              ],
+              "solar_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_solar"
+              ],
+              "void_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_void"
+              ],
+              "stasis_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_stasis"
+              ],
+              "strand_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_strand"
+              ],
+              "harmonic_artifact": [
+                "chorus_d2:unlock/unflinching",
+                "chorus_d2:artifact/unflinching_harmonic"
+              ],
+              "kinetic": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "arc": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "solar": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "void": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "stasis": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "strand": [
+                "chorus_d2:unlock/unflinching"
+              ],
+              "harmonic": [
+                "chorus_d2:unlock/unflinching"
+              ]
             }
           }
         }

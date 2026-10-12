@@ -188,7 +188,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     static void validateCheckpointEquipment(ServerLevel level, CompiledEffects program, Checkpoint checkpoint) {
         // A mismatch with an already-present player's physical container is not an equipment-change event to replay.
         for (var player : level.players()) {
-            if (!checkpoint.equipmentOwners().contains(player.getUUID()) && PlayerEquipment.get(player).isEmpty()) continue;
+            if (!checkpoint.equipmentOwners().contains(player.getUUID()) && PlayerEquipment.get(player).isEmpty() && PlayerEquipment.get(player).grants().isEmpty()) continue;
             var saved = checkpoint.effects().timeline().domain().equipment().getOrDefault(player.getUUID().toString(), com.imdomestic.chorus.effect.equipment.Loadout.EMPTY);
             if (!saved.equals(PlayerEquipment.get(player).projection(program.equipment())))
                 throw new IllegalArgumentException("Checkpoint equipment differs from the current player container: " + player.getUUID());
@@ -662,7 +662,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (refreshingEquipment || session.running() || failure.isPresent()) return;
         refreshingEquipment = true;
         try {
-            for (var player : level.players()) if (!PlayerEquipment.get(player).isEmpty() || equipmentOwnerIds.contains(player.getUUID())) {
+            for (var player : level.players()) if (!PlayerEquipment.get(player).isEmpty() || !PlayerEquipment.get(player).grants().isEmpty() || equipmentOwnerIds.contains(player.getUUID())) {
                 equipmentOwners.put(player.getUUID(), player); equipmentOwnerIds.add(player.getUUID());
             }
             for (var entry : List.copyOf(equipmentOwners.entrySet())) {

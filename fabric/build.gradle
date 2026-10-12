@@ -262,6 +262,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/unflinching.json', 'effects/unflinching_equipment.json'
         include 'effects/selected_ability.json', 'effects/harmonic_selection.json'
         include 'effects/equipment_budget.json'
+        include 'effects/equipment_access.json'
         include 'effects/explosive_payload.json', 'effects/explosive_payload_test_calibration.json', 'effects/explosive_payload_weapon.json'
         include 'effects/timed_payload.json', 'effects/timed_payload_weapon.json'
         include 'effects/explosive_head.json', 'effects/explosive_head_weapon.json', 'effects/explosive_head_test_calibration.json'

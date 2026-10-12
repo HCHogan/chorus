@@ -20,10 +20,25 @@ public record EquipmentSchema(List<Slot> slots, List<Item> items, List<Limit> li
     public record Socket(Map<String, Effect> options, boolean required) {
         public Socket { options = locals(options); if (options.isEmpty()) throw new IllegalArgumentException("Socket has no choices"); }
     }
-    public record Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters, Map<String, Budget> budgets) {
-        public Item { EquipmentSchema.id(id); tags = ids(tags); effects = locals(effects); sockets = locals(sockets); parameters = EffectParameters.copy(parameters); budgets = locals(budgets); }
+    public record Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters, Map<String, Budget> budgets, Requirements requires) {
+        public Item { EquipmentSchema.id(id); tags = ids(tags); effects = locals(effects); sockets = locals(sockets); parameters = EffectParameters.copy(parameters); budgets = locals(budgets); Objects.requireNonNull(requires); }
+        public Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters, Map<String, Budget> budgets) { this(id, tags, effects, sockets, parameters, budgets, Requirements.NONE); }
         public Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters) { this(id, tags, effects, sockets, parameters, Map.of()); }
         public Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets) { this(id, tags, effects, sockets, Map.of()); }
+    }
+    /** Server-issued holder grants; an item cannot supply its own eligibility. */
+    public record Requirements(Set<String> all, Map<String, Map<String, Set<String>>> choices) {
+        public static final Requirements NONE = new Requirements(Set.of(), Map.of());
+        public Requirements {
+            all = ids(all); var copy = new TreeMap<String, Map<String, Set<String>>>();
+            choices.forEach((socket, options) -> {
+                local(socket); var values = new TreeMap<String, Set<String>>();
+                options.forEach((option, grants) -> { local(option); values.put(option, ids(grants)); });
+                if (values.isEmpty()) throw new IllegalArgumentException("Empty equipment option requirements");
+                copy.put(socket, Collections.unmodifiableMap(values));
+            });
+            choices = Collections.unmodifiableMap(copy);
+        }
     }
     /** Static per-item allocation, independent of whether selected effects are currently active. */
     public record Budget(Optional<Integer> capacity, Optional<String> capacityParameter, Map<String, Map<String, Integer>> costs) {

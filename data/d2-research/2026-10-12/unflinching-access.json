@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "source_record": "data/d2-research/2026-10-12/unflinching-energy-manifest.json",
+  "manifest_version": "244213.26.06.29.2000-1-bnet.65864",
+  "options": {
+    "harmonic": {
+      "hash": "3094620656",
+      "energy_cost": 2,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "kinetic": {
+      "hash": "1262438062",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "arc": {
+      "hash": "319908131",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "solar": {
+      "hash": "1553790504",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "stasis": {
+      "hash": "2959504464",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "strand": {
+      "hash": "3979621113",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "void": {
+      "hash": "3437323171",
+      "energy_cost": 3,
+      "requires": [
+        "chorus_d2:unlock/unflinching"
+      ]
+    },
+    "harmonic_artifact": {
+      "hash": "293178904",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_harmonic"
+      ]
+    },
+    "kinetic_artifact": {
+      "hash": "2325151798",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_kinetic"
+      ]
+    },
+    "arc_artifact": {
+      "hash": "792400107",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_arc"
+      ]
+    },
+    "solar_artifact": {
+      "hash": "1019574576",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_solar"
+      ]
+    },
+    "stasis_artifact": {
+      "hash": "1118428792",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_stasis"
+      ]
+    },
+    "strand_artifact": {
+      "hash": "3598972737",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_strand"
+      ]
+    },
+    "void_artifact": {
+      "hash": "3887037435",
+      "energy_cost": 1,
+      "requires": [
+        "chorus_d2:unlock/unflinching",
+        "chorus_d2:artifact/unflinching_void"
+      ]
+    }
+  },
+  "none": {
+    "energy_cost": 0,
+    "requires": []
+  },
+  "policy": [
+    "These grant IDs are explicit Chorus host integration keys. Item insertion/enabled messages are evidence for restrictions, not a playable account progression implementation.",
+    "Grants belong to the server player, not the item. Trusted server producers or operator commands provide them; client requests, item tags and other holders cannot.",
+    "Each chosen option requires all declared grants even if its combat effect is inactive. Budget checks remain independent.",
+    "Revocation keeps physical items, disables the invalid full loadout projection and allows retrieval. Regrant reattaches effects; no automatic conversion to ordinary pricing. This is an explicit Chorus lifecycle policy, not a claim about Destiny artifact reset side effects.",
+    "The current reference variants do not assert which artifact tree or season currently offers them. Account sharing, Guardian Rank production, artifact unlock trees and expiration remain incomplete.",
+    "Synthetic three-capacity world test isolates discounted cost and real flinch; it does not claim a Destiny armor tier has that capacity."
+  ]
+}

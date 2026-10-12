@@ -36,13 +36,18 @@ public final class EquipmentCodecs {
             Codec.STRING.optionalFieldOf("capacity_parameter").forGetter(EquipmentSchema.Budget::capacityParameter),
             Codec.unboundedMap(Codec.STRING, Codec.unboundedMap(Codec.STRING, ALLOCATION)).fieldOf("costs").forGetter(EquipmentSchema.Budget::costs)
     ).apply(i, EquipmentSchema.Budget::new)), Set.of("capacity", "capacity_parameter", "costs"));
+    private static final Codec<EquipmentSchema.Requirements> REQUIREMENTS = strict(RecordCodecBuilder.create(i -> i.group(
+            IDS.optionalFieldOf("all", Set.of()).forGetter(EquipmentSchema.Requirements::all),
+            Codec.unboundedMap(Codec.STRING, Codec.unboundedMap(Codec.STRING, IDS)).optionalFieldOf("choices", Map.of()).forGetter(EquipmentSchema.Requirements::choices)
+    ).apply(i, EquipmentSchema.Requirements::new)), Set.of("all", "choices"));
     private static final Codec<EquipmentSchema.Item> ITEM = strict(RecordCodecBuilder.create(i -> i.group(
             ID.fieldOf("id").forGetter(EquipmentSchema.Item::id), IDS.fieldOf("tags").forGetter(EquipmentSchema.Item::tags),
             Codec.unboundedMap(Codec.STRING, EFFECT).optionalFieldOf("effects", Map.of()).forGetter(EquipmentSchema.Item::effects),
             Codec.unboundedMap(Codec.STRING, SOCKET).optionalFieldOf("sockets", Map.of()).forGetter(EquipmentSchema.Item::sockets),
             Codec.unboundedMap(Codec.STRING, PARAMETER).optionalFieldOf("parameters", Map.of()).forGetter(EquipmentSchema.Item::parameters),
-            Codec.unboundedMap(Codec.STRING, BUDGET).optionalFieldOf("budgets", Map.of()).forGetter(EquipmentSchema.Item::budgets)
-    ).apply(i, EquipmentSchema.Item::new)), Set.of("id", "tags", "effects", "sockets", "parameters", "budgets"));
+            Codec.unboundedMap(Codec.STRING, BUDGET).optionalFieldOf("budgets", Map.of()).forGetter(EquipmentSchema.Item::budgets),
+            REQUIREMENTS.optionalFieldOf("requires", EquipmentSchema.Requirements.NONE).forGetter(EquipmentSchema.Item::requires)
+    ).apply(i, EquipmentSchema.Item::new)), Set.of("id", "tags", "effects", "sockets", "parameters", "budgets", "requires"));
     private static final Codec<EquipmentSchema.Limit> LIMIT = strict(RecordCodecBuilder.create(i -> i.group(
             ID.fieldOf("id").forGetter(EquipmentSchema.Limit::id), ID.fieldOf("tag").forGetter(EquipmentSchema.Limit::tag),
             IDS.optionalFieldOf("slots", Set.of()).forGetter(EquipmentSchema.Limit::slots), Codec.INT.fieldOf("maximum").forGetter(EquipmentSchema.Limit::maximum)
@@ -59,6 +64,7 @@ public final class EquipmentCodecs {
             Codec.unboundedMap(Codec.STRING, MEASURE).optionalFieldOf("parameters", Map.of()).forGetter(Loadout.Gear::parameters)
     ).apply(i, Loadout.Gear::new)), Set.of("instance", "definition", "choices", "parameters"));
     public static final Codec<Loadout> LOADOUT = strict(RecordCodecBuilder.create(i -> i.group(
-            Codec.unboundedMap(ID, GEAR).optionalFieldOf("slots", Map.of()).forGetter(Loadout::slots), ID.optionalFieldOf("drawn").forGetter(Loadout::drawn)
-    ).apply(i, Loadout::new)), Set.of("slots", "drawn"));
+            Codec.unboundedMap(ID, GEAR).optionalFieldOf("slots", Map.of()).forGetter(Loadout::slots), ID.optionalFieldOf("drawn").forGetter(Loadout::drawn),
+            IDS.optionalFieldOf("grants", Set.of()).forGetter(Loadout::grants)
+    ).apply(i, Loadout::new)), Set.of("slots", "drawn", "grants"));
 }

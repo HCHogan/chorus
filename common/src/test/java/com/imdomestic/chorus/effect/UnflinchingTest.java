@@ -25,9 +25,9 @@ class UnflinchingTest {
         }
         // Eight is a synthetic capacity boundary, not an assertion about D2 armor tiers.
         budget.addProperty("capacity", 8); var p = NoDistractionsTest.program(data).equipment();
-        p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "harmonic")), Optional.empty()));
-        p.validate(new Loadout(Map.of("test:chest", chest("harmonic", "harmonic", "harmonic")), Optional.empty()));
-        assertThrows(IllegalArgumentException.class, () -> p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "solar")), Optional.empty())));
+        p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "harmonic")), Optional.empty(), Set.of("chorus_d2:unlock/unflinching")));
+        p.validate(new Loadout(Map.of("test:chest", chest("harmonic", "harmonic", "harmonic")), Optional.empty(), Set.of("chorus_d2:unlock/unflinching")));
+        assertThrows(IllegalArgumentException.class, () -> p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "solar")), Optional.empty(), Set.of("chorus_d2:unlock/unflinching"))));
     }
     static final String D = "chorus_d2:";
     static final List<String> ELEMENTS = List.of("kinetic", "arc", "solar", "void", "stasis", "strand");
@@ -66,10 +66,10 @@ class UnflinchingTest {
             equip(new Loadout(slots, physical.drawn()));
         }
         void mods(String... elements) {
-            var slots = new HashMap<>(physical.slots()); slots.put("test:chest", chest(elements)); equip(new Loadout(slots, physical.drawn()));
+            var slots = new HashMap<>(physical.slots()); slots.put("test:chest", chest(elements)); var grants = new HashSet<>(physical.grants()); grants.add(D + "unlock/unflinching"); equip(new Loadout(slots, physical.drawn(), grants));
         }
-        void removeChest() { var slots = new HashMap<>(physical.slots()); slots.remove("test:chest"); equip(new Loadout(slots, physical.drawn())); }
-        void draw(String slot) { equip(new Loadout(physical.slots(), Optional.of("test:" + slot))); }
+        void removeChest() { var slots = new HashMap<>(physical.slots()); slots.remove("test:chest"); equip(new Loadout(slots, physical.drawn(), physical.grants())); }
+        void draw(String slot) { equip(new Loadout(physical.slots(), Optional.of("test:" + slot), physical.grants())); }
         void restoreDomain() { session = EffectSession.restore(program, EffectCheckpointTest.clock(), 256, EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(session.checkpoint())), this::world); }
     }
     @Test void allSixElementsAndBothModesUseOneTwoThreeCopyTiersOnlyAfterAdsCompletes() throws Exception {
@@ -132,7 +132,7 @@ class UnflinchingTest {
             if (fault.equals("unknown")) choices.put("mod_1", "made_up");
             if (fault.equals("fourth")) choices.put("mod_3", "solar");
             var slots = new HashMap<>(h.physical.slots()); slots.put(fault.equals("slot") ? "test:primary" : "test:chest", new Loadout.Gear("bad-chest", "test:unflinching_chest", choices));
-            assertThrows(IllegalArgumentException.class, () -> h.program.equipment().validate(new Loadout(slots, h.physical.drawn())));
+            assertThrows(IllegalArgumentException.class, () -> h.program.equipment().validate(new Loadout(slots, h.physical.drawn(), Set.of(D + "unlock/unflinching"))));
         }
     }
     @Test void threeCopiesStillCauseOnlyOneWorldImpulseAndUnknownResultCannotReplay() throws Exception {
