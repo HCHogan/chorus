@@ -63,8 +63,16 @@ public final class HorizontalSpeedClientGameTest implements FabricClientGameTest
                 game.getServer().runOnServer(server->{runtime.get().bind(HorizontalSpeedGameTest.source("zero",connection.getServerPlayer(),0));});
                 context.waitFor(client->cap(client.player,0));context.waitTicks(8);context.runOnClient(client->{if(horizontal(client.player.getDeltaMovement())!=0)throw new AssertionError("Zero was treated as no ceiling");});
                 context.getInput().releaseKey(o->o.keyUp);context.getInput().releaseKey(o->o.keyLeft);context.getInput().releaseKey(o->o.keySprint);context.getInput().releaseKey(o->o.keyJump);
+                context.waitFor(client->!client.player.input.keyPresses.forward()&&!client.player.input.keyPresses.left()&&!client.player.input.keyPresses.sprint()&&!client.player.input.keyPresses.jump());
+                connection.waitForServerboundPackets();
                 game.getServer().runOnServer(server->{var actor=connection.getServerPlayer();actor.setNoGravity(true);runtime.get().unbind("height");});
                 context.waitFor(client->client.player.isNoGravity()&&NativeMovementGameTest.mask(client.player)==0);
+                // Relative.ALL preserves velocity and uses each side's current position. Establish a
+                // stationary, acknowledged baseline after releasing vertical input before comparing an exact endpoint.
+                context.runOnClient(client->client.player.setDeltaMovement(Vec3.ZERO));
+                game.getServer().runOnServer(server->{var actor=connection.getServerPlayer();actor.setDeltaMovement(Vec3.ZERO);target.set(actor.position());actor.connection.teleport(actor.getX(),actor.getY(),actor.getZ(),actor.getYRot(),actor.getXRot());});
+                context.waitFor(client->client.player.position().distanceTo(target.get())<1e-5&&client.player.getDeltaMovement().lengthSqr()<1e-10);
+                connection.waitForServerboundPackets();
                 game.getServer().runOnServer(server->{var actor=connection.getServerPlayer();target.set(actor.position().add(3,2,1));actor.teleportRelative(3,2,1);});
                 context.waitFor(client->client.player.position().distanceTo(target.get())<1e-5);
                 context.runOnClient(client->{if(!cap(client.player,0))throw new AssertionError("Cap-only teleport removed restriction");});

@@ -16,7 +16,7 @@
 
 4 项 EntityLifecycleTest 覆盖历史/不可用区分、错误实体或位置拒绝、纯读取、双编码及来源移除后的领域恢复。8 项共享 EntityRemovalGameTest 覆盖三锚点/同 UUID 替换/重复移除/检查点、两种原生卸载原因、实际死亡与之后的移除、父 frame 顺序与未知回执证据、脱离来源的延迟位置查询、关闭不执行奖励、实际跨维度以及回调立即重新启用对象的真实字段转换。
 
-初轮 /tmp/chorus-removal-gate.log 的 1752 项 JUnit、Fabric 963 / NeoForge 978 项及发布 jar 通过。随后将记录点从方法返回移到原生字段写入，并补上即时重新启用对象场景；定向检查通过后，最终 /tmp/chorus-removal-gate-final.log BUILD SUCCESSFUL，18 分 29 秒：1752 项 JUnit（无失败/错误/跳过）、Fabric 964 项 / NeoForge 979 项世界测试与双端发布 jar 全部通过，共享 Chorus 场景 963 项。Fabric 客户端回归 /tmp/chorus-removal-client.log 在 11 分 22 秒后失败：HorizontalSpeedClientGameTest 的相对传送精确落点等待超时。该客户端项尚未验收，正在核对测试中的输入、速度和位置同步前提；不把服务器通过等同于客户端通过。
+初轮 /tmp/chorus-removal-gate.log 的 1752 项 JUnit、Fabric 963 / NeoForge 978 项及发布 jar 通过。随后将记录点从方法返回移到原生字段写入，并补上即时重新启用对象场景；定向检查通过后，最终 /tmp/chorus-removal-gate-final.log BUILD SUCCESSFUL，18 分 29 秒：1752 项 JUnit（无失败/错误/跳过）、Fabric 964 项 / NeoForge 979 项世界测试与双端发布 jar 全部通过，共享 Chorus 场景 963 项。Fabric 客户端回归 /tmp/chorus-removal-client.log 在 11 分 22 秒后失败：HorizontalSpeedClientGameTest 的相对传送精确落点等待超时。原测试在释放跳跃、解除高度约束后，未建立静止且已同步的位置基准；ServerPlayer.teleportRelative 使用 Relative.ALL，会保留速度并使用各端当前位置。补齐释放确认、静止位置同步后，/tmp/chorus-removal-client2.log BUILD SUCCESSFUL，2 分 59 秒，全部 20 个已注册 Fabric 客户端场景通过。生产限速与传送逻辑未作修改；该回归包含同期新增的生命死亡观察代码。
 
 发布 jar 为 Fabric 1130 项 / NeoForge 1124 项，含移除事实、历史读取动作和原生 Mixin，不含效果/persistence 测试资源、GameTest 或测试 Mixin。10 项 Compendium 工具测试与报告一致性检查通过；旧 561 个存储类型逐键形状不变，两份历史检查点原字节不变。
 
