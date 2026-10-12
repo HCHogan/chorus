@@ -76,5 +76,21 @@
       "normalized_equal": true,
       "snapshot_text_sha256": "7cb60f6b1494b8d3d6707b66ab730034e57bc03bba00a49a5eb4bac4afe87d9b"
     }
-  ]
+  ],
+  "implementation_followup": {
+    "kind": "release_triggered_charge",
+    "core": "common/src/main/java/com/imdomestic/chorus/effect/weapon/WeaponCharge.java",
+    "documentation": "docs/engine-data-packs.md#武器蓄力与配对松开",
+    "implemented": [
+      "Accepted minimum/full timing snapshots and matched release",
+      "Partial/full/overdraw measurements and synthetic perfect-window damage expression",
+      "Current release cost and fire condition, native held gear/life verification",
+      "Domain checkpoint and exact legacy migrations"
+    ],
+    "remaining": [
+      "Measured Destiny bow timing, damage, velocity and accuracy curves",
+      "Client input protocol, lease, GUI/focus cancellation, animation and HUD",
+      "Auto-fire at full charge, forced release and full physical-world restart"
+    ]
+  }
 }

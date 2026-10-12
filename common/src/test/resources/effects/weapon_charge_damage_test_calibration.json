@@ -1,0 +1,47 @@
+{
+  "type": "chorus:arithmetic",
+  "op": "mul",
+  "of": [
+    {
+      "type": "chorus:event_number",
+      "name": "charge_fraction",
+      "unit": "multiplier"
+    },
+    {
+      "type": "chorus:choose",
+      "if": {
+        "type": "chorus:all",
+        "of": [
+          {
+            "type": "chorus:event_flag",
+            "name": "fully_charged"
+          },
+          {
+            "type": "chorus:compare",
+            "left": {
+              "type": "chorus:event_number",
+              "name": "charge_overdraw",
+              "unit": "second"
+            },
+            "op": "le",
+            "right": {
+              "type": "chorus:constant",
+              "value": 0.1,
+              "unit": "second"
+            }
+          }
+        ]
+      },
+      "then": {
+        "type": "chorus:constant",
+        "value": 1.2,
+        "unit": "multiplier"
+      },
+      "else": {
+        "type": "chorus:constant",
+        "value": 1,
+        "unit": "multiplier"
+      }
+    }
+  ]
+}

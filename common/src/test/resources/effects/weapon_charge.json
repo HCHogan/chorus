@@ -1,0 +1,104 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "test:charge_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          },
+          "factor": "test:charge_time"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:charge_fast",
+      "modifiers": [
+        {
+          "id": "fast",
+          "profile": "test:charge_time",
+          "stage": "time",
+          "group": "time",
+          "op": "multiply",
+          "stacking_key": "test:charge_fast",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:event_source_tag",
+            "tag": "test:weapon"
+          },
+          "reference": "synthetic charge timing fixture",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:charge_denied",
+      "action_gates": [
+        {
+          "id": "charge",
+          "action": "weapon_fire"
+        }
+      ]
+    },
+    {
+      "id": "test:charge_observer",
+      "rules": [
+        {
+          "id": "started",
+          "on": "chorus:weapon_charge_started",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:charge_started"
+            }
+          ]
+        },
+        {
+          "id": "ready",
+          "on": "chorus:weapon_charge_ready",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:charge_ready"
+            }
+          ]
+        },
+        {
+          "id": "ended",
+          "on": "chorus:weapon_charge_ended",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:charge_ended"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

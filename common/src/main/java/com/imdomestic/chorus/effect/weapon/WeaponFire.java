@@ -13,7 +13,7 @@ import java.util.*;
 public final class WeaponFire {
     private WeaponFire() {}
     public static final String REQUEST = "chorus:internal/fire_request", ACCEPTED = "chorus:fire_accepted";
-    public enum Outcome { ACCEPTED, EMPTY_HANDS, NOT_CONFIGURED, COOLDOWN, CONDITION, NO_AMMUNITION, RESTRICTED }
+    public enum Outcome { ACCEPTED, EMPTY_HANDS, NOT_CONFIGURED, COOLDOWN, CONDITION, NO_AMMUNITION, RESTRICTED, CHARGE_REQUIRED }
     public record Request(String holder, String token) implements RuleEngine.Payload {
         public Request { identity(holder); identity(token); }
         public RuleEngine.Signal signal() { return new RuleEngine.Signal(REQUEST, this); }
@@ -35,7 +35,7 @@ public final class WeaponFire {
         }
     }
     public record Receipt(Outcome outcome, Optional<Shot> shot,Optional<com.imdomestic.chorus.effect.input.ActionGate.Decision> restriction) implements RuleEngine.ActionResult {
-        public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(shot); if ((outcome == Outcome.ACCEPTED) != shot.isPresent()) throw new IllegalArgumentException("Invalid fire receipt");com.imdomestic.chorus.effect.input.ActionGate.receipt(com.imdomestic.chorus.effect.input.ActionGate.Kind.WEAPON_FIRE,outcome==Outcome.RESTRICTED,restriction); }
+        public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(shot); if ((outcome == Outcome.ACCEPTED) != shot.isPresent()) throw new IllegalArgumentException("Invalid fire receipt");com.imdomestic.chorus.effect.input.ActionGate.receipt(com.imdomestic.chorus.effect.input.ActionGate.Kind.WEAPON_FIRE,Set.of(com.imdomestic.chorus.effect.input.ActionGate.Phase.START,com.imdomestic.chorus.effect.input.ActionGate.Phase.COMPLETE),outcome==Outcome.RESTRICTED,restriction); }
         public Receipt(Outcome outcome,Optional<Shot> shot){this(outcome,shot,Optional.empty());}
     }
     public record Accepted(EffectEvent event, WeaponDefinition definition, Shot shot) implements EffectEvent.Carrier {}

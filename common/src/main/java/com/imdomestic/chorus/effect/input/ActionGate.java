@@ -30,7 +30,10 @@ public final class ActionGate {
         public Cancelled { Objects.requireNonNull(event);Objects.requireNonNull(decision);if(decision.allowed())throw new IllegalArgumentException("Cancellation needs a denied action"); }
     }
     public static void receipt(Kind expected,boolean restricted,Optional<Decision> decision){
+        receipt(expected,java.util.Set.of(Phase.START),restricted,decision);
+    }
+    public static void receipt(Kind expected,java.util.Set<Phase> phases,boolean restricted,Optional<Decision> decision){
         Objects.requireNonNull(decision);
-        if(restricted!=decision.isPresent()||decision.filter(d->d.allowed()||d.action()!=expected||d.phase()!=Phase.START).isPresent())throw new IllegalArgumentException("Restriction receipt lacks matching denial evidence");
+        if(phases.isEmpty()||restricted!=decision.isPresent()||decision.filter(d->d.allowed()||d.action()!=expected||!phases.contains(d.phase())).isPresent())throw new IllegalArgumentException("Restriction receipt lacks matching denial evidence");
     }
 }

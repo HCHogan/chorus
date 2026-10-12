@@ -59,7 +59,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_state", LegacyEffectStateV1.class);
         types.put("chorus:effect/effect_state_v2", LegacyEffectStateV2.class);
         types.put("chorus:effect/effect_state_v3", LegacyEffectStateV3.class);
-        types.put("chorus:effect/effect_state_v4", com.imdomestic.chorus.effect.EffectState.class);
+        types.put("chorus:effect/effect_state_v4", LegacyEffectStateV4.class);
+        types.put("chorus:effect/effect_state_v5", com.imdomestic.chorus.effect.EffectState.class);
         types.put("chorus:effect/effect_state/lifetime", com.imdomestic.chorus.effect.EffectState.Lifetime.class);
         types.put("chorus:effect/effect_state/mode", com.imdomestic.chorus.effect.EffectState.Mode.class);
         types.put("chorus:effect/effect_state/timer", com.imdomestic.chorus.effect.EffectState.Timer.class);
@@ -507,7 +508,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/instant_reload/transfer", com.imdomestic.chorus.effect.weapon.InstantReload.Transfer.class);
         types.put("chorus:effect/weapon/weapon_definition", LegacyWeaponDefinitionV1.class);
         types.put("chorus:effect/weapon/weapon_definition_v2", LegacyWeaponDefinitionV2.class);
-        types.put("chorus:effect/weapon/weapon_definition_v3", com.imdomestic.chorus.effect.weapon.WeaponDefinition.class);
+        types.put("chorus:effect/weapon/weapon_definition_v3", LegacyWeaponDefinitionV3.class);
+        types.put("chorus:effect/weapon/weapon_definition_v4", com.imdomestic.chorus.effect.weapon.WeaponDefinition.class);
+        types.put("chorus:effect/weapon/weapon_definition/charging", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class);
         types.put("chorus:effect/weapon/weapon_definition/aiming", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Aiming.class);
         types.put("chorus:effect/weapon/weapon_definition/handling", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Handling.class);
         types.put("chorus:effect/weapon/weapon_definition/ammunition", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Ammunition.class);
@@ -517,7 +520,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_definition/timing", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Timing.class);
         types.put("chorus:effect/weapon/weapon_fire/accepted", com.imdomestic.chorus.effect.weapon.WeaponFire.Accepted.class);
         types.put("chorus:effect/weapon/weapon_fire/commit", com.imdomestic.chorus.effect.weapon.WeaponFire.Commit.class);
-        types.put("chorus:effect/weapon/weapon_fire/outcome", com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.class);
+        types.put("chorus:effect/weapon/weapon_fire/outcome", LegacyWeaponFireOutcomeV1.class);
+        types.put("chorus:effect/weapon/weapon_fire/outcome_v2", com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.class);
         types.put("chorus:effect/weapon/weapon_fire/receipt", com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt.class);
         types.put("chorus:effect/weapon/weapon_fire/request", com.imdomestic.chorus.effect.weapon.WeaponFire.Request.class);
         types.put("chorus:effect/weapon/weapon_fire/scope", com.imdomestic.chorus.effect.weapon.WeaponFire.Scope.class);
@@ -591,8 +595,22 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_aim/verify", com.imdomestic.chorus.effect.weapon.WeaponAim.Verify.class);
         types.put("chorus:effect/weapon/weapon_aim/verified", com.imdomestic.chorus.effect.weapon.WeaponAim.Verified.class);
         types.put("chorus:effect/weapon/weapon_aim/commit", com.imdomestic.chorus.effect.weapon.WeaponAim.Commit.class);
+        types.put("chorus:effect/weapon/weapon_charge/edge", com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.class);
+        types.put("chorus:effect/weapon/weapon_charge/phase", com.imdomestic.chorus.effect.weapon.WeaponCharge.Phase.class);
+        types.put("chorus:effect/weapon/weapon_charge/outcome", com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.class);
+        types.put("chorus:effect/weapon/weapon_charge/request", com.imdomestic.chorus.effect.weapon.WeaponCharge.Request.class);
+        types.put("chorus:effect/weapon/weapon_charge/timing", com.imdomestic.chorus.effect.weapon.WeaponCharge.Timing.class);
+        types.put("chorus:effect/weapon/weapon_charge/plan", com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class);
+        types.put("chorus:effect/weapon/weapon_charge/receipt", com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt.class);
+        types.put("chorus:effect/weapon/weapon_charge/fact", com.imdomestic.chorus.effect.weapon.WeaponCharge.Fact.class);
+        types.put("chorus:effect/weapon/weapon_charge/verify", com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify.class);
+        types.put("chorus:effect/weapon/weapon_charge/verified", com.imdomestic.chorus.effect.weapon.WeaponCharge.Verified.class);
+        types.put("chorus:effect/weapon/weapon_charge/commit", com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit.class);
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
+                new RecordTreeCodec.Migration<>(LegacyEffectStateV4.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV4::current),
+                new RecordTreeCodec.Migration<>(LegacyWeaponDefinitionV3.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV3::current),
+                new RecordTreeCodec.Migration<>(LegacyWeaponFireOutcomeV1.class, com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.class, LegacyWeaponFireOutcomeV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV1.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV2.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV2::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV3.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV3::current),

@@ -7,10 +7,12 @@ import com.imdomestic.chorus.effect.data.EffectProgram;
 import java.util.*;
 
 /** Weapon behavior belongs to an equipment prototype; ammunition belongs to its physical instance. */
-public record WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire, Optional<Handling> handling, Optional<Aiming> aiming) {
+public record WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire, Optional<Handling> handling, Optional<Aiming> aiming, Optional<Charging> charging) {
     public WeaponDefinition {
-        id(item); Objects.requireNonNull(ammunition); Objects.requireNonNull(reload); Objects.requireNonNull(fire); Objects.requireNonNull(handling); Objects.requireNonNull(aiming);
+        id(item); Objects.requireNonNull(ammunition); Objects.requireNonNull(reload); Objects.requireNonNull(fire); Objects.requireNonNull(handling); Objects.requireNonNull(aiming); Objects.requireNonNull(charging);
+        if (charging.isPresent() && fire.isEmpty()) throw new IllegalArgumentException("Charging requires a fire definition");
     }
+    public WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire, Optional<Handling> handling, Optional<Aiming> aiming) { this(item, ammunition, reload, fire, handling, aiming, Optional.empty()); }
     public WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire) { this(item, ammunition, reload, fire, Optional.empty()); }
     public WeaponDefinition(String item, Ammunition ammunition, Reload reload, Optional<Fire> fire, Optional<Handling> handling) { this(item, ammunition, reload, fire, handling, Optional.empty()); }
     public WeaponDefinition(String item, Ammunition ammunition, Reload reload) { this(item, ammunition, reload, Optional.empty()); }
@@ -22,7 +24,11 @@ public record WeaponDefinition(String item, Ammunition ammunition, Reload reload
     public record Aiming(Timing enter, Timing exit) {
         public Aiming { Objects.requireNonNull(enter); Objects.requireNonNull(exit); }
     }
-    /** One accepted trigger; burst/charge and hit aggregation are separate behaviors. */
+    /** Release-triggered charging; both timings are sampled when the press is accepted. */
+    public record Charging(Timing minimum, Timing full, Condition condition) {
+        public Charging { Objects.requireNonNull(minimum); Objects.requireNonNull(full); Objects.requireNonNull(condition); }
+    }
+    /** One accepted shot; charging supplies release measurements, while burst and hit aggregation remain separate. */
     public record Fire(Value cost, Value interval, Optional<String> intervalProfile, Condition condition, Set<String> tags, List<EffectProgram.Step> onFire) {
         public Fire {
             Objects.requireNonNull(cost); Objects.requireNonNull(interval); Objects.requireNonNull(intervalProfile); Objects.requireNonNull(condition);

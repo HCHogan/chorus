@@ -121,6 +121,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                     case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
                     case com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command -> applyHandling(command);
                     case com.imdomestic.chorus.effect.weapon.WeaponAim.Verify command -> verifyAim(command);
+                    case com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify command -> verifyCharge(command);
                     case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
                     default -> world.apply(request);
                 };
@@ -499,6 +500,55 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 && query.plan().matches(PlayerEquipment.get(player).projection(program.equipment()));
         return new com.imdomestic.chorus.effect.weapon.WeaponAim.Verified(query, allowed);
     }
+    /** Debug/host input convenience. Network adapters must pair their own gesture with the returned token. */
+    public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge) {
+        thread(); prepare();
+        var plan = view().charging().get(player.getUUID().toString());
+        String token = edge == com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.PRESS || plan == null ? java.util.UUID.randomUUID().toString() : plan.token();
+        return charge(player, token, edge);
+    }
+    /** Self-owned input; timing comes from the server and a release must match its accepted press. */
+    public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, String token, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge) {
+        thread(); prepare();
+        if (!inputEligible(player)) throw new IllegalArgumentException("Player cannot charge here");
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge requires a healthy idle runtime");
+        String holder = player.getUUID().toString();
+        if (!PlayerEquipment.get(player).projection(program.equipment()).equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)))
+            throw new IllegalStateException("Charge differs from physical ownership");
+        trackEquipment(player);
+        var before = view(); var resolved = program.charge(before, new com.imdomestic.chorus.effect.weapon.WeaponCharge.Request(holder, token, edge, Optional.of(chargeHolder(player))));
+        var receipt = (com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt) resolved.result();
+        if (resolved.state().equals(before) && resolved.emitted().isEmpty()) return receipt;
+        try {
+            session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, resolved.state()));
+            refreshEquipment(); refreshProjections(); return receipt;
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    public void cancelCharge(String holder, String reason) {
+        thread(); prepare();
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge cancellation requires a healthy idle runtime");
+        try { commitChargeCancellation(holder, reason); refreshEquipment(); refreshProjections(); }
+        catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private void commitChargeCancellation(String holder, String reason) {
+        var before = view(); var ended = program.cancelCharge(before, holder, reason);
+        if (!ended.state().equals(before)) session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, ended.state()));
+    }
+    private com.imdomestic.chorus.effect.weapon.WeaponCharge.Verified verifyCharge(com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify query) {
+        ServerPlayer player;
+        try { player = equipmentOwners.get(java.util.UUID.fromString(query.plan().holder())); }
+        catch (IllegalArgumentException invalid) { player = null; }
+        boolean allowed = player != null && inputEligible(player) && matchesChargeHolder(query.plan(), player)
+                && query.plan().equals(view().charging().get(query.plan().holder()))
+                && query.plan().matches(PlayerEquipment.get(player).projection(program.equipment()));
+        return new com.imdomestic.chorus.effect.weapon.WeaponCharge.Verified(query, allowed);
+    }
+    private com.imdomestic.chorus.effect.target.EntityAnchor.Reference chargeHolder(ServerPlayer player) {
+        return new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(player.getUUID().toString(), MinecraftEntityLife.get(player).id(), level.dimension().identifier().toString());
+    }
+    private boolean matchesChargeHolder(com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan plan, ServerPlayer player) {
+        return plan.holderReference().filter(chargeHolder(player)::equals).isPresent();
+    }
     /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
     public com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt fire(ServerPlayer player) {
         thread(); prepare();
@@ -571,6 +621,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 if (player.isSpectator() && view().aiming().containsKey(holder)) {
                     var aimBefore = view(); var ended = program.cancelAim(aimBefore, holder, "spectator");
                     session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(aimBefore, ended.state()));
+                }
+                var charge = view().charging().get(holder);
+                if (charge != null) {
+                    if (!inputEligible(player) || !matchesChargeHolder(charge, player)) commitChargeCancellation(holder, "holder_unavailable");
+                    else if (!program.checkAction(view(), ActionGate.Kind.WEAPON_FIRE, ActionGate.Phase.CONTINUE,
+                            charge.event(view().buffs().timeMicros(), true)).allowed()) commitChargeCancellation(holder, "restricted");
                 }
                 // An empty container can acquire and lose an item within one reaction boundary (e.g. attach kills its owner).
                 // Keep live owners tracked until they leave, so the final empty projection still reconciles that boundary.

@@ -13,6 +13,21 @@ public final class WeaponCommands {
     private static final DynamicCommandExceptionType ERROR = new DynamicCommandExceptionType(value -> Component.literal(String.valueOf(value)));
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("weapon")
+                .then(Commands.literal("charge").then(Commands.argument("edge",com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .suggests((context,builder)->SharedSuggestionProvider.suggest(java.util.List.of("press","release","cancel"),builder))
+                        .executes(context -> {
+                            var player=context.getSource().getPlayerOrException();
+                            try {
+                                var edge=com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.valueOf(com.mojang.brigadier.arguments.StringArgumentType.getString(context,"edge").toUpperCase(java.util.Locale.ROOT));
+                                var runtime=MinecraftEffectRuntime.installed(player.level()).orElseThrow(()->new IllegalStateException("No active Chorus runtime"));
+                                var receipt=runtime.charge(player,edge);
+                                if(receipt.outcome()!=com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.ACCEPTED
+                                        &&receipt.outcome()!=com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.FIRED
+                                        &&receipt.outcome()!=com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.CANCELLED)
+                                    throw new IllegalArgumentException("Charge rejected: "+receipt.outcome());
+                                return 1;
+                            }catch(IllegalArgumentException|IllegalStateException invalid){throw ERROR.create(invalid.getMessage());}
+                        })))
                 .then(Commands.literal("aim").then(Commands.argument("pressed", com.mojang.brigadier.arguments.BoolArgumentType.bool()).executes(context -> {
                     var player = context.getSource().getPlayerOrException();
                     try {

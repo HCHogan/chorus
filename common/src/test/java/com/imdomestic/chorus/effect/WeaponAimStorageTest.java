@@ -29,7 +29,7 @@ class WeaponAimStorageTest {
         h.until(250_000);assertNull(h.plan());assertEquals(Optional.of("test:secondary"),h.physical.drawn());assertEquals(2,h.applications.size());assertTrue(h.state().aiming().isEmpty());
         assertTrue(h.session.checkpoint().timeline().nextEvent()>saved.timeline().nextEvent());assertTrue(h.session.checkpoint().timeline().nextFrame()>saved.timeline().nextFrame());
         var encoded=EffectCheckpointCodec.encode(saved);String wire=encoded.toString();
-        for(String type:List.of("effect_state_v4","weapon_definition_v3","action_gate/kind_v2"))assertTrue(wire.contains(type));
+        for(String type:List.of("effect_state_v5","weapon_definition_v4","action_gate/kind_v2"))assertTrue(wire.contains(type));
         assertEquals(saved,EffectCheckpointCodec.decode(encoded));assertEquals(input,oldCheckpoint());
     }
     @Test void retiredStateWeaponAndGateTypesKeepTheirOriginalStrictShapes()throws Exception {

@@ -44,6 +44,15 @@ final class CompiledWeapons {
                 validateAimTiming(aim.enter(), validation, profiles);
                 validateAimTiming(aim.exit(), validation, profiles);
             });
+            weapon.charging().ifPresent(charge -> {
+                charge.condition().validate(validation);
+                validateAimTiming(charge.minimum(), validation, profiles);
+                validateTiming(charge.full().value(), charge.full().profiles(), validation, profiles);
+                if (charge.minimum().profiles().isEmpty() && charge.full().profiles().isEmpty()
+                        && charge.minimum().value() instanceof Value.Constant min && charge.full().value() instanceof Value.Constant full
+                        && WeaponHandling.micros(new Measure(min.value(), Unit.SECOND)) > WeaponHandling.micros(new Measure(full.value(), Unit.SECOND)))
+                    throw new IllegalArgumentException("Minimum charge exceeds full charge");
+            });
             weapon.reload().insert().ifPresent(insert -> {
                 validateTiming(insert.repeat().value(), insert.repeat().profiles(), validation, profiles);
                 var unit = insert.rounds().unit(validation);
@@ -82,6 +91,7 @@ final class CompiledWeapons {
         var facts = new ArrayList<>(applied.emitted());
         var handling = CompiledHandling.reconcile(updated, change.holder()); updated = handling.state(); facts.addAll(handling.emitted());
         var aim = CompiledAiming.reconcile(updated, change.holder()); updated = aim.state(); facts.addAll(aim.emitted());
+        var charge = CompiledCharging.reconcile(updated, change.holder()); updated = charge.state(); facts.addAll(charge.emitted());
         for (var entry : change.after().slots().entrySet()) {
             var gear = entry.getValue(); var definition = definitions.get(gear.definition()); if (definition == null) continue;
             if (equipment.schema().slots().stream().noneMatch(slot -> slot.id().equals(entry.getKey()) && slot.weapon()))
@@ -163,8 +173,9 @@ final class CompiledWeapons {
         if (ammunition.account().reserve().filter(reserve -> reserve.rounds() == 0).isPresent()) return reject(state, WeaponReload.Outcome.NO_RESERVES);
         var plan = plan(state, request.holder(), request.token(), weapon, 0, program);
         var aim = CompiledAiming.cancel(state, request.holder(), "reload_accepted");
-        var updated = aim.state().withReload(plan).schedule(plan.timer());
-        var facts = new ArrayList<>(aim.emitted()); facts.add(fact("chorus:reload_started", plan, "manual", Map.of()));
+        var charge = CompiledCharging.cancel(aim.state(), request.holder(), "reload_accepted");
+        var updated = charge.state().withReload(plan).schedule(plan.timer());
+        var facts = new ArrayList<>(aim.emitted()); facts.addAll(charge.emitted()); facts.add(fact("chorus:reload_started", plan, "manual", Map.of()));
         return new RuleEngine.Local<>(updated, new WeaponReload.Receipt(WeaponReload.Outcome.ACCEPTED, Optional.of(plan)), facts);
     }
     private EffectEvent reloadQuery(String holder,String token,Loadout.Gear weapon,int step){
@@ -261,17 +272,28 @@ final class CompiledWeapons {
         return com.imdomestic.chorus.effect.target.Targets.Identities.of(selected);
     }
     RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, CompiledEffects program) {
+        return fire(state,request,program,Optional.empty());
+    }
+    RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, CompiledEffects program, Optional<WeaponCharge.Plan> charge) {
         var gear = WeaponReload.drawn(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY));
         if (gear.isEmpty()) return rejectFire(state, WeaponFire.Outcome.EMPTY_HANDS);
         var weapon = gear.orElseThrow(); var definition = definitions.get(weapon.definition());
         if (definition == null || definition.fire().isEmpty()) return rejectFire(state, WeaponFire.Outcome.NOT_CONFIGURED);
+        if (definition.charging().isPresent() && charge.isEmpty()) return rejectFire(state, WeaponFire.Outcome.CHARGE_REQUIRED);
+        charge.ifPresent(plan -> {
+            if (definition.charging().isEmpty() || !plan.equals(state.charging().get(request.holder()))
+                    || !plan.token().equals(request.token()) || !plan.gear().equals(weapon)) throw new IllegalArgumentException("Fire does not belong to the current charge");
+        });
         var fire = definition.fire().orElseThrow(); long now = state.buffs().timeMicros();
         var previous = state.shots().get(weapon.instance());
         if (previous != null && now < previous.readyAt()) return rejectFire(state, WeaponFire.Outcome.COOLDOWN);
         var tags = new HashSet<>(items.get(weapon.definition()).tags()); tags.addAll(fire.tags());
         var origin = new BuffInstance.Origin(request.holder(), "shot/" + request.token(), weapon.instance(), "", tags);
-        var query = new EffectEvent(request.holder(), "", origin, tags, Map.of(), Map.of(), Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token(), "origin_source", origin.source()));
-        var restriction=program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,ActionGate.Phase.START,query);
+        var references = new HashMap<>(Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token(), "origin_source", origin.source()));
+        charge.ifPresent(plan -> references.put("charge", plan.token()));
+        var query = new EffectEvent(request.holder(), "", origin, tags, charge.map(plan -> plan.numbers(now)).orElse(Map.of()),
+                charge.map(plan -> plan.event(now,false).flags()).orElse(Map.of()), references);
+        var restriction=program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,charge.isPresent()?ActionGate.Phase.COMPLETE:ActionGate.Phase.START,query);
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new WeaponFire.Receipt(WeaponFire.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var event = new RuleEngine.Event(0, 0, Optional.empty(), now, new RuleEngine.Signal("chorus:internal/fire_query", query));
         var evaluation = program.evaluation(state, new RuleEngine.Context(event, origin.source(), new WeaponFire.Scope(query), Map.of()), Map.of());
@@ -295,11 +317,12 @@ final class CompiledWeapons {
             changed = new EffectEvent(changed.actor(), changed.victim(), changed.source(), costTags, changed.numbers(), changed.flags(), changed.references());
             facts.add(new RuleEngine.Signal("chorus:ammo_spent", changed)); facts.add(new RuleEngine.Signal("chorus:ammo_changed", changed));
         }
-        var accepted = new EffectEvent(query.actor(), query.victim(), origin, tags,
-                Map.of("cost", new Measure(rounds, Unit.ROUND), "interval", interval,
+        var acceptedNumbers = new HashMap<>(query.numbers());
+        acceptedNumbers.putAll(Map.of("cost", new Measure(rounds, Unit.ROUND), "interval", interval,
                         "scheduled_interval", new Measure((shot.readyAt() - now) / 1_000_000.0, Unit.SECOND),
                         "before_magazine", new Measure(cost.before().magazine(), Unit.ROUND), "magazine", new Measure(cost.after().magazine(), Unit.ROUND),
-                        "capacity", new Measure(view.capacity(), Unit.ROUND), "unmodified_capacity", new Measure(view.account().capacity(), Unit.ROUND)), Map.of(), query.references());
+                        "capacity", new Measure(view.capacity(), Unit.ROUND), "unmodified_capacity", new Measure(view.account().capacity(), Unit.ROUND)));
+        var accepted = new EffectEvent(query.actor(), query.victim(), origin, tags, acceptedNumbers, query.flags(), query.references());
         facts.add(new RuleEngine.Signal(WeaponFire.ACCEPTED, new WeaponFire.Accepted(accepted, definition, shot)));
         return new RuleEngine.Local<>(updated, new WeaponFire.Receipt(WeaponFire.Outcome.ACCEPTED, Optional.of(shot)), facts);
     }

@@ -29,6 +29,7 @@ final class CompiledHandling {
         if (loadout.drawn().equals(request.slot()))
             return new RuleEngine.Local<>(updated, new WeaponHandling.Receipt(WeaponHandling.Outcome.CANCELLED, Optional.empty()), facts);
         var aim = CompiledAiming.cancel(updated, request.holder(), "switch_accepted"); updated = aim.state(); facts.addAll(aim.emitted());
+        var charge = CompiledCharging.cancel(updated, request.holder(), "switch_accepted"); updated = charge.state(); facts.addAll(charge.emitted());
         var reload = weapons.interruptReload(updated, request.holder(), "switch_accepted"); updated = reload.state(); facts.addAll(reload.emitted());
         var target = request.slot().map(loadout.slots()::get);
         var phase = loadout.drawn().isPresent() ? WeaponHandling.Phase.STOW : WeaponHandling.Phase.READY;

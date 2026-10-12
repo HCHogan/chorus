@@ -3422,4 +3422,27 @@ FOLLOWING/WAITING 解析发出携带当前 Entry/revision 的世界查询。查�
 
 已确认生命周期通过回执的 EntityAttachments.Commit 在依赖动作继续前更新状态；公共事实仍排队到父 frame 后反应。转发或重新 emit 同名公共通知不会再次应用这些状态写入，避免旧通知终止刚创建的新实例。动作外待处理的原生事实先按捕获时间分组结算（不回退已前进的逻辑时间），然后才推进到新的输入或引信截止时间；这些外部事实与新输入各有自己的 Start 边界。结算故障保留当前及尚未处理的已知事实，不自动重放奖励。没有加入根事件、链深度或循环次数上限。
 
-EffectState 使用新的 effect_state_v4，包含 attachments；旧 v3 对应精确旧记录并迁移为空附着集合，v1/v2 迁移继续保留。Handle、Entry、策略、查询、回执、Commit 与四个动作有独立存储 ID，总目录为 582 项，原 566 项形状不变。领域检查点保存偏移、策略、阶段、期限和续体；宿主实体 NBT 重载保留同生命可供 WAIT 恢复。实际区块卸载/加载协调、同对象自定义复活、旋转/缩放和物理世界整体重启仍需独立实现及验收。
+附着阶段的 effect_state_v4 包含 attachments；旧 v3 对应精确旧记录并迁移为空附着集合，v1/v2 迁移继续保留。当前蓄力阶段采用下文的 effect_state_v5，继续保存所有附着。Handle、Entry、策略、查询、回执、Commit 与四个动作有独立存储 ID。领域检查点保存偏移、策略、阶段、期限和续体；宿主实体 NBT 重载保留同生命可供 WAIT 恢复。实际区块卸载/加载协调、同对象自定义复活、旋转/缩放和物理世界整体重启仍需独立实现及验收。
+
+## 武器蓄力与配对松开
+
+武器原型可选 `charging`；省略仍为原来的即时开火。启用时必须同时声明 fire。下面的 0.1 / 0.4 秒是合成示例，不是 D2 弓参数：
+
+```json
+"charging": {
+  "minimum": {"value":{"type":"chorus:constant","value":0.1,"unit":"second"}},
+  "full": {"value":{"type":"chorus:constant","value":0.4,"unit":"second"},"profile":"test:charge_time"}
+}
+```
+
+minimum / full 使用与换弹相同的 Timing 结构，支持显式有序 profiles 管线。最终必须为秒，minimum 可为零，full 必须为正；向上量化至完整微秒后 minimum 不得大于 full。可选 `if` 只检查开始蓄力的资格，默认允许；它与松开时检查的 fire.if 分开，因此“仅满蓄力才可射出”不需要阻止开始蓄力。最低时间、满蓄力时间及计算轨迹都在接受按下时固定；装备外的 Buff 变化只影响下一次按下。
+
+`WeaponCharge.Request(holder, token, edge, holderReference)` 的 edge 为 PRESS / RELEASE / CANCEL。token 由可信宿主为每次新手势生成唯一值，不是客户端指定的武器身份。PRESS 不扣弹或预留弹药；重复 PRESS 不重置现有状态。匹配 RELEASE 先检查 minimum，再用当前 fire.if、成本、弹药和射击间隔执行原有射击事务；一次松开只接受一次射击。过早松开、显式取消或已知拒绝都结束本次蓄力；不匹配 token / 生命引用的松开返回 stale，保留当前有效手势。启用 charging 的武器直接走普通 fire 入口返回 charge_required。
+
+按下使用 WEAPON_FIRE / START，持续资格及满蓄力边界使用 CONTINUE，松开射击使用 COMPLETE。Fire 受限回执保留实际 START / COMPLETE 阶段，不把完成拒绝伪装为开始拒绝；其他既有行动回执仍要求 START。满蓄力边界检查宿主后转为 READY 并发布一次事实，不自动开火。真实持有者死亡/失效、旁观、装备实例/参数或持握槽改变、已接受的切枪或手动换弹都会取消；被拒绝的满弹匣换弹不取消。瞬时补弹保留独立语义，不被当成手动换弹输入。
+
+事实为 `weapon_charge_started / weapon_charge_ready / weapon_charge_ended`，数值提供 charge_elapsed、charge_minimum、charge_duration、charge_overdraw（秒）及 charge_fraction（0–1 multiplier），标志为 charged、charge_held、fully_charged，引用含 weapon、item、charge，结束事实另有 reason。on_fire 同样收到本次松开的这些数值/标志，能在捕获伤害、速度或其他参数前求值；原有即时武器不会凭空拥有 charge 数值。开始资格/时间查询时 elapsed、fraction、overdraw 为零，尚未采样的 minimum / duration 不伪造为零。完美窗口由内容比较 fully_charged 和 overdraw 表达，没有核心写死的窗口或增伤。
+
+领域状态与网络按键意图分离。当前正式接线为宿主 API 和普通玩家自助命令 `chorus weapon charge press|release|cancel`；客户端按键包、保持租期、连接级断线/干净停服清理、GUI/失焦处理和进度显示尚未接入。Minecraft API 总是绑定 holder 的实体 UUID、持久化生命和维度；原生复生即使复用 UUID 并转移相同装备，也不能继承旧蓄力。纯宿主可以显式不提供生命引用，但不能以无引用请求松开已绑定引用的计划；Minecraft 满蓄力验收要求匹配真实生命。取消当前物理输入不会删除已经发射的投射物或其延迟效果。
+
+EffectState v5 新增 charging；精确旧 v4 迁移为空蓄力并保留全部附着。WeaponDefinition v4 新增可选 charging，旧 v3 保留原武器行为；Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。存储目录为 597 项，原 582 项形状不变。领域检查点可恢复 CHARGING / READY、固定期限、轨迹及绑定生命；恢复本身不创造新的按键或自动发射。未知世界结果仍停机，不重放已消费的松开、付款、弹体或伤害。完整物理世界重启、网络输入重连、自动满蓄力发射、最大持弓/强制松弦和完整蓄力武器行为仍有后续工作。

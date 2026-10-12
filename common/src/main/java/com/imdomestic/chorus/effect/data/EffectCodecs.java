@@ -868,11 +868,16 @@ public final class EffectCodecs {
         Codec<WeaponDefinition.Aiming> weaponAiming = strict(RecordCodecBuilder.create(i -> i.group(
                 reloadTiming.fieldOf("enter").forGetter(WeaponDefinition.Aiming::enter), reloadTiming.fieldOf("exit").forGetter(WeaponDefinition.Aiming::exit)
         ).apply(i, WeaponDefinition.Aiming::new)), Set.of("enter", "exit"));
+        Codec<WeaponDefinition.Charging> weaponCharging = strict(RecordCodecBuilder.create(i -> i.group(
+                reloadTiming.fieldOf("minimum").forGetter(WeaponDefinition.Charging::minimum), reloadTiming.fieldOf("full").forGetter(WeaponDefinition.Charging::full),
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Charging::condition)
+        ).apply(i, WeaponDefinition.Charging::new)), Set.of("minimum", "full", "if"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
                 weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire),
-                weaponHandling.optionalFieldOf("handling").forGetter(WeaponDefinition::handling), weaponAiming.optionalFieldOf("aiming").forGetter(WeaponDefinition::aiming)
-        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire", "handling", "aiming"));
+                weaponHandling.optionalFieldOf("handling").forGetter(WeaponDefinition::handling), weaponAiming.optionalFieldOf("aiming").forGetter(WeaponDefinition::aiming),
+                weaponCharging.optionalFieldOf("charging").forGetter(WeaponDefinition::charging)
+        ).apply(i, WeaponDefinition::new)), Set.of("item", "ammunition", "reload", "fire", "handling", "aiming", "charging"));
         Codec<com.imdomestic.chorus.effect.input.ActionGate.Declaration> actionGate = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::id),
                 enumeration(com.imdomestic.chorus.effect.input.ActionGate.Kind.class).fieldOf("action").forGetter(com.imdomestic.chorus.effect.input.ActionGate.Declaration::action),

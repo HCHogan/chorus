@@ -1,0 +1,17 @@
+{
+  "minimum": {
+    "value": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "second"
+    }
+  },
+  "full": {
+    "value": {
+      "type": "chorus:constant",
+      "value": 0.4,
+      "unit": "second"
+    },
+    "profile": "test:charge_time"
+  }
+}

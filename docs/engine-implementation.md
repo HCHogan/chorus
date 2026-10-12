@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-12：通用武器蓄力与配对松开
+
+新增可选 WeaponDefinition.charging 和独立 WeaponCharge 状态。接受按下时固定最低/满蓄力时间及 Profile 轨迹，不预扣弹；匹配松开使用当前成本、弹药、条件和完成阶段限制，清除本次蓄力与付款在同一领域提交中完成，随后运行原有射击动作。满蓄力只转为 READY；内容通过 charge_fraction、fully_charged 和 charge_overdraw 表达部分蓄力、完美窗口及伤害/速度参数，没有核心写死的弓公式或循环限制。
+
+重复按下不重置计时，过早松开和已知拒绝结束本次手势，不匹配 token/生命引用的松开保留当前手势。真实宿主绑定玩家 UUID、持久化生命与维度；复生时相同 UUID、相同装备仍不能继承旧蓄力。持握装备变化、有效切枪/手动换弹、旁观或持续资格失效取消蓄力；被拒绝的满弹匣换弹不取消。已有即时开火入口对配置蓄力的武器返回 charge_required。
+
+15 项 WeaponChargeTest 和 2 项迁移测试覆盖边界、时长取样、成本取样、动作限制、并行持有者、领域恢复、真实生命引用及未知回执不重放。7 项共享 WeaponChargeGameTest 用服务器命令、实际 Bow 装备和 EffectProjectile 验证部分/完美蓄力后的直击与延迟爆炸、满蓄力不自动射击、持续限制、装备/换弹/复生取消以及未知伤害结果。测试时长 0.1/0.4 秒、完美窗口 0.1 秒与倍率 1.2 均为独立合成校准，不是原作实测结论。
+
+EffectState v5、WeaponDefinition v4 与 Fire Outcome v2 采用新存储 ID，精确旧记录/枚举仍可迁移。目录为 597 项，原 582 项逐键形状不变，两份历史检查点原字节不变。开发期修正了完成阶段受限回执、无蓄力测试误用 charge 参数，以及世界测试调用非公开装备投影的问题。最终 `/tmp/chorus-charge-gate2.log` BUILD SUCCESSFUL，2 分 41 秒：1794 项 JUnit 无失败/错误/跳过，Fabric 989 项 / NeoForge 1004 项世界测试及双端发布 jar 通过，共享 Chorus 场景 988 项。
+
+`/tmp/chorus-charge-client.log` BUILD SUCCESSFUL，1 分 47 秒，既有 20 项 Fabric 客户端回归通过；没有新增蓄力按键/画面验收，也未运行 NeoForge 图形客户端。10 项 Compendium 工具测试、112 条审阅及生成报告检查通过，保持 110 partial / 2 not_applicable / 0 verified。发布包 Fabric 1168 项 / NeoForge 1162 项，含蓄力及旧版本迁移，不含效果/校准/persistence 夹具、GameTest 或测试 Mixin；Gradle CRLF 保持不变。
+
+本阶段提供宿主 API 和自助命令，连接级按键包、租期、断线/干净停服清理、GUI/失焦取消和进度同步另行接入。领域检查点恢复 CHARGING/READY 不等于网络手势恢复；不能据此宣称重连安全已验收。原作拉弓数值/散布、最大持弓/强制松弦、正式弓表现与配装/HUD、完整内容及物理世界整体重启仍未完成。[声明契约](engine-data-packs.md#武器蓄力与配对松开)、[参考消费者](d2-ruleset.md#弓参考消费者的通用蓄力)。
+
 ### 2026-10-12：Explosive Head 分量与显式距离引信
 
 新增独立 Explosive Head 片段及弓参考消费者：50% 分量、3 米范围、PvE 爆炸 ×1.3 / PvP ×1、精确直击补偿与强化 +5 Accuracy。引信使用开火保存枪口到实际碰撞点的距离，要求外部米到秒 Profile；没有复制手炮距离衰减或 PvP 爆炸 −7%。原表 A89/C89 与固定快照 A88/C88 的归一化文本一致，HTML、Clarity 固定版本条目摘要校验及 Foundry 固定源码已保存。
