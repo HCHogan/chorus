@@ -15,7 +15,7 @@ public final class WeaponCharge {
     public static final String REQUEST="chorus:internal/charge_request", DUE="chorus:internal/charge_due";
     public enum Edge { PRESS, RELEASE, CANCEL }
     public enum Trigger { RELEASE, FULL }
-    public enum Phase { CHARGING, READY }
+    public enum Phase { CHARGING, READY, RECOVERING }
     public enum Outcome { ACCEPTED, ALREADY_HELD, EMPTY_HANDS, NOT_CONFIGURED, BUSY, COOLDOWN, CONDITION, RESTRICTED, NO_PRESS, STALE, CANCELLED, TOO_EARLY, FIRED, FIRE_REJECTED }
     public record Request(String holder,String token,Edge edge,Optional<EntityAnchor.Reference> holderReference) implements RuleEngine.Payload {
         public Request { text(holder);text(token);Objects.requireNonNull(edge);Objects.requireNonNull(holderReference);holderReference.ifPresent(ref->{if(!ref.target().equals(holder))throw new IllegalArgumentException("Charge holder reference differs");}); }
@@ -31,13 +31,26 @@ public final class WeaponCharge {
         public long micros(){return WeaponHandling.micros(duration);}
     }
     public record Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
-            long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference,Trigger trigger) implements RuleEngine.Payload {
+            long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference,Trigger trigger,
+            boolean repeat,long cycle,Optional<WeaponFire.Shot> recovery) implements RuleEngine.Payload {
         public Plan {
             text(holder);text(token);text(slot);Objects.requireNonNull(gear);Objects.requireNonNull(origin);Objects.requireNonNull(phase);Objects.requireNonNull(minimum);Objects.requireNonNull(full);
             Objects.requireNonNull(trigger);Objects.requireNonNull(holderReference);holderReference.ifPresent(ref->{if(!ref.target().equals(holder))throw new IllegalArgumentException("Charge plan holder reference differs");});
+            Objects.requireNonNull(recovery);
+            if(cycle<0||!repeat&&cycle!=0||repeat&&trigger!=Trigger.FULL||(phase==Phase.RECOVERING)!=recovery.isPresent()
+                    ||recovery.isPresent()&&!repeat)throw new IllegalArgumentException("Invalid repeated charge lifecycle");
+            if(recovery.isPresent()){
+                var shot=recovery.orElseThrow();
+                if(!shot.holder().equals(holder)||!shot.gear().equals(gear)||!shot.token().equals(fireToken(token,repeat,cycle))||shot.firedAt()!=fullAt)
+                    throw new IllegalArgumentException("Charge recovery differs from its accepted shot");
+            }
             if(!origin.owner().equals(holder)||!origin.weapon().equals(gear.instance())||!origin.source().equals("charge/"+token)
                     ||startedAt<0||fullAt==Long.MAX_VALUE||full.micros()<=0||minimum.micros()>full.micros()
                     ||fullAt!=Math.addExact(startedAt,full.micros()))throw new IllegalArgumentException("Invalid charge identity or timing");
+        }
+        public Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
+                long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference,Trigger trigger) {
+            this(holder,token,slot,gear,origin,phase,startedAt,fullAt,minimum,full,holderReference,trigger,false,0,Optional.empty());
         }
         public Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
                 long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference) {
@@ -45,11 +58,15 @@ public final class WeaponCharge {
         }
         public boolean matches(Loadout loadout){return loadout.drawn().filter(slot::equals).isPresent()&&gear.equals(loadout.slots().get(slot));}
         public String timerId(){return "charge/"+holder.length()+":"+holder+"/"+token;}
+        public long dueAt(){return recovery.map(WeaponFire.Shot::readyAt).orElse(fullAt);}
+        public String fireToken(){return fireToken(token,repeat,cycle);}
+        private static String fireToken(String token,boolean repeat,long cycle){return repeat?"charge-cycle/"+token.length()+":"+token+"/"+cycle:token;}
         public EffectState.Timer timer(){
-            if(phase!=Phase.CHARGING)throw new IllegalStateException("Ready charge has no pending full-draw timer");
-            return new EffectState.Timer(timerId(),fullAt,0,1,new RuleEngine.Signal(DUE,this),Optional.empty());
+            if(phase==Phase.READY)throw new IllegalStateException("Ready charge has no pending timer");
+            return new EffectState.Timer(timerId(),dueAt(),0,1,new RuleEngine.Signal(DUE,this),Optional.empty());
         }
-        public Plan ready(){return new Plan(holder,token,slot,gear,origin,Phase.READY,startedAt,fullAt,minimum,full,holderReference,trigger);}
+        public Plan ready(){return new Plan(holder,token,slot,gear,origin,Phase.READY,startedAt,fullAt,minimum,full,holderReference,trigger,repeat,cycle,Optional.empty());}
+        public Plan recovering(WeaponFire.Shot shot){return new Plan(holder,token,slot,gear,origin,Phase.RECOVERING,startedAt,fullAt,minimum,full,holderReference,trigger,repeat,cycle,Optional.of(shot));}
         public Map<String,Measure> numbers(long now){
             if(now<startedAt)throw new IllegalArgumentException("Charge observation precedes acceptance");
             long elapsed=now-startedAt;
@@ -57,11 +74,12 @@ public final class WeaponCharge {
                     "charge_minimum",new Measure(minimum.micros()/1_000_000.0,Unit.SECOND),
                     "charge_duration",new Measure(full.micros()/1_000_000.0,Unit.SECOND),
                     "charge_fraction",new Measure(Math.min(1,(double)elapsed/full.micros()),Unit.MULTIPLIER),
+                    "charge_cycle",new Measure(cycle,Unit.COUNT),
                     "charge_overdraw",new Measure(Math.max(0,now-fullAt)/1_000_000.0,Unit.SECOND));
         }
         public EffectEvent event(long now,boolean held){
             return new EffectEvent(holder,gear.instance(),origin,origin.tags(),numbers(now),
-                    Map.of("charged",true,"charge_held",held,"fully_charged",now>=fullAt),
+                    Map.of("charged",true,"charge_held",held,"fully_charged",now>=fullAt,"charge_repeating",repeat,"charge_recovering",phase==Phase.RECOVERING),
                     Map.of("weapon",gear.instance(),"item",gear.definition(),"charge",token,"charge_trigger",trigger.name().toLowerCase(Locale.ROOT)));
         }
     }

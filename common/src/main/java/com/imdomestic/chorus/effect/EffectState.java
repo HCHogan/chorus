@@ -67,7 +67,7 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
                 throw new IllegalArgumentException("Damage group differs from its detached deadline");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan charge
                     && (!signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponCharge.DUE) || !charge.timerId().equals(id)
-                    || charge.phase() != com.imdomestic.chorus.effect.weapon.WeaponCharge.Phase.CHARGING || dueAt != charge.fullAt()
+                    || charge.phase() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Phase.READY || dueAt != charge.dueAt()
                     || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Charge timer differs from its accepted full boundary");
         }

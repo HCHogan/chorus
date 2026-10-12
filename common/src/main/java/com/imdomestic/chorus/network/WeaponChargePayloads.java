@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 public final class WeaponChargePayloads {
     private WeaponChargePayloads() {}
     public enum Edge { PRESS, HOLD, RELEASE, CANCEL }
-    public enum Phase { OFF, CHARGING, READY }
+    public enum Phase { OFF, CHARGING, READY, RECOVERING }
     public enum Status { IDLE, ACTIVE, FIRED, CANCELLED, REJECTED, UNAVAILABLE, FAILED }
     private static void dimension(String value) {
         if (value == null || value.length() > 512) throw new IllegalArgumentException("Invalid charge dimension");
@@ -40,7 +40,7 @@ public final class WeaponChargePayloads {
                     || startedAt < 0 || minimumAt < startedAt || fullAt < minimumAt || observedAt < 0
                     || (phase == Phase.OFF ? !weapon.isEmpty() || startedAt != 0 || minimumAt != 0 || fullAt != 0 || held
                         : weapon.isBlank() || fullAt <= startedAt || observedAt < startedAt || !held || status != Status.ACTIVE)
-                    || phase == Phase.READY && observedAt < fullAt || phase == Phase.CHARGING && observedAt >= fullAt)
+                    || phase == Phase.READY && observedAt < fullAt || (phase == Phase.CHARGING || phase == Phase.RECOVERING) && observedAt >= fullAt)
                 throw new IllegalArgumentException("Invalid charge projection");
         }
         public double fraction() { return phase == Phase.OFF ? 0 : Math.min(1, (observedAt - startedAt) / (double) (fullAt - startedAt)); }

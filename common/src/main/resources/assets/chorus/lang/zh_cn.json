@@ -37,6 +37,7 @@
   "equipment.chorus.status.dead": "重生后可更换装备。",
   "equipment.chorus.status.busy": "请关闭其他容器，并放下鼠标上的物品。",
   "key.chorus.charge": "武器蓄力（按住）",
+  "hud.chorus.charge.recovering": "射击恢复",
   "hud.chorus.charge.charging": "蓄力中",
   "hud.chorus.charge.ready": "蓄力完成"
 }

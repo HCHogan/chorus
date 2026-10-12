@@ -18,7 +18,13 @@ import net.minecraft.world.level.GameType;
 /** Adaptive reference charge/bolt timing with synthetic damage and flight; not a complete D2 fusion archetype. */
 public class ControlledBurstGameTest {
     static ProjectileGameTest.Harness open(GameTestHelper h,boolean enhanced,boolean warm)throws Exception{
-        var t=new ProjectileGameTest.Harness(h,"fusion_burst_weapon",data->RadiantGameTest.merge(data,"controlled_burst","weapon_charge_time","successful_warm_up"),true);
+        return open(h,enhanced,warm,false);
+    }
+    static ProjectileGameTest.Harness open(GameTestHelper h,boolean enhanced,boolean warm,boolean repeat)throws Exception{
+        var t=new ProjectileGameTest.Harness(h,"fusion_burst_weapon",data->{
+            RadiantGameTest.merge(data,"controlled_burst","weapon_charge_time","successful_warm_up");
+            data.getAsJsonArray("weapons").get(0).getAsJsonObject().getAsJsonObject("charging").addProperty("repeat",repeat);
+        },true);
         try{
             t.owner.setPos(t.owner.chunkPosition().getMinBlockX()+3.5,t.owner.getY(),t.owner.chunkPosition().getMinBlockZ()+3.5);t.owner.setGameMode(GameType.SURVIVAL);
             var choices=new HashMap<>(Map.of("perk",enhanced?"enhanced":"normal"));if(warm)choices.put("warmup","normal");

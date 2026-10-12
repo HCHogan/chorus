@@ -37,6 +37,7 @@
   "equipment.chorus.status.dead": "Equipment can be changed after respawning.",
   "equipment.chorus.status.busy": "Close other containers and put down the carried item.",
   "key.chorus.charge": "Charge weapon (hold)",
+  "hud.chorus.charge.recovering": "Weapon recovery",
   "hud.chorus.charge.charging": "Charging",
   "hud.chorus.charge.ready": "Fully charged"
 }

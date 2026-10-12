@@ -11,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
-/** One accepted physical gesture can fire once. Heartbeats never start or restart domain charging. */
+/** A physical gesture authorizes configured domain cycles. Heartbeats only renew its lease. */
 public final class WeaponChargeNetworkServer {
     public static final int LEASE_TICKS = 40;
     public static final WeaponChargeNetworkServer LIVE = new WeaponChargeNetworkServer((player, view) -> Services.PLATFORM.sendWeaponChargeView(player, view));
@@ -42,6 +42,14 @@ public final class WeaponChargeNetworkServer {
             if (s.runtime != runtime) replaceRuntime(s, runtime);
             if (runtime == null || runtime.failure().isPresent()) {
                 s.held = false; s.status = runtime == null ? Status.UNAVAILABLE : Status.FAILED; publish(s, true); return Reply.REJECTED;
+            }
+            // Retire matched terminal intent before prepare can settle an overdue automatic cycle.
+            // Unmatched gestures and release-triggered shots retain their normal preflight path.
+            var pending = plan(s);
+            if (s.held && pending != null && input.gesture() == s.gesture && (input.edge() == Edge.CANCEL
+                    || input.edge() == Edge.RELEASE && pending.trigger() == WeaponCharge.Trigger.FULL)) {
+                cancel(s, input.edge() == Edge.CANCEL ? "input_cancelled" : "input_released");
+                publish(s, true); return Reply.PROCESSED;
             }
             maintain(s); // Check expiry before a late HOLD or RELEASE can extend/use it.
             if (input.edge() == Edge.PRESS) {
@@ -122,9 +130,11 @@ public final class WeaponChargeNetworkServer {
     private void publish(Session s, boolean force) {
         var plan = s.held && s.status == Status.ACTIVE ? plan(s) : null;
         long observed = plan == null ? 0 : s.runtime.state().engine().timeMicros();
+        long started = plan == null ? 0 : plan.recovery().map(com.imdomestic.chorus.effect.weapon.WeaponFire.Shot::firedAt).orElse(plan.startedAt());
+        long minimum = plan == null ? 0 : plan.recovery().isPresent() ? started : Math.addExact(started, plan.minimum().micros());
         var view = new View(s.revision + 1, s.sequence, s.gesture, s.player.getUUID(), s.player.getId(), dimension(s), plan != null, s.status,
                 plan == null ? Phase.OFF : Phase.valueOf(plan.phase().name()), plan == null ? "" : plan.gear().instance(),
-                plan == null ? 0 : plan.startedAt(), plan == null ? 0 : Math.addExact(plan.startedAt(), plan.minimum().micros()), plan == null ? 0 : plan.fullAt(), observed);
+                started, minimum, plan == null ? 0 : plan.dueAt(), observed);
         if (!force && s.last != null && new View(s.last.revision(), view.sequence(), view.gesture(), view.player(), view.entity(), view.dimension(), view.held(), view.status(), view.phase(), view.weapon(), view.startedAt(), view.minimumAt(), view.fullAt(), view.observedAt()).equals(s.last)) return;
         s.revision = view.revision(); s.last = view; send.accept(s.player, view);
     }

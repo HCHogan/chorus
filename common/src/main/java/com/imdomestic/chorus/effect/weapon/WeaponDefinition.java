@@ -24,9 +24,13 @@ public record WeaponDefinition(String item, Ammunition ammunition, Reload reload
     public record Aiming(Timing enter, Timing exit) {
         public Aiming { Objects.requireNonNull(enter); Objects.requireNonNull(exit); }
     }
-    /** One shot per accepted press; timing and trigger are fixed at acceptance. */
-    public record Charging(Timing minimum, Timing full, Condition condition, WeaponCharge.Trigger trigger) {
-        public Charging { Objects.requireNonNull(minimum); Objects.requireNonNull(full); Objects.requireNonNull(condition); Objects.requireNonNull(trigger); }
+    /** Repeat is opt-in for full triggers; every cycle samples its own accepted timing. */
+    public record Charging(Timing minimum, Timing full, Condition condition, WeaponCharge.Trigger trigger, boolean repeat) {
+        public Charging {
+            Objects.requireNonNull(minimum); Objects.requireNonNull(full); Objects.requireNonNull(condition); Objects.requireNonNull(trigger);
+            if (repeat && trigger != WeaponCharge.Trigger.FULL) throw new IllegalArgumentException("Repeated charging requires a full trigger");
+        }
+        public Charging(Timing minimum, Timing full, Condition condition, WeaponCharge.Trigger trigger) { this(minimum, full, condition, trigger, false); }
         public Charging(Timing minimum, Timing full, Condition condition) { this(minimum, full, condition, WeaponCharge.Trigger.RELEASE); }
     }
     /** One accepted shot; charging supplies trigger measurements, while burst and hit aggregation remain separate. */

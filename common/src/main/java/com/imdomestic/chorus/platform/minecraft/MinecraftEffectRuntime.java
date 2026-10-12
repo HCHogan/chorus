@@ -504,7 +504,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     /** Debug/host input convenience. Network adapters must pair their own gesture with the returned token. */
     public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge) {
-        thread(); prepare();
+        thread();
         var plan = view().charging().get(player.getUUID().toString());
         String token = edge == com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.PRESS || plan == null ? java.util.UUID.randomUUID().toString() : plan.token();
         return charge(player, token, edge);
@@ -516,7 +516,15 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     /** Ephemeral host authority is required before autonomous firing; it is never restored from a checkpoint. */
     public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, String token, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge, java.util.function.BooleanSupplier held) {
         Objects.requireNonNull(held);
-        thread(); prepare();
+        thread();
+        var pending = view().charging().get(player.getUUID().toString());
+        if (edge != com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.PRESS && pending != null
+                && pending.token().equals(token) && inputEligible(player) && matchesChargeHolder(pending, player)
+                && (edge == com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.CANCEL || pending.trigger() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Trigger.FULL)) {
+            cancelCharge(pending.holder(), token, "input_" + edge.name().toLowerCase(java.util.Locale.ROOT));
+            return new com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt(com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.CANCELLED, Optional.of(pending), Optional.empty(), Optional.empty());
+        }
+        prepare();
         if (!inputEligible(player)) throw new IllegalArgumentException("Player cannot charge here");
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge requires a healthy idle runtime");
         String holder = player.getUUID().toString();

@@ -3436,19 +3436,19 @@ FOLLOWING/WAITING 解析发出携带当前 Entry/revision 的世界查询。查�
 }
 ```
 
-minimum / full 使用与换弹相同的 Timing 结构，支持显式有序 profiles 管线。最终必须为秒，minimum 可为零，full 必须为正；向上量化至完整微秒后 minimum 不得大于 full。可选 `if` 只检查开始蓄力的资格，默认允许；它与发射时检查的 fire.if 分开，因此“仅满蓄力才可射出”不需要阻止开始蓄力。最低时间、满蓄力时间及计算轨迹都在接受按下时固定；装备外的 Buff 变化只影响下一次按下。
+minimum / full 使用与换弹相同的 Timing 结构，支持显式有序 profiles 管线。最终必须为秒，minimum 可为零，full 必须为正；向上量化至完整微秒后 minimum 不得大于 full。可选 `if` 只检查开始蓄力的资格，默认允许；它与发射时检查的 fire.if 分开，因此“仅满蓄力才可射出”不需要阻止开始蓄力。最低时间、满蓄力时间及计算轨迹都在接受每轮蓄力时固定；装备外的 Buff 变化只影响下一轮。
 
-`trigger` 可选 `release`（默认）或 `full`，其他值拒绝加载。release 在满蓄力时转 READY，等待配对松开；full 在满蓄力边界自动尝试一次射击，提前松开即取消，即使已经超过 minimum 也不发出部分蓄力射击。full 仍要求合法 minimum/full，minimum 作为测量与显示数据，不提供提前发射资格。每次接受的按下最多消费一次射击事务；持续保持不会重新蓄力，连续自动射击需要独立的后续协议。这不是对发射后派生效果或 Char 连锁的限制。
+`trigger` 可选 `release`（默认）或 `full`，其他值拒绝加载。release 在满蓄力时转 READY，等待配对松开；full 在满蓄力边界自动尝试一次射击，提前松开即取消，即使已经超过 minimum 也不发出部分蓄力射击。full 仍要求合法 minimum/full，minimum 作为测量与显示数据，不提供提前发射资格。默认每次接受的按下最多消费一次射击事务；可选 `repeat=true` 仅允许与 full 同用，在射击恢复结束后尝试下一轮，详见下文。这不是对发射后派生效果或 Char 连锁的限制。
 
 `WeaponCharge.Request(holder, token, edge, holderReference)` 的 edge 为 PRESS / RELEASE / CANCEL。token 由可信宿主为每次新手势生成唯一值，不是客户端指定的武器身份。PRESS 不扣弹或预留弹药；重复 PRESS 不重置现有状态。release 模式的匹配 RELEASE 先检查 minimum，再用当前 fire.if、成本、弹药和射击间隔执行原有射击事务；full 在固定满蓄力边界使用同一事务及当时的成本/条件。过早松开、显式取消或已知拒绝都结束本次蓄力；不匹配 token / 生命引用的松开返回 stale，保留当前有效手势。启用 charging 的武器直接走普通 fire 入口返回 charge_required。
 
 按下使用 WEAPON_FIRE / START，持续资格及满蓄力边界使用 CONTINUE，实际射击使用 COMPLETE。Fire 受限回执保留实际 START / COMPLETE 阶段，不把完成拒绝伪装为开始拒绝；其他既有行动回执仍要求 START。满蓄力边界首先检查宿主及持续资格；release 转 READY，full 执行当前射击检查并在同一领域提交中清理计划/计时器和提交接受的扣弹。后者不留下可恢复的活动 READY 计划。ready、ended、原有开火事实按此顺序在提交后反应；ready 反应不能撤销已接受的付款，应使用 fire.if / COMPLETE gate 表达发射前限制。真实持有者死亡/失效、旁观、装备实例/参数或持握槽改变、已接受的切枪或手动换弹都会取消；被拒绝的满弹匣换弹不取消。瞬时补弹保留独立语义，不被当成手动换弹输入。
 
-事实为 `weapon_charge_started / weapon_charge_ready / weapon_charge_ended`，数值提供 charge_elapsed、charge_minimum、charge_duration、charge_overdraw（秒）及 charge_fraction（0–1 multiplier），标志为 charged、charge_held、fully_charged，引用含 weapon、item、charge 和 charge_trigger（release/full），结束事实另有 reason。on_fire 同样收到本次发射的这些数值/标志，能在捕获伤害、速度或其他参数前求值；full 发射时 charge_held=true，release 发射时为 false。ended 的 charge_held 恒为 false，表示计划已经消费，不推断玩家物理按钮已松开。原有即时武器不会凭空拥有 charge 数值。开始资格/时间查询时 elapsed、fraction、overdraw 为零，尚未采样的 minimum / duration 不伪造为零。完美窗口由内容比较 fully_charged 和 overdraw 表达，没有核心写死的窗口或增伤。
+事实为 `weapon_charge_started / weapon_charge_ready / weapon_charge_ended`，数值提供 charge_elapsed、charge_minimum、charge_duration、charge_overdraw（秒）及 charge_fraction（0–1 multiplier），标志为 charged、charge_held、fully_charged，引用含 weapon、item、charge 和 charge_trigger（release/full），结束事实另有 reason。on_fire 同样收到本次发射的这些数值/标志，能在捕获伤害、速度或其他参数前求值；full 发射时 charge_held=true，release 发射时为 false。ended 的 charge_held 恒为 false，表示本轮蓄力已经消费，不推断玩家物理按钮已松开；重复模式此时可以已经进入恢复阶段。原有即时武器不会凭空拥有 charge 数值。开始资格/时间查询时 elapsed、fraction、overdraw 为零，尚未采样的 minimum / duration 不伪造为零。完美窗口由内容比较 fully_charged 和 overdraw 表达，没有核心写死的窗口或增伤。
 
 领域状态与网络按键意图分离。宿主 API 和普通玩家自助命令 `chorus weapon charge press|release|cancel` 都使用同一领域协议；客户端按键包、保持租期、连接级清理和基础进度显示见下节。Minecraft API 总是绑定 holder 的实体 UUID、持久化生命和维度；原生复生即使复用 UUID 并转移相同装备，也不能继承旧蓄力。纯宿主可以显式不提供生命引用，但不能以无引用请求松开已绑定引用的计划；Minecraft 满蓄力验收要求匹配真实生命。取消当前物理输入不会删除已经发射的投射物或其延迟效果。
 
-EffectState v5 包含 charging，精确旧 v4 迁移为空蓄力并保留全部附着；WeaponDefinition v4 包含可选 charging，旧 v3 保留原武器行为。Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。当前新增嵌套 charging_v2、plan_v2 和 trigger 类型，目录为 600 项，原 597 项逐键形状不变。旧三字段 Charging 和十一字段 Plan 使用精确旧记录迁移为 release，不接受把新字段塞进旧 ID；外层 v5 状态/v4 武器不再升版。领域检查点保留触发模式、固定期限、轨迹及绑定生命；release 可恢复 CHARGING/READY，full 仅有活动 CHARGING。未知世界结果仍停机，不重放已消费的计划、付款、弹体或伤害。完整物理世界重启、持续自动重蓄力、最大持弓/强制松弦和完整蓄力武器行为仍有后续工作。
+EffectState v5 包含 charging，精确旧 v4 迁移为空蓄力并保留全部附着；WeaponDefinition v4 包含可选 charging，旧 v3 保留原武器行为。Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。单次 full 阶段新增 charging_v2、plan_v2 和 trigger；当前持续充能另使用 charging_v3、plan_v3 和 phase_v2，目录为 603 项，原 600 项逐键形状不变。旧三字段 Charging 和十一字段 Plan 使用精确旧记录迁移为 release，不接受把新字段塞进旧 ID；外层 v5 状态/v4 武器不再升版。领域检查点保留触发模式、固定期限、轨迹及绑定生命；release 可恢复 CHARGING/READY，单次 full 仅有活动 CHARGING；重复 full 另可处于 RECOVERING。旧四字段 Charging / 十二字段 Plan 默认迁移为 repeat=false、cycle=0、无恢复凭据，旧 Phase ID 仍只接受 CHARGING/READY。未知世界结果仍停机，不重放已消费的计划、付款、弹体或伤害。完整物理世界重启、即时武器长按连发、最大持弓/强制松弦和完整原作蓄力武器行为仍有后续工作。
 
 Minecraft 的 full 计划还需要本运行时内临时的输入许可：同一个玩家对象/连接、计划 token、当前生命和真实装备，以及输入生产者提供的有效保持判定。领域恢复不恢复这份许可；即使第一次 prepare 先推进到已过期的满蓄力计时器，也必须先拒绝自动发射，再清理计划。网络保持额外检查当前世界时钟下的租期，不用旧计时器的历史时间复活已经过期的输入；因此卡顿追赶时，当前已失去租期的计划不会补射。可信自助命令使用同生命/连接的运行时许可，仍受死亡、装备、断线和停服清理约束。纯核心宿主可以独立实现 WeaponCharge.Verify，其肯定回执代表明确授权，不能把存档存在直接当作物理长按。
 
@@ -3456,13 +3456,13 @@ Minecraft 的 full 计划还需要本运行时内临时的输入许可：同一�
 
 ## 蓄力按键网络与进度显示
 
-Fabric / NeoForge 注册 `key.chorus.charge`，默认 R，支持玩家在控制设置中改绑键盘或鼠标。它操作自定义武器容器中当前持握的 charging 武器；不自动替换原版攻击/使用按键。普通即时武器的现有 fire 入口保持原行为。按下开始，release 配对松开发射，full 保持至蓄满自动发射一次；GUI/失焦/死亡/旁观/玩家或维度改变发送 CANCEL 并清除显示。取消或自动发射后必须先松开旧按键，再重新按下，持续长按不重新进入。
+Fabric / NeoForge 注册 `key.chorus.charge`，默认 R，支持玩家在控制设置中改绑键盘或鼠标。它操作自定义武器容器中当前持握的 charging 武器；不自动替换原版攻击/使用按键。普通即时武器的现有 fire 入口保持原行为。按下开始，release 配对松开发射，full 保持至蓄满自动发射一次；GUI/失焦/死亡/旁观/玩家或维度改变发送 CANCEL 并清除显示。取消或单次自动发射结束后必须先松开旧按键，再重新按下；repeat=true 的完整循环由领域计时器推进，客户端持续发送同一次手势的 HOLD。
 
 `weapon_charge_input` 只携带递增 sequence、按下时的 gesture、dimension 和 PRESS/HOLD/RELEASE/CANCEL。PRESS 的 sequence 必须等于 gesture，其他边沿沿用原 gesture；不接受客户端传入武器、玩家、时长、伤害或领域 token。服务器为每次新手势产生独立 token，从真实玩家生命/装备和服务器时钟接受蓄力。连接内旧 sequence 即使之前失败也视为重复；额外 PRESS 不替换仍有效的手势，错维度/错配松开不改写它。
 
-客户端每 10 tick 发送一次 HOLD，服务器从最后接受的按下/保持起算 40 tick 租期；在到期边界先取消，再判断后到的 HOLD/RELEASE。HOLD 只延长仍存活的同一计划，不调用 PRESS。领域计划被换弹、切枪、限制或资格变化取消后，持续物理按键不会自动重新进入；重新按下才可重试。松开在调用领域事务前先退役网络手势，已知拒绝和未知结果都不自动重发。
+客户端每 10 tick 发送一次 HOLD，服务器从最后接受的按下/保持起算 40 tick 租期；在到期边界先取消，再判断后到的 HOLD/RELEASE。HOLD 只延长仍存活的同一手势许可，不调用 PRESS；重复模式的轮次由领域计时器推进。领域计划被换弹、切枪、限制或资格变化取消后，持续物理按键不会自动重新进入；重新按下才可重试。松开在调用领域事务前先退役网络手势，已知拒绝和未知结果都不自动重发。
 
-`weapon_charge_view` 包含确认 sequence、gesture、递增 revision、玩家 UUID/原生 entity ID、维度、held、status、OFF/CHARGING/READY、weapon 和服务器微秒 startedAt/minimumAt/fullAt/observedAt。客户端只接受当前连接、当前玩家实体/维度、当前已发送序号和更新版本的投影；held 投影还必须匹配本地手势及按下时的玩家对象。原版复生会复用 UUID 和 entity ID，不能把 entity ID 单独当成生命身份。本地已经松开/取消的手势不接收迟到的 held 投影。显示由服务器 observedAt 算进度，不拿客户端帧时间推断 READY、完美窗口或发射资格。基础条在准星下方显示进度、最短松开标记与满蓄力文字，遵守隐藏 HUD/GUI/失焦；原作 HUD 美术、动画和完美窗口提示仍属独立内容工作。
+`weapon_charge_view` 包含确认 sequence、gesture、递增 revision、玩家 UUID/原生 entity ID、维度、held、status、OFF/CHARGING/READY/RECOVERING、weapon 和服务器微秒 startedAt/minimumAt/fullAt/observedAt。客户端只接受当前连接、当前玩家实体/维度、当前已发送序号和更新版本的投影；held 投影还必须匹配本地手势及按下时的玩家对象。原版复生会复用 UUID 和 entity ID，不能把 entity ID 单独当成生命身份。本地已经松开/取消的手势不接收迟到的 held 投影。显示由服务器 observedAt 算进度，不拿客户端帧时间推断 READY、完美窗口或发射资格。基础条在准星下方显示进度、最短松开标记与满蓄力文字；RECOVERING 显示已接受射击至 readyAt 的恢复进度和独立标签，不显示最短松开标记，遵守隐藏 HUD/GUI/失焦；原作 HUD 美术、动画和完美窗口提示仍属独立内容工作。
 
 断线取消该连接的网络手势及受跟踪的命令蓄力；取消先按 token 撤销临时许可，再推进领域时间，过期清理不会变成自动发射。旧 token 不撤销更新计划的许可。运行时替换取消匹配的恢复计划，不继承旧物理手势，也不占用另一宿主创建的无关计划。正常停服在固定检查点及其他输入清理之前，先撤销全部运行时/持有者的蓄力许可，再取消领域计划和网络手势，避免清理第一个持有者时推进并发射另一个人的计划；故障运行时保留未知结果，不能为清理而重放动作。显式领域检查点仍可以保存和恢复蓄力，恢复后新物理输入需要独立配对；这不代表物理世界整体重启已验收。
 
@@ -3479,3 +3479,18 @@ Fabric / NeoForge 注册 `key.chorus.charge`，默认 R，支持玩家在控制�
 被跳过的成员直到组期限仍为未决；已知发射拒绝正常关闭该成员，二者都不会满足全部命中。分组期限和弹体寿命是不同输入。Controlled Burst 在 `previous_pellets_hit < pellets_total && pellets_hit == pellets_total` 的首次跨越触发，允许跨目标，不需要等待每枚穿透弹结束；另一条击杀规则独立刷新。单次成员重复接触不重复跨越，但另一项合格击杀仍可刷新。组回执是否把免疫/格挡计作命中、收枪后迟到事件是否有资格，由当前回执协议与对应 perk 门槛明确决定。
 
 纯会话检查点固定完整目录，保留已排队的偏移、成员、归因和已付款状态；恢复依赖宿主提供匹配的世界与生命观察。不能把这种领域恢复当成活跃弹体跨进程恢复证明。参考内容不增加核心原语、存储类型或全局防循环条件；原作数值与剩余装配见 [D2 规则集](d2-ruleset.md#controlled-burst-与自适应融合参考消费者)。
+
+
+## 持续充能与射击恢复
+
+`charging.repeat` 默认为 false；设为 true 时必须同时使用 `trigger=full`，release+repeat 拒绝加载。一次可信 PRESS 保存一个手势 token，每轮依次经过 CHARGING → 自动射击 → RECOVERING → 下一轮 CHARGING。恢复期限直接使用本次已接受 WeaponFire.Shot.readyAt；它可以包含整段齐射和射后间隔，不从弹丸碰撞完成时间推测。fire.interval 和 full 时长均须为正，循环通过正常时间推进，不附加 root/代数上限。
+
+每轮成功射击在同一提交中清理本轮满蓄力计时器、扣一次弹并保存 RECOVERING 计划及其下一截止点，然后依次发布 ready、ended、recovery_started 和原有开火事实。fire 的实际拒绝结束整个手势，不自动补弹或重复尝试。处于恢复的手势仍占用 charging 状态，所以瞬时收枪再重持、已接受的手动换弹、切枪、生命改变等现有取消路径可以立即退役它，不依赖下一次网络轮询；已经飞出的成员和独立延迟效果继续遵守各自寿命。
+
+恢复截止点先通过同一 WeaponCharge.Verify 宿主核验及 CONTINUE 门槛，再执行新的 START / charging.if 检查，采样下一轮 minimum/full 与计算轨迹。已接受的本轮期限和射后间隔不会被中途 Buff 变化改写；下一轮读取当前 perk。恢复或下一次射击的已知拒绝结束整个手势，未知世界结果保留已付款和待诊断状态并停止，不重放。成本仍只在实际发射时检查，因此弹尽后的下一轮可能完成蓄力再被 NO_AMMUNITION 拒绝；当前协议不自动换弹，也不在重新获得弹药后自行恢复旧长按。
+
+Plan 保存 repeat、从零开始的 cycle 和恢复阶段对应的已接受 Shot。输入匹配仍使用原 token；repeat 的每次射击使用 `charge-cycle/<token长度>:<token>/<cycle>` 独立 token，保证武器攻击归因不会把所有轮次合并成一发。每轮 started 的 reason 为 input 或 repeat，事件增加 `charge_cycle` count 和 `charge_repeating / charge_recovering` 标志。`weapon_charge_recovery_started / weapon_charge_recovery_ended` 分别标记恢复阶段；恢复取消不会重复发同一轮的 weapon_charge_ended。恢复事件的蓄力数值仍指向刚结束的一轮，阶段期限从 Plan.dueAt/恢复 Shot 读取。
+
+网络只续租整个原手势；PRESS 不重置活动循环，HOLD 不创建下一轮。恢复期间 View.held=true、phase=RECOVERING，显示时间为 Shot.firedAt → Shot.readyAt，minimumAt=startedAt。自动模式的配对 RELEASE/CANCEL 在推进到期工作之前撤销输入许可并结束整个手势；自助命令及宿主 charge API 使用同样的前置取消边界。GUI、失焦、断线、停服和运行时替换同样退役；取消后即使物理按键仍按住，也需要先松开才可发起新手势。两种自动阶段都检查当前世界时钟的租期，追赶旧计时器不能恢复已过期的输入。
+
+持久化保存领域循环阶段和已接受的恢复期限，但不保存物理长按许可。当前嵌套版本独立迁移，外层 EffectState v5 / WeaponDefinition v4 不变。Minecraft 恢复后的首次推进缺少许可时结束 CHARGING 或 RECOVERING，不补射；纯核心宿主若明确重新授权，则可按检查点中的逻辑时序继续。原作具体 cadence、自动换弹/连发选项、即时武器长按、强制松弦和完整物理世界重启仍是独立实现与校准范围。

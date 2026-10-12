@@ -872,8 +872,9 @@ public final class EffectCodecs {
         Codec<WeaponDefinition.Charging> weaponCharging = strict(RecordCodecBuilder.create(i -> i.group(
                 reloadTiming.fieldOf("minimum").forGetter(WeaponDefinition.Charging::minimum), reloadTiming.fieldOf("full").forGetter(WeaponDefinition.Charging::full),
                 conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Charging::condition),
-                enumeration(WeaponCharge.Trigger.class).optionalFieldOf("trigger", WeaponCharge.Trigger.RELEASE).forGetter(WeaponDefinition.Charging::trigger)
-        ).apply(i, WeaponDefinition.Charging::new)), Set.of("minimum", "full", "if", "trigger"));
+                enumeration(WeaponCharge.Trigger.class).optionalFieldOf("trigger", WeaponCharge.Trigger.RELEASE).forGetter(WeaponDefinition.Charging::trigger),
+                Codec.BOOL.optionalFieldOf("repeat", false).forGetter(WeaponDefinition.Charging::repeat)
+        ).apply(i, WeaponDefinition.Charging::new)), Set.of("minimum", "full", "if", "trigger", "repeat"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
                 weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire),

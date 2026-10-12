@@ -282,7 +282,7 @@ final class CompiledWeapons {
         if (definition.charging().isPresent() && charge.isEmpty()) return rejectFire(state, WeaponFire.Outcome.CHARGE_REQUIRED);
         charge.ifPresent(plan -> {
             if (definition.charging().isEmpty() || !plan.equals(state.charging().get(request.holder()))
-                    || !plan.token().equals(request.token()) || !plan.gear().equals(weapon)) throw new IllegalArgumentException("Fire does not belong to the current charge");
+                    || plan.phase()==WeaponCharge.Phase.RECOVERING || !plan.fireToken().equals(request.token()) || !plan.gear().equals(weapon)) throw new IllegalArgumentException("Fire does not belong to the current charge");
         });
         var fire = definition.fire().orElseThrow(); long now = state.buffs().timeMicros();
         var previous = state.shots().get(weapon.instance());

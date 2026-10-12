@@ -7,6 +7,23 @@
 ## 当前证据
 
 
+### 2026-10-12：持续保持的自动充能循环
+
+charging.repeat 默认为 false，只允许显式 full+repeat。新 RECOVERING 阶段保存本轮已接受 Shot，以 readyAt 为下一次恢复截止点；每轮重新检查 START/CONTINUE/COMPLETE 门槛并取样当前时长，既有付款、射击间隔和伤害快照各自保持。一个手势 token 贯穿循环，每轮有独立 fire token 和 charge_cycle。默认单次及松开发射行为不变，连续 128 轮的核心验收没有引入 root/代数截断。
+
+恢复状态继续受装备/持握/生命/换弹取消约束，临时输入许可继续使用同一连接、玩家对象和网络租期。新增 recovery_started/recovery_ended 事件，恢复取消不重复发布上一轮 charge_ended。恢复及满蓄力边界都核验宿主；旧存档不重建长按许可。网络 View 新增 RECOVERING，并将 Shot.firedAt/readyAt 投影为只读恢复条；客户端只续租原手势，不反复发送 PRESS。弹尽/其他拒绝结束循环，不自动换弹或等条件恢复后重试。
+
+新增 11 项 WeaponRepeatChargeTest 和两项旧 full 存储迁移测试，覆盖逐轮身份、精确期限、恢复阶段松开、宿主许可、重新采样、门槛、弹尽、两阶段恢复、装备/换弹、未知第二次发射和长期循环。共享世界测试通过真实自适应融合消费者、网络输入和原生弹体，验证两次七发齐射、首轮击杀影响下一轮 Controlled Burst/Warm-Up、恢复期收枪/复生、过期租期、无许可恢复、未知扣血、断线与停服。23 项 Fabric 客户端中的新场景用真实键盘验证同一手势多次开火、恢复投影、松开及打开背包后的停止；1280×720 的 `0007_chorus-repeat-charge-recovery.png` 已目视检查。
+
+存储新增 charging_v3、plan_v3、phase_v2，精确旧记录/枚举迁移为单次，无恢复凭据；外层 EffectState v5 / WeaponDefinition v4 不变。原 600 项逐键形状与两份历史检查点原字节保留，目录现为 603 项。原融合 JSON 继续默认单次，重复变体在独立验收配置启用；这不代表完整原作自动换弹、连发选项或即时武器长按已经实现。
+
+首轮服务端门禁通过 1843 项 JUnit、Fabric 1025 / NeoForge 1040 项世界测试。加入断线/停服和真实客户端后，`/tmp/chorus-repeat-charge-final-gate.log` BUILD SUCCESSFUL，5 分 52 秒。随后审查发现网络入口在处理匹配 RELEASE/CANCEL 之前调用 maintain，可能在租期仍有效时先结算逾期循环；已把自动模式匹配松开和所有匹配取消前置为撤销许可，再推进领域时间，并将相同顺序覆盖自助命令/宿主 API，增加网络与命令的松开/取消四项专门世界回归。 修正后的第二次完整门禁发现旧网络手势已失去领域计划时被回执为 PROCESSED，既有回归要求 STALE；新命令计划未被修改。前置取消现同时要求存在匹配的当前领域计划，保留原隔离和回执语义。
+
+
+最终 `/tmp/chorus-repeat-charge-final-gate3.log` BUILD SUCCESSFUL，12 分 51 秒：1843 项 JUnit（无失败/错误/跳过）、23 项 Fabric 客户端测试、Fabric 1031 / NeoForge 1046 项世界测试及双端发布 jar 全部通过；共享 Chorus 世界场景 1030 项，本批新增 13 项。四个逾期取消入口和旧手势 STALE 回执回归均通过。NeoForge 本批仍只有服务端世界验收，没有图形客户端验收。
+
+发布包 Fabric 1191 项 / NeoForge 1184 项，三个旧存储迁移类、每轮射击身份和终止边界均在包内，中英文语言文件逐字节一致，不含效果/存储夹具、GameTest 或测试 Mixin。603 项存储目录保留此前 600 项的精确形状，两份历史检查点原字节不变。10 项 Compendium 工具测试与报告一致性通过；审阅仍为 115 条（113 partial / 2 not_applicable / 0 verified）。完整武器射击策略与原作节奏、自动换弹、正式内容/配装/D2 HUD 及物理世界整体重启仍待完成。
+
 ### 2026-10-12：Controlled Burst 与分时融合齐射
 
 新增普通/强化 Controlled Burst 数据片段：同组独立弹丸首次全部命中或已归因武器击杀，分别刷新 2/2.5 秒，武器伤害 ×1.2、充能时长 ×0.9，收枪保留、卸下清除。整组阈值使用 shot_progress，不等待穿透弹体终止；不同目标可以组合，重复接触不能再次跨越。与 Warm-Up 的独立充能家族乘算，已接受的充能期限不随后来的 Buff 到期改写。

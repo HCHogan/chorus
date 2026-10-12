@@ -8,7 +8,7 @@ import com.imdomestic.chorus.effect.weapon.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
-/** One automatic shot per accepted press, distinct from a future continuous-trigger/recharge controller. */
+/** Default full triggers remain one shot per accepted press; repeated cycles require an explicit opt-in. */
 class WeaponAutoChargeTest {
     static JsonObject data()throws Exception{
         var d=WeaponChargeTest.data();d.getAsJsonArray("weapons").get(0).getAsJsonObject().getAsJsonObject("charging").addProperty("trigger","full");return d;

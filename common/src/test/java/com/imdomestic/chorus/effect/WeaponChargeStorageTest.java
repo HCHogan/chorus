@@ -9,11 +9,40 @@ import com.imdomestic.chorus.effect.data.CompiledEffects;
 import org.junit.jupiter.api.Test;
 
 class WeaponChargeStorageTest {
+    private static void singleCycleWire(JsonElement value) {
+        if(value.isJsonArray()){value.getAsJsonArray().forEach(WeaponChargeStorageTest::singleCycleWire);return;}
+        if(!value.isJsonObject())return;var o=value.getAsJsonObject();
+        if(o.has("$")&&o.get("$").isJsonPrimitive()){
+            String id=o.get("$").getAsString();
+            if(id.equals("chorus:effect/weapon/weapon_definition/charging_v3")||id.equals("chorus:effect/weapon/weapon_charge/plan_v3")){
+                o.addProperty("$",id.substring(0,id.length()-3)+"_v2");var fields=o.getAsJsonObject("v");fields.remove("repeat");fields.remove("cycle");fields.remove("recovery");
+            }
+            if(id.equals("chorus:effect/weapon/weapon_charge/phase_v2"))o.addProperty("$","chorus:effect/weapon/weapon_charge/phase");
+        }
+        o.entrySet().forEach(e->singleCycleWire(e.getValue()));
+    }
+    @Test void oldFullTriggerCheckpointMigratesToExactlyOneShotRatherThanRepeating()throws Exception{
+        var h=new WeaponChargeTest.Harness(WeaponAutoChargeTest.data());h.input("legacy-full",WeaponCharge.Edge.PRESS);h.until(100_000);
+        var wire=EffectCheckpointCodec.encode(h.session.checkpoint());singleCycleWire(wire);var saved=EffectCheckpointCodec.decode(wire);
+        h.session=EffectSession.restore(new CompiledEffects(saved.program()),EffectCheckpointTest.clock(),256,saved,h::world);
+        assertFalse(h.charge().repeat());assertEquals(0,h.charge().cycle());h.until(2_000_000);assertNull(h.charge());assertEquals(1,h.shots.size());assertEquals(9,h.ammo());
+    }
+    @Test void oldShapesRejectNewRepeatFieldsAndRecoveryEnumNames()throws Exception{
+        var h=new WeaponChargeTest.Harness(WeaponAutoChargeTest.data());h.input("legacy-full",WeaponCharge.Edge.PRESS);
+        var plan=EffectCheckpointCodec.DATA.encode(h.charge());singleCycleWire(plan);plan.getAsJsonObject().getAsJsonObject("v").addProperty("repeat",true);
+        assertThrows(IllegalArgumentException.class,()->EffectCheckpointCodec.DATA.decode(plan,WeaponCharge.Plan.class));
+        var phase=EffectCheckpointCodec.DATA.encode(WeaponCharge.Phase.RECOVERING).getAsJsonObject();phase.addProperty("$","chorus:effect/weapon/weapon_charge/phase");
+        assertThrows(IllegalArgumentException.class,()->EffectCheckpointCodec.DATA.decode(phase,WeaponCharge.Phase.class));
+    }
     private static void releaseOnlyWire(JsonElement value) {
         if(value.isJsonArray()){value.getAsJsonArray().forEach(WeaponChargeStorageTest::releaseOnlyWire);return;}
         if(!value.isJsonObject())return;var o=value.getAsJsonObject();
         if(o.has("$")&&o.get("$").isJsonPrimitive()){
             String id=o.get("$").getAsString();
+            if(id.equals("chorus:effect/weapon/weapon_definition/charging_v3")||id.equals("chorus:effect/weapon/weapon_charge/plan_v3")){
+                id=id.substring(0,id.length()-3)+"_v2";o.addProperty("$",id);var fields=o.getAsJsonObject("v");fields.remove("repeat");fields.remove("cycle");fields.remove("recovery");
+            }
+            if(id.equals("chorus:effect/weapon/weapon_charge/phase_v2"))o.addProperty("$","chorus:effect/weapon/weapon_charge/phase");
             if(id.equals("chorus:effect/weapon/weapon_definition/charging_v2")||id.equals("chorus:effect/weapon/weapon_charge/plan_v2")){
                 o.addProperty("$",id.substring(0,id.length()-3));o.getAsJsonObject("v").remove("trigger");
             }
