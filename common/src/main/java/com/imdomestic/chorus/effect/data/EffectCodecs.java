@@ -565,6 +565,9 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(EntityAnchorActions.Capture::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(EntityAnchorActions.Capture::anchor)
                 ).apply(i, EntityAnchorActions.Capture::new)))
+                .register("chorus:read_entity_removal", EntityLifecycleActions.ReadRemoval.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(EntityLifecycleActions.ReadRemoval::anchor)
+                ).apply(i, EntityLifecycleActions.ReadRemoval::new)))
                 .register("chorus:resolve_entity_anchor", EntityAnchorActions.Resolve.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("reference").forGetter(EntityAnchorActions.Resolve::reference)
                 ).apply(i, EntityAnchorActions.Resolve::new)))

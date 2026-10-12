@@ -6,6 +6,22 @@
 
 ## 当前证据
 
+### 2026-10-12：普通实体移除事实与历史生命挂点
+
+新增 EntityLifecycle.Removed 和 chorus:entity_removed，携带 target/life/dimension、destroyed/removed/unloaded/transferred 类别、原版原因、移除前存活标志及 feet/body/eyes 历史位置。公共事件中的实体观测明确不可用；历史位置仍可读取。事件不提供攻击者/击杀信用，不生成额外 death/kill。read_entity_removal 返回带原生命的历史挂点，位置距离/平移、detached 续体和检查点可继续使用。
+
+宿主在原版 setRemoved 首次写入 removalReason 之前捕获，字段写入后立即排队。重复设置已移除对象不重发；原生回调即时 unsetRemoved 后再发生的移除会形成新的事实。该记录点覆盖直接移除、原生卸载入口与跨维度复制，不依赖子类是否调用 super.onRemoval。构造物继续发布专属 construct_ended；通用和专属事实各保留自己的语义与记录顺序。
+
+原有构造物队列推广为原生生命周期队列：世界动作随正常回执携带事实，父 frame 完成后反应；动作外 prepare/start/检查点先处理待消费事实。未知动作结果将已知移除事实保留在故障记录中，停止而不重放；关闭与停服保存后的清理不触发奖励。新增三个存储 ID，目录从 561 增至 564，旧形状和两份历史检查点不变。
+
+4 项 EntityLifecycleTest 覆盖历史/不可用区分、错误实体或位置拒绝、纯读取、双编码及来源移除后的领域恢复。8 项共享 EntityRemovalGameTest 覆盖三锚点/同 UUID 替换/重复移除/检查点、两种原生卸载原因、实际死亡与之后的移除、父 frame 顺序与未知回执证据、脱离来源的延迟位置查询、关闭不执行奖励、实际跨维度以及回调立即重新启用对象的真实字段转换。
+
+初轮 /tmp/chorus-removal-gate.log 的 1752 项 JUnit、Fabric 963 / NeoForge 978 项及发布 jar 通过。随后将记录点从方法返回移到原生字段写入，并补上即时重新启用对象场景；定向检查通过后，最终 /tmp/chorus-removal-gate-final.log BUILD SUCCESSFUL，18 分 29 秒：1752 项 JUnit（无失败/错误/跳过）、Fabric 964 项 / NeoForge 979 项世界测试与双端发布 jar 全部通过，共享 Chorus 场景 963 项。Fabric 客户端回归 /tmp/chorus-removal-client.log 在 11 分 22 秒后失败：HorizontalSpeedClientGameTest 的相对传送精确落点等待超时。该客户端项尚未验收，正在核对测试中的输入、速度和位置同步前提；不把服务器通过等同于客户端通过。
+
+发布 jar 为 Fabric 1130 项 / NeoForge 1124 项，含移除事实、历史读取动作和原生 Mixin，不含效果/persistence 测试资源、GameTest 或测试 Mixin。10 项 Compendium 工具测试与报告一致性检查通过；旧 561 个存储类型逐键形状不变，两份历史检查点原字节不变。
+
+该阶段没有新增 D2 数值结论或 Compendium 完成条目，覆盖仍为 111 条审阅、109 partial / 2 not_applicable / 0 verified。最后位置现由通用原生事实提供；下一步需要每次附着的独立持久化状态，消费匹配生命的事件，明确结束/脱离/等待策略，并接到已排队的引信。当前 Timed Payload 仍沿用引爆时的生命校验。实际区块卸载/重载整体流程、死亡时的生命身份观测、骨骼变换和物理世界重启仍有独立验收范围。[接口与时序](engine-data-packs.md#实体移除事实与历史挂点)。
+
 ### 2026-10-12：持久化生命引用与延时载荷伤害校验
 
 新增 EntityAnchor.Reference(target/life/dimension)、不可变位置/存活观察及 capture_entity_anchor / resolve_entity_anchor。解析明确区分 AVAILABLE / MISSING / REPLACED / WRONG_DIMENSION；失败没有位置，不猜测回退目标。观察仍实现 PositionResult，能进入距离与平移表达式，但普通位置不能作为生命引用。新增九个存储 ID，目录从 552 增至 561；原有 DamageCommand / PositionQuery / Impact 及全部旧类型形状、两份历史检查点保持不变。

@@ -52,6 +52,7 @@
       "com.imdomestic.chorus.ExplosivePayloadGameTest",
       "com.imdomestic.chorus.TimedPayloadGameTest",
       "com.imdomestic.chorus.EntityAnchorGameTest",
+      "com.imdomestic.chorus.EntityRemovalGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
       "com.imdomestic.chorus.KineticTremorsGameTest",

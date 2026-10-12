@@ -75,7 +75,7 @@ public final class EffectConstruct extends Mob implements ItemSupplier {
         // The removed entity is unavailable now, but its last positions remain historical evidence.
         var observation = new EntityObservation(now, Map.of(getUUID().toString(), Optional.empty()), positions);
         ended = Optional.of(new RuleEngine.Signal(signal.type(), ((EffectEvent) signal.payload()).withObservedEntities(Optional.of(observation))));
-        runtime.constructEnded(ended.orElseThrow());
+        runtime.recordNativeLifecycle(ended.orElseThrow());
     }
     boolean ownedBy(MinecraftEffectRuntime candidate) { return runtime == candidate; }
     private boolean active() {

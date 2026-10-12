@@ -83,17 +83,17 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
-    private final List<RuleEngine.Signal> constructFacts = new ArrayList<>();
+    private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
 
     /** Removal callbacks record committed facts; they never recursively execute a rule frame. */
-    void constructEnded(RuleEngine.Signal fact) {
+    void recordNativeLifecycle(RuleEngine.Signal fact) {
         if (closed || MinecraftCheckpointLifecycle.deferStop(level.getServer())) return;
         ownerThread();
         if (failure.isPresent()) { countUnprocessed(1); return; }
-        constructFacts.add(fact);
+        nativeLifecycleFacts.add(fact);
     }
-    private List<RuleEngine.Signal> takeConstructFacts() {
-        var facts = List.copyOf(constructFacts); constructFacts.clear(); return facts;
+    private List<RuleEngine.Signal> takeNativeLifecycleFacts() {
+        var facts = List.copyOf(nativeLifecycleFacts); nativeLifecycleFacts.clear(); return facts;
     }
 
     void trackProjectile(EffectProjectile projectile) { thread(); projectiles.add(projectile); }
@@ -124,7 +124,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                     default -> world.apply(request);
                 };
                 if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
-                operationFacts.addAll(takeConstructFacts());
+                operationFacts.addAll(takeNativeLifecycleFacts());
                 var writes = takeWrites();
                 return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
             } finally { operationFacts = null; }
@@ -155,7 +155,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     /** The server-wide boundary settles every dimension before capturing any final snapshot. */
     Checkpoint settledCheckpoint() {
         checkpointBoundary();
-        if (!constructFacts.isEmpty()) throw new IllegalStateException("Checkpoint has unprocessed construct endings");
+        if (!nativeLifecycleFacts.isEmpty()) throw new IllegalStateException("Checkpoint has unprocessed native lifecycle facts");
         return new Checkpoint(level.dimension().identifier().toString(), level.getGameTime(), session.checkpoint(), equipmentOwnerIds);
     }
     private void checkpointBoundary() {
@@ -596,8 +596,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                     && !Objects.equals(change.before().slots().get(key.slot()), change.after().slots().get(key.slot())));
         }
         try {
-            if (constructFacts.isEmpty()) session.start(nowMicros(), signal);
-            else { var facts = new ArrayList<>(takeConstructFacts()); facts.add(signal); session.observe(nowMicros(), facts); }
+            if (nativeLifecycleFacts.isEmpty()) session.start(nowMicros(), signal);
+            else { var facts = new ArrayList<>(takeNativeLifecycleFacts()); facts.add(signal); session.observe(nowMicros(), facts); }
             refreshEquipment(); refreshProjections(); reconcileAbilityInputs();
         }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
@@ -605,7 +605,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { if (nowMicros() != state().engine().timeMicros() || !constructFacts.isEmpty()) session.observe(nowMicros(), takeConstructFacts()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
+        try { if (nowMicros() != state().engine().timeMicros() || !nativeLifecycleFacts.isEmpty()) session.observe(nowMicros(), takeNativeLifecycleFacts()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); }
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
@@ -728,7 +728,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var signals = new ArrayList<>(combatFacts); combatFacts.clear();
         if (failure.isPresent()) { countUnprocessed(observations.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum()); return; }
         if (operationFacts != null) { operationFacts.addAll(signals); return; }
-        signals.addAll(takeConstructFacts());
+        signals.addAll(takeNativeLifecycleFacts());
         var shieldCommit = new ShieldDamage.Commit(shieldWrites); var writes = takeWrites();
         if (signals.isEmpty() && !writes.changed()) return;
         try { session.observe(nowMicros(), signals, writes); refreshEquipment(); refreshProjections(); }
@@ -754,8 +754,9 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             countUnprocessed(committedBeforeFailure.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum());
             return;
         }
+        var knownFacts = new ArrayList<>(facts); knownFacts.addAll(takeNativeLifecycleFacts());
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
-                committedShields, committedCombat, List.copyOf(reservations.values()), facts));
+                committedShields, committedCombat, List.copyOf(reservations.values()), knownFacts));
         abilityInputs.clear();
         abandonProjectiles();
         Constants.LOG.error("Chorus rule runtime stopped for {}. Committed world changes are retained; no automatic replay.", level.dimension().identifier(), error);
@@ -784,7 +785,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); constructFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); nativeLifecycleFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
         abandonProjectiles();
         var constructs = new ArrayList<EffectConstruct>();
         var pickups = new ArrayList<EffectObject>();

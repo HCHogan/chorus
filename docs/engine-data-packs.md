@@ -3358,4 +3358,23 @@ damage_entity_snapshot 与 damage_snapshot 使用相同 snapshot/target/impact/p
 
 Minecraft 26.3 使用 LivingEntity NBT 字符串 chorus:entity_life 保存随机 UUID。旧存档缺键时分配新值并在下次保存写入；已存在但类型错误或非法 UUID 的值拒绝加载，不静默换一条生命。原版玩家 restoreFrom(false) 是新生命，restoreFrom(true) 保留旧生命；普通实体保存/载入及原版跨维度 restoreFrom 保留生命。死亡但尚未移除的尸体仍可观测位置，保命后的实体不换生命。这不是所有模组自定义复活/复制机制的自动适配。
 
-此阶段新增 EntityAnchor 的六个记录/枚举和 EntityAnchorActions 的三个动作存储 ID，总数从 552 增至 561，旧类型形状与历史检查点不变。生命引用和结果可随领域检查点恢复，但这不等于物理弹体已能跨世界重启。引用只在查询/写入时校验；没有订阅移除事件、记录最后位置或永久终止附着，同一生命回到原维度可再次使用旧引用。
+此阶段新增 EntityAnchor 的六个记录/枚举和 EntityAnchorActions 的三个动作存储 ID，总数从 552 增至 561，旧类型形状与历史检查点不变。生命引用和结果可随领域检查点恢复，但这不等于物理弹体已能跨世界重启。引用只在查询/写入时校验，不自动订阅移除事件或永久终止附着，同一生命回到原维度可再次使用旧引用。下一节提供通用移除事实及历史位置，内容仍需明确如何消费它们。
+
+
+## 实体移除事实与历史挂点
+
+服务器首次写入 LivingEntity 的原版 removalReason 标记时记录 chorus:entity_removed：先捕获同一生命和位置，字段写入成功后立即排队，后续 onRemoval 回调即使抛错或重新启用对象，也不抹去已经发生的转换。事实由 EntityLifecycle.Removed 承载，包含 target/life/dimension、kind、原版 reason、wasAlive 和全部 feet/body/eyes 历史位置。kind 为 destroyed/removed/unloaded/transferred；reason 保留 minecraft:killed、minecraft:discarded、minecraft:unloaded_to_chunk、minecraft:unloaded_with_player 或 minecraft:changed_dimension。destroyed 表示原生移除原因，不单独证明一次伤害击杀。
+
+公共事件 victim 为该实体，actor 与 source.owner 为空，不补造攻击者。references 包含 entity_life/entity_dimension/removal_reason，flags.was_alive 表示开始移除前的存活状态；tags 包含 chorus:entity_removed 和 chorus:entity_removal_<kind>。同一事实的 EntityObservation 将实体明确记录为不可用，同时保留移除开始时的三个位置。可以用 read_event_position 读取位置，也可以保留生命身份：
+
+```json
+{"action":{"type":"chorus:read_entity_removal","anchor":"feet"},"as":"last_anchor"}
+```
+
+read_entity_removal 是纯本地动作，只接受保留了类型的实体移除事实，不查询当前实体。返回 EntityAnchor.Result，可用于 rebase_position、position_distance 或取回原生命引用。这里 available 只表示历史观察存在，alive 是移除前的 wasAlive，不能解释为实体现在还活着。普通 EffectEvent 即使手工拼出同名 references 也不符合该动作契约。detached 续体保留原始类型化 cause，检查点恢复和来源移除后仍可读取。emit 保留原始 payload，因此也保留移除事实的类型。普通 schedule 计时器保存公共 EffectEvent，不能假定其回调仍有原始类型；需要跨这种计时器使用生命挂点时，应先读取并显式保存结果。
+
+原生回调只排队，不递归运行规则。世界动作内的移除事实随正常回执交给解释器，在父 frame 完成后反应；动作外的事实在 prepare/start/显式检查点前处理。反复调用已移除对象的 setRemoved 不重发或改写首次位置/原因；原生对象重新进入可用状态后发生的新移除是另一条转换。构造物仍有独立的 construct_ended 事实；通用事实在移除标记写入时记录，专属事实在其 onRemoval 中记录，队列保留这一顺序。两者不再生成 death/kill。未知世界结果保留已提交的移除证据并停止，未发出的奖励不重放；Failure.committedCombatFacts 这一既有字段现在也可包含已知原生生命周期事实。
+
+正常关闭或停服保存后的清理不发布新的游戏奖励，关闭会丢弃尚未消费的运行时通知。没有安装对应世界运行时时，不建立回溯全体实体的移除日志。此机制只观察原生 setRemoved 边界；已死亡但仍在世界中的尸体尚未移除，仍使用现有伤害死亡事实。区块卸载原因接入的是原生 setRemoved 路径，专项区块保存/重新加载验收不能由直接调用入口替代。
+
+新增三个存储 ID：entity_lifecycle/kind、entity_lifecycle/removed、entity_lifecycle_actions/read_removal；目录从 561 增至 564，旧类型形状不变。当前提供事实及历史读取，没有自动登记、终止或移动全部挂点。Timed Payload 仍使用前节的引爆时生命校验；后续需要可保存的附着实例及明确的死亡/移除/卸载处理策略，才会把这个事件接到已经排队的引信上。

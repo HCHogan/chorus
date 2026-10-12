@@ -1,4 +1,7 @@
 {
+  "chorus:effect/target/entity_lifecycle/kind": ["DESTROYED", "REMOVED", "UNLOADED", "TRANSFERRED"],
+  "chorus:effect/target/entity_lifecycle/removed": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference", "kind:com.imdomestic.chorus.effect.target.EntityLifecycle$Kind", "reason:java.lang.String", "wasAlive:boolean", "observation:com.imdomestic.chorus.effect.target.EntityObservation"],
+  "chorus:effect/data/entity_lifecycle_actions/read_removal": ["anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor"],
   "chorus:effect/target/entity_anchor/reference": ["target:java.lang.String", "life:java.lang.String", "dimension:java.lang.String"],
   "chorus:effect/target/entity_anchor/query": ["target:java.lang.String", "anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor", "expected:java.util.Optional<com.imdomestic.chorus.effect.target.EntityAnchor$Reference>"],
   "chorus:effect/target/entity_anchor/observation": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference", "position:com.imdomestic.chorus.effect.target.WorldPosition", "anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor", "alive:boolean"],

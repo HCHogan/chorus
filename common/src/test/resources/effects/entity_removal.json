@@ -1,0 +1,110 @@
+{
+  "version": "test-entity-removal",
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:removal",
+      "rules": [
+        {
+          "id": "remove",
+          "on": "chorus:entity_removed",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_removal"
+              },
+              "as": "removed"
+            },
+            {
+              "type": "chorus:select_targets",
+              "center": {
+                "position": "removed"
+              },
+              "radius": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "meter"
+              },
+              "relation": "any"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:removed"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:read_entity_removal"
+                  },
+                  "as": "historical"
+                },
+                {
+                  "type": "chorus:select_targets",
+                  "center": {
+                    "position": "historical"
+                  },
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "meter"
+                  },
+                  "relation": "any"
+                },
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:delayed_removal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "erase",
+          "on": "test:erase",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:erase"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:after_erase"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:death"
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:kill"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
