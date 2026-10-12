@@ -1807,6 +1807,18 @@ Fail-Deadly 的普通满层 +15 Range 已由真实伤害实例驱动下一发的
 Timed Payload 的原表/Clarity 比例为 55%，Foundry 固定代码仍为 50%，当前研究选择前者并保留冲突；延迟为 0.6 秒，半径仍是问号。本节即时爆炸验收不替代其独立的延迟/附着验收，后续实现与生命周期缺口见下文 Timed Payload 一节。
 
 
+## Explosive Head 的分量与距离引信
+
+`explosive_head.json` 按原表和 Clarity 使用 50% 分量、3 米半径、PvE 爆炸 ×1.3 / PvP ×1，以及强化 +5 Accuracy。设无词条身体伤害为 B、精确倍率为 P：身体直击 B×0.5，精确直击 B×(P−0.5)，爆炸 B×0.5×环境倍率；爆炸不继承精确倍率。强化属性进入独立 `weapon_accuracy` Profile，同家族取高并限幅 0–100，尚未驱动实际散布。参考消费者没有沿用手炮距离衰减或传奇手炮的 PvP 爆炸 −7%。
+
+原表 C89（固定快照 C88）与 Clarity 都描述距离相关延迟，没有给出公式；Foundry 固定版本却编码为 PvE 0.2 秒 / PvP 0 秒。这里保留冲突，要求外部提供 `chorus_d2:explosive_head_delay`（米输入、秒输出），不把固定值当作已测距离曲线。来源版本、原文哈希和逐格比对见 [研究记录](../data/d2-research/2026-10-12/explosive-head.json)、[Clarity 固定数据](https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json) 与 [Foundry 固定源码](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_2_perks.rs)。
+
+参考程序开火时保存枪口、伤害分量和 perk 参数，实体/方块接触时以保存枪口到碰撞点的直线距离查询引信；射手之后移动不改变距离，弹体 age 不充当距离。该距离定义与接触时取样是 Chorus 明确选择，未证明原作使用直线距离而非实际路程。非负秒数向上取整到完整微秒；零秒在接触流程直接执行，负值在任何直击/附着前诊断并停止该接触。没有词条时跳过引信查询。攻击组和附着寿命为已接受引信加一秒，爆炸或不可用诊断后显式关闭，支持超过一秒的独立引信。
+
+实体附着采用 Timed Payload 的平移、死亡 follow、销毁/移除 fix、卸载/跨维度 end 策略；方块保留接触面。多个箭头可按各自距离先后引爆，领域检查点保存期限、原来源及组内已消费的一次性增益。未知世界回执不自动重放。这里只验证该策略可表达和执行，没有宣称原作采用相同生命周期。
+
+`explosive_head_test_calibration.json` 的 (0m,0.1s)、(5m,0.2s)、(15m,0.4s)、(30m,0.7s) 及线性径向衰减均为合成测试曲线；B=10、P=2、弹量、射速、速度 100 和零重力同样是测试输入。真实拉弓/持弓/松弦、部分/完美拉弓、散布/硬直、PvP 精确舍入、全目录/proc、生产配装/HUD 及物理世界重启仍未完成。定义仍位于测试资源，覆盖保持 partial。
+
 ## Timed Payload 的延迟附着
 
 `timed_payload.json` 使用原表/Clarity 的 55% 分量和 0.6 秒引信；Foundry 固定源码中的 50% 保留为来源冲突。复用上一节分量公式，s=0.55：合成 B=10、P=2 时，身体直击 4.5、精确直击 14.5；PvE 爆炸 7.15，PvP 爆炸 5.5。传奇手炮的 Explosive Payload −7% 不适用于 Timed Payload。强化 +5 Stability 只进入属性查询，尚未装配真实后坐力。半径在原表仍为问号，因此装备必须提供 `payload_radius` 参数，测试中的 3 米及线性径向曲线不作原作数值。

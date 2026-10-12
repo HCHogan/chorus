@@ -1,0 +1,40 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:explosive_head_delay",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter",
+      "steps": [
+        {
+          "type": "chorus:curve",
+          "id": "synthetic_distance_seconds",
+          "curve": {
+            "type": "chorus:table",
+            "points": [
+              {
+                "input": 0,
+                "output": 0.1
+              },
+              {
+                "input": 5,
+                "output": 0.2
+              },
+              {
+                "input": 15,
+                "output": 0.4
+              },
+              {
+                "input": 30,
+                "output": 0.7
+              }
+            ],
+            "interpolation": "linear",
+            "boundary": "clamp"
+          },
+          "output_unit": "second"
+        }
+      ]
+    }
+  ]
+}

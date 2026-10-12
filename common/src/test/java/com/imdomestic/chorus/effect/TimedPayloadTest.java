@@ -25,7 +25,8 @@ class TimedPayloadTest {
         final Map<String,String> lives=new HashMap<>();
         java.util.function.Consumer<EntityAnchor.GuardedDamage> beforeGuard = _ -> {};
         final List<DamageReceipt> guardedReceipts=new ArrayList<>();
-        Harness(boolean pvp)throws Exception{super(program(json("timed_payload_weapon")),TAG,pvp);}
+        Harness(boolean pvp)throws Exception{this(program(json("timed_payload_weapon")),TAG,pvp);}
+        Harness(CompiledEffects program,String tag,boolean pvp){super(program,tag,pvp);}
         @Override void equip(String a,String b,String drawn){equip(new Loadout.Gear("a","test:hand_cannon",Map.of("perk",a),Map.of("payload_radius",new Measure(3,Unit.METER))),new Loadout.Gear("b","test:rifle",Map.of("perk",b),Map.of("payload_radius",new Measure(3,Unit.METER))),drawn);}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){
             if(r.command() instanceof EntityAttachments.Query q)return new EntityAttachments.Observed(q,(EntityAnchor.Result)world(new RuleEngine.WorldRequest(r.id(),q.expected().handle().query())));

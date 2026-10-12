@@ -11491,7 +11491,7 @@
         "径向线性曲线、基础伤害10/精确2与射速/弹量为合成校准；主目标满额爆炸、取样/顺序/队伍和无视线要求为明确内容政策，需原作实测",
         "完整命中几何、PvP精确舍入、硬直/抖动、原作护盾特例未校准；活动模式选择尚未接入混合目标分类",
         "共享D2增伤目录、各proc实际资格、生产装配/HUD未接入；强化+5已入装填属性，实际换弹时长消费者仍待接线",
-        "领域检查点与独立 Launch 编码不代表物理世界跨重启；Timed Payload 已接入延迟、独立生命附着和死亡/移除策略，原作生命周期与半径仍待校准；Explosive Head 仍未实现"
+        "领域检查点与独立 Launch 编码不代表物理世界跨重启；Timed Payload 已接入延迟、独立生命附着和死亡/移除策略，原作生命周期与半径仍待校准；Explosive Head 已有独立分量与显式距离引信参考消费者，原作曲线和完整弓行为仍待校准"
       ],
       "sources": [
         {
@@ -11637,6 +11637,103 @@
           "sheet": "Weapon Perks",
           "cell": "C228",
           "text_sha256": "f31d5c226ccadd2b2b678b5ed34ffb5dab74773a1de1b54fd2eb8a84c8804068"
+        }
+      ]
+    },
+    {
+      "id": "weapon/explosive_head",
+      "name": "Explosive Head",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "50%直击/爆炸分量、3米范围、PvE爆炸倍率和强化Accuracy；已保存枪口到碰撞点的显式距离引信、独立生命附着与真实伤害",
+      "acceptance": [
+        "两模式及身体/精确分量；距离只改变合成引信，爆炸不继承精确倍率或手炮衰减",
+        "必须链接米到秒的校准Profile；零值即时、负值先诊断、正值向上量化微秒",
+        "换装/射手移动/领域恢复保留原伤害和枪口；多箭头可按独立引信乱序引爆",
+        "长引信保留共享的一次性消费资格；移除历史中心不跟随新生命，卸载/不可用明确退役",
+        "双端原生碰撞、实际扣血、附着移动、完成清理和未知延迟回执不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/explosive_head.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/explosive_head_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/explosive_head_test_calibration.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosiveHeadTest.java",
+          "symbol": "distanceControlsOnlyTheFuseAcrossBothModesAndPrecisionComponents"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosiveHeadTest.java",
+          "symbol": "longCalibratedFuseKeepsTheConsumedAttackBonusAndAttachmentUntilItsDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosiveHeadTest.java",
+          "symbol": "distanceToSecondsProviderIsMandatoryAndMustHaveBothCorrectUnits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ExplosiveHeadTest.java",
+          "symbol": "enhancedAccuracyHasItsOwnCappedFamilyAndDoesNotChangeStabilityOrReload"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "nearPhysicalContactHasFourTickFuseAndSeparateNativeComponents"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "distantContactUsesSavedMuzzleAndSourceAfterUnequipThenFollowsTarget"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "nativeRemovalRetainsHistoricalExplosionWithoutFollowingReplacement"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "zeroFuseIsImmediateAndNegativeCalibrationCannotIssueNativeDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "longFuseRetainsAttachmentBeyondOneSecondAndClosesAfterDetonation"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ExplosiveHeadGameTest.java",
+          "symbol": "unknownDelayedNativeReceiptDoesNotReplayTheAppliedExplosion"
+        }
+      ],
+      "gaps": [
+        "原表/Clarity描述距离延迟却未给公式，Foundry固定0.2秒PvE/0秒PvP与之冲突；距离曲线、直线距离定义和接触时取样均未原作校准",
+        "基础身体10/精确2、弹量/射速/飞行及径向线性曲线均为合成测试输入；真实拉弓/持弓/松弦、部分/完美拉弓、Accuracy散布、硬直和PvP舍入仍待实现或校准",
+        "死亡follow、移除fix、卸载/跨维度end及方块固定点是明确Chorus政策；骨骼变换、区块协调、自定义复活和物理世界重启仍待完成",
+        "完整D2伤害/proc/目标分类、正式武器目录、生产配装和HUD未完成；定义目前位于测试资源"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A88",
+          "text_sha256": "bb8faaf593b4a3229b8ed0c384c4b6712556c0eb77e293ffa3dfdf4c9df1c598"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C88",
+          "text_sha256": "7cb60f6b1494b8d3d6707b66ab730034e57bc03bba00a49a5eb4bac4afe87d9b"
         }
       ]
     }

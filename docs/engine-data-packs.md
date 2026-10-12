@@ -3396,6 +3396,14 @@ read_entity_death 只接受类型化的 EntityLifecycle.Died，纯读取历史 E
 
 该事实阶段新增 entity_lifecycle/died 和 entity_lifecycle_actions/read_death 两个存储 ID，总数从 564 增至 566，旧形状不变。两类事实现由下文的附着状态消费，公共通知仍遵守父 frame 完成后反应的顺序。
 
+## 距离引信与显式校准
+
+Explosive Head 参考消费者通过既有 `capture_position`、`position_distance`、`profile_value`、`capture_value`、`round` 和 `after` 组合距离引信，没有增加 Java 词条分支。`chorus_d2:explosive_head_delay` 必须由链接程序提供，输入 meter、输出 second；缺失或单位不符会在编译时拒绝。测试校准与效果定义分开，不能把测试曲线作为生产默认值。
+
+开火保存的 muzzle 与接触 impact 供纯距离计算；校准查询在接触时执行，结果立即 capture，不随后续世界变化重算。无载荷的 `choose` 分支不执行查询。负结果走显式诊断；非负结果用十进制 arithmetic 乘一百万、向上 round、再乘百万分之一量化到微秒。零值直接执行爆炸动作体，正值才进入 detached after；不改变引擎 after 必须为正整数微秒的契约。攻击组与附着寿命设为引信加一秒，再在完成分支显式关闭，避免长引信先失去共享消费状态。
+
+强化 +5 Accuracy 使用独立 `chorus_d2:weapon_accuracy`，stat_point 输入，perks 加值阶段按 accuracy 分组，Explosive Head 家族 MAX，最终限幅 0–100。它只提供属性查询；实际弓散布、拉弓与动画需要另行装配。距离定义、来源冲突和测试范围见 [D2 规则集](d2-ruleset.md#explosive-head-的分量与距离引信)。
+
 ## 独立实体附着实例
 
 `begin_entity_attachment` 接受可用的生命挂点 `reference`、可用位置 `position`、可选正秒数 `lifetime` 和必填的五项 `policy`，返回独立 Handle。例如外层已经绑定 initial 和 impact 时：

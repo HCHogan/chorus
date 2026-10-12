@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "retrieved_at": "2026-10-12T01:30:16.089064+00:00",
+  "scope": "Explosive Head components and explicitly calibrated distance fuse; full bow charge and original fuse curve remain open",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/explosive-head-source.html.gz",
+      "raw_sha256": "e22d52fb84998169ba5583bdc39b9e3390d4ead1dd1c17fbe0426257922772be",
+      "gzip_sha256": "24ebee7891825aff8515271244fea5384cd7c68e18f9e75b2c1a788fc57f6be7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_2_perks.rs",
+      "path": "data/d2-research/2026-10-12/explosive-head-foundry-year2.rs.gz",
+      "raw_sha256": "fbb8e0a73464b0333597f12dbab82eaa0d068caf3b03ea55310917b364ba322b",
+      "gzip_sha256": "62b9d0a5a8b775f3891b00f4f0d0eb702c41b1c7a69776ec22009eb9e7880eda"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "path": "data/d2-research/2026-10-12/explosive-head-clarity-metadata.json",
+      "sha256": "4595dfc2ba8561e1193d0a994165793c4616d3880b1e43c0464259d8da6efd35",
+      "notes": "Selected metadata and canonical UTF-8 record digests. Full descriptions are retrievable from the pinned primary dataset; no inferred date from current fetch."
+    }
+  ],
+  "source_heads_rechecked": {
+    "Foundry": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "Clarity": "039cfbc4732c33573568b28cc6335dd3332a9296"
+  },
+  "coordinates": {
+    "original": [
+      "A89",
+      "C89"
+    ],
+    "snapshot": [
+      "A88",
+      "C88"
+    ]
+  },
+  "selected": {
+    "fraction": 0.5,
+    "radius_meters": 3,
+    "pve_blast_multiplier": 1.3,
+    "pvp_blast_multiplier": 1,
+    "enhanced_accuracy": 5,
+    "delay_function": null
+  },
+  "conflicts": [
+    "Compendium and Clarity describe distance-dependent delay without a formula. Foundry represents a fixed .2 second PvE / zero PvP delay. Do not substitute that constant for a measured distance curve.",
+    "Clarity reports possible 1-2 percent PvP precision variation; the supplied split formula is exact only before native rounding and specific bow calibration."
+  ],
+  "policies": [
+    "Before firing capture both damage snapshots, payload fraction/radius/scale. On contact use the saved muzzle and exact collision position as Euclidean distance input to the required meter-to-second delay profile. This distance metric and sampling boundary are explicit Chorus policy, not original-game measurements.",
+    "No payload skips the delay-profile query. A negative delay is diagnosed before creating an attachment or issuing damage. Nonnegative delay is rounded up to whole microseconds using decimal arithmetic; exactly zero executes the contact blast without a timer.",
+    "Damage group and entity attachment lifetime equal accepted delay plus one second, then close after blast or unavailable diagnostic. This supports independently queued long fuses rather than imposing a universal one-second fuse limit.",
+    "Entity contact uses the prior attachment policies: death FOLLOW, destroyed/removed FIX, unloaded/transferred END. Block contacts retain the physical surface. A fixed old center does not follow a same-UUID new life, which may still be a normal radial target.",
+    "Bow reference uses synthetic body10/precision2, projectile speed100/no gravity, ammo and trigger interval. It does not borrow hand-cannon range attenuation or the Legendary hand-cannon PvP explosive penalty.",
+    "Synthetic delay curve: (0m,.1s),(5m,.2s),(15m,.4s),(30m,.7s), linear/clamped. Radial shape is synthetic linear. Neither curve is claimed as a measured Destiny curve."
+  ],
+  "remaining": [
+    "Original distance metric, fuse function, mode differences and sampling timing",
+    "Bow draw/hold/release, partial/perfect draw, accuracy/spread and flinch physical behavior",
+    "Native radial/precision rounding and target class exceptions, all outgoing/proc interactions",
+    "Production catalogue, loadout/HUD and whole physical-world restart"
+  ],
+  "cell_checks": [
+    {
+      "original": "A89",
+      "snapshot": "A88",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "bb8faaf593b4a3229b8ed0c384c4b6712556c0eb77e293ffa3dfdf4c9df1c598"
+    },
+    {
+      "original": "C89",
+      "snapshot": "C88",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "7cb60f6b1494b8d3d6707b66ab730034e57bc03bba00a49a5eb4bac4afe87d9b"
+    }
+  ]
+}

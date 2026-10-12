@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-12：Explosive Head 分量与显式距离引信
+
+新增独立 Explosive Head 片段及弓参考消费者：50% 分量、3 米范围、PvE 爆炸 ×1.3 / PvP ×1、精确直击补偿与强化 +5 Accuracy。引信使用开火保存枪口到实际碰撞点的距离，要求外部米到秒 Profile；没有复制手炮距离衰减或 PvP 爆炸 −7%。原表 A89/C89 与固定快照 A88/C88 的归一化文本一致，HTML、Clarity 固定版本条目摘要校验及 Foundry 固定源码已保存。
+
+原表/Clarity 的距离延迟没有具体公式，Foundry 使用固定 PvE 0.2 秒 / PvP 0 秒。研究记录保留此冲突，测试曲线独立且明确标记合成值。零引信在接触内执行；正值向上量化至完整微秒，负值在直击前诊断。附着和攻击组寿命为引信加一秒，支持长引信保留原来源及同攻击消费资格；移动、原生移除、同 UUID 新生命、领域恢复与未知回执沿用通用机制。没有新增生产 Java、核心接口或存储类型。
+
+11 项 ExplosiveHeadTest 覆盖双模式/精确分量、距离期限、来源移除、射手和目标移动、恢复、长引信的一次性增益、零/负/小数微秒、乱序引爆、历史中心、结束边界、强化属性与必需校准单位。6 项共享 ExplosiveHeadGameTest 使用实际 Bow 装备、受控实体碰撞、服务器 tick 和原版扣血，验证近/远期限、保存的枪口/伤害、平移附着、原生移除后历史中心、零/负校准、长引信与未知结果不重放；不宣称已有拉弓输入。
+
+开发期修正了测试校准版本和从旧消费者复制而来的未绑定距离参数。首轮完整回归的唯一新场景失败是将 CueCommand 对象列表与字符串列表直接比较；改为读取 cue 字段，修正其中一次错误限定类型名后完整重跑。最终 `/tmp/chorus-explosive-head-gate3.log` BUILD SUCCESSFUL，3 分 31 秒：1777 项 JUnit 无失败/错误/跳过，Fabric 982 项 / NeoForge 997 项世界测试及双端发布 jar 全部通过，共享 Chorus 场景 981 项。
+
+10 项 Compendium 工具测试、112 条审阅与生成报告检查通过；新增条目保持 partial，合计 110 partial / 2 not_applicable / 0 verified。来源文件哈希、逐格核对、Gradle CRLF 及历史检查点/存储目录原字节检查通过。发布包仍为 Fabric 1151 项 / NeoForge 1145 项，不含效果/校准/persistence 夹具、GameTest 或测试 Mixin。本阶段没有客户端或生产宿主变化，未重复图形客户端回归；此前 20 项客户端证据不代表新增弓表现验收。
+
+原作距离公式与取样、拉弓/持弓/松弦/完美拉弓、Accuracy 散布、硬直/舍入、完整伤害/proc/武器目录、生产配装/HUD 及物理世界整体重启仍未完成。参考定义仍在测试资源，合成曲线和触发射击不视为完整生产弓。[规则与研究](d2-ruleset.md#explosive-head-的分量与距离引信)、[声明契约](engine-data-packs.md#距离引信与显式校准)。
+
 ### 2026-10-12：独立附着状态与 Timed Payload 生命周期
 
 新增 EntityAttachments 与 begin/resolve/end_entity_attachment、attachment_entity。每次操作创建独立 Handle，保存同一生命、锚点、原接触偏移、期限和五项必填策略；死亡可 follow/fix/end，四类移除分别可 wait/fix/end。固定点脱离实体，不冒充当前存活主目标；结束、到期及发现新生命删除实例，等待只允许原生命在原世界恢复。查询携带 Entry/revision，生命周期更新优先于旧回执。
