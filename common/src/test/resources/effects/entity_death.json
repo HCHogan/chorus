@@ -1,0 +1,116 @@
+{
+  "version": "test-entity-death",
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:life_death",
+      "rules": [
+        {
+          "id": "life_death",
+          "on": "chorus:entity_life_died",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_death"
+              },
+              "as": "removed"
+            },
+            {
+              "type": "chorus:select_targets",
+              "center": {
+                "position": "removed"
+              },
+              "radius": {
+                "type": "chorus:constant",
+                "value": 2,
+                "unit": "meter"
+              },
+              "relation": "any"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:life_death"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:read_entity_death"
+                  },
+                  "as": "historical"
+                },
+                {
+                  "type": "chorus:select_targets",
+                  "center": {
+                    "position": "historical"
+                  },
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 2,
+                    "unit": "meter"
+                  },
+                  "relation": "any"
+                },
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:delayed_death"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:death"
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:kill"
+            }
+          ]
+        },
+        {
+          "id": "managed",
+          "on": "test:managed_lethal",
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1000,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic"
+            },
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:after_managed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

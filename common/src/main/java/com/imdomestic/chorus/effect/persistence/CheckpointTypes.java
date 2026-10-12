@@ -8,6 +8,8 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/target/entity_lifecycle/died", com.imdomestic.chorus.effect.target.EntityLifecycle.Died.class);
+        types.put("chorus:effect/data/entity_lifecycle_actions/read_death", com.imdomestic.chorus.effect.data.EntityLifecycleActions.ReadDeath.class);
         types.put("chorus:effect/target/entity_lifecycle/kind", com.imdomestic.chorus.effect.target.EntityLifecycle.Kind.class);
         types.put("chorus:effect/target/entity_lifecycle/removed", com.imdomestic.chorus.effect.target.EntityLifecycle.Removed.class);
         types.put("chorus:effect/data/entity_lifecycle_actions/read_removal", com.imdomestic.chorus.effect.data.EntityLifecycleActions.ReadRemoval.class);

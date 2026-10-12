@@ -3378,3 +3378,20 @@ read_entity_removal 是纯本地动作，只接受保留了类型的实体移除
 正常关闭或停服保存后的清理不发布新的游戏奖励，关闭会丢弃尚未消费的运行时通知。没有安装对应世界运行时时，不建立回溯全体实体的移除日志。此机制只观察原生 setRemoved 边界；已死亡但仍在世界中的尸体尚未移除，仍使用现有伤害死亡事实。区块卸载原因接入的是原生 setRemoved 路径，专项区块保存/重新加载验收不能由直接调用入口替代。
 
 新增三个存储 ID：entity_lifecycle/kind、entity_lifecycle/removed、entity_lifecycle_actions/read_removal；目录从 561 增至 564，旧类型形状不变。当前提供事实及历史读取，没有自动登记、终止或移动全部挂点。Timed Payload 仍使用前节的引爆时生命校验；后续需要可保存的附着实例及明确的死亡/移除/卸载处理策略，才会把这个事件接到已经排队的引信上。
+
+
+## 确认死亡时的生命与历史位置
+
+chorus:entity_life_died 的 EntityLifecycle.Died 记录来自现有伤害捕获中已经确认的原生死亡点；在 die 广播死亡表现成功后立即捕获，而不是等整个 hurt 返回或实体之后被移除。它保存 target/life/dimension、与 DamageReceipt 一致的 deathId，以及该时刻的实体观察和 feet/body/eyes 位置。之后的原生回调移动尸体、删除对象或用同 UUID 新对象替换它，不会改写这份事实。一个伤害调用内重复观察同一确认点只记录一次；新的独立死亡不按根事件或目标 UUID 全局抑制。
+
+该生命周期事件不提供攻击者或新的击杀信用。原有 chorus:death / chorus:kill 仍由成功回执发布一次；references.death_id 将生命周期记录与回执关联。公共事件还包含 entity_life / entity_dimension、lethal=true 和 chorus:entity_life_died 标签。保命没有经过此确认点，因而没有该事实。移除记录与死亡记录各自保留真实时点，不能用后者替代实际卸载或移除通知。
+
+```json
+{"action":{"type":"chorus:read_entity_death","anchor":"feet"},"as":"death_anchor"}
+```
+
+read_entity_death 只接受类型化的 EntityLifecycle.Died，纯读取历史 EntityAnchor.Result。available 表示历史位置可用，alive 始终为 false；实体观察中的存在值是捕获时保留的原生对象视图，不保证当前实体索引仍能找到它。detached 续体保留 cause，来源卸除和领域检查点恢复后仍可读取；普通 schedule 的公共 EffectEvent 不保留类型，需先显式保存结果。
+
+死亡回调只向原生事实队列写入。正常世界动作完成后与回执一起进入解释器，父 frame 完成后再运行规则；原生回调随后抛错时保留已经确认的生命/位置证据，但不继续执行奖励，也不自动重放。此入口继承 DamageCapture 的范围：只有受捕获的 hurt 调用中确认的死亡；不从 setHealth(0)、任意外部手工 die 调用或伪造的公共事件推断死亡。自定义同对象复活的生命旋转仍需独立适配。
+
+新增 entity_lifecycle/died 和 entity_lifecycle_actions/read_death 两个存储 ID，总数从 564 增至 566，旧形状不变。该事实与移除事实一起供后续每次附着的独立状态消费；当前 Timed Payload 尚未据此改变引信或死亡/移除策略。

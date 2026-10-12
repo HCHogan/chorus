@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-12：确认死亡时的生命与位置快照
+
+新增 EntityLifecycle.Died / chorus:entity_life_died 和 read_entity_death，在既有原生死亡确认点保存 target/life/dimension、deathId 及 feet/body/eyes 历史位置。该时点早于 hurt 最终回执，后续原生回调移动尸体不改写死亡位置；死亡快照与较晚发生的移除快照各自独立。历史实体视图明确不存活，读取动作不查询当前实体。
+
+DamageCapture.Observer 增加默认 confirmedDeath 回调，复用 LivingEntity 与 ServerPlayer 现有死亡 Mixin，不新增注入点。同一伤害调用内重复确认只记录一次；后续独立死亡不按根事件或 UUID 截断。正常路径沿用原生事实队列，在父 frame 完成后反应；原生回调随后抛错时将已经确认的死亡证据保留到故障记录，不自动执行奖励或重放。原有 death/kill 仍由成功回执产生；新增记录不提供额外攻击归属，deathId 与同次回执一致。
+
+3 项 EntityLifeDeathTest 覆盖身份/位置/不存活约束、类型化纯读取、动作与检查点编码，以及脱离来源的恢复。6 项共享 EntityLifeDeathGameTest 覆盖死亡后立即移动与重复确认、managed 回执身份/父 frame 顺序、实际玩家死亡、原生保命、确认后异常的证据保留、尸体及来源消失后的延迟读取。新增两个存储 ID，目录从 564 增至 566，旧形状保持不变。
+
+定向核心/存储检查及双端 GameTest 编译已通过（/tmp/chorus-life-death-target.log，34 秒）。20 个 Fabric 客户端回归已通过（/tmp/chorus-removal-client2.log，2 分 59 秒）。最终 /tmp/chorus-life-death-gate.log BUILD SUCCESSFUL，23 分 47 秒：1755 项 JUnit（无失败/错误/跳过）、Fabric 970 项 / NeoForge 985 项世界测试及双端发布 jar 全部通过，共享 Chorus 场景 969 项。
+
+发布 jar 为 Fabric 1132 项 / NeoForge 1126 项，包含死亡快照和纯读取动作，不含效果/校准/persistence 测试资源、GameTest 或测试 Mixin。旧 564 个存储类型逐键形状不变，两份历史检查点原字节不变；Compendium 清单仍为 111 条审阅、109 partial / 2 not_applicable / 0 verified。
+
+当前没有新增 Compendium 完成条目。此观察只覆盖受 DamageCapture 捕获的 hurt 中已确认的原生死亡，不从任意手工置零生命值或外部 die 调用推断事实；同对象自定义复活的生命旋转仍需适配。死亡和移除输入现已具备，但每次附着的独立持久化状态、生命周期策略及与 Timed Payload 引信的连接仍待实现。[声明契约](engine-data-packs.md#确认死亡时的生命与历史位置)。
+
 ### 2026-10-12：普通实体移除事实与历史生命挂点
 
 新增 EntityLifecycle.Removed 和 chorus:entity_removed，携带 target/life/dimension、destroyed/removed/unloaded/transferred 类别、原版原因、移除前存活标志及 feet/body/eyes 历史位置。公共事件中的实体观测明确不可用；历史位置仍可读取。事件不提供攻击者/击杀信用，不生成额外 death/kill。read_entity_removal 返回带原生命的历史挂点，位置距离/平移、detached 续体和检查点可继续使用。

@@ -33,6 +33,7 @@ public final class DamageCapture {
         default DamageCommand revise(String id, DamageCommand command) { return command; }
         default Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) { return Optional.empty(); }
         default void abandoned(String id) {}
+        default void confirmedDeath(String deathId, LivingEntity target) {}
         default Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) { return Optional.empty(); }
         default Optional<com.imdomestic.chorus.effect.target.EntityObservation> observeEntities(DamageCommand command, LivingEntity target, DamageSource source) { return Optional.empty(); }
         Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount);
@@ -259,7 +260,11 @@ public final class DamageCapture {
     public static void fireImmune(LivingEntity target) { var call = current(target); if (call != null) call.immune = true; }
     public static void blocked(LivingEntity target) { var call = current(target); if (call != null) call.blocked = true; }
     public static void death(LivingEntity target, DamageSource source) {
-        var call = current(target); if (call != null && call.source == source) call.dead = true;
+        var call = current(target);
+        if (call != null && call.source == source && !call.dead) {
+            call.dead = true;
+            if (call.observer != null) call.observer.confirmedDeath(call.id + "/death", target);
+        }
     }
     public static void protectedBy(LivingEntity target, String source) {
         var call = current(target); if (call != null) call.protection = Optional.of(source);

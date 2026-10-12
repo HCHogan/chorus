@@ -654,6 +654,17 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             reservations.remove(id); activeDamage.pop(); return Optional.of(consumed.emitted());
         } catch (RuntimeException error) { failed(error, List.of()); if (id.equals(activeDamage.peek())) activeDamage.pop(); return Optional.empty(); }
     }
+    @Override public void confirmedDeath(String deathId, LivingEntity target) {
+        if (closed || MinecraftCheckpointLifecycle.deferStop(level.getServer())) return;
+        ownerThread();
+        var reference = new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(target.getUUID().toString(),
+                MinecraftEntityLife.get(target).id(), level.dimension().identifier().toString());
+        var positions = new java.util.HashMap<com.imdomestic.chorus.effect.target.PositionQuery, Optional<com.imdomestic.chorus.effect.target.WorldPosition>>();
+        for (var anchor : com.imdomestic.chorus.effect.target.TargetQuery.Anchor.values())
+            positions.put(new com.imdomestic.chorus.effect.target.PositionQuery(reference.target(), anchor), Optional.of(MinecraftWorldActions.observePosition(target, anchor)));
+        var observation = new EntityObservation(nowMicros(), Map.of(reference.target(), Optional.of(MinecraftWorldActions.observeEntity(target))), positions);
+        recordNativeLifecycle(new com.imdomestic.chorus.effect.target.EntityLifecycle.Died(reference, deathId, observation).signal());
+    }
     @Override public Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) {
         thread();
         if (failure.isPresent()) return Optional.empty();
