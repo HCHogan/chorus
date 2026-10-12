@@ -44,6 +44,7 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
 
     @Override public long nextDeadline(EffectState state) {
         long next = state.buffs().nextDeadline();
+        for (var attachment : state.attachments().values()) next = Math.min(next, attachment.handle().expiresAt());
         for (var timer : state.timers().values()) next = Math.min(next, timer.dueAt());
         for (var tally : state.damageTallies().values()) next = Math.min(next, tally.handle().dueAt());
         for (var cost : state.retainedCosts().values()) next = Math.min(next, cost.handle().dueAt());
@@ -104,8 +105,10 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
         }
         var damageTallies = new TreeMap<>(state.damageTallies());
         damageTallies.values().removeIf(tally -> tally.handle().dueAt() <= until);
+        var attachments = new TreeMap<>(state.attachments());
+        attachments.values().removeIf(entry -> entry.handle().expiresAt() <= until);
         var retainedCosts = new TreeMap<>(state.retainedCosts());
         retainedCosts.values().removeIf(cost -> cost.handle().dueAt() <= until);
-        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts, damageTallies, state.handling(), state.aiming()), RuleEngine.Empty.INSTANCE, signals);
+        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts, damageTallies, state.handling(), state.aiming(), attachments), RuleEngine.Empty.INSTANCE, signals);
     }
 }

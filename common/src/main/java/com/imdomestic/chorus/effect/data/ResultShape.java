@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 /** Named, typed projections of an action result. Custom actions may provide their own shape. */
 public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost, Reference reference) {
-    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, PICKUP_CONTACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT, ENTITY_OBSERVATION, ENTITY_ANCHOR }
+    public enum Reference { NONE, TARGET, TARGETS, TARGET_IDENTITIES, TARGET_DIFFERENCE, DAMAGE_SNAPSHOT, POSITION, DIRECTION, PROJECTILE_IMPACT, PICKUP_CONTACT, SHOT, SHOT_IMPACT, DAMAGE_BATCH, DAMAGE_GROUP, RETAINED_COST, DAMAGE_TALLY, DAMAGE_RECEIPT, ENTITY_OBSERVATION, ENTITY_ANCHOR, ATTACHMENT, ATTACHMENT_POSITION }
     public record Field(Unit unit, ToDoubleFunction<RuleEngine.ActionResult> read) {}
     public ResultShape { fields = Map.copyOf(fields); flags = Map.copyOf(flags); java.util.Objects.requireNonNull(reference); }
     public ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleEngine.ActionResult>> flags, boolean carriesCost) { this(fields, flags, carriesCost, Reference.NONE); }
@@ -115,8 +115,10 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public static final ResultShape DIRECTION = new ResultShape(Map.of(), Map.of(
             "available", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isPresent(),
             "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isEmpty()), false, Reference.DIRECTION);
+    public void requireAttachment() { if (reference != Reference.ATTACHMENT) throw new IllegalArgumentException("Result is not an attachment handle"); }
+    public void requireAttachmentPosition() { if (reference != Reference.ATTACHMENT_POSITION) throw new IllegalArgumentException("Result is not an attachment resolution"); }
     public void requireEntityAnchor() { if (reference != Reference.ENTITY_ANCHOR) throw new IllegalArgumentException("Result is not an entity life anchor"); }
-    public void requirePosition() { if (reference != Reference.ENTITY_ANCHOR && reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT && reference != Reference.PICKUP_CONTACT) throw new IllegalArgumentException("Result is not a position capture"); }
+    public void requirePosition() { if (reference != Reference.ATTACHMENT_POSITION && reference != Reference.ENTITY_ANCHOR && reference != Reference.POSITION && reference != Reference.PROJECTILE_IMPACT && reference != Reference.SHOT_IMPACT && reference != Reference.PICKUP_CONTACT) throw new IllegalArgumentException("Result is not a position capture"); }
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldPosition> position(RuleEngine.ActionResult result) {
         requirePosition(); return ((com.imdomestic.chorus.effect.target.PositionResult) result).position();
     }

@@ -84,6 +84,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
     private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
+    private List<RuleEngine.Signal> settlingLifecycleFacts = List.of();
 
     /** Removal callbacks record committed facts; they never recursively execute a rule frame. */
     void recordNativeLifecycle(RuleEngine.Signal fact) {
@@ -126,7 +127,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
                 operationFacts.addAll(takeNativeLifecycleFacts());
                 var writes = takeWrites();
-                return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts, writes);
+                return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts,
+                        com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, operationFacts));
             } finally { operationFacts = null; }
         };
         this.session = checkpoint.map(saved -> EffectSession.restore(program, clock, 256, saved, executor))
@@ -596,8 +598,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                     && !Objects.equals(change.before().slots().get(key.slot()), change.after().slots().get(key.slot())));
         }
         try {
-            if (nativeLifecycleFacts.isEmpty()) session.start(nowMicros(), signal);
-            else { var facts = new ArrayList<>(takeNativeLifecycleFacts()); facts.add(signal); session.observe(nowMicros(), facts); }
+            settleNativeLifecycle();
+            session.start(nowMicros(), signal);
             refreshEquipment(); refreshProjections(); reconcileAbilityInputs();
         }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
@@ -605,8 +607,33 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { if (nowMicros() != state().engine().timeMicros() || !nativeLifecycleFacts.isEmpty()) session.observe(nowMicros(), takeNativeLifecycleFacts()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
+        try { settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); }
+    }
+    /** Settle older native observations before advancing to a later fuse deadline. */
+    private void settleNativeLifecycle() {
+        var pending = takeNativeLifecycleFacts();
+        int begin = 0;
+        while (begin < pending.size()) {
+            var first = pending.get(begin);
+            long at = com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(first)
+                    ? com.imdomestic.chorus.effect.target.EntityAttachments.time(first) : state().engine().timeMicros();
+            at = Math.max(at, state().engine().timeMicros());
+            int end = begin + 1;
+            while (end < pending.size()) {
+                var next = pending.get(end);
+                long nextAt = com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(next)
+                        ? com.imdomestic.chorus.effect.target.EntityAttachments.time(next) : at;
+                if (nextAt > at) break;
+                end++;
+            }
+            var facts = pending.subList(begin, end);
+            settlingLifecycleFacts = pending.subList(begin, pending.size());
+            try { session.observe(at, facts, com.imdomestic.chorus.effect.target.EntityAttachments.commit(RuleEngine.Empty.INSTANCE, facts)); }
+            catch (RuntimeException error) { failed(error, List.of()); throw error; }
+            finally { settlingLifecycleFacts = List.of(); }
+            begin = end;
+        }
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
         thread();
@@ -742,7 +769,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         signals.addAll(takeNativeLifecycleFacts());
         var shieldCommit = new ShieldDamage.Commit(shieldWrites); var writes = takeWrites();
         if (signals.isEmpty() && !writes.changed()) return;
-        try { session.observe(nowMicros(), signals, writes); refreshEquipment(); refreshProjections(); }
+        try { session.observe(nowMicros(), signals, com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, signals)); refreshEquipment(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, observations, shieldCommit, writes, signals); }
     }
     @Override public void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure) {
@@ -765,7 +792,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             countUnprocessed(committedBeforeFailure.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum());
             return;
         }
-        var knownFacts = new ArrayList<>(facts); knownFacts.addAll(takeNativeLifecycleFacts());
+        var knownFacts = new ArrayList<>(facts); knownFacts.addAll(settlingLifecycleFacts); knownFacts.addAll(takeNativeLifecycleFacts());
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
                 committedShields, committedCombat, List.copyOf(reservations.values()), knownFacts));
         abilityInputs.clear();

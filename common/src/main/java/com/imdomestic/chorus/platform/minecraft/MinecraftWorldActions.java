@@ -14,6 +14,7 @@ import com.imdomestic.chorus.effect.target.PositionQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.target.EntityQuery;
 import com.imdomestic.chorus.effect.target.EntityAnchor;
+import com.imdomestic.chorus.effect.target.EntityAttachments;
 import com.imdomestic.chorus.effect.target.RelationQuery;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.Objects;
@@ -97,6 +98,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             case com.imdomestic.chorus.effect.motion.Impulse.Command impulse -> MinecraftImpulseExecutor.execute(level, entities.apply(impulse.target()), impulse);
             case com.imdomestic.chorus.effect.motion.Displacement.Command displacement -> MinecraftDisplacementExecutor.execute(level, entities.apply(displacement.target()), displacement);
             case EntityAnchor.Query query -> entityAnchor(query);
+            case EntityAttachments.Query query -> new EntityAttachments.Observed(query, entityAnchor(query.expected().handle().query()));
             case PositionQuery query -> {
                 var target = entities.apply(query.target());
                 yield new PositionQuery.Result(query, present(target) ? Optional.of(position(target, query.anchor())) : Optional.empty());

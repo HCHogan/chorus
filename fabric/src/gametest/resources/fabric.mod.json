@@ -54,6 +54,7 @@
       "com.imdomestic.chorus.EntityAnchorGameTest",
       "com.imdomestic.chorus.EntityRemovalGameTest",
       "com.imdomestic.chorus.EntityLifeDeathGameTest",
+      "com.imdomestic.chorus.EntityAttachmentGameTest",
       "com.imdomestic.chorus.ContinuationGameTest",
       "com.imdomestic.chorus.FixedPositionGameTest",
       "com.imdomestic.chorus.KineticTremorsGameTest",

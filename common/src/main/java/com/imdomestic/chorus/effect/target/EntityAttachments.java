@@ -1,0 +1,171 @@
+package com.imdomestic.chorus.effect.target;
+
+import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.rule.RuleEngine;
+import java.util.*;
+
+/** Independent, persistent contact offsets and explicit policies for one entity life. */
+public final class EntityAttachments {
+    private EntityAttachments() {}
+    public enum DeathPolicy { FOLLOW, FIX, END }
+    public enum RemovalPolicy { WAIT, FIX, END }
+    public enum Phase { FOLLOWING, FIXED, WAITING }
+    public enum Outcome { RESOLVED, FIXED, WAITING, MISSING, REPLACED, WRONG_DIMENSION, CLOSED, EXPIRED }
+    public record Policy(DeathPolicy death, RemovalPolicy destroyed, RemovalPolicy removed,
+            RemovalPolicy unloaded, RemovalPolicy transferred) {
+        public Policy { Objects.requireNonNull(death); Objects.requireNonNull(destroyed); Objects.requireNonNull(removed); Objects.requireNonNull(unloaded); Objects.requireNonNull(transferred); }
+        RemovalPolicy removal(EntityLifecycle.Kind kind) {
+            return switch (kind) { case DESTROYED -> destroyed; case REMOVED -> removed; case UNLOADED -> unloaded; case TRANSFERRED -> transferred; };
+        }
+    }
+    public record Handle(String id, long startedAt, long expiresAt, EntityAnchor.Observation initial,
+            WorldPosition contact, Policy policy) implements RuleEngine.ActionResult {
+        public Handle {
+            Objects.requireNonNull(initial); Objects.requireNonNull(contact); Objects.requireNonNull(policy);
+            if (id == null || id.isBlank() || startedAt < 0 || expiresAt <= startedAt)
+                throw new IllegalArgumentException("Invalid attachment identity or lifetime");
+            if (!initial.position().dimension().equals(contact.dimension())) throw new IllegalArgumentException("Attachment contact belongs to another world");
+            contact.rebase(initial.position(), initial.position());
+        }
+        public EntityAnchor.Query query() { return new EntityAnchor.Query(initial.reference().target(), initial.anchor(), Optional.of(initial.reference())); }
+        public WorldPosition position(EntityAnchor.Observation observation) {
+            if (!initial.reference().equals(observation.reference()) || initial.anchor() != observation.anchor())
+                throw new IllegalArgumentException("Attachment observed a different life or anchor");
+            return contact.rebase(initial.position(), observation.position());
+        }
+    }
+    public record Entry(Handle handle, Phase phase, EntityAnchor.Observation last, long revision, String reason) {
+        public Entry {
+            Objects.requireNonNull(handle); Objects.requireNonNull(phase); Objects.requireNonNull(last);
+            if (revision < 0 || reason == null || reason.isBlank()) throw new IllegalArgumentException("Invalid attachment observation revision or reason");
+            handle.position(last);
+        }
+        Entry observe(Phase next, EntityAnchor.Observation point, String reason) {
+            return new Entry(handle, next, point, Math.incrementExact(revision), reason);
+        }
+    }
+    /** Carry the exact issued entry so a receipt cannot revive an attachment changed during the query. */
+    public record Query(Entry expected) implements RuleEngine.WorldCommand {
+        public Query { Objects.requireNonNull(expected); if (expected.phase() == Phase.FIXED) throw new IllegalArgumentException("Fixed attachment requires no entity query"); }
+    }
+    public record Observed(Query query, EntityAnchor.Result entity) implements RuleEngine.ActionResult {
+        public Observed {
+            Objects.requireNonNull(query); Objects.requireNonNull(entity);
+            if (!query.expected().handle().query().equals(entity.query())) throw new IllegalArgumentException("Attachment receipt observed a different query");
+        }
+    }
+    public record Resolution(Handle handle, Outcome outcome, Optional<WorldPosition> position,
+            EntityAnchor.Result entity) implements PositionResult {
+        public Resolution {
+            Objects.requireNonNull(handle); Objects.requireNonNull(outcome); Objects.requireNonNull(position); Objects.requireNonNull(entity);
+            if (!entity.query().equals(handle.query())) throw new IllegalArgumentException("Attachment result refers to another life");
+            if (position.isPresent() != (outcome == Outcome.RESOLVED || outcome == Outcome.FIXED))
+                throw new IllegalArgumentException("Attachment position differs from its outcome");
+            position.ifPresent(point -> { if (!point.dimension().equals(handle.contact().dimension())) throw new IllegalArgumentException("Attachment position changed world"); });
+            if ((entity.outcome() == EntityAnchor.Outcome.AVAILABLE) != (outcome == Outcome.RESOLVED))
+                throw new IllegalArgumentException("Attachment result claims an unavailable entity is current");
+            if (outcome == Outcome.RESOLVED && !position.orElseThrow().equals(handle.position(entity.requireObservation())))
+                throw new IllegalArgumentException("Attachment result lost its original contact offset");
+        }
+    }
+    /** Reconcile only host-confirmed observations, before dependent actions; emitted notifications do not replay this write. */
+    public record Commit(RuleEngine.Payload previous, List<RuleEngine.Signal> facts) implements RuleEngine.Payload {
+        public Commit {
+            Objects.requireNonNull(previous); facts = List.copyOf(facts);
+            if (previous instanceof Commit || facts.isEmpty() || facts.stream().anyMatch(f -> !lifecycle(f)))
+                throw new IllegalArgumentException("Invalid attachment lifecycle commit");
+        }
+        public EffectState apply(EffectState state) {
+            var entries = new TreeMap<>(state.attachments());
+            for (var fact : facts) {
+                var reference = reference(fact); long at = time(fact);
+                for (var id : List.copyOf(entries.keySet())) {
+                    var entry = entries.get(id); var h = entry.handle();
+                    if (entry.phase() == Phase.FIXED || h.startedAt() > at || !h.initial().reference().equals(reference)) continue;
+                    var changed = change(entry, fact);
+                    if (changed.isPresent()) entries.put(id, changed.orElseThrow()); else entries.remove(id);
+                }
+            }
+            return state.withAttachments(entries);
+        }
+    }
+    public static RuleEngine.Payload commit(RuleEngine.Payload previous, List<RuleEngine.Signal> facts) {
+        var relevant = facts.stream().filter(EntityAttachments::lifecycle).toList();
+        return relevant.isEmpty() ? previous : new Commit(previous, relevant);
+    }
+    public static boolean lifecycle(RuleEngine.Signal fact) {
+        return fact.type().equals(EntityLifecycle.DIED) && fact.payload() instanceof EntityLifecycle.Died
+                || fact.type().equals(EntityLifecycle.REMOVED) && fact.payload() instanceof EntityLifecycle.Removed;
+    }
+    public static long time(RuleEngine.Signal fact) {
+        return switch (fact.payload()) { case EntityLifecycle.Died d -> d.observation().timeMicros(); case EntityLifecycle.Removed r -> r.observation().timeMicros(); default -> throw new IllegalArgumentException("Not a lifecycle observation"); };
+    }
+    private static EntityAnchor.Reference reference(RuleEngine.Signal fact) {
+        return switch (fact.payload()) { case EntityLifecycle.Died d -> d.reference(); case EntityLifecycle.Removed r -> r.reference(); default -> throw new IllegalArgumentException("Not a lifecycle observation"); };
+    }
+    private static Optional<Entry> change(Entry entry, RuleEngine.Signal fact) {
+        if (fact.payload() instanceof EntityLifecycle.Died died) {
+            var last = died.anchor(entry.handle().initial().anchor()).requireObservation();
+            return switch (entry.handle().policy().death()) {
+                case END -> Optional.empty();
+                case FIX -> Optional.of(entry.observe(Phase.FIXED, last, "death"));
+                case FOLLOW -> Optional.of(entry.observe(entry.phase(), last, "death"));
+            };
+        }
+        var removed = (EntityLifecycle.Removed) fact.payload(); var last = removed.anchor(entry.handle().initial().anchor()).requireObservation();
+        return switch (entry.handle().policy().removal(removed.kind())) {
+            case END -> Optional.empty();
+            case FIX -> Optional.of(entry.observe(Phase.FIXED, last, removed.reason()));
+            case WAIT -> Optional.of(entry.observe(Phase.WAITING, last, removed.reason()));
+        };
+    }
+    public static RuleEngine.Local<EffectState> begin(EffectState state, Handle handle) {
+        if (handle.startedAt() != state.buffs().timeMicros() || state.attachments().containsKey(handle.id())) throw new IllegalArgumentException("Duplicate attachment or wrong start boundary");
+        var entries = new TreeMap<>(state.attachments()); entries.put(handle.id(), new Entry(handle, Phase.FOLLOWING, handle.initial(), 0, "created"));
+        return new RuleEngine.Local<>(state.withAttachments(entries), handle, List.of());
+    }
+    private static Optional<Entry> find(EffectState state, Handle handle) {
+        var entry = Optional.ofNullable(state.attachments().get(handle.id()));
+        if (entry.filter(e -> !e.handle().equals(handle)).isPresent()) throw new IllegalArgumentException("Attachment handle identity differs");
+        return entry;
+    }
+    public static RuleEngine.Local<EffectState> close(EffectState state, Handle handle) {
+        find(state, handle); var entries = new TreeMap<>(state.attachments()); entries.remove(handle.id());
+        return new RuleEngine.Local<>(state.withAttachments(entries), RuleEngine.Empty.INSTANCE, List.of());
+    }
+    private static Resolution unavailable(Handle handle, Outcome outcome, Optional<WorldPosition> point) {
+        return new Resolution(handle, outcome, point, new EntityAnchor.Result(handle.query(), EntityAnchor.Outcome.MISSING, Optional.empty()));
+    }
+    private static Resolution local(EffectState state, Handle handle, Optional<Entry> entry) {
+        if (state.buffs().timeMicros() >= handle.expiresAt()) return unavailable(handle, Outcome.EXPIRED, Optional.empty());
+        if (entry.isEmpty()) return unavailable(handle, Outcome.CLOSED, Optional.empty());
+        var value = entry.orElseThrow();
+        return value.phase() == Phase.FIXED ? unavailable(handle, Outcome.FIXED, Optional.of(handle.position(value.last())))
+                : unavailable(handle, value.phase() == Phase.WAITING ? Outcome.WAITING : Outcome.MISSING, Optional.empty());
+    }
+    public static RuleEngine.Outcome<EffectState> resolve(EffectState state, Handle handle) {
+        var entry = find(state, handle);
+        if (entry.isEmpty() || entry.orElseThrow().phase() == Phase.FIXED || state.buffs().timeMicros() >= handle.expiresAt())
+            return new RuleEngine.Local<>(state, local(state, handle, entry), List.of());
+        return new RuleEngine.Await<>(new Query(entry.orElseThrow()));
+    }
+    public static RuleEngine.Local<EffectState> resolved(EffectState state, Query issued, Observed receipt) {
+        if (!issued.equals(receipt.query())) throw new IllegalArgumentException("Attachment receipt differs from its issued query");
+        var h = issued.expected().handle(); var entry = find(state, h);
+        if (entry.isEmpty() || !entry.orElseThrow().equals(issued.expected()) || state.buffs().timeMicros() >= h.expiresAt())
+            return new RuleEngine.Local<>(state, local(state, h, entry), List.of());
+        var entity = receipt.entity(); var entries = new TreeMap<>(state.attachments());
+        Outcome outcome; Optional<WorldPosition> point = Optional.empty();
+        switch (entity.outcome()) {
+            case AVAILABLE -> {
+                var observation = entity.requireObservation(); point = Optional.of(h.position(observation)); outcome = Outcome.RESOLVED;
+                entries.put(h.id(), entry.orElseThrow().observe(Phase.FOLLOWING, observation, "resolved"));
+            }
+            case REPLACED -> { entries.remove(h.id()); outcome = Outcome.REPLACED; }
+            case WRONG_DIMENSION -> outcome = Outcome.WRONG_DIMENSION;
+            case MISSING -> outcome = entry.orElseThrow().phase() == Phase.WAITING ? Outcome.WAITING : Outcome.MISSING;
+            default -> throw new AssertionError(entity.outcome());
+        }
+        return new RuleEngine.Local<>(state.withAttachments(entries), new Resolution(h, outcome, point, entity), List.of());
+    }
+}

@@ -3329,7 +3329,7 @@ Fabric / NeoForge 注册独立的 `key.chorus.aim`，默认 Z。用户可重绑�
 
 新增普通动作 `{"type":"chorus:rebase_position","position":"impact","from":"anchor_start","to":"anchor_now"}`，返回可绑定的位置结果。它计算 position + (to − from)，不进行世界查询，不读取实体引用，也不处理旋转/缩放。三个输入必须是已绑定的位置形状，ProjectileFlight.Impact 也可提供位置。未绑定/错误形状、缺失位置、跨维度和非有限结果拒绝，不补零或猜测替代中心。需要允许缺失的内容必须先使用位置结果的 available/missing 条件显式分支。
 
-Timed Payload 参考程序在命中时 capture_entity_anchor 保存目标 FEET 和生命引用，在 detached after 续体到期时 resolve_entity_anchor 校验同一生命，再调用 rebase_position。这里的“附着”是同一生命的平移追踪，不等同完整物理挂点。目标不可用分支明确 play_cue 并 end_damage_group；活体/尸体、消失的方块和附着终止的边界见规则集。
+Timed Payload 参考程序在命中时 capture_entity_anchor 保存目标 FEET 和生命引用，再以原碰撞点创建独立附着。detached after 续体通过 resolve_entity_attachment 取得平移或生命周期固定后的位置；它在内部采用同样的 rebase 计算。目标不可用分支明确 play_cue，并关闭附着和攻击组。生命周期策略见文末“独立实体附着实例”，旋转/缩放仍未实现。
 
 `timed_payload.json` 提供 payload_delay 秒数查询，并复用前述 payload_fraction / payload_radius / payload_blast_scale Profile；链接时也需要这些 Profile 的提供者。参考组合通过 explosive_payload 片段提供公共查询定义，没有因此自动安装 Explosive Payload 词条。参数 payload_radius 必填；外部 payload_radial_shape 仍需提供。强化稳定性家族取高，独立于爆炸弹头强化装填家族。
 
@@ -3377,7 +3377,7 @@ read_entity_removal 是纯本地动作，只接受保留了类型的实体移除
 
 正常关闭或停服保存后的清理不发布新的游戏奖励，关闭会丢弃尚未消费的运行时通知。没有安装对应世界运行时时，不建立回溯全体实体的移除日志。此机制只观察原生 setRemoved 边界；已死亡但仍在世界中的尸体尚未移除，仍使用现有伤害死亡事实。区块卸载原因接入的是原生 setRemoved 路径，专项区块保存/重新加载验收不能由直接调用入口替代。
 
-新增三个存储 ID：entity_lifecycle/kind、entity_lifecycle/removed、entity_lifecycle_actions/read_removal；目录从 561 增至 564，旧类型形状不变。当前提供事实及历史读取，没有自动登记、终止或移动全部挂点。Timed Payload 仍使用前节的引爆时生命校验；后续需要可保存的附着实例及明确的死亡/移除/卸载处理策略，才会把这个事件接到已经排队的引信上。
+该事实阶段新增三个存储 ID：entity_lifecycle/kind、entity_lifecycle/removed、entity_lifecycle_actions/read_removal；目录从 561 增至 564，旧类型形状不变。事实本身不会自动登记全部挂点；下文的显式附着实例会消费匹配生命的已提交事实，Timed Payload 已接入该实例。
 
 
 ## 确认死亡时的生命与历史位置
@@ -3394,4 +3394,24 @@ read_entity_death 只接受类型化的 EntityLifecycle.Died，纯读取历史 E
 
 死亡回调只向原生事实队列写入。正常世界动作完成后与回执一起进入解释器，父 frame 完成后再运行规则；原生回调随后抛错时保留已经确认的生命/位置证据，但不继续执行奖励，也不自动重放。此入口继承 DamageCapture 的范围：只有受捕获的 hurt 调用中确认的死亡；不从 setHealth(0)、任意外部手工 die 调用或伪造的公共事件推断死亡。自定义同对象复活的生命旋转仍需独立适配。
 
-新增 entity_lifecycle/died 和 entity_lifecycle_actions/read_death 两个存储 ID，总数从 564 增至 566，旧形状不变。该事实与移除事实一起供后续每次附着的独立状态消费；当前 Timed Payload 尚未据此改变引信或死亡/移除策略。
+该事实阶段新增 entity_lifecycle/died 和 entity_lifecycle_actions/read_death 两个存储 ID，总数从 564 增至 566，旧形状不变。两类事实现由下文的附着状态消费，公共通知仍遵守父 frame 完成后反应的顺序。
+
+## 独立实体附着实例
+
+`begin_entity_attachment` 接受可用的生命挂点 `reference`、可用位置 `position`、可选正秒数 `lifetime` 和必填的五项 `policy`，返回独立 Handle。例如外层已经绑定 initial 和 impact 时：
+
+```json
+{"action":{"type":"chorus:begin_entity_attachment","reference":"initial","position":"impact","lifetime":{"type":"chorus:constant","value":1,"unit":"second"},"policy":{"death":"follow","destroyed":"fix","removed":"fix","unloaded":"end","transferred":"end"}},"as":"attachment"}
+```
+
+每次执行通过操作身份分配不同实例，保存原生命、参考锚点、接触偏移、开始/到期时间及策略；同一目标的多次攻击不会共用可变位置。未指定 lifetime 时保持到显式结束或生命周期结束；指定时在半开区间内有效，到期从状态删除。来源解绑不会隐式删除附着，内容应配套 detached 工作、明确结束或有限寿命。
+
+死亡 policy 可选 follow（继续跟随同一生命的尸体）、fix（固定于确认死亡位置加原偏移）、end（永久结束）。destroyed/removed/unloaded/transferred 分别必填 wait/fix/end：wait 等待同一生命在原世界重新可用，fix 固定在对应原生移除位置，end 删除实例，之后同一生命回来也不恢复。FIXED 状态不再受后来的死亡/移除移动；它已脱离实体。WAITING 的历史位置只供保存，不自动视为当前可用位置。这里只做平移，没有骨骼旋转/缩放。
+
+`{"action":{"type":"chorus:resolve_entity_attachment","attachment":"attachment"},"as":"point"}` 返回位置及 resolved/fixed/waiting/missing/replaced/wrong_dimension/closed/expired 标志。available 表示可用爆炸位置（resolved 或 fixed）；target_available/alive 只反映本次成功的当前实体观察。fixed 提供历史位置，但 target_available/alive 都为 false。需要生命引用时用 `attachment_entity(resolution="point")` 取得 EntityAnchor.Result，再检查其 available；不能把普通位置直接当作生命引用。`end_entity_attachment(attachment="attachment")` 幂等删除实例。
+
+FOLLOWING/WAITING 解析发出携带当前 Entry/revision 的世界查询。查询期间若已确认的生命周期改变实例，完成阶段优先采用新状态，旧回执不能恢复已结束/固定/等待的实例；若新状态仍需查询，本次返回没有位置的 missing/waiting，内容可以显式安排下一次解析。遇到替换生命时删除实例并返回 replaced；无匹配历史事实的 missing/wrong_dimension 不臆造脱离点。一次解析不是对后续整个爆炸的锁，伤害仍使用独立写入校验。
+
+已确认生命周期通过回执的 EntityAttachments.Commit 在依赖动作继续前更新状态；公共事实仍排队到父 frame 后反应。转发或重新 emit 同名公共通知不会再次应用这些状态写入，避免旧通知终止刚创建的新实例。动作外待处理的原生事实先按捕获时间分组结算（不回退已前进的逻辑时间），然后才推进到新的输入或引信截止时间；这些外部事实与新输入各有自己的 Start 边界。结算故障保留当前及尚未处理的已知事实，不自动重放奖励。没有加入根事件、链深度或循环次数上限。
+
+EffectState 使用新的 effect_state_v4，包含 attachments；旧 v3 对应精确旧记录并迁移为空附着集合，v1/v2 迁移继续保留。Handle、Entry、策略、查询、回执、Commit 与四个动作有独立存储 ID，总目录为 582 项，原 566 项形状不变。领域检查点保存偏移、策略、阶段、期限和续体；宿主实体 NBT 重载保留同生命可供 WAIT 恢复。实际区块卸载/加载协调、同对象自定义复活、旋转/缩放和物理世界整体重启仍需独立实现及验收。

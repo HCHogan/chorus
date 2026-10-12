@@ -603,14 +603,17 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public TimelineEngine<EffectState> engine(EffectClock clock, int budget) {
         var configured = clock.withRates((state, account) -> resources.containsKey(account.key().resource())
                 ? resourceRate(state, account) : clock.resourceRate(state, account)).withRecovery(this::recoveryOffers).withShieldRecovery(this::shieldRecoveryOffers);
-        return new TimelineEngine<>(program.version(), definitions, this, configured, budget, (state, committed) ->
-                committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
+        return new TimelineEngine<>(program.version(), definitions, this, configured, budget, this::reconcile);
+    }
+    private EffectState reconcile(EffectState state, RuleEngine.Payload committed) {
+        return committed instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit commit ? commit.apply(reconcile(state, commit.previous()))
+                        : committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
                         : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponHandling.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponAim.Commit commit ? commit.apply(state)
                         : committed instanceof AbilityUse.Commit commit ? commit.apply(state)
-                        : committed instanceof CombatCommit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed));
+                        : committed instanceof CombatCommit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed);
     }
     public EffectClock.Rate resourceRate(EffectState state, ResourceState account) {
         var definition = resources.get(account.key().resource());

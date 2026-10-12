@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-12",
-  "scope": "Timed Payload delayed translated contact, persistent entity life guard and explicit unavailable-target policy",
+  "scope": "Timed Payload with persistent per-contact attachment instances and explicit death/removal policies",
   "sources": [
     {
       "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
@@ -45,21 +45,23 @@
     "radius_meters": null
   },
   "policies": [
-    "Reference feet position and target/life/dimension are captured before direct damage. At deadline resolve that same life and translate the original contact. The observation includes alive. No implicit bone rotation or scale.",
+    "Before direct damage, capture feet and target/life/dimension and begin one attachment with the original contact offset. Resolve at the unchanged fuse deadline; no bone rotation or scaling.",
     "A dead but present body may supply position. Living primary receives the full blast once; other living non-allied targets are queried near the translated contact at detonation.",
-    "Missing target at deadline emits a diagnostic, closes the group and retires the blast. It does not silently use original impact or current owner as a substitute.",
+    "With no matching recorded lifecycle fact, unavailable resolution emits a diagnostic and closes the attachment and damage group; no guessed fallback position.",
     "Block contact uses the recorded surface even if block contents change. Physical-world/unload policies and original-game semantics need independent validation.",
-    "One contact damage group lives for one second and closes after the .6-second blast or diagnostic branch. This is explicit consumer policy, not cycle suppression.",
+    "Each contact has an independent one-second attachment and damage group, both closed after the .6-second blast or diagnostic branch; zero payload closes immediately. This is consumer policy, not cycle suppression.",
     "Source damage snapshots, radius/mode/delay query results, target identity and original contact survive detached scheduling and domain checkpoint restoration. A physical projectile across full server restart is not proved.",
     "Test radius3 and linear radial shape are synthetic explicit providers; no unknown radius default. B10/P2/ammo/fire rate are synthetic.",
     "Entity UUID and numeric ID are insufficient to distinguish respawn. Persist native life in LivingEntity NBT; ordinary load and dimension copies retain it, player restoreFrom(false) rotates it, restoreFrom(true) retains it. This is host policy, not an assertion of all original-game attachment behavior.",
     "Direct and primary delayed snapshot damage use a life guard again at the actual write boundary. Mismatch returns FAILED without damage facts or buff consumption. Other neighbors are selected at explosion time and do not inherit the primary life reference.",
-    "Reference resolution is not a termination subscription. The same life returning to the original dimension can match again. Last-known detach location, permanent retirement notifications, unload coordination and same-object custom revival remain open."
+    "Explicit attachment policies: death FOLLOW, destroyed/removed FIX at the recorded anchor plus original offset, unloaded/transferred END. FIXED no longer has a live primary; a same-UUID new life may be an ordinary radial neighbor without moving the explosion center. These are Chorus policies, not verified original-game behavior.",
+    "Confirmed lifecycle commits update attachment state before dependent action completion; later public notifications do not replay these writes. Query revisions reject stale observations after state changes. External pending facts settle before later fuse deadlines; known unprocessed facts survive faults without reward replay.",
+    "A successful primary query does not lock the whole blast. If replacement occurs only at the subsequent primary damage boundary, that write is rejected and the original observation still determines primary exclusion from this neighbor pass."
   ],
   "remaining": [
     "Original radius, radial interpolation, flinch/stagger, precision rounding and source/target sampling calibration",
-    "Bone-relative transforms, death/removal detach, last-known location and permanent termination policy",
-    "Whole attachment lifecycle across unload/reload, custom revival and physical-world restart persistence; generic native respawn and dimension-copy identity are covered separately",
+    "Bone-relative rotation/scaling and original-game calibration of all death/removal attachment policies",
+    "Actual chunk unload/reload coordination, custom same-object revival and physical-world restart persistence; native NBT same-life reload is covered separately",
     "Full D2 outgoing/proc/weapon/skill catalogue and production UI"
   ],
   "host_evidence": {
@@ -73,7 +75,9 @@
     ],
     "tests": [
       "EntityAnchorGameTest",
-      "TimedPayloadGameTest"
+      "TimedPayloadGameTest",
+      "EntityAttachmentTest",
+      "EntityAttachmentGameTest"
     ],
     "notes": "Local pinned native source and dual-loader world scenarios. No new Destiny numerical claim.",
     "source_archive_sha256": "33871fcf2843b4356bd9997743a5462f5b474583887746db6cafaef9831680bd"

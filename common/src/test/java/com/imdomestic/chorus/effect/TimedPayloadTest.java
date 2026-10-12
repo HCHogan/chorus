@@ -28,6 +28,7 @@ class TimedPayloadTest {
         Harness(boolean pvp)throws Exception{super(program(json("timed_payload_weapon")),TAG,pvp);}
         @Override void equip(String a,String b,String drawn){equip(new Loadout.Gear("a","test:hand_cannon",Map.of("perk",a),Map.of("payload_radius",new Measure(3,Unit.METER))),new Loadout.Gear("b","test:rifle",Map.of("perk",b),Map.of("payload_radius",new Measure(3,Unit.METER))),drawn);}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){
+            if(r.command() instanceof EntityAttachments.Query q)return new EntityAttachments.Observed(q,(EntityAnchor.Result)world(new RuleEngine.WorldRequest(r.id(),q.expected().handle().query())));
             if(r.command() instanceof EntityAnchor.Query q){
                 if(q.expected().filter(x->!x.dimension().equals("test:world")).isPresent())return new EntityAnchor.Result(q,EntityAnchor.Outcome.WRONG_DIMENSION,Optional.empty());
                 if(missing.contains(q.target())||!positions.containsKey(q.target()))return new EntityAnchor.Result(q,EntityAnchor.Outcome.MISSING,Optional.empty());
@@ -88,6 +89,34 @@ class TimedPayloadTest {
             h.fire();h.hit(5,false);h.until(600_000);assertEquals(1000,h.health.get("target"));assertEquals(DamageReceipt.Outcome.FAILED,h.guardedReceipts.getLast().outcome());assertTrue(h.bursts().isEmpty());assertTrue(h.state().damageGroups().isEmpty());
             assertEquals(!delayed,!h.state().buffs().instances().isEmpty());
         }
+    }
+
+    static void removal(Harness h, EntityLifecycle.Kind kind, double x) {
+        var handle=h.state().attachments().values().iterator().next().handle();
+        var positions=new HashMap<PositionQuery,Optional<WorldPosition>>();
+        for(var anchor:TargetQuery.Anchor.values())positions.put(new PositionQuery("target",anchor),Optional.of(new WorldPosition("test:world",x,0,0)));
+        var fact=new EntityLifecycle.Removed(handle.initial().reference(),kind,"test:removed",true,new EntityObservation(h.now(),Map.of("target",Optional.empty()),positions)).signal();
+        h.session.observe(h.now(),List.of(fact),EntityAttachments.commit(RuleEngine.Empty.INSTANCE,List.of(fact)));
+    }
+    @Test void recordedRemovalFixesTheCenterAcrossCheckpointAndDoesNotTransferToANewLife()throws Exception{
+        for(boolean nearbyReplacement:List.of(false,true)){
+            var h=new Harness(false);h.fire();h.hit(5,false);h.until(200_000);removal(h,EntityLifecycle.Kind.REMOVED,15);
+            h.lives.put("target","new-life");h.entity("target",1000,nearbyReplacement?16.5:100);h.entity("near",1000,16.5);h.restore();h.until(600_000);
+            assertEquals(nearbyReplacement?996.425:1000,h.health.get("target"),1e-9);assertEquals(996.425,h.health.get("near"),1e-9);
+            assertEquals(15,((TargetQuery.PositionCenter)h.queries.getFirst().center()).position().orElseThrow().x());
+            assertEquals(1,h.guardedReceipts.size());assertTrue(h.state().attachments().isEmpty());assertTrue(h.state().damageGroups().isEmpty());
+        }
+    }
+    @Test void twoQueuedImpactsHaveSeparateHandlesAndFuses()throws Exception{
+        var h=new Harness(false);h.fire();h.hit(5,false);h.until(200_000);h.fire();h.hit(5,false);
+        assertEquals(2,h.state().attachments().size());h.restore();h.until(600_000);assertEquals(1,h.state().attachments().size());assertEquals(1,h.bursts().size());
+        h.until(800_000);assertEquals(2,h.bursts().size());assertTrue(h.state().attachments().isEmpty());assertTrue(h.state().damageGroups().isEmpty());
+    }
+    @Test void unloadEndsTheAttachmentAndNoPerkLeavesNoUnusedHandle()throws Exception{
+        var h=new Harness(false);h.fire();h.hit(5,false);removal(h,EntityLifecycle.Kind.UNLOADED,-5);h.until(600_000);
+        assertTrue(h.bursts().isEmpty());assertTrue(h.state().attachments().isEmpty());assertTrue(h.state().damageGroups().isEmpty());
+        var plain=new Harness(false);plain.equip("none","enhanced","primary");plain.fire();plain.hit(5,false);
+        assertEquals(List.of(10d),plain.amounts);assertTrue(plain.state().attachments().isEmpty());assertTrue(plain.state().damageGroups().isEmpty());
     }
 
 }

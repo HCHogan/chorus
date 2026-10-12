@@ -44,6 +44,13 @@ public final class EffectCodecs {
             value -> value.map(left -> left, right -> right), value -> switch (value) {
                 case Evaluation.Target target -> Either.left(target); case Evaluation.BoundPosition position -> Either.right(position);
             });
+    private static final Codec<com.imdomestic.chorus.effect.target.EntityAttachments.Policy> ATTACHMENT_POLICY = strict(RecordCodecBuilder.create(i -> i.group(
+            enumeration(com.imdomestic.chorus.effect.target.EntityAttachments.DeathPolicy.class).fieldOf("death").forGetter(com.imdomestic.chorus.effect.target.EntityAttachments.Policy::death),
+            enumeration(com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class).fieldOf("destroyed").forGetter(com.imdomestic.chorus.effect.target.EntityAttachments.Policy::destroyed),
+            enumeration(com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class).fieldOf("removed").forGetter(com.imdomestic.chorus.effect.target.EntityAttachments.Policy::removed),
+            enumeration(com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class).fieldOf("unloaded").forGetter(com.imdomestic.chorus.effect.target.EntityAttachments.Policy::unloaded),
+            enumeration(com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class).fieldOf("transferred").forGetter(com.imdomestic.chorus.effect.target.EntityAttachments.Policy::transferred)
+    ).apply(i, com.imdomestic.chorus.effect.target.EntityAttachments.Policy::new)), Set.of("death", "destroyed", "removed", "unloaded", "transferred"));
     public static final Value ONE = new Value.Constant(1, Unit.COUNT);
     public static final Condition ALWAYS = new Condition.Constant(true);
 
@@ -561,6 +568,21 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Action.ReadEventPosition::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(Action.ReadEventPosition::anchor)
                 ).apply(i, Action.ReadEventPosition::new)))
+                .register("chorus:begin_entity_attachment", AttachmentActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("reference").forGetter(AttachmentActions.Begin::reference),
+                        Codec.STRING.fieldOf("position").forGetter(AttachmentActions.Begin::position),
+                        values.optionalFieldOf("lifetime").forGetter(AttachmentActions.Begin::lifetime),
+                        ATTACHMENT_POLICY.fieldOf("policy").forGetter(AttachmentActions.Begin::policy)
+                ).apply(i, AttachmentActions.Begin::new)))
+                .register("chorus:resolve_entity_attachment", AttachmentActions.Resolve.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("attachment").forGetter(AttachmentActions.Resolve::attachment)
+                ).apply(i, AttachmentActions.Resolve::new)))
+                .register("chorus:end_entity_attachment", AttachmentActions.End.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("attachment").forGetter(AttachmentActions.End::attachment)
+                ).apply(i, AttachmentActions.End::new)))
+                .register("chorus:attachment_entity", AttachmentActions.Entity.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("resolution").forGetter(AttachmentActions.Entity::resolution)
+                ).apply(i, AttachmentActions.Entity::new)))
                 .register("chorus:capture_entity_anchor", EntityAnchorActions.Capture.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(EntityAnchorActions.Capture::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(EntityAnchorActions.Capture::anchor)

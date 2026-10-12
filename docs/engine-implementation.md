@@ -6,6 +6,22 @@
 
 ## 当前证据
 
+### 2026-10-12：独立附着状态与 Timed Payload 生命周期
+
+新增 EntityAttachments 与 begin/resolve/end_entity_attachment、attachment_entity。每次操作创建独立 Handle，保存同一生命、锚点、原接触偏移、期限和五项必填策略；死亡可 follow/fix/end，四类移除分别可 wait/fix/end。固定点脱离实体，不冒充当前存活主目标；结束、到期及发现新生命删除实例，等待只允许原生命在原世界恢复。查询携带 Entry/revision，生命周期更新优先于旧回执。
+
+宿主将已确认死亡/移除放入回执 Commit，先更新附着，再继续依赖动作，公共通知仍在父 frame 后反应。新建实例不受旧通知重复写入。动作外待处理事实在捕获时间先结算，再推进到后来的引信；失败保留尚未处理的已知事实。没有增加通用循环抑制。EffectState v4 增加 attachments，精确旧 v3 迁移为空集合；目录为 582 项，原 566 项逐键形状不变，两份历史检查点原字节不变。
+
+Timed Payload 的参考消费者在直击前建立附着，选择 death=follow、destroyed/removed=fix、unloaded/transferred=end。已记录移除后的原引信在历史接触点引爆，新生命不移动旧中心，但可以成为附近的普通范围目标；没有历史证据时仍明确诊断，不猜位置。多个接触与引信各自独立，完成/诊断和无载荷分量分支均清理实例与组。这些是明确 Chorus 策略，没有新增 D2 数值结论或原作生命周期校准。
+
+8 项 EntityAttachmentTest 验证独立偏移、五类策略、查询竞争、通知不重放、到期、v3 迁移、detached/检查点和严格类型；TimedPayloadTest 增至 14 项。新增 6 项共享 EntityAttachmentGameTest 针对死亡回调后的历史点、查询中移除、原生 NBT 恢复、同 frame 后建实例、延迟宿主边界及故障证据。两项既有 TimedPayload 世界场景改为验证已记录移除后的爆炸和新生命不迁移中心。
+
+定向附着/载荷测试已通过。首次完整 JUnit 仅两项历史迁移测试仍断言新编码使用 v3；已更新为 v4，原始旧夹具及行为检查保留。新世界测试的导入歧义和时钟测试 API 编译问题已修正。最终 `/tmp/chorus-attachment-gate2.log` BUILD SUCCESSFUL，17 分 7 秒：1766 项 JUnit 无失败/错误/跳过、Fabric 976 项 / NeoForge 991 项世界测试及双端发布 jar 全部通过，共享 Chorus 场景 975 项。`/tmp/chorus-attachment-client.log` BUILD SUCCESSFUL，4 分 3 秒，20 项 Fabric 客户端回归全部通过。10 项 Compendium 工具测试、111 条审阅及生成报告一致性检查通过。
+
+发布包 Fabric 1151 项 / NeoForge 1145 项，包含附着状态、动作与 v3 迁移，不含效果/persistence 测试资源、GameTest 或测试 Mixin。原 566 项存储形状逐键不变，历史检查点原字节不变；Gradle 文件保持原 CRLF。客户端回归验证现有输入和同步，没有新增附着视觉或 HUD；NeoForge 图形客户端没有在本轮新增验收。
+
+覆盖仍为 109 partial / 2 not_applicable / 0 verified。实际区块卸载/加载协调、骨骼旋转/缩放、同对象自定义复活、完整物理世界重启、全表内容与生产配装/HUD 仍有缺口。原生 NBT 的同生命恢复不能代替区块整体流程验收。[声明契约](engine-data-packs.md#独立实体附着实例)、[D2 策略](d2-ruleset.md#timed-payload-的延迟附着)。
+
 ### 2026-10-12：确认死亡时的生命与位置快照
 
 新增 EntityLifecycle.Died / chorus:entity_life_died 和 read_entity_death，在既有原生死亡确认点保存 target/life/dimension、deathId 及 feet/body/eyes 历史位置。该时点早于 hurt 最终回执，后续原生回调移动尸体不改写死亡位置；死亡快照与较晚发生的移除快照各自独立。历史实体视图明确不存活，读取动作不查询当前实体。

@@ -1,0 +1,110 @@
+{
+  "version": "test-entity-attachment",
+  "bundles": [
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:attachment",
+      "rules": [
+        {
+          "id": "attach",
+          "on": "test:attach",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_entity_anchor",
+                "target": "victim",
+                "anchor": "feet"
+              },
+              "as": "base"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "victim",
+                "anchor": "eyes"
+              },
+              "as": "contact"
+            },
+            {
+              "action": {
+                "type": "chorus:begin_entity_attachment",
+                "reference": "base",
+                "position": "contact",
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 2,
+                  "unit": "second"
+                },
+                "policy": {
+                  "death": "follow",
+                  "destroyed": "fix",
+                  "removed": "fix",
+                  "unloaded": "wait",
+                  "transferred": "end"
+                }
+              },
+              "as": "attached"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:resolve_entity_attachment",
+                    "attachment": "attached"
+                  },
+                  "as": "point"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "point",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:select_targets",
+                      "center": {
+                        "position": "point"
+                      },
+                      "radius": {
+                        "type": "chorus:constant",
+                        "value": 2,
+                        "unit": "meter"
+                      },
+                      "relation": "any"
+                    },
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:attachment_due"
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:attachment_missing"
+                    }
+                  ]
+                },
+                {
+                  "type": "chorus:end_entity_attachment",
+                  "attachment": "attached"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

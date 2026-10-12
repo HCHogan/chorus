@@ -53,10 +53,10 @@ public class TimedPayloadGameTest {
         }catch(Exception|Error error){t.close();throw error;}
     }
     @GameCase(environment="chorus_gametest:timed_missing",maxTicks=35)
-    public void RemovedAttachmentTargetDoesNotExplodeAtAnInventedFallbackCenter(GameTestHelper h)throws Exception{
+    public void removedTargetDetonatesAtItsRecordedLastContact(GameTestHelper h)throws Exception{
         var t=openTimed(h);try{
             var shot=PugilistGameTest.fire(t);var target=primary(t,shot,5);var next=neighbor(t,point(shot,5),1.5);contact(t,shot);target.discard();
-            at(t,12,()->{try(t){settled(t);near(h,next.getHealth(),100,"no guessed old-center explosion");h.assertValueEqual(t.hits.size(),1,"only accepted direct hit");h.assertTrue(t.cues.stream().anyMatch(c->c.cue().equals("test:timed_payload_target_unavailable")),"explicit attachment unavailable diagnostic");h.assertTrue(state(t).damageGroups().isEmpty(),"retired group");h.succeed();}});
+            at(t,12,()->{try(t){settled(t);near(h,next.getHealth(),96.425,"recorded last-center explosion");h.assertValueEqual(t.hits.size(),2,"direct plus historical splash");h.assertTrue(t.cues.isEmpty(),"known removal lost its historical center");h.assertTrue(state(t).damageGroups().isEmpty()&&state(t).attachments().isEmpty(),"completed group and attachment");h.succeed();}});
         }catch(Exception|Error error){t.close();throw error;}
     }
     @GameCase(environment="chorus_gametest:timed_stowed",maxTicks=35)
@@ -86,10 +86,10 @@ public class TimedPayloadGameTest {
         old.discard();t.h.getLevel().addFreshEntity(next);t.entities.add(next);return next;
     }
     @GameCase(environment="chorus_gametest:timed_new_life",maxTicks=35)
-    public void sameUuidReplacementRetiresTheOldAttachmentBeforeQueryingBlastNeighbors(GameTestHelper h)throws Exception{
+    public void sameUuidReplacementDoesNotMoveTheRecordedExplosion(GameTestHelper h)throws Exception{
         var t=openTimed(h);try{
-            var shot=PugilistGameTest.fire(t);var target=primary(t,shot,5);var next=neighbor(t,point(shot,5),1.5);contact(t,shot);var replacement=replace(t,target);
-            at(t,12,()->{try(t){settled(t);near(h,replacement.getHealth(),100,"old attachment must not move to replacement");near(h,next.getHealth(),100,"retired attachment has no invented blast");h.assertTrue(t.queries.isEmpty(),"replacement position was used as explosion center");h.assertTrue(t.cues.stream().anyMatch(c->c.cue().equals("test:timed_payload_target_unavailable")),"unavailable diagnostic");h.assertTrue(state(t).damageGroups().isEmpty(),"retired attack group");h.succeed();}});
+            var shot=PugilistGameTest.fire(t);var target=primary(t,shot,5);var next=neighbor(t,point(shot,5),1.5);contact(t,shot);var replacement=replace(t,target);replacement.setPos(replacement.getX()+20,replacement.getY(),replacement.getZ());
+            at(t,12,()->{try(t){settled(t);near(h,replacement.getHealth(),100,"old attachment must not move to replacement");near(h,next.getHealth(),96.425,"old recorded contact still explodes");h.assertValueEqual(((TargetQuery.PositionCenter)t.queries.getFirst().center()).position(),Optional.of(point(shot,5)),"replacement moved the explosion center");h.assertTrue(state(t).damageGroups().isEmpty()&&state(t).attachments().isEmpty(),"completed attack and attachment");h.succeed();}});
         }catch(Exception|Error error){t.close();throw error;}
     }
     @GameCase(environment="chorus_gametest:timed_damage_guard",maxTicks=35)

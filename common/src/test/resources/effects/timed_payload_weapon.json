@@ -573,6 +573,26 @@
                         "then": [
                           {
                             "action": {
+                              "type": "chorus:begin_entity_attachment",
+                              "reference": "anchor_start",
+                              "position": "impact",
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "second"
+                              },
+                              "policy": {
+                                "death": "follow",
+                                "destroyed": "fix",
+                                "removed": "fix",
+                                "unloaded": "end",
+                                "transferred": "end"
+                              }
+                            },
+                            "as": "attachment"
+                          },
+                          {
+                            "action": {
                               "type": "chorus:calculate",
                               "profile": "test:weapon_precision",
                               "target": {
@@ -909,31 +929,22 @@
                                 "do": [
                                   {
                                     "action": {
-                                      "type": "chorus:resolve_entity_anchor",
-                                      "reference": "anchor_start"
+                                      "type": "chorus:resolve_entity_attachment",
+                                      "attachment": "attachment"
                                     },
-                                    "as": "anchor_now"
+                                    "as": "attached_center"
                                   },
                                   {
                                     "if": {
                                       "type": "chorus:result_flag",
-                                      "binding": "anchor_now",
+                                      "binding": "attached_center",
                                       "field": "available"
                                     },
                                     "then": [
                                       {
-                                        "action": {
-                                          "type": "chorus:rebase_position",
-                                          "position": "impact",
-                                          "from": "anchor_start",
-                                          "to": "anchor_now"
-                                        },
-                                        "as": "attached_center"
-                                      },
-                                      {
                                         "if": {
                                           "type": "chorus:result_flag",
-                                          "binding": "anchor_now",
+                                          "binding": "attached_center",
                                           "field": "alive"
                                         },
                                         "then": [
@@ -991,10 +1002,7 @@
                                           "relation": "not_allied",
                                           "relative_to": "source_owner",
                                           "exclude": [
-                                            "source_owner",
-                                            {
-                                              "binding": "victim"
-                                            }
+                                            "source_owner"
                                           ],
                                           "order": "nearest",
                                           "target_anchor": "body"
@@ -1027,6 +1035,29 @@
                                                   "type": "chorus:result_flag",
                                                   "binding": "neighbor_observed",
                                                   "field": "alive"
+                                                },
+                                                {
+                                                  "type": "chorus:any",
+                                                  "of": [
+                                                    {
+                                                      "type": "chorus:result_flag",
+                                                      "binding": "attached_center",
+                                                      "field": "target_available",
+                                                      "is": false
+                                                    },
+                                                    {
+                                                      "type": "chorus:not",
+                                                      "of": {
+                                                        "type": "chorus:target_is",
+                                                        "left": {
+                                                          "binding": "neighbor"
+                                                        },
+                                                        "right": {
+                                                          "binding": "victim"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -1123,6 +1154,10 @@
                                     ]
                                   },
                                   {
+                                    "type": "chorus:end_entity_attachment",
+                                    "attachment": "attachment"
+                                  },
+                                  {
                                     "type": "chorus:end_damage_group",
                                     "group": "attack_group"
                                   }
@@ -1130,6 +1165,10 @@
                               }
                             ],
                             "else": [
+                              {
+                                "type": "chorus:end_entity_attachment",
+                                "attachment": "attachment"
+                              },
                               {
                                 "type": "chorus:end_damage_group",
                                 "group": "attack_group"
@@ -1804,6 +1843,26 @@
                         "then": [
                           {
                             "action": {
+                              "type": "chorus:begin_entity_attachment",
+                              "reference": "anchor_start",
+                              "position": "impact",
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "second"
+                              },
+                              "policy": {
+                                "death": "follow",
+                                "destroyed": "fix",
+                                "removed": "fix",
+                                "unloaded": "end",
+                                "transferred": "end"
+                              }
+                            },
+                            "as": "attachment"
+                          },
+                          {
+                            "action": {
                               "type": "chorus:calculate",
                               "profile": "test:weapon_precision",
                               "target": {
@@ -2140,31 +2199,22 @@
                                 "do": [
                                   {
                                     "action": {
-                                      "type": "chorus:resolve_entity_anchor",
-                                      "reference": "anchor_start"
+                                      "type": "chorus:resolve_entity_attachment",
+                                      "attachment": "attachment"
                                     },
-                                    "as": "anchor_now"
+                                    "as": "attached_center"
                                   },
                                   {
                                     "if": {
                                       "type": "chorus:result_flag",
-                                      "binding": "anchor_now",
+                                      "binding": "attached_center",
                                       "field": "available"
                                     },
                                     "then": [
                                       {
-                                        "action": {
-                                          "type": "chorus:rebase_position",
-                                          "position": "impact",
-                                          "from": "anchor_start",
-                                          "to": "anchor_now"
-                                        },
-                                        "as": "attached_center"
-                                      },
-                                      {
                                         "if": {
                                           "type": "chorus:result_flag",
-                                          "binding": "anchor_now",
+                                          "binding": "attached_center",
                                           "field": "alive"
                                         },
                                         "then": [
@@ -2222,10 +2272,7 @@
                                           "relation": "not_allied",
                                           "relative_to": "source_owner",
                                           "exclude": [
-                                            "source_owner",
-                                            {
-                                              "binding": "victim"
-                                            }
+                                            "source_owner"
                                           ],
                                           "order": "nearest",
                                           "target_anchor": "body"
@@ -2258,6 +2305,29 @@
                                                   "type": "chorus:result_flag",
                                                   "binding": "neighbor_observed",
                                                   "field": "alive"
+                                                },
+                                                {
+                                                  "type": "chorus:any",
+                                                  "of": [
+                                                    {
+                                                      "type": "chorus:result_flag",
+                                                      "binding": "attached_center",
+                                                      "field": "target_available",
+                                                      "is": false
+                                                    },
+                                                    {
+                                                      "type": "chorus:not",
+                                                      "of": {
+                                                        "type": "chorus:target_is",
+                                                        "left": {
+                                                          "binding": "neighbor"
+                                                        },
+                                                        "right": {
+                                                          "binding": "victim"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
                                                 }
                                               ]
                                             },
@@ -2354,6 +2424,10 @@
                                     ]
                                   },
                                   {
+                                    "type": "chorus:end_entity_attachment",
+                                    "attachment": "attachment"
+                                  },
+                                  {
                                     "type": "chorus:end_damage_group",
                                     "group": "attack_group"
                                   }
@@ -2361,6 +2435,10 @@
                               }
                             ],
                             "else": [
+                              {
+                                "type": "chorus:end_entity_attachment",
+                                "attachment": "attachment"
+                              },
                               {
                                 "type": "chorus:end_damage_group",
                                 "group": "attack_group"

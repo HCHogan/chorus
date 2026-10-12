@@ -8,6 +8,21 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/target/entity_attachments/death_policy", com.imdomestic.chorus.effect.target.EntityAttachments.DeathPolicy.class);
+        types.put("chorus:effect/target/entity_attachments/removal_policy", com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class);
+        types.put("chorus:effect/target/entity_attachments/phase", com.imdomestic.chorus.effect.target.EntityAttachments.Phase.class);
+        types.put("chorus:effect/target/entity_attachments/outcome", com.imdomestic.chorus.effect.target.EntityAttachments.Outcome.class);
+        types.put("chorus:effect/target/entity_attachments/policy", com.imdomestic.chorus.effect.target.EntityAttachments.Policy.class);
+        types.put("chorus:effect/target/entity_attachments/handle", com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class);
+        types.put("chorus:effect/target/entity_attachments/entry", com.imdomestic.chorus.effect.target.EntityAttachments.Entry.class);
+        types.put("chorus:effect/target/entity_attachments/query", com.imdomestic.chorus.effect.target.EntityAttachments.Query.class);
+        types.put("chorus:effect/target/entity_attachments/observed", com.imdomestic.chorus.effect.target.EntityAttachments.Observed.class);
+        types.put("chorus:effect/target/entity_attachments/resolution", com.imdomestic.chorus.effect.target.EntityAttachments.Resolution.class);
+        types.put("chorus:effect/target/entity_attachments/commit", com.imdomestic.chorus.effect.target.EntityAttachments.Commit.class);
+        types.put("chorus:effect/data/attachment_actions/begin", com.imdomestic.chorus.effect.data.AttachmentActions.Begin.class);
+        types.put("chorus:effect/data/attachment_actions/resolve", com.imdomestic.chorus.effect.data.AttachmentActions.Resolve.class);
+        types.put("chorus:effect/data/attachment_actions/end", com.imdomestic.chorus.effect.data.AttachmentActions.End.class);
+        types.put("chorus:effect/data/attachment_actions/entity", com.imdomestic.chorus.effect.data.AttachmentActions.Entity.class);
         types.put("chorus:effect/target/entity_lifecycle/died", com.imdomestic.chorus.effect.target.EntityLifecycle.Died.class);
         types.put("chorus:effect/data/entity_lifecycle_actions/read_death", com.imdomestic.chorus.effect.data.EntityLifecycleActions.ReadDeath.class);
         types.put("chorus:effect/target/entity_lifecycle/kind", com.imdomestic.chorus.effect.target.EntityLifecycle.Kind.class);
@@ -43,7 +58,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_source", com.imdomestic.chorus.effect.EffectSource.class);
         types.put("chorus:effect/effect_state", LegacyEffectStateV1.class);
         types.put("chorus:effect/effect_state_v2", LegacyEffectStateV2.class);
-        types.put("chorus:effect/effect_state_v3", com.imdomestic.chorus.effect.EffectState.class);
+        types.put("chorus:effect/effect_state_v3", LegacyEffectStateV3.class);
+        types.put("chorus:effect/effect_state_v4", com.imdomestic.chorus.effect.EffectState.class);
         types.put("chorus:effect/effect_state/lifetime", com.imdomestic.chorus.effect.EffectState.Lifetime.class);
         types.put("chorus:effect/effect_state/mode", com.imdomestic.chorus.effect.EffectState.Mode.class);
         types.put("chorus:effect/effect_state/timer", com.imdomestic.chorus.effect.EffectState.Timer.class);
@@ -579,6 +595,7 @@ final class CheckpointTypes {
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV1.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV2.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV2::current),
+                new RecordTreeCodec.Migration<>(LegacyEffectStateV3.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV3::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponDefinitionV2.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV2::current),
                 new RecordTreeCodec.Migration<>(LegacyActionGateKindV1.class, com.imdomestic.chorus.effect.input.ActionGate.Kind.class, LegacyActionGateKindV1::current)));
     }
