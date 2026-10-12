@@ -20,9 +20,27 @@ public record EquipmentSchema(List<Slot> slots, List<Item> items, List<Limit> li
     public record Socket(Map<String, Effect> options, boolean required) {
         public Socket { options = locals(options); if (options.isEmpty()) throw new IllegalArgumentException("Socket has no choices"); }
     }
-    public record Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters) {
-        public Item { EquipmentSchema.id(id); tags = ids(tags); effects = locals(effects); sockets = locals(sockets); parameters = EffectParameters.copy(parameters); }
+    public record Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters, Map<String, Budget> budgets) {
+        public Item { EquipmentSchema.id(id); tags = ids(tags); effects = locals(effects); sockets = locals(sockets); parameters = EffectParameters.copy(parameters); budgets = locals(budgets); }
+        public Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters) { this(id, tags, effects, sockets, parameters, Map.of()); }
         public Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets) { this(id, tags, effects, sockets, Map.of()); }
+    }
+    /** Static per-item allocation, independent of whether selected effects are currently active. */
+    public record Budget(Optional<Integer> capacity, Optional<String> capacityParameter, Map<String, Map<String, Integer>> costs) {
+        public Budget {
+            Objects.requireNonNull(capacity); Objects.requireNonNull(capacityParameter);
+            if (capacity.isPresent() == capacityParameter.isPresent()) throw new IllegalArgumentException("Budget needs exactly one capacity source");
+            capacity.ifPresent(value -> { if (value < 0) throw new IllegalArgumentException("Negative equipment budget capacity"); });
+            capacityParameter.ifPresent(EffectParameters::name);
+            var copy = new TreeMap<String, Map<String, Integer>>();
+            costs.forEach((socket, choices) -> {
+                local(socket); var entries = locals(choices);
+                if (entries.isEmpty() || entries.values().stream().anyMatch(cost -> cost == null || cost < 0)) throw new IllegalArgumentException("Invalid equipment budget costs");
+                copy.put(socket, entries);
+            });
+            if (copy.isEmpty()) throw new IllegalArgumentException("Equipment budget needs participating sockets");
+            costs = Collections.unmodifiableMap(copy);
+        }
     }
     public record Parameter(Unit unit, double minimum, double maximum, boolean integral) {
         public Parameter {

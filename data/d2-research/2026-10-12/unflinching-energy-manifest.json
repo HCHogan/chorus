@@ -1,0 +1,2206 @@
+{
+  "url": "https://www.bungie.net/common/destiny2_content/json/en/DestinyInventoryItemDefinition-a8ba855a-93c7-4014-8f2e-d92357fdfb42.json",
+  "source_sha256": "9cf449c2c2d284dff1e172e18b58ea71d5966e5a6b48d4d69b4fb349bfc33806",
+  "items": {
+    "3094620656": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Harmonic Aim",
+        "icon": "/common/destiny2_content/icons/05ce3bf5aad22cea26ff3a808351076a.png",
+        "iconHash": 1184942301,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/05ce3bf5aad22cea26ff3a808351076a.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/9c5444762ab8cb053f17ff5ecb0b9ca9.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "The effects of this mod will match the element of your equipped Super. \n\nMultiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 2718051427,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 2,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 2,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1737902835,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 15068120,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 646917600,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 2716826089,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 741486931,
+          "perkVisibility": 2
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 3094620656,
+      "index": 683,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "1262438062": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Kinetic Aim",
+        "icon": "/common/destiny2_content/icons/f62c0984b937a74e5d15afc05bc0c253.png",
+        "iconHash": 1547819589,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/f62c0984b937a74e5d15afc05bc0c253.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/0f6869b1b488046c3fb1a0a82d3ffef2.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 1154313691,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1612970558,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 1262438062,
+      "index": 684,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "319908131": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Arc Aim",
+        "icon": "/common/destiny2_content/icons/03981cecd0cb26e4ec4c79960b87034a.png",
+        "iconHash": 2482028124,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/03981cecd0cb26e4ec4c79960b87034a.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/97c7ddd60e5f31c1db8b001571a5c794.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 1623030430,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1737902835,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 319908131,
+      "index": 685,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "1553790504": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Solar Aim",
+        "icon": "/common/destiny2_content/icons/a4c4c21ff07b3f308371ee80acb9b204.png",
+        "iconHash": 3789885487,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/a4c4c21ff07b3f308371ee80acb9b204.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/fd5141916d95efcb67fe58f94fa1c26c.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 68686613,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 15068120,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 1553790504,
+      "index": 686,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "2959504464": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Stasis Aim",
+        "icon": "/common/destiny2_content/icons/22aa28fca00715c0a268ace8bf02bb8c.png",
+        "iconHash": 1758823637,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/22aa28fca00715c0a268ace8bf02bb8c.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/ca04dd9b3d586b541492b94324a79ab0.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 4230904575,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 646917600,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 2959504464,
+      "index": 687,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "3979621113": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Strand Aim",
+        "icon": "/common/destiny2_content/icons/61d43323b3b08725e51537e0d52dcfe7.png",
+        "iconHash": 2491336532,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/61d43323b3b08725e51537e0d52dcfe7.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/b13ff5b4383096b8bf1ab3ca0aeaeb0b.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 1466833038,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 2716826089,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 3979621113,
+      "index": 688,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "3437323171": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Void Aim",
+        "icon": "/common/destiny2_content/icons/cbd47b9d27d7540725fabd5d2b291af7.png",
+        "iconHash": 1417217462,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/cbd47b9d27d7540725fabd5d2b291af7.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/e59678a3ef5a7ce217f2d6d9a5468208.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "collectibleHash": 393348260,
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 3,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 3,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 741486931,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 3437323171,
+      "index": 689,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "293178904": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Harmonic Aim",
+        "icon": "/common/destiny2_content/icons/05ce3bf5aad22cea26ff3a808351076a.png",
+        "iconHash": 1184942301,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/05ce3bf5aad22cea26ff3a808351076a.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/9c5444762ab8cb053f17ff5ecb0b9ca9.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "The effects of this mod will match the element of your equipped Super. \n\nMultiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1737902835,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 15068120,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 646917600,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 2716826089,
+          "perkVisibility": 2
+        },
+        {
+          "requirementDisplayString": "",
+          "perkHash": 741486931,
+          "perkVisibility": 2
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 293178904,
+      "index": 838,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "2325151798": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Kinetic Aim",
+        "icon": "/common/destiny2_content/icons/f62c0984b937a74e5d15afc05bc0c253.png",
+        "iconHash": 1547819589,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/f62c0984b937a74e5d15afc05bc0c253.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/0f6869b1b488046c3fb1a0a82d3ffef2.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1612970558,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 2325151798,
+      "index": 839,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "792400107": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Arc Aim",
+        "icon": "/common/destiny2_content/icons/03981cecd0cb26e4ec4c79960b87034a.png",
+        "iconHash": 2482028124,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/03981cecd0cb26e4ec4c79960b87034a.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/97c7ddd60e5f31c1db8b001571a5c794.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 1737902835,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 792400107,
+      "index": 840,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "1019574576": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Solar Aim",
+        "icon": "/common/destiny2_content/icons/a4c4c21ff07b3f308371ee80acb9b204.png",
+        "iconHash": 3789885487,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/a4c4c21ff07b3f308371ee80acb9b204.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/fd5141916d95efcb67fe58f94fa1c26c.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 15068120,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 1019574576,
+      "index": 841,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "1118428792": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Stasis Aim",
+        "icon": "/common/destiny2_content/icons/22aa28fca00715c0a268ace8bf02bb8c.png",
+        "iconHash": 1758823637,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/22aa28fca00715c0a268ace8bf02bb8c.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/ca04dd9b3d586b541492b94324a79ab0.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 646917600,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 1118428792,
+      "index": 842,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "3598972737": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Strand Aim",
+        "icon": "/common/destiny2_content/icons/61d43323b3b08725e51537e0d52dcfe7.png",
+        "iconHash": 2491336532,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/61d43323b3b08725e51537e0d52dcfe7.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/b13ff5b4383096b8bf1ab3ca0aeaeb0b.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 2716826089,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 3598972737,
+      "index": 843,
+      "redacted": false,
+      "blacklisted": false
+    },
+    "3887037435": {
+      "displayProperties": {
+        "description": "",
+        "name": "Unflinching Void Aim",
+        "icon": "/common/destiny2_content/icons/cbd47b9d27d7540725fabd5d2b291af7.png",
+        "iconHash": 1417217462,
+        "iconSequences": [
+          {
+            "frames": [
+              "/common/destiny2_content/icons/cbd47b9d27d7540725fabd5d2b291af7.png"
+            ]
+          },
+          {
+            "frames": [
+              "/common/destiny2_content/icons/e59678a3ef5a7ce217f2d6d9a5468208.png"
+            ]
+          }
+        ],
+        "hasIcon": true
+      },
+      "tooltipNotifications": [
+        {
+          "displayString": "Multiple copies of this mod can be stacked to increase the potency of its effect, with diminishing returns for each additional copy of the mod.",
+          "displayStyle": "ui_display_style_perk_info"
+        }
+      ],
+      "backgroundColor": {
+        "colorHash": 0,
+        "red": 0,
+        "green": 0,
+        "blue": 0,
+        "alpha": 0
+      },
+      "isFeaturedItem": false,
+      "isHolofoil": false,
+      "isAdept": false,
+      "itemTypeDisplayName": "Chest Armor Mod",
+      "flavorText": "",
+      "uiItemDisplayStyle": "ui_display_style_energy_mod",
+      "itemTypeAndTierDisplayName": "Common Chest Armor Mod",
+      "displaySource": "",
+      "tooltipStyle": "build",
+      "action": {
+        "verbName": "Dismantle",
+        "verbDescription": "",
+        "isPositive": false,
+        "requiredCooldownSeconds": 0,
+        "requiredItems": [],
+        "progressionRewards": [],
+        "actionTypeLabel": "shard",
+        "rewardSheetHash": 0,
+        "rewardItemHash": 0,
+        "rewardSiteHash": 0,
+        "requiredCooldownHash": 0,
+        "deleteOnAction": true,
+        "consumeEntireStack": false,
+        "useOnAcquire": false
+      },
+      "inventory": {
+        "maxStackSize": 1,
+        "bucketTypeHash": 2422292810,
+        "recoveryBucketTypeHash": 0,
+        "tierTypeHash": 3340296461,
+        "isInstanceItem": false,
+        "nonTransferrableOriginal": false,
+        "tierTypeName": "Common",
+        "tierType": 2,
+        "expirationTooltip": "",
+        "expiredInActivityMessage": "",
+        "expiredInOrbitMessage": "",
+        "suppressExpirationWhenObjectivesComplete": true
+      },
+      "plug": {
+        "insertionRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "plugCategoryIdentifier": "enhancements.v2_chest",
+        "plugCategoryHash": 1526202480,
+        "onActionRecreateSelf": false,
+        "actionRewardSiteHash": 0,
+        "actionRewardItemOverrideHash": 0,
+        "insertionMaterialRequirementHash": 0,
+        "previewItemOverrideHash": 0,
+        "enabledMaterialRequirementHash": 0,
+        "enabledRules": [
+          {
+            "failureMessage": "Requires Guardian Rank 6: Vendor Challenges"
+          },
+          {
+            "failureMessage": "Must Be Selected in the Seasonal Artifact"
+          },
+          {
+            "failureMessage": ""
+          }
+        ],
+        "uiPlugLabel": "",
+        "plugStyle": 0,
+        "plugAvailability": 0,
+        "alternateUiPlugLabel": "",
+        "alternatePlugStyle": 0,
+        "isDummyPlug": false,
+        "parentItemOverride": {
+          "additionalEquipRequirementsDisplayStrings": []
+        },
+        "energyCost": {
+          "energyCost": 1,
+          "energyTypeHash": 1198124803,
+          "energyType": 0
+        },
+        "applyStatsToSocketOwnerItem": false
+      },
+      "acquireRewardSiteHash": 0,
+      "acquireUnlockHash": 0,
+      "investmentStats": [
+        {
+          "statTypeHash": 3578062600,
+          "value": 1,
+          "isConditionallyActive": false
+        }
+      ],
+      "perks": [
+        {
+          "requirementDisplayString": "",
+          "perkHash": 741486931,
+          "perkVisibility": 0
+        }
+      ],
+      "allowActions": true,
+      "doesPostmasterPullHaveSideEffects": false,
+      "nonTransferrable": true,
+      "itemCategoryHashes": [
+        59,
+        4104513227,
+        3723676689
+      ],
+      "specialItemType": 0,
+      "itemType": 19,
+      "itemSubType": 0,
+      "classType": 3,
+      "breakerType": 0,
+      "equippable": false,
+      "defaultDamageType": 0,
+      "isWrapper": false,
+      "hash": 3887037435,
+      "index": 844,
+      "redacted": false,
+      "blacklisted": false
+    }
+  },
+  "retrieved_at": "2026-10-12T09:32:55.544338+00:00",
+  "manifest_version": "244213.26.06.29.2000-1-bnet.65864",
+  "schema_version": 1,
+  "policy": {
+    "ordinary_fixed_cost": 3,
+    "ordinary_harmonic_cost": 2,
+    "discounted_variants": "One-energy variants explicitly require selection in the Seasonal Artifact; retain evidence, do not silently substitute them for ordinary options. Unlock/Artifact eligibility is not implemented.",
+    "reference_capacity": 10,
+    "capacity_boundary": "Capacity belongs to each item definition or explicit integral count roll. The reference chest does not define a global D2 cap; tier-specific or legacy capacities and upgrade systems require their own catalogue.",
+    "scope": "Allocation at equipment validation, independent of current Super, ADS, weapon match or active effect. This is not Armor Charge and is never consumed by combat."
+  }
+}

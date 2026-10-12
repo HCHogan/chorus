@@ -148,6 +148,7 @@
       "com.imdomestic.chorus.UnflinchingGameTest",
       "com.imdomestic.chorus.HarmonicUnflinchingGameTest",
       "com.imdomestic.chorus.SelectedAbilityGameTest",
+      "com.imdomestic.chorus.EquipmentBudgetGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",

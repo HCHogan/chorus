@@ -31,6 +31,19 @@ public final class CompiledEquipment {
             };
             item.effects().values().forEach(validate);
             item.sockets().values().forEach(socket -> socket.options().values().forEach(validate));
+            item.budgets().values().forEach(budget -> {
+                budget.capacityParameter().ifPresent(name -> {
+                    var parameter = item.parameters().get(name);
+                    if (parameter == null || !parameter.unit().equals(Unit.COUNT) || !parameter.integral()
+                            || parameter.minimum() < 0 || parameter.maximum() > Integer.MAX_VALUE)
+                        throw new IllegalArgumentException("Budget capacity parameter must be a nonnegative integral count: " + name);
+                });
+                budget.costs().forEach((name, costs) -> {
+                    var socket = item.sockets().get(name);
+                    if (socket == null || !socket.options().keySet().equals(costs.keySet()))
+                        throw new IllegalArgumentException("Budget must price every option of a known socket: " + name);
+                });
+            });
         }
     }
     private static <T> Map<String,T> index(List<T> values, Function<T,String> id) {
@@ -51,6 +64,15 @@ public final class CompiledEquipment {
                 if (socket == null || !socket.options().containsKey(choice.getValue())) throw new IllegalArgumentException("Unknown equipment socket choice");
             }
             for (var socket : item.sockets().entrySet()) if (socket.getValue().required() && !gear.choices().containsKey(socket.getKey())) throw new IllegalArgumentException("Missing required equipment socket: " + socket.getKey());
+            item.budgets().forEach((name, budget) -> {
+                int capacity = budget.capacity().orElseGet(() -> (int) gear.parameters().get(budget.capacityParameter().orElseThrow()).value());
+                long used = 0;
+                for (var priced : budget.costs().entrySet()) {
+                    var selected = gear.choices().get(priced.getKey());
+                    if (selected != null) used = Math.addExact(used, priced.getValue().get(selected).longValue());
+                }
+                if (used > capacity) throw new IllegalArgumentException("Equipment budget exceeded: " + gear.instance() + "/" + name + " (" + used + "/" + capacity + ")");
+            });
             if (loadout.drawn().filter(slot.id()::equals).isPresent() && !slot.weapon()) throw new IllegalArgumentException("Drawn slot is not a weapon slot");
             if (!slot.weapon() && effects(item, gear).values().stream().anyMatch(effect -> effect.activation() == EquipmentSchema.Activation.DRAWN)) throw new IllegalArgumentException("Drawn-only effect needs a weapon slot");
         }

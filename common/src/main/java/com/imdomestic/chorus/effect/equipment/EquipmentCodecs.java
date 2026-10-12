@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.equipment;
 
 import static com.imdomestic.chorus.core.codec.DataCodecs.*;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.*;
 import com.imdomestic.chorus.stat.Measure;
@@ -28,12 +29,20 @@ public final class EquipmentCodecs {
             Codec.unboundedMap(Codec.STRING, EFFECT).fieldOf("options").forGetter(EquipmentSchema.Socket::options),
             Codec.BOOL.optionalFieldOf("required", true).forGetter(EquipmentSchema.Socket::required)
     ).apply(i, EquipmentSchema.Socket::new)), Set.of("options", "required"));
+    private static final Codec<Integer> ALLOCATION = FINITE.comapFlatMap(value -> value >= 0 && value <= Integer.MAX_VALUE && value == Math.rint(value)
+            ? DataResult.success(value.intValue()) : DataResult.error(() -> "Expected a nonnegative integer allocation"), Integer::doubleValue);
+    private static final Codec<EquipmentSchema.Budget> BUDGET = strict(RecordCodecBuilder.create(i -> i.group(
+            ALLOCATION.optionalFieldOf("capacity").forGetter(EquipmentSchema.Budget::capacity),
+            Codec.STRING.optionalFieldOf("capacity_parameter").forGetter(EquipmentSchema.Budget::capacityParameter),
+            Codec.unboundedMap(Codec.STRING, Codec.unboundedMap(Codec.STRING, ALLOCATION)).fieldOf("costs").forGetter(EquipmentSchema.Budget::costs)
+    ).apply(i, EquipmentSchema.Budget::new)), Set.of("capacity", "capacity_parameter", "costs"));
     private static final Codec<EquipmentSchema.Item> ITEM = strict(RecordCodecBuilder.create(i -> i.group(
             ID.fieldOf("id").forGetter(EquipmentSchema.Item::id), IDS.fieldOf("tags").forGetter(EquipmentSchema.Item::tags),
             Codec.unboundedMap(Codec.STRING, EFFECT).optionalFieldOf("effects", Map.of()).forGetter(EquipmentSchema.Item::effects),
             Codec.unboundedMap(Codec.STRING, SOCKET).optionalFieldOf("sockets", Map.of()).forGetter(EquipmentSchema.Item::sockets),
-            Codec.unboundedMap(Codec.STRING, PARAMETER).optionalFieldOf("parameters", Map.of()).forGetter(EquipmentSchema.Item::parameters)
-    ).apply(i, EquipmentSchema.Item::new)), Set.of("id", "tags", "effects", "sockets", "parameters"));
+            Codec.unboundedMap(Codec.STRING, PARAMETER).optionalFieldOf("parameters", Map.of()).forGetter(EquipmentSchema.Item::parameters),
+            Codec.unboundedMap(Codec.STRING, BUDGET).optionalFieldOf("budgets", Map.of()).forGetter(EquipmentSchema.Item::budgets)
+    ).apply(i, EquipmentSchema.Item::new)), Set.of("id", "tags", "effects", "sockets", "parameters", "budgets"));
     private static final Codec<EquipmentSchema.Limit> LIMIT = strict(RecordCodecBuilder.create(i -> i.group(
             ID.fieldOf("id").forGetter(EquipmentSchema.Limit::id), ID.fieldOf("tag").forGetter(EquipmentSchema.Limit::tag),
             IDS.optionalFieldOf("slots", Set.of()).forGetter(EquipmentSchema.Limit::slots), Codec.INT.fieldOf("maximum").forGetter(EquipmentSchema.Limit::maximum)

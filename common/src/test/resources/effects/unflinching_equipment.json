@@ -103,6 +103,43 @@
             },
             "required": true
           }
+        },
+        "budgets": {
+          "energy": {
+            "capacity": 10,
+            "costs": {
+              "mod_0": {
+                "none": 0,
+                "kinetic": 3,
+                "arc": 3,
+                "solar": 3,
+                "void": 3,
+                "stasis": 3,
+                "strand": 3,
+                "harmonic": 2
+              },
+              "mod_1": {
+                "none": 0,
+                "kinetic": 3,
+                "arc": 3,
+                "solar": 3,
+                "void": 3,
+                "stasis": 3,
+                "strand": 3,
+                "harmonic": 2
+              },
+              "mod_2": {
+                "none": 0,
+                "kinetic": 3,
+                "arc": 3,
+                "solar": 3,
+                "void": 3,
+                "stasis": 3,
+                "strand": 3,
+                "harmonic": 2
+              }
+            }
+          }
         }
       }
     ]

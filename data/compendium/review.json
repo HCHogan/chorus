@@ -12495,7 +12495,7 @@
       "kind": "effect",
       "archived": false,
       "status": "partial",
-      "scope": "六种固定属性与 Harmonic 当前超能属性匹配、三档抗抖、独立胸甲三插槽及 No Distractions 组合",
+      "scope": "六种固定属性与 Harmonic 当前超能属性匹配、三档抗抖、独立胸甲三插槽及 No Distractions 组合；普通模组费用与每物品静态预算",
       "acceptance": [
         "六属性/两模式/零至三件与全部不同属性组合；匹配防守武器而非攻击元素；完成 ADS 才生效，松开即移除收益",
         "每个实际插槽贡献一件，合并后只用一次 0.75/0.70/0.65；非装配第四来源不制造第四档，其他持有者不借用",
@@ -12504,7 +12504,8 @@
         "领域恢复保存装备插槽与活动 perk，删除护甲后重取数值；缺失/未知/第四选项和错误装备栏拒绝",
         "Harmonic 直接读取当前装备超能的基础选择标签；其他持有者、手雷、普通来源标签和施放临时替换不改变匹配元素",
         "五种超能/两模式/四件数档位，换超能/清空选择实时重取；混装采用显式同属性件数合并政策，原作混装倍率仍待实测",
-        "已选技能条件支持 on_use 来源快照、victim 命中时取样、延迟执行与领域恢复；参考超能只提供选择元数据且禁止施放"
+        "已选技能条件支持 on_use 来源快照、victim 命中时取样、延迟执行与领域恢复；参考超能只提供选择元数据且禁止施放",
+        "普通六属性费用3、普通Harmonic费用2，实际选项占用每物品预算；超额在来源和物品提交前拒绝，未生效的模组仍占预算"
       ],
       "evidence": [
         {
@@ -12637,10 +12638,15 @@
         {
           "kind": "definition",
           "path": "common/src/test/resources/effects/harmonic_selection.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/UnflinchingTest.java",
+          "symbol": "ordinaryModCostsUseOnePerItemBudgetAndHarmonicDiscountChangesLegalCombinations"
         }
       ],
       "gaps": [
-        "定义仍在参考测试资源；正式内容目录、解锁/护甲能量费用、配装/HUD 和物理世界整体重启未完成；图标尚未绑定 UI",
+        "定义仍在参考测试资源；普通模组费用已接入，账号解锁/神器优惠资格、完整Tier/升级目录、正式配装/HUD和物理世界整体重启未完成；图标尚未绑定UI",
         "完成 ADS 才取样沿用明确 Chorus 政策，原作过渡插值待校准；基础 flinch 输入及参考装备绝对数值为合成验收输入",
         "原作武器特例、准星/武器视觉晃动、后坐力恢复和 PvE stagger 未完成；Foundry 旧三件 0.6 与当前原表/Clarity 0.65 的冲突已保留",
         "Harmonic 与固定属性混装共用件数档位为明确待校准政策；正式超能/子职业与棱镜目录、换超能惩罚、动态武器属性和技能跨维度/离线存档尚未完成"

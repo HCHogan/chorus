@@ -15,6 +15,20 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class UnflinchingTest {
+    @Test void ordinaryModCostsUseOnePerItemBudgetAndHarmonicDiscountChangesLegalCombinations() throws Exception {
+        var data = data("solar"); var items = data.getAsJsonObject("equipment").getAsJsonArray("items");
+        var item = items.asList().stream().map(JsonElement::getAsJsonObject).filter(v -> v.get("id").getAsString().equals("test:unflinching_chest")).findFirst().orElseThrow();
+        var budget = item.getAsJsonObject("budgets").getAsJsonObject("energy"); assertEquals(10, budget.get("capacity").getAsInt());
+        for (var entry : budget.getAsJsonObject("costs").entrySet()) {
+            var costs = entry.getValue().getAsJsonObject(); assertEquals(0, costs.get("none").getAsInt()); assertEquals(2, costs.get("harmonic").getAsInt());
+            for (String element : ELEMENTS) assertEquals(3, costs.get(element).getAsInt());
+        }
+        // Eight is a synthetic capacity boundary, not an assertion about D2 armor tiers.
+        budget.addProperty("capacity", 8); var p = NoDistractionsTest.program(data).equipment();
+        p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "harmonic")), Optional.empty()));
+        p.validate(new Loadout(Map.of("test:chest", chest("harmonic", "harmonic", "harmonic")), Optional.empty()));
+        assertThrows(IllegalArgumentException.class, () -> p.validate(new Loadout(Map.of("test:chest", chest("solar", "solar", "solar")), Optional.empty())));
+    }
     static final String D = "chorus_d2:";
     static final List<String> ELEMENTS = List.of("kinetic", "arc", "solar", "void", "stasis", "strand");
     static final double[] FACTORS = {1, .75, .70, .65};
