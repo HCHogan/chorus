@@ -14,6 +14,7 @@ public final class WeaponCharge {
     private WeaponCharge() {}
     public static final String REQUEST="chorus:internal/charge_request", DUE="chorus:internal/charge_due";
     public enum Edge { PRESS, RELEASE, CANCEL }
+    public enum Trigger { RELEASE, FULL }
     public enum Phase { CHARGING, READY }
     public enum Outcome { ACCEPTED, ALREADY_HELD, EMPTY_HANDS, NOT_CONFIGURED, BUSY, COOLDOWN, CONDITION, RESTRICTED, NO_PRESS, STALE, CANCELLED, TOO_EARLY, FIRED, FIRE_REJECTED }
     public record Request(String holder,String token,Edge edge,Optional<EntityAnchor.Reference> holderReference) implements RuleEngine.Payload {
@@ -30,13 +31,17 @@ public final class WeaponCharge {
         public long micros(){return WeaponHandling.micros(duration);}
     }
     public record Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
-            long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference) implements RuleEngine.Payload {
+            long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference,Trigger trigger) implements RuleEngine.Payload {
         public Plan {
             text(holder);text(token);text(slot);Objects.requireNonNull(gear);Objects.requireNonNull(origin);Objects.requireNonNull(phase);Objects.requireNonNull(minimum);Objects.requireNonNull(full);
-            Objects.requireNonNull(holderReference);holderReference.ifPresent(ref->{if(!ref.target().equals(holder))throw new IllegalArgumentException("Charge plan holder reference differs");});
+            Objects.requireNonNull(trigger);Objects.requireNonNull(holderReference);holderReference.ifPresent(ref->{if(!ref.target().equals(holder))throw new IllegalArgumentException("Charge plan holder reference differs");});
             if(!origin.owner().equals(holder)||!origin.weapon().equals(gear.instance())||!origin.source().equals("charge/"+token)
                     ||startedAt<0||fullAt==Long.MAX_VALUE||full.micros()<=0||minimum.micros()>full.micros()
                     ||fullAt!=Math.addExact(startedAt,full.micros()))throw new IllegalArgumentException("Invalid charge identity or timing");
+        }
+        public Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
+                long startedAt,long fullAt,Timing minimum,Timing full,Optional<EntityAnchor.Reference> holderReference) {
+            this(holder,token,slot,gear,origin,phase,startedAt,fullAt,minimum,full,holderReference,Trigger.RELEASE);
         }
         public boolean matches(Loadout loadout){return loadout.drawn().filter(slot::equals).isPresent()&&gear.equals(loadout.slots().get(slot));}
         public String timerId(){return "charge/"+holder.length()+":"+holder+"/"+token;}
@@ -44,7 +49,7 @@ public final class WeaponCharge {
             if(phase!=Phase.CHARGING)throw new IllegalStateException("Ready charge has no pending full-draw timer");
             return new EffectState.Timer(timerId(),fullAt,0,1,new RuleEngine.Signal(DUE,this),Optional.empty());
         }
-        public Plan ready(){return new Plan(holder,token,slot,gear,origin,Phase.READY,startedAt,fullAt,minimum,full,holderReference);}
+        public Plan ready(){return new Plan(holder,token,slot,gear,origin,Phase.READY,startedAt,fullAt,minimum,full,holderReference,trigger);}
         public Map<String,Measure> numbers(long now){
             if(now<startedAt)throw new IllegalArgumentException("Charge observation precedes acceptance");
             long elapsed=now-startedAt;
@@ -57,7 +62,7 @@ public final class WeaponCharge {
         public EffectEvent event(long now,boolean held){
             return new EffectEvent(holder,gear.instance(),origin,origin.tags(),numbers(now),
                     Map.of("charged",true,"charge_held",held,"fully_charged",now>=fullAt),
-                    Map.of("weapon",gear.instance(),"item",gear.definition(),"charge",token));
+                    Map.of("weapon",gear.instance(),"item",gear.definition(),"charge",token,"charge_trigger",trigger.name().toLowerCase(Locale.ROOT)));
         }
     }
     public record Receipt(Outcome outcome,Optional<Plan> plan,Optional<WeaponFire.Receipt> fire,Optional<ActionGate.Decision> restriction) implements RuleEngine.ActionResult {

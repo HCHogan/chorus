@@ -251,7 +251,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 List.of(new RuleEngine.Instruction<>((state, context) -> charge(state, (WeaponCharge.Request) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponCharge.DUE, WeaponCharge.DUE, (state, context) -> CompiledCharging.current(state, (WeaponCharge.Plan) context.event().signal().payload()),
                 List.of(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Await<EffectState>(CompiledCharging.prepare(state, (WeaponCharge.Plan) context.event().signal().payload())), "charge_host"),
-                        new RuleEngine.Instruction<>((state, context) -> CompiledCharging.finish(state, (WeaponCharge.Plan) context.event().signal().payload(), (WeaponCharge.Verified) context.bindings().get("charge_host"), this), ""))));
+                        new RuleEngine.Instruction<>((state, context) -> CompiledCharging.finish(state, (WeaponCharge.Plan) context.event().signal().payload(), (WeaponCharge.Verified) context.bindings().get("charge_host"), weapons, this), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponAim.REQUEST, WeaponAim.REQUEST, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> aim(state, (WeaponAim.Request) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponAim.DUE, WeaponAim.DUE, (state, context) -> CompiledAiming.current(state, (WeaponAim.Plan) context.event().signal().payload()),

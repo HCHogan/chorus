@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.buff.*;
 import com.imdomestic.chorus.effect.ability.AbilityDefinition;
 import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
 import com.imdomestic.chorus.effect.weapon.WeaponDefinition;
+import com.imdomestic.chorus.effect.weapon.WeaponCharge;
 import com.imdomestic.chorus.effect.ammo.AmmoState;
 import com.imdomestic.chorus.effect.combat.ProcPolicy;
 import com.imdomestic.chorus.effect.resource.ResourceDefinition;
@@ -870,8 +871,9 @@ public final class EffectCodecs {
         ).apply(i, WeaponDefinition.Aiming::new)), Set.of("enter", "exit"));
         Codec<WeaponDefinition.Charging> weaponCharging = strict(RecordCodecBuilder.create(i -> i.group(
                 reloadTiming.fieldOf("minimum").forGetter(WeaponDefinition.Charging::minimum), reloadTiming.fieldOf("full").forGetter(WeaponDefinition.Charging::full),
-                conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Charging::condition)
-        ).apply(i, WeaponDefinition.Charging::new)), Set.of("minimum", "full", "if"));
+                conditions.optionalFieldOf("if", ALWAYS).forGetter(WeaponDefinition.Charging::condition),
+                enumeration(WeaponCharge.Trigger.class).optionalFieldOf("trigger", WeaponCharge.Trigger.RELEASE).forGetter(WeaponDefinition.Charging::trigger)
+        ).apply(i, WeaponDefinition.Charging::new)), Set.of("minimum", "full", "if", "trigger"));
         Codec<WeaponDefinition> weapon = strict(RecordCodecBuilder.create(i -> i.group(
                 ID.fieldOf("item").forGetter(WeaponDefinition::item), weaponAmmo.fieldOf("ammunition").forGetter(WeaponDefinition::ammunition),
                 weaponReload.fieldOf("reload").forGetter(WeaponDefinition::reload), weaponFire.optionalFieldOf("fire").forGetter(WeaponDefinition::fire),

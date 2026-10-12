@@ -82,6 +82,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private record InputKey(java.util.UUID holder, String slot) {}
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
+    private record ChargeInput(ServerPlayer player, net.minecraft.server.network.ServerGamePacketListenerImpl connection, String token, java.util.function.BooleanSupplier held) {}
+    private final Map<String, ChargeInput> chargeInputs = new java.util.LinkedHashMap<>();
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
     private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
     private List<RuleEngine.Signal> settlingLifecycleFacts = List.of();
@@ -509,6 +511,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     /** Self-owned input; timing comes from the server and a release must match its accepted press. */
     public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, String token, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge) {
+        return charge(player, token, edge, () -> true);
+    }
+    /** Ephemeral host authority is required before autonomous firing; it is never restored from a checkpoint. */
+    public com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt charge(ServerPlayer player, String token, com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge edge, java.util.function.BooleanSupplier held) {
+        Objects.requireNonNull(held);
         thread(); prepare();
         if (!inputEligible(player)) throw new IllegalArgumentException("Player cannot charge here");
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge requires a healthy idle runtime");
@@ -519,6 +526,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var before = view(); var resolved = program.charge(before, new com.imdomestic.chorus.effect.weapon.WeaponCharge.Request(holder, token, edge, Optional.of(chargeHolder(player))));
         var receipt = (com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt) resolved.result();
         if (resolved.state().equals(before) && resolved.emitted().isEmpty()) return receipt;
+        if (receipt.outcome() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.ACCEPTED) chargeInputs.put(holder, new ChargeInput(player, player.connection, token, held));
+        else if (receipt.plan().isPresent()) revokeChargeInput(holder, Optional.of(token));
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, resolved.state()));
             refreshEquipment(); refreshProjections(); return receipt;
@@ -532,7 +541,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         cancelCharge(holder, Optional.of(token), reason);
     }
     private void cancelCharge(String holder, Optional<String> token, String reason) {
-        thread(); prepare();
+        thread(); revokeChargeInput(holder, token); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge cancellation requires a healthy idle runtime");
         if (token.isPresent() && (view().charging().get(holder) == null || !view().charging().get(holder).token().equals(token.orElseThrow()))) return;
         try { commitChargeCancellation(holder, reason); refreshEquipment(); refreshProjections(); }
@@ -548,12 +557,15 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     /** Called before pinning a clean-stop checkpoint; persistent domain plans do not prove a live physical hold. */
     public static void quiesceCharges(net.minecraft.server.MinecraftServer server) {
+        // Revoke every pending command before settling any runtime's due work.
+        for (var runtime : List.copyOf(LIVE.values())) if (runtime.level.getServer() == server) { runtime.ownerThread(); runtime.chargeInputs.clear(); }
         for (var runtime : List.copyOf(LIVE.values())) if (runtime.level.getServer() == server && runtime.failure().isEmpty()) {
             runtime.ownerThread();
             for (var holder : List.copyOf(runtime.view().charging().keySet())) runtime.cancelCharge(holder, "input_server_stopping");
         }
     }
     private void commitChargeCancellation(String holder, String reason) {
+        revokeChargeInput(holder, Optional.empty());
         var before = view(); var ended = program.cancelCharge(before, holder, reason);
         if (!ended.state().equals(before)) session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, ended.state()));
     }
@@ -561,10 +573,20 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         ServerPlayer player;
         try { player = equipmentOwners.get(java.util.UUID.fromString(query.plan().holder())); }
         catch (IllegalArgumentException invalid) { player = null; }
-        boolean allowed = player != null && inputEligible(player) && matchesChargeHolder(query.plan(), player)
+        boolean allowed = player != null && inputEligible(player) && matchesChargeHolder(query.plan(), player) && chargeInputAllowed(query.plan(), player)
                 && query.plan().equals(view().charging().get(query.plan().holder()))
                 && query.plan().matches(PlayerEquipment.get(player).projection(program.equipment()));
         return new com.imdomestic.chorus.effect.weapon.WeaponCharge.Verified(query, allowed);
+    }
+    private void revokeChargeInput(String holder, Optional<String> token) {
+        var input = chargeInputs.get(holder);
+        if (input != null && (token.isEmpty() || token.orElseThrow().equals(input.token()))) chargeInputs.remove(holder);
+    }
+    private boolean chargeInputAllowed(com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan plan, ServerPlayer player) {
+        if (plan.trigger() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Trigger.RELEASE) return true;
+        var input = chargeInputs.get(plan.holder());
+        return input != null && input.player() == player && input.token().equals(plan.token())
+                && input.connection() != null && player.connection == input.connection() && input.connection().player == player && input.held().getAsBoolean();
     }
     private com.imdomestic.chorus.effect.target.EntityAnchor.Reference chargeHolder(ServerPlayer player) {
         return new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(player.getUUID().toString(), MinecraftEntityLife.get(player).id(), level.dimension().identifier().toString());
@@ -648,6 +670,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 var charge = view().charging().get(holder);
                 if (charge != null) {
                     if (!inputEligible(player) || !matchesChargeHolder(charge, player)) commitChargeCancellation(holder, "holder_unavailable");
+                    else if (!chargeInputAllowed(charge, player)) commitChargeCancellation(holder, "input_unavailable");
                     else if (!program.checkAction(view(), ActionGate.Kind.WEAPON_FIRE, ActionGate.Phase.CONTINUE,
                             charge.event(view().buffs().timeMicros(), true)).allowed()) commitChargeCancellation(holder, "restricted");
                 }
@@ -655,6 +678,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 // Keep live owners tracked until they leave, so the final empty projection still reconciles that boundary.
                 if (!present) equipmentOwners.remove(entry.getKey());
             }
+            chargeInputs.entrySet().removeIf(entry -> { var charge = view().charging().get(entry.getKey()); return charge == null || !charge.token().equals(entry.getValue().token()); });
         } finally { refreshingEquipment = false; }
     }
     public Optional<Failure> failure() { return failure; }
@@ -874,7 +898,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var knownFacts = new ArrayList<>(facts); knownFacts.addAll(settlingLifecycleFacts); knownFacts.addAll(takeNativeLifecycleFacts());
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
                 committedShields, committedCombat, List.copyOf(reservations.values()), knownFacts));
-        abilityInputs.clear();
+        abilityInputs.clear(); chargeInputs.clear();
         abandonProjectiles();
         Constants.LOG.error("Chorus rule runtime stopped for {}. Committed world changes are retained; no automatic replay.", level.dimension().identifier(), error);
     }
@@ -902,7 +926,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); nativeLifecycleFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); chargeInputs.clear(); nativeLifecycleFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
         abandonProjectiles();
         var constructs = new ArrayList<EffectConstruct>();
         var pickups = new ArrayList<EffectObject>();

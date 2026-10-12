@@ -9,7 +9,7 @@ import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
 import java.util.*;
 
-/** A press fixes its timing; the matched release consumes that press before any shot body can run. */
+/** A press fixes timing and trigger. Firing consumes the plan and commits payment before running the shot body. */
 final class CompiledCharging {
     private CompiledCharging() {}
     static RuleEngine.Local<EffectState> input(EffectState state,WeaponCharge.Request request,CompiledWeapons weapons,CompiledEffects program){
@@ -19,11 +19,9 @@ final class CompiledCharging {
             if(!previous.token().equals(request.token())||!previous.holderReference().equals(request.holderReference()))return reject(state,WeaponCharge.Outcome.STALE);
             if(request.edge()==WeaponCharge.Edge.CANCEL)return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"input_cancelled");
             if(!previous.matches(state.equipment().getOrDefault(request.holder(),Loadout.EMPTY)))return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"equipment_changed");
+            if(previous.trigger()==WeaponCharge.Trigger.FULL)return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"released_before_full");
             if(state.buffs().timeMicros()-previous.startedAt()<previous.minimum().micros())return ended(state,previous,WeaponCharge.Outcome.TOO_EARLY,"released_early");
-            var fired=weapons.fire(state,new WeaponFire.Request(request.holder(),request.token()),program,Optional.of(previous));
-            var receipt=(WeaponFire.Receipt)fired.result();var facts=new ArrayList<RuleEngine.Signal>();
-            facts.add(fact("chorus:weapon_charge_ended",previous,"released",state.buffs().timeMicros(),false));facts.addAll(fired.emitted());
-            return new RuleEngine.Local<>(clear(fired.state(),previous),new WeaponCharge.Receipt(receipt.outcome()==WeaponFire.Outcome.ACCEPTED?WeaponCharge.Outcome.FIRED:WeaponCharge.Outcome.FIRE_REJECTED,Optional.of(previous),Optional.of(receipt),Optional.empty()),facts);
+            return fire(state,previous,"released",weapons,program,List.of());
         }
         if(previous!=null)return reject(state,WeaponCharge.Outcome.ALREADY_HELD);
         var loadout=state.equipment().getOrDefault(request.holder(),Loadout.EMPTY);var gear=WeaponReload.drawn(loadout);
@@ -33,15 +31,15 @@ final class CompiledCharging {
         if(state.handling().containsKey(request.holder())||state.reloads().containsKey(request.holder()))return reject(state,WeaponCharge.Outcome.BUSY);
         long now=state.buffs().timeMicros();var shot=state.shots().get(weapon.instance());
         if(shot!=null&&now<shot.readyAt())return reject(state,WeaponCharge.Outcome.COOLDOWN);
+        var charging=definition.charging().orElseThrow();
         var tags=new HashSet<>(weapons.itemTags(weapon.definition()));tags.addAll(definition.fire().orElseThrow().tags());tags.add("chorus:weapon_charge");
         var origin=new BuffInstance.Origin(request.holder(),"charge/"+request.token(),weapon.instance(),"",tags);
-        var query=new EffectEvent(request.holder(),weapon.instance(),origin,tags,Map.of("charge_elapsed",new Measure(0,Unit.SECOND),"charge_fraction",new Measure(0,Unit.MULTIPLIER),"charge_overdraw",new Measure(0,Unit.SECOND)),Map.of("charged",true,"charge_held",true,"fully_charged",false),Map.of("weapon",weapon.instance(),"item",weapon.definition(),"charge",request.token()));
+        var query=new EffectEvent(request.holder(),weapon.instance(),origin,tags,Map.of("charge_elapsed",new Measure(0,Unit.SECOND),"charge_fraction",new Measure(0,Unit.MULTIPLIER),"charge_overdraw",new Measure(0,Unit.SECOND)),Map.of("charged",true,"charge_held",true,"fully_charged",false),Map.of("weapon",weapon.instance(),"item",weapon.definition(),"charge",request.token(),"charge_trigger",charging.trigger().name().toLowerCase(Locale.ROOT)));
         var gate=program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,ActionGate.Phase.START,query);
         if(!gate.allowed())return new RuleEngine.Local<>(state,new WeaponCharge.Receipt(WeaponCharge.Outcome.RESTRICTED,Optional.empty(),Optional.empty(),Optional.of(gate)),List.of());
-        var charging=definition.charging().orElseThrow();
         if(!charging.condition().test(evaluation(state,query,program)))return reject(state,WeaponCharge.Outcome.CONDITION);
         var minimum=timing(state,query,charging.minimum(),"minimum",program);var full=timing(state,query,charging.full(),"full",program);
-        var plan=new WeaponCharge.Plan(request.holder(),request.token(),loadout.drawn().orElseThrow(),weapon,origin,WeaponCharge.Phase.CHARGING,now,Math.addExact(now,full.micros()),minimum,full,request.holderReference());
+        var plan=new WeaponCharge.Plan(request.holder(),request.token(),loadout.drawn().orElseThrow(),weapon,origin,WeaponCharge.Phase.CHARGING,now,Math.addExact(now,full.micros()),minimum,full,request.holderReference(),charging.trigger());
         return new RuleEngine.Local<>(state.withCharge(plan).schedule(plan.timer()),new WeaponCharge.Receipt(WeaponCharge.Outcome.ACCEPTED,Optional.of(plan),Optional.empty(),Optional.empty()),List.of(fact("chorus:weapon_charge_started",plan,"input",now,true)));
     }
     private static Evaluation evaluation(EffectState state,EffectEvent query,CompiledEffects program){
@@ -63,12 +61,20 @@ final class CompiledCharging {
         if(!current(state,plan)||plan.phase()!=WeaponCharge.Phase.CHARGING||state.buffs().timeMicros()!=plan.fullAt())throw new IllegalStateException("Charge is not at its accepted full boundary");
         return new WeaponCharge.Verify(plan);
     }
-    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponCharge.Plan plan,WeaponCharge.Verified result,CompiledEffects program){
+    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponCharge.Plan plan,WeaponCharge.Verified result,CompiledWeapons weapons,CompiledEffects program){
         if(!current(state,plan))return new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
         if(!prepare(state,plan).equals(result.query()))throw new IllegalArgumentException("Charge verification belongs to another plan");
         if(!result.allowed())return cancel(state,plan.holder(),"host_rejected");
         if(!program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,ActionGate.Phase.CONTINUE,plan.event(state.buffs().timeMicros(),true)).allowed())return cancel(state,plan.holder(),"restricted");
-        var ready=plan.ready();return new RuleEngine.Local<>(state.cancel(plan.timerId()).withCharge(ready),result,List.of(fact("chorus:weapon_charge_ready",ready,"completed",state.buffs().timeMicros(),true)));
+        var ready=plan.ready();var updated=state.cancel(plan.timerId()).withCharge(ready);var facts=List.of(fact("chorus:weapon_charge_ready",ready,"completed",state.buffs().timeMicros(),true));
+        return plan.trigger()==WeaponCharge.Trigger.FULL?fire(state,plan,"full",weapons,program,facts):new RuleEngine.Local<>(updated,result,facts);
+    }
+    private static RuleEngine.Local<EffectState> fire(EffectState state,WeaponCharge.Plan plan,String reason,CompiledWeapons weapons,CompiledEffects program,List<RuleEngine.Signal> before){
+        var fired=weapons.fire(state,new WeaponFire.Request(plan.holder(),plan.token()),program,Optional.of(plan));
+        var receipt=(WeaponFire.Receipt)fired.result();var facts=new ArrayList<>(before);
+        var reported=plan.trigger()==WeaponCharge.Trigger.FULL?plan.ready():plan;
+        facts.add(fact("chorus:weapon_charge_ended",reported,reason,state.buffs().timeMicros(),false));facts.addAll(fired.emitted());
+        return new RuleEngine.Local<>(clear(fired.state(),plan),new WeaponCharge.Receipt(receipt.outcome()==WeaponFire.Outcome.ACCEPTED?WeaponCharge.Outcome.FIRED:WeaponCharge.Outcome.FIRE_REJECTED,Optional.of(reported),Optional.of(receipt),Optional.empty()),facts);
     }
     static RuleEngine.Local<EffectState> reconcile(EffectState state,String holder){
         var plan=state.charging().get(holder);return plan!=null&&!plan.matches(state.equipment().getOrDefault(holder,Loadout.EMPTY))?cancel(state,holder,"equipment_changed"):new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
@@ -85,6 +91,7 @@ final class CompiledCharging {
         for(var plan:state.charging().values()){
             var definition=weapons.definition(plan.gear().definition());long now=state.buffs().timeMicros();
             if(definition==null||definition.charging().isEmpty()||!plan.matches(state.equipment().getOrDefault(plan.holder(),Loadout.EMPTY))||state.handling().containsKey(plan.holder())||state.reloads().containsKey(plan.holder()))throw new IllegalArgumentException("Charge conflicts with current weapon action");
+            if(plan.trigger()!=definition.charging().orElseThrow().trigger()||plan.trigger()==WeaponCharge.Trigger.FULL&&plan.phase()==WeaponCharge.Phase.READY)throw new IllegalArgumentException("Charge trigger differs from its accepted lifecycle");
             if(plan.phase()==WeaponCharge.Phase.READY){if(plan.fullAt()>now||state.timers().containsKey(plan.timerId()))throw new IllegalArgumentException("Unfinished charge marked ready");}
             else if(plan.fullAt()<now||plan.fullAt()>now&&!plan.timer().equals(state.timers().get(plan.timerId())))throw new IllegalArgumentException("Charge differs from accepted deadline");
         }

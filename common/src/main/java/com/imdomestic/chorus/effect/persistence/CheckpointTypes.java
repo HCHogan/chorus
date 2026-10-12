@@ -510,7 +510,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_definition_v2", LegacyWeaponDefinitionV2.class);
         types.put("chorus:effect/weapon/weapon_definition_v3", LegacyWeaponDefinitionV3.class);
         types.put("chorus:effect/weapon/weapon_definition_v4", com.imdomestic.chorus.effect.weapon.WeaponDefinition.class);
-        types.put("chorus:effect/weapon/weapon_definition/charging", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class);
+        types.put("chorus:effect/weapon/weapon_definition/charging", LegacyWeaponChargingV1.class);
+        types.put("chorus:effect/weapon/weapon_definition/charging_v2", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class);
         types.put("chorus:effect/weapon/weapon_definition/aiming", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Aiming.class);
         types.put("chorus:effect/weapon/weapon_definition/handling", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Handling.class);
         types.put("chorus:effect/weapon/weapon_definition/ammunition", com.imdomestic.chorus.effect.weapon.WeaponDefinition.Ammunition.class);
@@ -600,7 +601,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_charge/outcome", com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.class);
         types.put("chorus:effect/weapon/weapon_charge/request", com.imdomestic.chorus.effect.weapon.WeaponCharge.Request.class);
         types.put("chorus:effect/weapon/weapon_charge/timing", com.imdomestic.chorus.effect.weapon.WeaponCharge.Timing.class);
-        types.put("chorus:effect/weapon/weapon_charge/plan", com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class);
+        types.put("chorus:effect/weapon/weapon_charge/plan", LegacyWeaponChargePlanV1.class);
+        types.put("chorus:effect/weapon/weapon_charge/plan_v2", com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class);
+        types.put("chorus:effect/weapon/weapon_charge/trigger", com.imdomestic.chorus.effect.weapon.WeaponCharge.Trigger.class);
         types.put("chorus:effect/weapon/weapon_charge/receipt", com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt.class);
         types.put("chorus:effect/weapon/weapon_charge/fact", com.imdomestic.chorus.effect.weapon.WeaponCharge.Fact.class);
         types.put("chorus:effect/weapon/weapon_charge/verify", com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify.class);
@@ -608,6 +611,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_charge/commit", com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit.class);
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
+                new RecordTreeCodec.Migration<>(LegacyWeaponChargingV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class, LegacyWeaponChargingV1::current),
+                new RecordTreeCodec.Migration<>(LegacyWeaponChargePlanV1.class, com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class, LegacyWeaponChargePlanV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV4.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV4::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponDefinitionV3.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV3::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponFireOutcomeV1.class, com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.class, LegacyWeaponFireOutcomeV1::current),

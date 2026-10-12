@@ -6,6 +6,24 @@
 
 ## 当前证据
 
+### 2026-10-12：蓄满自动发射与临时输入许可
+
+charging.trigger 新增 release/full，省略保持既有松开语义。full 在接受的满蓄力截止点，经宿主验证和 CONTINUE/COMPLETE 条件后使用同一个 WeaponFire 事务；接受的扣弹、计划与计时器清理先提交，再反应 ready/ended/开火事实。提前松开取消，即使已超过 minimum 也不发部分蓄力射击；持续保持和迟到松开不产生第二次射击。事件与 on_fire 带 charge_trigger，自动发射时 charge_held=true，结束事实为 false；没有新增全局连锁限制。
+
+Minecraft 运行时为接受的输入保存临时的玩家对象、连接、token 和保持判定，full 边界在世界写入前重新核验。网络保持使用当前世界时钟的 40 tick 租期，避免领域计时器先于网络清理推进时，从过期输入补射。许可不进入存档，恢复后第一次推进也不能凭领域计划自动发射。匹配 token 的取消先撤销许可再 prepare，旧取消不影响新命令计划；停服先撤销所有持有者/运行时的许可，再推进任何清理，包括其他输入清理。故障保留已经提交的扣弹和世界结果，不靠保持或松开重试。
+
+嵌套 Charging/Plan 升为独立 v2 存储类型，旧精确三字段/十一字段记录迁移为 release；新增 trigger 枚举，外层 EffectState v5 / WeaponDefinition v4 保持。目录由 597 增至 600，原 597 项逐键形状及两份历史检查点原字节不变。
+
+新增 11 项 WeaponAutoChargeTest 和两项旧蓄力存储迁移测试，覆盖满蓄力一次性扣弹/发射、多个提前松开边界、旧 token、当前成本与条件、COMPLETE gate、未知宿主/世界结果不重试、保存的模式/加速期限和多个持有者。9 项共享 WeaponAutoChargeGameTest 使用真实容器和弹体，验证两段实际扣血、租期精确到期及历史计时器追赶、心跳不重计时、命令/网络断线、多个持有者及混合命令/网络的停服清理、恢复首推进、未知反应和旧取消隔离。合成弓消费者仅证明通用机制，不代表融合步枪的 burst 或原作充能公式。
+
+首轮服务端门禁 `/tmp/chorus-auto-charge-gate.log` BUILD SUCCESSFUL，4 分 13 秒：1817 项 JUnit、Fabric 1012 项 / NeoForge 1027 项世界测试及双端发布 jar 通过，共享 Chorus 场景 1011 项。随后新增 WeaponAutoChargeClientGameTest，通过真实按键验证提前松开、长按自动发射且不重入、GUI/失焦取消及重新按下。首轮客户端在等待 CANCELLED 处失败，定位为提前松开先撤销保持许可，prepare 已正确取消计划，但 NO_PRESS 回执被映射为 REJECTED；已将 full 提前松开接到显式取消路径，并在共享世界测试增加状态断言。审查同时将全体蓄力许可撤销提前到其他停服输入清理之前，补充混合输入场景。
+
+最终 `/tmp/chorus-auto-charge-final-gate.log` BUILD SUCCESSFUL，12 分 27 秒：22 项 Fabric 客户端场景、1817 项 JUnit（无失败/错误/跳过）、Fabric 1012 项 / NeoForge 1027 项世界测试及双端发布 jar 全部通过。1280×720 的 `fabric/build/run/clientGameTest/screenshots/0006_chorus-auto-charge-progress.png` 已目视检查，显示服务器取样的蓄力条；本轮没有 NeoForge 图形客户端验收。控制设置的中英文按键名改为通用“武器蓄力（按住）”，不再统一承诺松开发射。
+
+本地化修改后的 `/tmp/chorus-auto-charge-artifacts.log` BUILD SUCCESSFUL，4 秒。最终发布包 Fabric 1187 项 / NeoForge 1180 项，包含新触发类型、精确迁移记录及临时输入实现；中英文文本与源码逐字节一致，不含效果/校准/persistence 夹具、GameTest 或测试 Mixin。
+
+10 项 Compendium 工具测试、114 条审阅及报告一致性、600 项存储目录与旧形状/历史检查点检查通过。审阅仍为 112 partial / 2 not_applicable / 0 verified；当前不新增 D2 数值结论。持续自动重蓄力、融合 burst/具体武器充能曲线、强制松弦、生产内容/配装/D2 HUD 及物理世界整体重启仍有独立工作。[触发和恢复契约](engine-data-packs.md#武器蓄力与配对松开)、[D2 内容边界](d2-ruleset.md#弓参考消费者的通用蓄力)。
+
 ### 2026-10-12：普通弓参考拉弓时间与 Tempo / Warm-Up
 
 新增两个 stat_point → second 普通弓参考 Profile，以及 draw/charge 独立的秒数修饰 Profile。前者采用固定 Foundry 的轻型/精密公式和 Draw Time 0–100 限幅；后者按 perk 家族乘算。原表原坐标与固定 CSV 分别核对，Clarity 的普通/强化四条记录与两个源码仓库 HEAD 已重新验证；9 份来源原件/元数据及哈希保存在 bow-timing.json。Leviathan 的 Tempo 特例与原作帧量化仍单独标记未完成。

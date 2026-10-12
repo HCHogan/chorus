@@ -46,6 +46,7 @@
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.WeaponAimGameTest",
       "com.imdomestic.chorus.WeaponChargeGameTest",
+      "com.imdomestic.chorus.WeaponAutoChargeGameTest",
       "com.imdomestic.chorus.BowTimingPerksGameTest",
       "com.imdomestic.chorus.WeaponChargeInputGameTest",
       "com.imdomestic.chorus.WeaponAimInputGameTest",
@@ -195,7 +196,8 @@
       "com.imdomestic.chorus.ConstructClientGameTest",
       "com.imdomestic.chorus.AbilityInputClientGameTest",
       "com.imdomestic.chorus.WeaponAimClientGameTest",
-      "com.imdomestic.chorus.WeaponChargeClientGameTest"
+      "com.imdomestic.chorus.WeaponChargeClientGameTest",
+      "com.imdomestic.chorus.WeaponAutoChargeClientGameTest"
     ]
   }
 }

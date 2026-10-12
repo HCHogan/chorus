@@ -11,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
-/** One accepted physical gesture can release once. Heartbeats never start or restart domain charging. */
+/** One accepted physical gesture can fire once. Heartbeats never start or restart domain charging. */
 public final class WeaponChargeNetworkServer {
     public static final int LEASE_TICKS = 40;
     public static final WeaponChargeNetworkServer LIVE = new WeaponChargeNetworkServer((player, view) -> Services.PLATFORM.sendWeaponChargeView(player, view));
@@ -19,7 +19,7 @@ public final class WeaponChargeNetworkServer {
     private static final class Session {
         final ServerGamePacketListenerImpl connection;
         ServerPlayer player; ServerLevel level; MinecraftEffectRuntime runtime;
-        String life, token = ""; long sequence, revision, gesture, refreshed; boolean held;
+        String life, token = "", weapon = ""; long sequence, revision, gesture, refreshed; boolean held;
         Status status = Status.IDLE; View last;
         Session(ServerPlayer player) { connection = player.connection; owner(player); }
         void owner(ServerPlayer next) { player = next; level = next.level(); life = MinecraftEntityLife.get(next).id(); }
@@ -47,8 +47,13 @@ public final class WeaponChargeNetworkServer {
             if (input.edge() == Edge.PRESS) {
                 if (!s.held) {
                     s.gesture = input.gesture(); s.token = UUID.randomUUID().toString(); s.refreshed = s.level.getGameTime();
-                    var receipt = runtime.charge(s.player, s.token, WeaponCharge.Edge.PRESS);
+                    String token = s.token; s.held = true;
+                    var receipt = runtime.charge(s.player, token, WeaponCharge.Edge.PRESS,
+                            () -> s.held && s.token.equals(token) && s.runtime == runtime && eligible(s)
+                                    && MinecraftEffectRuntime.installed(s.level).orElse(null) == runtime
+                                    && s.level.getGameTime() - s.refreshed < LEASE_TICKS);
                     s.held = receipt.outcome() == WeaponCharge.Outcome.ACCEPTED;
+                    s.weapon = receipt.plan().map(plan -> plan.gear().instance()).orElse("");
                     s.status = s.held ? Status.ACTIVE : Status.REJECTED;
                     maintain(s); // A start reaction may already have cancelled or replaced the plan.
                 }
@@ -56,10 +61,11 @@ public final class WeaponChargeNetworkServer {
                 if (!s.held || input.gesture() != s.gesture) { publish(s, true); return Reply.STALE; }
                 if (input.edge() == Edge.HOLD) s.refreshed = s.level.getGameTime();
                 else if (input.edge() == Edge.CANCEL) cancel(s, "input_cancelled");
+                else if (plan(s).trigger() == WeaponCharge.Trigger.FULL) cancel(s, "released_before_full");
                 else {
                     s.held = false; s.status = Status.REJECTED; // Retire before any payment or world effect.
                     var receipt = runtime.charge(s.player, s.token, WeaponCharge.Edge.RELEASE);
-                    s.status = receipt.outcome() == WeaponCharge.Outcome.FIRED ? Status.FIRED : Status.REJECTED;
+                    s.status = switch (receipt.outcome()) { case FIRED -> Status.FIRED; case CANCELLED -> Status.CANCELLED; default -> Status.REJECTED; };
                 }
             }
             publish(s, true); return Reply.PROCESSED;
@@ -84,7 +90,10 @@ public final class WeaponChargeNetworkServer {
         if (s.level.getGameTime() - s.refreshed >= LEASE_TICKS) { cancel(s, "input_expired"); return; }
         s.runtime.prepare();
         if (s.runtime.failure().isPresent()) { s.held = false; s.status = Status.FAILED; }
-        else if (plan(s) == null) { s.held = false; s.status = Status.CANCELLED; }
+        else if (plan(s) == null) {
+            s.held = false; var shot = s.runtime.state().engine().domain().shots().get(s.weapon);
+            s.status = shot != null && shot.token().equals(s.token) && shot.holder().equals(s.player.getUUID().toString()) ? Status.FIRED : Status.CANCELLED;
+        }
     }
     private static void replaceRuntime(Session s, MinecraftEffectRuntime runtime) {
         cancel(s, "input_runtime_changed"); s.runtime = runtime;
@@ -124,9 +133,9 @@ public final class WeaponChargeNetworkServer {
         MinecraftEffectRuntime.cancelChargeInputs(connection); // Includes self-owned command gestures.
     }
     public void quiesce(MinecraftServer server) {
-        for (var s : List.copyOf(sessions.values())) if (s.level.getServer() == server) {
-            thread(s.level); sessions.remove(s.connection); cancel(s, "input_server_stopping");
-        }
+        var retiring = sessions.values().stream().filter(s -> s.level.getServer() == server).toList();
+        for (var s : retiring) { thread(s.level); sessions.remove(s.connection); s.held = false; s.status = Status.CANCELLED; }
+        for (var s : retiring) cancel(s, "input_server_stopping");
     }
     public void stop(MinecraftServer server) { sessions.values().removeIf(s -> s.level.getServer() == server); }
 }

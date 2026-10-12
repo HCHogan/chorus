@@ -16,9 +16,14 @@ import net.minecraft.world.level.GameType;
 
 public class WeaponChargeInputGameTest {
     public static CompiledEffects program() {
+        return program(false);
+    }
+    public static CompiledEffects program(boolean automatic) {
         var data = ThreadedSpikeGameTest.json("explosive_head_weapon");
         RadiantGameTest.merge(data,"explosive_head","explosive_head_test_calibration","explosive_payload","explosive_payload_test_calibration","weapon_stats","weapon_charge");
-        data.getAsJsonArray("weapons").get(0).getAsJsonObject().add("charging",ThreadedSpikeGameTest.json("weapon_charge_test_calibration"));
+        var charge=ThreadedSpikeGameTest.json("weapon_charge_test_calibration");
+        if(automatic){charge.addProperty("trigger","full");charge.getAsJsonObject("full").getAsJsonObject("value").addProperty("value",2.0);}
+        data.getAsJsonArray("weapons").get(0).getAsJsonObject().add("charging",charge);
         return EffectCodecs.COMPILED.parse(JsonOps.INSTANCE,data).getOrThrow();
     }
     static final class InputHarness implements AutoCloseable {

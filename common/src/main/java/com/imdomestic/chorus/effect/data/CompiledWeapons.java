@@ -290,9 +290,9 @@ final class CompiledWeapons {
         var tags = new HashSet<>(items.get(weapon.definition()).tags()); tags.addAll(fire.tags());
         var origin = new BuffInstance.Origin(request.holder(), "shot/" + request.token(), weapon.instance(), "", tags);
         var references = new HashMap<>(Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token(), "origin_source", origin.source()));
-        charge.ifPresent(plan -> references.put("charge", plan.token()));
+        charge.ifPresent(plan -> { references.put("charge", plan.token()); references.put("charge_trigger", plan.trigger().name().toLowerCase(Locale.ROOT)); });
         var query = new EffectEvent(request.holder(), "", origin, tags, charge.map(plan -> plan.numbers(now)).orElse(Map.of()),
-                charge.map(plan -> plan.event(now,false).flags()).orElse(Map.of()), references);
+                charge.map(plan -> plan.event(now,plan.trigger()==WeaponCharge.Trigger.FULL).flags()).orElse(Map.of()), references);
         var restriction=program.checkAction(state,ActionGate.Kind.WEAPON_FIRE,charge.isPresent()?ActionGate.Phase.COMPLETE:ActionGate.Phase.START,query);
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new WeaponFire.Receipt(WeaponFire.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var event = new RuleEngine.Event(0, 0, Optional.empty(), now, new RuleEngine.Signal("chorus:internal/fire_query", query));

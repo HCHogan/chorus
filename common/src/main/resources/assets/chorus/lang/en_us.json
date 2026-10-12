@@ -36,7 +36,7 @@
   "equipment.chorus.status.runtime_failed": "Equipment effects stopped. Items can be retrieved.",
   "equipment.chorus.status.dead": "Equipment can be changed after respawning.",
   "equipment.chorus.status.busy": "Close other containers and put down the carried item.",
-  "key.chorus.charge": "Charge weapon (hold, release to fire)",
+  "key.chorus.charge": "Charge weapon (hold)",
   "hud.chorus.charge.charging": "Charging",
   "hud.chorus.charge.ready": "Fully charged"
 }

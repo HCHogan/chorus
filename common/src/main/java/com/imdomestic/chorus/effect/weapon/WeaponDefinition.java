@@ -24,11 +24,12 @@ public record WeaponDefinition(String item, Ammunition ammunition, Reload reload
     public record Aiming(Timing enter, Timing exit) {
         public Aiming { Objects.requireNonNull(enter); Objects.requireNonNull(exit); }
     }
-    /** Release-triggered charging; both timings are sampled when the press is accepted. */
-    public record Charging(Timing minimum, Timing full, Condition condition) {
-        public Charging { Objects.requireNonNull(minimum); Objects.requireNonNull(full); Objects.requireNonNull(condition); }
+    /** One shot per accepted press; timing and trigger are fixed at acceptance. */
+    public record Charging(Timing minimum, Timing full, Condition condition, WeaponCharge.Trigger trigger) {
+        public Charging { Objects.requireNonNull(minimum); Objects.requireNonNull(full); Objects.requireNonNull(condition); Objects.requireNonNull(trigger); }
+        public Charging(Timing minimum, Timing full, Condition condition) { this(minimum, full, condition, WeaponCharge.Trigger.RELEASE); }
     }
-    /** One accepted shot; charging supplies release measurements, while burst and hit aggregation remain separate. */
+    /** One accepted shot; charging supplies trigger measurements, while burst and hit aggregation remain separate. */
     public record Fire(Value cost, Value interval, Optional<String> intervalProfile, Condition condition, Set<String> tags, List<EffectProgram.Step> onFire) {
         public Fire {
             Objects.requireNonNull(cost); Objects.requireNonNull(interval); Objects.requireNonNull(intervalProfile); Objects.requireNonNull(condition);
