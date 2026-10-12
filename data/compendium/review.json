@@ -2983,7 +2983,8 @@
       "acceptance": [
         "相邻精准命中间隔小于2 / 强化3秒（半开边界为待校准内容政策），四次后生成2发弹药",
         "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留",
-        "服务端 hitscan 使用实际目标碰撞箱和既有弱点查询，在同次开火内造成精准伤害并共用两条回弹规则；身体命中不增长精准计数"
+        "服务端 hitscan 使用实际目标碰撞箱和既有弱点查询，在同次开火内造成精准伤害并共用两条回弹规则；身体命中不增长精准计数",
+        "同一颗直线穿透射线的不同目标分别提供精准命中；两次真实开火共四次合格命中，既有回弹账户组合且不重复支付弹药"
       ],
       "evidence": [
         {
@@ -3022,6 +3023,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HitscanGameTest.java",
           "symbol": "instantPrecisionShotsGenerateTripleTapAndFourthTimeAmmunition"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PiercingHitscanGameTest.java",
+          "symbol": "confirmedPrecisionContactsDriveBothAmmoPerksWithoutDuplicatingFireCost"
         }
       ],
       "gaps": [
@@ -3359,7 +3365,8 @@
       "acceptance": [
         "相邻精准命中间隔小于2 / 强化3秒（半开边界为待校准内容政策），三次后生成1发弹药",
         "生成不扣储备且不能超过基础弹匣；命中间计时收枪保留",
-        "服务端 hitscan 使用实际目标碰撞箱和既有弱点查询，在同次开火内造成精准伤害并共用两条回弹规则；身体命中不增长精准计数"
+        "服务端 hitscan 使用实际目标碰撞箱和既有弱点查询，在同次开火内造成精准伤害并共用两条回弹规则；身体命中不增长精准计数",
+        "同一颗直线穿透射线的不同目标分别提供精准命中；两次真实开火共四次合格命中，既有回弹账户组合且不重复支付弹药"
       ],
       "evidence": [
         {
@@ -3398,6 +3405,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HitscanGameTest.java",
           "symbol": "instantPrecisionShotsGenerateTripleTapAndFourthTimeAmmunition"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PiercingHitscanGameTest.java",
+          "symbol": "confirmedPrecisionContactsDriveBothAmmoPerksWithoutDuplicatingFireCost"
         }
       ],
       "gaps": [

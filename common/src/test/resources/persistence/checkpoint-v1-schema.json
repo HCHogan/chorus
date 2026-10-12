@@ -607,5 +607,10 @@
   "chorus:effect/projectile/hitscan/query": ["position:java.util.Optional<com.imdomestic.chorus.effect.target.WorldPosition>", "direction:java.util.Optional<com.imdomestic.chorus.effect.target.WorldDirection>", "range:double", "inflation:double", "owner:java.lang.String", "emitter:java.lang.String", "member:java.util.Optional<com.imdomestic.chorus.effect.projectile.ShotGroups$Member>"],
   "chorus:effect/projectile/hitscan/prepared": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$Query"],
   "chorus:effect/projectile/hitscan/result": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "outcome:com.imdomestic.chorus.effect.projectile.Hitscan$Outcome", "contact:java.util.Optional<com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact>"],
-  "chorus:effect/projectile/hitscan/outcome": ["ENTITY", "BLOCK", "RANGE", "UNLOADED", "MISSING_POSITION", "MISSING_DIRECTION", "WRONG_DIMENSION", "EXPIRED_SHOT"]
+  "chorus:effect/projectile/hitscan/outcome": ["ENTITY", "BLOCK", "RANGE", "UNLOADED", "MISSING_POSITION", "MISSING_DIRECTION", "WRONG_DIMENSION", "EXPIRED_SHOT"],
+  "chorus:effect/data/effect_program/piercing_hitscan": ["ray:com.imdomestic.chorus.effect.data.EffectProgram$Hitscan", "pierces:com.imdomestic.chorus.effect.data.Value"],
+  "chorus:effect/projectile/hitscan/piercing_query": ["ray:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "pierces:int"],
+  "chorus:effect/projectile/hitscan/prepared_path": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$PiercingQuery"],
+  "chorus:effect/projectile/hitscan/path_contact": ["observed:com.imdomestic.chorus.effect.projectile.Hitscan$Result", "sequence:long", "terminal:boolean"],
+  "chorus:effect/projectile/hitscan/path_result": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$PiercingQuery", "contacts:java.util.List<com.imdomestic.chorus.effect.projectile.Hitscan$PathContact>"]
 }

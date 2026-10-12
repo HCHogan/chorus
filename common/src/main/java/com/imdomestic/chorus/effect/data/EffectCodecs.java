@@ -745,6 +745,12 @@ public final class EffectCodecs {
                     raySpec.fieldOf("hitscan").forGetter(EffectProgram.Hitscan::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Hitscan::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Hitscan::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Hitscan::shot)
             ).apply(i, EffectProgram.Hitscan::new)), Set.of("hitscan", "as", "do", "shot"));
+            Codec<EffectProgram.PiercingHitscan> piercingRay = strict(RecordCodecBuilder.create(i -> i.group(
+                    raySpec.fieldOf("hitscan").forGetter(v -> v.ray().spec()), Codec.STRING.fieldOf("as").forGetter(v -> v.ray().bind()),
+                    self.listOf().fieldOf("do").forGetter(v -> v.ray().body()), membership.optionalFieldOf("shot").forGetter(v -> v.ray().shot()),
+                    values.fieldOf("pierces").forGetter(EffectProgram.PiercingHitscan::pierces)
+            ).apply(i, (spec, bind, body, shot, pierces) -> new EffectProgram.PiercingHitscan(new EffectProgram.Hitscan(spec,bind,body,shot),pierces))),
+                    Set.of("hitscan", "as", "do", "shot", "pierces"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot),
@@ -772,6 +778,7 @@ public final class EffectCodecs {
             Codec<EffectProgram.Step> unconditional = Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
+                        case EffectProgram.PiercingHitscan ignored -> throw new AssertionError("Piercing ray codec is outside the legacy union");
                         case EffectProgram.Hitscan ignored -> throw new AssertionError("Hitscan codec is outside the legacy union");
                         case EffectProgram.ConditionalPickup ignored -> throw new IllegalArgumentException("Conditional pickup needs collect_if codec");
                         case EffectProgram.Pickup spawn -> Either.left(Either.left(spawn));
@@ -782,8 +789,10 @@ public final class EffectCodecs {
                     });
             Codec<EffectProgram.Step> legacy = Codec.either(conditionalPickup, unconditional).xmap(value -> value.map(v -> v, v -> v),
                     value -> value instanceof EffectProgram.ConditionalPickup conditional ? Either.left(conditional) : Either.right(value));
-            return Codec.either(ray, legacy).xmap(value -> value.map(v -> v, v -> v),
+            Codec<EffectProgram.Step> basic = Codec.either(ray, legacy).xmap(value -> value.map(v -> v, v -> v),
                     value -> value instanceof EffectProgram.Hitscan trace ? Either.left(trace) : Either.right(value));
+            return Codec.either(piercingRay,basic).xmap(value -> value.map(v -> v,v -> v),
+                    value -> value instanceof EffectProgram.PiercingHitscan trace ? Either.left(trace) : Either.right(value));
         });
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),

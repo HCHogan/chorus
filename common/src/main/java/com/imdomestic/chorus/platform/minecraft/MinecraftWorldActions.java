@@ -124,6 +124,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
             }
             case TargetQuery query -> select(query);
             case com.imdomestic.chorus.effect.projectile.Hitscan.Query query -> MinecraftHitscan.trace(level, query);
+            case com.imdomestic.chorus.effect.projectile.Hitscan.PiercingQuery query -> MinecraftHitscan.trace(level, query);
             case RelationQuery query -> {
                 var left = entities.apply(query.left()); var right = entities.apply(query.right());
                 yield new RelationQuery.Result(query, present(left) && present(right) ? MinecraftRelations.allied(left, right) : Optional.empty());
