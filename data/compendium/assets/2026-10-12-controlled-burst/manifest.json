@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T04:19:06.195921+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "f96b3c4ccceef7cde0d97c6f3c185910e2a6347cbc4f8c3ae3f68b1531159454"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/controlled_burst",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Controlled Burst",
+      "label_cell": "A55",
+      "image_cell": "B55",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B55",
+      "image_url": "https://lh3.googleusercontent.com/docsubipk/AP9E6xWTViZPv3U7TPUeFih80JiW-ZRpMPAPxNFygrP30VX3qHrwzFY55fl6FXG1Q9jSgYYPmq_WM8MZLGERIP2uU77ipM_eWZ-2-v5VkkFqvbv-hK2mnpt6evErGYjq7chHC-KyC-9gWsYWYYkKZ_TmLF0mAWUJ1u0Yu8tUXfVA=s89-w70-h89",
+      "retrieved_at": "2026-10-12T04:19:06.518730+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/controlled_burst.png",
+      "texture": "chorus_d2:textures/gui/perks/controlled_burst.png",
+      "sha256": "324d516ccbfdd3e7d03d919ab5938c048c7615b1c7c13b898a0a91414378762f",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

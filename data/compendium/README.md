@@ -50,3 +50,6 @@ python3 tools/compendium_assets.py fetch --output data/compendium/assets/<new-ca
 ```
 
 导入先下载并校验所有选定图片，再写入文件。已有来源目录不会覆盖；已有纹理内容若变化也会拒绝覆盖，需要显式复审。后续高分辨率版本应另记其真实来源及尺寸。素材保持原有归属，不因纳入仓库而改变授权。
+
+
+Controlled Burst 新增独立[素材批次](assets/2026-10-12-controlled-burst/manifest.json)，原表 A55 名称 / B55 图像，保留 70×70 PNG 原字节。该批 HTML 的 C55 已与研究抓取及固定 CSV C54 归一化核对；未将原表行号当成快照行号。图标已进入 chorus_d2 资源，尚未绑定 HUD/配装。可用 `python3 tools/compendium_assets.py check data/compendium/assets/2026-10-12-controlled-burst/manifest.json` 离线复核。

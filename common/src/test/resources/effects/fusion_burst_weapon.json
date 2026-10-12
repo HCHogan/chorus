@@ -1,0 +1,1250 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:primary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      },
+      {
+        "id": "test:secondary",
+        "accepts": [
+          "test:weapon"
+        ],
+        "weapon": true
+      }
+    ],
+    "items": [
+      {
+        "id": "test:fusion",
+        "tags": [
+          "test:weapon",
+          "chorus_d2:fusion_rifle",
+          "chorus_d2:adaptive_fusion"
+        ],
+        "effects": {
+          "observe": {
+            "bundle": "test:reload_observer"
+          },
+          "burst": {
+            "bundle": "test:fusion_lifecycle"
+          }
+        },
+        "sockets": {
+          "perk": {
+            "required": true,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:controlled_burst"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:controlled_burst",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              },
+              "none": {
+                "bundle": "test:empty"
+              }
+            }
+          },
+          "warmup": {
+            "required": false,
+            "options": {
+              "normal": {
+                "bundle": "chorus_d2:successful_warm_up"
+              },
+              "enhanced": {
+                "bundle": "chorus_d2:successful_warm_up",
+                "tags": [
+                  "chorus:enhanced"
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "weapons": [
+    {
+      "item": "test:fusion",
+      "ammunition": {
+        "capacity": 5,
+        "magazine": 5,
+        "reserves": {
+          "rounds": 12,
+          "capacity": 20
+        },
+        "capacity_profile": "test:magazine"
+      },
+      "reload": {
+        "value": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "second"
+        },
+        "profile": "test:reload_time"
+      },
+      "fire": {
+        "cost": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "round"
+        },
+        "interval": {
+          "type": "chorus:constant",
+          "value": 0.65,
+          "unit": "second"
+        },
+        "interval_profile": "test:fire_time",
+        "tags": [
+          "test:primary_fire",
+          "chorus:weapon_shot",
+          "chorus_d2:fusion_burst"
+        ],
+        "on_fire": [
+          {
+            "action": {
+              "type": "chorus:capture_entity_anchor",
+              "target": "self",
+              "anchor": "eyes"
+            },
+            "as": "holder_life"
+          },
+          {
+            "if": {
+              "type": "chorus:all",
+              "of": [
+                {
+                  "type": "chorus:result_flag",
+                  "binding": "holder_life",
+                  "field": "available"
+                },
+                {
+                  "type": "chorus:result_flag",
+                  "binding": "holder_life",
+                  "field": "alive"
+                }
+              ]
+            },
+            "then": [
+              {
+                "action": {
+                  "type": "chorus:begin_shot",
+                  "pellets": {
+                    "type": "chorus:constant",
+                    "value": 7,
+                    "unit": "count"
+                  },
+                  "lifetime": {
+                    "type": "chorus:constant",
+                    "value": 2.5,
+                    "unit": "second"
+                  }
+                },
+                "as": "group"
+              },
+              {
+                "type": "chorus:grant_buff",
+                "buff": "test:fusion_pending"
+              },
+              {
+                "if": {
+                  "type": "chorus:has_buff",
+                  "buff": "test:fusion_pending"
+                },
+                "then": [
+                  {
+                    "action": {
+                      "type": "chorus:resolve_entity_anchor",
+                      "reference": "holder_life"
+                    },
+                    "as": "muzzle"
+                  },
+                  {
+                    "if": {
+                      "type": "chorus:all",
+                      "of": [
+                        {
+                          "type": "chorus:result_flag",
+                          "binding": "muzzle",
+                          "field": "available"
+                        },
+                        {
+                          "type": "chorus:result_flag",
+                          "binding": "muzzle",
+                          "field": "alive"
+                        },
+                        {
+                          "type": "chorus:weapon_drawn"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:capture_direction"
+                        },
+                        "as": "aim"
+                      },
+                      {
+                        "action": {
+                          "type": "chorus:capture_damage",
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 10,
+                            "unit": "damage"
+                          },
+                          "damage_type": "minecraft:generic",
+                          "scaling_profile": "test:weapon_damage",
+                          "tags": [
+                            "chorus:weapon_damage",
+                            "chorus_d2:arc"
+                          ],
+                          "kill_tags": [
+                            "chorus:weapon_kill"
+                          ]
+                        },
+                        "as": "bolt_damage"
+                      },
+                      {
+                        "projectile": {
+                          "position": "muzzle",
+                          "direction": "aim",
+                          "speed": {
+                            "type": "chorus:constant",
+                            "value": 20,
+                            "unit": "meter_per_second"
+                          },
+                          "gravity": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "meter_per_second_squared"
+                          },
+                          "drag": {
+                            "type": "chorus:constant",
+                            "value": 1,
+                            "unit": "multiplier"
+                          },
+                          "lifetime": {
+                            "type": "chorus:constant",
+                            "value": 2,
+                            "unit": "second"
+                          }
+                        },
+                        "as": "impact",
+                        "do": [
+                          {
+                            "for_each": "impact",
+                            "as": "victim",
+                            "do": [
+                              {
+                                "type": "chorus:damage_snapshot",
+                                "snapshot": "bolt_damage",
+                                "target": {
+                                  "binding": "victim"
+                                },
+                                "pellet": "impact"
+                              }
+                            ]
+                          }
+                        ],
+                        "shot": {
+                          "binding": "group",
+                          "pellet": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "count"
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "type": "chorus:remove_buff",
+                        "buff": "test:fusion_pending"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.033334,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.066667,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.1,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 3,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.133334,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 4,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.166667,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 5,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "after": {
+                  "type": "chorus:constant",
+                  "value": 0.2,
+                  "unit": "second"
+                },
+                "lifetime": "detached",
+                "do": [
+                  {
+                    "if": {
+                      "type": "chorus:has_buff",
+                      "buff": "test:fusion_pending"
+                    },
+                    "then": [
+                      {
+                        "action": {
+                          "type": "chorus:resolve_entity_anchor",
+                          "reference": "holder_life"
+                        },
+                        "as": "muzzle"
+                      },
+                      {
+                        "if": {
+                          "type": "chorus:all",
+                          "of": [
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "available"
+                            },
+                            {
+                              "type": "chorus:result_flag",
+                              "binding": "muzzle",
+                              "field": "alive"
+                            },
+                            {
+                              "type": "chorus:weapon_drawn"
+                            }
+                          ]
+                        },
+                        "then": [
+                          {
+                            "action": {
+                              "type": "chorus:capture_direction"
+                            },
+                            "as": "aim"
+                          },
+                          {
+                            "action": {
+                              "type": "chorus:capture_damage",
+                              "amount": {
+                                "type": "chorus:constant",
+                                "value": 10,
+                                "unit": "damage"
+                              },
+                              "damage_type": "minecraft:generic",
+                              "scaling_profile": "test:weapon_damage",
+                              "tags": [
+                                "chorus:weapon_damage",
+                                "chorus_d2:arc"
+                              ],
+                              "kill_tags": [
+                                "chorus:weapon_kill"
+                              ]
+                            },
+                            "as": "bolt_damage"
+                          },
+                          {
+                            "projectile": {
+                              "position": "muzzle",
+                              "direction": "aim",
+                              "speed": {
+                                "type": "chorus:constant",
+                                "value": 20,
+                                "unit": "meter_per_second"
+                              },
+                              "gravity": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "meter_per_second_squared"
+                              },
+                              "drag": {
+                                "type": "chorus:constant",
+                                "value": 1,
+                                "unit": "multiplier"
+                              },
+                              "lifetime": {
+                                "type": "chorus:constant",
+                                "value": 2,
+                                "unit": "second"
+                              }
+                            },
+                            "as": "impact",
+                            "do": [
+                              {
+                                "for_each": "impact",
+                                "as": "victim",
+                                "do": [
+                                  {
+                                    "type": "chorus:damage_snapshot",
+                                    "snapshot": "bolt_damage",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "pellet": "impact"
+                                  }
+                                ]
+                              }
+                            ],
+                            "shot": {
+                              "binding": "group",
+                              "pellet": {
+                                "type": "chorus:constant",
+                                "value": 6,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "type": "chorus:remove_buff",
+                            "buff": "test:fusion_pending"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "charging": {
+        "trigger": "full",
+        "minimum": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0,
+            "unit": "second"
+          }
+        },
+        "full": {
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.667,
+            "unit": "second"
+          },
+          "profile": "chorus_d2:weapon_charge_time"
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:reload_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:magazine",
+      "version": "compendium-2026-10-05",
+      "input_unit": "round",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "capacity",
+          "operation": "multiply",
+          "group": {
+            "name": "capacity",
+            "reduction": "product"
+          }
+        },
+        {
+          "type": "chorus:round",
+          "id": "integer",
+          "rounding": "ceil"
+        }
+      ]
+    },
+    {
+      "id": "test:fire_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "time",
+          "operation": "multiply",
+          "group": {
+            "name": "time",
+            "reduction": "product"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:weapon_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "weapon_perk",
+            "reduction": "product",
+            "families": {
+              "chorus_d2:controlled_burst": {
+                "kind": "max"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:empty_buff",
+      "scope": "buff"
+    },
+    {
+      "id": "test:projectile"
+    },
+    {
+      "id": "test:power"
+    },
+    {
+      "id": "test:fusion_lifecycle",
+      "rules": [
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "test:fusion_pending"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:reload_observer",
+      "rules": [
+        {
+          "id": "observe_shot_progress",
+          "on": "chorus:shot_progress",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_progress"
+            }
+          ]
+        },
+        {
+          "id": "observe_shot_resolved",
+          "on": "chorus:shot_resolved",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:shot_resolved"
+            }
+          ]
+        },
+        {
+          "id": "observe_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "this_weapon"
+          },
+          "do": [
+            {
+              "type": "chorus:play_cue",
+              "cue": "test:kill"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:fusion_pending",
+        "version": "compendium-2026-10-05",
+        "duration": 0.201,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove"
+      },
+      "bundle": "test:empty_buff"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "2037312142": {
+    "hash": 2037312142,
+    "name": "Controlled Burst",
+    "type": "Weapon Trait Enhanced",
+    "lastUpload": 1709252348445,
+    "canonical_record_sha256": "723fbaade5dcdc7097da0c4390808d141eb089c4af284a4ef687432090e8ff0f"
+  },
+  "2594592626": {
+    "hash": 2594592626,
+    "name": "Controlled Burst",
+    "type": "Weapon Trait",
+    "lastUpload": 1766867819246,
+    "canonical_record_sha256": "0d23dadf387cfdfbc774d3ae91e828c3607a2897374f357dcba3c041400af1de"
+  }
+}

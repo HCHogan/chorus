@@ -47,6 +47,7 @@
       "com.imdomestic.chorus.WeaponAimGameTest",
       "com.imdomestic.chorus.WeaponChargeGameTest",
       "com.imdomestic.chorus.WeaponAutoChargeGameTest",
+      "com.imdomestic.chorus.ControlledBurstGameTest",
       "com.imdomestic.chorus.BowTimingPerksGameTest",
       "com.imdomestic.chorus.WeaponChargeInputGameTest",
       "com.imdomestic.chorus.WeaponAimInputGameTest",

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "retrieved_at": "2026-10-12T04:19:05.026490+00:00",
+  "source_heads_rechecked": {
+    "Foundry": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "Clarity": "039cfbc4732c33573568b28cc6335dd3332a9296"
+  },
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build.rs",
+      "path": "data/d2-research/2026-10-12/fusion-foundry-build.rs.gz",
+      "raw_sha256": "85b2e35f1db47f55c58900020ebf44be0e409802beac395b4b4c538fad67a1bd",
+      "gzip_sha256": "d2fa22c6d26b059d7222b4c73aca44c84d2ea228e5d552f5ea7ba77b4bc52321"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_6_perks.rs",
+      "path": "data/d2-research/2026-10-12/fusion-foundry-year6.rs.gz",
+      "raw_sha256": "8f2ab4043a46cb43b857f7450216e3a08f53b3225a0c737065ee6a0e21bee3a5",
+      "gzip_sha256": "e827933cd157b7cd34b9f242511bea6b3171b2a19d1e9cc619401023252e453d"
+    },
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/controlled-burst-source.html.gz",
+      "raw_sha256": "eeca3b504289eb088e7f9d994921b87ac85b0fe2f1c11a91b474c10af4499b4f",
+      "gzip_sha256": "726d12935c1f78a7df2da5269591f8f537312ba7b42e541e0e632595e00c0113"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "path": "data/d2-research/2026-10-12/controlled-burst-clarity-metadata.json",
+      "sha256": "ccee4a7577e1a2ece8269a6f89a74a042b152fbfae1c637bcbe4c2d3885f064f",
+      "dataset_raw_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384"
+    }
+  ],
+  "existing_sources": [
+    "data/d2-research/2026-10-12/bow-timing.json",
+    "data/d2-research/2026-10-12/handling-foundry-formulas.json.gz",
+    "data/d2-research/2026-10-12/handling-foundry-calculation.rs.gz"
+  ],
+  "cell_checks": [
+    {
+      "original": "A55",
+      "snapshot": "A54",
+      "normalized_equal": true
+    },
+    {
+      "original": "C55",
+      "snapshot": "C54",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "00d62699d9454f96924e61a68858f93befd196839c9cddb539ed16a4562f4c35"
+    }
+  ],
+  "selected": {
+    "controlled_burst": {
+      "damage_multiplier": 1.2,
+      "charge_multiplier": 0.9,
+      "seconds": 2,
+      "enhanced_seconds": 2.5,
+      "stow": "keep",
+      "activation": "all distinct bolts hit OR attributed weapon kill"
+    },
+    "adaptive_reference": {
+      "base_charge_seconds": 0.667,
+      "members": 7,
+      "inner_delay_seconds": 0.03333333333333333,
+      "post_burst_recovery_seconds": 0.45,
+      "cost_rounds": 1,
+      "scheduled_offset_micros": [
+        0,
+        33334,
+        66667,
+        100000,
+        133334,
+        166667,
+        200000
+      ]
+    }
+  },
+  "primary_patch_sources": [
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_0",
+      "published": "2025-12-02",
+      "selected_fact": "Adaptive and Aggressive base charge time rescaled to 667 ms; rapid 533, precision 800, high-impact 967 ms."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/twid-01-23-25",
+      "published": "2025-01-23",
+      "selected_fact": "Aggressive fusion changes from simultaneous pellets to three bursts of four pellets."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_1_5_2",
+      "selected_fact": "Enhanced Controlled Burst improved-duration bug fixed."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+      "published": "2026-06-09",
+      "selected_fact": "Fusion PvE scalars changed again; no old Foundry absolute damage is adopted here."
+    }
+  ],
+  "conflicts": [
+    "Current Foundry HEAD still has rapid .5 s and precision 23.5/30 s, conflicting with official 9.5.0 base timing. Adaptive uses the official displayed .667 s, without pretending it proves sub-frame timing.",
+    "Foundry Aggressive still has seven simultaneous pellets, conflicting with official 3x4. That old pattern is not copied to the adaptive consumer."
+  ],
+  "policies": [
+    "Shot progress counts each member once across any targets; threshold crossing activates before terminal completion. IMMUNE and BLOCKED count as a landed hit under the existing grouped-receipt contract; CANCELLED/FAILED do not. These qualification edges need original-game calibration.",
+    "Each bolt samples current same-life muzzle, direction and on-use damage. A kill may affect later bolts in the same burst; already launched snapshots retain old damage. This sampling policy needs original-game validation.",
+    "A per-weapon .201 s firing buff gates the fixed .2 s scheduled salvo. Stow, detach or failed same-life validation retires remaining members; already flying members continue. The fixed .65 s fire interval prevents overlapping salvos of one weapon. This is a reference consumer, not a general automatic-burst controller.",
+    "Skipped members remain unresolved until the explicit 2.5 s group expiry, preventing all-hit activation. Known launch rejection closes a member without refund. Unknown results stop without replay.",
+    "Controlled Burst persists through stow but is removed when its source is detached. Timing is sampled on next accepted charge; expiry never rewrites an accepted deadline. Independent charge modifier families multiply (.9 x .625 for Warm-Up).",
+    "10 damage per bolt, 20 m/s flight, zero gravity, two-second projectile lifetime, 2.5-second group deadline, magazine/reload and unit projection are synthetic calibration. No absolute D2 damage, hitscan/recoil/spread, stat curve or global PvE scalar is asserted.",
+    "Each n/30 second absolute burst offset is explicitly rounded upward to integer microseconds in reference JSON. Generic detached-after retains its exact microsecond contract; original-game frame quantization is unverified."
+  ],
+  "remaining": [
+    "Complete fusion archetype catalogue including official Aggressive 3x4; live original-game timing and stat/coil/masterwork curves",
+    "Perk edge eligibility, immune and cross-target hits, late stow hits, same-burst damage sampling and cancellation policies",
+    "Continuous held recharge, arbitrary overlapping salvo policies, recoil/spread/hitscan, full production UI and physical-world restart"
+  ],
+  "foundry_license_path": "data/d2-research/2026-10-12/handling-foundry-UNLICENSE.txt"
+}

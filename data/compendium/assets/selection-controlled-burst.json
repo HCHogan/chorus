@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "perks/controlled_burst",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Controlled Burst",
+      "label_cell": "A55",
+      "image_cell": "B55"
+    }
+  ]
+}

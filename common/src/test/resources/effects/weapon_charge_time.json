@@ -41,6 +41,9 @@
             "families": {
               "chorus_d2:successful_warm_up": {
                 "kind": "max"
+              },
+              "chorus_d2:controlled_burst": {
+                "kind": "max"
               }
             }
           },

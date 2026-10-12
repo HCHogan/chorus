@@ -11898,7 +11898,8 @@
         "首次六秒、后续在当前剩余时长上延长而非重置，普通/强化均限制剩余20秒",
         "精确到期后的新击杀重新给予六秒；武器/持有者隔离、卸下清除和重装不恢复",
         "真实两次精准箭矢击杀驱动Buff和下一次拉弓，延迟Explosive Head身体爆炸击杀保留武器信用",
-        "同一Buff修饰draw/charge两条Profile，Tempo只影响draw；领域检查点保留期限"
+        "同一Buff修饰draw/charge两条Profile，Tempo只影响draw；领域检查点保留期限",
+        "自适应融合参考消费者实际首发击杀驱动Warm-Up，与Controlled Burst在下一次满蓄力时长乘算"
       ],
       "evidence": [
         {
@@ -11941,13 +11942,27 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
           "symbol": "actualStowRemovesBothAndTheAlreadyFlyingPrecisionKillCannotRegrant"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fusion_burst_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "warmupAndControlledMultiplyOnlyChargeTimeAndWeaponInstancesStayIndependent"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "earlyNativeKillChangesLaterBoltDamageAndCombinesWithWarmup"
         }
       ],
       "gaps": [
         "当前为测试资源中的参考消费者，正式武器目录、自动配装、HUD/图标绑定和物理世界整体重启仍未完成",
         "接受按下时固定时长、applied精准资格、迟到收枪击中不能重授与派生伤害资格为明确Chorus政策，尚待原作交互校准",
         "轻型/精密满弦曲线取自固定Foundry源码，并非新实测；最短0.1秒、伤害/飞行/弹量/换弹/引信仍有合成校准，原作部分/完美拉弓和动画未完成",
-        "融合/线性融合的原型充能、自动开火与burst尚未实现；当前只验证共享charge时长Profile和真实弓消费者，不能当完整融合枪复现"
+        "已验证自适应融合参考满蓄力自动发射、七弹丸与实际charge时长消费；完整融合/线性融合曲线、其他原型、连续重蓄力和原作时序校准仍未完成"
       ],
       "sources": [
         {
@@ -11959,6 +11974,117 @@
           "sheet": "Weapon Perks",
           "cell": "C212",
           "text_sha256": "b0dc771983725102218e70c909b5bb49e7583b4efbe7edd8d8dcb2b3bc2a3c50"
+        }
+      ]
+    },
+    {
+      "id": "weapon/controlled_burst",
+      "name": "Controlled Burst",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "同次齐射所有独立弹丸命中或武器击杀，伤害×1.2、充能×0.9，普通/强化2/2.5秒；自适应融合七成员参考消费者",
+      "acceptance": [
+        "最后一个独立成员命中立即触发，跨目标可组合，重复接触不能重复跨越；失误、发射拒绝及未决成员不能假冒全中",
+        "普通/强化精确刷新和到期、武器实例隔离、收枪保留、卸下清除；领域恢复保留期限与已排队偏移",
+        "一次蓄满发射扣一发，七枚按独立偏移发射并逐枚采样同生命位置/方向/伤害；新生命或收枪不继承待发部分",
+        "真实原生弹体、实际命中/击杀、下一次充能乘0.9及与Warm-Up乘算；未知世界结果保留已付款和扣血而不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/controlled_burst.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_charge_time.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fusion_burst_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "oneAcceptedFullChargePaysOnceAndSchedulesSevenMembersAtIndependentOffsets"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "lastUniqueHitAcrossTargetsActivatesWithoutWaitingForPiercingTerminationOrDoubleRefreshing"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "aMissRejectedLaunchOrIncompleteGroupCannotSatisfyAllBolts"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "receiptHitClassificationIsExplicitAndDoesNotRequirePositiveDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "regularAndEnhancedDeadlinesSurviveStowAndRestoreThenExpireExactly"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "warmupAndControlledMultiplyOnlyChargeTimeAndWeaponInstancesStayIndependent"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ControlledBurstTest.java",
+          "symbol": "domainRestoreKeepsQueuedOffsetsAndDoesNotPayAgain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "normalFullBurstHitsGrantDamageAndChargeTimeToTheNextNativeShot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "enhancedFullBurstUsesItsLongerDurationWithTheSameMultipliers"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "earlyNativeKillChangesLaterBoltDamageAndCombinesWithWarmup"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "stowingRetiresUnlaunchedMembersButAnAlreadyFlyingKillKeepsItsCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "eachNativeBoltReadsCurrentMuzzleWhileRespawnCannotContinueTheOldLife"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ControlledBurstGameTest.java",
+          "symbol": "unknownNativeHitRetainsAppliedDamageAndCannotReplayTheSalvo"
+        }
+      ],
+      "gaps": [
+        "当前为测试资源中的参考定义，正式武器目录、配装/技能/HUD、图标绑定及活跃物理世界整体重启尚未完成",
+        "跨目标、免疫/格挡命中资格、收枪后迟到击杀、同burst逐发伤害和取消政策为明确Chorus选择，尚需原作交互校准",
+        "667ms采用官方显示精度，七成员/1帧内部间隔和.45秒恢复参考Foundry；伤害/弹道/组寿命/弹量/换弹为合成校准，不代表完整原作参数",
+        "完整融合/线性融合原型及充能属性/线圈/masterwork曲线、官方激进3×4、持续按住重蓄力、任意重叠齐射、后坐力/散布/射线仍未完成"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A54",
+          "text_sha256": "a539753c199b60b9541bdf9dd3e935ca6f4bd4dc92f1f1eb21f2c683f06612ee"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C54",
+          "text_sha256": "00d62699d9454f96924e61a68858f93befd196839c9cddb539ed16a4562f4c35"
         }
       ]
     }
