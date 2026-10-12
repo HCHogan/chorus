@@ -145,6 +145,7 @@
       "com.imdomestic.chorus.ImpulseGameTest",
       "com.imdomestic.chorus.AimImpulseGameTest",
       "com.imdomestic.chorus.NoDistractionsGameTest",
+      "com.imdomestic.chorus.UnflinchingGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",

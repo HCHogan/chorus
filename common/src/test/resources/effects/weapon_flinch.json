@@ -26,6 +26,15 @@
         },
         {
           "type": "chorus:apply",
+          "id": "armor",
+          "operation": "multiply",
+          "group": {
+            "name": "armor",
+            "reduction": "max"
+          }
+        },
+        {
+          "type": "chorus:apply",
           "id": "perks",
           "operation": "multiply",
           "group": {

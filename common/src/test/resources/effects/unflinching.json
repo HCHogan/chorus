@@ -1,0 +1,697 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:unflinching_kinetic_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_arc_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_solar_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_void_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_stasis_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_strand_copies",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "copies",
+          "operation": "add",
+          "group": {
+            "name": "copies",
+            "reduction": "sum"
+          }
+        },
+        {
+          "type": "chorus:clamp",
+          "id": "limit",
+          "minimum": 0,
+          "maximum": 3
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:unflinching_kinetic",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_kinetic_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_kinetic_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_kinetic_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:kinetic"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_arc",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_arc_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_arc_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_arc_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:arc"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_solar",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_solar_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_solar_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_solar_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:solar"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_void",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_void_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_void_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_void_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:void"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_stasis",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_stasis_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_stasis_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_stasis_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:stasis"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:unflinching_strand",
+      "modifiers": [
+        {
+          "id": "copies",
+          "profile": "chorus_d2:unflinching_strand_copies",
+          "stage": "copies",
+          "group": "copies",
+          "op": "add",
+          "stacking_key": "chorus_d2:unflinching_strand_copies",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "resistance",
+          "profile": "chorus_d2:incoming_flinch",
+          "stage": "armor",
+          "group": "armor",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:unflinching",
+          "value": {
+            "type": "chorus:curve",
+            "of": {
+              "type": "chorus:profile_value",
+              "profile": "chorus_d2:unflinching_strand_copies",
+              "input": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "curve": {
+              "type": "chorus:table",
+              "points": [
+                {
+                  "input": 0,
+                  "output": 0
+                },
+                {
+                  "input": 1,
+                  "output": -0.25
+                },
+                {
+                  "input": 2,
+                  "output": -0.3
+                },
+                {
+                  "input": 3,
+                  "output": -0.35
+                }
+              ],
+              "interpolation": "exact",
+              "boundary": "error"
+            },
+            "from": "count",
+            "to": "delta"
+          },
+          "evaluate": "on_use",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:event_source_tag",
+                "tag": "chorus_d2:strand"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:incoming_flinch_query"
+              },
+              {
+                "type": "chorus:weapon_aiming",
+                "ready": true
+              }
+            ]
+          },
+          "reference": "Compendium Armor Mods H8/J8; current Clarity Unflinching Aim variants; data/d2-research/2026-10-12/unflinching.json",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

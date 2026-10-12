@@ -1,0 +1,606 @@
+{
+  "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+  "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+  "retrieved_at": "2026-10-12T08:47:12.875313+00:00",
+  "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+  "entries": {
+    "293178904": {
+      "hash": 293178904,
+      "name": "Unflinching Harmonic Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with Weapons matching your Subclass Element:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "319908131": {
+      "hash": 319908131,
+      "name": "Unflinching Arc Aim",
+      "lastUpload": 1712174090388,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "arc"
+                ]
+              },
+              {
+                "text": "Arc Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "792400107": {
+      "hash": 792400107,
+      "name": "Unflinching Arc Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "arc"
+                ]
+              },
+              {
+                "text": "Arc Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "1019574576": {
+      "hash": 1019574576,
+      "name": "Unflinching Solar Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "solar"
+                ]
+              },
+              {
+                "text": "Solar Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "1118428792": {
+      "hash": 1118428792,
+      "name": "Unflinching Stasis Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "stasis"
+                ]
+              },
+              {
+                "text": "Stasis Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "1262438062": {
+      "hash": 1262438062,
+      "name": "Unflinching Kinetic Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with Kinetic Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "1553790504": {
+      "hash": 1553790504,
+      "name": "Unflinching Solar Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "solar"
+                ]
+              },
+              {
+                "text": "Solar Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2325151798": {
+      "hash": 2325151798,
+      "name": "Unflinching Kinetic Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with Kinetic Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "2959504464": {
+      "hash": 2959504464,
+      "name": "Unflinching Stasis Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "stasis"
+                ]
+              },
+              {
+                "text": "Stasis Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3094620656": {
+      "hash": 3094620656,
+      "name": "Unflinching Harmonic Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with Weapons matching your Subclass Element:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3437323171": {
+      "hash": 3437323171,
+      "name": "Unflinching Void Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3598972737": {
+      "hash": 3598972737,
+      "name": "Unflinching Strand Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "strand"
+                ]
+              },
+              {
+                "text": "Strand Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3887037435": {
+      "hash": 3887037435,
+      "name": "Unflinching Void Aim",
+      "lastUpload": 1680349104559,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "void"
+                ]
+              },
+              {
+                "text": "Void Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "3979621113": {
+      "hash": 3979621113,
+      "name": "Unflinching Strand Aim",
+      "lastUpload": 1680554889429,
+      "type": "Armor Mod General",
+      "uploadedBy": "Stardust",
+      "descriptions": {
+        "en": [
+          {
+            "linesContent": [
+              {
+                "text": "While Aiming Down Sights with "
+              },
+              {
+                "classNames": [
+                  "strand"
+                ]
+              },
+              {
+                "text": "Strand Weapons:"
+              }
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Grants 25%|30%|35% Flinch Resistance with 1|2|3 Mods equipped."
+              }
+            ]
+          },
+          {
+            "classNames": [
+              "spacer"
+            ]
+          },
+          {
+            "linesContent": [
+              {
+                "text": "Stacks multiplicatively with other Flinch Resistance sources."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "version": "compendium-2026-10-05",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:chest",
+        "accepts": [
+          "test:chest"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:unflinching_chest",
+        "tags": [
+          "test:chest"
+        ],
+        "sockets": {
+          "mod_0": {
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "kinetic": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand": {
+                "bundle": "chorus_d2:unflinching_strand"
+              }
+            },
+            "required": true
+          },
+          "mod_1": {
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "kinetic": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand": {
+                "bundle": "chorus_d2:unflinching_strand"
+              }
+            },
+            "required": true
+          },
+          "mod_2": {
+            "options": {
+              "none": {
+                "bundle": "test:empty"
+              },
+              "kinetic": {
+                "bundle": "chorus_d2:unflinching_kinetic"
+              },
+              "arc": {
+                "bundle": "chorus_d2:unflinching_arc"
+              },
+              "solar": {
+                "bundle": "chorus_d2:unflinching_solar"
+              },
+              "void": {
+                "bundle": "chorus_d2:unflinching_void"
+              },
+              "stasis": {
+                "bundle": "chorus_d2:unflinching_stasis"
+              },
+              "strand": {
+                "bundle": "chorus_d2:unflinching_strand"
+              }
+            },
+            "required": true
+          }
+        }
+      }
+    ]
+  }
+}

@@ -30,7 +30,12 @@ public class NoDistractionsGameTest {
         put(t, "helmet", new Loadout.Gear("helmet-" + health, "test:helmet", Map.of(), Map.of("health", new Measure(health, Unit.STAT_POINT))));
     }
     static ProjectileGameTest.Harness open(GameTestHelper h, boolean enhanced) throws Exception {
-        var t = new ProjectileGameTest.Harness(h, "no_distractions_weapon", data -> RadiantGameTest.merge(data, "no_distractions", "weapon_flinch", "weapon_stats", "character_stats"), true);
+        return open(h, enhanced, _ -> {});
+    }
+    static ProjectileGameTest.Harness open(GameTestHelper h, boolean enhanced, java.util.function.Consumer<com.google.gson.JsonObject> edit) throws Exception {
+        var t = new ProjectileGameTest.Harness(h, "no_distractions_weapon", data -> {
+            RadiantGameTest.merge(data, "no_distractions", "weapon_flinch", "weapon_stats", "character_stats"); edit.accept(data);
+        }, true);
         try {
             t.owner.setXRot(0); t.owner.setYRot(0); t.owner.setGameMode(GameType.SURVIVAL); t.owner.setInvulnerableTime(0); t.owner.getFoodData().setFoodLevel(0);
             gun(t, "primary", "a", enhanced ? "enhanced" : "normal"); gun(t, "secondary", "b", "enhanced"); helmet(t, 100); PugilistGameTest.draw(t, "primary");

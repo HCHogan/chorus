@@ -1954,8 +1954,18 @@ Range 先进入现有 0–100 属性管线，再计算射程端点；反弹命�
 
 计算为：`S = clamp(基础 Stability + 合资格点数，再应用声明的属性倍率, 0, 100)`；`F_stability = 1 − (S − 20) / 80 × C`。C 采用固定 Foundry 函数：Auto Rifle/SMG/Bow/Trace Rifle 为 0.25；Pulse/Scout/Sidearm/Machine Gun 为 0.20；Hand Cannon 为 0.15；Fusion/Shotgun/Sniper/Grenade Launcher/Linear Fusion/Rocket Launcher 为 0.10。20 以下保留增加 flinch 的惩罚，例如自动步枪 S=0 时 F=1.0625；未知或冲突原型标签不静默当作零收益。异域例外和全目录分类仍待确认。
 
-`F_health = 1 − min(Health,100) × 0.001`，仅完成 ADS 时生效；Health 仍由现有 0–200 角色属性 Profile 查询。No Distractions 激活且完成 ADS 时 `F_perk = 0.65`。最终有符号角度为 `输入角度 × F_stability × F_health × 各 perk 家族乘积`，最后才接受宿主 float 精度和俯仰限制。它不修改实际伤害。S=50、Health=100、自动步枪并已激活 perk 的例子，倍率为 `0.90625 × 0.9 × 0.65 = 0.53015625`。
+`F_health = 1 − min(Health,100) × 0.001`，仅完成 ADS 时生效；Health 仍由现有 0–200 角色属性 Profile 查询。No Distractions 激活且完成 ADS 时 `F_perk = 0.65`。最终有符号角度为 `输入角度 × F_stability × F_health × F_armor × 各 perk 家族乘积`，最后才接受宿主 float 精度和俯仰限制。它不修改实际伤害。S=50、Health=100、自动步枪并已激活 perk、没有匹配护甲模组的例子，倍率为 `0.90625 × 0.9 × 1 × 0.65 = 0.53015625`。
 
-普通版从 ADS 输入后安静等待 1 秒；等待中成功开火重新计时，已激活后开火保留到退出 ADS。空弹匣不阻止等待。强化版要求显式时长参数，验收采用 Clarity 支持的 0.9 秒，原表问号保留为校准边界。计时与完成 ADS 分离、装备变更时机、取消/取样窗口为 Chorus 政策。三件 Unflinching 模组已由原表确认 0.65 倍，保留与 Foundry 0.6 的冲突；本批没有装配该模组。
+普通版从 ADS 输入后安静等待 1 秒；等待中成功开火重新计时，已激活后开火保留到退出 ADS。空弹匣不阻止等待。强化版要求显式时长参数，验收采用 Clarity 支持的 0.9 秒，原表问号保留为校准边界。计时与完成 ADS 分离、装备变更时机、取消/取样窗口为 Chorus 政策。三件 Unflinching 模组采用当前原表与 Clarity 一致的 0.65 倍，保留与 Foundry 0.6 的冲突；后续装配见下一节。
 
 八项核心测试覆盖 480 组武器/模式/稳定性/Health 配置及三个 ADS 阶段、两版计时、成功/失败射击、空弹匣、来源隔离/限幅、卸装和恢复。六项共享世界场景使用真实独立武器与头部装备，验证实际受伤/Absorption、瞄准旋转、发射后仍保留抗抖、属性重取样、切枪和未知结果不重放。绝对基础 flinch 仍由攻击显式输入；参考 2°/−10°、基础伤害/属性、射程、弹量、射速和 ADS 时长均非原作测量。后坐力恢复、视觉晃动、PvE stagger、正式内容/HUD 与物理世界重启未完成，条目保持 partial。B152 图标已原样导入并目视核对，[素材清单](../data/compendium/assets/2026-10-12-no-distractions/manifest.json) 保留原始坐标，尚未绑定 UI。
+
+### Unflinching Aim 护甲抗抖
+
+当前原表 Armor Mods H8/J8 与固定快照逐格一致：匹配模组元素的武器在 ADS 时获得 25%/30%/35% 抗抖，其他来源之间相乘。2026-10-12 重新抓取的 Clarity `039cfbc` 中六种元素与 Harmonic 的描述共 14 条记录支持相同档位；原件、哈希和旧 Foundry 三件 0.6 倍冲突保存在 [研究记录](../data/d2-research/2026-10-12/unflinching.json)。[官方 Lightfall 更新](https://www.bungie.net/7/en/News/article/update_7_0_0_1) 记录了武器原型模组改按伤害属性分类的历史迁移，当前精确数值以原表为准。
+
+六种固定属性 Bundle 已接入：动能、电弧、日灼、虚空、冰影、缚丝。令 `n = min(当前防守者装备的匹配模组件数, 3)`，`F_armor[n] = [1, 0.75, 0.70, 0.65]`；匹配的是当前持握武器，而非受到攻击的元素。沿用完成 ADS 的 Chorus 取样边界；腰射、进入及退出 ADS 时不获得模组抗抖。无 Armor Charge 要求或独立激活等待，开火不会移除其数值来源。三件模组与已激活 No Distractions 在 S=50、Health=100 的自动步枪上组合为 `0.90625 × 0.9 × 0.65 × 0.65 = 0.3446015625`，不改变伤害。
+
+参考胸甲使用独立装备栏的三个插槽。按当前来源实时统计，护甲替换不重启仍在同一把枪上的 No Distractions；切枪后重新按武器元素选择档位。八项核心测试覆盖六属性/两模式/四件数档位、30 种不匹配组合、敌方来源、攻击元素、实际装配约束和领域恢复。六项共享世界场景通过真实胸甲替换、日灼/电弧切枪、实际扣血/吸收量、开火、旋转和故障后不重放验收。I8 的 64×64 原始图标已导入并目视核对，[素材清单](../data/compendium/assets/2026-10-12-unflinching/manifest.json) 保留来源；尚未接 UI。
+
+Harmonic 当前子职业/超能属性、棱镜语义及与固定元素混装的计数尚未接入。护甲能量费用、解锁、正式目录/配装/HUD、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。

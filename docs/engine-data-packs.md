@@ -3606,7 +3606,7 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 
 ### 受击抗抖的实际消费者与 No Distractions
 
-`weapon_flinch.json` 定义 degree → degree 的 `chorus_d2:incoming_flinch` Profile：Stability、Health 各为独立 MAX 家族，perk 家族之间相乘，同一 No Distractions 家族去重。属性与曲线来自 [数值说明](d2-ruleset.md#no-distractions-与实际受击抗抖)，没有新增 Java 原语。
+`weapon_flinch.json` 定义 degree → degree 的 `chorus_d2:incoming_flinch` Profile：Stability、Health、护甲模组各为独立 MAX 阶段，perk 家族之间相乘，同一 No Distractions 家族去重。属性与曲线来自 [数值说明](d2-ruleset.md#no-distractions-与实际受击抗抖)，没有新增 Java 原语。
 
 每件武器只安装一个 `chorus_d2:weapon_flinch_receiver`，传入基础 `stability: stat_point`；另外安装稳定性和 Health 数值 Bundle。消费者监听本持有者的 `damage_taken`，仅当前持握武器处理带 `chorus_d2:flinch_input` 标签的伤害。攻击必须显式提供 `impact.flinch_yaw/pitch: degree`，二者均可有符号；未声明输入不推测角度，声明却缺字段则按严格数据规则失败。正的护盾、Absorption 或生命损失可以产生事实，免疫/取消/零损失不产生受击角度。
 
@@ -3617,3 +3617,13 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 计时从输入开始，Health 和已激活 perk 的修饰仅在 AIMED 阶段消费；长进入动画可能先达到计时门槛，再到完成 ADS 时获得抗抖。这是明确的 Chorus 取样政策。基础 Stability 影响当前持握武器的 hipfire/ADS 输入，不能将它等同于已经实现的原作后坐力或准确性。
 
 [独立装备参考](../common/src/test/resources/effects/no_distractions_weapon.json) 包含两把枪和独立头部护甲：Health 从护甲参数进入现有角色属性 Profile，受伤时重新读取；头部替换不重启枪上的 perk。真实瞬时射线每发扣弹并产生显式 flinch 输入。1 点伤害、2°/−10°、20 米、基础 Stability 50、ADS/射速/弹量均为合成验收输入；完整原作基础角度、特殊原型、视觉恢复和生产装配仍待校准。
+
+### Unflinching 的装备件数与护甲乘区
+
+`unflinching.json` 声明六个 `chorus_d2:unflinching_<element>` Bundle，element 为 kinetic/arc/solar/void/stasis/strand。每个装备插槽贡献一个来源，其专属 `*_copies` Profile 按持有者求和并限制为 0–3；精确表将件数映射为 1/0.75/0.70/0.65。所有同元素来源都提供相同的合并档位，`incoming_flinch` 的独立 `armor` MAX 阶段只应用一次该倍率，再与其他阶段相乘；三件不是 `0.75³`。
+
+模组只在完成 ADS、查询带 `chorus_d2:incoming_flinch_query` 且查询来源持有者匹配时生效。`event_source_tag` 读取防守武器的 `chorus_d2:<element>`，不使用模组自身标签或攻击的伤害属性。件数查询采用持有者局部 `profile_value`，无需继承武器身份；不同元素各有 Profile，不会将不匹配来源计入。内容须提供当前武器的单一元素标签；Osmosis/Permeability 等变色行为的实际来源更新需另行接入。
+
+`unflinching_equipment.json` 提供独立 chest 栏与三个必选 mod 插槽，每槽可选 none 或六种元素之一。空选择不贡献来源，缺失、未知、第四选项及错误装备栏由既有装备验证拒绝。护甲替换立即改变下一次受击的查询结果，未变更的武器 perk 来源继续计时/生效。非装备路径注入第四来源最多第三档；这不代表额外插槽可用。
+
+该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。Harmonic、护甲能量费用/解锁、正式目录与 UI 尚未接入；研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。

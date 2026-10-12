@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effect": "Unflinching Aim armor mods",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+    "retrieved_at": "2026-10-12T08:47:09.838048+00:00",
+    "path": "data/compendium/assets/2026-10-12-unflinching/sheets/1934379638.html.gz",
+    "raw_sha256": "04ee2a3050a2709428eb8e10103300fd81c4987f0b8d7784b42f5b044b727808",
+    "gzip_sha256": "052e06676ebbe97cfaa0142016a38058330ed5c5f83d5eb768b2ef563a6e2014",
+    "cell_checks": [
+      {
+        "sheet": "Armor Mods",
+        "snapshot_cell": "H8",
+        "original_cell": "H8",
+        "normalized_equal": true,
+        "snapshot_text_sha256": "9a6f87a1f3d8770e16f6be888fe4d7431fc7fc2aaf664efaf2f793919c48f6b0",
+        "original_text_sha256": "9a6f87a1f3d8770e16f6be888fe4d7431fc7fc2aaf664efaf2f793919c48f6b0"
+      },
+      {
+        "sheet": "Armor Mods",
+        "snapshot_cell": "J8",
+        "original_cell": "J8",
+        "normalized_equal": true,
+        "snapshot_text_sha256": "0c6dc100de2994a91b2694bece2fcdbe204306672f5357ce20ceecd2c9b96960",
+        "original_text_sha256": "0c6dc100de2994a91b2694bece2fcdbe204306672f5357ce20ceecd2c9b96960"
+      }
+    ]
+  },
+  "clarity": {
+    "path": "data/d2-research/2026-10-12/unflinching-clarity.json",
+    "sha256": "a009a83341783eb19b40c2accddb8700f0561943543a52b4e60e36209b8c0945",
+    "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "selected_hashes": [
+      "293178904",
+      "319908131",
+      "792400107",
+      "1019574576",
+      "1118428792",
+      "1262438062",
+      "1553790504",
+      "2325151798",
+      "2959504464",
+      "3094620656",
+      "3437323171",
+      "3598972737",
+      "3887037435",
+      "3979621113"
+    ]
+  },
+  "conflicting_oracle": {
+    "commit": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs",
+    "sha256": "dbe89255fd7a4dbcdfed157320f9d2d6f04cbffa3422f1be407af2a71b29b6d2",
+    "three_copy_factor": 0.6,
+    "selected_factor": 0.65,
+    "policy": "Fresh original table and current Clarity agree on 35 percent resistance. Retain the conflict; do not use the legacy 40 percent tier."
+  },
+  "primary_context": {
+    "url": "https://www.bungie.net/7/en/News/article/update_7_0_0_1",
+    "claim": "Historical Lightfall mod migration changed weapon-archetype mods to weapon-damage-type mods; current exact factors come from the original Compendium and Clarity."
+  },
+  "algorithm": {
+    "elements": [
+      "kinetic",
+      "arc",
+      "solar",
+      "void",
+      "stasis",
+      "strand"
+    ],
+    "copies": "Count currently equipped matching-element sources on the defender, clamped to 0..3. Every socket contributes one source; no cached charge or buff.",
+    "factors": [
+      1,
+      0.75,
+      0.7,
+      0.65
+    ],
+    "sampling": "Only completed ADS. Match the defending held weapon origin tags, not the incoming attack element.",
+    "composition": "incoming angle * Stability * Health * one armor factor * other perk factors. All matching copies expose the same combined tier to the MAX armor stage, never one multiplier per copy."
+  },
+  "policies": [
+    "The three-socket chest reference uses the independent equipment container. Replacing armor changes the next hit immediately without restarting an unchanged No Distractions source.",
+    "Out-of-band fourth copies saturate at tier three; the reference chest has exactly three required choices and rejects unknown/fourth choices. Armor energy budget and unlock/cost constraints are not yet modeled.",
+    "Completed ADS is the same explicit Chorus sampling boundary as Health/No Distractions. Exact original transition interpolation remains uncalibrated.",
+    "Source tags describe the currently held weapon element. Alternate damage-type weapons require their actual mode-to-origin provider; this batch does not infer an element from the incoming hit or invent Osmosis/Permeability behavior.",
+    "Harmonic descriptions are preserved in the source record but the variant is not installed. Current subclass/Super element selection, Prismatic semantics and mixed harmonic/elemental copy accounting remain to implement.",
+    "Base incoming flinch, reference rifle health/damage/ammo/rate/ADS inputs remain synthetic. Formal catalogue, equip UI/HUD, world restart, recoil recovery and visual shake remain incomplete."
+  ],
+  "asset_manifest": "data/compendium/assets/2026-10-12-unflinching/manifest.json"
+}
