@@ -1,0 +1,120 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:ricochet_rounds",
+      "parameters": {
+        "ricochet_bounces": "count"
+      },
+      "modifiers": [
+        {
+          "id": "ricochet_range",
+          "profile": "chorus_d2:weapon_range",
+          "stage": "perks",
+          "group": "range",
+          "op": "add",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 6,
+              "unit": "stat_point"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 5,
+              "unit": "stat_point"
+            }
+          },
+          "stacking_key": "chorus_d2:ricochet_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C189 / fixed CSV C188; data/d2-research/2026-10-12/ricochet-rounds.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "ricochet_stability",
+          "profile": "chorus_d2:weapon_stability",
+          "stage": "perks",
+          "group": "stability",
+          "op": "add",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 11,
+              "unit": "stat_point"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "stat_point"
+            }
+          },
+          "stacking_key": "chorus_d2:ricochet_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks original C189 / fixed CSV C188; data/d2-research/2026-10-12/ricochet-rounds.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "ricochet_bounces",
+          "profile": "chorus_d2:weapon_ricochet_grant",
+          "stage": "perks",
+          "group": "ricochet",
+          "op": "add",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "ricochet_bounces"
+          },
+          "stacking_key": "chorus_d2:ricochet_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Guaranteed ricochet from Compendium; maximum bounces supplied explicitly by the weapon, not specified by this source.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

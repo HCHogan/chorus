@@ -32,6 +32,22 @@
           }
         }
       ]
+    },
+    {
+      "id": "chorus_d2:weapon_ricochet_grant",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "ricochet",
+            "reduction": "max"
+          }
+        }
+      ]
     }
   ]
 }

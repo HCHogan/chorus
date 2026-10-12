@@ -12252,6 +12252,119 @@
           "text_sha256": "5087fb2ef94fd603312be360506ab21f3e3a3bf1703f689fea18459f08f460ae"
         }
       ]
+    },
+    {
+      "id": "weapon/ricochet_rounds",
+      "name": "Ricochet Rounds",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "普通/强化+5/+6 Range、+10/+11 Stability；独立武器反弹授予与累计路程衰减，穿甲弹组合参考",
+      "acceptance": [
+        "真实装备的普通/强化数值按持有者和武器实例隔离；同perk家族取MAX，合计后属性限幅",
+        "每件武器明确提供正整数反弹次数，与固有次数取MAX；未装perk不借用另一把枪的反弹或属性",
+        "一发子弹按真实表面反射和累计路程伤害，单次扣弹与整枪统计；换枪后使用新武器来源",
+        "独立装配穿甲弹时反弹后穿透两目标，并逐盾层选择5%倍率；单独Ricochet没有穿透和盾伤收益",
+        "Codec/领域恢复保存选择和参数；未知世界结果保留付款和首笔伤害，不执行后续接触或重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ricochet_rounds.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ricochet_rounds_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_ballistics.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "ordinaryAndEnhancedStatsStayOnTheirOwnWeaponAndClampAfterAddition"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "onePaidBulletReflectsAndUsesTravelledDistanceWithEachVersionsRange"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "unequippedWeaponStopsAtWallAndSwitchingToEnhancedEnablesTheNextShot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "configuredBounceGrantDoesNotReduceIntrinsicBouncesAndDoesNotGrantPenetration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "penetrationCompositionKeepsOnePaymentAndIndependentTravelDistances"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "duplicateSourcesUseTheGreatestFamilyBonusAndCannotBorrowAnotherOwnersGrant"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "gearRequiresExplicitPositiveIntegralBouncePolicy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/RicochetRoundsTest.java",
+          "symbol": "definitionAndDomainRestoreKeepTheSelectedPerkAndQueryPolicy"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetRoundsGameTest.java",
+          "symbol": "bothVariantsChangeEquippedStatsAndActualReflectedFalloff"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetRoundsGameTest.java",
+          "symbol": "changingTheDrawnWeaponEnablesReflectionWithoutBorrowingItsPerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetRoundsGameTest.java",
+          "symbol": "reflectionAndPenetrationComposeWithQualifiedShieldScaling"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetRoundsGameTest.java",
+          "symbol": "ricochetAloneDoesNotBorrowArmorPiercingsShieldBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetRoundsGameTest.java",
+          "symbol": "unknownDamageRetainsPaymentAndDoesNotContinueTheReflectedPath"
+        }
+      ],
+      "gaps": [
+        "正式内容目录、实际掉落/配装/HUD及物理世界整体重启未完成；原图已导入但尚未绑定UI",
+        "Stability当前只接数值查询，真实后坐力、准确性、flinch和镜头尚未接入",
+        "原表没有给通用反弹次数；最大次数、材质/角度、同目标重入、自伤倍率和proc资格仍须逐武器校准",
+        "独立穿甲弹socket是组合验收，不声明原作合法roll或完整Seraph Rounds；所有基础伤害、射速、弹量、目标几何和衰减形状均为显式参考输入",
+        "同perk家族MAX、固有能力MAX、冻结路径、按累计路程衰减的原作边界仍待校准"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A188",
+          "text_sha256": "43e8ba4d06982e6243293a468fd6ef6894c1b74005cf6f450c418d33fc2da7b0"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C188",
+          "text_sha256": "43c2f1a133f404ca065bfe0ef1a37a93545a11664056cbf4bf7f1365df67c136"
+        }
+      ]
     }
   ]
 }

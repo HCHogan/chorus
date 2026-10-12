@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T07:01:33.917298+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "705d2f206e80216d8639f467ecb9e1735dbf476b2e2785f62bdfe97d4d9ac99c"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/ricochet_rounds",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Ricochet Rounds",
+      "label_cell": "A189",
+      "image_cell": "B189",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B189",
+      "image_url": "https://lh3.googleusercontent.com/docsubipk/AP9E6xUAW1ceFCnrzO_DwRhLk_CIpPFos27DsSauPfJBfgT6fbqTW6rxFW0_LDXVN0FL09IT3R1n-A_H5MEIHLjuGukClpaPIQgHChUs0DSgOT6BS88mIW16ah6qd_yKB-A4ODrPaeLebG-pJY9AuvwJic25qHVDXdRl4tycWq3Z=s89-w70-h89",
+      "retrieved_at": "2026-10-12T07:01:34.242060+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/ricochet_rounds.png",
+      "texture": "chorus_d2:textures/gui/perks/ricochet_rounds.png",
+      "sha256": "c317b27fd49c246b110965575e635c81a2bbd861dd3b4242457902fcfb6d5776",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

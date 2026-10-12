@@ -3560,6 +3560,8 @@ hitscan 步骤外层可声明 `bounces`（非负整数 count），同时保留�
 
 宿主读取实际方块 COLLIDER 形状，按命中面的单位法向量 n 反射单位方向 d：`d′ = d − 2(d·n)n`。每次从上一碰撞点继续，剩余范围减去本段实际路程；不把反弹当成一条重新获得完整射程的新射线。无需把起点沿法向量挪出墙外，闭区间碰撞算法会排除朝外离开的同一面。嵌入形状内部、预算耗尽或命中恰好位于射程终点时停止；未知区块保持 unloaded，不能当作墙反弹，也不会加载区块。流体仍不阻挡。
 
+相邻方块接缝在大坐标下可能因端点舍入产生多个几乎同时的入射面。宿主只在按坐标 ULP 判断的多面歧义处检查已加载的相邻碰撞形状，保留外露面并排除实体内部接缝；法线改变不移动碰撞点，也不以统一 X/Y/Z 优先级替代墙的实际朝向。普通实体 AABB 接触仍沿用原算法，嵌入与向外离开同一面仍保留原终止/排除语义。
+
 `distance` 对反弹接触表示从最初枪口走过的累计路程；`segment_distance` 是本直线段起点至当前接触的距离。两字段在无反弹射线上相等。`position_distance(muzzle, impact)` 仍是两点直线距离，不自动改变语义；需要弹道路程衰减的内容应读取接触的 distance。`bounces` 在非终止方块接触处已包含本次反弹，后续实体继承；`bounced` 只在实际继续的方块接触为真。实体几何和相对弱点坐标仍来自各个捕获碰撞箱。
 
 pierces 限制整个路径中第一次之后的额外实体接触次数，不在每次反弹时重置。hits_per_target 决定同一实体在整条路径内允许接触几次，默认 1；显式设为 2 或更高时，反弹回来可以再次造成伤害，同时消耗额外接触预算。一条直线段仍只记录每个实体一次，重复回执不能假造重入；换段后才可再次入选。entity_contacts 累计所有实体接触，target_contacts 累计当前实体的接触；整枪汇总仍按不同弹丸/不同目标去重，两次伤害不伪造两个弹丸或两个目标。发射者 owner/emitter 在初始段始终排除；只有显式启用 hit_origin_after_bounce 且已经发生反弹时，才可作为后续目标，归因保持原真实身份。这是可配置宿主能力，不替内容决定自身伤害倍率或自杀/击杀 perk 的资格。
@@ -3567,3 +3569,11 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 一次世界查询冻结所有线段、几何与顺序，然后逐接触执行动作体。前一方块动作移除墙体或前一伤害移动目标，不重画后面的反弹路径；后续真正写入仍检查目标当前资格。方块接触与后续实体共用一个整枪成员、递增序号，各次动作体关闭后再打开下一次，仅最后接触完成成员。未知世界结果保留既有付款/写入并停止，独立 after 保留路程与反弹数但不保留已结束的记账资格。
 
 反弹步骤、Query、Prepared、Result、Contact 使用五个新增存储 ID，目录由 614 增至 619。原始单接触/穿透记录字段与枚举精确保持。结果校验各段连接、反射方向、剩余射程、单调路程、总计数、来源碰撞开关、每目标次数及每段唯一目标，不接受截短或错配路径。所有表面反射、次数、目标重入和自身碰撞政策与原作的对应范围见 [来源记录](../data/d2-research/2026-10-12/ricochet-hitscan.json)。
+
+### Ricochet Rounds 的装备属性与反弹授予
+
+[ricochet_rounds.json](../common/src/test/resources/effects/ricochet_rounds.json) 提供一个普通/强化共用 Bundle；强化由来源标签 chorus:enhanced 区分。普通 / 强化分别向 weapon_range 加 5 / 6，向 weapon_stability 加 10 / 11。来源必须同时匹配查询持有者和本武器实例。两个属性 Profile 为该 stacking_key 配置 MAX 家族，同词条多个来源只取最大加值，再与其它家族相加并限幅；这是显式内容叠加政策。
+
+`chorus_d2:weapon_ricochet_grant` 接收 count，perks/ricochet 阶段以 MAX 合并授予值。Ricochet Bundle 要求 `ricochet_bounces: count` 参数，引用装备原型中同名的正整数参数；原表没有规定通用最大反弹次数，定义不隐藏默认次数。该参数与初始射程、穿透数、每目标次数分别控制不同预算。反弹能力的最终值为 max(固有值, perk 授予值)，不能让 perk 降低已有更高能力。
+
+[参考消费者](../common/src/test/resources/effects/ricochet_rounds_weapon.json) 使用独立 magazine 槽的 none/normal/enhanced，读取反弹 Profile 后构造 hitscan.bounces，按 impact.distance 计算实际折线路程。另一可选 penetration 槽仅用于独立穿甲弹组合验收；它不是原作合法 roll 或 Seraph Rounds 的声明。Ricochet 自身不授予穿透、盾伤或额外生命伤害。稳定性当前可查询，但尚不驱动后坐力、flinch 或准确性。正式目录与 UI、原作次数和资格校准仍见 [内容边界](d2-ruleset.md#ricochet-rounds-的属性与独立装配)。

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "source": {
+    "path": "data/compendium/assets/2026-10-12-ricochet/sheets/1662574278.html.gz",
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+    "gzip_sha256": "b43cfdf94f34f0cc7a1490181fda8ccfa33abe64f538fd35e81c0009ff2d7aed",
+    "raw_sha256": "705d2f206e80216d8639f467ecb9e1735dbf476b2e2785f62bdfe97d4d9ac99c",
+    "retrieved_at": "2026-10-12T07:01:33.917298+00:00"
+  },
+  "cell_checks": [
+    {
+      "original_cell": "A189",
+      "snapshot_cell": "A188",
+      "normalized_equal": true,
+      "text_sha256": "43e8ba4d06982e6243293a468fd6ef6894c1b74005cf6f450c418d33fc2da7b0"
+    },
+    {
+      "original_cell": "C189",
+      "snapshot_cell": "C188",
+      "normalized_equal": true,
+      "text_sha256": "43c2f1a133f404ca065bfe0ef1a37a93545a11664056cbf4bf7f1365df67c136"
+    }
+  ],
+  "primary_context": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_5_6",
+      "fact": "Official March 24 2026 patch fixes enhanced Ricochet Rounds stat benefit; exact Range/Stability values and bounce policies are not enumerated."
+    }
+  ],
+  "implemented_values": {
+    "normal": {
+      "range_stat_points": 5,
+      "stability_stat_points": 10
+    },
+    "enhanced": {
+      "range_stat_points": 6,
+      "stability_stat_points": 11
+    }
+  },
+  "content_policies": [
+    "Maximum surface bounces remains an explicit positive integral weapon parameter. Tests use one; no universal Destiny maximum is inferred.",
+    "Perk grant and intrinsic bounce capacity use MAX. Same-perk Range and Stability families use MAX; other families remain additive. Original duplicate-source stacking requires further calibration.",
+    "Range points feed existing endpoint curves before cumulative-path falloff. The test interpolation, damage/ammo/fire-rate bases and weakpoint geometry remain synthetic.",
+    "Ricochet alone does not grant penetration or shield damage. A second, independent synthetic socket combines Armor-Piercing Rounds for engine composition tests; this is not a legal D2 roll or full Seraph Rounds definition.",
+    "Reference consumer defaults to excluding origin and one contact per target; the core supports configurable origin/re-entry policy, which remains uncalibrated for original weapons.",
+    "Stability is an equipped numeric query; actual recoil/flinch/accuracy and aim presentation are not implemented by this change. Formal content catalogue, visual ricochets, loadout/HUD and physical world restart remain incomplete."
+  ]
+}

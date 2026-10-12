@@ -17,7 +17,10 @@
               "chorus_d2:snapshot_sights_stability": {
                 "kind": "max"
               },
-              "chorus_d2:timed_payload": {"kind": "max"}
+              "chorus_d2:timed_payload": {"kind": "max"},
+              "chorus_d2:ricochet_rounds": {
+                "kind": "max"
+              }
             }
           }
         },
@@ -192,7 +195,12 @@
           "operation": "add",
           "group": {
             "name": "range",
-            "reduction": "sum"
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:ricochet_rounds": {
+                "kind": "max"
+              }
+            }
           }
         },
         {
