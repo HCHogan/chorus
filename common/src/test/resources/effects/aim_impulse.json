@@ -1,0 +1,27 @@
+{
+  "version": "test-1",
+  "resources": [{"id":"test:aim_energy","capacity":1,"initial":1,"base_rate":0}],
+  "profiles": [{"id":"test:aim_pitch","version":"test-1","input_unit":"degree","steps":[
+    {"type":"chorus:apply","id":"resistance","operation":"multiply","group":{"name":"resistance","reduction":"product"}}
+  ]}],
+  "abilities": [{
+    "id":"test:aim_kick","slot":"test:aim","tags":["test:aim"],
+    "cost":{"resource":"test:aim_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+    "effects":{"observer":{"bundle":"test:aim_observer"}},
+    "on_use":[{"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+      {"action":{"type":"chorus:apply_aim_impulse",
+        "yaw":{"type":"chorus:constant","value":3,"unit":"degree"},
+        "pitch":{"type":"chorus:profile_value","profile":"test:aim_pitch","input":{"type":"chorus:constant","value":-12,"unit":"degree"}},
+        "tags":["test:kick"]},"as":"aim"},
+      {"if":{"type":"chorus:result_flag","binding":"aim","field":"applied"},"then":[
+        {"type":"chorus:heal","amount":{"type":"chorus:scale","of":{"type":"chorus:result","binding":"aim","field":"delta_pitch"},"factor":-1,"from":"degree","to":"damage"}}
+      ]}
+    ]}]
+  }],
+  "bundles":[
+    {"id":"test:aim_observer","rules":[{"id":"applied","on":"chorus:aim_impulse_applied","do":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}]}]},
+    {"id":"test:aim_resist","modifiers":[{"id":"half","profile":"test:aim_pitch","stage":"resistance","group":"resistance","op":"multiply",
+      "value":{"type":"chorus:constant","value":-0.5,"unit":"delta"},"stacking_key":"test:aim_resist",
+      "if":{"type":"chorus:source_is","source":"owner"},"reference":"Synthetic aim impulse host acceptance; not a D2 calibration","confidence":"assumed"}]}
+  ]
+}

@@ -619,6 +619,12 @@ public final class EffectCodecs {
                         values.fieldOf("distance").forGetter(DisplacementActions.Apply::distance), enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(DisplacementActions.Apply::origin),
                         ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(DisplacementActions.Apply::tags)
                 ).apply(i, DisplacementActions.Apply::new)))
+                .register("chorus:apply_aim_impulse", AimActions.Apply.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(AimActions.Apply::target),
+                        values.fieldOf("yaw").forGetter(AimActions.Apply::yaw), values.fieldOf("pitch").forGetter(AimActions.Apply::pitch),
+                        enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(AimActions.Apply::origin),
+                        ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(AimActions.Apply::tags)
+                ).apply(i, AimActions.Apply::new)))
                 .register("chorus:apply_impulse", MotionActions.Apply.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(MotionActions.Apply::target), Codec.STRING.fieldOf("direction").forGetter(MotionActions.Apply::direction),
                         values.fieldOf("speed").forGetter(MotionActions.Apply::speed), impulseScale(values).optionalFieldOf("axis_scale", MotionActions.AxisScale.ONE).forGetter(MotionActions.Apply::axisScale),

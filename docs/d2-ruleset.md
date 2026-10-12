@@ -1939,3 +1939,11 @@ Range 先进入现有 0–100 属性管线，再计算射程端点；反弹命�
 八项核心与五项共享世界场景覆盖属性/来源隔离、卸装和切枪、配置次数、固有能力、重复来源家族、累计路程、护盾组合、领域恢复及未知结果不重放。Stability 目前是数值查询，真实后坐力、准确性、flinch 和镜头仍需接线；原作材料/角度、次数、重入、自伤与 proc 资格也尚未逐武器确认。基础伤害、弹量、射速、弱点及距离插值继续使用参考输入，不能作原作绝对校准结论。
 
 原表 B189 的 70×70 PNG 已原样导入并目视检查，[素材清单](../data/compendium/assets/2026-10-12-ricochet/manifest.json) 保留坐标与字节来源，尚未绑定 HUD。定义仍为参考资源，正式目录/掉落/配装、表现和物理世界重启未完成，本条保持 partial。
+
+### 真实瞄准、Flinch 与视觉晃动的宿主边界
+
+同日保存的原表 High-Caliber、No Distractions、Seraph 与 Zen Moment 文本已与固定快照逐格对照，来源坐标和哈希见 [角度冲量研究记录](../data/d2-research/2026-10-12/aim-impulse.json)。它们要求区分出射 flinch 增幅、持有者抗抖、实际瞄准偏移及武器/准星视觉晃动；Zen Moment 的视觉效果不能直接套用为真实后坐力减幅，原表问号仍为未知。
+
+后续数值接线须处理来源差异：2026-10-12 查验 Foundry main 仍为 `dcd0c7d`，其 [calc_flinch_resist](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs) 使用旧 Resilience 0–10 参数；固定快照 Game Mechanics C22/E22 则把角色收益定义为 Health 每点 0.1%、最多 10%，且要求 ADS。三件 Unflinching 模组在 [Foundry](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs) 为 0.6 倍，快照 Armor Mods H8/J8 为 0.65 倍。两处冲突已记录，角色属性/模组原表需随内容接线再核验；本批不引入旧韧性模型，也不静默选取冲突值。
+
+通用 `apply_aim_impulse` 现支持 Profile 求值后的双轴 degree 请求、真实宿主旋转和玩家原生相对旋转包。它为 recoil/flinch 提供实际瞄准消费者，但尚不包含各武器的基础强度、Stability 曲线、伤害到 flinch 的换算、恢复曲线和 PvE stagger。测试角度、0.5 倍修饰与采样时机为 Chorus 合成验收配置；本批没有新增完成的 Compendium 条目，也没有把 Ricochet 的 Stability 自动接成原作后坐力。客户端回传和鼠标保留的协议边界见 [接口说明](engine-data-packs.md#真实瞄准的角度冲量)。

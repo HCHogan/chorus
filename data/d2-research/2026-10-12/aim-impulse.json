@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "source": {
+    "path": "data/compendium/assets/2026-10-12-ricochet/sheets/1662574278.html.gz",
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+    "gzip_sha256": "b43cfdf94f34f0cc7a1490181fda8ccfa33abe64f538fd35e81c0009ff2d7aed",
+    "raw_sha256": "705d2f206e80216d8639f467ecb9e1735dbf476b2e2785f62bdfe97d4d9ac99c",
+    "retrieved_at": "2026-10-12T07:01:33.917298+00:00"
+  },
+  "cell_checks": [
+    {
+      "original_cell": "A118",
+      "snapshot_cell": "A117",
+      "normalized_equal": true,
+      "text_sha256": "f67144a11cf57d92750d299ef24337d4160868496d18df244568f57831a7ade8"
+    },
+    {
+      "original_cell": "C118",
+      "snapshot_cell": "C117",
+      "normalized_equal": true,
+      "text_sha256": "15922177722ab896d494057e1cec3e02930b4ecc6603fba36ffdd3cac27319b2"
+    },
+    {
+      "original_cell": "A152",
+      "snapshot_cell": "A151",
+      "normalized_equal": true,
+      "text_sha256": "8e7a7818b93c97ee205676785ba0557e99aac9ab5650ec3d966a54ece12db50e"
+    },
+    {
+      "original_cell": "C152",
+      "snapshot_cell": "C151",
+      "normalized_equal": true,
+      "text_sha256": "2819606cf0ec1fef50022a7b81ede695d904ffa73020b6acfda631451ae789f2"
+    },
+    {
+      "original_cell": "A192",
+      "snapshot_cell": "A191",
+      "normalized_equal": true,
+      "text_sha256": "2683e98efe2de64fda28ad46276e94e822cf0cf19817ace55eda7c291f684ca2"
+    },
+    {
+      "original_cell": "C192",
+      "snapshot_cell": "C191",
+      "normalized_equal": true,
+      "text_sha256": "c918b5c3f06d24bed82cc48f59248a27f7511201ccc7f0497a78ce3529f3ab30"
+    },
+    {
+      "original_cell": "A250",
+      "snapshot_cell": "A249",
+      "normalized_equal": true,
+      "text_sha256": "bf581891e074e8f7a06c568a08e7400ba961cf807e9933dd0ce92ab4bfa7e199"
+    },
+    {
+      "original_cell": "C250",
+      "snapshot_cell": "C249",
+      "normalized_equal": true,
+      "text_sha256": "42e928db9fac2655f570eb05ff020c1ef8152f3374760bc62cd1c0c6a0b60a07"
+    }
+  ],
+  "requirements": [
+    "High-Caliber and Seraph require an outgoing flinch modifier; combatant stagger is distinct from actual aim rotation.",
+    "No Distractions requires an ADS timing rule and incoming flinch multiplier.",
+    "Zen Moment distinguishes visual weapon shake and reticle bounce from actual recoil or camera motion; uncertain coefficients remain unknown."
+  ],
+  "implemented_contract": [
+    "apply_aim_impulse adds explicit signed degree values to real yaw/pitch; values may use existing numeric profiles.",
+    "Minecraft 26.3 Entity.forceSetRotation and PositionMoveRotation.calculateAbsolute apply native float addition and pitch limits. ServerPlayer sends ClientboundPlayerRotationPacket with both relative flags.",
+    "The native client adds the requested angles to current local aim, clamps pitch, resets old rotation and immediately reports ServerboundMovePlayerPacket.Rot.",
+    "Receipt measures synchronous host rotation, not a client acknowledgement. An in-flight client aim difference may change local clamping; mouse movement remains native.",
+    "No automatic aim recovery, recoil curve, visual-only reticle shake, damage-to-flinch mapping or combatant stagger is inferred from this primitive."
+  ],
+  "calibration": {
+    "fixture": "common/src/test/resources/effects/aim_impulse.json",
+    "yaw_degrees": 3,
+    "pitch_degrees": -12,
+    "synthetic_resist_multiplier": 0.5,
+    "status": "assumed host acceptance inputs, not D2 measurements"
+  },
+  "followup_source_findings": {
+    "oracle_engine_live_main_checked": "https://api.github.com/repos/d2foundry/oracle_engine/commits/main",
+    "commit": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "files": [
+      {
+        "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+        "sha256": "5662ee9dea9e59547d73f81cd7c02872046266acb7b24017d2d09c123f31e5c2"
+      },
+      {
+        "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs",
+        "sha256": "dbe89255fd7a4dbcdfed157320f9d2d6f04cbffa3422f1be407af2a71b29b6d2"
+      },
+      {
+        "url": "https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_2_perks.rs",
+        "sha256": "fbb8e0a73464b0333597f12dbab82eaa0d068caf3b03ea55310917b364ba322b"
+      }
+    ],
+    "conflicts": [
+      {
+        "topic": "character stat flinch resistance",
+        "snapshot": "Game Mechanics C22/E22",
+        "snapshot_rule": "Health contributes 0.1 percent per point while ADS, capped at 10 percent at 100",
+        "oracle_rule": "calc_flinch_resist still accepts legacy resilience 0..10, no ADS condition in the base stat branch",
+        "policy": "Do not blindly transplant the legacy character-stat branch; current snapshot Health rule needs a separately scoped consumer."
+      },
+      {
+        "topic": "three Unflinching mods",
+        "snapshot": "Armor Mods H8/J8",
+        "snapshot_multiplier": 0.65,
+        "oracle_multiplier": 0.6,
+        "policy": "Preserve the conflict; current snapshot is intended content baseline, pending current original-sheet validation."
+      }
+    ],
+    "consistent_reference": {
+      "topic": "No Distractions active multiplier",
+      "snapshot": "Weapon Perks A151/C151",
+      "multiplier": 0.65
+    },
+    "unimplemented": "The generic angle action does not itself select a D2 stability, character-stat, mod or perk formula."
+  }
+}

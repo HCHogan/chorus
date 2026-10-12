@@ -1,4 +1,11 @@
 {
+  "chorus:effect/data/aim_actions/apply": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "yaw:com.imdomestic.chorus.effect.data.Value", "pitch:com.imdomestic.chorus.effect.data.Value", "origin:com.imdomestic.chorus.effect.data.ActionOrigin", "tags:java.util.Set<java.lang.String>"],
+  "chorus:effect/motion/aim_impulse/command": ["target:java.lang.String", "yaw:double", "pitch:double", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin", "tags:java.util.Set<java.lang.String>"],
+  "chorus:effect/motion/aim_impulse/rotation": ["yaw:float", "pitch:float"],
+  "chorus:effect/motion/aim_impulse/change": ["before:com.imdomestic.chorus.effect.motion.AimImpulse$Rotation", "after:com.imdomestic.chorus.effect.motion.AimImpulse$Rotation"],
+  "chorus:effect/motion/aim_impulse/outcome": ["APPLIED", "UNCHANGED", "MISSING_TARGET", "DEAD", "SPECTATOR", "SLEEPING", "UNLOADED"],
+  "chorus:effect/motion/aim_impulse/receipt": ["command:com.imdomestic.chorus.effect.motion.AimImpulse$Command", "outcome:com.imdomestic.chorus.effect.motion.AimImpulse$Outcome", "change:java.util.Optional<com.imdomestic.chorus.effect.motion.AimImpulse$Change>"],
+  "chorus:effect/motion/aim_impulse/applied": ["event:com.imdomestic.chorus.effect.EffectEvent", "receipt:com.imdomestic.chorus.effect.motion.AimImpulse$Receipt"],
   "chorus:effect/data/effect_program/ricochet_hitscan": ["ray:com.imdomestic.chorus.effect.data.EffectProgram$Hitscan", "pierces:com.imdomestic.chorus.effect.data.Value", "bounces:com.imdomestic.chorus.effect.data.Value", "hitsPerTarget:com.imdomestic.chorus.effect.data.Value", "hitOriginAfterBounce:boolean"],
   "chorus:effect/projectile/ricochet_hitscan/query": ["ray:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "pierces:int", "bounces:int", "hitsPerTarget:int", "hitOriginAfterBounce:boolean"],
   "chorus:effect/projectile/ricochet_hitscan/prepared": ["query:com.imdomestic.chorus.effect.projectile.RicochetHitscan$Query"],

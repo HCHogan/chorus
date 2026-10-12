@@ -8,6 +8,13 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/data/aim_actions/apply", com.imdomestic.chorus.effect.data.AimActions.Apply.class);
+        types.put("chorus:effect/motion/aim_impulse/command", com.imdomestic.chorus.effect.motion.AimImpulse.Command.class);
+        types.put("chorus:effect/motion/aim_impulse/rotation", com.imdomestic.chorus.effect.motion.AimImpulse.Rotation.class);
+        types.put("chorus:effect/motion/aim_impulse/change", com.imdomestic.chorus.effect.motion.AimImpulse.Change.class);
+        types.put("chorus:effect/motion/aim_impulse/outcome", com.imdomestic.chorus.effect.motion.AimImpulse.Outcome.class);
+        types.put("chorus:effect/motion/aim_impulse/receipt", com.imdomestic.chorus.effect.motion.AimImpulse.Receipt.class);
+        types.put("chorus:effect/motion/aim_impulse/applied", com.imdomestic.chorus.effect.motion.AimImpulse.Applied.class);
         types.put("chorus:effect/target/entity_attachments/death_policy", com.imdomestic.chorus.effect.target.EntityAttachments.DeathPolicy.class);
         types.put("chorus:effect/target/entity_attachments/removal_policy", com.imdomestic.chorus.effect.target.EntityAttachments.RemovalPolicy.class);
         types.put("chorus:effect/target/entity_attachments/phase", com.imdomestic.chorus.effect.target.EntityAttachments.Phase.class);

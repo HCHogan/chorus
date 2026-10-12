@@ -3577,3 +3577,29 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 `chorus_d2:weapon_ricochet_grant` 接收 count，perks/ricochet 阶段以 MAX 合并授予值。Ricochet Bundle 要求 `ricochet_bounces: count` 参数，引用装备原型中同名的正整数参数；原表没有规定通用最大反弹次数，定义不隐藏默认次数。该参数与初始射程、穿透数、每目标次数分别控制不同预算。反弹能力的最终值为 max(固有值, perk 授予值)，不能让 perk 降低已有更高能力。
 
 [参考消费者](../common/src/test/resources/effects/ricochet_rounds_weapon.json) 使用独立 magazine 槽的 none/normal/enhanced，读取反弹 Profile 后构造 hitscan.bounces，按 impact.distance 计算实际折线路程。另一可选 penetration 槽仅用于独立穿甲弹组合验收；它不是原作合法 roll 或 Seraph Rounds 的声明。Ricochet 自身不授予穿透、盾伤或额外生命伤害。稳定性当前可查询，但尚不驱动后坐力、flinch 或准确性。正式目录与 UI、原作次数和资格校准仍见 [内容边界](d2-ruleset.md#ricochet-rounds-的属性与独立装配)。
+
+## 真实瞄准的角度冲量
+
+`chorus:apply_aim_impulse` 使用两个有符号的 `degree` 表达式，向当前真实瞄准方向增加一次偏移。`target` 默认为 self，可指定 victim 或实体结果绑定；`origin` 默认为 bound，也可使用 event；tags 仅描述来源和用途。它不解释 recoil/flinch 的强度或资格，内容可复用 Profile、命中回执、开火动作和条件规则计算两轴。
+
+```json
+{
+  "action": {
+    "type": "chorus:apply_aim_impulse",
+    "target": "self",
+    "yaw": {"type":"chorus:constant","value":3,"unit":"degree"},
+    "pitch": {"type":"chorus:profile_value","profile":"test:aim_pitch",
+      "input":{"type":"chorus:constant","value":-12,"unit":"degree"}},
+    "tags": ["test:kick"]
+  },
+  "as": "aim"
+}
+```
+
+正 pitch 向下、负 pitch 向上，yaw 遵循 Minecraft 原生 YRot 正方向；不自行归一化 yaw。数值必须有限且可转换为有限 float；读取目标当前角度后，在写入前检查加法结果。原生俯仰限制为 −90° 至 90°，float 精度下无变化或已到极限的请求返回 unchanged，不发旋转包。
+
+回执提供 degree 单位的 `before_yaw/pitch`、`after_yaw/pitch`、`delta_yaw/pitch`；delta 是宿主实际变化，不是请求角度。flags 为 applied、unchanged、missing_target、dead、spectator、sleeping、unloaded，加 observed/changed。未观察目标时读取角度会失败，不能把缺失当零。applied 才产生 `chorus:aim_impulse_applied`，事件含上述六个数值、原始来源和 `chorus:aim_impulse` 标签；动作体先续行，完成事实沿现有事件调度处理。
+
+宿主调用 `forceSetRotation(yaw, true, pitch, true)`，玩家走原生旋转专用包；不改位置、速度，不传送、不取消骑乘。客户端在自己的当前角度上叠加请求并按原生限制裁剪，再通过原生旋转输入回传服务器。回执只证明同步服务器写入，**不是客户端已确认**；网络在途期间的鼠标移动可以使客户端最终角度或极限裁剪不同。当前协议不增加瞄准锁、预测、确认屏障或反作弊政策。非玩家会改变即时 look/head，但后续 AI 可再次转头，不能把这个动作当作 PvE stagger 或眩晕。
+
+未知写入结果保留已经施加的旋转和支付，不发完成事实、不继续后续动作、不重试。延迟动作仍遵循 source/detached 生命周期；恢复的是数据续体，执行时取目标当时的角度，不恢复世界或客户端朝向。[合成验收定义](../common/src/test/resources/effects/aim_impulse.json) 用 3°/−12° 与 0.5 倍测试修饰，均非原作数值。原作恢复曲线、稳定性/武器原型映射、受伤至 flinch 的换算和视觉晃动需要另行装配。

@@ -8,6 +8,7 @@ public record Unit(String id) {
     public static final Unit SECOND = new Unit("chorus:second");
     public static final Unit METER_PER_SECOND = new Unit("chorus:meter_per_second");
     public static final Unit METER = new Unit("chorus:meter");
+    public static final Unit DEGREE = new Unit("chorus:degree");
     public static final Unit DAMAGE = new Unit("chorus:damage");
     public static final Unit DAMAGE_PER_SECOND = new Unit("chorus:damage_per_second");
     public static final Unit HEALTH_FRACTION = new Unit("chorus:health_fraction");

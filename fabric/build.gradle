@@ -257,6 +257,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/weapon_range_curves.json', 'effects/weapon_range_test_calibration.json', 'effects/weapon_range_weapon.json'
         include 'effects/armor_piercing_rounds.json', 'effects/weapon_ballistics.json', 'effects/armor_piercing_weapon.json', 'effects/armor_piercing_test_targets.json'
         include 'effects/ricochet_rounds.json', 'effects/ricochet_rounds_weapon.json'
+        include 'effects/aim_impulse.json'
         include 'effects/explosive_payload.json', 'effects/explosive_payload_test_calibration.json', 'effects/explosive_payload_weapon.json'
         include 'effects/timed_payload.json', 'effects/timed_payload_weapon.json'
         include 'effects/explosive_head.json', 'effects/explosive_head_weapon.json', 'effects/explosive_head_test_calibration.json'
