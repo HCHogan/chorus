@@ -1,4 +1,9 @@
 {
+  "chorus:effect/data/effect_program/ricochet_hitscan": ["ray:com.imdomestic.chorus.effect.data.EffectProgram$Hitscan", "pierces:com.imdomestic.chorus.effect.data.Value", "bounces:com.imdomestic.chorus.effect.data.Value", "hitsPerTarget:com.imdomestic.chorus.effect.data.Value", "hitOriginAfterBounce:boolean"],
+  "chorus:effect/projectile/ricochet_hitscan/query": ["ray:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "pierces:int", "bounces:int", "hitsPerTarget:int", "hitOriginAfterBounce:boolean"],
+  "chorus:effect/projectile/ricochet_hitscan/prepared": ["query:com.imdomestic.chorus.effect.projectile.RicochetHitscan$Query"],
+  "chorus:effect/projectile/ricochet_hitscan/result": ["query:com.imdomestic.chorus.effect.projectile.RicochetHitscan$Query", "contacts:java.util.List<com.imdomestic.chorus.effect.projectile.RicochetHitscan$Contact>"],
+  "chorus:effect/projectile/ricochet_hitscan/contact": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "outcome:com.imdomestic.chorus.effect.projectile.Hitscan$Outcome", "observed:java.util.Optional<com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact>", "sequence:long", "bounces:long", "entityContacts:long", "terminal:boolean", "priorDistance:double", "embedded:boolean", "targetContacts:long"],
   "chorus:effect/target/entity_lifecycle/died": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference", "deathId:java.lang.String", "observation:com.imdomestic.chorus.effect.target.EntityObservation"],
   "chorus:effect/data/entity_lifecycle_actions/read_death": ["anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor"],
   "chorus:effect/target/entity_lifecycle/kind": ["DESTROYED", "REMOVED", "UNLOADED", "TRANSFERRED"],

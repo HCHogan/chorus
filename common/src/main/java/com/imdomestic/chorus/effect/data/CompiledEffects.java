@@ -343,6 +343,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             case EffectProgram.Projectile projectile -> validateInstantSteps(projectile.body());
             case EffectProgram.Hitscan ray -> validateInstantSteps(ray.body());
             case EffectProgram.PiercingHitscan ray -> validateInstantSteps(ray.ray().body());
+            case EffectProgram.RicochetHitscan ray -> validateInstantSteps(ray.ray().body());
             case EffectProgram.Pickup pickup -> validateInstantSteps(pickup.body());
             case EffectProgram.ConditionalPickup pickup -> validateInstantSteps(pickup.pickup().body());
             case EffectProgram.After after -> {
@@ -811,6 +812,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             else if (step instanceof EffectProgram.Projectile projectile) validatePayments(projectile.body(), new HashSet<>());
             else if (step instanceof EffectProgram.Hitscan ray) validatePayments(ray.body(), seen);
             else if (step instanceof EffectProgram.PiercingHitscan ray) validatePayments(ray.ray().body(), seen);
+            else if (step instanceof EffectProgram.RicochetHitscan ray) validatePayments(ray.ray().body(), seen);
             else if (step instanceof EffectProgram.Pickup pickup) validatePayments(pickup.body(), new HashSet<>());
             else if (step instanceof EffectProgram.ConditionalPickup pickup) validatePayments(pickup.pickup().body(), new HashSet<>());
         }
@@ -823,41 +825,47 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new Evaluation(state, new RuleEngine.Context(normalized.event(), normalized.ruleInstance(), normalized.scope(), bindings, normalized.operation(), normalized.retainedResults(), normalized.pendingCommand()),
                 buffs, results, resources, normalized.retainedResults(), Optional.of(this));
     }
-    private List<RuleEngine.Instruction<EffectState>> compilePiercingRay(EffectProgram.Bundle bundle, EffectProgram.PiercingHitscan declaration,
+    private List<RuleEngine.Instruction<EffectState>> compileRayPath(EffectProgram.Bundle bundle, EffectProgram.Hitscan ray, Value pierces, Optional<Value> bounces, Value hitsPerTarget, boolean hitOrigin,
             Map<String, ResultShape> previous, Map<String, String> previousSlots, String path, String ownerRule, List<RuleEngine.EventRule<EffectState>> continuations) {
-        var ray=declaration.ray(); var v=validation(bundle,previous);ray.spec().validate(v);ray.shot().ifPresent(m->m.validate(v));localId(ray.bind());
-        Validation.same(Unit.COUNT,declaration.pierces().unit(v));
-        if(declaration.pierces() instanceof Value.Constant c) ShotActions.integer(c.value());
-        if(previous.containsKey(ray.bind()))throw new IllegalArgumentException("Shadowed piercing ray binding");
+        var v=validation(bundle,previous);ray.spec().validate(v);ray.shot().ifPresent(m->m.validate(v));localId(ray.bind());
+        Validation.same(Unit.COUNT,pierces.unit(v));
+        if(pierces instanceof Value.Constant c) ShotActions.integer(c.value());
+        bounces.ifPresent(value->{Validation.same(Unit.COUNT,value.unit(v));if(value instanceof Value.Constant c)ShotActions.integer(c.value());});
+        Validation.same(Unit.COUNT,hitsPerTarget.unit(v));
+        if(hitsPerTarget instanceof Value.Constant c && ShotActions.integer(c.value())<1)throw new IllegalArgumentException("A target hit limit must be positive");
+        if(previous.containsKey(ray.bind()))throw new IllegalArgumentException("Shadowed ray path binding");
         String prepared=path+"prepared",observed=path+"observed",contact=path+"contact";
         var output=new ArrayList<RuleEngine.Instruction<EffectState>>();
         output.add(new RuleEngine.Instruction<>((state,context)->{
             var e=scopedEvaluation(state,context,previous,previousSlots);var query=ray.spec().resolve(e,ray.shot().map(m->m.resolve(e)));
-            var request=new Hitscan.PiercingQuery(query,ShotActions.integer(declaration.pierces().evaluate(e).value()));
-            return new RuleEngine.Local<>(query.member().map(m->ShotGroups.reserve(state,m)).orElse(state),new Hitscan.PreparedPath(request),List.of());
+            int count=ShotActions.integer(pierces.evaluate(e).value());
+            Hitscan.PreparedObservation preparedResult=bounces.isPresent()
+                    ? new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Prepared(new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Query(query,count,ShotActions.integer(bounces.orElseThrow().evaluate(e).value()),ShotActions.integer(hitsPerTarget.evaluate(e).value()),hitOrigin))
+                    : new Hitscan.PreparedPath(new Hitscan.PiercingQuery(query,count));
+            return new RuleEngine.Local<>(query.member().map(m->ShotGroups.reserve(state,m)).orElse(state),preparedResult,List.of());
         },prepared));
         output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
-            @Override public RuleEngine.Outcome<EffectState> step(EffectState state,RuleEngine.Context context){return new RuleEngine.Await<>(((Hitscan.PreparedPath)context.bindings().get(prepared)).query());}
+            @Override public RuleEngine.Outcome<EffectState> step(EffectState state,RuleEngine.Context context){return new RuleEngine.Await<>(((Hitscan.PreparedObservation)context.bindings().get(prepared)).command());}
             @Override public RuleEngine.Local<EffectState> complete(EffectState state,RuleEngine.Context context,RuleEngine.ActionResult result){
-                var receipt=(Hitscan.PathResult)result;
-                if(!receipt.query().equals(context.command(Hitscan.PiercingQuery.class)))throw new IllegalArgumentException("Piercing ray receipt differs from query");
+                var receipt=(Hitscan.PathObservation)result;
+                if(!receipt.command().equals(context.command(RuleEngine.WorldCommand.class)))throw new IllegalArgumentException("Ray path receipt differs from query");
                 // The first contact uses the ordinary launch/open transition. Subsequent contacts reopen this same member.
-                var initial=ray.shot().isPresent()?ShotGroups.traced(state,receipt.contacts().getFirst().observed()):new RuleEngine.Local<>(state,receipt,List.of());
+                var initial=ray.shot().isPresent()?ShotGroups.traced(state,receipt.observations().getFirst()):new RuleEngine.Local<>(state,receipt,List.of());
                 return new RuleEngine.Local<>(initial.state(),receipt,initial.emitted());
             }
         },observed));
         var results=new LinkedHashMap<>(previous);var slots=new LinkedHashMap<>(previousSlots);results.put(ray.bind(),ResultShape.hitscan(ray.shot().isPresent()));slots.put(ray.bind(),contact);
         var body=new ArrayList<RuleEngine.Instruction<EffectState>>();
         if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>((state,context)->{
-            var c=(Hitscan.PathContact)context.bindings().get(contact);
-            return new RuleEngine.Local<>(c.sequence()>1?ShotGroups.open(state,c.contact().orElseThrow()):state,RuleEngine.Empty.INSTANCE,List.of());
+            var c=(Hitscan.Observation)context.bindings().get(contact);
+            return new RuleEngine.Local<>(c.contact().filter(hit->hit.sequence()>1).isPresent()?ShotGroups.open(state,c.contact().orElseThrow()):state,RuleEngine.Empty.INSTANCE,List.of());
         },""));
         body.addAll(compileSteps(bundle,ray.body(),results,slots,path+"body/",ownerRule,continuations));
         if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>((state,context)->{
-            var c=(Hitscan.PathContact)context.bindings().get(contact);
+            var c=(Hitscan.Observation)context.bindings().get(contact);
             return c.contact().isPresent()?ShotGroups.close(state,c.contact().orElseThrow()):new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
         },""));
-        output.add(new RuleEngine.Instruction<>(new RuleEngine.ForEach<>((state,context)->((Hitscan.PathResult)context.bindings().get(observed)).contacts(),body.size()),contact));
+        output.add(new RuleEngine.Instruction<>(new RuleEngine.ForEach<>((state,context)->((Hitscan.PathObservation)context.bindings().get(observed)).observations(),body.size()),contact));
         output.addAll(body);output.add(new RuleEngine.Instruction<>(new RuleEngine.EndEach<>(body.size()),""));return List.copyOf(output);
     }
     private List<RuleEngine.Instruction<EffectState>> compileSteps(EffectProgram.Bundle bundle, List<EffectProgram.Step> steps,
@@ -935,7 +943,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         return new RuleEngine.Local<>(state.schedule(timer), RuleEngine.Empty.INSTANCE, List.of());
                     }, ""));
                 }
-                case EffectProgram.PiercingHitscan ray -> output.addAll(compilePiercingRay(bundle,ray,previous,previousSlots,path+index+"/piercing/",ownerRule,continuations));
+                case EffectProgram.PiercingHitscan ray -> output.addAll(compileRayPath(bundle,ray.ray(),ray.pierces(),Optional.empty(),new Value.Constant(1,Unit.COUNT),false,previous,previousSlots,path+index+"/piercing/",ownerRule,continuations));
+                case EffectProgram.RicochetHitscan ray -> output.addAll(compileRayPath(bundle,ray.ray(),ray.pierces(),Optional.of(ray.bounces()),ray.hitsPerTarget(),ray.hitOriginAfterBounce(),previous,previousSlots,path+index+"/ricochet/",ownerRule,continuations));
                 case EffectProgram.Hitscan ray -> {
                     ray.spec().validate(validation(bundle, previous)); ray.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(ray.bind());
                     if (previous.containsKey(ray.bind())) throw new IllegalArgumentException("Shadowed hitscan binding");

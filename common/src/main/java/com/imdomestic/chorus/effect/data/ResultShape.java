@@ -114,18 +114,17 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
             r -> ((com.imdomestic.chorus.effect.projectile.ShotGroups.Handle) r).pellets())), Map.of(), false, Reference.SHOT);
     public static ResultShape hitscan(boolean grouped) {
         var fields = new java.util.HashMap<String, Field>(PROJECTILE_IMPACT.fields());
-        fields.remove("age"); fields.remove("bounces");
+        fields.remove("age");
         fields.put("count", new Field(Unit.COUNT, r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).targets().size()));
-        fields.put("distance", new Field(Unit.METER, r -> {
-            var ray = (com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r; var a = ray.query().position().orElseThrow(); var b = ray.position().orElseThrow();
-            return Math.hypot(Math.hypot(a.x()-b.x(), a.y()-b.y()), a.z()-b.z());
-        }));
+        fields.put("distance", new Field(Unit.METER, r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).distance()));
+        fields.put("segment_distance", new Field(Unit.METER, r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).segmentDistance()));
         var flags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>();
         for (var outcome : com.imdomestic.chorus.effect.projectile.Hitscan.Outcome.values())
             flags.put(outcome.name().toLowerCase(java.util.Locale.ROOT), r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).outcome() == outcome);
         flags.put("available", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).contact().isPresent());
         flags.put("terminal", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).contact().map(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact::terminal).orElse(true));
         flags.put("pierced", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).contact().filter(c -> c.end()==com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !c.terminal()).isPresent());
+        flags.put("bounced", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).contact().filter(c -> c.end()==com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !c.terminal()).isPresent());
         flags.put("geometry_observed", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Observation) r).contact().flatMap(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact::geometry).isPresent());
         return new ResultShape(fields, flags, false, grouped ? Reference.SHOT_IMPACT : Reference.PROJECTILE_IMPACT);
     }

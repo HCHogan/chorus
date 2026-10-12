@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "source": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+    "path": "data/d2-research/2026-10-12/armor-piercing-source.html.gz",
+    "gzip_sha256": "b312959202b595903c22aef9aca5aeeb886c5453540f5bb8c5f89086be12c612",
+    "raw_sha256": "861c6ef97234bd4db8d48a99c89cd6be48768ba280b8a7ee83d52fb5127a072c",
+    "retrieval": "Reuses the same-day original captured and independently checked for Armor-Piercing Rounds; not a new fetch."
+  },
+  "cell_checks": [
+    {
+      "perk": "Ricochet Rounds",
+      "original": "A189",
+      "snapshot": "A188",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "43e8ba4d06982e6243293a468fd6ef6894c1b74005cf6f450c418d33fc2da7b0"
+    },
+    {
+      "perk": "Ricochet Rounds",
+      "original": "C189",
+      "snapshot": "C188",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "43c2f1a133f404ca065bfe0ef1a37a93545a11664056cbf4bf7f1365df67c136"
+    },
+    {
+      "perk": "Seraph Rounds",
+      "original": "A192",
+      "snapshot": "A191",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "2683e98efe2de64fda28ad46276e94e822cf0cf19817ace55eda7c291f684ca2"
+    },
+    {
+      "perk": "Seraph Rounds",
+      "original": "C192",
+      "snapshot": "C191",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "c918b5c3f06d24bed82cc48f59248a27f7511201ccc7f0497a78ce3529f3ab30"
+    }
+  ],
+  "primary_context": [
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_5_6",
+      "fact": "Official fix for enhanced Ricochet Rounds stat benefit; does not specify maximum bounces or reflection/self-damage geometry."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/48981",
+      "fact": "Historical Hard Light ricochet bonus differs by mode. Engine exposes bounce counts; this batch does not adopt historical damage multipliers."
+    }
+  ],
+  "implemented_mechanism": "Instantaneous piecewise-linear path with shared total range, face reflection, explicit maximum additional entities and bounces, a configurable per-target contact count, opt-in origin contact after a bounce, one frozen observation and ordered world writes.",
+  "unverified_content_policies": [
+    "All readable COLLIDER block shapes reflect specularly; fluids do not. No D2 material-specific surface catalogue or angle/randomness calibration is claimed.",
+    "Maximum bounces is required as an explicit content value. The source only guarantees ricochets and does not establish a universal count or infinite bouncing.",
+    "The default excludes owner and emitter; hit_origin_after_bounce can include both after an actual surface reflection. This is capability and policy, not a calibrated D2 self-damage coefficient or proc-eligibility claim.",
+    "The default allows one contact per target. hits_per_target can allow later reflected segments to hit the same target again; each segment observes at most one contact per target. Actual D2 repeated-hit qualification and target-instance generation handling remain uncalibrated.",
+    "Range consumes cumulative segment length. Whether every D2 archetype applies its damage falloff and ricochet modifiers identically remains unverified.",
+    "Ricochet Rounds Range/Stability values and Seraph Range/Stability/flinch full content assembly are not supplied by this engine-only change."
+  ]
+}

@@ -298,6 +298,11 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/effect_program/modifier_provider", com.imdomestic.chorus.effect.data.EffectProgram.ModifierProvider.class);
         types.put("chorus:effect/data/effect_program/multiplicity", com.imdomestic.chorus.effect.data.EffectProgram.Multiplicity.class);
         types.put("chorus:effect/data/effect_program/pickup", com.imdomestic.chorus.effect.data.EffectProgram.Pickup.class);
+        types.put("chorus:effect/data/effect_program/ricochet_hitscan", com.imdomestic.chorus.effect.data.EffectProgram.RicochetHitscan.class);
+        types.put("chorus:effect/projectile/ricochet_hitscan/query", com.imdomestic.chorus.effect.projectile.RicochetHitscan.Query.class);
+        types.put("chorus:effect/projectile/ricochet_hitscan/prepared", com.imdomestic.chorus.effect.projectile.RicochetHitscan.Prepared.class);
+        types.put("chorus:effect/projectile/ricochet_hitscan/result", com.imdomestic.chorus.effect.projectile.RicochetHitscan.Result.class);
+        types.put("chorus:effect/projectile/ricochet_hitscan/contact", com.imdomestic.chorus.effect.projectile.RicochetHitscan.Contact.class);
         types.put("chorus:effect/data/effect_program/piercing_hitscan", com.imdomestic.chorus.effect.data.EffectProgram.PiercingHitscan.class);
         types.put("chorus:effect/projectile/hitscan/piercing_query", com.imdomestic.chorus.effect.projectile.Hitscan.PiercingQuery.class);
         types.put("chorus:effect/projectile/hitscan/prepared_path", com.imdomestic.chorus.effect.projectile.Hitscan.PreparedPath.class);

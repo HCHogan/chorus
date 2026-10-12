@@ -50,6 +50,7 @@
       "com.imdomestic.chorus.WeaponRepeatChargeGameTest",
       "com.imdomestic.chorus.HitscanGameTest",
       "com.imdomestic.chorus.PiercingHitscanGameTest",
+      "com.imdomestic.chorus.RicochetHitscanGameTest",
       "com.imdomestic.chorus.ArmorPiercingRoundsGameTest",
       "com.imdomestic.chorus.ControlledBurstGameTest",
       "com.imdomestic.chorus.BowTimingPerksGameTest",

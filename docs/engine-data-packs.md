@@ -3552,3 +3552,18 @@ Plan 保存 repeat、从零开始的 cycle 和恢复阶段对应的已接受 Sho
 `chorus_d2:weapon_shield_damage` 以 1 multiplier 为基准，在 `ammunition/ammunition` 阶段消费 delta 倍率。Armor-Piercing Rounds 只对本持有者、本武器、明确 `chorus:weapon_direct` 且不是爆炸 perk 的伤害提供 0.05 delta；只有当前处理的元素战员护盾或勇士屏障层合格。攻击建立时把该 Profile 传给 `capture_damage.shield_scaling_profile`，不把它放进普通生命伤害的 scaling_profile。捕获固定攻击方来源，而 layer_tag 延后到每层结算；倍率消耗该层的原始伤害预算，剩余预算继续进入后续盾层/原版防御。其它盾伤 perk 需要自己的已校准阶段/叠加规则，本文件没有替它们指定组合结果。
 
 [参考武器](../common/src/test/resources/effects/armor_piercing_weapon.json) 的独立 magazine socket 选择 none/normal/enhanced。普通/强化 +5/+7 先进入已有 weapon_range，再算两个距离端点；每目标仍从最初捕获的枪口计算衰减。一个 begin_shot 成员跨整个穿透路径，各伤害动作显式使用 pellet；非实体终点先以 entity 旗标排除，避免读取不存在的目标相对几何。基础伤害/射速/弹量/形状校准仍为参考输入，发布包不包含这些测试定义。
+
+
+### 瞬时射线的表面反弹与累计路程
+
+hitscan 步骤外层可声明 `bounces`（非负整数 count），同时保留可选 `pierces`（默认零）、`hits_per_target`（正整数 count，默认 1）与布尔 `hit_origin_after_bounce`（默认 false）。这些字段属于步骤，不放入 hitscan 几何对象。省略 bounces 保持原单接触/直线穿透编码；显式零进入反弹路径类型但不发生反射。计数允许到 Integer.MAX_VALUE，查询仍共用初始最多 256 米的总路程，没有另加全局效果链次数限制。独立数据示例见 [ricochet_hitscan.json](../common/src/test/resources/effects/ricochet_hitscan.json)。
+
+宿主读取实际方块 COLLIDER 形状，按命中面的单位法向量 n 反射单位方向 d：`d′ = d − 2(d·n)n`。每次从上一碰撞点继续，剩余范围减去本段实际路程；不把反弹当成一条重新获得完整射程的新射线。无需把起点沿法向量挪出墙外，闭区间碰撞算法会排除朝外离开的同一面。嵌入形状内部、预算耗尽或命中恰好位于射程终点时停止；未知区块保持 unloaded，不能当作墙反弹，也不会加载区块。流体仍不阻挡。
+
+`distance` 对反弹接触表示从最初枪口走过的累计路程；`segment_distance` 是本直线段起点至当前接触的距离。两字段在无反弹射线上相等。`position_distance(muzzle, impact)` 仍是两点直线距离，不自动改变语义；需要弹道路程衰减的内容应读取接触的 distance。`bounces` 在非终止方块接触处已包含本次反弹，后续实体继承；`bounced` 只在实际继续的方块接触为真。实体几何和相对弱点坐标仍来自各个捕获碰撞箱。
+
+pierces 限制整个路径中第一次之后的额外实体接触次数，不在每次反弹时重置。hits_per_target 决定同一实体在整条路径内允许接触几次，默认 1；显式设为 2 或更高时，反弹回来可以再次造成伤害，同时消耗额外接触预算。一条直线段仍只记录每个实体一次，重复回执不能假造重入；换段后才可再次入选。entity_contacts 累计所有实体接触，target_contacts 累计当前实体的接触；整枪汇总仍按不同弹丸/不同目标去重，两次伤害不伪造两个弹丸或两个目标。发射者 owner/emitter 在初始段始终排除；只有显式启用 hit_origin_after_bounce 且已经发生反弹时，才可作为后续目标，归因保持原真实身份。这是可配置宿主能力，不替内容决定自身伤害倍率或自杀/击杀 perk 的资格。
+
+一次世界查询冻结所有线段、几何与顺序，然后逐接触执行动作体。前一方块动作移除墙体或前一伤害移动目标，不重画后面的反弹路径；后续真正写入仍检查目标当前资格。方块接触与后续实体共用一个整枪成员、递增序号，各次动作体关闭后再打开下一次，仅最后接触完成成员。未知世界结果保留既有付款/写入并停止，独立 after 保留路程与反弹数但不保留已结束的记账资格。
+
+反弹步骤、Query、Prepared、Result、Contact 使用五个新增存储 ID，目录由 614 增至 619。原始单接触/穿透记录字段与枚举精确保持。结果校验各段连接、反射方向、剩余射程、单调路程、总计数、来源碰撞开关、每目标次数及每段唯一目标，不接受截短或错配路径。所有表面反射、次数、目标重入和自身碰撞政策与原作的对应范围见 [来源记录](../data/d2-research/2026-10-12/ricochet-hitscan.json)。

@@ -12136,7 +12136,8 @@
         "一发支付对应一个整枪成员，各接触从原枪口计算距离，第二目标独立伤害，墙体终止且不命中第三目标",
         "元素/勇士屏障标签按到达层选择，Guardian/战员overshield和普通盾不加成；倍率只改变该层消耗的输入预算，不扩大溢出生命伤害",
         "两种模式与强化版本使用相同5%盾倍率；无直接弹丸资格、其他武器、其他持有者和爆炸proc不能借用",
-        "攻击快照保留已装配来源，晚到护盾逐层选择；领域恢复保留配装，未知世界结果保留一次付款和已扣血而不重放"
+        "攻击快照保留已装配来源，晚到护盾逐层选择；领域恢复保留配装，未知世界结果保留一次付款和已扣血而不重放",
+        "同一瞬时弹丸先反弹再穿透两个不同目标，保留一次付款与独立累计路程衰减；反弹次数使用显式合成测试参数，不宣称穿甲弹自身提供反弹"
       ],
       "evidence": [
         {
@@ -12225,6 +12226,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
           "symbol": "unknownShieldOverflowRetainsOnePaymentAndDoesNotReplayOrDamageTheNextTarget"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/RicochetHitscanGameTest.java",
+          "symbol": "obliqueWallReflectionUsesCumulativeTravelForTwoActualDamageContacts"
         }
       ],
       "gaps": [

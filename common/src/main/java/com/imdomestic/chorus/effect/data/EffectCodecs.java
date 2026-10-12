@@ -751,6 +751,14 @@ public final class EffectCodecs {
                     values.fieldOf("pierces").forGetter(EffectProgram.PiercingHitscan::pierces)
             ).apply(i, (spec, bind, body, shot, pierces) -> new EffectProgram.PiercingHitscan(new EffectProgram.Hitscan(spec,bind,body,shot),pierces))),
                     Set.of("hitscan", "as", "do", "shot", "pierces"));
+            Codec<EffectProgram.RicochetHitscan> ricochetRay = strict(RecordCodecBuilder.create(i -> i.group(
+                    raySpec.fieldOf("hitscan").forGetter(v -> v.ray().spec()), Codec.STRING.fieldOf("as").forGetter(v -> v.ray().bind()),
+                    self.listOf().fieldOf("do").forGetter(v -> v.ray().body()), membership.optionalFieldOf("shot").forGetter(v -> v.ray().shot()),
+                    values.optionalFieldOf("pierces",new Value.Constant(0,Unit.COUNT)).forGetter(EffectProgram.RicochetHitscan::pierces),
+                    values.fieldOf("bounces").forGetter(EffectProgram.RicochetHitscan::bounces),
+                    values.optionalFieldOf("hits_per_target",new Value.Constant(1,Unit.COUNT)).forGetter(EffectProgram.RicochetHitscan::hitsPerTarget), Codec.BOOL.optionalFieldOf("hit_origin_after_bounce",false).forGetter(EffectProgram.RicochetHitscan::hitOriginAfterBounce)
+            ).apply(i,(spec,bind,body,shot,pierces,bounces,hits,origin)->new EffectProgram.RicochetHitscan(new EffectProgram.Hitscan(spec,bind,body,shot),pierces,bounces,hits,origin))),
+                    Set.of("hitscan","as","do","shot","pierces","bounces","hits_per_target","hit_origin_after_bounce"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot),
@@ -778,6 +786,7 @@ public final class EffectCodecs {
             Codec<EffectProgram.Step> unconditional = Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
+                        case EffectProgram.RicochetHitscan ignored -> throw new AssertionError("Ricochet ray codec is outside the legacy union");
                         case EffectProgram.PiercingHitscan ignored -> throw new AssertionError("Piercing ray codec is outside the legacy union");
                         case EffectProgram.Hitscan ignored -> throw new AssertionError("Hitscan codec is outside the legacy union");
                         case EffectProgram.ConditionalPickup ignored -> throw new IllegalArgumentException("Conditional pickup needs collect_if codec");
@@ -791,8 +800,10 @@ public final class EffectCodecs {
                     value -> value instanceof EffectProgram.ConditionalPickup conditional ? Either.left(conditional) : Either.right(value));
             Codec<EffectProgram.Step> basic = Codec.either(ray, legacy).xmap(value -> value.map(v -> v, v -> v),
                     value -> value instanceof EffectProgram.Hitscan trace ? Either.left(trace) : Either.right(value));
-            return Codec.either(piercingRay,basic).xmap(value -> value.map(v -> v,v -> v),
+            Codec<EffectProgram.Step> piercing = Codec.either(piercingRay,basic).xmap(value -> value.map(v -> v,v -> v),
                     value -> value instanceof EffectProgram.PiercingHitscan trace ? Either.left(trace) : Either.right(value));
+            return Codec.either(ricochetRay,piercing).xmap(value -> value.map(v -> v,v -> v),
+                    value -> value instanceof EffectProgram.RicochetHitscan trace ? Either.left(trace) : Either.right(value));
         });
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),

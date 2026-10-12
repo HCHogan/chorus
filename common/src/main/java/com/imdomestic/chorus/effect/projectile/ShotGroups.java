@@ -93,7 +93,7 @@ public final class ShotGroups {
         return settle(state.withShotGroup(next), next, receipt, false);
     }
     /** A synchronous ray opens its contact only after the matching read-only world receipt commits. */
-    public static RuleEngine.Local<EffectState> traced(EffectState state, Hitscan.Result receipt) {
+    public static RuleEngine.Local<EffectState> traced(EffectState state, Hitscan.Observation receipt) {
         var member = receipt.query().member().orElseThrow();
         if (!active(state,member)) {
             if (receipt.outcome() != Hitscan.Outcome.EXPIRED_SHOT) throw new IllegalArgumentException("Expired shot cannot trace");
