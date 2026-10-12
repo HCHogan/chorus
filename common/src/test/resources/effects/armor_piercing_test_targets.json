@@ -1,0 +1,238 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "test:ap_elemental",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [
+          "chorus:combatant_elemental_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 0
+      }
+    },
+    {
+      "definition": {
+        "id": "test:ap_barrier",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [
+          "chorus:barrier_champion_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 1
+      }
+    },
+    {
+      "definition": {
+        "id": "test:ap_guardian",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [
+          "chorus:guardian_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 2
+      }
+    },
+    {
+      "definition": {
+        "id": "test:ap_overshield",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [
+          "chorus:combatant_overshield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 3
+      }
+    },
+    {
+      "definition": {
+        "id": "test:ap_plain",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "multiplier"
+        },
+        "priority": 4
+      }
+    },
+    {
+      "definition": {
+        "id": "test:ap_immune_barrier",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "tags": [
+          "chorus:barrier_champion_shield"
+        ],
+        "components": {
+          "numbers": {
+            "capacity": {
+              "initial": 5.25,
+              "unit": "damage"
+            }
+          }
+        }
+      },
+      "shield": {
+        "capacity": "capacity",
+        "taken_multiplier": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "multiplier"
+        },
+        "priority": 5
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:ap_shields",
+      "rules": [
+        {
+          "id": "elemental",
+          "on": "test:ap_elemental",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_elemental",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "barrier",
+          "on": "test:ap_barrier",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_barrier",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "guardian",
+          "on": "test:ap_guardian",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_guardian",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "overshield",
+          "on": "test:ap_overshield",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_overshield",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "plain",
+          "on": "test:ap_plain",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_plain",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "immune_barrier",
+          "on": "test:ap_immune_barrier",
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "test:ap_immune_barrier",
+              "target": "victim"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

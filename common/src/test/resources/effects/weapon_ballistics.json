@@ -1,0 +1,37 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_piercing_grant",
+      "version": "compendium-2026-10-05",
+      "input_unit": "count",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "add",
+          "group": {
+            "name": "piercing",
+            "reduction": "max"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_shield_damage",
+      "version": "compendium-2026-10-05",
+      "input_unit": "multiplier",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "ammunition",
+          "operation": "multiply",
+          "group": {
+            "name": "ammunition",
+            "reduction": "max"
+          }
+        }
+      ]
+    }
+  ]
+}

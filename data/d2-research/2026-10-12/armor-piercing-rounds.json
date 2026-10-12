@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "retrieved_at": "2026-10-12T06:10:34.391106+00:00",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/armor-piercing-source.html.gz",
+      "raw_sha256": "861c6ef97234bd4db8d48a99c89cd6be48768ba280b8a7ee83d52fb5127a072c",
+      "gzip_sha256": "b312959202b595903c22aef9aca5aeeb886c5453540f5bb8c5f89086be12c612"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "head_rechecked": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "path": "data/d2-research/2026-10-12/armor-piercing-clarity.json",
+      "sha256": "4eee2d480333e8739f8c82397fb6e04b4a103363f858f60a165a60e9c45e4f00",
+      "dataset_raw_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384"
+    }
+  ],
+  "cell_checks": [
+    {
+      "original": "A20",
+      "snapshot": "A20",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "ef3bb29adf24940d50dc998a7ea5bde3fc42dfe8018db8a82e0f8a5d5f4a94d4"
+    },
+    {
+      "original": "C20",
+      "snapshot": "C20",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "5087fb2ef94fd603312be360506ab21f3e3a3bf1703f689fea18459f08f460ae"
+    }
+  ],
+  "selected": {
+    "range": 5,
+    "enhanced_range": 7,
+    "elemental_and_barrier_shield_multiplier": 1.05,
+    "additional_entities": 1
+  },
+  "policies_and_limits": [
+    "Shield qualification uses the reached layer tags, not activity mode or all shields. Perk sources and enhancement are captured at attack creation; layer qualification is evaluated at impact.",
+    "Only explicitly tagged direct bullet damage consumes this perk shield profile. Explosive perk procs are excluded; complete exotic/split-damage qualification requires calibration.",
+    "The consumer queries piercing grant with zero base and takes max(intrinsic extra entities, grant); intrinsic baseline is zero in this reference. Combination with intrinsic/exotic penetration is an explicit unverified content policy.",
+    "This ammunition is not anti-Barrier authorization: a zero-multiplier immune layer remains immune. Full Champion guard/stun behavior is not implemented here.",
+    "Reference weapon damage, capacity, firing interval, hit region, interpolation shape and shield capacities are synthetic. Range endpoint curves reuse the separately pinned Foundry reference; not all weapon archetypes are calibrated.",
+    "Source original currently uses A20/C20. Earlier other-perk captures had row offsets; coordinates were checked rather than copied.",
+    "Formal production content registration, UI and complete physical-world restart remain outstanding."
+  ],
+  "asset_manifest": "data/compendium/assets/2026-10-12-armor-piercing/manifest.json",
+  "asset_capture_cell_check": {
+    "cells": [
+      "A20",
+      "C20"
+    ],
+    "normalized_equal_to_research_capture": true
+  }
+}

@@ -3542,4 +3542,13 @@ Plan 保存 repeat、从零开始的 cycle 和恢复阶段对应的已接受 Sho
 
 路径回执、序号及延迟捕获可编码到领域检查点。独立 after 保留接触几何和序号，不保留已关闭的成员记账资格。存储另增五个类型，目录由 609 增至 614；原单接触步骤、Query、Result 及其所有旧字段/枚举保持精确形状，不以添加默认字段静默改写旧存储。
 
-当前直线穿透可表达固定 Compendium `Weapon Perks!C20` 的“额外穿透一次”需求，仍需 Armor-Piercing Rounds 的射程属性、分层护盾增伤和正式武器装配才能验收完整词条。该能力不等于反弹、穿墙、穿透 Banner Shield 或反勇士护盾。
+当前直线穿透可表达固定 Compendium `Weapon Perks!C20` 的“额外穿透一次”需求，射程/分层护盾与参考武器装配现见下节；正式目录和原作校准仍是完整词条验收条件。该能力不等于反弹、穿墙、穿透 Banner Shield 或反勇士护盾。
+
+
+### 弹药 perk 的射程、穿透与护盾组合
+
+[weapon_ballistics.json](../common/src/test/resources/effects/weapon_ballistics.json) 提供两个内容 Profile，不增加引擎原语。`chorus_d2:weapon_piercing_grant` 以零 count 为输入，在 `perks/piercing` 组对授予值取 MAX；消费者将结果与自身固有额外穿透数取 MAX，再传给 hitscan 外层 `pierces`。这是“最低授予量”的参考内容政策，不能直接把非零固有值作为此 Profile 的输入，否则 ADD 阶段会变成额外相加。固有穿透与具体 D2 弹药的叠加仍须单独校准。
+
+`chorus_d2:weapon_shield_damage` 以 1 multiplier 为基准，在 `ammunition/ammunition` 阶段消费 delta 倍率。Armor-Piercing Rounds 只对本持有者、本武器、明确 `chorus:weapon_direct` 且不是爆炸 perk 的伤害提供 0.05 delta；只有当前处理的元素战员护盾或勇士屏障层合格。攻击建立时把该 Profile 传给 `capture_damage.shield_scaling_profile`，不把它放进普通生命伤害的 scaling_profile。捕获固定攻击方来源，而 layer_tag 延后到每层结算；倍率消耗该层的原始伤害预算，剩余预算继续进入后续盾层/原版防御。其它盾伤 perk 需要自己的已校准阶段/叠加规则，本文件没有替它们指定组合结果。
+
+[参考武器](../common/src/test/resources/effects/armor_piercing_weapon.json) 的独立 magazine socket 选择 none/normal/enhanced。普通/强化 +5/+7 先进入已有 weapon_range，再算两个距离端点；每目标仍从最初捕获的枪口计算衰减。一个 begin_shot 成员跨整个穿透路径，各伤害动作显式使用 pellet；非实体终点先以 entity 旗标排除，避免读取不存在的目标相对几何。基础伤害/射速/弹量/形状校准仍为参考输入，发布包不包含这些测试定义。

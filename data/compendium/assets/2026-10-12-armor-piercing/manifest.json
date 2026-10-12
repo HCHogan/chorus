@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T06:15:34.340776+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "87ccf284228316b1e159e9580a5e44f42d0fca9243fbe927f7631df67bf40b86"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/armor_piercing_rounds",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Armor-Piercing Rounds",
+      "label_cell": "A20",
+      "image_cell": "B20",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B20",
+      "image_url": "https://lh3.googleusercontent.com/docsubipk/AP9E6xVBIrBeYx5niTT04kDFAcN7K5c5YjCmp1YkUlQIUWrc2PwP_uScV1W6JHoPBWGu8S4ER2mci5H_VQO8DyuBke-PsfD1Ou0qr_VOVQd4nr5n6tvG67wz96-EmOwt8b2S5RSjKtDQ9A9LeDg3nl05SfqmjzCXPAWq-rCHbwUJ=s89-w70-h89",
+      "retrieved_at": "2026-10-12T06:15:34.678382+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/armor_piercing_rounds.png",
+      "texture": "chorus_d2:textures/gui/perks/armor_piercing_rounds.png",
+      "sha256": "567adf73e77dae2c09f0ce05ed85e9e0e93335cc2a3bafffb60ab9864560ab01",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

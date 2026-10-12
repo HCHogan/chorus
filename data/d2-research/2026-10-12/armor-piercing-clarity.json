@@ -1,0 +1,40 @@
+[
+  {
+    "hash": 1968497646,
+    "name": "Armor-Piercing Rounds",
+    "lastUpload": 1731793916910,
+    "type": "Weapon Perk",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Grants 5% increased damage against Elemental and "
+            },
+            {
+              "classNames": [
+                "barrier"
+              ]
+            },
+            {
+              "text": "Barrier Champion Shields."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Allows bullets to overpenetrate enemies once."
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

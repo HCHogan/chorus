@@ -12123,6 +12123,129 @@
           "text_sha256": "00d62699d9454f96924e61a68858f93befd196839c9cddb539ed16a4562f4c35"
         }
       ]
+    },
+    {
+      "id": "weapon/armor_piercing_rounds",
+      "name": "Armor-Piercing Rounds",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "普通/强化+5/+7 Range接真实衰减曲线，元素/屏障层+5%伤害，单次扣弹直线命中最多两个目标；独立装备来源和攻击快照",
+      "acceptance": [
+        "普通/强化Range按武器实例隔离，先合计限幅再进入射程曲线；未装perk的另一把枪不借用收益",
+        "一发支付对应一个整枪成员，各接触从原枪口计算距离，第二目标独立伤害，墙体终止且不命中第三目标",
+        "元素/勇士屏障标签按到达层选择，Guardian/战员overshield和普通盾不加成；倍率只改变该层消耗的输入预算，不扩大溢出生命伤害",
+        "两种模式与强化版本使用相同5%盾倍率；无直接弹丸资格、其他武器、其他持有者和爆炸proc不能借用",
+        "攻击快照保留已装配来源，晚到护盾逐层选择；领域恢复保留配装，未知世界结果保留一次付款和已扣血而不重放"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_piercing_rounds.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_ballistics.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/armor_piercing_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "ordinaryAndEnhancedRangeEnterTheirOwnClampedCurveAndPiercingGrant"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "onePaidRoundPiercesTwoTargetsWithIndependentDistancesAndNoThirdDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "noPerkAndEnhancedEquipmentActuallyChangeTheNextShot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "onlyElementalAndBarrierLayersReceiveFivePercentInBothModesAndVersions"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "shieldOverflowNeverBoostsHealthOrTheNextLayerAndSourceScopeRejectsOtherDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "anotherWeaponOwnerOrExplosiveProcCannotBorrowTheShieldBonus"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "capturedShieldPerkSurvivesSourceRemovalButQualifiesEachLateLayerSeparately"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "intrinsicPenetrationIsNotReducedAndFiniteEmptyPathClosesTheShot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/ArmorPiercingRoundsTest.java",
+          "symbol": "definitionsAndEquippedStateRoundTripWithoutLosingThePerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "oneRoundPiercesTwoTargetsAndOnlyTheEligibleShieldGetsTheBonus"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "ordinaryAndEnhancedRangeChangeActualFalloffIndependentlyAtEachContact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "switchingToTheEnhancedWeaponChangesRangeAndPenetrationWithoutBorrowingItsPerk"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "barrierBonusDoesNotAuthorizeDamageThroughAnImmuneLayer"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "terrainStillStopsThePerkAfterTheFirstTarget"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/ArmorPiercingRoundsGameTest.java",
+          "symbol": "unknownShieldOverflowRetainsOnePaymentAndDoesNotReplayOrDamageTheNextTarget"
+        }
+      ],
+      "gaps": [
+        "参考定义仍位于测试资源，正式武器/配装/HUD和全世界重启恢复尚未完成；原表70×70图标已导入，尚未绑定界面",
+        "基础伤害、容量、射速、弱点区域、护盾容量和距离插值为合成校准；引用已有Foundry自动步枪端点，不代表完整武器原型或当前原作实测",
+        "护盾直接弹丸/proc资格、on-use快照、同距排序、冻结路径和逐目标提交为明确Chorus政策，全部异域/分裂伤害/混合模式边界尚待校准",
+        "参考消费者以max(固有额外穿透,perk授予值)组合，基准为零；与固有狙击/其他弹药的原作叠加行为未确认",
+        "屏障测试使用显式标签的合成盾层；此perk不提供反屏障授权，实际勇士、Banner Shield及所有实体盾牌的阻挡接线仍待完成"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A20",
+          "text_sha256": "ef3bb29adf24940d50dc998a7ea5bde3fc42dfe8018db8a82e0f8a5d5f4a94d4"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C20",
+          "text_sha256": "5087fb2ef94fd603312be360506ab21f3e3a3bf1703f689fea18459f08f460ae"
+        }
+      ]
     }
   ]
 }

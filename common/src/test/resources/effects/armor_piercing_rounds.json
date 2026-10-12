@@ -1,0 +1,142 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:armor_piercing_rounds",
+      "modifiers": [
+        {
+          "id": "range",
+          "profile": "chorus_d2:weapon_range",
+          "stage": "perks",
+          "group": "range",
+          "op": "add",
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:source_tag",
+              "tag": "chorus:enhanced"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 7,
+              "unit": "stat_point"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 5,
+              "unit": "stat_point"
+            }
+          },
+          "stacking_key": "chorus_d2:armor_piercing_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks C20 (2026-10-05 snapshot and 2026-10-12 original); data/d2-research/2026-10-12/armor-piercing-rounds.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "piercing",
+          "profile": "chorus_d2:weapon_piercing_grant",
+          "stage": "perks",
+          "group": "piercing",
+          "op": "add",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "count"
+          },
+          "stacking_key": "chorus_d2:armor_piercing_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks C20 (2026-10-05 snapshot and 2026-10-12 original); data/d2-research/2026-10-12/armor-piercing-rounds.json",
+          "confidence": "measured"
+        },
+        {
+          "id": "shield",
+          "profile": "chorus_d2:weapon_shield_damage",
+          "stage": "ammunition",
+          "group": "ammunition",
+          "op": "multiply",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.05,
+            "unit": "delta"
+          },
+          "stacking_key": "chorus_d2:armor_piercing_rounds",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:source_is",
+                    "source": "owner"
+                  },
+                  {
+                    "type": "chorus:source_is",
+                    "source": "this_weapon"
+                  }
+                ]
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_direct"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:explosive_perk"
+                }
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:event_tag",
+                  "tag": "chorus:explosive_perk_damage"
+                }
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:layer_tag",
+                    "tag": "chorus:combatant_elemental_shield"
+                  },
+                  {
+                    "type": "chorus:layer_tag",
+                    "tag": "chorus:barrier_champion_shield"
+                  }
+                ]
+              }
+            ]
+          },
+          "reference": "Compendium Weapon Perks C20 (2026-10-05 snapshot and 2026-10-12 original); data/d2-research/2026-10-12/armor-piercing-rounds.json",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

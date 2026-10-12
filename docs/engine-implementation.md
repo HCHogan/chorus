@@ -7,6 +7,19 @@
 ## 当前证据
 
 
+### 2026-10-12：Armor-Piercing Rounds 的数值与独立武器装配
+
+新增普通/强化穿甲弹定义、两个弹道/盾伤 Profile、真实独立装备参考消费者与明确合成的护盾夹具。+5/+7 Range 先限幅再进入既有端点曲线；piercing grant 与固有额外穿透数取 MAX，默认首次再穿透一个敌人；指定盾层 ×1.05 单独进入 shield_scaling_profile，不污染后续层或生命预算。一个实际开火支付对应一个整枪成员，各接触保留原枪口距离与独立回执，墙体仍结束路径。
+
+九项 ArmorPiercingRoundsTest 覆盖两版本/两模式护盾分类、装备隔离、实际射程管线、一次付款多目标、静态快照/晚到盾层、爆炸与外来来源排除、领域恢复及有限终点。六项共享 ArmorPiercingRoundsGameTest 通过真实玩家装备、同步射线和实际扣血，验证普通/强化衰减、无 perk 到强化武器切换、逐目标盾层、免疫屏障、地形和未知世界结果。开发期修正测试适配器误用的 Impact/回执方法签名；修正后定向测试及双端 GameTest 编译通过，完整门禁结果另记下方。
+
+原表 A20/C20 与固定快照一致，当前 Clarity live HEAD 的普通描述交叉核对通过；两次原表抓取文本一致，原始 HTML/元数据/哈希保留。B20 的 70×70 图标已原样导入并目视核对。此批没有核心 Java、协议或存储形状变更；没有重复图形客户端测试，也不将既有客户端记录作为新增 perk 的视觉验收。
+
+覆盖新增一条 partial，共 116 条审阅（114 partial / 2 not_applicable / 0 verified）。正式武器目录/装配/HUD、完整勇士与实体盾牌、固有穿透叠加/原作特殊交互、完整武器校准与物理世界整体重启继续推进。[内容与政策](d2-ruleset.md#armor-piercing-rounds-的三项数值接线)、[来源](../data/d2-research/2026-10-12/armor-piercing-rounds.json)。
+
+
+最终 `/tmp/chorus-ap-gate.log` BUILD SUCCESSFUL，7 分 27 秒：1869 项 JUnit（无失败/错误/跳过）、Fabric 1051 / NeoForge 1066 项世界测试与两端发布 jar 通过，共享 Chorus 世界场景 1050 项。发布包 Fabric 1210 项 / NeoForge 1203 项，新图标与中英文语言资源逐字节一致，不含效果/存储夹具、GameTest 或测试 Mixin。614 项存储目录与两份历史检查点原字节不变，Gradle CRLF 保留。10 项 Compendium 工具测试、116 条审阅、报告一致性、研究原件哈希及全部素材清单离线校验通过。
+
 ### 2026-10-12：瞬时射线的直线穿透
 
 可选步骤外层 pierces 保留原单接触数据/存储形状，编译为一次路径观察与可恢复的 ForEach 顺序执行。新增 PiercingQuery、PathResult、PathContact 与 PreparedPath；原 Query/Result 和单接触执行路径仍保留。宿主一次扫描已加载前缀，按真实接触距离/同距 UUID 排序，最多首个加指定额外实体数；未用完时追加地形/射程/未知边界终点，不重新查询后续目标。共同宿主仍保留原单接触闭区间、碰撞箱扩张、墙优先和未知区块政策。

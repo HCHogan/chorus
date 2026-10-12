@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "id": "perks/armor_piercing_rounds",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Armor-Piercing Rounds",
+      "label_cell": "A20",
+      "image_cell": "B20"
+    }
+  ]
+}
