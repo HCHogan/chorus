@@ -25,6 +25,9 @@ public class Chorus implements ModInitializer {
         com.imdomestic.chorus.network.FabricEquipmentNetworking.init();
         com.imdomestic.chorus.network.FabricProjectileCatchNetworking.init();
         com.imdomestic.chorus.network.FabricAbilityInputNetworking.init();
+        com.imdomestic.chorus.network.FabricWeaponChargeNetworking.init();
+        ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE::stop);
+        ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE.disconnected(listener));
         com.imdomestic.chorus.network.FabricWeaponAimNetworking.init();
         ServerLifecycleEvents.SERVER_STOPPED.register(com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE::stop);
         ServerPlayConnectionEvents.DISCONNECT.register((listener, server) -> com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.disconnected(listener));
@@ -42,6 +45,7 @@ public class Chorus implements ModInitializer {
                 com.imdomestic.chorus.platform.minecraft.EffectCommands.register(dispatcher));
         ServerTickEvents.END_LEVEL_TICK.register(MinecraftEffectRuntime::tick);
         ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE::tick);
+        ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE::tick);
         ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::tick);
         ServerLevelEvents.UNLOAD.register((server, level) -> MinecraftEffectRuntime.unload(level));
         ServerLifecycleEvents.SERVER_STOPPED.register(MinecraftEffectRuntime::stop);

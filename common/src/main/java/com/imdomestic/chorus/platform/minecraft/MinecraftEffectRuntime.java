@@ -525,10 +525,33 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     public void cancelCharge(String holder, String reason) {
+        cancelCharge(holder, Optional.empty(), reason);
+    }
+    /** A connection owns only its accepted token, including after prepare has settled due reactions. */
+    public void cancelCharge(String holder, String token, String reason) {
+        cancelCharge(holder, Optional.of(token), reason);
+    }
+    private void cancelCharge(String holder, Optional<String> token, String reason) {
         thread(); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge cancellation requires a healthy idle runtime");
+        if (token.isPresent() && (view().charging().get(holder) == null || !view().charging().get(holder).token().equals(token.orElseThrow()))) return;
         try { commitChargeCancellation(holder, reason); refreshEquipment(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    /** Connection teardown also retires trusted command gestures, without replaying failed runtime work. */
+    public static void cancelChargeInputs(net.minecraft.server.network.ServerGamePacketListenerImpl connection) {
+        for (var runtime : List.copyOf(LIVE.values())) if (runtime.level.getServer() == connection.player.level().getServer() && runtime.failure().isEmpty()) {
+            runtime.ownerThread();
+            for (var player : List.copyOf(runtime.equipmentOwners.values())) if (player.connection == connection
+                    && runtime.view().charging().containsKey(player.getUUID().toString())) runtime.cancelCharge(player.getUUID().toString(), "input_disconnected");
+        }
+    }
+    /** Called before pinning a clean-stop checkpoint; persistent domain plans do not prove a live physical hold. */
+    public static void quiesceCharges(net.minecraft.server.MinecraftServer server) {
+        for (var runtime : List.copyOf(LIVE.values())) if (runtime.level.getServer() == server && runtime.failure().isEmpty()) {
+            runtime.ownerThread();
+            for (var holder : List.copyOf(runtime.view().charging().keySet())) runtime.cancelCharge(holder, "input_server_stopping");
+        }
     }
     private void commitChargeCancellation(String holder, String reason) {
         var before = view(); var ended = program.cancelCharge(before, holder, reason);

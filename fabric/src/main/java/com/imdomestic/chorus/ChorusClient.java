@@ -23,6 +23,12 @@ public final class ChorusClient implements ClientModInitializer {
         var finisher = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.finisher", InputConstants.KEY_H, KeyMapping.Category.GAMEPLAY));
         ClientTickEvents.END_CLIENT_TICK.register(client -> { while (finisher.consumeClick()) com.imdomestic.chorus.client.FinisherInputClient.press(ClientPlayNetworking::send,
                 () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.FinisherInputPayload.TYPE)); });
+        ClientPlayNetworking.registerGlobalReceiver(com.imdomestic.chorus.network.WeaponChargePayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponChargeClient.accept(view));
+        net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry.attachElementAfter(net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements.CROSSHAIR,
+                net.minecraft.resources.Identifier.fromNamespaceAndPath("chorus", "weapon_charge"), com.imdomestic.chorus.client.WeaponChargeHud::render);
+        var charge = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.charge", InputConstants.KEY_R, KeyMapping.Category.GAMEPLAY));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> com.imdomestic.chorus.client.WeaponChargeClient.tick(charge, ClientPlayNetworking::send,
+                () -> ClientPlayNetworking.canSend(com.imdomestic.chorus.network.WeaponChargePayloads.Input.TYPE)));
         ClientPlayNetworking.registerGlobalReceiver(com.imdomestic.chorus.network.WeaponAimPayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponAimClient.accept(view));
         var aim = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.chorus.aim", InputConstants.KEY_Z, KeyMapping.Category.GAMEPLAY));
         ClientTickEvents.END_CLIENT_TICK.register(client -> com.imdomestic.chorus.client.WeaponAimClient.tick(aim, ClientPlayNetworking::send,

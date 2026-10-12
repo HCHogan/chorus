@@ -1,6 +1,8 @@
 package com.imdomestic.chorus.platform.services;
 
 public interface IPlatformHelper {
+    void sendWeaponChargeView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.WeaponChargePayloads.View view);
+
     void sendWeaponAimView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.WeaponAimPayloads.View view);
     void sendEquipmentView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.EquipmentPayloads.View view);
     void sendMovementInput(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.MovementInputPayload payload);

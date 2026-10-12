@@ -46,6 +46,7 @@
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.WeaponAimGameTest",
       "com.imdomestic.chorus.WeaponChargeGameTest",
+      "com.imdomestic.chorus.WeaponChargeInputGameTest",
       "com.imdomestic.chorus.WeaponAimInputGameTest",
       "com.imdomestic.chorus.BoxBreathingGameTest",
       "com.imdomestic.chorus.SnapshotSightsGameTest",
@@ -192,7 +193,8 @@
       "com.imdomestic.chorus.BreakoutClientGameTest",
       "com.imdomestic.chorus.ConstructClientGameTest",
       "com.imdomestic.chorus.AbilityInputClientGameTest",
-      "com.imdomestic.chorus.WeaponAimClientGameTest"
+      "com.imdomestic.chorus.WeaponAimClientGameTest",
+      "com.imdomestic.chorus.WeaponChargeClientGameTest"
     ]
   }
 }

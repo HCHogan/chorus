@@ -85,11 +85,12 @@
       "Accepted minimum/full timing snapshots and matched release",
       "Partial/full/overdraw measurements and synthetic perfect-window damage expression",
       "Current release cost and fire condition, native held gear/life verification",
-      "Domain checkpoint and exact legacy migrations"
+      "Domain checkpoint and exact legacy migrations",
+      "Paired native client input, server lease, GUI/focus cancellation and authoritative progress HUD"
     ],
     "remaining": [
       "Measured Destiny bow timing, damage, velocity and accuracy curves",
-      "Client input protocol, lease, GUI/focus cancellation, animation and HUD",
+      "Original bow model/animation, perfect-window feedback and production Destiny HUD",
       "Auto-fire at full charge, forced release and full physical-world restart"
     ]
   }

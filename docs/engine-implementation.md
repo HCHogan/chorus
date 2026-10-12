@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-12：蓄力按键、保持租期与服务器进度
+
+Fabric / NeoForge 新增独立蓄力按键（默认 R，可改绑键盘/鼠标）和成对输入/只读投影。服务器为每次接受的按下生成领域 token，从真实持握容器和生命获取身份；重复/错配/错维度输入不能替换有效手势。客户端每 10 tick 保持一次，40 tick 租期在处理迟到保持/松开前到期。保持只延长租期，换弹、限制、装备改变或取消后不会自动重新蓄力。
+
+GUI/失焦取消并要求重新松开按键，断线还清理该连接的命令蓄力。正常停服先退役网络手势及剩余领域蓄力，再固定检查点。运行时替换清理匹配恢复计划；按 token 的取消在 prepare 完成后再次核对，避免旧清理请求取消其他宿主的新计划。未知松开结果保留已提交的扣弹与世界工作，退役网络手势而不自动重试。
+
+进度投影包含服务器逻辑时间、输入确认序号、递增版本、UUID/原生 entity ID 与维度，基础条显示实际进度、最低松开标记和满蓄力状态，不预测完美窗口或发射资格。原版复生会复用 entity ID；客户端 held 投影还要求匹配按下时的 LocalPlayer 对象和手势，服务器继续使用持久化生命引用。网络意图和投影不加入领域存储，597 项目录及两份历史检查点原字节不变。
+
+新增 9 项共享 WeaponChargeInputGameTest，验证顺序/隔离与原生发射、真实服务器进度、精确租期边界、限制与换弹不重入、领域恢复、真实复生连接、未知松开不重放、命令断线清理/停服前退役和新旧宿主计划隔离。首轮复生夹具只调用 PlayerList.respawn，未完成连接 player 切换；改用原版 PERFORM_RESPAWN 请求入口，保留严格连接身份检查。最终 `/tmp/chorus-charge-input-final-gate.log` BUILD SUCCESSFUL，4 分 18 秒：1794 项 JUnit 无失败/错误/跳过，Fabric 998 项 / NeoForge 1013 项世界测试及双端发布 jar 通过，共享 Chorus 场景 997 项。
+
+新增 WeaponChargeClientGameTest 使用真实注册键盘和改绑鼠标，验证长按保持、松开扣弹/原生弹体、GUI/失焦不重入、旧投影拒绝、实际复生后的相同 entity ID 与新玩家对象，以及新生命重新按下后的第二次发射。复生扩展首次回归发现夹具的世界查询固定引用旧玩家，已改用世界 UUID 查询当前实体，未放宽发射与扣弹断言。`/tmp/chorus-charge-input-client3.log` 的 21 项 Fabric 客户端回归通过；1280×720 的 `fabric/build/run/clientGameTest/screenshots/0005_chorus-charge-ready.png` 已目视检查。NeoForge 本轮验证注册/客户端代码编译及服务器行为，未新增图形交互验收。
+
+10 项 Compendium 工具测试、112 条审阅及报告一致性检查通过，仍为 110 partial / 2 not_applicable / 0 verified。发布包 Fabric 1180 项 / NeoForge 1173 项，包含网络控制器与基础 HUD，不含效果/校准/persistence 夹具、GameTest 或测试 Mixin。原作弓数值/散布/动画、完美窗口显示、自动发射/强制松弦、生产内容/配装/D2 HUD 与物理世界整体重启仍未完成。[输入与显示契约](engine-data-packs.md#蓄力按键网络与进度显示)。
+
 ### 2026-10-12：通用武器蓄力与配对松开
 
 新增可选 WeaponDefinition.charging 和独立 WeaponCharge 状态。接受按下时固定最低/满蓄力时间及 Profile 轨迹，不预扣弹；匹配松开使用当前成本、弹药、条件和完成阶段限制，清除本次蓄力与付款在同一领域提交中完成，随后运行原有射击动作。满蓄力只转为 READY；内容通过 charge_fraction、fully_charged 和 charge_overdraw 表达部分蓄力、完美窗口及伤害/速度参数，没有核心写死的弓公式或循环限制。

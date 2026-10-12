@@ -11646,14 +11646,15 @@
       "kind": "effect",
       "archived": false,
       "status": "partial",
-      "scope": "50%直击/爆炸分量、3米范围、显式距离引信与生命附着；通用服务端蓄力组合已接实际松开射击及部分/满蓄力时间",
+      "scope": "50%直击/爆炸分量、3米范围、显式距离引信与生命附着；通用服务端蓄力组合已接实际松开射击及部分/满蓄力时间；双端按键保持协议、基础服务器进度投影",
       "acceptance": [
         "两模式及身体/精确分量；距离只改变合成引信，爆炸不继承精确倍率或手炮衰减",
         "必须链接米到秒的校准Profile；零值即时、负值先诊断、正值向上量化微秒",
         "换装/射手移动/领域恢复保留原伤害和枪口；多箭头可按独立引信乱序引爆",
         "长引信保留共享的一次性消费资格；移除历史中心不跟随新生命，卸载/不可用明确退役",
         "双端原生碰撞、实际扣血、附着移动、完成清理和未知延迟回执不重放",
-        "服务端配对按下/松开、部分蓄力与内容定义的完美窗口、开始时间快照、实际扣弹/弹体/两段伤害；换装、限制和同UUID新生命取消未发射蓄力"
+        "服务端配对按下/松开、部分蓄力与内容定义的完美窗口、开始时间快照、实际扣弹/弹体/两段伤害；换装、限制和同UUID新生命取消未发射蓄力",
+        "双端配对网络输入、40tick租期、旧包/复生/运行时替换不继承手势；客户端真实键盘/鼠标松开发射与GUI/失焦取消"
       ],
       "evidence": [
         {
@@ -11759,11 +11760,36 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponChargeGameTest.java",
           "symbol": "nativeRespawnWithTheSameUuidAndTransferredGearCannotInheritTheOldCharge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponChargeInputGameTest.java",
+          "symbol": "pairedPacketsUseServerTokensAndCannotReleaseAnotherGestureOrDimension"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponChargeInputGameTest.java",
+          "symbol": "heartbeatsPreserveTimingAndProgressIsAnAuthoritativeServerSample"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponChargeInputGameTest.java",
+          "symbol": "exactLeaseExpiryRejectsLateHeartbeatAndReleaseWithoutRefiring"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponChargeInputGameTest.java",
+          "symbol": "unknownReleaseRetiresSequenceAndNeverRetriesTheAcceptedPayment"
+        },
+        {
+          "kind": "client_test",
+          "path": "fabric/src/gametest/java/com/imdomestic/chorus/WeaponChargeClientGameTest.java",
+          "symbol": "runTest"
         }
       ],
       "gaps": [
         "原表/Clarity描述距离延迟却未给公式，Foundry固定0.2秒PvE/0秒PvP与之冲突；距离曲线、直线距离定义和接触时取样均未原作校准",
-        "最短0.1秒/满蓄力0.4秒、完美窗口0.1秒/+20%及线性进度伤害仅为合成消费者；真实D2拉弓、伤害/速度/精度曲线、强制松弦、客户端按键/保持协议与弓表现仍待校准或实现",
+        "最短0.1秒/满蓄力0.4秒、完美窗口0.1秒/+20%及线性进度伤害仅为合成消费者；真实D2拉弓、伤害/速度/精度曲线、强制松弦、弓模型/动画与原作HUD表现仍待校准或实现",
         "死亡follow、移除fix、卸载/跨维度end及方块固定点是明确Chorus政策；骨骼变换、区块协调、自定义复活和物理世界重启仍待完成",
         "完整D2伤害/proc/目标分类、正式武器目录、生产配装和HUD未完成；定义目前位于测试资源"
       ],

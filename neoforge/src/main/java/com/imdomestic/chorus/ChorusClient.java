@@ -30,6 +30,13 @@ public final class ChorusClient {
         bus.addListener((RegisterKeyMappingsEvent event) -> event.register(finisher));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> { while (finisher.consumeClick()) com.imdomestic.chorus.client.FinisherInputClient.press(ClientPacketDistributor::sendToServer,
                 () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(com.imdomestic.chorus.network.FinisherInputPayload.TYPE)); });
+        bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(com.imdomestic.chorus.network.WeaponChargePayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponChargeClient.accept(view)));
+        bus.addListener((net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) -> event.registerAboveAll(
+                net.minecraft.resources.Identifier.fromNamespaceAndPath("chorus", "weapon_charge"), com.imdomestic.chorus.client.WeaponChargeHud::render));
+        var charge = new KeyMapping("key.chorus.charge", InputConstants.KEY_R, KeyMapping.Category.GAMEPLAY);
+        bus.addListener((RegisterKeyMappingsEvent event) -> event.register(charge));
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> com.imdomestic.chorus.client.WeaponChargeClient.tick(charge, ClientPacketDistributor::sendToServer,
+                () -> Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().hasChannel(com.imdomestic.chorus.network.WeaponChargePayloads.Input.TYPE)));
         bus.addListener((RegisterClientPayloadHandlersEvent event) -> event.register(com.imdomestic.chorus.network.WeaponAimPayloads.View.TYPE, (view, context) -> com.imdomestic.chorus.client.WeaponAimClient.accept(view)));
         var aim = new KeyMapping("key.chorus.aim", InputConstants.KEY_Z, KeyMapping.Category.GAMEPLAY);
         bus.addListener((RegisterKeyMappingsEvent event) -> event.register(aim));
