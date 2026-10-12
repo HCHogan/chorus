@@ -1,0 +1,52 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:weapon_draw_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "timing",
+            "reduction": "product",
+            "families": {
+              "chorus_d2:archers_tempo": {
+                "kind": "max"
+              },
+              "chorus_d2:successful_warm_up": {
+                "kind": "max"
+              }
+            }
+          },
+          "factor": "chorus_d2:weapon_draw_time_perks"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:weapon_charge_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "perks",
+          "operation": "multiply",
+          "group": {
+            "name": "timing",
+            "reduction": "product",
+            "families": {
+              "chorus_d2:successful_warm_up": {
+                "kind": "max"
+              }
+            }
+          },
+          "factor": "chorus_d2:weapon_charge_time_perks"
+        }
+      ]
+    }
+  ]
+}

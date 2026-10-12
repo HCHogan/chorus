@@ -1,0 +1,136 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:successful_warm_up",
+        "version": "compendium-2026-10-05",
+        "duration": 6,
+        "refresh": "reset",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "affects": "instance_weapon",
+        "on_stow": "remove"
+      },
+      "bundle": "chorus_d2:successful_warm_up_active"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:successful_warm_up",
+      "rules": [
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:weapon_drawn"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:has_buff",
+                "buff": "chorus_d2:successful_warm_up"
+              },
+              "then": [
+                {
+                  "type": "chorus:extend_buff",
+                  "buff": "chorus_d2:successful_warm_up",
+                  "amount": {
+                    "type": "chorus:enhanced",
+                    "base": {
+                      "type": "chorus:constant",
+                      "value": 4,
+                      "unit": "second"
+                    },
+                    "enhanced": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "second"
+                    }
+                  },
+                  "cap": {
+                    "type": "chorus:constant",
+                    "value": 20,
+                    "unit": "second"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:successful_warm_up"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:successful_warm_up"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:successful_warm_up_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "weapon_draw_time",
+          "profile": "chorus_d2:weapon_draw_time",
+          "stage": "perks",
+          "group": "timing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:successful_warm_up",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.375,
+            "unit": "delta"
+          },
+          "reference": "Compendium Weapon Perks original C213 (snapshot C212); Clarity 2652708987 / 617966211.",
+          "confidence": "measured"
+        },
+        {
+          "id": "weapon_charge_time",
+          "profile": "chorus_d2:weapon_charge_time",
+          "stage": "perks",
+          "group": "timing",
+          "op": "multiply",
+          "stacking_key": "chorus_d2:successful_warm_up",
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.375,
+            "unit": "delta"
+          },
+          "reference": "Compendium Weapon Perks original C213 (snapshot C212); Clarity 2652708987 / 617966211.",
+          "confidence": "measured"
+        }
+      ]
+    }
+  ]
+}

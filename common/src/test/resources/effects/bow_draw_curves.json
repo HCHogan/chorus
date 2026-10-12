@@ -1,0 +1,61 @@
+{
+  "version": "compendium-2026-10-05",
+  "profiles": [
+    {
+      "id": "chorus_d2:lightweight_bow_draw_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:clamp",
+          "id": "draw_stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        },
+        {
+          "type": "chorus:curve",
+          "id": "reference_draw_time",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.8181818181818182,
+              -0.0036363636363636364
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:precision_bow_draw_time",
+      "version": "compendium-2026-10-05",
+      "input_unit": "stat_point",
+      "steps": [
+        {
+          "type": "chorus:clamp",
+          "id": "draw_stat_cap",
+          "minimum": 0,
+          "maximum": 100
+        },
+        {
+          "type": "chorus:curve",
+          "id": "reference_draw_time",
+          "curve": {
+            "type": "chorus:polynomial",
+            "coefficients": [
+              0.8181818181818182,
+              -0.0032727272727272726
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "boundary": "error"
+          },
+          "output_unit": "second"
+        }
+      ]
+    }
+  ]
+}

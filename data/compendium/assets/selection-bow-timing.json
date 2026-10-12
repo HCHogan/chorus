@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "id": "perks/archers_tempo",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Archer's Tempo",
+      "label_cell": "A19",
+      "image_cell": "B19"
+    },
+    {
+      "id": "perks/successful_warm_up",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Successful Warm-Up",
+      "label_cell": "A213",
+      "image_cell": "B213"
+    }
+  ]
+}

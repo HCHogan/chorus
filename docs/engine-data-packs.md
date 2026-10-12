@@ -3447,6 +3447,8 @@ minimum / full 使用与换弹相同的 Timing 结构，支持显式有序 profi
 
 EffectState v5 新增 charging；精确旧 v4 迁移为空蓄力并保留全部附着。WeaponDefinition v4 新增可选 charging，旧 v3 保留原武器行为；Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。存储目录为 597 项，原 582 项形状不变。领域检查点可恢复 CHARGING / READY、固定期限、轨迹及绑定生命；恢复本身不创造新的按键或自动发射。未知世界结果仍停机，不重放已消费的松开、付款、弹体或伤害。完整物理世界重启、自动满蓄力发射、最大持弓/强制松弦和完整蓄力武器行为仍有后续工作。
 
+内容可将 `charging.full.value` 声明为 `stat_point`，通过 `profiles` 依次执行属性到秒的曲线与秒到秒的 perk 修饰；最终输出仍必须为秒。例如参考消费者使用 `lightweight_bow_draw_time → weapon_draw_time`。最低松开时间保持单独声明，不能因为它也属于蓄力就隐式套用满弦系数。Tempo/Warm-Up 用普通 Buff 和 `grant_buff / extend_buff` 表达刷新与剩余时间上限，不需要在充能核心中识别 perk 名字；融合用 `weapon_charge_time`，避免误用只针对拉弓的 Tempo。[内容与校准边界](d2-ruleset.md#普通弓拉弓曲线与-tempo--warm-up)。
+
 ## 蓄力按键网络与进度显示
 
 Fabric / NeoForge 注册 `key.chorus.charge`，默认 R，支持玩家在控制设置中改绑键盘或鼠标。它操作自定义武器容器中当前持握的 charging 武器；不自动替换原版攻击/使用按键。普通即时武器的现有 fire 入口保持原行为。按下开始、松开发射，GUI/失焦/死亡/旁观/玩家或维度改变发送 CANCEL 并清除显示；恢复后需要先松开被取消的旧按键。

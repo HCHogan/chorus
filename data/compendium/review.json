@@ -11654,7 +11654,8 @@
         "长引信保留共享的一次性消费资格；移除历史中心不跟随新生命，卸载/不可用明确退役",
         "双端原生碰撞、实际扣血、附着移动、完成清理和未知延迟回执不重放",
         "服务端配对按下/松开、部分蓄力与内容定义的完美窗口、开始时间快照、实际扣弹/弹体/两段伤害；换装、限制和同UUID新生命取消未发射蓄力",
-        "双端配对网络输入、40tick租期、旧包/复生/运行时替换不继承手势；客户端真实键盘/鼠标松开发射与GUI/失焦取消"
+        "双端配对网络输入、40tick租期、旧包/复生/运行时替换不继承手势；客户端真实键盘/鼠标松开发射与GUI/失焦取消",
+        "另有bow_charge_weapon消费者接普通轻型/精密Foundry满弦参考及Tempo/Warm-Up真实命中缩短后续拉弓；原有0.4秒/完美窗口仍独立保留为合成验收"
       ],
       "evidence": [
         {
@@ -11785,6 +11786,11 @@
           "kind": "client_test",
           "path": "fabric/src/gametest/java/com/imdomestic/chorus/WeaponChargeClientGameTest.java",
           "symbol": "runTest"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "delayedBodyExplosionKillStartsWarmupWithoutPrecisionTempo"
         }
       ],
       "gaps": [
@@ -11803,6 +11809,156 @@
           "sheet": "Weapon Perks",
           "cell": "C88",
           "text_sha256": "7cb60f6b1494b8d3d6707b66ab730034e57bc03bba00a49a5eb4bac4afe87d9b"
+        }
+      ]
+    },
+    {
+      "id": "weapon/archers_tempo",
+      "name": "Archer's Tempo",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "普通弓精准命中拉弓×0.75、普通/强化3/4秒、刷新/收枪清理；真实弓满蓄力时间消费",
+      "acceptance": [
+        "精准武器applied命中授予，身体/非武器/免疫/爆炸/其他持有者隔离",
+        "3/4秒刷新与精确到期；已经接受的蓄力不被后来到期重算",
+        "与Warm-Up乘算为0.46875，独立最低松开时长不变；充能Profile不受Tempo影响",
+        "真实箭矢非致死精准/击杀、下一次加速蓄力、收枪及飞行中迟到命中"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/archers_tempo.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_charge_time.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bow_draw_curves.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bow_charge_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BowTimingPerksTest.java",
+          "symbol": "ordinaryAndEnhancedTempoRefreshAtPrecisionHitsAndExpireAtTheirExactBoundaries"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BowTimingPerksTest.java",
+          "symbol": "physicalPrecisionKillActivatesBothAndNextDrawUsesTheProduct"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "normalPrecisionKillsShortenTheNextPhysicalDrawAndExtendWarmup"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "enhancedPrecisionAndKillTimersUseFourAndFiveSeconds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "actualStowRemovesBothAndTheAlreadyFlyingPrecisionKillCannotRegrant"
+        }
+      ],
+      "gaps": [
+        "当前为测试资源中的参考消费者，正式武器目录、自动配装、HUD/图标绑定和物理世界整体重启仍未完成",
+        "接受按下时固定时长、applied精准资格、迟到收枪击中不能重授与派生伤害资格为明确Chorus政策，尚待原作交互校准",
+        "轻型/精密满弦曲线取自固定Foundry源码，并非新实测；最短0.1秒、伤害/飞行/弹量/换弹/引信仍有合成校准，原作部分/完美拉弓和动画未完成",
+        "Leviathan在Foundry中为0.5625，本普通弓片段不包含该异域分支；其他缩短拉弓词条/护甲、完整Draw Time属性装配未完成"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A19",
+          "text_sha256": "ddb3c623254d0782db566b41244e4a6a4108785b6719f919e2dd8c0f6d044dce"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C19",
+          "text_sha256": "94102c86666a7b6d620c71b0f6a0b3d79295e0fd76591f892cb6ae1fb65ae9c5"
+        }
+      ]
+    },
+    {
+      "id": "weapon/successful_warm_up",
+      "name": "Successful Warm-Up",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "武器击杀充能/拉弓×0.625；首次6秒，续杀普通+4/强化+5秒，上限20秒，收枪移除",
+      "acceptance": [
+        "首次六秒、后续在当前剩余时长上延长而非重置，普通/强化均限制剩余20秒",
+        "精确到期后的新击杀重新给予六秒；武器/持有者隔离、卸下清除和重装不恢复",
+        "真实两次精准箭矢击杀驱动Buff和下一次拉弓，延迟Explosive Head身体爆炸击杀保留武器信用",
+        "同一Buff修饰draw/charge两条Profile，Tempo只影响draw；领域检查点保留期限"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/successful_warm_up.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/weapon_charge_time.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bow_draw_curves.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/bow_charge_weapon.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BowTimingPerksTest.java",
+          "symbol": "warmupStartsAtSixSecondsThenExtendsRemainingTimeWithAnExplicitTwentySecondCap"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BowTimingPerksTest.java",
+          "symbol": "physicalPrecisionKillActivatesBothAndNextDrawUsesTheProduct"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "normalPrecisionKillsShortenTheNextPhysicalDrawAndExtendWarmup"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "enhancedPrecisionAndKillTimersUseFourAndFiveSeconds"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BowTimingPerksGameTest.java",
+          "symbol": "actualStowRemovesBothAndTheAlreadyFlyingPrecisionKillCannotRegrant"
+        }
+      ],
+      "gaps": [
+        "当前为测试资源中的参考消费者，正式武器目录、自动配装、HUD/图标绑定和物理世界整体重启仍未完成",
+        "接受按下时固定时长、applied精准资格、迟到收枪击中不能重授与派生伤害资格为明确Chorus政策，尚待原作交互校准",
+        "轻型/精密满弦曲线取自固定Foundry源码，并非新实测；最短0.1秒、伤害/飞行/弹量/换弹/引信仍有合成校准，原作部分/完美拉弓和动画未完成",
+        "融合/线性融合的原型充能、自动开火与burst尚未实现；当前只验证共享charge时长Profile和真实弓消费者，不能当完整融合枪复现"
+      ],
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A212",
+          "text_sha256": "c8d39a85e7fb684f03e5af6be1a8ec3cc1e4f826468c6a706f9581d9c68c4138"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C212",
+          "text_sha256": "b0dc771983725102218e70c909b5bb49e7583b4efbe7edd8d8dcb2b3bc2a3c50"
         }
       ]
     }

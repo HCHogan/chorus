@@ -46,6 +46,7 @@
       "com.imdomestic.chorus.WeaponHandlingGameTest",
       "com.imdomestic.chorus.WeaponAimGameTest",
       "com.imdomestic.chorus.WeaponChargeGameTest",
+      "com.imdomestic.chorus.BowTimingPerksGameTest",
       "com.imdomestic.chorus.WeaponChargeInputGameTest",
       "com.imdomestic.chorus.WeaponAimInputGameTest",
       "com.imdomestic.chorus.BoxBreathingGameTest",

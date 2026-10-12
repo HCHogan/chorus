@@ -30,7 +30,8 @@ class WeaponChargeTest {
     static class Harness extends TimedPayloadTest.Harness {
         boolean allowed=true,unknownVerify,unknownLaunch;final List<WeaponCharge.Verify> checks=new ArrayList<>();
         Harness()throws Exception{this(data());}
-        Harness(JsonObject data)throws Exception{super(program(data),ExplosiveHeadTest.TAG,false);bind("observer-charge","test:charge_observer","a");}
+        Harness(JsonObject data)throws Exception{this(program(data));}
+        Harness(CompiledEffects program){super(program,ExplosiveHeadTest.TAG,false);bind("observer-charge","test:charge_observer","a");}
         @Override void equip(String a,String b,String drawn){equip(new Loadout.Gear("a","test:bow",Map.of("perk",a)),new Loadout.Gear("b","test:bow",Map.of("perk",b)),drawn);}
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r){
             if(r.command() instanceof WeaponCharge.Verify q){checks.add(q);if(unknownVerify)throw new IllegalStateException("unknown full-charge verification");return new WeaponCharge.Verified(q,allowed);}

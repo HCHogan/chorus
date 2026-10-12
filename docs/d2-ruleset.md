@@ -1825,7 +1825,23 @@ WeaponCharge 已提供服务端按下、保持至满蓄力、松开射击和取�
 
 验收组合将 `weapon_charge_test_calibration.json` 装到弓原型，采用最短 0.1 秒、满蓄力 0.4 秒。`weapon_charge_damage_test_calibration.json` 将伤害乘蓄力进度，并在满蓄力后 0.1 秒内使用 ×1.2；这些只是证明部分蓄力、完美窗口和伤害快照可组合的合成输入，不能作为任何 D2 弓的公式。强化 Accuracy 查询也没有因此自动变成实际散布。
 
-当前已有两端真实玩家容器、配对输入、实际箭状弹体碰撞及两段扣血的参考验收；这里的弹体仍是通用 EffectProjectile，没有弓模型/动画或原版拉弓输入。新增双端独立蓄力按键、服务器保持租期和基础进度条，松开调用同一射击事务；原作最短/完整拉弓、完美窗口、速度/伤害/精度曲线、强制松弦、自动发射武器、生产目录/配装/D2 HUD 及全世界重启仍未完成。Explosive Head 继续标为 partial。[领域协议](engine-data-packs.md#武器蓄力与配对松开)、[网络协议](engine-data-packs.md#蓄力按键网络与进度显示)。
+当前已有两端真实玩家容器、配对输入、实际箭状弹体碰撞及两段扣血的参考验收；这里的弹体仍是通用 EffectProjectile，没有弓模型/动画或原版拉弓输入。新增双端独立蓄力按键、服务器保持租期和基础进度条，松开调用同一射击事务；下节新增普通弓满弦参考曲线与两个时长 perk。原作最短松弦、完整武器目录、完美窗口、速度/伤害/精度曲线、强制松弦、自动发射武器、生产配装/D2 HUD 及全世界重启仍未完成。Explosive Head 继续标为 partial。[领域协议](engine-data-packs.md#武器蓄力与配对松开)、[网络协议](engine-data-packs.md#蓄力按键网络与进度显示)。
+
+## 普通弓拉弓曲线与 Tempo / Warm-Up
+
+[bow_draw_curves.json](../common/src/test/resources/effects/bow_draw_curves.json) 把 Draw Time 属性点转为秒；参考固定版本 [Foundry BuiltIn](https://github.com/d2foundry/oracle_engine/blob/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs) 与 `Stat.perk_val` 的 0–100 限幅。轻型使用 `(900 − 4 × s) / 1100`，精密使用 `(900 − 3.6 × s) / 1100`。普通两原型的基础 burst delay 为零，之后乘 perk 的时间系数。这是公开参考实现，尚非当前原作逐帧实测；曲线的有限双精度系数与引擎向上量化微秒可能在边界产生微秒差异，原作帧量化尚未校准。
+
+[weapon_charge_time.json](../common/src/test/resources/effects/weapon_charge_time.json) 提供独立的 `weapon_draw_time` 和 `weapon_charge_time` 秒到秒 Profile。不同 perk 家族乘算；本消费者只把满蓄力时长接入，最短松开时间和装箭/换弹不受其影响。普通弓参考属性 50 时，轻型为约 0.636364 秒，精密为约 0.654546 秒；属性生产者和完整弓目录尚未装配。
+
+[Archer’s Tempo](../common/src/test/resources/effects/archers_tempo.json) 监听本持有者、本武器的已应用精准武器命中，排除爆炸 perk 分量。普通持续 3 秒，强化 4 秒，新精准命中重置时长，拉弓乘以 0.75。收枪及卸下来源清除；迟到的收枪箭命中不重授。原表 `Weapon Perks!A19/C19` 与快照同坐标一致；Clarity 的普通/强化条目也一致。Foundry 为 Leviathan 单独使用 0.5625，本普通弓片段尚未包含该异域分支，不能直接用于完整 Leviathan 复现。
+
+[Successful Warm-Up](../common/src/test/resources/effects/successful_warm_up.json) 监听同持有者、同武器的击杀信用。首次给予 6 秒，已有 Buff 时在当前剩余时间上加普通 4 秒/强化 5 秒，限制剩余时长为 20 秒；并非每次重置成 6 秒。普通与强化均将拉弓/充能乘以 0.625，收枪或卸下清除。原表 `A213/C213` 对应固定快照 `A212/C212`；Clarity 的普通/强化记录支持相同数值。完整融合/线性融合的充能曲线、burst 和自动射击仍未实现，这里只验证其共享时长修饰 Profile。
+
+两个 Buff 共同生效时，普通弓满蓄力时间乘 `0.75 × 0.625 = 0.46875`。按下时保存期限和轨迹；精准命中、击杀或到期不会重算已经接受的蓄力。Buff 的精确到期先于同时间的新触发。Buff 以武器实例隔离；同家族归约不等于给重复的击杀事件提供幂等性，真实击杀仍沿用宿主的一次性事实契约。
+
+[bow_charge_weapon.json](../common/src/test/resources/effects/bow_charge_weapon.json) 复用 Explosive Head 参考消费者，并有独立的 Tempo/Warm-Up 选择槽。满弦使用上述参考曲线；最短 0.1 秒、基础伤害/精准倍率、弹量、换弹、飞行和引信仍是合成输入。该消费者没有套用前节的合成完美窗口，也没有声称固定测试伤害就是原作未满弦伤害。
+
+10 项纯核心测试覆盖两曲线、普通/强化期限、20 秒上限、精确到期、作用武器与资格、领域恢复及已接受时长快照。5 项双加载器共享场景使用真实装备和箭矢，覆盖精准击杀后下一次拉弓变快、续杀延长、非致死精准、收枪与迟到命中，以及延迟 Explosive Head 身体爆炸击杀给予 Warm-Up 且不产生精准。已应用命中门槛、派生击杀资格、收枪后不重授及开始取样时点均为明确内容政策，尚待原作边界校准。来源原件、坐标、哈希与剩余范围见 [研究记录](../data/d2-research/2026-10-12/bow-timing.json)；两项保持 partial，正式生产目录、配装/HUD 和物理世界重启继续推进。
 
 ## Timed Payload 的延迟附着
 
@@ -1846,3 +1862,5 @@ WeaponCharge 已提供服务端按下、保持至满蓄力、松开射击和取�
 这些生命周期选择属于明确 Chorus 策略，没有新增原作实测证据；原表和官方描述只证明已有数值来源与附着意图，不能证明目标移除后仍爆炸、卸载结束等细节与原作完全一致。
 
 仍有完整伤害/proc/武器目录、原作半径/径向曲线/硬直/精确舍入、生产装配/HUD 和物理世界跨重启缺口；本条保持 partial。
+
+两个 perk 的图标也已按原表 B19 / B213 原样导入 `assets/chorus_d2/textures/gui/perks/`，为 70×70 的 HTML 预览 PNG，未重绘或放大。保存的原表 HTML、图片 URL、原始尺寸与 SHA-256 见 [素材清单](../data/compendium/assets/2026-10-12-bow-timing/manifest.json)；已目视核对，尚未绑定 HUD/配装界面。

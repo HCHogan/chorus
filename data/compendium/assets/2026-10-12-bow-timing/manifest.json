@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "original_google_sheet",
+  "image_variant": "html_preview_unmodified_bytes",
+  "sources": [
+    {
+      "gid": "1662574278",
+      "sheet": "Weapon Perks",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "retrieved_at": "2026-10-12T03:18:34.596353+00:00",
+      "file": "sheets/1662574278.html.gz",
+      "html_sha256": "e5e8b7242f4ec641ee87d703c45f72d035fa08d5a7bdc1322b4d56f25b136896"
+    }
+  ],
+  "assets": [
+    {
+      "id": "perks/archers_tempo",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Archer's Tempo",
+      "label_cell": "A19",
+      "image_cell": "B19",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B19",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLZH7VXClW9AD8qE-iEY1pBabT0bVEGxExSDTiJj0Mjf7hn-EZVtOW-GfmXCw0PJOBkTaEHAEXkAlB0G5Fz_Cdrt3becKTMydiPMrs6T4khj0Nxf1uU162ZqWHMmFwoOBVb6hqb0ILvXISKwSecsapBQgkntIqo_iA=w70-h89",
+      "retrieved_at": "2026-10-12T03:18:35.835885+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/archers_tempo.png",
+      "texture": "chorus_d2:textures/gui/perks/archers_tempo.png",
+      "sha256": "26b55d856fbdbdece786b5f2e7e5a15606047898882bd4da20e9193bd886b94d",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    },
+    {
+      "id": "perks/successful_warm_up",
+      "sheet": "Weapon Perks",
+      "gid": "1662574278",
+      "label": "Successful Warm-Up",
+      "label_cell": "A213",
+      "image_cell": "B213",
+      "source_url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/edit?gid=1662574278&range=B213",
+      "image_url": "https://docs.google.com/sheets-images-rt/AO43MLZwWuqxDcqqGIyy_0sbDd5qCbiMpYQeCPz41uUxwPaVd_EbeClylzzsUWmsqgwBL5joEPafwTyrskwIClHLgq8r0bWhgEmvjdpSHpVVohhGgjB3T7r7lcqb__QpOY9R79zjBAPsLwszYsYdF2TKdBiwIxrJ1jwVKklC=w70-h89",
+      "retrieved_at": "2026-10-12T03:18:37.497610+00:00",
+      "file": "common/src/main/resources/assets/chorus_d2/textures/gui/perks/successful_warm_up.png",
+      "texture": "chorus_d2:textures/gui/perks/successful_warm_up.png",
+      "sha256": "db0c5871bede665c85fd52cd7d85e94b24c11c11984089e901ba7e7291cf7a9c",
+      "size": [
+        70,
+        70
+      ],
+      "media_type": "image/png"
+    }
+  ]
+}

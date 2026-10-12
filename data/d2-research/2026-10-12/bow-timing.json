@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "source_html_saved_at": "2026-10-12T02:52:24.976078+00:00",
+  "source_heads_rechecked_at": "2026-10-12T03:07:40.207631+00:00",
+  "scope": "Ordinary Lightweight / Precision reference full draw and two timing perks; not complete bow or fusion simulation",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+      "path": "data/d2-research/2026-10-12/bow-timing-source.html.gz",
+      "raw_sha256": "507ca89018737a9388fb04a407c7baba5656a96422c4b64395f88d272e44f899",
+      "gzip_sha256": "42c0f18f7b2a51ba198a3fce8396356062cef30a44bb50195fb389554e73caaf"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/meta_perks.rs",
+      "path": "data/d2-research/2026-10-12/bow-foundry-meta.rs.gz",
+      "raw_sha256": "dbe89255fd7a4dbcdfed157320f9d2d6f04cbffa3422f1be407af2a71b29b6d2",
+      "gzip_sha256": "e5e726b5ef1b4b28f0bcb1fe166af6fb5dcea22fb2d39f46c34f74651dfc811e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_5_perks.rs",
+      "path": "data/d2-research/2026-10-12/bow-foundry-year5.rs.gz",
+      "raw_sha256": "299381ecf7b7916f7ed1104a4621d33fd6dac5d8e322c972ce3f61c7531ee229",
+      "gzip_sha256": "7da231a52ed6dccdfaa23c75bda1d153438a7cdcf8d6b73093e870dca40219dc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/mod.rs",
+      "path": "data/d2-research/2026-10-12/bow-foundry-perks.rs.gz",
+      "raw_sha256": "ea02fac647a32391d59e81a442eeb185b91dcf742cb0575e26b20425c488c799",
+      "gzip_sha256": "cd8aa1706b1e74b53f4eaf6e525b2db8e24057d5816e5c9a03b2700147a4b8b4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/mod.rs",
+      "path": "data/d2-research/2026-10-12/bow-foundry-stats.rs.gz",
+      "raw_sha256": "bd4c5554609baff069786bccbac05d6520f461c5fbcc661eb406ac59b57d096a",
+      "gzip_sha256": "548f228fedabe4d2f7810f46347f263ec0f4b0a1b724ebcd5408bcd3d44012b1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/perks/year_2_perks.rs",
+      "path": "data/d2-research/2026-10-12/explosive-head-foundry-year2.rs.gz",
+      "raw_sha256": "fbb8e0a73464b0333597f12dbab82eaa0d068caf3b03ea55310917b364ba322b",
+      "gzip_sha256": "62b9d0a5a8b775f3891b00f4f0d0eb702c41b1c7a69776ec22009eb9e7880eda"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/src/weapons/stat_calc.rs",
+      "path": "data/d2-research/2026-10-12/handling-foundry-calculation.rs.gz",
+      "raw_sha256": "5662ee9dea9e59547d73f81cd7c02872046266acb7b24017d2d09c123f31e5c2",
+      "gzip_sha256": "497c50ef1bcbf68b0cbf45bf52fc46a1a80b6749f0db02da7efe7630bb0267a0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/d2foundry/oracle_engine/dcd0c7d302b056ffbb532edcb711d724a17ca8c1/build_resources/weapon_formulas.json",
+      "path": "data/d2-research/2026-10-12/handling-foundry-formulas.json.gz",
+      "raw_sha256": "fed3a0e02c72e34b8fb6daac459ca776fa31ef90b7350905b5f6276ff9b3178d",
+      "gzip_sha256": "1a386d1075f5bf824073b4af78c1587e71a40c879a1bbb5fc07c86bc8b15ea13"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "path": "data/d2-research/2026-10-12/bow-timing-clarity-metadata.json",
+      "sha256": "3f1683f32a9fe5db1fbaaad3de10a1b99c3728af41a9bd3449b41cb39ccf1892",
+      "dataset_raw_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "notes": "Selected metadata and canonical full-record digests. lastUpload is upstream metadata, not retrieval time."
+    }
+  ],
+  "source_heads_rechecked": {
+    "Foundry": "dcd0c7d302b056ffbb532edcb711d724a17ca8c1",
+    "Clarity": "039cfbc4732c33573568b28cc6335dd3332a9296"
+  },
+  "cell_checks": [
+    {
+      "original": "A19",
+      "snapshot": "A19",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "ddb3c623254d0782db566b41244e4a6a4108785b6719f919e2dd8c0f6d044dce"
+    },
+    {
+      "original": "C19",
+      "snapshot": "C19",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "94102c86666a7b6d620c71b0f6a0b3d79295e0fd76591f892cb6ae1fb65ae9c5"
+    },
+    {
+      "original": "A213",
+      "snapshot": "A212",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "c8d39a85e7fb684f03e5af6be1a8ec3cc1e4f826468c6a706f9581d9c68c4138"
+    },
+    {
+      "original": "C213",
+      "snapshot": "C212",
+      "normalized_equal": true,
+      "snapshot_text_sha256": "b0dc771983725102218e70c909b5bb49e7583b4efbe7edd8d8dcb2b3bc2a3c50"
+    }
+  ],
+  "selected": {
+    "archers_tempo": {
+      "draw_multiplier": 0.75,
+      "seconds": 3,
+      "enhanced_seconds": 4,
+      "stow": "remove"
+    },
+    "successful_warm_up": {
+      "draw_and_charge_multiplier": 0.625,
+      "first_seconds": 6,
+      "extension_seconds": 4,
+      "enhanced_extension_seconds": 5,
+      "remaining_cap_seconds": 20,
+      "stow": "remove"
+    },
+    "ordinary_bow_reference": {
+      "input": "draw_time stat including perks, clamped 0..100 (Stat.perk_val)",
+      "lightweight_seconds": "(900 - 4 * stat) / 1100",
+      "precision_seconds": "(900 - 3.6 * stat) / 1100",
+      "foundry_intrinsic_ids": {
+        "lightweight": 905,
+        "precision": 906
+      },
+      "normal_frame_hashes": {
+        "lightweight": 2108556049,
+        "precision": 715195141
+      },
+      "normal_frame_base_burst_delay": 0,
+      "combined_perk_multiplier": 0.46875,
+      "confidence": "reference implementation; not fresh original-game measurement"
+    }
+  },
+  "policies": [
+    "Stat-to-seconds reference curves precede second-to-second perk profiles. Multipliers do not alter reload/nocking, minimum release or damage. Only full timing consumes these profiles in the reference weapon.",
+    "Full timing is sampled on accepted press. Buff expiry or later activation changes the next press, not an accepted deadline.",
+    "Precision activation requires applied weapon damage excluding explosive perk damage. Both triggers require original owner, matching weapon and drawn weapon; late stowed shots cannot regrant removed buffs. These eligibility boundaries need original-game calibration.",
+    "Warm-Up grants six seconds when inactive; active kills extend remaining time by four/five with a twenty-second remaining cap. Exact expiry is processed before a new kill.",
+    "A drawn weapon may receive Warm-Up from its delayed Explosive Head body explosion kill; the blast never invents precision. Unusual derived-proc eligibility remains unverified.",
+    "Separate multiplier families multiply. One shared Buff timer per weapon. Duplicate producer event delivery is not made idempotent by modifier-family reduction.",
+    "Finite double coefficients represent the rational reference formulas. Accepted positive timing rounds upward to microseconds; algebraic rearrangement can differ at microsecond boundaries. Original frame quantization is unverified.",
+    "Consumer stat50 is a chosen reference input. Minimum release .1s, body10/precision2, ammo/cadence/reload/flight and fuse remain synthetic. Partial draw keeps fixed synthetic damage; no original partial/perfect formula is asserted."
+  ],
+  "remaining": [
+    "Foundry separately uses Tempo .5625 for Leviathan; this exotic and its draw curve are not included in the ordinary bow fragment.",
+    "Other draw-stat/perk/armor interactions; production stat assembly; original nocking, hold, forced-release, perfect-window, partial-damage, speed and accuracy calibration",
+    "Fusion/linear-fusion intrinsic charge curves, bursts and auto-fire; only Warm-Up charge-time modifier query is covered",
+    "Full production catalogue, loadout/HUD/artwork and physical-world restart; unusual precision/kill eligibility and mixed-mode interactions"
+  ],
+  "foundry_license_path": "data/d2-research/2026-10-12/handling-foundry-UNLICENSE.txt",
+  "assets_manifest": "data/compendium/assets/2026-10-12-bow-timing/manifest.json",
+  "numeric_cells_rechecked_with_assets": {
+    "retrieved_at": "2026-10-12T03:18:34.596353+00:00",
+    "cells": [
+      "C19",
+      "C213"
+    ],
+    "unchanged": true
+  }
+}

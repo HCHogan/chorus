@@ -258,6 +258,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/timed_payload.json', 'effects/timed_payload_weapon.json'
         include 'effects/explosive_head.json', 'effects/explosive_head_weapon.json', 'effects/explosive_head_test_calibration.json'
         include 'effects/weapon_charge.json', 'effects/weapon_charge_test_calibration.json', 'effects/weapon_charge_damage_test_calibration.json'
+        include 'effects/bow_charge_weapon.json', 'effects/archers_tempo.json', 'effects/successful_warm_up.json', 'effects/weapon_charge_time.json', 'effects/bow_draw_curves.json'
         include 'effects/armor_finisher_inputs.json'
         include 'effects/void_breach.json'
         include 'effects/orb_of_power.json'
