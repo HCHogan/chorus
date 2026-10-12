@@ -92,6 +92,20 @@ public final class ShotGroups {
         var next = value.with(member.pellet(), new Pellet(receipt.outcome() == ProjectileFlight.Outcome.LAUNCHED ? Phase.FLYING : Phase.REJECTED, 0, false, Set.of(), Set.of()));
         return settle(state.withShotGroup(next), next, receipt, false);
     }
+    /** A synchronous ray opens its contact only after the matching read-only world receipt commits. */
+    public static RuleEngine.Local<EffectState> traced(EffectState state, Hitscan.Result receipt) {
+        var member = receipt.query().member().orElseThrow();
+        if (!active(state,member)) {
+            if (receipt.outcome() != Hitscan.Outcome.EXPIRED_SHOT) throw new IllegalArgumentException("Expired shot cannot trace");
+            return new RuleEngine.Local<>(state,receipt,List.of());
+        }
+        if (receipt.outcome() == Hitscan.Outcome.EXPIRED_SHOT) throw new IllegalArgumentException("Active ray reported expired shot");
+        var value = group(state,member).orElseThrow(); var pellet = value.pellets().get(member.pellet());
+        if (pellet == null || pellet.phase() != Phase.RESERVED) throw new IllegalArgumentException("Unreserved ray member");
+        var next = value.with(member.pellet(), new Pellet(receipt.contact().isPresent() ? Phase.FLYING : Phase.REJECTED,0,false,Set.of(),Set.of()));
+        var after = state.withShotGroup(next);
+        return receipt.contact().isPresent() ? new RuleEngine.Local<>(open(after,receipt.contact().orElseThrow()),receipt,List.of()) : settle(after,next,receipt,false);
+    }
     public static boolean accepts(EffectState state, ProjectileFlight.Impact impact) {
         var member = impact.member().orElseThrow(); var group = group(state, member);
         if (group.isEmpty() || !active(state, member)) return false;

@@ -341,6 +341,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             case EffectProgram.Branch branch -> { validateInstantSteps(branch.then()); validateInstantSteps(branch.otherwise()); }
             case EffectProgram.ForEach loop -> validateInstantSteps(loop.body());
             case EffectProgram.Projectile projectile -> validateInstantSteps(projectile.body());
+            case EffectProgram.Hitscan ray -> validateInstantSteps(ray.body());
             case EffectProgram.Pickup pickup -> validateInstantSteps(pickup.body());
             case EffectProgram.ConditionalPickup pickup -> validateInstantSteps(pickup.pickup().body());
             case EffectProgram.After after -> {
@@ -807,6 +808,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             else if (step instanceof EffectProgram.ForEach loop) validatePayments(loop.body(), seen);
             else if (step instanceof EffectProgram.After after) validatePayments(after.body(), new HashSet<>());
             else if (step instanceof EffectProgram.Projectile projectile) validatePayments(projectile.body(), new HashSet<>());
+            else if (step instanceof EffectProgram.Hitscan ray) validatePayments(ray.body(), seen);
             else if (step instanceof EffectProgram.Pickup pickup) validatePayments(pickup.body(), new HashSet<>());
             else if (step instanceof EffectProgram.ConditionalPickup pickup) validatePayments(pickup.pickup().body(), new HashSet<>());
         }
@@ -863,7 +865,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     Action.validateDuration(after.delay(), validation(bundle, previous));
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
                     previous.forEach((name, shape) -> {
-                        if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); }
+                        if (!shape.carriesCost()) { capturedResults.put(name, shape.detached()); capturedSlots.put(name, previousSlots.get(name)); }
                     });
                     String definition = ownerRule + "/after/" + path + index;
                     var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
@@ -894,11 +896,38 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         return new RuleEngine.Local<>(state.schedule(timer), RuleEngine.Empty.INSTANCE, List.of());
                     }, ""));
                 }
+                case EffectProgram.Hitscan ray -> {
+                    ray.spec().validate(validation(bundle, previous)); ray.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(ray.bind());
+                    if (previous.containsKey(ray.bind())) throw new IllegalArgumentException("Shadowed hitscan binding");
+                    String preparedSlot = path + index + "/ray/prepared", impactSlot = path + index + "/ray/" + ray.bind();
+                    output.add(new RuleEngine.Instruction<>((state, context) -> {
+                        var e = scopedEvaluation(state, context, previous, previousSlots);
+                        var query = ray.spec().resolve(e, ray.shot().map(m -> m.resolve(e)));
+                        return new RuleEngine.Local<>(query.member().map(m -> ShotGroups.reserve(state,m)).orElse(state), new Hitscan.Prepared(query), List.of());
+                    }, preparedSlot));
+                    output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
+                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                            return new RuleEngine.Await<>(((Hitscan.Prepared)context.bindings().get(preparedSlot)).query());
+                        }
+                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                            var receipt = (Hitscan.Result)result;
+                            if (!receipt.query().equals(context.command(Hitscan.Query.class))) throw new IllegalArgumentException("Ray receipt does not match request");
+                            return ray.shot().isPresent() ? ShotGroups.traced(state, receipt) : new RuleEngine.Local<>(state, receipt, List.of());
+                        }
+                    }, impactSlot));
+                    var nestedResults = new LinkedHashMap<>(previous); var nestedSlots = new java.util.TreeMap<>(previousSlots);
+                    nestedResults.put(ray.bind(), ResultShape.hitscan(ray.shot().isPresent())); nestedSlots.put(ray.bind(),impactSlot);
+                    output.addAll(compileSteps(bundle, ray.body(), nestedResults, nestedSlots, path+index+"/ray/body/", ownerRule, continuations));
+                    if (ray.shot().isPresent()) output.add(new RuleEngine.Instruction<>((state, context) -> {
+                        var receipt = (Hitscan.Result)context.bindings().get(impactSlot);
+                        return receipt.contact().isPresent() ? ShotGroups.close(state, receipt.contact().orElseThrow()) : new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
+                    }, ""));
+                }
                 case EffectProgram.Projectile projectile -> {
                     projectile.spec().validate(validation(bundle, previous)); projectile.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(projectile.bind());
                     if (previous.containsKey(projectile.bind())) throw new IllegalArgumentException("Shadowed projectile impact binding");
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
-                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); } });
+                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.detached()); capturedSlots.put(name, previousSlots.get(name)); } });
                     String definition = ownerRule + "/projectile/" + path + index, impactSlot = path + index + "/impact/" + projectile.bind();
                     var nestedResults = new LinkedHashMap<>(capturedResults); var nestedSlots = new java.util.TreeMap<>(capturedSlots);
                     nestedResults.put(projectile.bind(), projectile.shot().isPresent() ? ResultShape.SHOT_IMPACT : ResultShape.PROJECTILE_IMPACT); nestedSlots.put(projectile.bind(), impactSlot);
@@ -953,7 +982,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     pickup.spec().validate(validation(bundle, previous)); localId(pickup.bind());
                     if (previous.containsKey(pickup.bind())) throw new IllegalArgumentException("Shadowed pickup contact binding");
                     var capturedResults = new LinkedHashMap<String, ResultShape>(); var capturedSlots = new java.util.TreeMap<String, String>();
-                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.reference() == ResultShape.Reference.SHOT_IMPACT ? ResultShape.PROJECTILE_IMPACT : shape); capturedSlots.put(name, previousSlots.get(name)); } });
+                    previous.forEach((name, shape) -> { if (!shape.carriesCost()) { capturedResults.put(name, shape.detached()); capturedSlots.put(name, previousSlots.get(name)); } });
                     String definition = ownerRule + "/pickup/" + path + index, contactSlot = path + index + "/contact/" + pickup.bind();
                     collectIf.ifPresent(condition -> condition.validate(validation(bundle, capturedResults)));
                     if (pickupChecks.putIfAbsent(definition, new PickupCheck(collectIf, capturedResults, capturedSlots)) != null)

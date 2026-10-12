@@ -214,7 +214,7 @@ public interface Action {
         }
         private DamageCommand request(Evaluation e) { return prepareDamage(e, GroupActions.resolve(group, e, BatchActions.resolve(batch, e, e.snapshot(snapshot).command(e.target(target), Action.impact(impact, e))))); }
         private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact contact(Evaluation e) {
-            return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) e.context().bindings().get(pellet.orElseThrow());
+            return ResultShape.impact(e.context().bindings().get(pellet.orElseThrow()));
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var command = request(e);

@@ -736,6 +736,15 @@ public final class EffectCodecs {
             Codec<ShotActions.Membership> membership = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("binding").forGetter(ShotActions.Membership::binding), values.fieldOf("pellet").forGetter(ShotActions.Membership::pellet)
             ).apply(i, ShotActions.Membership::new)), Set.of("binding", "pellet"));
+            Codec<HitscanSpec> raySpec = strict(RecordCodecBuilder.create(i -> i.group(
+                    Codec.STRING.fieldOf("position").forGetter(HitscanSpec::position), Codec.STRING.fieldOf("direction").forGetter(HitscanSpec::direction),
+                    values.fieldOf("range").forGetter(HitscanSpec::range), values.optionalFieldOf("inflation", new Value.Constant(0, Unit.METER)).forGetter(HitscanSpec::inflation),
+                    TARGET.optionalFieldOf("emitter", Evaluation.Target.SOURCE_OWNER).forGetter(HitscanSpec::emitter)
+            ).apply(i, HitscanSpec::new)), Set.of("position", "direction", "range", "inflation", "emitter"));
+            Codec<EffectProgram.Hitscan> ray = strict(RecordCodecBuilder.create(i -> i.group(
+                    raySpec.fieldOf("hitscan").forGetter(EffectProgram.Hitscan::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Hitscan::bind),
+                    self.listOf().fieldOf("do").forGetter(EffectProgram.Hitscan::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Hitscan::shot)
+            ).apply(i, EffectProgram.Hitscan::new)), Set.of("hitscan", "as", "do", "shot"));
             Codec<EffectProgram.Projectile> projectile = strict(RecordCodecBuilder.create(i -> i.group(
                     projectileSpec.fieldOf("projectile").forGetter(EffectProgram.Projectile::spec), Codec.STRING.fieldOf("as").forGetter(EffectProgram.Projectile::bind),
                     self.listOf().fieldOf("do").forGetter(EffectProgram.Projectile::body), membership.optionalFieldOf("shot").forGetter(EffectProgram.Projectile::shot),
@@ -763,6 +772,7 @@ public final class EffectCodecs {
             Codec<EffectProgram.Step> unconditional = Codec.either(Codec.either(pickup, projectile), Codec.either(instruction, Codec.either(branch, Codec.either(loop, after)))).xmap(
                     value -> value.map(p -> p.map(k -> k, j -> j), nested -> nested.map(left -> left, right -> right.map(b -> b, inner -> inner.map(l -> l, a -> a)))),
                     value -> switch (value) {
+                        case EffectProgram.Hitscan ignored -> throw new AssertionError("Hitscan codec is outside the legacy union");
                         case EffectProgram.ConditionalPickup ignored -> throw new IllegalArgumentException("Conditional pickup needs collect_if codec");
                         case EffectProgram.Pickup spawn -> Either.left(Either.left(spawn));
                         case EffectProgram.Projectile launch -> Either.left(Either.right(launch));
@@ -770,8 +780,10 @@ public final class EffectCodecs {
                         case EffectProgram.ForEach each -> Either.right(Either.right(Either.right(Either.left(each))));
                         case EffectProgram.After later -> Either.right(Either.right(Either.right(Either.right(later))));
                     });
-            return Codec.either(conditionalPickup, unconditional).xmap(value -> value.map(v -> v, v -> v),
+            Codec<EffectProgram.Step> legacy = Codec.either(conditionalPickup, unconditional).xmap(value -> value.map(v -> v, v -> v),
                     value -> value instanceof EffectProgram.ConditionalPickup conditional ? Either.left(conditional) : Either.right(value));
+            return Codec.either(ray, legacy).xmap(value -> value.map(v -> v, v -> v),
+                    value -> value instanceof EffectProgram.Hitscan trace ? Either.left(trace) : Either.right(value));
         });
         Codec<EffectProgram.Rule> rule = strict(RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("id").forGetter(EffectProgram.Rule::id), ID.fieldOf("on").forGetter(EffectProgram.Rule::on),

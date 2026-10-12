@@ -298,6 +298,12 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/effect_program/modifier_provider", com.imdomestic.chorus.effect.data.EffectProgram.ModifierProvider.class);
         types.put("chorus:effect/data/effect_program/multiplicity", com.imdomestic.chorus.effect.data.EffectProgram.Multiplicity.class);
         types.put("chorus:effect/data/effect_program/pickup", com.imdomestic.chorus.effect.data.EffectProgram.Pickup.class);
+        types.put("chorus:effect/data/effect_program/hitscan", com.imdomestic.chorus.effect.data.EffectProgram.Hitscan.class);
+        types.put("chorus:effect/data/hitscan_spec", com.imdomestic.chorus.effect.data.HitscanSpec.class);
+        types.put("chorus:effect/projectile/hitscan/query", com.imdomestic.chorus.effect.projectile.Hitscan.Query.class);
+        types.put("chorus:effect/projectile/hitscan/prepared", com.imdomestic.chorus.effect.projectile.Hitscan.Prepared.class);
+        types.put("chorus:effect/projectile/hitscan/result", com.imdomestic.chorus.effect.projectile.Hitscan.Result.class);
+        types.put("chorus:effect/projectile/hitscan/outcome", com.imdomestic.chorus.effect.projectile.Hitscan.Outcome.class);
         types.put("chorus:effect/data/effect_program/projectile", com.imdomestic.chorus.effect.data.EffectProgram.Projectile.class);
         types.put("chorus:effect/data/effect_program/reaction_binding", com.imdomestic.chorus.effect.data.EffectProgram.ReactionBinding.class);
         types.put("chorus:effect/data/effect_program/rule", com.imdomestic.chorus.effect.data.EffectProgram.Rule.class);

@@ -989,7 +989,7 @@ weapon_damage / weapon_kill 由伤害动作的 tags / kill_tags 明确声明；�
 
 Rampage 的可执行例子见 [rampage.json](../common/src/test/resources/effects/rampage.json) 与 [rampage_weapon.json](../common/src/test/resources/effects/rampage_weapon.json)：词条片段引用消费者的 test:weapon_damage / perks / weapon_perk，链接时检查存在性；普通与强化 Buff 使用独立静态 duration / decay_interval 并共享数值 bundle。仅覆盖 grant_buff.duration 不会改变定义的 decay_interval，因此两者不同的变体须分别声明。微秒计时、收枪保留、真实击杀和发射快照的具体政策见 [Rampage 规则集](d2-ruleset.md#rampage)。
 
-当前是一触发一次动作体的服务端入口。客户端按键 / 长按、hitscan、精准区域、自动 burst 控制、蓄力 / 射击模式、未命中 / 弹匣耗尽的内容资格、射击手感和 HUD 仍需扩展，不能据此把相关 Compendium 词条标为已覆盖。
+该入口每次接受后执行一次动作体。下文已补充服务端 hitscan、数据定义精准区域及蓄力 / 持续充能输入；即时武器的长按连发、完整原型射击策略、未命中 / 弹匣耗尽的全部内容资格、射击手感和正式 HUD 仍需扩展。
 
 ### 整枪与弹丸结算
 
@@ -1036,7 +1036,7 @@ One-Two Punch 使用 `previous_max_pellets_on_target < 门槛 && max_pellets_on_
 
 攻击寿命为半开区间 `[startedAt, dueAt)`，精确到期的延迟发射也不能重新打开组。超时发布 complete=false 与未结算数量，清理组并停止仍存活的成员；这是一条内容声明的攻击寿命，不是事件循环限制。索引可以在寿命内通过 detached after 延迟发射，但 `damage_snapshot.pellet` 只能在对应接触的同步动作体中使用：编译器不向 after 或嵌套 projectile 传播当前接触的记账资格。延迟爆炸仍可沿用几何与伤害快照，需作为独立伤害或新组建模。
 
-目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。原版命中自动归组、hitscan、精准分类、自动连发、跨组 / 多分量共用一次“下一击”事务、活跃组 / 飞行实体的跨进程存档恢复尚未实现。Rewind Rounds 已有独立数据定义及显式组数的结算策略，见 [命中计数与补弹](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
+目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。下节 hitscan 也支持同一显式成员和实际伤害统计。原版命中自动归组、完整精准分类、即时武器自动连发、跨组 / 多分量共用一次“下一击”事务、活跃组 / 飞行实体的跨进程存档恢复仍需扩展。Rewind Rounds 已有独立数据定义及显式组数的结算策略，见 [命中计数与补弹](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
 
 ### 动态基础容量与数值快照
 
@@ -3448,7 +3448,7 @@ minimum / full 使用与换弹相同的 Timing 结构，支持显式有序 profi
 
 领域状态与网络按键意图分离。宿主 API 和普通玩家自助命令 `chorus weapon charge press|release|cancel` 都使用同一领域协议；客户端按键包、保持租期、连接级清理和基础进度显示见下节。Minecraft API 总是绑定 holder 的实体 UUID、持久化生命和维度；原生复生即使复用 UUID 并转移相同装备，也不能继承旧蓄力。纯宿主可以显式不提供生命引用，但不能以无引用请求松开已绑定引用的计划；Minecraft 满蓄力验收要求匹配真实生命。取消当前物理输入不会删除已经发射的投射物或其延迟效果。
 
-EffectState v5 包含 charging，精确旧 v4 迁移为空蓄力并保留全部附着；WeaponDefinition v4 包含可选 charging，旧 v3 保留原武器行为。Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。单次 full 阶段新增 charging_v2、plan_v2 和 trigger；当前持续充能另使用 charging_v3、plan_v3 和 phase_v2，目录为 603 项，原 600 项逐键形状不变。旧三字段 Charging 和十一字段 Plan 使用精确旧记录迁移为 release，不接受把新字段塞进旧 ID；外层 v5 状态/v4 武器不再升版。领域检查点保留触发模式、固定期限、轨迹及绑定生命；release 可恢复 CHARGING/READY，单次 full 仅有活动 CHARGING；重复 full 另可处于 RECOVERING。旧四字段 Charging / 十二字段 Plan 默认迁移为 repeat=false、cycle=0、无恢复凭据，旧 Phase ID 仍只接受 CHARGING/READY。未知世界结果仍停机，不重放已消费的计划、付款、弹体或伤害。完整物理世界重启、即时武器长按连发、最大持弓/强制松弦和完整原作蓄力武器行为仍有后续工作。
+EffectState v5 包含 charging，精确旧 v4 迁移为空蓄力并保留全部附着；WeaponDefinition v4 包含可选 charging，旧 v3 保留原武器行为。Fire Outcome v2 增加 charge_required，旧枚举 ID 仍只接受原来的七个名称。单次 full 阶段新增 charging_v2、plan_v2 和 trigger；当前持续充能另使用 charging_v3、plan_v3 和 phase_v2，该阶段目录为 603 项，原 600 项逐键形状不变；当前 hitscan 新增六个独立类型后为 609 项。旧三字段 Charging 和十一字段 Plan 使用精确旧记录迁移为 release，不接受把新字段塞进旧 ID；外层 v5 状态/v4 武器不再升版。领域检查点保留触发模式、固定期限、轨迹及绑定生命；release 可恢复 CHARGING/READY，单次 full 仅有活动 CHARGING；重复 full 另可处于 RECOVERING。旧四字段 Charging / 十二字段 Plan 默认迁移为 repeat=false、cycle=0、无恢复凭据，旧 Phase ID 仍只接受 CHARGING/READY。未知世界结果仍停机，不重放已消费的计划、付款、弹体或伤害。完整物理世界重启、即时武器长按连发、最大持弓/强制松弦和完整原作蓄力武器行为仍有后续工作。
 
 Minecraft 的 full 计划还需要本运行时内临时的输入许可：同一个玩家对象/连接、计划 token、当前生命和真实装备，以及输入生产者提供的有效保持判定。领域恢复不恢复这份许可；即使第一次 prepare 先推进到已过期的满蓄力计时器，也必须先拒绝自动发射，再清理计划。网络保持额外检查当前世界时钟下的租期，不用旧计时器的历史时间复活已经过期的输入；因此卡顿追赶时，当前已失去租期的计划不会补射。可信自助命令使用同生命/连接的运行时许可，仍受死亡、装备、断线和停服清理约束。纯核心宿主可以独立实现 WeaponCharge.Verify，其肯定回执代表明确授权，不能把存档存在直接当作物理长按。
 
@@ -3494,3 +3494,37 @@ Plan 保存 repeat、从零开始的 cycle 和恢复阶段对应的已接受 Sho
 网络只续租整个原手势；PRESS 不重置活动循环，HOLD 不创建下一轮。恢复期间 View.held=true、phase=RECOVERING，显示时间为 Shot.firedAt → Shot.readyAt，minimumAt=startedAt。自动模式的配对 RELEASE/CANCEL 在推进到期工作之前撤销输入许可并结束整个手势；自助命令及宿主 charge API 使用同样的前置取消边界。GUI、失焦、断线、停服和运行时替换同样退役；取消后即使物理按键仍按住，也需要先松开才可发起新手势。两种自动阶段都检查当前世界时钟的租期，追赶旧计时器不能恢复已过期的输入。
 
 持久化保存领域循环阶段和已接受的恢复期限，但不保存物理长按许可。当前嵌套版本独立迁移，外层 EffectState v5 / WeaponDefinition v4 不变。Minecraft 恢复后的首次推进缺少许可时结束 CHARGING 或 RECOVERING，不补射；纯核心宿主若明确重新授权，则可按检查点中的逻辑时序继续。原作具体 cadence、自动换弹/连发选项、即时武器长按、强制松弦和完整物理世界重启仍是独立实现与校准范围。
+
+
+## 服务端瞬时射线 hitscan
+
+`hitscan` 是同步世界观察步骤，在同一动作序列内取得回执并执行 `do`，没有飞行实体或飞行时间。它可用于武器 `on_fire`、技能和普通规则；原有开火成本与间隔先提交，再观察射线。射线碰到实体并不自动造成伤害，规则继续使用 `damage_snapshot` 或其他动作处理回执。
+
+```json
+{
+  "hitscan": {
+    "position": "muzzle",
+    "direction": "aim",
+    "range": {"type":"chorus:constant","value":40,"unit":"meter"},
+    "inflation": {"type":"chorus:constant","value":0,"unit":"meter"}
+  },
+  "as": "contact",
+  "shot": {"binding":"shot","pellet":{"type":"chorus:constant","value":0,"unit":"count"}},
+  "do": [{
+    "for_each":"contact", "as":"victim",
+    "do":[{"type":"chorus:damage_snapshot","snapshot":"damage","target":{"binding":"victim"},"pellet":"contact"}]
+  }]
+}
+```
+
+`muzzle` / `aim` 必须是此前捕获的位置 / 方向；`damage` 是攻击快照；可选 `shot` 来自 `begin_shot`。不属于整枪统计的射线省略外层 `shot` 和伤害动作的 `pellet`。`emitter` 默认 source_owner，与 owner 都排除出实体候选。射程为大于零、最多 256 米；碰撞箱扩张为 0–4 米，默认 0。这是每次世界查询的成本与几何边界，不是原作统一武器射程、辅助瞄准或事件连锁限制。动态值在发出查询前同样校验。
+
+宿主沿闭线段读取已加载方块的 COLLIDER 形状，流体不遮挡；再取可用路段内最近的存活、非旁观 LivingEntity 碰撞箱交点。方块/未知边界与实体同距离时优先边界，两个实体同距离按 UUID 字符串排序。起点在目标内部时可在起点命中；射程末端恰好接触实体也算接触。阵营不自动过滤。目标 AABB 的可选扩张不扩张方块，不把接触点裁剪回原始碰撞箱。
+
+射线不加载区块。未知地形前已观察到的实体/墙仍有效；否则回执停在首次未知边界。与飞行弹体不同，瞬时查询不要求沿途实体 tick 许可，因为没有需要继续模拟的飞行实体。它不提供客户端历史回溯、自动散布、穿透、反弹、视觉曳光或原作武器校准。
+
+`as` 的绑定只在 `do` 内有效，可作为目标集合和位置中心。集合最多一个实体；位置/方向缺失或维度不符没有位置，不能以世界原点补齐。结果旗标为 `entity / block / range / unloaded / missing_position / missing_direction / wrong_dimension / expired_shot`，另有 `available`（存在几何回执）和 `geometry_observed`（有实体碰撞箱）。`available` 包含 `unloaded` 边界，不能当成命中成功。可读取 `count`、观察距离 `distance`、法线、相对 XYZ、原始宽高深与 collision_inflation；几何字段必须在相应可用分支读取。相对坐标可能落在 0–1 之外，供具体弱点策略决定资格。
+
+显式成员在查询前预留，匹配回执后打开接触，`do` 结束后关闭；实际伤害回执才更新 hits/effective 与 shot_progress，全部成员完成后只发布一次 shot_resolved。缺失捕获是 rejected，范围耗尽/墙/未知边界是无实体命中；免疫/格挡仍按既有 hit 分类，取消/失败不计。重复成员在再次观察前失败。后续 after 等独立动作保留几何和来源，但不能重新使用已经关闭的成员来记账。未知世界结果保留已提交付款/命中，不重放射线或伤害。
+
+独立数据样例见 [hitscan.json](../common/src/test/resources/effects/hitscan.json)。存储增加六个独立类型，目录 609 项，此前 603 项形状不变；未改写已有 Impact / ResultShape 枚举 ID。内部复用接触聚合适配器，外部将射程耗尽显式表示为 range，不混同飞行到期。

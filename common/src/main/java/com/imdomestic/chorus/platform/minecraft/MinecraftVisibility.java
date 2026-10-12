@@ -30,25 +30,28 @@ public final class MinecraftVisibility {
     }
     /** Empty means unknown terrain or another dimension, not an unobstructed path. */
     public static Optional<BlockHitResult> trace(ServerLevel level, WorldPosition from, WorldPosition to) {
-        return path(level, from, to, false).filter(p -> !p.unavailable()).map(ProjectilePath::hit);
+        return path(level, from, to, false, false).filter(p -> !p.unavailable()).map(ProjectilePath::hit);
     }
     /** The available prefix ends at this hit; an unavailable endpoint is not a physical wall. */
     public record ProjectilePath(BlockHitResult hit, boolean unavailable) {}
     /** Closed segment contacts, without vanilla's forward sample that classifies near-face hits as embedded. */
     public static Optional<ProjectilePath> projectile(ServerLevel level, WorldPosition from, WorldPosition to) {
-        return path(level, from, to, true);
+        return path(level, from, to, true, true);
     }
-    private static Optional<ProjectilePath> path(ServerLevel level, WorldPosition from, WorldPosition to, boolean projectile) {
+    public static Optional<ProjectilePath> ray(ServerLevel level, WorldPosition from, WorldPosition to) {
+        return path(level, from, to, true, false);
+    }
+    private static Optional<ProjectilePath> path(ServerLevel level, WorldPosition from, WorldPosition to, boolean projectile, boolean simulated) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Visibility observation requires server thread");
         String dimension = level.dimension().identifier().toString();
         if (!from.dimension().equals(dimension) || !to.dimension().equals(dimension)) return Optional.empty();
         if (!loaded(level, from) || !projectile && !loaded(level, to)) return Optional.empty();
-        if (projectile && !level.isPositionEntityTicking(BlockPos.containing(from.x(), from.y(), from.z()))) return Optional.empty();
+        if (simulated && !level.isPositionEntityTicking(BlockPos.containing(from.x(), from.y(), from.z()))) return Optional.empty();
         var blocks = new BlockGetter() {
             boolean missing;
             @Override public BlockState getBlockState(BlockPos pos) {
                 var chunk = level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
-                if (chunk == null || projectile && !level.isPositionEntityTicking(pos)) { missing = true; return Blocks.BEDROCK.defaultBlockState(); }
+                if (chunk == null || simulated && !level.isPositionEntityTicking(pos)) { missing = true; return Blocks.BEDROCK.defaultBlockState(); }
                 return chunk.getBlockState(pos);
             }
             @Override public FluidState getFluidState(BlockPos pos) {
@@ -76,7 +79,7 @@ public final class MinecraftVisibility {
         }, c -> BlockHitResult.miss(c.getTo(), Direction.UP, BlockPos.containing(c.getTo()))) : blocks.clip(context);
         return Optional.of(new ProjectilePath(hit, blocks.missing));
     }
-    private static BlockHitResult contact(AABB box, Vec3 from, Vec3 to, BlockPos pos) {
+    static BlockHitResult contact(AABB box, Vec3 from, Vec3 to, BlockPos pos) {
         var delta = to.subtract(from);
         if (from.x > box.minX && from.x < box.maxX && from.y > box.minY && from.y < box.maxY && from.z > box.minZ && from.z < box.maxZ)
             return new BlockHitResult(from, Direction.getApproximateNearest(delta.x, delta.y, delta.z).getOpposite(), pos, true);

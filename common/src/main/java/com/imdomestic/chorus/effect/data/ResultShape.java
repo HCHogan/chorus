@@ -30,7 +30,10 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public java.util.Optional<com.imdomestic.chorus.effect.target.WorldDirection> direction(RuleEngine.ActionResult result) {
         requireDirection(); return ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction();
     }
-    private static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result; }
+    public static com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact impact(RuleEngine.ActionResult result) {
+        return result instanceof com.imdomestic.chorus.effect.projectile.Hitscan.Result ray ? ray.contact().orElseThrow() : (com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact) result;
+    }
+    public ResultShape detached() { return reference == Reference.SHOT_IMPACT ? new ResultShape(fields, flags, carriesCost, Reference.PROJECTILE_IMPACT) : this; }
     private static com.imdomestic.chorus.effect.object.WorldPickup.Contact pickup(RuleEngine.ActionResult result) { return (com.imdomestic.chorus.effect.object.WorldPickup.Contact) result; }
     public static final ResultShape PICKUP_SPAWN;
     public static final ResultShape PROJECTILE_LAUNCH;
@@ -109,6 +112,21 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public static final ResultShape DAMAGE_BATCH = new ResultShape(Map.of(), Map.of(), false, Reference.DAMAGE_BATCH);
     public static final ResultShape SHOT = new ResultShape(Map.of("pellets", new Field(Unit.COUNT,
             r -> ((com.imdomestic.chorus.effect.projectile.ShotGroups.Handle) r).pellets())), Map.of(), false, Reference.SHOT);
+    public static ResultShape hitscan(boolean grouped) {
+        var fields = new java.util.HashMap<String, Field>(PROJECTILE_IMPACT.fields());
+        fields.remove("age"); fields.remove("bounces");
+        fields.put("count", new Field(Unit.COUNT, r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Result) r).targets().size()));
+        fields.put("distance", new Field(Unit.METER, r -> {
+            var ray = (com.imdomestic.chorus.effect.projectile.Hitscan.Result) r; var a = ray.query().position().orElseThrow(); var b = ray.position().orElseThrow();
+            return Math.hypot(Math.hypot(a.x()-b.x(), a.y()-b.y()), a.z()-b.z());
+        }));
+        var flags = new java.util.HashMap<String, Predicate<RuleEngine.ActionResult>>();
+        for (var outcome : com.imdomestic.chorus.effect.projectile.Hitscan.Outcome.values())
+            flags.put(outcome.name().toLowerCase(java.util.Locale.ROOT), r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Result) r).outcome() == outcome);
+        flags.put("available", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Result) r).contact().isPresent());
+        flags.put("geometry_observed", r -> ((com.imdomestic.chorus.effect.projectile.Hitscan.Result) r).contact().flatMap(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact::geometry).isPresent());
+        return new ResultShape(fields, flags, false, grouped ? Reference.SHOT_IMPACT : Reference.PROJECTILE_IMPACT);
+    }
     public static final ResultShape SHOT_IMPACT = new ResultShape(PROJECTILE_IMPACT.fields(), PROJECTILE_IMPACT.flags(), false, Reference.SHOT_IMPACT);
     public void requireShot() { if (reference != Reference.SHOT) throw new IllegalArgumentException("Result is not a shot handle"); }
     public void requireShotImpact() { if (reference != Reference.SHOT_IMPACT) throw new IllegalArgumentException("Result is not a grouped pellet impact"); }
