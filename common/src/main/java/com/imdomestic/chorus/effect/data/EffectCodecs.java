@@ -151,6 +151,10 @@ public final class EffectCodecs {
                         enumeration(Condition.Source.class).fieldOf("source").forGetter(Condition.SourceIs::source)).apply(i, Condition.SourceIs::new)))
                 .register("chorus:own_source", Condition.OwnSource.class, MapCodec.unit(new Condition.OwnSource()))
                 .register("chorus:weapon_drawn", Condition.WeaponDrawn.class, MapCodec.unit(new Condition.WeaponDrawn()))
+                .register("chorus:selected_ability_tag", Condition.SelectedAbilityTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(Condition.SelectedAbilityTag::slot), ID.fieldOf("tag").forGetter(Condition.SelectedAbilityTag::tag),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.SelectedAbilityTag::target)
+                ).apply(i, Condition.SelectedAbilityTag::new)))
                 .register("chorus:weapon_aiming", Condition.WeaponAiming.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.WeaponAiming::target),
                         Codec.BOOL.optionalFieldOf("ready", false).forGetter(Condition.WeaponAiming::ready)

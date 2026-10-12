@@ -38,6 +38,9 @@
               },
               "strand": {
                 "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic": {
+                "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
             "required": true
@@ -64,6 +67,9 @@
               },
               "strand": {
                 "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic": {
+                "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
             "required": true
@@ -90,6 +96,9 @@
               },
               "strand": {
                 "bundle": "chorus_d2:unflinching_strand"
+              },
+              "harmonic": {
+                "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
             "required": true

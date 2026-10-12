@@ -1,4 +1,5 @@
 {
+  "chorus:effect/data/condition/selected_ability_tag": ["slot:java.lang.String", "tag:java.lang.String", "target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/data/aim_actions/apply": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "yaw:com.imdomestic.chorus.effect.data.Value", "pitch:com.imdomestic.chorus.effect.data.Value", "origin:com.imdomestic.chorus.effect.data.ActionOrigin", "tags:java.util.Set<java.lang.String>"],
   "chorus:effect/motion/aim_impulse/command": ["target:java.lang.String", "yaw:double", "pitch:double", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin", "tags:java.util.Set<java.lang.String>"],
   "chorus:effect/motion/aim_impulse/rotation": ["yaw:float", "pitch:float"],

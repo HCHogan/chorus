@@ -12495,13 +12495,16 @@
       "kind": "effect",
       "archived": false,
       "status": "partial",
-      "scope": "六种武器属性的三档抗抖、独立胸甲三插槽、完成 ADS 后实际受击角度及 No Distractions 组合",
+      "scope": "六种固定属性与 Harmonic 当前超能属性匹配、三档抗抖、独立胸甲三插槽及 No Distractions 组合",
       "acceptance": [
         "六属性/两模式/零至三件与全部不同属性组合；匹配防守武器而非攻击元素；完成 ADS 才生效，松开即移除收益",
         "每个实际插槽贡献一件，合并后只用一次 0.75/0.70/0.65；非装配第四来源不制造第四档，其他持有者不借用",
         "真实护甲替换即时改变档位而不重启当前 No Distractions；切至不同属性武器重取匹配件数",
         "真实扣血与吸收量、射击弹药/目标损失、单次瞄准写入、未知结果保留已提交伤害与角度且不重放",
-        "领域恢复保存装备插槽与活动 perk，删除护甲后重取数值；缺失/未知/第四选项和错误装备栏拒绝"
+        "领域恢复保存装备插槽与活动 perk，删除护甲后重取数值；缺失/未知/第四选项和错误装备栏拒绝",
+        "Harmonic 直接读取当前装备超能的基础选择标签；其他持有者、手雷、普通来源标签和施放临时替换不改变匹配元素",
+        "五种超能/两模式/四件数档位，换超能/清空选择实时重取；混装采用显式同属性件数合并政策，原作混装倍率仍待实测",
+        "已选技能条件支持 on_use 来源快照、victim 命中时取样、延迟执行与领域恢复；参考超能只提供选择元数据且禁止施放"
       ],
       "evidence": [
         {
@@ -12585,13 +12588,62 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/UnflinchingGameTest.java",
           "symbol": "unknownComposedImpulseRetainsActualDamageAndRotationWithoutReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HarmonicUnflinchingTest.java",
+          "symbol": "fiveSuperElementsAndBothModesUseTheEquippedSelectionAndNormalCopyTiers"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HarmonicUnflinchingTest.java",
+          "symbol": "otherElementsAndKineticDoNotMatchEvenWhenOtherAbilitiesOrSourceTagsMatch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HarmonicUnflinchingTest.java",
+          "symbol": "mixedHarmonicAndElementalCopiesShareTheSelectedTierAndSuperChangesDoNotResetTheGun"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HarmonicUnflinchingTest.java",
+          "symbol": "domainRestoreRetainsSelectionWithoutCreatingPassiveMarkersOrAllowingSyntheticSupersToCast"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HarmonicUnflinchingTest.java",
+          "symbol": "foreignAndFourthHarmonicSourcesCannotExceedTheCorrectThreeCopyTier"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HarmonicUnflinchingGameTest.java",
+          "symbol": "realSuperSelectionChangesTheMixedArmorTierWithoutRestartingNoDistractions"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HarmonicUnflinchingGameTest.java",
+          "symbol": "anotherHolderOrMatchingGrenadeDoesNotGiveHarmonicItsElement"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HarmonicUnflinchingGameTest.java",
+          "symbol": "heldWeaponAndSuperAreMatchedIndependentlyThroughActualFireAndAim"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HarmonicUnflinchingGameTest.java",
+          "symbol": "unknownHarmonicFlinchKeepsActualLossAndRotationWithoutRepeatingTheHit"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/harmonic_selection.json"
         }
       ],
       "gaps": [
         "定义仍在参考测试资源；正式内容目录、解锁/护甲能量费用、配装/HUD 和物理世界整体重启未完成；图标尚未绑定 UI",
-        "Harmonic 当前子职业/超能属性选择、棱镜与混合模组计数尚未接入；动态改变武器伤害属性的实际模式来源仍需实现",
         "完成 ADS 才取样沿用明确 Chorus 政策，原作过渡插值待校准；基础 flinch 输入及参考装备绝对数值为合成验收输入",
-        "原作武器特例、准星/武器视觉晃动、后坐力恢复和 PvE stagger 未完成；Foundry 旧三件 0.6 与当前原表/Clarity 0.65 的冲突已保留"
+        "原作武器特例、准星/武器视觉晃动、后坐力恢复和 PvE stagger 未完成；Foundry 旧三件 0.6 与当前原表/Clarity 0.65 的冲突已保留",
+        "Harmonic 与固定属性混装共用件数档位为明确待校准政策；正式超能/子职业与棱镜目录、换超能惩罚、动态武器属性和技能跨维度/离线存档尚未完成"
       ],
       "sources": [
         {

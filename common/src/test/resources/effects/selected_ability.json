@@ -1,0 +1,33 @@
+{
+  "version": "selected-ability-test",
+  "profiles": [{"id":"test:damage","version":"selected-ability-test","input_unit":"damage","steps":[
+    {"type":"chorus:apply","id":"power","operation":"multiply","group":{"name":"power","reduction":"product"}}
+  ]}],
+  "abilities": [
+    {"id":"test:solar","slot":"test:super","tags":["test:solar"],"on_use":[]},
+    {"id":"test:arc","slot":"test:super","tags":["test:arc"],"on_use":[
+      {"if":{"type":"chorus:selected_ability_tag","slot":"test:super","tag":"test:solar"},
+       "then":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":2,"unit":"damage"}}]}
+    ]},
+    {"id":"test:solar_grenade","slot":"test:grenade","tags":["test:solar"],"on_use":[]}
+  ],
+  "bundles": [
+    {"id":"test:projectile"}, {"id":"test:power"}, {"id":"test:spoof"},
+    {"id":"test:override","ability_overrides":[{"id":"replace","slot":"test:super","ability":"test:solar","replace_with":"test:arc","priority":1}]},
+    {"id":"test:selected","rules":[
+      {"id":"probe","on":"test:probe","if":{"type":"chorus:selected_ability_tag","slot":"test:super","tag":"test:solar"},
+       "do":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}]},
+      {"id":"delay","on":"test:delay","do":[
+        {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+          {"if":{"type":"chorus:selected_ability_tag","slot":"test:super","tag":"test:solar"},
+           "then":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":4,"unit":"damage"}}]}
+        ]}
+      ]}
+    ],"modifiers":[
+      {"id":"self","profile":"test:damage","stage":"power","group":"power","op":"multiply","stacking_key":"test:self","evaluate":"on_use","reference":"synthetic selected ability test","confidence":"assumed",
+       "if":{"type":"chorus:selected_ability_tag","slot":"test:super","tag":"test:solar"},"value":{"type":"chorus:constant","value":1,"unit":"delta"}},
+      {"id":"victim","profile":"test:damage","stage":"power","group":"power","op":"multiply","stacking_key":"test:victim","evaluate":"on_use","reference":"synthetic selected ability test","confidence":"assumed",
+       "if":{"type":"chorus:selected_ability_tag","slot":"test:super","tag":"test:arc","target":"victim"},"value":{"type":"chorus:constant","value":2,"unit":"delta"}}
+    ]}
+  ]
+}

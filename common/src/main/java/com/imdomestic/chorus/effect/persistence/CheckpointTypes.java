@@ -60,6 +60,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_clock/resource_changed", com.imdomestic.chorus.effect.EffectClock.ResourceChanged.class);
         types.put("chorus:effect/effect_continuations/lifetime", com.imdomestic.chorus.effect.EffectContinuations.Lifetime.class);
         types.put("chorus:effect/effect_continuations/pending", com.imdomestic.chorus.effect.EffectContinuations.Pending.class);
+        types.put("chorus:effect/data/condition/selected_ability_tag", com.imdomestic.chorus.effect.data.Condition.SelectedAbilityTag.class);
         types.put("chorus:effect/data/condition/weapon_aiming", com.imdomestic.chorus.effect.data.Condition.WeaponAiming.class);
         types.put("chorus:effect/effect_event", com.imdomestic.chorus.effect.EffectEvent.class);
         types.put("chorus:effect/effect_source", com.imdomestic.chorus.effect.EffectSource.class);

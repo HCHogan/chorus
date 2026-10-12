@@ -43,7 +43,10 @@ class UnflinchingTest {
     static class Harness extends NoDistractionsTest.Harness {
         Harness() throws Exception { this("solar", EffectState.Mode.PVE); }
         Harness(String element, EffectState.Mode mode) throws Exception {
-            super(data(element), mode, 100, 50);
+            this(data(element), mode);
+        }
+        Harness(JsonObject data, EffectState.Mode mode) throws Exception {
+            super(data, mode, 100, 50);
             var slots = new HashMap<>(physical.slots()); var previous = slots.get("test:secondary");
             slots.put("test:secondary", new Loadout.Gear(previous.instance(), "test:arc_rifle", previous.choices(), previous.parameters()));
             equip(new Loadout(slots, physical.drawn()));

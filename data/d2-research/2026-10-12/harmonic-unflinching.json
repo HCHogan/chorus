@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12",
+  "effect": "Harmonic Unflinching and committed Super selection",
+  "primary": {
+    "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1",
+    "section": "Armor Mods",
+    "accessed_at": "2026-10-12T09:18:16.924471+00:00",
+    "quote": "Updated all Harmonic armor mods to change their element based on the currently equipped Super, rather than subclass.",
+    "policy": "Use equipped base Super definition tags, not a subclass marker, grenade, incoming attack or cast-time replacement."
+  },
+  "compendium": {
+    "record": "data/d2-research/2026-10-12/unflinching.json",
+    "original_cells": [
+      "Armor Mods H8",
+      "Armor Mods J8"
+    ],
+    "rules": "Matching-element ADS and 25/30/35 percent resistance tiers; previously verified original bytes retained."
+  },
+  "clarity": {
+    "record": "data/d2-research/2026-10-12/unflinching-clarity.json",
+    "revision": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "hashes": [
+      "293178904",
+      "3094620656"
+    ],
+    "conflict": "The descriptions still say Subclass Element; official 8.0.0.1 explicitly moved all Harmonic mods to equipped Super. Keep original source text, override this identity rule only."
+  },
+  "algorithm": {
+    "selection": "selected_ability_tag(slot=chorus_d2:super, tag=chorus_d2:<element>, target=self)",
+    "elements": [
+      "arc",
+      "solar",
+      "void",
+      "stasis",
+      "strand"
+    ],
+    "copy_accounting": "Each Harmonic source adds one copy only to the currently selected Super element profile. Elemental and Harmonic sources share that profile, with a combined cap of three.",
+    "tier_factors": [
+      1,
+      0.75,
+      0.7,
+      0.65
+    ],
+    "resistance": "Completed ADS and defending held weapon element must match. Current selection is sampled during each query, independently of No Distractions and attack provenance."
+  },
+  "uncertainty": [
+    {
+      "topic": "Mixed Harmonic and fixed elemental copies",
+      "status": "explicit Chorus policy, inferred equivalent-mod accounting",
+      "policy": "Add matching copies before the shared tier lookup; do not multiply separate mod tiers.",
+      "missing_evidence": "No direct authoritative mixed-copy measurement was found in the consulted original table, Clarity or official update. Local tests prove the implemented policy, not original-game equivalence."
+    }
+  ],
+  "boundaries": [
+    "Reference Super/grenade definitions are non-castable metadata fixtures in the real ability selection model. No dummy passive source is needed. They do not implement the Supers themselves or a complete Prismatic/subclass catalogue.",
+    "An empty Super slot or mismatching/kinetic weapon receives no Harmonic benefit. Only the requested holder and slot are consulted. Administrative source tags cannot impersonate a committed selection.",
+    "Current selection changes affect the next hit. Unchanged weapon perk state remains active under Chorus source lifecycle; original change-Super energy penalties and complete subclass/loadout constraints remain separate unfinished work.",
+    "The generic predicate freezes source-side selection at attack capture but retains victim-side queries for impact. Detached delayed rules read execution-time selection; checksummed domain restore retains the condition and selected base definitions.",
+    "Armor energy budgets, unlocks, equipment UI/HUD, ability NBT/cross-dimension persistence, base flinch calibration and complete physical-world restart remain incomplete."
+  ]
+}

@@ -1699,6 +1699,18 @@ Fabric / NeoForge 客户端默认按 K 打开独立配装页，可以在控制�
 
 cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 profile，输入 / 输出单位必须保持不变。参数与成本在接受施放前统一查询当前持有者的来源 / Buff 修饰，固定为本次施放的数据。参数之间没有隐式求值依赖；param.<name> 是给后续动作读取的已解析测量。默认 `cost_from: definition` 时，省略 cost 表示无账户成本；amount = 0 表示使用已声明账户的免费施放，仍有 paid = 0 的成本回执。转换技能可以显式选择下述基础选择成本。
 
+### 查询已选技能的标签
+
+`chorus:selected_ability_tag` 查询指定持有者已提交的基础技能选择：
+
+```json
+{"type":"chorus:selected_ability_tag","slot":"chorus_d2:super","tag":"chorus_d2:solar","target":"self"}
+```
+
+`slot` 和 `tag` 必填且须为合法 ID；`target` 默认为 self，也可使用既有目标或当前作用域已绑定的目标。读取选中定义的 tags，不读取施放时的条件替换、事件信用、其它技能槽或来源标签，也不要求技能声明常驻 effects。合法但未选择的槽返回 false；无效 ID、未知字段、未绑定目标，以及损坏的已选定义不能静默视作匹配。求值需要完整的编译程序目录。
+
+在 `on_use` 攻击快照中，攻击方选择冻结，victim 选择留到命中时查询；绑定局部目标不能带入攻击快照。独立延迟规则在执行时读取当前选择，仍保留原动作来源。程序与领域存储往返保留条件和基础选择；这不等于宿主技能 NBT 或完整物理世界重启已实现。`selected_ability.json` 的纯核心及共享世界场景验证选择隔离、替换施放、延迟和快照，Harmonic 是该接口的实际内容消费者。
+
 ### 选中技能的常驻效果
 
 `abilities[].effects` 是按本地键索引的来源声明。基础技能选中后自动挂载，清除或换成另一基础技能时卸载；不需要测试事件创建一个永不结束的 Buff 才能启用回能 / 属性修饰。下面片段给已声明的技能增加来源，目标 Bundle 也须在同一程序或 imports 中定义：
@@ -3624,6 +3636,8 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 
 模组只在完成 ADS、查询带 `chorus_d2:incoming_flinch_query` 且查询来源持有者匹配时生效。`event_source_tag` 读取防守武器的 `chorus_d2:<element>`，不使用模组自身标签或攻击的伤害属性。件数查询采用持有者局部 `profile_value`，无需继承武器身份；不同元素各有 Profile，不会将不匹配来源计入。内容须提供当前武器的单一元素标签；Osmosis/Permeability 等变色行为的实际来源更新需另行接入。
 
-`unflinching_equipment.json` 提供独立 chest 栏与三个必选 mod 插槽，每槽可选 none 或六种元素之一。空选择不贡献来源，缺失、未知、第四选项及错误装备栏由既有装备验证拒绝。护甲替换立即改变下一次受击的查询结果，未变更的武器 perk 来源继续计时/生效。非装备路径注入第四来源最多第三档；这不代表额外插槽可用。
+`unflinching_equipment.json` 提供独立 chest 栏与三个必选 mod 插槽，每槽可选 none、六种固定元素之一或 harmonic。空选择不贡献来源，缺失、未知、第四选项及错误装备栏由既有装备验证拒绝。护甲替换立即改变下一次受击的查询结果，未变更的武器 perk 来源继续计时/生效。非装备路径注入第四来源最多第三档；这不代表额外插槽可用。
 
-该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。Harmonic、护甲能量费用/解锁、正式目录与 UI 尚未接入；研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。
+`chorus_d2:unflinching_harmonic` 用 `selected_ability_tag` 查询当前持有者 `chorus_d2:super` 槽的五种元素标签，仅向所选超能的元素件数 Profile 贡献一件。空超能槽、他人的超能、其它槽的匹配技能和来源标签不能赋予资格；没有动能超能变体。固定属性与匹配 Harmonic 先合并件数再查档位，这是已明确标注、仍待原作混装实测的 Chorus 政策。改变超能选择影响下一次查询，不重启未变化的武器来源。`harmonic_selection.json` 提供不可施放的超能/手雷元数据夹具，不声明虚假的常驻效果，也不代表完整超能或棱镜目录。
+
+该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。护甲能量费用/解锁、正式目录与 UI 尚未接入；装备能量预算应在装备事务写入容器前校验，与战斗中的技能能量或 Armor Charge 账户分开。研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。

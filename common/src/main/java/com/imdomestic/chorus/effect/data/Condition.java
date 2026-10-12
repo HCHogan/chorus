@@ -31,6 +31,19 @@ public interface Condition {
         @Override public boolean test(Evaluation e) { return !value.test(e); }
     }
     enum Source { THIS_WEAPON, THIS_ABILITY, OWNER }
+    /** Read the committed base selection, independently of cast replacements and retained event credit. */
+    record SelectedAbilityTag(String slot, String tag, Evaluation.Target target) implements Condition {
+        public SelectedAbilityTag {
+            com.imdomestic.chorus.effect.ability.AbilityDefinition.id(slot);
+            com.imdomestic.chorus.effect.ability.AbilityDefinition.id(tag);
+            java.util.Objects.requireNonNull(target);
+        }
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) {
+            return e.program().orElseThrow(() -> new IllegalStateException("Selected ability requires a compiled program"))
+                    .selectedAbility(e.state(), e.target(target), slot).filter(ability -> ability.tags().contains(tag)).isPresent();
+        }
+    }
     /** Held input includes entering ADS; ready requires the host-confirmed completed transition. */
     record WeaponAiming(Evaluation.Target target, boolean ready) implements Condition {
         public WeaponAiming { java.util.Objects.requireNonNull(target); }

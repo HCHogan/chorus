@@ -1,0 +1,77 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "test:super_arc",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus_d2:arc"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:super_solar",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus_d2:solar"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:super_void",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus_d2:void"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:super_stasis",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus_d2:stasis"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:super_strand",
+      "slot": "chorus_d2:super",
+      "tags": [
+        "chorus_d2:strand"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:grenade_solar",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus_d2:solar"
+      ],
+      "if": {
+        "type": "chorus:constant",
+        "value": false
+      },
+      "on_use": []
+    }
+  ]
+}
