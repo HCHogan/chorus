@@ -1,0 +1,47 @@
+{
+  "version": "test-selected-resource-v1",
+  "resources": [
+    {"id":"test:a_energy","capacity":2,"initial":0,"base_rate":0.1,"rate_profile":"test:regeneration"},
+    {"id":"test:b_energy","capacity":2,"initial":0,"base_rate":0.2,"rate_profile":"test:regeneration"},
+    {"id":"test:grenade_energy","capacity":2,"initial":0,"base_rate":0.3,"rate_profile":"test:regeneration"}
+  ],
+  "abilities": [
+    {"id":"test:a","slot":"test:class","cost":{"resource":"test:a_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"on_use":[]},
+    {"id":"test:b","slot":"test:class","cost":{"resource":"test:b_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"on_use":[]},
+    {"id":"test:alias","slot":"test:class","cost":{"resource":"test:a_energy","amount":{"type":"chorus:constant","value":0,"unit":"charge_fraction"}},"on_use":[]},
+    {"id":"test:recharge","slot":"test:class","cost":{"resource":"test:a_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"recharge_resource":"test:b_energy","on_use":[]},
+    {"id":"test:free","slot":"test:class","on_use":[]},
+    {"id":"test:replacement","slot":"test:class","cost":{"resource":"test:b_energy","amount":{"type":"chorus:constant","value":0,"unit":"charge_fraction"}},"on_use":[]},
+    {"id":"test:air","slot":"test:air","cost_slot":"test:class","on_use":[]},
+    {"id":"test:grenade","slot":"test:grenade","cost":{"resource":"test:grenade_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},"on_use":[]}
+  ],
+  "profiles": [
+    {"id":"test:regeneration","version":"test-selected-resource-v1","input_unit":"charge_fraction_per_second","steps":[
+      {"type":"chorus:apply","id":"stat","operation":"multiply","group":{"name":"stat","reduction":"max"}},
+      {"type":"chorus:apply","id":"bonus","operation":"base_percent","percent_of":"base","group":{"name":"bonus","reduction":"sum"}}
+    ]}
+  ],
+  "buffs": [
+    {"definition":{"id":"test:boost","version":"test-selected-resource-v1","duration":3,"refresh":"reset"},"bundle":"test:boost_active"}
+  ],
+  "bundles": [
+    {"id":"test:projectile"},
+    {"id":"test:power"},
+    {"id":"test:override","ability_overrides":[{"id":"replace","slot":"test:class","ability":"test:a","replace_with":"test:replacement","priority":1}]},
+    {"id":"test:control","rules":[
+      {"id":"boost","on":"test:boost","if":{"type":"chorus:target_is","left":"self","right":"event_actor"},"do":[{"type":"chorus:grant_buff","buff":"test:boost"}]},
+      {"id":"delay","on":"test:delay","do":[{"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+        {"if":{"type":"chorus:selected_ability_event_resource","slot":"test:class"},"then":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":4,"unit":"damage"}}]}
+      ]}]}
+    ]},
+    {"id":"test:boost_active","scope":"buff","modifiers":[
+      {"id":"bonus","profile":"test:regeneration","stage":"bonus","group":"bonus","op":"base_percent","percent_of":"base","stacking_key":"test:bonus",
+       "if":{"type":"chorus:selected_ability_event_resource","slot":"test:class"},
+       "value":{"type":"chorus:pvp","pve":{"type":"chorus:constant","value":3,"unit":"delta"},"pvp":{"type":"chorus:constant","value":1.5,"unit":"delta"}},
+       "reference":"Synthetic selected-account integration of additional base regeneration; not a completed Winter's Shroud definition.","confidence":"assumed"}
+    ]},
+    {"id":"test:stat","modifiers":[
+      {"id":"stat","profile":"test:regeneration","stage":"stat","group":"stat","op":"multiply","stacking_key":"test:stat","value":{"type":"chorus:constant","value":1,"unit":"delta"},"reference":"Synthetic double stat scaling.","confidence":"assumed"}
+    ]}
+  ]
+}

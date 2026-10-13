@@ -55,6 +55,8 @@ public final class SnapshotExpressions {
             }
             case Condition.HasBuff c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.SelectedAbilityTag c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.SelectedAbilityResource c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
+            case Condition.SelectedAbilityEventResource c -> c.resolve(e).snapshot(e);
             case Condition.WeaponAiming c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.SetContains c -> target(c.target()) ? c : new Condition.Constant(c.test(e));
             case Condition.SetContainsEventReference c -> c.resolve(e).snapshot(e);

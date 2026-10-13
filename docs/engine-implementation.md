@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-13：资源查询匹配当前技能槽的接收账户
+
+准备 Winter’s Shroud 回充收益时确认，增益需要区分当前接收账户与换槽后仍保留的账户。新增通用条件 selected_ability_resource / selected_ability_event_resource，比较指定持有者当前基础技能的 energyResource 与静态 ID / 事件引用；沿用 recharge_resource 优先、cost.resource 次之的现有规则。条件不解析施放替换、不追随 cost_slot 支付委托，不初始化或改变账户。
+
+八项核心测试覆盖时间积分换槽 / 清槽 / Buff 到期、额外基础百分比与属性倍率的独立性、独立回充账户与零成本共享账户、跨槽支付无回能别名、替换施放、他人 / 其它槽 / 缺失引用、事件资源身份快照和目标侧实时选择、延迟及检查点恢复、DSL / 存储往返与错误声明。三个共享世界场景验证真实服务器 tick 下的账户积分、独立回充账户及延迟实际治疗；Fabric 定向场景已通过。
+
+Stasis 原表 B65/D65 与 Prismatic B56/D56 已抓取留档，逐字匹配固定快照 B45/D45、B40/D40。额外基础再生率可由既有 base_percent 表达；300% 并非把属性调整后的速率乘四。原表仍保留 PvE Slow 延长和减伤时长问号；本批仅完成通用前置能力，未增加 Winter’s Shroud 效果覆盖或将合成回充夹具称为其实现。[来源与待接线项](../data/d2-research/2026-10-13/winters-shroud-source.json) 留待后续内容、职业回充 Profile 与 Ascension 组合继续完成。
+
+最终 `build/reports/selected-ability-resource/final-gate.log` BUILD SUCCESSFUL，2 分 18 秒：2009 项 JUnit 无失败/错误/跳过，Fabric 1145 / NeoForge 1160 项世界测试通过，共享 GameCase 1144 项。存储目录新增两个条件，共 647 项；原有 645 项字段形状和两份历史检查点保持不变。双端 jar 为 1263 / 1256 项，全部 1164 / 1157 个生产类、27 个 PNG/JSON 素材及新增验收规则均与对应构建输出逐字节匹配，无测试泄漏。Gradle CRLF、10 项 Compendium 工具测试、原表哈希和覆盖报告检查通过；仍为 121 条审阅、119 partial / 2 not_applicable / 0 verified。无客户端协议或 UI 变更，未重复图形客户端验收；汇总见 `build/reports/selected-ability-resource/audit.json`。
+
 ### 2026-10-13：神射手闪身与 Ascension 的共享弹药拾取
 
 Marksman 共享 bundle 改名为 `marksman_dodge_benefits`，增加当前施放者 15 米内特殊 / 威能弹药砖的 collect_pickups，再安排既有正校准延迟换弹。Ascension 调用同一份规则；没有新增技能专用 Java 分支、额外付款或第二次施放事实。原物体资格、私有接收者、各武器收益和拾取事实保持在原奖励链路中。

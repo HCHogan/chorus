@@ -1785,6 +1785,21 @@ cost.amount 与每个 parameter.value 都是类型化 Value；各自可另给 pr
 
 在 `on_use` 攻击快照中，攻击方选择冻结，victim 选择留到命中时查询；绑定局部目标不能带入攻击快照。独立延迟规则在执行时读取当前选择，仍保留原动作来源。程序与领域存储往返保留条件和基础选择；这不等于宿主技能 NBT 或完整物理世界重启已实现。`selected_ability.json` 的纯核心及共享世界场景验证选择隔离、替换施放、延迟和快照，Harmonic 是该接口的实际内容消费者。
 
+### 查询已选技能的接收账户
+
+`selected_ability_resource` 将指定资源 ID 与当前基础技能的接收账户比较；`selected_ability_event_resource` 从事件引用读取待比较 ID。后者的 reference 默认为 resource，适合资源速率 / 能量查询，不需要给每个技能写一份资源名称分支：
+
+```json
+{"type":"chorus:selected_ability_resource","slot":"chorus_d2:class","resource":"example:class_energy","target":"self"}
+{"type":"chorus:selected_ability_event_resource","slot":"chorus_d2:class","reference":"resource","target":"self"}
+```
+
+两者先读取目标持有者已提交的基础选择，再按现有 `energyResource()` 约定优先读取 recharge_resource，其次 cost.resource。空槽、无接收账户、未知 / 缺失 / 格式错误的事件资源引用均为 false；静态声明的 slot / resource 必须为合法 ID，reference 必须为合法本地名称。不依据余额、施放替换或事件来源猜账户，也不追随 cost_slot / cost_from 的支付委托。共享同一接收账户的两个技能均能匹配。此条件只比较所选账户的资源定义 ID，不代替持有者授权或付款资格检查，不初始化、修改或补满账户。
+
+资源速率查询按当前时间段重新计算；换槽后可让增益跟随新账户，已保留的旧账户是否继续基础恢复由原来的资源定义决定。`selected_ability_resource.json` 验证额外基础再生率：基础 0.1/s、属性加速 100%、额外基础加成 300% 时为 `0.1×2 + 0.1×3 = 0.5/s`，不能算成 `0.1×2×4`。这是通用组合夹具，尚非完整 Winter’s Shroud 内容。使用 base_percent 时 percent_of 必须指向原基础阶段，不能误指经过属性缩放的阶段。
+
+攻击快照先把事件引用解析为固定资源 ID，再沿用目标求值时机：攻击方选择冻结，victim 选择保留到命中时读取，后续事件不会替换已捕获的资源 ID。独立 detached 延迟在执行时读取当前选择，但保留原事件引用。两个条件都有独立存储 ID；新增形状不改写旧条件或历史检查点。
+
 ### 选中技能的常驻效果
 
 `abilities[].effects` 是按本地键索引的来源声明。基础技能选中后自动挂载，清除或换成另一基础技能时卸载；不需要测试事件创建一个永不结束的 Buff 才能启用回能 / 属性修饰。下面片段给已声明的技能增加来源，目标 Bundle 也须在同一程序或 imports 中定义：

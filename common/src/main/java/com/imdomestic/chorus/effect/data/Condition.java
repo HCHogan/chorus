@@ -46,6 +46,29 @@ public interface Condition {
                     .selectedAbility(e.state(), e.target(target), slot).filter(ability -> ability.tags().contains(tag)).isPresent();
         }
     }
+    /** Compare the selected base ability's receiving account, without resolving cast replacements or payment aliases. */
+    record SelectedAbilityResource(String slot, String resource, Evaluation.Target target) implements Condition {
+        public SelectedAbilityResource {
+            AbilityDefinition.id(slot); AbilityDefinition.id(resource); java.util.Objects.requireNonNull(target);
+        }
+        @Override public void validate(Validation v) { v.target(target); }
+        @Override public boolean test(Evaluation e) {
+            return e.program().orElseThrow(() -> new IllegalStateException("Selected ability requires a compiled program"))
+                    .selectedAbility(e.state(), e.target(target), slot).flatMap(AbilityDefinition::energyResource).filter(resource::equals).isPresent();
+        }
+    }
+    /** Resource-rate/gain events name the queried account in a reference; snapshots bind that identity separately. */
+    record SelectedAbilityEventResource(String slot, String reference, Evaluation.Target target) implements Condition {
+        public SelectedAbilityEventResource {
+            AbilityDefinition.id(slot); java.util.Objects.requireNonNull(target); EffectTimers.localName(reference);
+        }
+        @Override public void validate(Validation v) { v.target(target); }
+        Condition resolve(Evaluation e) {
+            String resource = e.event().references().get(reference);
+            return resource == null || !resource.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") ? new Constant(false) : new SelectedAbilityResource(slot, resource, target);
+        }
+        @Override public boolean test(Evaluation e) { return resolve(e).test(e); }
+    }
     /** Held input includes entering ADS; ready requires the host-confirmed completed transition. */
     record WeaponAiming(Evaluation.Target target, boolean ready) implements Condition {
         public WeaponAiming { java.util.Objects.requireNonNull(target); }

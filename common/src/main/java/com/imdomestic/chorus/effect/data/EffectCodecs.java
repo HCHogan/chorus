@@ -155,6 +155,14 @@ public final class EffectCodecs {
                         ID.fieldOf("slot").forGetter(Condition.SelectedAbilityTag::slot), ID.fieldOf("tag").forGetter(Condition.SelectedAbilityTag::tag),
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.SelectedAbilityTag::target)
                 ).apply(i, Condition.SelectedAbilityTag::new)))
+                .register("chorus:selected_ability_resource", Condition.SelectedAbilityResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(Condition.SelectedAbilityResource::slot), ID.fieldOf("resource").forGetter(Condition.SelectedAbilityResource::resource),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.SelectedAbilityResource::target)
+                ).apply(i, Condition.SelectedAbilityResource::new)))
+                .register("chorus:selected_ability_event_resource", Condition.SelectedAbilityEventResource.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("slot").forGetter(Condition.SelectedAbilityEventResource::slot), Codec.STRING.optionalFieldOf("reference", "resource").forGetter(Condition.SelectedAbilityEventResource::reference),
+                        TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.SelectedAbilityEventResource::target)
+                ).apply(i, Condition.SelectedAbilityEventResource::new)))
                 .register("chorus:weapon_aiming", Condition.WeaponAiming.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.WeaponAiming::target),
                         Codec.BOOL.optionalFieldOf("ready", false).forGetter(Condition.WeaponAiming::ready)

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T10:35:04.000494+00:00",
+  "status": "research_pending_implementation",
+  "sources": [
+    {
+      "sheet": "Stasis",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1088259962",
+      "file": "data/d2-research/2026-10-13/winters-shroud-stasis.html.gz",
+      "html_sha256": "6a86e47499f0ce10e8d68a98826d323db7bc9221dd96664f682671eeaa4fe97e",
+      "gzip_sha256": "28006ef5b136e7d14b8091ee2951685991ac39d43a8e8a06eeed9b154c05dc86",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "B65": "Winter's Shroud",
+        "D65": "Upon inflicting Slow to an enemy:\nGrants 300% [150%] Additional Base Class Ability Regeneration Rate for 3 seconds.\n\nOn Class Ability Usage:\nInflicts x60 [x40] Slow for 8+4? [1.5+0.5] seconds to enemies within 9 [8] metres.\nGrants 50% Damage Resist against Combatants for 4? seconds."
+      },
+      "fixed_snapshot_coordinates": "B45/D45",
+      "snapshot_matches": [
+        {
+          "original": "B65",
+          "snapshot": "B45",
+          "text_sha256": "1cb432928be25d10eaba3c4c72480597d47ca906f24eb2ff7725d645d0616bed"
+        },
+        {
+          "original": "D65",
+          "snapshot": "D45",
+          "text_sha256": "fc43da3f886a29e05e4f0691896658059fe6302f3fd08feb6ead8c2e3e02a290"
+        }
+      ]
+    },
+    {
+      "sheet": "Prismatic",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1918152785",
+      "file": "data/d2-research/2026-10-13/winters-shroud-prismatic.html.gz",
+      "html_sha256": "1ca4432c8f510656869aff05f1dd14fdbbb6c417be15382fa12ba53c31e8ce6a",
+      "gzip_sha256": "e283112f6fbf8ba72d5c0a54e28cf9d6d377802c44db9163925ac84ba72b803b",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "B56": "Winter's Shroud",
+        "D56": "Upon inflicting Slow to an enemy:\nGrants 300% [150%] Additional Base Class Ability Regeneration Rate for 3 seconds.\n\nOn Class Ability Usage:\nInflicts x60 [x40] Slow for 8 [1.5] seconds to enemies within 9 [8] metres.\nGrants 50% Damage Resist against Combatants for 4? seconds."
+      },
+      "fixed_snapshot_coordinates": "B40/D40",
+      "snapshot_matches": [
+        {
+          "original": "B56",
+          "snapshot": "B40",
+          "text_sha256": "1cb432928be25d10eaba3c4c72480597d47ca906f24eb2ff7725d645d0616bed"
+        },
+        {
+          "original": "D56",
+          "snapshot": "D40",
+          "text_sha256": "07e6ea89c39aa7f466f2faa8eca65b7463940532bac2f97c4ee7410f3dd28606"
+        }
+      ]
+    }
+  ],
+  "official": {
+    "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+    "verified_on": "2026-10-13",
+    "facts": [
+      "Ascension counts as a class ability for all perks and abilities.",
+      "Prismatic Ascension can activate Winters Shroud on cast."
+    ]
+  },
+  "implementation_dependency": "selected_ability_event_resource identifies the receiving account during current regeneration queries; the new synthetic test demonstrates additional base regeneration independently of stat scaling. Winter Shroud content is not yet implemented.",
+  "pending": [
+    "Use the shared Slow application and actual successful status_applied facts for the three-second rate buff.",
+    "Distinguish Stasis and Prismatic templates; Stasis combatant Slow extension and resistance duration contain question marks and require explicit calibration.",
+    "Class-account regeneration profiles need a shared base_percent channel and receiving-account predicate.",
+    "Assemble accepted class-ability activation, current target classification, Durance, combatant-only defense, death/detach and actual Ascension integration."
+  ]
+}
