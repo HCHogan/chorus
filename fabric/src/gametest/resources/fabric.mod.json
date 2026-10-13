@@ -138,6 +138,7 @@
       "com.imdomestic.chorus.StarvationGameTest",
       "com.imdomestic.chorus.HarvestGameTest",
       "com.imdomestic.chorus.StatusApplicationGameTest",
+      "com.imdomestic.chorus.BuffApplicationGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",
       "com.imdomestic.chorus.DirectionalMovementGameTest",
       "com.imdomestic.chorus.DomineeringGameTest",

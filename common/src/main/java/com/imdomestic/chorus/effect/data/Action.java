@@ -63,8 +63,12 @@ public interface Action {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             String holder = e.target(target); var definition = e.definition(buff);
-            return local(e, Buffs.grant(e.state().buffs(), definition, holder, holder, e.origin(), count(stacks, e), count(tier, e),
-                    duration.map(value -> micros(value, e)).orElse(definition.timer().durationMicros())));
+            var applied = Buffs.grant(e.state().buffs(), definition, holder, holder, e.origin(), count(stacks, e), count(tier, e),
+                    duration.map(value -> micros(value, e)).orElse(definition.timer().durationMicros()));
+            var signals = new java.util.ArrayList<>(applied.signals());
+            signals.add(com.imdomestic.chorus.effect.buff.BuffApplicationFacts.granted(e.context().operation(),
+                    e.state().buffs(), applied, definition, holder, e.origin(), false));
+            return new RuleEngine.Local<>(e.state().withBuffs(applied.store()), applied.receipt(), signals);
         }
     }
     record ConsumeBuff(String buff, Evaluation.Target target, Value stacks) implements Action {
@@ -133,6 +137,8 @@ public interface Action {
             var result = new StatusResult(cause, true, before, instance.count(), Optional.of(new EffectState.Lifetime(key, instance.generation())), checked.decision());
             var signals = new java.util.ArrayList<>(applied.signals());
             signals.add(StatusFacts.applied(e.context().operation(), request, result));
+            signals.add(com.imdomestic.chorus.effect.buff.BuffApplicationFacts.granted(e.context().operation(),
+                    e.state().buffs(), applied, request.definition(), request.target(), request.source(), true));
             return new RuleEngine.Local<>(e.state().withBuffs(applied.store()), result, signals);
         }
     }

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T12:34:48.585733+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "file": "data/d2-research/2026-10-13/benevolence-solar.html.gz",
+    "html_sha256": "32cad756ab2244c96ba876de1e78b8749703468bd32c6af3ac7cd1b9e4be1bf1",
+    "gzip_sha256": "052a3a57eeef8d0ed21fc6fe8ee54026f621bc9cfeb3ac2920676db5063c31a8",
+    "coordinate_system": "original_google_sheet",
+    "cells": [
+      {
+        "original": "B17",
+        "snapshot": "B14",
+        "text": "Benevolence",
+        "text_sha256": "7bee575a2591fa73910e02c10ea93f7858edb6a53d327e60c5b69e03b4880ef3"
+      },
+      {
+        "original": "D17",
+        "snapshot": "D14",
+        "text": "Upon bestowing cure, radiant, restoration, or reviving an ally:\n300% Additional Base Grenade, Melee, and Class Ability Regeneration Rate for 7 [4] seconds.\n\nTriggers Benevolence:\nWell of Radiance | Healing Rifts | Lumina/Boots of the Assembler's Noble Seekers | Edge of Intent's Seekers | Precious Scars On-Kill | Solar Support Frame's Restoration Burst\nCan self-trigger Benevolence with Empowering/Well of Radiance Seekers from Assembler Boots.\n\nDo NOT trigger Benevolence:\n Empowering Rifts | Crest of Alpha Lupi's Healing Pulse | Mothkeeper's Overshield Moth | Non-Solar Support Frame Auto Rifles | Armor Mods & Perks | 4 Piece Healing Initiative",
+        "text_sha256": "fb323317ccad1c38358da4a32d3fb0f6a5b6c3fcfad4a4569e020741aefbe674"
+      },
+      {
+        "original": "N17",
+        "snapshot": "N14",
+        "text": "-10 Grenade",
+        "text_sha256": "b745b47e7959f442b8939dd7a74867bbbeaf27a0cf394626b85fee7bdb380d8a"
+      }
+    ]
+  },
+  "official_sources": [
+    {
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025",
+      "published": "2025-07-31",
+      "finding": "The Solar stat rework reduced the regeneration bonus from 4x to 3x and added one second to its duration. The original sheet currently supplies the resulting 7-second PvE / 4-second PvP durations and describes the bonus as additional base regeneration."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/twid-01-23-25",
+      "published": "2025-01-23",
+      "finding": "Healing turrets from Speaker’s Sight and Edge of Intent stop selecting full-health allies. This is a producer target-selection change; it does not establish a universal requirement for positive effective healing on every Benevolence trigger."
+    }
+  ],
+  "status": "researched; fragment not yet implemented",
+  "implementation_requirements": [
+    "300% additional base regeneration for grenade, melee and class abilities; apply independently from the stat multiplier.",
+    "7 seconds PvE, 4 seconds PvP, and -10 Grenade stat.",
+    "Attribute an accepted benefit to its current applicant rather than the origin retained by a shared buff. Direct grants and authorized status applications have different world guarantees.",
+    "Check ally versus self explicitly and preserve producer-specific exceptions, including Assembler self-trigger cases and excluded healing sources.",
+    "Do not infer a revive from generic healing or invent a native revive signal.",
+    "Audit continuous field refresh, Cure pulses, same-source refresh and detach/death behavior against available evidence. No new global loop limit."
+  ]
+}

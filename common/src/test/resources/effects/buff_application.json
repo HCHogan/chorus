@@ -1,0 +1,124 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:status_application",
+      "rules": [
+        {
+          "id": "apply",
+          "on": "test:apply",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:suppression",
+              "duration": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "grant",
+          "on": "test:grant",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:suppression",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "check",
+          "on": "test:check",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:check_status",
+              "buff": "chorus_d2:suppression",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "refresh",
+          "on": "test:refresh",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:refresh_buff",
+              "buff": "chorus_d2:suppression",
+              "target": "victim",
+              "duration": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "second"
+              }
+            }
+          ]
+        },
+        {
+          "id": "clear",
+          "on": "test:clear",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:suppression",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "credited",
+          "on": "chorus:buff_applied",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus_d2:suppression"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "event_actor",
+              "origin": "event",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

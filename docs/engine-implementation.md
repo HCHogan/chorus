@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-13：直接 Buff 授予的本次来源事实
+
+审查 Benevolence 的 Restoration / Healing Rift 组合时确认：直接 `grant_buff` 的生命周期通知沿用共享实例最初来源，无法把第二次给予的信用交给实际刷新者。新增 `BuffApplicationFacts`，在 `grant_buff` 与获准的 `apply_status` 提交后发布 `chorus:buff_applied`，携带本次来源、实际绑定键、独立操作身份和提交回执。`status_authorized` 区分世界授权与纯数据授予；既有 `status_applied`、Buff 生命周期来源、状态转换接口和合法循环语义保持原契约。计时器刷新、只读资格查询、移除、到期及检查点恢复不产生新的授予事实。
+
+7 项 `BuffApplicationTest` 验证两种动作交叉重施加、相同层数的独立信用、检查点、拒绝 / 死亡 / 缺失、未知授权与未知下游结果，以及先前生命周期清除后的事实保留。3 项共享 `BuffApplicationGameTest` 通过实际实体回血核验给予者归属、拒绝和纯计时器操作不误触发、未知回执不重放。新世界夹具在安装运行时前等待实体索引就绪。
+
+`/tmp/chorus-buff-application-gate.log` BUILD SUCCESSFUL（3 分 13 秒），2042 项 JUnit、NeoForge 1178 项世界测试及两端发布 jar 通过；首轮 Fabric 1160 项通过，但计数核对发现显式入口漏注册新场景。补齐入口后，`/tmp/chorus-buff-application-fabric-final.log` 完整 Fabric 1163 项通过（1 分 4 秒），两端最终均包含三个新环境。提交前将新单测的重建场景改为实际自然到期后再授予，`/tmp/chorus-buff-application-unit-final.log` 再次通过完整 2042 项 JUnit（16 秒）。审计见 `build/reports/buff-application/audit.json`：651 个存储形状及两份历史检查点不变，发布 jar 含新主类且不含测试夹具 / GameTest；Gradle CRLF 保持。10 项 Compendium 工具测试、22 表 / 6666 单元格 / 123 条审阅与生成报告一致性检查通过。本次没有客户端协议或界面修改，未重跑图形客户端。
+
+重新读取原表 Solar B17/D17/N17，保存原始 HTML、gzip / 文本哈希及与固定快照 B14/D14/N14 的坐标映射；[Benevolence 来源记录](../data/d2-research/2026-10-13/benevolence-source.json) 区分 300% 额外基础回充、7 / 4 秒、-10 Grenade、生产者例外与官方治疗炮台选目标调整。这一阶段只补齐通用授予归属，Benevolence 内容、三类回充组合、复活入口及特殊来源仍待实现，没有新增完成或 partial 覆盖条目。
+
 ### 2026-10-13：Acrobat’s Dodge 与 Ascension 的完成阶段收益
 
 新增 Acrobat’s Dodge 参考定义，使用现有输入方向、原生冲量、生命引用、detached after、范围查询、Radiant 和职业账户实现。地面 / 空中均可接受，实际按键方向决定水平冲量；中立方向政策和水平 / 竖直速度由必填参数提供。完成延迟后重新解析同一生命，向自己和十米内盟友按各自 Solace 授予 Radiant，并向 6.5 米内敌人计算 40 / 20 峰值乘显式衰减与伤害单位换算。职业基准为 PvE 56 / PvP 148.4 秒，CES 为 .5；沿用 class_regeneration / class_gain，清槽后保留账户暂停回充的参考政策与 Gambler 一致。

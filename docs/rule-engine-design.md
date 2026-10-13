@@ -152,6 +152,7 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:shield_damaged` / `chorus:shield_broken` | 目标、护盾定义与 generation、层标签、实际容量损失和剩余容量、关联 damage id | 回充延迟、Press The Advantage；破盾只在实际减少到零时产生 |
 | `chorus:shield_restored` | 补充者来源、接收层定义 / generation / 标签、requested / effective / overflow、补前和补后容量、maximum / full | 显式补盾正增加时产生；不刷新层生命周期，不与生命治疗共用 heal id |
 | `chorus:status_applied` | 本次授权施加者、目标、status_id、Buff定义/实例/generation、施加前后层数及可选damage_id | `apply_status`授权通过并提交状态后产生；重复施加仍有独立身份，不把共享Buff最初来源误当成本次施加者 |
+| `chorus:buff_applied` | 本次给予者、接收者、buff_application_id、Buff定义/实例/generation、提交回执及status_authorized标志 | `grant_buff`或获准的`apply_status`提交后的授予事实；与保留最初来源的生命周期事件分开；纯授予不代表世界授权或实际治疗 |
 | `chorus:buff_gained` / `buff_stacks_changed` / `buff_refreshed` / `buff_ended` | buff id、before / after、reason、请求 / 收益 / 实际层数变化 | Frenzy；到期和消耗通过 ended 的 reason 区分 |
 | `chorus:movement` | 冲刺、滑铲、离地、落地 | Haste、While Sliding |
 | `chorus:grapple_attached` / `grapple_end` | 钩住了什么 | Grappling a Tangle |

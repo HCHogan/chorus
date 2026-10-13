@@ -3099,6 +3099,18 @@ minimum_fired_fraction、ignore_seconds 和 Adaptive Burst 的 adaptive_fraction
 动作仍先提交状态，再执行排队反应；回调的未知世界结果不能撤销状态或重试本次施加。后续规则判断是否仍有该状态应查询当前has_buff，不能把已发生的施加事实当作永久存在保证。此接口供Domineering等“成功施加后获益”规则使用，接口验收本身不等于这些Fragment已经完成。
 
 
+### Buff 授予事实与本次给予者
+
+`grant_buff` 提交后排队 `chorus:buff_applied`；获准的 `apply_status` 也发布该事实，顺序为生命周期事实、既有 `status_applied`、`buff_applied`。两种动作各发布一次。actor/source 是本次动作来源，victim 是请求中的接收者；共享实例的最初来源与 generation 不因此改变。使用 `buff_gained`/`buff_refreshed` 读取到的仍是实例来源，不能据此奖励本次刷新者。
+
+事件使用已有 `EffectEvent`，带定义标签；numbers 为 `requested`、`credited`、`stored_delta`、`stacks_before`、`stacks_after`（count），flags 为 `applied=true`、`new_instance`、`status_authorized`。最后一个标志仅在 `apply_status` 已获世界授权时为 true；纯授予为 false。references 为 `buff_application_id`、`buff_definition`、`buff_holder`、`buff_instance`、`buff_generation`。接收者是动作目标，`buff_holder` 是实际绑定键；绑定到武器的 Buff 不应把这两个字段混用。
+
+`buff_application_id` 由当前 frame/pc/invocation 组成，同一会话的独立授予具有不同身份，检查点保留计数；不承诺独立新会话的全局唯一性。满层或相同截止点的已接受重施加仍有新事实。仅 `check_status`、计时器刷新、延长、消耗、移除、到期、恢复检查点，以及内部领域状态的直接构造不发布该事实。拒绝或未知授权也不发布。纯授予可创建数据状态，但不检查世界目标，因此它不能证明目标存活、关系正确、Cure 实际治疗或复活成功；这些资格仍由相应世界查询和回执表达。
+
+先提交状态、后排队反应的契约不变。先前生命周期反应清除了 Buff，不能抹掉已经发生的授予；需要当前状态时应重新查询。未知下游世界结果保留已提交状态并停止，不能重放授予。新增事件使用已有存储类型，没有修改 `(状态, 事件) → (新状态, 动作列表)`，也没有增加全局防循环限制。
+
+该接口补齐 Benevolence 等“给予盟友增益后获益”的来源表达；接口通过测试不等于相关 Fragment 已完整实现。Benevolence 的原表、现行数值与生产者例外已存入 [来源记录](../data/d2-research/2026-10-13/benevolence-source.json)，后续内容需要分别消费增益授予、实际治疗和复活事实。
+
 ## 抑制施加与 Domineering 组合
 
 `suppression.json` 现在提供 `chorus_d2:suppression_application`。用 `invoke_bundle` 调用 `chorus_d2:apply_suppression`，明确传入 `combatant_duration` 与 `guardian_duration`（均为正 second），并保留真实动作 origin / victim。施加器观察目标是否存在、存活及是否玩家，然后执行 `apply_status`；授权成功后由引擎提交 `status_applied`，不是由内容包自行伪造。`chorus_d2:clear_suppression` 是显式清除入口，目标死亡也会清理活动状态。
