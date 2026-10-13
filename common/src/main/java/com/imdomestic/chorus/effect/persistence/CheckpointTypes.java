@@ -273,6 +273,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/condition/event_reference", com.imdomestic.chorus.effect.data.Condition.EventReference.class);
         types.put("chorus:effect/data/condition/event_source_tag", com.imdomestic.chorus.effect.data.Condition.EventSourceTag.class);
         types.put("chorus:effect/data/condition/event_tag", com.imdomestic.chorus.effect.data.Condition.EventTag.class);
+        types.put("chorus:effect/data/condition/event_ability_tag", com.imdomestic.chorus.effect.data.Condition.EventAbilityTag.class);
         types.put("chorus:effect/data/condition/has_buff", com.imdomestic.chorus.effect.data.Condition.HasBuff.class);
         types.put("chorus:effect/data/condition/has_buff_tag", com.imdomestic.chorus.effect.data.Condition.HasBuffTag.class);
         types.put("chorus:effect/data/condition/has_shield", com.imdomestic.chorus.effect.data.Condition.HasShield.class);

@@ -1623,6 +1623,18 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 
 当前按服务器接受的执行计划模拟动画期，尚无正式终结动画/吸附与配装/HUD，定义仍是组合验收资源。不能将数据规则与真实受伤验收等同于原作动画表现或完整内容发布。
 
+### Powerful Attraction 的范围收集与职业物品装配
+
+2026-10-13 抓取的 Compendium Armor Mods N12 / P12 与固定快照同坐标文本一致；Clarity `039cfbc` 的 11126525 条目明确一件 12.5 米、两件及以上 18.5 米。参考定义按持有者当前副本数取范围，职业物品每格消耗 2 能量，三格独立装配通过既有容量和授权接口生成来源。[研究记录与来源哈希](../data/d2-research/2026-10-13/powerful-attraction.json)。
+
+[官方 9.0.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1) 说明 Ascension 可触发 Powerful Attraction，因此资格读取已接受的实际技能标签，不只检查基础职业槽；单独的替换资格标签避免把所有消耗职业能量的替换动作视为职业技能。已用真实 Marksman’s Dodge 定义、服务器命令及扣费验证范围拾取；它的 0.2 秒换弹延迟仍为既有合成验收参数。合成 ascent 替换仅证明资格表达，不算完整 Ascension 实现。
+
+每次接受施放只查询一次；已有 Orb 奖励继续给当前收集者回能，并触发共享 Armor Charge / Devour。领取按[反应结算协议](engine-data-packs.md#按范围主动收集拾取物)逐件复核：满超能且充能满时保留多余球；Starvation 的独立许可可允许继续领取。实际职业物品两件本模组与一件 Utility Kickstart 已验证同次技能先消耗原充能，再由附近球补回；换掉第二件后下一次查询回到 12.5 米。上述组合采用当前内容的拾取资格和时序政策，不能当作所有原作边界的实测校准。
+
+待校准政策包括免费施放资格、查询相对位移/动画的取样时机，以及满资源条件。当前查询在开始反应取样，领取等待技能动作和普通反应后复核位置；60 秒 cast 回执窗口是 Chorus 的有限去重策略。Compendium 另列 Mote / Crest，Clarity 还列 Echoes data mote；这些公共竞争和活动计分对象未接入，当前定义仅收集私有 Orb。参考物品、解锁授权和配装命令不等于完整职业 / 子职业目录、进度生产者、图标或 HUD。
+
+[Bungie 已知问题](https://help.bungie.net/hc/en-us/articles/39007140765204-Destiny-2-Known-Issues-and-Vital-Information) 还记录 Nessus 四件 Repurposed Charge 对同次职业技能的充能消耗 / 获得计数不正确，涉及 Utility Kickstart 与 Powerful Attraction。该套装另列未实现，不把已知原作缺陷作为本模组的正确算法。
+
 ### Kickstart 的完整付费充能与回能表
 
 [三种Kickstart定义](../common/src/test/resources/effects/kickstart.json)监听对应的手雷、近战、职业技能接受事实。实际支付至少一份完整充能、不是免费使用、当前具有Armor Charge且接收者有回能空间时，消费全部Armor Charge。档位为**已消费层数 + 该模组当前副本数**；其他种类的Kickstart副本不参与本档位。

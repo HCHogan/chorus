@@ -1,0 +1,60 @@
+{
+  "11126525": {
+    "hash": 11126525,
+    "name": "Powerful Attraction",
+    "lastUpload": 1732219732702,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Class Ability usage collects certain pickups within 12.5|18.5 meters with 1|2+ Mods equipped."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Applicable pickups:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Orbs of Power"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Motes of Light in Gambit"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Crests in Supremacy"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Data Motes in Episode: Echoes activities"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

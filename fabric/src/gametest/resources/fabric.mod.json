@@ -219,7 +219,8 @@
       "com.imdomestic.chorus.GamblersTrackingGameTest",
       "com.imdomestic.chorus.EquipmentEditorGameTest",
       "com.imdomestic.chorus.PickupCollectionGameTest",
-      "com.imdomestic.chorus.OrbCollectionGameTest"
+      "com.imdomestic.chorus.OrbCollectionGameTest",
+      "com.imdomestic.chorus.PowerfulAttractionGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

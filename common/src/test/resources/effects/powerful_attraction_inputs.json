@@ -1,0 +1,61 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "test:attraction_ascent",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus_d2:activates_powerful_attraction"
+      ],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:attraction_nonclass",
+      "slot": "chorus_d2:class",
+      "tags": [],
+      "cost": {
+        "resource": "test:kick_class",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:attraction_ascent_override",
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "chorus_d2:class",
+          "ability": "test:kick_class",
+          "replace_with": "test:attraction_ascent",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "test:attraction_nonclass_override",
+      "ability_overrides": [
+        {
+          "id": "replace",
+          "slot": "chorus_d2:class",
+          "ability": "test:kick_class",
+          "replace_with": "test:attraction_nonclass",
+          "priority": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 {
+  "chorus:effect/data/condition/event_ability_tag": ["tag:java.lang.String"],
   "chorus:rule/rule_engine/after_reactions": ["signal:com.imdomestic.chorus.rule.RuleEngine$Signal"],
   "chorus:effect/data/pickup_actions/collect": ["collector:com.imdomestic.chorus.effect.data.Evaluation$Target", "radius:com.imdomestic.chorus.effect.data.Value", "kinds:java.util.Set<java.lang.String>", "lineOfSight:boolean"],
   "chorus:effect/object/pickup_collection/query": ["collector:java.lang.String", "radius:double", "kinds:java.util.Set<java.lang.String>", "lineOfSight:boolean"],

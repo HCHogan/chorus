@@ -166,6 +166,8 @@ public final class EffectCodecs {
                 ).apply(i, Condition.ResourceCrossed::new)))
                 .register("chorus:event_tag", Condition.EventTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.EventTag::tag)).apply(i, Condition.EventTag::new)))
+                .register("chorus:event_ability_tag", Condition.EventAbilityTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("tag").forGetter(Condition.EventAbilityTag::tag)).apply(i, Condition.EventAbilityTag::new)))
                 .register("chorus:layer_tag", Condition.LayerTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.LayerTag::tag)).apply(i, Condition.LayerTag::new)))
                 .register("chorus:source_tag", Condition.SourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(

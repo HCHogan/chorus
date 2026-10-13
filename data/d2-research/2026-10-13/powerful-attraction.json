@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "effects": [
+    "Powerful Attraction"
+  ],
+  "reviewed_at": "2026-10-13",
+  "status": "partial",
+  "sources": [
+    {
+      "kind": "original_google_sheet",
+      "sheet": "Armor Mods",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1934379638",
+      "archived_html": "data/d2-research/2026-10-13/powerful-attraction-armor-mods.html.gz",
+      "sha256": "a914631077fd1b5de7e9f55addf6e2ba0939914943aa98468083a3b09c34c0f2",
+      "gzip_sha256": "b4c35a4f7f6ea82836e269289c52188273e0c8c7b65f64842807d37d20a5ccf1",
+      "cells": [
+        {
+          "original_cell": "N12",
+          "snapshot_cell": "N12",
+          "snapshot_text_sha256": "3ae0fbee0670a3c046a083eebe241e4417075fea25261da517fc52f21abd4a98",
+          "normalized_text": "Powerful Attraction [2 Energy]",
+          "match": "normalized_equal"
+        },
+        {
+          "original_cell": "P12",
+          "snapshot_cell": "P12",
+          "snapshot_text_sha256": "f44fac3600f53b7ad36489b184f91986075ade58ba462d4f4cad27ad30eba8aa",
+          "normalized_text": "On Class Ability Usage: Collects Orbs of Power within 12.5 | 18.5 metres. Will also pick up Motes and Crests.",
+          "match": "normalized_equal"
+        }
+      ]
+    },
+    {
+      "kind": "clarity",
+      "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+      "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+      "commit_date": "2026-10-08T21:35:34Z",
+      "source_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+      "selected": "data/d2-research/2026-10-13/powerful-attraction-clarity.json",
+      "selected_sha256": "59884237cc78a4f92586496e00c96da765cc2bc76597d8fe029cb7d6575c449c",
+      "finding": "Entry 11126525 specifies 1 copy 12.5 m and 2+ copies 18.5 m; also lists Gambit motes, Supremacy crests and Echoes data motes."
+    },
+    {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1",
+      "published_at": "2025-07-15",
+      "finding": "Ascension can activate Powerful Attraction. Accepted resolved-ability classification must support explicit replacement qualification, rather than assume any occupied class slot qualifies."
+    },
+    {
+      "kind": "official_known_issue",
+      "url": "https://help.bungie.net/hc/en-us/articles/39007140765204-Destiny-2-Known-Issues-and-Vital-Information",
+      "accessed_at": "2026-10-13",
+      "finding": "The Nessus Repurposed Charge 4-piece bonus does not correctly count Armor Charge spent and gained in the same class use with Utility Kickstart and Powerful Attraction. This set bonus is not implemented or inferred as desired behavior."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/powerful_attraction.json",
+    "inputs": "common/src/test/resources/effects/powerful_attraction_inputs.json",
+    "equipment": "common/src/test/resources/effects/powerful_attraction_equipment.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java"
+  },
+  "parameters": {
+    "radius_one_copy_m": 12.5,
+    "radius_two_or_more_copies_m": 18.5,
+    "class_item_energy_cost": 2
+  },
+  "policies": [
+    "Accepted Started fact qualifies by captured resolved definition, not incidental input tags or current selection. Explicit replacement qualification is effect-specific.",
+    "Each holder/cast claims a shared receipt once across copies; per-entry forgetting and refresh use a 60-second finite replay window, a Chorus policy rather than a Destiny cooldown.",
+    "Free accepted class use qualifies; rejected or non-class casts do not. Free-use interactions remain to be calibrated.",
+    "Candidate query samples actor feet at the start reaction. Claims wait for ordinary reactions and ability body to settle and recheck live range/eligibility. Exact original animation and movement timing is not established.",
+    "Existing private Orb conditions and original rewards apply. The mod itself grants no Armor Charge acquisition permission. Full-Super and full-charge eligibility behavior remains subject to source-specific game calibration.",
+    "Reference class item uses three editable sockets and a 10-energy budget. Actual mod costs are 2 for Powerful Attraction and 3 for Utility Kickstart. Unlock grants use existing host-owned eligibility; player progression production is not implemented."
+  ],
+  "gaps": [
+    "Public contested activity Motes/Crests and Echoes data-mote producers/scoring are not implemented. Only managed private Orbs are collected by this reference bundle.",
+    "Synthetic ascent replacement tests classification only; actual Ascension movement, damage, aspect selection and its complete interaction set remain pending.",
+    "Official full class-item catalog, subclass constraints, unlock progression, icon/HUD, live Destiny timing and physical-world restart remain pending.",
+    "Nessus Repurposed Charge set bonus and its documented original-game issue are separate unimplemented content."
+  ]
+}

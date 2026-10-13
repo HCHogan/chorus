@@ -1,0 +1,123 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "test:attraction_empty"
+    }
+  ],
+  "equipment": {
+    "slots": [
+      {
+        "id": "chorus_d2:class_item",
+        "accepts": [
+          "chorus_d2:class_item"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:attraction_class_item",
+        "tags": [
+          "chorus_d2:class_item"
+        ],
+        "sockets": {
+          "mod_0": {
+            "options": {
+              "none": {
+                "bundle": "test:attraction_empty"
+              },
+              "powerful_attraction": {
+                "bundle": "chorus_d2:powerful_attraction"
+              },
+              "utility_kickstart": {
+                "bundle": "chorus_d2:utility_kickstart"
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "mod_1": {
+            "options": {
+              "none": {
+                "bundle": "test:attraction_empty"
+              },
+              "powerful_attraction": {
+                "bundle": "chorus_d2:powerful_attraction"
+              },
+              "utility_kickstart": {
+                "bundle": "chorus_d2:utility_kickstart"
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "mod_2": {
+            "options": {
+              "none": {
+                "bundle": "test:attraction_empty"
+              },
+              "powerful_attraction": {
+                "bundle": "chorus_d2:powerful_attraction"
+              },
+              "utility_kickstart": {
+                "bundle": "chorus_d2:utility_kickstart"
+              }
+            },
+            "required": true,
+            "editable": true
+          }
+        },
+        "budgets": {
+          "energy": {
+            "capacity": 10,
+            "costs": {
+              "mod_0": {
+                "none": 0,
+                "powerful_attraction": 2,
+                "utility_kickstart": 3
+              },
+              "mod_1": {
+                "none": 0,
+                "powerful_attraction": 2,
+                "utility_kickstart": 3
+              },
+              "mod_2": {
+                "none": 0,
+                "powerful_attraction": 2,
+                "utility_kickstart": 3
+              }
+            }
+          }
+        },
+        "requires": {
+          "choices": {
+            "mod_0": {
+              "powerful_attraction": [
+                "chorus_d2:unlock/powerful_attraction"
+              ],
+              "utility_kickstart": [
+                "chorus_d2:unlock/utility_kickstart"
+              ]
+            },
+            "mod_1": {
+              "powerful_attraction": [
+                "chorus_d2:unlock/powerful_attraction"
+              ],
+              "utility_kickstart": [
+                "chorus_d2:unlock/utility_kickstart"
+              ]
+            },
+            "mod_2": {
+              "powerful_attraction": [
+                "chorus_d2:unlock/powerful_attraction"
+              ],
+              "utility_kickstart": [
+                "chorus_d2:unlock/utility_kickstart"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -12706,6 +12706,141 @@
           "text_sha256": "0c6dc100de2994a91b2694bece2fcdbe204306672f5357ce20ceecd2c9b96960"
         }
       ]
+    },
+    {
+      "id": "armor-mods/powerful-attraction",
+      "name": "Powerful Attraction",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "接受的实际职业技能或显式替换资格触发一次范围拾取；1件12.5米、2件以上18.5米；真实独立职业物品、2能量插槽和Utility Kickstart/Armor Charge/Devour组合。",
+      "acceptance": [
+        "PvE/PvP、1–3副本、两档距离边界；类型化实际技能资格不读取基础选择或输入借用标签。",
+        "真实Marksman’s Dodge服务端施放、付款和拒绝，独立职业物品插槽修改改变后续范围。",
+        "共享cast回执和恢复、逐件拾取反应、Kickstart先消耗后补充、独立吞噬许可及未知结果停机。"
+      ],
+      "gaps": [
+        "Mote/Crest/Echoes活动对象的公共竞争、计分和真实生产者未实现；当前只收集受管私有Orb。",
+        "Ascension仅有显式资格的合成替换验收，真实位移/伤害/Aspect装配和所有职业技能特例待实现。",
+        "免费施放、满资源资格和查询相对动画/位移的准确取样时机仍待原作校准；60秒回执窗口是Chorus有限去重政策。",
+        "内容仍为参考测试资源；完整职业物品/子职业限制/解锁进度、模组图标/HUD和物理世界重启未完成；Nessus Repurposed Charge套装及其官方已知问题另待实现。"
+      ],
+      "sources": [
+        {
+          "sheet": "Armor Mods",
+          "cell": "N12",
+          "text_sha256": "3ae0fbee0670a3c046a083eebe241e4417075fea25261da517fc52f21abd4a98"
+        },
+        {
+          "sheet": "Armor Mods",
+          "cell": "P12",
+          "text_sha256": "f44fac3600f53b7ad36489b184f91986075ade58ba462d4f4cad27ad30eba8aa"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/powerful_attraction.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/powerful_attraction_inputs.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/powerful_attraction_equipment.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "oneTwoAndThreeCopiesUseQuotedRadiiAndOneCollectionPerAcceptedCastInBothModes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "actualMarksmanDodgePaysBeforeCollectingOrbsAndRejectedSecondUseDoesNothing"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "actualResolvedReplacementQualifiesWithoutInheritingTheBaseClassTag"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "nonclassUseAndUntypedFactsCannotQualifyByBorrowingInputTags"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "liveEquipmentCopiesAndOtherHoldersAreIsolatedAndReceiptsSurviveRestore"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "fullSuperChargeCapacityAndIndependentDevourUseTheOriginalPickupRules"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "utilityKickstartSpendsExistingChargesBeforeCollectedOrbsReplenishThem"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "freeAcceptedClassUseCollectsWhileDeniedClassUseDoesNot"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "unknownPickupReactionRetainsClassPaymentAndStopsTheRemainingCollection"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "definitionsAndTypedAbilityConditionRoundTripAndInvalidIdentifiersAreRejected"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "typedQualificationFreezesTheAcceptedDefinitionAndRejectsWrongEventOrReceipt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PowerfulAttractionTest.java",
+          "symbol": "copyDeduplicationReceiptsExpireWithoutLeavingAnUnboundedCastHistory"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "independentPhysicalClassItemCopiesCollectAtBothExactRangeBoundaries"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "actualMarksmanDodgeCommandConsumesItsChargeAndCollectsWithoutMovement"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "resolvedReplacementMetadataControlsEligibilityAndUnrelatedPickupKindsRemain"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "socketConfiguredUtilityKickstartSpendsThenOrbsRefillTheLivePool"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "starvationAllowsFullSuperOrbsAndOnlyTheCollectorReceivesDevour"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PowerfulAttractionGameTest.java",
+          "symbol": "unknownNestedHealingKeepsPaidDodgeAndStopsBeforeTheSecondOrb"
+        }
+      ]
     }
   ]
 }

@@ -2,6 +2,8 @@ package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.EffectEvent;
 import com.imdomestic.chorus.effect.EffectTimers;
+import com.imdomestic.chorus.effect.ability.AbilityDefinition;
+import com.imdomestic.chorus.effect.ability.AbilityUse;
 import com.imdomestic.chorus.effect.buff.BuffRules;
 import com.imdomestic.chorus.effect.buff.Buffs;
 import java.util.List;
@@ -83,6 +85,25 @@ public interface Condition {
     record EventTag(String tag) implements Condition {
         @Override public void validate(Validation v) {}
         @Override public boolean test(Evaluation e) { return EffectTimers.event(e.context().event().signal().payload()).filter(event -> event.tags().contains(tag)).isPresent(); }
+    }
+    /** Classification captured from the accepted resolved ability, excluding incidental input tags. */
+    record EventAbilityTag(String tag) implements Condition {
+        public EventAbilityTag { AbilityDefinition.id(tag); }
+        @Override public void validate(Validation v) {}
+        @Override public boolean test(Evaluation e) {
+            var signal = e.context().event().signal();
+            return switch (signal.payload()) {
+                case AbilityUse.Started used ->
+                        signal.type().equals(AbilityUse.STARTED) && matches(used.definition(), used.receipt());
+                case AbilityUse.Used used ->
+                        signal.type().equals("chorus:ability_used") && matches(used.definition(), used.receipt());
+                default -> false;
+            };
+        }
+        private boolean matches(AbilityDefinition definition, AbilityUse.Receipt receipt) {
+            return receipt.outcome() == AbilityUse.Outcome.ACCEPTED
+                    && definition.id().equals(receipt.resolved()) && definition.tags().contains(tag);
+        }
     }
     record LayerTag(String tag) implements Condition {
         @Override public void validate(Validation v) {}

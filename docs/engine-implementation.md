@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-13：Powerful Attraction 的技能触发与真实职业物品
+
+新增 `event_ability_tag` 条件读取已接受、已解析技能的捕获定义，排除输入借用标签、当前基础选择、拒绝回执和错配事实；快照冻结布尔值。Powerful Attraction 使用该条件与显式替换资格，按当前持有者一件 / 两件以上选择 12.5 / 18.5 米；共享 cast 回执避免多个模组各执行一次收集。Orb 仍执行原有私有资格、Super 回能、Armor Charge 与 Devour，模组本身不启用充能池。
+
+参考职业物品接入独立 `chorus_d2:class_item` 槽、三格可编辑插槽、10 能量预算和持有者授权；Powerful Attraction / Utility Kickstart 分别费用 2 / 3。十二项核心测试验证双模式范围、真实 Marksman’s Dodge 扣费、替换 / 非职业 / 免费 / 拒绝资格、共享回执恢复和有限遗忘、动态副本与其他持有者、两种拾取许可、Kickstart 消耗后再补充、未知恢复、类型化条件与存储。六项共享世界测试通过物理职业物品、服务器技能命令、实际球实体、生命恢复和插槽修改验证上述主要链路。
+
+开发期首轮世界装配重复载入 ShieldThrow 已提供的 character_stats，六个新场景初始化失败；移除重复载入后，六场景 Fabric 定向运行通过。参考内容仍在测试资源，合成 ascent 替换不代表完整 Ascension；Mote / Crest / Echoes 活动对象、正式目录与进度、UI 素材和原作细节校准仍待实现。原表和固定快照逐格核对，Clarity 固定提交与官方替换 / 已知套装问题分别记录，审阅新增一条 partial。
+
+最终 `build/reports/powerful-attraction/content-final-gate.log` BUILD SUCCESSFUL，2 分 34 秒：1977 项 JUnit 无失败/错误/跳过，Fabric 1123 / NeoForge 1138 项世界测试通过，共享 GameCase 1122 项。双端发布 jar 分别 1260 / 1253 项，27 个 PNG/JSON 素材及五个相关变更类与对应构建产物逐字节一致，没有测试夹具、GameTest 或 TestMixin 泄漏；三份新效果夹具与双端验收资源一致。存储仅新增 `event_ability_tag`，原有 643 项精确形状保持，现为 644 项；Gradle 保持 CRLF。10 项 Compendium 工具测试、原表/Clarity 哈希和 120 条审阅检查通过，状态为 118 partial / 2 not_applicable / 0 verified。没有 UI 或客户端协议改动，未重复图形客户端验收；汇总见 `build/reports/powerful-attraction/content-audit.json`。
+
 ### 2026-10-13：批量拾取等待派生反应结算
 
 接入 Powerful Attraction 前，用现有 Orb / Armor Charge / Stacks on Stacks / Devour 定义复现了跨规则时序缺口：满超能、三层充能容量、五颗候选时实际消费五颗；叠叠不休实际消费四颗而非两颗；第一颗球的嵌套 Devour 恢复结果未知时已经消费第二颗。`sequence-before.log` 的四项定向测试有三项失败，因此此前“直接 pickup 反应先于下一件”的保证不足以支持这些组合。

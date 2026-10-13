@@ -2549,6 +2549,16 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 
 `PickupCollection` 的候选、批次、领取回执与 `AfterReactions` 信封支持类型化存储往返，已有 Pickup / Spawn / Contact 存储形状不变。会话检查点依然要求边界完全结算，不能在批次或未知世界动作中途保存为可恢复成功状态。这不代表短命 EffectObject 已支持物理世界重启恢复。当前能力面向受管私有拾取物；原版物品、公共抢占、Mote/Crest 活动物体、Shoot to Loot 的子弹命中和 Powerful Attraction 的完整内容装配仍需各自接线。
 
+## 实际技能分类与 Powerful Attraction
+
+`{"type":"chorus:event_ability_tag","tag":"chorus:class_ability"}` 读取 `chorus:ability_started` / `chorus:ability_used` 类型化事实中已接受、已解析技能的定义标签。它不读取输入附带标签或当前基础技能选择；非技能事实、事件类型不匹配、拒绝回执或 resolved ID 不一致均返回 false。事件上下文快照将其冻结为布尔值，后续换技能不改写旧施放的分类。需要查询当前基础选择时继续使用 `selected_ability_tag`。
+
+参考 `powerful_attraction.json` 在接受的职业技能开始时查询范围球：一件 12.5 米，两件及以上 18.5 米；按持有者的当前来源求和限到两件。实际技能也可声明专用 `chorus_d2:activates_powerful_attraction` 标签表达替换技能资格。每个持有者 / cast 只发起一次查询，多插槽提供的多个来源不会重复触发。60 秒共享回执与逐项遗忘仅为有限去重政策，不是原作模组冷却；接受的免费职业技能目前允许触发，具体原作特例仍待校准。
+
+本模组只收集当前受管的私有 `chorus_d2:orb_of_power`，不自行授予 Armor Charge 拾取许可，也不直接复制回能或吞噬奖励。查询在开始反应中取候选，领取等待普通反应及当前技能动作体结算，再复核当前位置和资格；位移中的精确原作触发时机尚未校准。Utility Kickstart 的现有充能消耗先结算，随后每颗球可以重新补充池；吞噬继续使用独立许可和原奖励。
+
+`powerful_attraction_equipment.json` 用独立 `chorus_d2:class_item` 槽及三格可编辑模组演示实际装配，预算 10、Powerful Attraction 费用 2、Utility Kickstart 费用 3，采用现有持有者解锁授权。它是参考目录，不代表完整职业物品、子职业限制或解锁进度系统。Mote / Crest / Echoes 活动物体需要公共竞争、活动计分和真实生产者；当前定义未用占位 kind 冒充这些实现。来源与边界见 [Powerful Attraction 研究记录](../data/d2-research/2026-10-13/powerful-attraction.json)。
+
 ## 事实携带的 Buff 观察值
 
 需要确认历史事件确实属于当前规则绑定的那一代 Buff 时，使用 `event_has_buff` 的 `match: instance`。它只允许在 BUFF 作用域中声明，同时比较逻辑实例键和 generation；刷新 / 加层保留代次，结束后同键重新授予会产生新代次。旧事件因此不会被新冻结等状态计入受伤阈值。对应的 `has_buff match: instance` 检查该代次现在是否仍存活；结束回调仍能匹配自己的历史观察，但不会把新代次当作旧状态复活。原有 bound / any 的含义保持不变；这是逐事件的状态资格条件，不是跨目标连锁的次数或深度限制。
