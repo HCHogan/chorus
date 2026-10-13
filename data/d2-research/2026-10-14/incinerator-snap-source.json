@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "status": "researched_with_generic_flight_prerequisites_only",
+  "reviewed_at": "2026-10-13T20:08:50.779602+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/incinerator-snap-solar.html.gz",
+    "html_sha256": "6ef1f8641bcac8b5fa5002912fa179fd69c23b95fc0d814109710b34d85c8713",
+    "gzip_sha256": "cc2b1127ab834b3cfc60aa1c4f4c5b965ef26ef78bc7d4e8ce9efb4cb096182d",
+    "cells": [
+      {
+        "original": "B131",
+        "text": "Incinerator Snap",
+        "text_sha256": "d17bf8b657f89b864c3e57cf7e2de9d56ed809405d82708b157c02a00d0133c9"
+      },
+      {
+        "original": "D131",
+        "text": "Creates a fan of 5 burning sparks. Sparks explode after ? meters, each dealing up to 90 [27?] damage and apply x20+10 [x10+5] Scorch over a ? meter radius. Can deal up to 450 [135?] damage and apply up to x100+50 [x50+25] Scorch by scoring hits with all 5 burning sparks",
+        "text_sha256": "1154f2fd3bb466e525a7ef4e03a90773f409a457ad9bc58215e9e0efed152ece"
+      },
+      {
+        "original": "N131",
+        "text": "Base Cooldown: 119.8 seconds Chunk Scalar: 0.9x",
+        "text_sha256": "80e2ceb61a64ad9d49cad966dd78a12f18086491d5f374d40e73ee33d5b35967"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B76",
+        "text": "Incinerator Snap",
+        "text_sha256": "d17bf8b657f89b864c3e57cf7e2de9d56ed809405d82708b157c02a00d0133c9"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D76",
+        "text": "Creates a fan of 5 burning sparks.\n\nSparks explode after ? meters, each dealing up to 90 [27?] damage and apply x20+10 [x10+5] Scorch over a ? meter radius.\nCan deal up to 450 [135?] damage and apply up to x100+50 [x50+25] Scorch by scoring hits with all 5 burning sparks",
+        "text_sha256": "29ae7924171f8fdd08a0d597735a30c541e3f10eaf9c30c9091dbd71e79336f1"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "N76",
+        "text": "Base Cooldown: 119.8 seconds\n\nChunk Scalar: 0.9x",
+        "text_sha256": "9cdef33ab0f5136fbe30b1c1db3f0841dc30d0430f8e49ee1118a259185e20b4"
+      }
+    ]
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/s21_abilities_tuning",
+      "title": "Season 21 Abilities Tuning Preview",
+      "section": "Warlock / Incinerator Snap",
+      "evidence": "Official preview confirms a proximity-detonation bug and secondary arming-shape fix. Historical total PvP damage changed from 150 to 135.",
+      "short_quote": "Fixed an issue preventing the secondary projectile arming shape from activating.",
+      "limit": "Historical evidence of proximity detonation; no current numerical radius, arming distance, shape or speed is published here."
+    }
+  ],
+  "confirmed_snapshot": {
+    "sparks": 5,
+    "combatant_maximum_damage_per_spark": 90,
+    "combatant_scorch": 20,
+    "combatant_scorch_with_ashes": 30,
+    "guardian_scorch": 10,
+    "guardian_scorch_with_ashes": 15,
+    "base_cooldown_seconds": 119.8,
+    "chunk_scalar": 0.9
+  },
+  "unresolved": [
+    "Guardian 27? per spark and 135? total explicitly retain the source question marks.",
+    "Range, blast radius, fan angle, speed, gravity, tracking and proximity arming geometry remain uncalibrated.",
+    "Generic spherical proximity and distance arming are Chorus capabilities, not claims about the original secondary arming shape.",
+    "The five-spark ability, Scorch and Sunbracers composition are not implemented by the generic projectile prerequisite."
+  ]
+}

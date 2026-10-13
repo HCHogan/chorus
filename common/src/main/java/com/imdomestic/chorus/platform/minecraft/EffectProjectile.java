@@ -21,6 +21,9 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     private ProjectileFlight.Launch launch;
     private MinecraftEffectRuntime runtime;
     private long ageMicros;
+    private double traveled;
+    /** Physical segment lengths; excludes contact separation nudges and external teleports. */
+    public double traveled() { return traveled; }
     private boolean terminal;
     private ProjectileFlight.Progress progress = ProjectileFlight.Progress.EMPTY;
     private final Set<UUID> inside = new HashSet<>();
@@ -102,15 +105,23 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
             var destination = launch.parameters().destination().orElse(null);
             LivingEntity receiver = destination == null ? null : destinationTarget(server);
             if (destination != null && receiver == null) { observe(ProjectileFlight.End.TARGET_LOST, from, Optional.empty(), 0, 0, 0, false); return; }
-            var arrival = destination == null ? OptionalDouble.empty() : destination.entry(point(from), point(to), point(anchor(receiver, destination.anchor())));
-            var travelEnd = arrival.isPresent() ? from.add(movement.scale(arrival.getAsDouble())) : to;
-            // Sweep only as far as arrival. Geometry beyond a completed flight cannot reject it.
+            double length = movement.length();
+            var range = launch.parameters().range();
+            double available = range.isPresent() ? Math.max(0, range.getAsDouble() - traveled) : Double.POSITIVE_INFINITY;
+            boolean rangeReached = available <= length;
+            var rangedEnd = rangeReached && length > 0 ? from.add(movement.scale(available / length)) : to;
+            var arrival = destination == null ? OptionalDouble.empty() : destination.entry(point(from), point(rangedEnd), point(anchor(receiver, destination.anchor())));
+            var travelEnd = arrival.isPresent() ? from.add(rangedEnd.subtract(from).scale(arrival.getAsDouble())) : rangedEnd;
+            var proximity = proximityHit(server, from, travelEnd);
+            if (proximity != null) travelEnd = proximity.getLocation();
+            // Only inspect the physically relevant prefix; geometry beyond a fuse/arrival cannot reject it.
             var terrain = MinecraftVisibility.projectile(server, point(from), point(travelEnd));
             if (terrain.isEmpty()) { observe(ProjectileFlight.End.UNLOADED, from, Optional.empty(), 0, 0, 0, false); return; }
             var path = terrain.orElseThrow(); var block = path.hit(); var end = block.getType() == HitResult.Type.BLOCK ? block.getLocation() : travelEnd;
             var entity = entityHit(server, from, end, movement);
             if (entity != null) {
                 remaining = remainingAfter(remaining, from, entity.getLocation(), movement);
+                advance(from, entity.getLocation());
                 inside.add(entity.getEntity().getUUID());
                 var bounds = entity.getEntity().getBoundingBox();
                 double width = bounds.maxX - bounds.minX, height = bounds.maxY - bounds.minY, depth = bounds.maxZ - bounds.minZ;
@@ -118,12 +129,15 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                         && Double.isFinite(width) && Double.isFinite(height) && Double.isFinite(depth)
                         ? Optional.of(new ProjectileFlight.Geometry(point(new Vec3(bounds.minX, bounds.minY, bounds.minZ)), width, height, depth, 0.125)) : Optional.empty();
                 if (!observe(ProjectileFlight.End.ENTITY, entity.getLocation(), Optional.of(entity.getEntity().getUUID().toString()), 0, 0, 0, false, geometry)) return;
+                if (finishRange()) return;
                 setPos(entity.getLocation().add(getDeltaMovement().normalize().scale(SEPARATION)));
                 steer(server, true);
             } else if (path.unavailable()) {
+                advance(from, end);
                 observe(ProjectileFlight.End.UNLOADED, end, Optional.empty(), 0, 0, 0, false); return;
             } else if (block.getType() == HitResult.Type.BLOCK) {
                 remaining = remainingAfter(remaining, from, end, movement);
+                advance(from, end);
                 var normal = block.getDirection(); var n = new Vec3(normal.getStepX(), normal.getStepY(), normal.getStepZ());
                 boolean embedded = block.isInside() || getDeltaMovement().dot(n) >= 0;
                 if (progress.canBounce(launch.parameters().collision(),embedded)) {
@@ -131,14 +145,54 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                     updateRotation();
                 }
                 if (!observe(ProjectileFlight.End.BLOCK, end, Optional.empty(), n.x, n.y, n.z, embedded)) return;
+                if (finishRange()) return;
                 setPos(end.add(n.scale(SEPARATION)));
                 steer(server, true);
                 if (getDeltaMovement().lengthSqr() == 0) break;
+            } else if (proximity != null) {
+                advance(from, travelEnd);
+                observe(ProjectileFlight.End.PROXIMITY, travelEnd, Optional.of(proximity.getEntity().getUUID().toString()), 0, 0, 0, false); return;
             } else if (arrival.isPresent()) {
+                advance(from, travelEnd);
                 observe(ProjectileFlight.End.ARRIVED, travelEnd, Optional.of(receiver.getUUID().toString()), 0, 0, 0, false); return;
-            } else { setPos(to); remaining = 0; }
+            } else if (rangeReached) {
+                advance(from, travelEnd);
+                observe(ProjectileFlight.End.RANGE, travelEnd, Optional.empty(), 0, 0, 0, false); return;
+            } else { advance(from, to); remaining = 0; }
         }
         if (!terminal && ageMicros >= launch.parameters().lifetimeMicros()) observe(ProjectileFlight.End.EXPIRED, position(), Optional.empty(), 0, 0, 0, false);
+    }
+    private void advance(Vec3 from, Vec3 to) { traveled += from.distanceTo(to); setPos(to); }
+    /** A continuing contact at the range endpoint cannot survive until another tick or steer again. */
+    private boolean finishRange() {
+        var range = launch.parameters().range();
+        if (range.isEmpty() || traveled < range.getAsDouble()) return false;
+        observe(ProjectileFlight.End.RANGE, position(), Optional.empty(), 0, 0, 0, false); return true;
+    }
+    private EntityHitResult proximityHit(ServerLevel level, Vec3 from, Vec3 to) {
+        var policy = launch.parameters().proximity().orElse(null);
+        if (policy == null || traveled + from.distanceTo(to) < policy.armDistance()) return null;
+        EntityHitResult best = null; double closest = Double.POSITIVE_INFINITY;
+        for (var entity : level.getEntities(this, new AABB(from, to).inflate(policy.radius()),
+                e -> e instanceof LivingEntity living && living.isAlive() && !e.isRemoved() && !e.isSpectator()
+                        && !e.getUUID().toString().equals(launch.owner()) && !e.getUUID().toString().equals(launch.emitter())
+                        && level.isPositionEntityTicking(e.blockPosition()))) {
+            if (policy.relation() != TargetQuery.Relation.ANY) {
+                var owner = getOwner(); if (owner == null || owner.isRemoved() || owner.level() != level) continue;
+                var allied = MinecraftRelations.allied(owner, entity);
+                if (allied.isEmpty() || (policy.relation() == TargetQuery.Relation.ALLIED ? !allied.orElseThrow() : allied.orElseThrow())) continue;
+            }
+            var center = anchor((LivingEntity) entity, policy.anchor());
+            var entry = policy.entry(point(from), point(to), point(center), traveled);
+            if (entry.isEmpty()) continue;
+            var at = from.add(to.subtract(from).scale(entry.getAsDouble()));
+            if (policy.lineOfSight() && !MinecraftVisibility.visible(level, point(at), point(center))) continue;
+            double distance = from.distanceToSqr(at);
+            if (distance < closest || distance == closest && (best == null || entity.getUUID().compareTo(best.getEntity().getUUID()) < 0)) {
+                best = new EntityHitResult(entity, at); closest = distance;
+            }
+        }
+        return best;
     }
     private static double remainingAfter(double remaining, Vec3 from, Vec3 contact, Vec3 movement) {
         double length = movement.length();

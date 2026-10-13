@@ -4031,3 +4031,28 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 Solar 参考定义新增普通 `solar_grenade_throw_speed` Profile，speed 参数通过其 profile 字段在接受阶段计算；校准只替换原始 value，不覆盖修饰管线。Fastball 为家族 MAX 的 delta，来自必填 `fastball_speed_delta`，没有固定在 Java 投射物代码中。外部 `solar_grenade_lifetime` 契约增加 exotic ADD 阶段及 Sunbracers 家族 MAX，再进入原相位校准。两项被动贡献要求 actual grenade_ability + solar_grenade 事件标签，武器生成场不能借用；卸装不修改已接受投掷保存的数值。具体来源冲突、刷新与物理校准政策见 [D2 规则](d2-ruleset.md#sunbracers-的准备窗口基础回能与投掷修饰)。
 
 `field_time` 同样使用技能参数的 profile 字段，而不把带事件资格的修饰放进只读 `profile_value` 查询。后者有独立查询上下文，刻意不继承任意伤害 / 施放事件；前者使用本次接受的技能事件，因此可以验证技能标签并在付款前完成数值取样。来源隔离回归同时检查普通武器 Solar 事件仍为原始速度与未增强寿命。
+
+### 投射物累计射程与近距引信
+
+`projectile` 可选 `range` 米表达式和 `proximity` 声明，均在发射时解析并保存。省略时保持既有飞行行为。`range` 非负，累计每段实际飞行长度，覆盖重力、阻力、转向、反弹和穿透；不使用初速度乘时间，也不使用发射点到当前位置的直线距离。碰撞后的微小脱离位移和宿主外部传送不计入路程。零射程在首次物理 tick 的当前位置结束；寿命仍独立存在。
+
+```json
+"range": {"type": "chorus:constant", "value": 8, "unit": "meter"},
+"proximity": {
+  "radius": {"type": "chorus:constant", "value": 1.5, "unit": "meter"},
+  "arm_distance": {"type": "chorus:constant", "value": 2, "unit": "meter"},
+  "target_anchor": "body",
+  "relation": "not_allied",
+  "line_of_sight": true
+}
+```
+
+这些示例值仅用于说明接口。`radius` 必须为正；`arm_distance` 必填且非负，表示累计路程达到多少米后才允许近距触发，不影响物理碰撞。目标 anchor 默认为 body、关系默认为 not_allied、视线默认为 true。引信球以目标本 tick 的 live anchor 为中心；对投射物的完整线段求首次进入点，不能只检查两端。若在线段中途启动且已在球内，就在启动点触发；启动前已经穿过的目标不能回溯触发。静止投射物只有已经启动且处于球内才触发，等待本身不增加飞行距离。
+
+近距查询排除发射者、伤害归属者、死亡 / 移除 / 旁观实体及不在实体模拟区域的候选，使用当前阵营；相对阵营无法解析时不猜测。`any` 无需归属者存在。相同进入距离按 UUID 确定顺序。视线在本段首次符合距离条件的进入点检查；不是对两次世界 tick 之间的目标移动做连续追踪，也不沿遮挡边界搜索更晚的可见点。持续可见性及更多引信形状仍可另行扩展。
+
+先用射程、到达和引信裁剪路径，再沿可用前缀处理实体、地形或未模拟区域；较早的物理接触仍优先。同点相等时延续实体接触先于地形的原有顺序，两者先于近距引信；无物理接触时近距先于到达，到达先于射程。反弹 / 穿透继续在剩余时间和路程内重新查询。若允许继续的接触恰好耗尽射程，则在该接触同一点、同一 tick 追加 range 终止，不再执行脱离位移或重新追踪。内容自己的接触额度继续适用，没有新增全局循环限制。
+
+终止回执新增 `range` 与 `proximity` 标志。前者没有目标，后者的目标集合只含触发者；两者都是 terminal，不增加 entity_contacts / target_contacts，不提供碰撞箱几何，也不自动施加爆炸伤害。内容应在回执位置另做范围查询、伤害和状态施加。终止及计数在调用动作体前提交，未知动作结果不会复活投射物。
+
+存储分别新增 ProjectileSpec、Parameters、End 的 v2 身份及两项 proximity 类型；旧身份保留原字段 / 枚举形状并显式迁移，旧投射物不会自动获得射程或引信。延迟发射的声明与新参数可随核心检查点恢复；原生飞行实体的跨进程重启仍是独立未完成项。来源与 Incinerator Snap 的剩余内容见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与投射物前置能力)。

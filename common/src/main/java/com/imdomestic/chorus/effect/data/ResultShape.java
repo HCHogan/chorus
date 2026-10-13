@@ -80,6 +80,8 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
                     "terminal", r -> impact(r).terminal(), "bounced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.BLOCK && !impact(r).terminal(),
                     "pierced", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.ENTITY && !impact(r).terminal()));
         flags.put("geometry_observed", r -> impact(r).geometry().isPresent());
+        flags.put("range", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.RANGE);
+        flags.put("proximity", r -> impact(r).end() == com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.PROXIMITY);
         return new ResultShape(fields, flags, false, Reference.PROJECTILE_IMPACT);
     }
 

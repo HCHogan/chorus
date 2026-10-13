@@ -4,12 +4,14 @@ import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
 import com.imdomestic.chorus.effect.projectile.ProjectileDestination;
 import com.imdomestic.chorus.effect.projectile.ProjectileCatch;
 import com.imdomestic.chorus.effect.projectile.ProjectileTracking;
+import com.imdomestic.chorus.effect.projectile.ProjectileProximity;
 import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.stat.Unit;
 import java.util.Optional;
 
 /** Values resolve once when launched. Drag is a multiplier applied every 50 ms physical tick. */
-public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination, Evaluation.Target emitter) {
+public record ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination, Evaluation.Target emitter, Optional<Value> range, Optional<Proximity> proximity) {
+    public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination, Evaluation.Target emitter) { this(position, direction, speed, gravity, drag, lifetime, collision, tracking, destination, emitter, Optional.empty(), Optional.empty()); }
     public ProjectileSpec(String position, String direction, Value speed, Value gravity, Value drag, Value lifetime, Collisions collision, Optional<Tracking> tracking, Optional<Destination> destination) {
         this(position, direction, speed, gravity, drag, lifetime, collision, tracking, destination, Evaluation.Target.SOURCE_OWNER);
     }
@@ -60,6 +62,13 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
             return new ProjectileTracking.Policy(measure(radius, Unit.METER, e), measure(turnRate, TURN_RATE, e), measure(acquisitionAngle, ANGLE, e), anchor, relation, lineOfSight, redirectOnContact);
         }
     }
+    public record Proximity(Value radius, Value armDistance, TargetQuery.Anchor anchor, TargetQuery.Relation relation, boolean lineOfSight) {
+        void validate(Validation v) {
+            Validation.same(radius.unit(v), Unit.METER); Validation.same(armDistance.unit(v), Unit.METER);
+            new ProjectileProximity(radius instanceof Value.Constant c ? c.value() : 1, armDistance instanceof Value.Constant c ? c.value() : 0, anchor, relation, lineOfSight);
+        }
+        ProjectileProximity resolve(Evaluation e) { return new ProjectileProximity(measure(radius, Unit.METER, e), measure(armDistance, Unit.METER, e), anchor, relation, lineOfSight); }
+    }
     public record LimitSpec(Optional<Value> value) {
         public static final LimitSpec UNLIMITED = new LimitSpec(Optional.empty()), ZERO = fixed(0), ONE = fixed(1);
         private static LimitSpec fixed(int value) { return new LimitSpec(Optional.of(new Value.Constant(value, Unit.COUNT))); }
@@ -81,6 +90,8 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     public void validate(Validation v) {
         v.target(emitter);
+        range.ifPresent(r -> { Validation.same(r.unit(v), Unit.METER); if (r instanceof Value.Constant c) com.imdomestic.chorus.stat.Numbers.nonnegative(c.value(), "projectile range"); });
+        proximity.ifPresent(p -> p.validate(v));
         collision.validate(v);
         tracking.ifPresent(t -> t.validate(v)); destination.ifPresent(d -> d.validate(v));
         if (tracking.isPresent() && destination.isPresent()) throw new IllegalArgumentException("Projectile tracking and destination are mutually exclusive");
@@ -92,6 +103,6 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
     }
     private static double measure(Value value, Unit unit, Evaluation e) { var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value(); }
     public ProjectileFlight.Parameters resolve(Evaluation e) {
-        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e), tracking.map(t -> t.resolve(e)), destination.map(d -> d.resolve(e)));
+        return new ProjectileFlight.Parameters(measure(speed, SPEED, e), measure(gravity, GRAVITY, e), measure(drag, Unit.MULTIPLIER, e), Action.micros(lifetime, e), collision.resolve(e), tracking.map(t -> t.resolve(e)), destination.map(d -> d.resolve(e)), range.isPresent() ? java.util.OptionalDouble.of(measure(range.orElseThrow(), Unit.METER, e)) : java.util.OptionalDouble.empty(), proximity.map(p -> p.resolve(e)));
     }
 }

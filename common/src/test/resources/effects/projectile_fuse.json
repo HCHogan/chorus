@@ -1,0 +1,442 @@
+{
+  "version": "test-projectile-v1",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:projectile_damage",
+      "version": "test-projectile-v1",
+      "input_unit": "damage",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "power",
+          "operation": "multiply",
+          "group": {
+            "name": "power",
+            "reduction": "product"
+          }
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:bolt",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "damage"
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "test:projectile_damage",
+            "tags": [
+              "chorus:ability_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill"
+            ]
+          },
+          "as": "shot"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:constant",
+              "value": 6,
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "range"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:range"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "proximity"
+              },
+              "then": [
+                {
+                  "for_each": "impact",
+                  "as": "trigger",
+                  "do": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:proximity",
+                      "target": {
+                        "binding": "trigger"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "entity"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:entity"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "block"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:block"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "expired"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:expired"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "unloaded"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:unloaded"
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "impact",
+                "field": "arrived"
+              },
+              "then": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "test:arrived"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:projectile",
+      "rules": [
+        {
+          "id": "launch",
+          "on": "test:launch",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_direction"
+              },
+              "as": "aim"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_damage",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "damage"
+                },
+                "damage_type": "minecraft:generic",
+                "scaling_profile": "test:projectile_damage",
+                "tags": [
+                  "chorus:ability_damage"
+                ],
+                "kill_tags": [
+                  "chorus:ability_kill"
+                ]
+              },
+              "as": "shot"
+            },
+            {
+              "projectile": {
+                "position": "muzzle",
+                "direction": "aim",
+                "speed": {
+                  "type": "chorus:constant",
+                  "value": 20,
+                  "unit": "meter_per_second"
+                },
+                "gravity": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter_per_second_squared"
+                },
+                "drag": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "multiplier"
+                },
+                "lifetime": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "second"
+                },
+                "range": {
+                  "type": "chorus:constant",
+                  "value": 6,
+                  "unit": "meter"
+                },
+                "proximity": {
+                  "radius": {
+                    "type": "chorus:constant",
+                    "value": 1,
+                    "unit": "meter"
+                  },
+                  "arm_distance": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "meter"
+                  },
+                  "target_anchor": "body",
+                  "relation": "not_allied",
+                  "line_of_sight": true
+                }
+              },
+              "as": "impact",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:range"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  },
+                  "then": [
+                    {
+                      "for_each": "impact",
+                      "as": "trigger",
+                      "do": [
+                        {
+                          "type": "chorus:play_cue",
+                          "cue": "test:proximity",
+                          "target": {
+                            "binding": "trigger"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:entity"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:block"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "expired"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:expired"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "unloaded"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:unloaded"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "arrived"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "test:arrived"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:power",
+      "modifiers": [
+        {
+          "id": "power",
+          "profile": "test:projectile_damage",
+          "stage": "power",
+          "group": "power",
+          "op": "multiply",
+          "stacking_key": "test:power",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "delta"
+          },
+          "reference": "Synthetic projectile acceptance; not Destiny damage",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

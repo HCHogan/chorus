@@ -386,7 +386,10 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/numeric_query/path", com.imdomestic.chorus.effect.data.NumericQuery.Path.class);
         types.put("chorus:effect/data/pickup_spec", com.imdomestic.chorus.effect.data.PickupSpec.class);
         types.put("chorus:effect/data/pickup_spec/attraction", com.imdomestic.chorus.effect.data.PickupSpec.Attraction.class);
-        types.put("chorus:effect/data/projectile_spec", com.imdomestic.chorus.effect.data.ProjectileSpec.class);
+        types.put("chorus:effect/data/projectile_spec", LegacyProjectileSpecV1.class);
+        types.put("chorus:effect/data/projectile_spec/proximity", com.imdomestic.chorus.effect.data.ProjectileSpec.Proximity.class);
+        types.put("chorus:effect/projectile/projectile_proximity", com.imdomestic.chorus.effect.projectile.ProjectileProximity.class);
+        types.put("chorus:effect/data/projectile_spec_v2", com.imdomestic.chorus.effect.data.ProjectileSpec.class);
         types.put("chorus:effect/data/projectile_spec/catch", com.imdomestic.chorus.effect.data.ProjectileSpec.Catch.class);
         types.put("chorus:effect/data/projectile_spec/collisions", com.imdomestic.chorus.effect.data.ProjectileSpec.Collisions.class);
         types.put("chorus:effect/data/projectile_spec/destination", LegacyProjectileDestinationSpecV1.class);
@@ -495,13 +498,15 @@ final class CheckpointTypes {
         types.put("chorus:effect/projectile/projectile_destination", LegacyProjectileDestinationV1.class);
         types.put("chorus:effect/projectile/projectile_destination_v2", com.imdomestic.chorus.effect.projectile.ProjectileDestination.class);
         types.put("chorus:effect/projectile/projectile_flight/collision", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Collision.class);
-        types.put("chorus:effect/projectile/projectile_flight/end", com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.class);
+        types.put("chorus:effect/projectile/projectile_flight/end", LegacyProjectileEndV1.class);
+        types.put("chorus:effect/projectile/projectile_flight/end_v2", com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.class);
         types.put("chorus:effect/projectile/projectile_flight/geometry", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Geometry.class);
         types.put("chorus:effect/projectile/projectile_flight/impact", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact.class);
         types.put("chorus:effect/projectile/projectile_flight/launch", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch.class);
         types.put("chorus:effect/projectile/projectile_flight/limit", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Limit.class);
         types.put("chorus:effect/projectile/projectile_flight/outcome", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.class);
-        types.put("chorus:effect/projectile/projectile_flight/parameters", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Parameters.class);
+        types.put("chorus:effect/projectile/projectile_flight/parameters", LegacyProjectileParametersV1.class);
+        types.put("chorus:effect/projectile/projectile_flight/parameters_v2", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Parameters.class);
         types.put("chorus:effect/projectile/projectile_flight/receipt", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt.class);
         types.put("chorus:effect/projectile/projectile_tracking/policy", com.imdomestic.chorus.effect.projectile.ProjectileTracking.Policy.class);
         types.put("chorus:effect/projectile/shot_groups/group", com.imdomestic.chorus.effect.projectile.ShotGroups.Group.class);
@@ -694,6 +699,9 @@ final class CheckpointTypes {
                 new RecordTreeCodec.Migration<>(LegacyStatusResultV1.class, com.imdomestic.chorus.effect.combat.StatusResult.class, LegacyStatusResultV1::current),
                 new RecordTreeCodec.Migration<>(LegacyStatusCheckV1.class, com.imdomestic.chorus.effect.combat.StatusResult.Check.class, LegacyStatusCheckV1::current),
                 new RecordTreeCodec.Migration<>(LegacyBuffObservationEntryV1.class, com.imdomestic.chorus.effect.buff.BuffObservation.Entry.class, LegacyBuffObservationEntryV1::current),
+                new RecordTreeCodec.Migration<>(LegacyProjectileSpecV1.class, com.imdomestic.chorus.effect.data.ProjectileSpec.class, LegacyProjectileSpecV1::current),
+                new RecordTreeCodec.Migration<>(LegacyProjectileParametersV1.class, com.imdomestic.chorus.effect.projectile.ProjectileFlight.Parameters.class, LegacyProjectileParametersV1::current),
+                new RecordTreeCodec.Migration<>(LegacyProjectileEndV1.class, com.imdomestic.chorus.effect.projectile.ProjectileFlight.End.class, LegacyProjectileEndV1::current),
                 new RecordTreeCodec.Migration<>(LegacyProjectileDestinationV1.class, com.imdomestic.chorus.effect.projectile.ProjectileDestination.class, LegacyProjectileDestinationV1::current),
                 new RecordTreeCodec.Migration<>(LegacyProjectileDestinationSpecV1.class, com.imdomestic.chorus.effect.data.ProjectileSpec.Destination.class, LegacyProjectileDestinationSpecV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV1::current),

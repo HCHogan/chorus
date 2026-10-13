@@ -242,6 +242,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/solar_grenade.json', 'effects/solar_grenade_energy.json', 'effects/solar_grenade_test_calibration.json'
         include 'effects/sunbracers.json'
         include 'effects/projectile_destination_life.json'
+        include 'effects/projectile_fuse.json'
         include 'effects/ability_cost_previous.json'
         include 'effects/drawn_weapon.json'
         include 'effects/directional_movement.json'

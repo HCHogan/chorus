@@ -24,6 +24,9 @@ public record ProjectileDestination(String target, double turnRate, double arriv
     }
     /** First entry on the closed segment, including a start already inside. Does not sample endpoints only. */
     public OptionalDouble entry(WorldPosition from, WorldPosition to, WorldPosition center) {
+        return sphereEntry(from, to, center, arrivalRadius);
+    }
+    static OptionalDouble sphereEntry(WorldPosition from, WorldPosition to, WorldPosition center, double arrivalRadius) {
         if (!from.dimension().equals(to.dimension()) || !from.dimension().equals(center.dimension())) throw new IllegalArgumentException("Arrival geometry changed dimension");
         double x = center.x() - from.x(), y = center.y() - from.y(), z = center.z() - from.z();
         double distance = Math.hypot(Math.hypot(x, y), z);

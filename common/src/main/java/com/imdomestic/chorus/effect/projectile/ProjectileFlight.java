@@ -25,12 +25,14 @@ public final class ProjectileFlight {
             if (!hitsPerTarget.allows(0) || restitution > 1) throw new IllegalArgumentException("Invalid projectile collision policy");
         }
     }
-    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking, Optional<ProjectileDestination> destination) {
+    public record Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking, Optional<ProjectileDestination> destination, OptionalDouble range, Optional<ProjectileProximity> proximity) {
+        public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking, Optional<ProjectileDestination> destination) { this(speed, gravity, drag, lifetimeMicros, collision, tracking, destination, OptionalDouble.empty(), Optional.empty()); }
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros) { this(speed, gravity, drag, lifetimeMicros, Collision.STOP); }
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision) { this(speed, gravity, drag, lifetimeMicros, collision, Optional.empty()); }
         public Parameters(double speed, double gravity, double drag, long lifetimeMicros, Collision collision, Optional<ProjectileTracking.Policy> tracking) { this(speed, gravity, drag, lifetimeMicros, collision, tracking, Optional.empty()); }
         public Parameters {
-            Objects.requireNonNull(collision); Objects.requireNonNull(tracking); Objects.requireNonNull(destination);
+            Objects.requireNonNull(collision); Objects.requireNonNull(tracking); Objects.requireNonNull(destination); Objects.requireNonNull(range); Objects.requireNonNull(proximity);
+            range.ifPresent(r -> Numbers.nonnegative(r, "projectile range"));
             if (tracking.isPresent() && destination.isPresent()) throw new IllegalArgumentException("Projectile cannot acquire enemies and pursue an explicit destination together");
             Numbers.nonnegative(speed, "projectile speed"); Numbers.nonnegative(gravity, "projectile gravity"); Numbers.nonnegative(drag, "projectile drag");
             if (speed > 2000 || gravity > 2000 || drag > 1 || lifetimeMicros <= 0 || lifetimeMicros == Long.MAX_VALUE)
@@ -64,8 +66,8 @@ public final class ProjectileFlight {
         }
     }
     public enum End {
-        ENTITY, BLOCK, EXPIRED, UNLOADED, ARRIVED, TARGET_LOST, CAUGHT;
-        public boolean hasTarget() { return this == ENTITY || this == ARRIVED || this == CAUGHT; }
+        ENTITY, BLOCK, EXPIRED, UNLOADED, ARRIVED, TARGET_LOST, CAUGHT, RANGE, PROXIMITY;
+        public boolean hasTarget() { return this == ENTITY || this == ARRIVED || this == CAUGHT || this == PROXIMITY; }
     }
     /** Contact limits are content policy, not a restriction on the engine's event cycles. */
     public record Progress(long sequence, long bounces, long entityContacts, Map<String, Long> hits, boolean terminal) {
