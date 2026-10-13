@@ -12,5 +12,12 @@
   "death.attack.chorus_d2.ability_dot.item": "%1$s was defeated by %2$s's lingering ability",
   "death.attack.chorus_d2.ability_projectile": "%1$s was defeated by an ability projectile",
   "death.attack.chorus_d2.ability_projectile.player": "%1$s was defeated by %2$s's ability projectile",
-  "death.attack.chorus_d2.ability_projectile.item": "%1$s was defeated by %2$s's ability projectile"
+  "death.attack.chorus_d2.ability_projectile.item": "%1$s was defeated by %2$s's ability projectile",
+  "effect.chorus_d2.unflinching_kinetic": "Kinetic Unflinching",
+  "effect.chorus_d2.unflinching_arc": "Arc Unflinching",
+  "effect.chorus_d2.unflinching_solar": "Solar Unflinching",
+  "effect.chorus_d2.unflinching_void": "Void Unflinching",
+  "effect.chorus_d2.unflinching_stasis": "Stasis Unflinching",
+  "effect.chorus_d2.unflinching_strand": "Strand Unflinching",
+  "effect.chorus_d2.unflinching_harmonic": "Harmonic Unflinching"
 }

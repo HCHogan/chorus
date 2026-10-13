@@ -12,5 +12,12 @@
   "death.attack.chorus_d2.ability_dot.item": "%1$s 被 %2$s 的持续技能击败了",
   "death.attack.chorus_d2.ability_projectile": "%1$s 被技能弹体击败了",
   "death.attack.chorus_d2.ability_projectile.player": "%1$s 被 %2$s 的技能弹体击败了",
-  "death.attack.chorus_d2.ability_projectile.item": "%1$s 被 %2$s 的技能弹体击败了"
+  "death.attack.chorus_d2.ability_projectile.item": "%1$s 被 %2$s 的技能弹体击败了",
+  "effect.chorus_d2.unflinching_kinetic": "动能抗抖",
+  "effect.chorus_d2.unflinching_arc": "电弧抗抖",
+  "effect.chorus_d2.unflinching_solar": "日灼抗抖",
+  "effect.chorus_d2.unflinching_void": "虚空抗抖",
+  "effect.chorus_d2.unflinching_stasis": "冰影抗抖",
+  "effect.chorus_d2.unflinching_strand": "缚丝抗抖",
+  "effect.chorus_d2.unflinching_harmonic": "谐振抗抖"
 }

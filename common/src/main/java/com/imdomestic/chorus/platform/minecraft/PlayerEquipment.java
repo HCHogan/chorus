@@ -50,6 +50,7 @@ public final class PlayerEquipment {
     public long revision() { return revision; }
     public ItemStack item(String slot) { return items.getOrDefault(slot, ItemStack.EMPTY).copy(); }
     public Stored snapshot() { return new Stored(items, drawn, revision, grants); }
+    public EquipmentEditor editor(CompiledEquipment schema, String slot) { return schema.editor(metadata(items, drawn, grants), slot); }
     public Set<String> grants() { return grants; }
     /** Trusted server progression input. There is no corresponding client request operation. */
     public void grants(ServerPlayer player, Set<String> next, long expectedRevision) {

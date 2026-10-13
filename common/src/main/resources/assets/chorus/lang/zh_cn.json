@@ -39,5 +39,16 @@
   "key.chorus.charge": "武器蓄力（按住）",
   "hud.chorus.charge.recovering": "射击恢复",
   "hud.chorus.charge.charging": "蓄力中",
-  "hud.chorus.charge.ready": "蓄力完成"
+  "hud.chorus.charge.ready": "蓄力完成",
+  "equipment.chorus.edit": "改装",
+  "equipment.chorus.back": "返回",
+  "equipment.chorus.reset": "还原",
+  "equipment.chorus.apply": "应用",
+  "equipment.chorus.clear": "清空插槽",
+  "equipment.chorus.fixed": "固定词条",
+  "equipment.chorus.locked": "尚未解锁",
+  "equipment.chorus.no_budget": "无装配容量限制",
+  "equipment.chorus.unknown_choice": "无法识别的选项",
+  "equipment.chorus.draft_reset": "装备已变化，已重置改装草稿。",
+  "equipment.chorus.edit_hint": "选择模组后点击应用，一次提交整件装备。"
 }

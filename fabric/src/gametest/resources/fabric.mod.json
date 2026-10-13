@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "name": "Chorus integration tests",
   "environment": "*",
-  "mixins": ["chorus-gametest.mixins.json", "chorus-client-gametest.mixins.json"],
+  "mixins": [
+    "chorus-gametest.mixins.json",
+    "chorus-client-gametest.mixins.json"
+  ],
   "entrypoints": {
     "fabric-gametest": [
       "com.imdomestic.chorus.DamageGameTest",
@@ -122,14 +125,38 @@
       "com.imdomestic.chorus.RampageGameTest",
       "com.imdomestic.chorus.PrecisionAmmoGameTest",
       "com.imdomestic.chorus.ReconstructionGameTest",
-      "com.imdomestic.chorus.RewindRoundsGameTest", "com.imdomestic.chorus.ChainReactionGameTest", "com.imdomestic.chorus.DragonflyGameTest", "com.imdomestic.chorus.FireflyGameTest", "com.imdomestic.chorus.TimelostMagazineGameTest", "com.imdomestic.chorus.FailDeadlyGameTest", "com.imdomestic.chorus.WeakenGameTest", "com.imdomestic.chorus.SingularityBladeGameTest", "com.imdomestic.chorus.DevourGameTest", "com.imdomestic.chorus.FeedTheVoidGameTest", "com.imdomestic.chorus.StarvationGameTest", "com.imdomestic.chorus.HarvestGameTest", "com.imdomestic.chorus.StatusApplicationGameTest", "com.imdomestic.chorus.DrawnWeaponGameTest", "com.imdomestic.chorus.DirectionalMovementGameTest", "com.imdomestic.chorus.DomineeringGameTest", "com.imdomestic.chorus.FinisherGameTest", "com.imdomestic.chorus.FinisherInputGameTest", "com.imdomestic.chorus.CessationGameTest", "com.imdomestic.chorus.ArmorChargeGameTest", "com.imdomestic.chorus.ArmorFinisherGameTest", "com.imdomestic.chorus.ProximityWardGameTest", "com.imdomestic.chorus.KickstartGameTest", "com.imdomestic.chorus.WeaponSurgeGameTest",
+      "com.imdomestic.chorus.RewindRoundsGameTest",
+      "com.imdomestic.chorus.ChainReactionGameTest",
+      "com.imdomestic.chorus.DragonflyGameTest",
+      "com.imdomestic.chorus.FireflyGameTest",
+      "com.imdomestic.chorus.TimelostMagazineGameTest",
+      "com.imdomestic.chorus.FailDeadlyGameTest",
+      "com.imdomestic.chorus.WeakenGameTest",
+      "com.imdomestic.chorus.SingularityBladeGameTest",
+      "com.imdomestic.chorus.DevourGameTest",
+      "com.imdomestic.chorus.FeedTheVoidGameTest",
+      "com.imdomestic.chorus.StarvationGameTest",
+      "com.imdomestic.chorus.HarvestGameTest",
+      "com.imdomestic.chorus.StatusApplicationGameTest",
+      "com.imdomestic.chorus.DrawnWeaponGameTest",
+      "com.imdomestic.chorus.DirectionalMovementGameTest",
+      "com.imdomestic.chorus.DomineeringGameTest",
+      "com.imdomestic.chorus.FinisherGameTest",
+      "com.imdomestic.chorus.FinisherInputGameTest",
+      "com.imdomestic.chorus.CessationGameTest",
+      "com.imdomestic.chorus.ArmorChargeGameTest",
+      "com.imdomestic.chorus.ArmorFinisherGameTest",
+      "com.imdomestic.chorus.ProximityWardGameTest",
+      "com.imdomestic.chorus.KickstartGameTest",
+      "com.imdomestic.chorus.WeaponSurgeGameTest",
       "com.imdomestic.chorus.OverflowGameTest",
       "com.imdomestic.chorus.FrenzyGameTest",
       "com.imdomestic.chorus.DamageSnapshotComponentGameTest",
       "com.imdomestic.chorus.SolarGameTest",
       "com.imdomestic.chorus.EmberOfCharGameTest",
       "com.imdomestic.chorus.EmberOfEruptionGameTest",
-      "com.imdomestic.chorus.AttributeQueryGameTest", "com.imdomestic.chorus.ProfileValueGameTest",
+      "com.imdomestic.chorus.AttributeQueryGameTest",
+      "com.imdomestic.chorus.ProfileValueGameTest",
       "com.imdomestic.chorus.SolarFragmentStatsGameTest",
       "com.imdomestic.chorus.IncandescentGameTest",
       "com.imdomestic.chorus.PickupGameTest",
@@ -189,7 +216,8 @@
       "com.imdomestic.chorus.IcarusCureGameTest",
       "com.imdomestic.chorus.CyclicRechargeGameTest",
       "com.imdomestic.chorus.GamblersDodgeGameTest",
-      "com.imdomestic.chorus.GamblersTrackingGameTest"
+      "com.imdomestic.chorus.GamblersTrackingGameTest",
+      "com.imdomestic.chorus.EquipmentEditorGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
@@ -199,7 +227,8 @@
       "com.imdomestic.chorus.ImpulseClientGameTest",
       "com.imdomestic.chorus.AimImpulseClientGameTest",
       "com.imdomestic.chorus.NativeAttributeClientGameTest",
-      "com.imdomestic.chorus.DirectionalMovementClientGameTest", "com.imdomestic.chorus.FinisherInputClientGameTest",
+      "com.imdomestic.chorus.DirectionalMovementClientGameTest",
+      "com.imdomestic.chorus.FinisherInputClientGameTest",
       "com.imdomestic.chorus.AmplifiedClientGameTest",
       "com.imdomestic.chorus.NativeMovementClientGameTest",
       "com.imdomestic.chorus.NativeMotionClientGameTest",
@@ -214,7 +243,8 @@
       "com.imdomestic.chorus.WeaponAimClientGameTest",
       "com.imdomestic.chorus.WeaponChargeClientGameTest",
       "com.imdomestic.chorus.WeaponAutoChargeClientGameTest",
-      "com.imdomestic.chorus.WeaponRepeatChargeClientGameTest"
+      "com.imdomestic.chorus.WeaponRepeatChargeClientGameTest",
+      "com.imdomestic.chorus.test.EquipmentEditorClientGameTest"
     ]
   }
 }

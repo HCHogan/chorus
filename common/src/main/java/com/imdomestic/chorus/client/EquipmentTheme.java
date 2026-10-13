@@ -7,9 +7,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
 /** A bounded presentation template; resource packs cannot inject actions or change server equipment rules. */
-public record EquipmentTheme(int background, int panel, int border, int accent, int text, int muted, List<String> order) {
-    public static final EquipmentTheme DEFAULT = new EquipmentTheme(0xf2141923, 0xff232b38, 0xff526071, 0xff85c6ef, 0xfff1f3f5, 0xffb7bec9, List.of());
-    public EquipmentTheme { order = List.copyOf(order); }
+public record EquipmentTheme(int background, int panel, int border, int accent, int text, int muted, List<String> order, Map<String, Identifier> effectIcons) {
+    public static final EquipmentTheme DEFAULT = new EquipmentTheme(0xf2141923, 0xff232b38, 0xff526071, 0xff85c6ef, 0xfff1f3f5, 0xffb7bec9, List.of(), Map.of());
+    public EquipmentTheme { order = List.copyOf(order); effectIcons = Map.copyOf(effectIcons); }
     public static EquipmentTheme load(String name) {
         try {
             var id = Identifier.parse(name); var path = Identifier.fromNamespaceAndPath(id.getNamespace(), "ui/" + id.getPath() + ".json");
@@ -19,8 +19,12 @@ public record EquipmentTheme(int background, int panel, int border, int accent, 
                 var json = JsonParser.parseReader(reader).getAsJsonObject();
                 if (!json.get("template").getAsString().equals("equipment_two_panel")) return DEFAULT;
                 var order = new ArrayList<String>(); if (json.has("slot_order")) json.getAsJsonArray("slot_order").forEach(value -> order.add(value.getAsString()));
+                var icons = new TreeMap<String, Identifier>();
+                if (json.has("effect_icons")) json.getAsJsonObject("effect_icons").entrySet().forEach(entry -> {
+                    var texture = Identifier.parse(entry.getValue().getAsString()); if (Minecraft.getInstance().getResourceManager().getResource(texture).isPresent()) icons.put(entry.getKey(), texture);
+                });
                 return new EquipmentTheme(color(json, "background", DEFAULT.background), color(json, "panel", DEFAULT.panel), color(json, "border", DEFAULT.border),
-                        color(json, "accent", DEFAULT.accent), color(json, "text", DEFAULT.text), color(json, "muted", DEFAULT.muted), order);
+                        color(json, "accent", DEFAULT.accent), color(json, "text", DEFAULT.text), color(json, "muted", DEFAULT.muted), order, icons);
             }
         } catch (Exception invalid) { Constants.LOG.warn("Using default equipment presentation for {}", name, invalid); return DEFAULT; }
     }

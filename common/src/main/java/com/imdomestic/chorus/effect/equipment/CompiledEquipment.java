@@ -56,6 +56,11 @@ public final class CompiledEquipment {
         return Collections.unmodifiableMap(result);
     }
     public EquipmentSchema schema() { return schema; }
+    public EquipmentEditor editor(Loadout loadout, String slot) {
+        var gear = loadout.slots().get(slot);
+        if (!slots.containsKey(slot) || gear == null || !items.containsKey(gear.definition())) throw new IllegalArgumentException("Unknown editor slot or item");
+        return EquipmentEditor.describe(items.get(gear.definition()), gear, loadout.grants());
+    }
     /** Replace one owned item's complete choice map; validate the final loadout so an invalid roll can be repaired. */
     public Loadout configure(Loadout before, String slot, Map<String, String> choices) {
         var gear = before.slots().get(slot);

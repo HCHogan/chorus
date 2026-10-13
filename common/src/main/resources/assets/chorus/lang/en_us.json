@@ -21,7 +21,7 @@
   "equipment.chorus.unequip": "Unequip",
   "equipment.chorus.draw": "Draw",
   "equipment.chorus.stow": "Stow",
-  "equipment.chorus.move": "Move to another slot",
+  "equipment.chorus.move": "Move",
   "equipment.chorus.equipped": "EQUIPPED",
   "equipment.chorus.inventory": "INVENTORY",
   "equipment.chorus.empty": "Empty",
@@ -39,5 +39,16 @@
   "key.chorus.charge": "Charge weapon (hold)",
   "hud.chorus.charge.recovering": "Weapon recovery",
   "hud.chorus.charge.charging": "Charging",
-  "hud.chorus.charge.ready": "Fully charged"
+  "hud.chorus.charge.ready": "Fully charged",
+  "equipment.chorus.edit": "Configure",
+  "equipment.chorus.back": "Back",
+  "equipment.chorus.reset": "Reset",
+  "equipment.chorus.apply": "Apply",
+  "equipment.chorus.clear": "Clear socket",
+  "equipment.chorus.fixed": "Fixed roll",
+  "equipment.chorus.locked": "Unlock required",
+  "equipment.chorus.no_budget": "No allocation limit",
+  "equipment.chorus.unknown_choice": "Unknown selection",
+  "equipment.chorus.draft_reset": "Equipment changed. Your draft was reset.",
+  "equipment.chorus.edit_hint": "Choose options, then apply the complete item."
 }
