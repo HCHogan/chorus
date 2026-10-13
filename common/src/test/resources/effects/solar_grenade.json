@@ -1,0 +1,2579 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "chorus_d2:solar_grenade",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus:ability_damage",
+        "chorus:grenade_damage",
+        "chorus:solar_damage",
+        "chorus_d2:solar",
+        "chorus_d2:solar_grenade"
+      ],
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:solar_grenade_energy_scaling"
+        },
+        "radial": {
+          "bundle": "chorus_d2:solar_grenade_radial"
+        }
+      },
+      "parameters": {
+        "speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.drag",
+            "unit": "multiplier"
+          }
+        },
+        "lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lifetime",
+            "unit": "second"
+          }
+        },
+        "clearance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.clearance",
+            "unit": "meter"
+          }
+        },
+        "lift": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lift",
+            "unit": "meter"
+          }
+        },
+        "field_start": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.field_start",
+            "unit": "second"
+          }
+        },
+        "pvp_scorch_start": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.pvp_scorch_start",
+            "unit": "second"
+          }
+        },
+        "tick_lockout": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.tick_lockout",
+            "unit": "second"
+          }
+        },
+        "magma_start": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_start",
+            "unit": "second"
+          }
+        },
+        "magma_interval": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_interval",
+            "unit": "second"
+          }
+        },
+        "magma_speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "magma_gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "magma_drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_drag",
+            "unit": "multiplier"
+          }
+        },
+        "magma_lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_lifetime",
+            "unit": "second"
+          }
+        },
+        "magma_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_radius",
+            "unit": "meter"
+          }
+        },
+        "magma_lift": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_lift",
+            "unit": "meter"
+          }
+        },
+        "magma_vertical": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_vertical",
+            "unit": "multiplier"
+          }
+        },
+        "magma_azimuth_min": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_azimuth_min",
+            "unit": "count"
+          }
+        },
+        "magma_azimuth_max": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_azimuth_max",
+            "unit": "count"
+          }
+        },
+        "magma_clearance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_clearance",
+            "unit": "meter"
+          }
+        },
+        "magma_burst_lift": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.magma_burst_lift",
+            "unit": "meter"
+          }
+        },
+        "touch": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:has_source_tag",
+              "tag": "chorus_d2:touch_of_flame"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "count"
+            }
+          }
+        },
+        "field_time": {
+          "value": {
+            "type": "chorus:profile_value",
+            "profile": "chorus_d2:solar_grenade_lifetime",
+            "target": "self",
+            "input": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:has_source_tag",
+                "tag": "chorus_d2:touch_of_flame"
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": 6,
+                "unit": "second"
+              },
+              "else": {
+                "type": "chorus:constant",
+                "value": 4,
+                "unit": "second"
+              }
+            }
+          }
+        },
+        "impact_scorch_combatant": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:ashes_equipped",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "op": "gt",
+              "right": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 21.5,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 17,
+              "unit": "count"
+            }
+          }
+        },
+        "impact_scorch_guardian": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:ashes_equipped",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "op": "gt",
+              "right": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "count"
+            }
+          }
+        },
+        "periodic_scorch": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:ashes_equipped",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "op": "gt",
+              "right": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 7.5,
+              "unit": "count"
+            }
+          }
+        },
+        "expiry_scorch": {
+          "value": {
+            "type": "chorus:profile_value",
+            "profile": "chorus_d2:solar_grenade_expiry_scorch",
+            "target": "self",
+            "input": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:profile_value",
+                  "profile": "chorus_d2:ashes_equipped",
+                  "target": "self",
+                  "input": {
+                    "type": "chorus:constant",
+                    "value": 0,
+                    "unit": "count"
+                  }
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": 30,
+                "unit": "count"
+              },
+              "else": {
+                "type": "chorus:constant",
+                "value": 17,
+                "unit": "count"
+              }
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 63,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:solar_grenade_impact_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_impact_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "combatant_impact"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:solar_grenade_impact_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_impact_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "guardian_impact"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 78,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_dot",
+            "scaling_profile": "chorus_d2:solar_grenade_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_field_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "combatant_field"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 25,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_dot",
+            "scaling_profile": "chorus_d2:solar_grenade_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_field_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "guardian_field"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 125,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:solar_grenade_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_magma_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "combatant_magma"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 50,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:solar_grenade_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:grenade_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:solar_grenade_magma_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:grenade_kill"
+            ]
+          },
+          "as": "guardian_magma"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "duration": {
+                    "type": "chorus:event_number",
+                    "name": "param.field_time",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:write_position",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "anchor",
+                  "position": "anchor"
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "field_start",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.field_start",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "pvp_scorch_start",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.pvp_scorch_start",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "tick_lockout",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.tick_lockout",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_start",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_start",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_interval",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_interval",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_speed",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_speed",
+                    "unit": "meter_per_second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_gravity",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_gravity",
+                    "unit": "meter_per_second_squared"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_drag",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_drag",
+                    "unit": "multiplier"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_lifetime",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_lifetime",
+                    "unit": "second"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_radius",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_radius",
+                    "unit": "meter"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_lift",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_lift",
+                    "unit": "meter"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_vertical",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_vertical",
+                    "unit": "multiplier"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_azimuth_min",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_azimuth_min",
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_azimuth_max",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_azimuth_max",
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_clearance",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_clearance",
+                    "unit": "meter"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_burst_lift",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.magma_burst_lift",
+                    "unit": "meter"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "touch",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.touch",
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "periodic_scorch",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.periodic_scorch",
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:update_component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "expiry_scorch",
+                  "op": "set",
+                  "value": {
+                    "type": "chorus:event_number",
+                    "name": "param.expiry_scorch",
+                    "unit": "count"
+                  }
+                },
+                {
+                  "type": "chorus:write_damage_snapshot",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "combatant_field",
+                  "snapshot": "combatant_field"
+                },
+                {
+                  "type": "chorus:write_damage_snapshot",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "guardian_field",
+                  "snapshot": "guardian_field"
+                },
+                {
+                  "type": "chorus:write_damage_snapshot",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "combatant_magma",
+                  "snapshot": "combatant_magma"
+                },
+                {
+                  "type": "chorus:write_damage_snapshot",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "guardian_magma",
+                  "snapshot": "guardian_magma"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 5,
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:solar_grenade_impact_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:solar_grenade_field",
+        "version": "compendium-2026-10-05",
+        "duration": 4,
+        "instanced_by": "source",
+        "refresh": "none",
+        "tags": [
+          "chorus_d2:solar_grenade_field"
+        ],
+        "components": {
+          "positions": [
+            "anchor"
+          ],
+          "numbers": {
+            "field_start": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "pvp_scorch_start": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "tick_lockout": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "magma_start": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "magma_interval": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "magma_speed": {
+              "initial": 0,
+              "unit": "meter_per_second"
+            },
+            "magma_gravity": {
+              "initial": 0,
+              "unit": "meter_per_second_squared"
+            },
+            "magma_drag": {
+              "initial": 0,
+              "unit": "multiplier"
+            },
+            "magma_lifetime": {
+              "initial": 0,
+              "unit": "second"
+            },
+            "magma_radius": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "magma_lift": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "magma_vertical": {
+              "initial": 0,
+              "unit": "multiplier"
+            },
+            "magma_azimuth_min": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "magma_azimuth_max": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "magma_clearance": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "magma_burst_lift": {
+              "initial": 0,
+              "unit": "meter"
+            },
+            "touch": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "periodic_scorch": {
+              "initial": 0,
+              "unit": "count"
+            },
+            "expiry_scorch": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "damage_snapshots": [
+            "combatant_field",
+            "guardian_field",
+            "combatant_magma",
+            "guardian_magma"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:solar_grenade_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:solar_grenade_tick_gate",
+        "version": "compendium-2026-10-05",
+        "duration": 0.267,
+        "refresh": "none"
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:solar_grenade_active",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "field_tick",
+              "event": "chorus_d2:solar_grenade_field_tick",
+              "delay": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "field_start"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.267,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "scorch_start",
+              "event": "chorus_d2:solar_grenade_scorch_start",
+              "delay": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "pvp_scorch_start"
+              },
+              "policy": "keep"
+            },
+            {
+              "if": {
+                "type": "chorus:compare",
+                "left": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "touch"
+                },
+                "op": "gt",
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:schedule",
+                  "name": "magma",
+                  "event": "chorus_d2:solar_grenade_magma",
+                  "delay": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:solar_grenade_field",
+                    "component": "magma_start"
+                  },
+                  "interval": {
+                    "type": "chorus:component",
+                    "buff": "chorus_d2:solar_grenade_field",
+                    "component": "magma_interval"
+                  },
+                  "repeat": -1,
+                  "policy": "keep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tick",
+          "on": "chorus_d2:solar_grenade_field_tick",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "field_tick"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "anchor"
+              },
+              "as": "anchor"
+            },
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "combatant_field"
+              },
+              "as": "combatant_field"
+            },
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "guardian_field"
+              },
+              "as": "guardian_field"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "anchor"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "meter"
+                },
+                "target_anchor": "body",
+                "relation": "not_allied",
+                "relative_to": "source_owner",
+                "exclude": [
+                  "source_owner"
+                ],
+                "order": "identity",
+                "line_of_sight": true
+              },
+              "as": "targets"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "targets",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "for_each": "targets",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_entity_anchor",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "anchor": "body"
+                      },
+                      "as": "life"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": {
+                          "binding": "victim"
+                        }
+                      },
+                      "as": "view"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "alive"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:has_buff",
+                              "buff": "chorus_d2:solar_grenade_tick_gate",
+                              "target": {
+                                "binding": "victim"
+                              },
+                              "match": "any"
+                            }
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_field",
+                                    "target": {
+                                      "binding": "victim"
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "hit",
+                                    "field": "applied"
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:grant_buff",
+                                      "buff": "chorus_d2:solar_grenade_tick_gate",
+                                      "target": {
+                                        "binding": "victim"
+                                      },
+                                      "duration": {
+                                        "type": "chorus:component",
+                                        "buff": "chorus_d2:solar_grenade_field",
+                                        "component": "tick_lockout"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_field",
+                                    "target": {
+                                      "binding": "victim"
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "hit",
+                                    "field": "applied"
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:grant_buff",
+                                      "buff": "chorus_d2:solar_grenade_tick_gate",
+                                      "target": {
+                                        "binding": "victim"
+                                      },
+                                      "duration": {
+                                        "type": "chorus:component",
+                                        "buff": "chorus_d2:solar_grenade_field",
+                                        "component": "tick_lockout"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:solar_grenade_field"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "scorch_start",
+          "on": "chorus_d2:solar_grenade_scorch_start",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "scorch_start"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "anchor"
+              },
+              "as": "anchor"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "anchor"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "meter"
+                },
+                "target_anchor": "body",
+                "relation": "not_allied",
+                "relative_to": "source_owner",
+                "exclude": [
+                  "source_owner"
+                ],
+                "order": "identity",
+                "line_of_sight": true
+              },
+              "as": "targets"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "targets",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "for_each": "targets",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_entity_anchor",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "anchor": "body"
+                      },
+                      "as": "life"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": {
+                          "binding": "victim"
+                        }
+                      },
+                      "as": "view"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "alive"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "player"
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:has_buff",
+                                      "buff": "chorus_d2:scorch_lockout",
+                                      "target": {
+                                        "binding": "victim"
+                                      },
+                                      "match": "any"
+                                    }
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    },
+                                    "op": "gt",
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:apply_status",
+                                  "buff": "chorus_d2:scorch",
+                                  "target": {
+                                    "binding": "victim"
+                                  },
+                                  "stacks": {
+                                    "type": "chorus:constant",
+                                    "value": 1,
+                                    "unit": "count"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "chorus:schedule",
+              "name": "scorch_tick",
+              "event": "chorus_d2:solar_grenade_scorch_tick",
+              "delay": {
+                "type": "chorus:constant",
+                "value": 0.533,
+                "unit": "second"
+              },
+              "interval": {
+                "type": "chorus:constant",
+                "value": 0.533,
+                "unit": "second"
+              },
+              "repeat": -1,
+              "policy": "keep"
+            }
+          ]
+        },
+        {
+          "id": "scorch_tick",
+          "on": "chorus_d2:solar_grenade_scorch_tick",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "scorch_tick"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "anchor"
+              },
+              "as": "anchor"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "anchor"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "meter"
+                },
+                "target_anchor": "body",
+                "relation": "not_allied",
+                "relative_to": "source_owner",
+                "exclude": [
+                  "source_owner"
+                ],
+                "order": "identity",
+                "line_of_sight": true
+              },
+              "as": "targets"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "targets",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "for_each": "targets",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_entity_anchor",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "anchor": "body"
+                      },
+                      "as": "life"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": {
+                          "binding": "victim"
+                        }
+                      },
+                      "as": "view"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "alive"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "player"
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:has_buff",
+                                      "buff": "chorus_d2:scorch_lockout",
+                                      "target": {
+                                        "binding": "victim"
+                                      },
+                                      "match": "any"
+                                    }
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {
+                                      "type": "chorus:component",
+                                      "buff": "chorus_d2:solar_grenade_field",
+                                      "component": "periodic_scorch"
+                                    },
+                                    "op": "gt",
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:apply_status",
+                                  "buff": "chorus_d2:scorch",
+                                  "target": {
+                                    "binding": "victim"
+                                  },
+                                  "stacks": {
+                                    "type": "chorus:component",
+                                    "buff": "chorus_d2:solar_grenade_field",
+                                    "component": "periodic_scorch"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "magma",
+          "on": "chorus_d2:solar_grenade_magma",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "magma"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "anchor"
+              },
+              "as": "anchor"
+            },
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "combatant_magma"
+              },
+              "as": "combatant_magma"
+            },
+            {
+              "action": {
+                "type": "chorus:read_damage_snapshot",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "guardian_magma"
+              },
+              "as": "guardian_magma"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_radius"
+                }
+              },
+              "as": "magma_radius"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_clearance"
+                }
+              },
+              "as": "magma_clearance"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_value",
+                "value": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_burst_lift"
+                }
+              },
+              "as": "magma_burst_lift"
+            },
+            {
+              "action": {
+                "type": "chorus:sample_random",
+                "distribution": "uniform_real",
+                "lower": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_azimuth_min"
+                },
+                "upper": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_azimuth_max"
+                }
+              },
+              "as": "azimuth"
+            },
+            {
+              "action": {
+                "type": "chorus:offset_position",
+                "position": "anchor",
+                "x": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                },
+                "y": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_lift"
+                },
+                "z": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "meter"
+                }
+              },
+              "as": "magma_origin"
+            },
+            {
+              "action": {
+                "type": "chorus:world_direction",
+                "position": "magma_origin",
+                "x": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:result",
+                    "binding": "azimuth",
+                    "field": "value"
+                  },
+                  "from": "count",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:cosine",
+                    "minimum": -12.566370614359172,
+                    "maximum": 12.566370614359172,
+                    "boundary": "error"
+                  }
+                },
+                "y": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_vertical"
+                },
+                "z": {
+                  "type": "chorus:curve",
+                  "of": {
+                    "type": "chorus:arithmetic",
+                    "op": "add",
+                    "of": [
+                      {
+                        "type": "chorus:result",
+                        "binding": "azimuth",
+                        "field": "value"
+                      },
+                      {
+                        "type": "chorus:constant",
+                        "value": -1.5707963267948966,
+                        "unit": "count"
+                      }
+                    ]
+                  },
+                  "from": "count",
+                  "to": "multiplier",
+                  "curve": {
+                    "type": "chorus:cosine",
+                    "minimum": -12.566370614359172,
+                    "maximum": 12.566370614359172,
+                    "boundary": "error"
+                  }
+                }
+              },
+              "as": "magma_aim"
+            },
+            {
+              "projectile": {
+                "position": "magma_origin",
+                "direction": "magma_aim",
+                "speed": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_speed"
+                },
+                "gravity": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_gravity"
+                },
+                "drag": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_drag"
+                },
+                "lifetime": {
+                  "type": "chorus:component",
+                  "buff": "chorus_d2:solar_grenade_field",
+                  "component": "magma_lifetime"
+                }
+              },
+              "as": "magma_impact",
+              "do": [
+                {
+                  "if": {
+                    "type": "chorus:any",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "magma_impact",
+                        "field": "entity"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "magma_impact",
+                        "field": "block"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:offset_position",
+                        "position": "magma_impact",
+                        "x": {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:result",
+                              "binding": "magma_clearance",
+                              "field": "value"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "magma_impact",
+                              "field": "normal_x"
+                            }
+                          ]
+                        },
+                        "y": {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:arithmetic",
+                              "op": "mul",
+                              "of": [
+                                {
+                                  "type": "chorus:result",
+                                  "binding": "magma_clearance",
+                                  "field": "value"
+                                },
+                                {
+                                  "type": "chorus:result",
+                                  "binding": "magma_impact",
+                                  "field": "normal_y"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "magma_burst_lift",
+                              "field": "value"
+                            }
+                          ]
+                        },
+                        "z": {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:result",
+                              "binding": "magma_clearance",
+                              "field": "value"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "magma_impact",
+                              "field": "normal_z"
+                            }
+                          ]
+                        }
+                      },
+                      "as": "magma_center"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": {
+                          "position": "magma_center"
+                        },
+                        "radius": {
+                          "type": "chorus:result",
+                          "binding": "magma_radius",
+                          "field": "value"
+                        },
+                        "target_anchor": "body",
+                        "relation": "not_allied",
+                        "relative_to": "source_owner",
+                        "exclude": [
+                          "source_owner"
+                        ],
+                        "order": "identity",
+                        "line_of_sight": true
+                      },
+                      "as": "targets"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "targets",
+                        "field": "available"
+                      },
+                      "then": [
+                        {
+                          "for_each": "targets",
+                          "as": "victim",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:capture_entity_anchor",
+                                "target": {
+                                  "binding": "victim"
+                                },
+                                "anchor": "body"
+                              },
+                              "as": "life"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:inspect_entity",
+                                "target": {
+                                  "binding": "victim"
+                                }
+                              },
+                              "as": "view"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "life",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "life",
+                                    "field": "alive"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "view",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "view",
+                                    "field": "alive"
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "if": {
+                                    "type": "chorus:result_flag",
+                                    "binding": "view",
+                                    "field": "player"
+                                  },
+                                  "then": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:damage_entity_snapshot",
+                                        "reference": "life",
+                                        "snapshot": "guardian_magma",
+                                        "target": {
+                                          "binding": "victim"
+                                        }
+                                      },
+                                      "as": "hit"
+                                    }
+                                  ],
+                                  "else": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:damage_entity_snapshot",
+                                        "reference": "life",
+                                        "snapshot": "combatant_magma",
+                                        "target": {
+                                          "binding": "victim"
+                                        }
+                                      },
+                                      "as": "hit"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "expiry",
+          "on": "chorus:buff_ended",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:own_buff"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "reason",
+                "is": "expired"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_position",
+                "buff": "chorus_d2:solar_grenade_field",
+                "component": "anchor"
+              },
+              "as": "anchor"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "anchor"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 4,
+                  "unit": "meter"
+                },
+                "target_anchor": "body",
+                "relation": "not_allied",
+                "relative_to": "source_owner",
+                "exclude": [
+                  "source_owner"
+                ],
+                "order": "identity",
+                "line_of_sight": true
+              },
+              "as": "targets"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "targets",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "for_each": "targets",
+                  "as": "victim",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_entity_anchor",
+                        "target": {
+                          "binding": "victim"
+                        },
+                        "anchor": "body"
+                      },
+                      "as": "life"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": {
+                          "binding": "victim"
+                        }
+                      },
+                      "as": "view"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "life",
+                            "field": "alive"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "view",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "if": {
+                            "type": "chorus:not",
+                            "of": {
+                              "type": "chorus:result_flag",
+                              "binding": "view",
+                              "field": "player"
+                            }
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:not",
+                                    "of": {
+                                      "type": "chorus:has_buff",
+                                      "buff": "chorus_d2:scorch_lockout",
+                                      "target": {
+                                        "binding": "victim"
+                                      },
+                                      "match": "any"
+                                    }
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "left": {
+                                      "type": "chorus:component",
+                                      "buff": "chorus_d2:solar_grenade_field",
+                                      "component": "expiry_scorch"
+                                    },
+                                    "op": "gt",
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 0,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:apply_status",
+                                  "buff": "chorus_d2:scorch",
+                                  "target": {
+                                    "binding": "victim"
+                                  },
+                                  "stacks": {
+                                    "type": "chorus:component",
+                                    "buff": "chorus_d2:solar_grenade_field",
+                                    "component": "expiry_scorch"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:solar_grenade_radial",
+      "scope": "source",
+      "modifiers": [
+        {
+          "id": "radial",
+          "profile": "chorus_d2:solar_grenade_impact_outgoing",
+          "stage": "radial",
+          "op": "multiply",
+          "group": "radial",
+          "stacking_key": "chorus_d2:solar_grenade_radial",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "radial_delta",
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "External Fusion radial calibration evaluated per detonation and frozen as impact data.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

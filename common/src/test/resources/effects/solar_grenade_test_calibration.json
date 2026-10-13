@@ -1,0 +1,392 @@
+{
+  "note": "Synthetic projectile physics, field expiry = source 4/6 s + .25 s, start at 1 s, PvP scorch at .75 s, global per-target .267 s field-hit gate, .6 s single magma emission with uniform azimuth and fixed vertical ratio, 1.5 m magma burst and .1 damage projection. These are explicit Chorus policies/calibrations, not verified Destiny timing, overlap arbitration, magma distribution or falloff. Expiry Scorch identity is a deterministic test choice; source says inconsistent. No additional .9 Touch multiplier inferred.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 15,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "second"
+    },
+    "clearance": {
+      "type": "chorus:constant",
+      "value": 0.03,
+      "unit": "meter"
+    },
+    "lift": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    },
+    "field_start": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "second"
+    },
+    "pvp_scorch_start": {
+      "type": "chorus:constant",
+      "value": 0.75,
+      "unit": "second"
+    },
+    "tick_lockout": {
+      "type": "chorus:constant",
+      "value": 0.267,
+      "unit": "second"
+    },
+    "magma_start": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "second"
+    },
+    "magma_interval": {
+      "type": "chorus:constant",
+      "value": 0.6,
+      "unit": "second"
+    },
+    "magma_speed": {
+      "type": "chorus:constant",
+      "value": 6,
+      "unit": "meter_per_second"
+    },
+    "magma_gravity": {
+      "type": "chorus:constant",
+      "value": 12,
+      "unit": "meter_per_second_squared"
+    },
+    "magma_drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "magma_lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "magma_radius": {
+      "type": "chorus:constant",
+      "value": 1.5,
+      "unit": "meter"
+    },
+    "magma_lift": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "meter"
+    },
+    "magma_vertical": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "magma_azimuth_min": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "count"
+    },
+    "magma_azimuth_max": {
+      "type": "chorus:constant",
+      "value": 6.283185307179586,
+      "unit": "count"
+    },
+    "magma_clearance": {
+      "type": "chorus:constant",
+      "value": 0.03,
+      "unit": "meter"
+    },
+    "magma_burst_lift": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "meter"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:solar_grenade_impact_outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": [
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "precision",
+              "operation": "multiply",
+              "factor": "chorus:precision",
+              "group": {
+                "name": "precision",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "ability_stat",
+              "operation": "multiply",
+              "group": {
+                "name": "ability_stat",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "melee",
+              "operation": "multiply",
+              "group": {
+                "name": "melee",
+                "reduction": "sum",
+                "children": [
+                  {
+                    "name": "one_two_or_frozen",
+                    "reduction": "max"
+                  }
+                ],
+                "families": {
+                  "chorus_d2:ophidia_knife": {
+                    "kind": "max"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "perk",
+              "operation": "multiply",
+              "group": {
+                "name": "perk",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "frozen_damage_type",
+              "operation": "multiply",
+              "group": {
+                "name": "frozen_damage_type",
+                "reduction": "product"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "outgoing_debuff",
+              "operation": "resist",
+              "group": {
+                "name": "outgoing_debuff",
+                "reduction": "resist"
+              }
+            }
+          },
+          {
+            "type": "chorus:apply",
+            "id": "radial",
+            "operation": "multiply",
+            "group": {
+              "name": "radial",
+              "reduction": "max"
+            },
+            "factor": "chorus_d2:radial_falloff"
+          },
+          {
+            "type": "chorus:curve",
+            "id": "synthetic_world_units",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0,
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 1000000,
+              "boundary": "error"
+            },
+            "output_unit": "damage"
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:solar_grenade_outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": [
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "precision",
+              "operation": "multiply",
+              "factor": "chorus:precision",
+              "group": {
+                "name": "precision",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "ability_stat",
+              "operation": "multiply",
+              "group": {
+                "name": "ability_stat",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "melee",
+              "operation": "multiply",
+              "group": {
+                "name": "melee",
+                "reduction": "sum",
+                "children": [
+                  {
+                    "name": "one_two_or_frozen",
+                    "reduction": "max"
+                  }
+                ],
+                "families": {
+                  "chorus_d2:ophidia_knife": {
+                    "kind": "max"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "perk",
+              "operation": "multiply",
+              "group": {
+                "name": "perk",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "frozen_damage_type",
+              "operation": "multiply",
+              "group": {
+                "name": "frozen_damage_type",
+                "reduction": "product"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "outgoing_debuff",
+              "operation": "resist",
+              "group": {
+                "name": "outgoing_debuff",
+                "reduction": "resist"
+              }
+            }
+          },
+          {
+            "type": "chorus:curve",
+            "id": "synthetic_world_units",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0,
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 1000000,
+              "boundary": "error"
+            },
+            "output_unit": "damage"
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:solar_grenade_impact_falloff",
+        "version": "compendium-2026-10-05",
+        "input_unit": "meter",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "synthetic",
+            "output_unit": "multiplier",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                1,
+                -0.15
+              ],
+              "minimum": 0,
+              "maximum": 5,
+              "boundary": "error"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:solar_grenade_lifetime",
+        "version": "compendium-2026-10-05",
+        "input_unit": "second",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "calibrated_expiry",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0.25,
+                1
+              ],
+              "minimum": 0,
+              "maximum": 100,
+              "boundary": "error"
+            },
+            "output_unit": "second"
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:solar_grenade_expiry_scorch",
+        "version": "compendium-2026-10-05",
+        "input_unit": "count",
+        "steps": []
+      }
+    ]
+  }
+}

@@ -149,6 +149,7 @@
       "com.imdomestic.chorus.HealingGrenadeGameTest",
       "com.imdomestic.chorus.FireboltGameTest",
       "com.imdomestic.chorus.FusionGrenadeGameTest",
+      "com.imdomestic.chorus.SolarGrenadeGameTest",
       "com.imdomestic.chorus.FractionalBuffGameTest",
       "com.imdomestic.chorus.AbilityPreviousCostGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",

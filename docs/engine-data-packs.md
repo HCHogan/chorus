@@ -4009,3 +4009,15 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 首爆的 APPLIED 非致命回执且没有共享点燃锁定期才申请 Scorch；APPLIED 零生命损失仍申请是明确政策。第二爆没有 Scorch 动作，因此两个爆炸不是两份 40/60 层。状态已知拒绝不撤销伤害、不取消独立第二爆；未知世界结果停止会话并保留先前提交，不重放伤害或补发状态。来源声明手雷 / 技能 / Solar 标签，使共享 DoT 与点燃保留本次 Fusion 信用。
 
 `fusion_grenade_energy.json` 覆盖基准 95.8 秒、CES 1；Heat Rises 读取并消费实际费用。`fusion_grenade_outgoing` 与 `fusion_grenade_falloff` 是必须提供的外部 Profile。后者输入“到中心距离 / 本次爆炸半径”，输出 multiplier，经 `radial_delta` 传入已捕获伤害的晚绑定阶段。测试只采用线性 1→0.25 衰减和 0.1 生命投影，不宣称原作曲线。物理参数、初次引信和接触偏移同样必须校准；详见 [D2 规则](d2-ruleset.md#fusion-grenade-的附着两次爆炸与数值缺口)。
+
+## Solar Grenade 的固定场与独立熔岩球组合
+
+`solar_grenade.json` 仅组合已有接口，没有新增 Java 效果特例。付费技能保存两种目标类别的初始 / 场 / 熔岩球六份进攻快照和 Touch / Ashes 参数。真实投射物的 ENTITY / BLOCK 接触才创建 `instanced_by: source` 的场 Buff，每次施放有独立来源、位置、参数、寿命及四份后续伤害快照。EXPIRED / UNLOADED 不凭空生成场，也不退还已接受的费用。
+
+`buff_gained` 以 own_buff 限定实例，安排伤害、PvP Scorch 和可选熔岩球任务；所有定时规则还必须匹配 own_timer。仅检查事件类型会使同类多个场响应彼此事件，造成重复伤害或发射。正常到期以 own_buff 与 reason=expired 执行 PvE 结束施加，手动移除不执行；来源拥有的定时器随场结束，已发射弹体继续保留自己的动作续体。每跳重查当前目标，若伤害查询无法取得阵营参照则移除场，这是显式失联政策。
+
+初始 / 场 / 熔岩球伤害均在逐目标捕获生命后通过 `damage_entity_snapshot` 写入，实时目标类别决定所用快照。只有初始伤害 APPLIED、非致命且正实际损失才申请 Scorch；周期 / 到期施加有独立状态授权。已知状态拒绝不撤销伤害或场，未知生成 / 伤害 / 状态结果停止会话且不重放。目标共享 `solar_grenade_tick_gate` 只限定场伤害，首个 APPLIED 回执后授予；不把它扩展为全局事件或点燃循环限制。
+
+熔岩球发射前读取场位置、伤害快照、爆炸半径和接触偏移，保存到独立续体，再用 sample_random、cosine 和 world_direction 生成真实飞行方向。实体 / 地形接触重新查询附近敌人，使用不含 radial 阶段的伤害快照；领域恢复保留随机序列，场结束或卸装后仍在飞行的弹体不再读取已结束场组件。核心回归验证两场各发一弹、两个爆炸独立叠加；原生场景验证实际实体碰撞后两个不同距离目标同伤害。
+
+`solar_grenade_energy.json` 提供 199.5 秒 / CES .5，Heat Rises 消费实际选择的费用而不执行投掷。`solar_grenade_test_calibration.json` 单独提供物理参数、场启动与寿命 Profile、到期 Scorch Profile、命中门槛、熔岩球分布 / 周期、初始衰减及世界投影。测试值不补写成原表事实；时间线冲突、重叠政策和生产接入缺口见 [D2 规则](d2-ruleset.md#solar-grenade-的持续场独立熔岩球与校准边界)。

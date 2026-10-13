@@ -1,0 +1,56 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:solar_grenade_energy_scaling",
+      "scope": "source",
+      "modifiers": [
+        {
+          "id": "base_rate",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "base_rate",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.005012531328320802,
+            "unit": "charge_fraction_per_second"
+          },
+          "reference": "Compendium Solar original N45 / snapshot N36; data/d2-research/2026-10-14/solar_grenade-source.json.",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        },
+        {
+          "id": "scalar",
+          "profile": "chorus_d2:grenade_recipient_scalar",
+          "stage": "scalar",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "multiplier"
+          },
+          "reference": "Compendium Solar original N45 / snapshot N36; data/d2-research/2026-10-14/solar_grenade-source.json.",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        }
+      ],
+      "includes": [
+        "chorus_d2:grenade_energy_scaling"
+      ]
+    }
+  ]
+}

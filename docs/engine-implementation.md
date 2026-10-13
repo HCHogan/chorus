@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：Solar Grenade 的持续场与独立物理熔岩球
+
+新增 Solar Grenade 参考定义、199.5 秒 / CES .5 选择期回充与独立校准文件。真实付费投掷接触实体或地形后创建独立固定场，初始 5 米伤害和小数 Scorch、4 米周期伤害、PvP 小数周期施加及 PvE 自然到期施加分别组合。Touch 保存延长寿命与实际向上发射的熔岩球，真实碰撞后执行无范围衰减的爆炸。进攻快照与 Touch / Ashes 在接受时固定；每跳重新选择当前敌人，写入边界复核生命，已发弹体在场结束后保留参数与原手雷信用。实际长按 Heat Rises 消费本手雷且不投掷。本批仅组合已有 DSL，没有新增生产 Java 特例。
+
+12 项 `SolarGrenadeTest` 验证所需参数、支付与 CES、初始衰减 / 小数状态、13 次校准脉冲与到期、真实目标类别、局部重叠门槛 / 独立爆炸、成员重查、卸装与领域恢复、随机序列、飞行终止 / 手动移除、共享进攻快照和未知结果不重放。9 项共享原生场景覆盖真实落地与固定场、实际 Guardian 的 1→8.5→16 层、成员移动与盟友排除、两次付费场、卸装后熔岩球实体碰撞与两个不同距离目标同伤害、延长场继续发射、Heat Rises 及已提交生命损失不重放。
+
+定向 `/tmp/chorus-solar-grenade-targeted9.log` 通过全部 9 项 Fabric 场景及 NeoForge 测试编译（16 秒）。多场核心回归发现同类实例会响应彼此定时事件，已在所有定时规则增加 own_timer。原生熔岩球夹具起初把受害者置于阻挡方块后方，改为真实弹体命中实体及旁侧接收者，并明确核对两者实际 HP；未放宽视线规则。启动时遇到此前未正常结束的临时测试世界，完整保留旧目录后重建专用测试世界，没有修改生产存档校验。
+
+完整 `/tmp/chorus-solar-grenade-full-gate.log` BUILD SUCCESSFUL（3 分 38 秒）：2195 项 JUnit 无失败 / 错误 / 跳过、Fabric 1268 项、NeoForge 1283 项世界测试及两端发布 jar 通过，共享场景 1267 项。`build/reports/solar-grenade/audit.json` 核验 673 项存储形状完全未变、发布主类 1199 / 1192 个字节匹配、无测试泄漏及 Gradle CRLF 保持。10 项 Compendium 工具测试、七格原表 / 固定快照和归档哈希、覆盖报告一致性通过。本批没有生产 Java、原生钩子、UI 或网络改动，未重复图形客户端验收。
+
+原表七格与富文本分类沿用已归档证据。1 秒启动 / .267 秒 / 13 跳与 4 秒寿命冲突、.75 秒首灼烧、未知熔岩球间隔及不稳定的 PvE 到期施加都保留独立校准边界；合成 4.25/6.25 秒、.6 秒一弹和全目标共享 .267 秒门槛不声明为原作事实。Compendium 新增 Solar Grenade partial，合计 131 条审阅（129 partial、2 not_applicable、0 verified）。Touch 四种参考分支已有组合，但完整生产目录、子职业 / Aspect 装配、金装全组合、HUD / 素材与物理世界跨进程重启仍未完成。数值与数据契约见 [D2 规则](d2-ruleset.md#solar-grenade-的持续场独立熔岩球与校准边界) 和 [数据包组合](engine-data-packs.md#solar-grenade-的固定场与独立熔岩球组合)。
+
 ### 2026-10-14：共享小数叠层与 Scorch 的实际量
 
 Solar Grenade 原表的 17+4.5 命中量与 PvP 7.5+2.5 周期量暴露了整数层数限制。新增通用 `fractional_stacks` 选项，默认整数，显式开启后以共享计时保存实际 `quantity`。授予 / 消费、ADD / MAX / REPLACE、上限、credit_overflow、逐层衰减尾数、暂停 / 刷新 / 延长和组件更新统一保留实际量；规范十进制加减后返回有限 double，不逐次取整。buff_count、状态授权与回执、生命周期 / 施加 / 移除事实及事件观察都读取 quantity。has_buff / event_has_buff 的省略 minimum 表示正量存在性，显式 1 继续要求一整层；独立层计时及逐槽 modifier multiplicity 不与小数模式混用，by_stacks 遇小数拒绝。

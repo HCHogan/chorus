@@ -4912,7 +4912,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收 Solar Grenade已有实际投掷/持续场的小数Scorch与长按消费参考组合，具体边界见solar/solar_grenade。",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -5024,6 +5024,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
           "symbol": "subunitScorchIsPresentDamagesAndDecaysWithoutInventingAWholeStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "actualGuardianClassificationSelectsFractionalScorchTicksWithoutChangingCombatantRules"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "physicalImpactUsesFractionalAshesAndSeparateImpactFalloff"
         }
       ],
       "gaps": [
@@ -13961,7 +13971,7 @@
           "text_sha256": "2eb99cc587d2a5371d25b2c398b2c0d73a89b82c82c2236e92356f0625b4b545"
         }
       ],
-      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。 已验证消费实际Firebolt定义的费用与普通Cure分支。 已验证消费实际Fusion Grenade费用。",
+      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。 已验证消费实际Firebolt定义的费用与普通Cure分支。 已验证消费实际Fusion Grenade费用。 Solar Grenade已有实际投掷/持续场的小数Scorch与长按消费参考组合，具体边界见solar/solar_grenade。",
       "acceptance": [
         "短按使用基础技能；消费只支付上一实际定义的账户，Wisp分支不扣基础治疗手雷或运行中间动作；所有治疗保留本次消费归属。",
         "普通Cure x2、治疗手雷Cure x3、Touch治疗手雷另给Restoration x1、Wisp为Cure x3与Restoration x2；自身及9米盟友独立授权/冷却，Restoration 4秒与受益者Solace 6秒。",
@@ -14120,6 +14130,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
           "symbol": "heldHeatRisesConsumesTheRealFusionChargeWithoutLaunchingAShell"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "heatRisesConsumesThisRealGrenadeWithoutLaunchingOrCreatingAField"
         }
       ]
     },
@@ -14169,7 +14184,7 @@
         "弹道速度/重力/阻力、追踪范围/角速度/锥角、尺寸/偏移、生命投影、首扫/间隔均为必填校准；当前测试参数不是原作实测。",
         "首个合格扫描消费一个共享球并奖励该批全部盟友是Chorus政策；原作多人是否独立保留、重复领取、拾取后寿命与精确接收资格未确认。",
         "命中和拾取均按脚部球形距离/含端点/无视线，施放者仅在命中范围内获得Cure；失去阵营参照等待后续扫描或到期；这些几何/失联/强度取样/卸装政策待原作校准。",
-        "Touch of Flame通过来源标签提供资格，已覆盖治疗手雷、Firebolt和Fusion参考分支；完整Aspect装配及Solar强化未实现，不能把测试标签当作完整Aspect。",
+        "Touch of Flame通过来源标签提供资格，已覆盖Healing、Firebolt、Fusion和Solar四种参考分支；完整Aspect装配未实现，不能把测试标签当作完整Aspect。",
         "共享Cure两次等量脉冲/冷却、Restoration速率和生命投影仍有原有校准缺口；正式技能/子职业目录、球体图形/HUD/素材、物理世界跨重启、全部金装/模组组合仍未完成；定义在验收资源。"
       ],
       "evidence": [
@@ -14516,10 +14531,10 @@
         "真实偏轴飞行会向敌人转向并碰撞附着；掩体在两爆之间改变会影响第二次查询。两次合法Ashes投掷接入共享点燃；单次Touch不重复施加灼烧。实际长按Heat Rises消费Fusion费用且不投掷。"
       ],
       "gaps": [
-        "官方2025-07-31页面索引摘要说明Touch强化Solar/Fusion伤害调低10%，与Compendium中738/851的基准关系未核实；保留原表数值，不重复乘0.9。目标等级/活动/力量及构造物伤害表未校准。",
+        "官方2025-07-31已核对的官方全文说明Touch强化Solar/Fusion伤害调低10%，与Compendium中738/851的基准关系未核实；保留原表数值，不重复乘0.9。目标等级/活动/力量及构造物伤害表未校准。",
         "初次引信、弹速/重力/阻力/寿命、弱追踪范围/转角/角速度、接触偏移、范围衰减须校准。当前.6秒引信、20米每秒、10重力、6米/30度/30度每秒追踪、法线.1米加竖直.5米、线性降至.25及.1投影仅为测试输入。",
         "首爆独占Scorch、第二爆跟随旧附着生命/确认移除位置、BODY/视线要求/最近优先、施放时参数与进攻快照、APPLIED零损失仍授权均是显式Chorus政策，不能视为完整原作测量。",
-        "Touch已有Healing/Firebolt/Fusion参考分支，Solar熔岩球、完整Aspect与子职业目录、Ashen Wake/Starfire/Verity/神器/模组全组合、正式资源包、HUD/素材、物理世界跨重启未完成；定义仍位于验收资源。"
+        "Touch已有Healing/Firebolt/Fusion/Solar参考分支，完整Aspect与子职业目录、Ashen Wake/Starfire/Verity/神器/模组全组合、正式资源包、HUD/素材、物理世界跨重启未完成；定义仍位于验收资源。"
       ],
       "evidence": [
         {
@@ -14667,6 +14682,188 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
           "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
+        }
+      ]
+    },
+    {
+      "id": "solar/solar_grenade",
+      "name": "Solar Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B36",
+          "text_sha256": "02feb2e1ca5cc0a3e0c289c16a911755d34805ceaa737626d4261d0deb3cd101"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D36",
+          "text_sha256": "d7b0fdbda39b9a55c9599d333e084d07818de10313db05fa8169fe07fce6aadd"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N36",
+          "text_sha256": "c17b9a832a507e3f8787fa703448d0cfa7616429e1947e5ef2d367e3cdbb9d3e"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "B37",
+          "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D37",
+          "text_sha256": "f3d6b00902a1f1c762dcf3a4e531af3173a015af371bffbb61baff32391acca4"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "B85",
+          "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D85",
+          "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
+        }
+      ],
+      "scope": "真实付费物理投掷与5米碰撞伤害、独立4米持续场、目标分类的小数灼烧、Touch真实熔岩球与无衰减爆炸、199.5秒/CES .5回充及实际Heat Rises消费。",
+      "acceptance": [
+        "命中63/20及17/21.5或10/20灼烧；场78/25每.267秒，按实际接收者玩家类别分支；共享Scorch保留小数与原手雷信用。",
+        "每次施放独立场实例及own_timer，当前BODY/视线/敌我查询与写入边界生命核对；Touch/Ashes与进攻快照在接受时固定，卸装不取消。",
+        "显式合成4.25/6.25秒寿命下验证13次基础脉冲；PvP .75秒1层、随后每.533秒7.5/10；PvE自然到期17/30，手动移除不触发。",
+        "目标共享可校准场伤害门槛，两个场分别发射；熔岩球独立物理飞行，125/50无范围衰减，场结束后已发射续体仍保留参数。领域恢复保存场与随机状态。",
+        "已知状态拒绝保留先前伤害；未知写入/生成/授权停止且不重放。实际长按Heat Rises消费同手雷而不创建投射物或场。"
+      ],
+      "gaps": [
+        "原表1秒启动、13跳/.267秒与4秒寿命冲突；.75秒PvP首灼烧与末句1秒说明冲突。4.25/6.25秒仅合成验收校准，PvE到期确定性17/30不复现原表明确的不稳定性。",
+        "初始弹道/偏移/衰减、熔岩球间隔/数量/弹道/分布/爆炸半径、目标等级和.1生命投影须原作校准；.6秒一弹及均匀方位只为显式测试输入。",
+        "跨玩家重叠、强弱场优先及相位未核实；当前目标共享.267秒APPLIED门槛是Chorus政策，只限制场伤害，不限制独立灼烧和熔岩球。BODY/视线/阵营/来源失联及快照时点也须校准。",
+        "官方2025-07-31全文的Touch减伤10%与当前表基准关系未核实，不重复乘.9。完整等级/活动/力量及构造物倍率未完成。",
+        "Touch已有四种参考分支，但完整Aspect/子职业选择、Sunbracers等金装与模组/神器全组合、生产目录、HUD/素材与物理世界跨进程重启未完成；定义在验收资源。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_grenade.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_grenade_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_grenade_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/solar-grenade-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "missingCalibrationFailsBeforeUseAndPaidGrenadeUsesItsRechargeAndChunkScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "impactHasItsOwnFalloffAndFractionalAshesWhileTheFixedFieldHasNoRadialFalloff"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "calibratedLifetimeRunsThirteenExactPulsesThenExpiresWithOnlyCurrentCombatantsScorched"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "actualGuardianClassificationSelectsFractionalScorchTicksWithoutChangingCombatantRules"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "targetSharedFieldGateStopsOverlappingDotButIndependentMagmaBlastsStillStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "fieldAnchorMembersAndVisibilityAreResampledAndExpiryWithoutRemainingTargetsIsHarmless"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "touchFieldAndPendingMagmaKeepSnapshotsAndParametersAfterUnequippingAndDomainRestore"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "everyMagmaEmissionAdvancesSavedRandomStateAndUsesARealIndependentProjectile"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "failedInitialContactDoesNotCreateAFieldAndManualRemovalDoesNotGrantExpiryScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "deniedScorchKeepsFieldDamageAndUnknownWorldResultsCannotReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "castGrenadeStatContributionsRemainFrozenForFieldAndMagmaAfterUnbinding"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+          "symbol": "unknownMagmaLaunchAndPeriodicStatusKeepTheirCommittedFieldAndNeverReplay"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "paidPhysicalImpactCreatesFixedFieldWithThirteenRealPulsesAndExpiryScorch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "physicalImpactUsesFractionalAshesAndSeparateImpactFalloff"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "realGuardianReceivesOneThenSevenAndAHalfScorchFromTheField"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "fieldReselectsMovingEnemiesAndRejectsAllies"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "twoPaidPhysicalFieldsKeepSeparateLivesButShareTheTargetDotGate"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "touchEmitsPhysicalMagmaThatBurstsWithoutFalloffAndKeepsGrenadeCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "touchExtendsThePhysicalFieldAndKeepsEmittingAfterAspectRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "heatRisesConsumesThisRealGrenadeWithoutLaunchingOrCreatingAField"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+          "symbol": "unknownNativeFieldHitPreservesCommittedHpAndCannotReplay"
         }
       ]
     }

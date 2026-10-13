@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "researched_fractional_stack_prerequisite_implemented_producer_pending",
+  "status": "partial_reference_producer_with_explicit_synthetic_calibration",
   "reviewed_at": "2026-10-13T18:50:27.245833+00:00",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
@@ -119,14 +119,33 @@
     "Complete production subclass assembly, formal content catalog, visuals and physical world restart are pending."
   ],
   "implementation": {
-    "scope": "Opt-in shared fractional Buff quantities, integrated into shared Scorch; Solar Grenade field and magma producer are still pending.",
-    "core_test": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
-    "native_test": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
-    "reference": "common/src/test/resources/effects/solar.json"
+    "scope": "Paid physical impact, independent fixed fields, target-class-specific fractional Scorch, Touch physical magma, shared energy and Heat Rises; test catalog only.",
+    "core_test": "common/src/test/java/com/imdomestic/chorus/effect/SolarGrenadeTest.java",
+    "native_test": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
+    "reference": "common/src/test/resources/effects/solar_grenade.json",
+    "energy": "common/src/test/resources/effects/solar_grenade_energy.json",
+    "calibration": "common/src/test/resources/effects/solar_grenade_test_calibration.json",
+    "policies": [
+      "Per-cast SOURCE field instance and own_timer discrimination; captured offense and Touch/Ashes survive unequip. Launched magma retains parameters after field expiry.",
+      "Current BODY/LOS/not-allied selection, excluding caster. Missing relative owner removes field on its next damage query. Damage revalidates selected life.",
+      "Only positive-loss, nonlethal APPLIED initial hits request Scorch. Periodic and expiry applications use independent shared status authorization.",
+      "Target-global configurable field-hit gate: first APPLIED field write wins. No gate on impact, Scorch or magma. Current Destiny cross-player arbitration is unverified.",
+      "World-result uncertainty stops without replay/refund. Local field gate does not suppress legitimate Char/Scorch/Ignition feedback."
+    ],
+    "synthetic_calibration": {
+      "field": "1 second startup; 4/6 source seconds mapped to 4.25/6.25, base 13 pulses ending at 4.204. Not an original-game lifetime claim.",
+      "scorch": "PvP 1 at .75 then 7.5/10 per .533 seconds; PvE deterministic 17/30 on natural expiry, not a model of the source's stated inconsistency.",
+      "overlap": "Global per-target .267-second field gate; stacking and arbitration across players remain uncalibrated.",
+      "magma": "One orb at 1 second then every .6 seconds; uniform 0..2pi azimuth, vertical ratio 1, speed 6, gravity 12, drag 1, lifetime 2, launch lift .2, burst radius 1.5, contact normal .03 plus lift .1.",
+      "impact": "Speed 20, gravity 15, drag 1, lifetime 3; contact normal .03 plus lift .5. Falloff 1-.15*distance, domain 0..5 metres.",
+      "damage": "Shared offensive stages and .1 world projection; no falloff for field or magma; no additional historical .9 multiplier."
+    }
   },
   "not_claimed": [
-    "Complete Solar Grenade / Touch of Flame implementation",
-    "Calibrated current Destiny 2 numerical parity",
+    "Complete production Solar Grenade / Touch of Flame catalog and loadout assembly",
+    "Calibrated current Destiny 2 numerical, timing, overlap or trajectory parity",
+    "Physical projectiles surviving a process restart",
     "Independent per-stack fractional lifetimes"
-  ]
+  ],
+  "implementation_updated_at": "2026-10-13T19:30:25.476396+00:00"
 }
