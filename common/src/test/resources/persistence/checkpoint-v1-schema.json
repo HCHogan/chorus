@@ -402,6 +402,7 @@
   "chorus:effect/equipment/equipment_schema/parameter": ["unit:com.imdomestic.chorus.stat.Unit", "minimum:double", "maximum:double", "integral:boolean"],
   "chorus:effect/equipment/equipment_schema/slot": ["id:java.lang.String", "accepts:java.util.Set<java.lang.String>", "weapon:boolean"],
   "chorus:effect/equipment/equipment_schema/socket": ["options:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.equipment.EquipmentSchema$Effect>", "required:boolean"],
+  "chorus:effect/equipment/equipment_schema/socket_v2": ["options:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.equipment.EquipmentSchema$Effect>", "required:boolean", "editable:boolean"],
   "chorus:effect/equipment/loadout": ["slots:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.equipment.Loadout$Gear>", "drawn:java.util.Optional<java.lang.String>"],
   "chorus:effect/equipment/loadout/gear": ["instance:java.lang.String", "definition:java.lang.String", "choices:java.util.Map<java.lang.String, java.lang.String>", "parameters:java.util.Map<java.lang.String, com.imdomestic.chorus.stat.Measure>"],
   "chorus:effect/input/action_gate/cancelled": ["event:com.imdomestic.chorus.effect.EffectEvent", "decision:com.imdomestic.chorus.effect.input.ActionGate$Decision"],

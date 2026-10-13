@@ -52,7 +52,21 @@ public final class EquipmentCommands {
                         .then(Commands.argument("revision", LongArgumentType.longArg(0)).executes(c -> execute(c.getSource(), p -> PlayerEquipment.get(p).move(p,
                                 c.getArgument("from", Identifier.class).toString(), c.getArgument("to", Identifier.class).toString(), LongArgumentType.getLong(c, "revision"))))))))
                 .then(grantCommand("grant", true)).then(grantCommand("revoke", false))
+                .then(Commands.literal("configure").then(Commands.argument("slot", IdentifierArgument.id())
+                        .then(Commands.argument("revision", LongArgumentType.longArg(0)).then(Commands.argument("choices", StringArgumentType.greedyString())
+                                .executes(c -> execute(c.getSource(), p -> PlayerEquipment.get(p).configure(p, c.getArgument("slot", Identifier.class).toString(),
+                                        choices(StringArgumentType.getString(c, "choices")), LongArgumentType.getLong(c, "revision"))))))))
                 .then(stampCommand("stamp", false)).then(stampCommand("stamp_roll", true))));
+    }
+    private static Map<String, String> choices(String text) {
+        try {
+            var input = JsonParser.parseString(text).getAsJsonObject(); var result = new java.util.TreeMap<String, String>();
+            input.entrySet().forEach(entry -> {
+                if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isString()) throw new IllegalArgumentException("Option must be a string");
+                result.put(entry.getKey(), entry.getValue().getAsString());
+            });
+            return result;
+        } catch (RuntimeException invalid) { throw new IllegalArgumentException("Choices must be a JSON object of socket-to-option strings", invalid); }
     }
     private static LiteralArgumentBuilder<CommandSourceStack> grantCommand(String name, boolean add) {
         return Commands.literal(name).requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))

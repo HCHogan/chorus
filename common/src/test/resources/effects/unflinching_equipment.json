@@ -64,7 +64,8 @@
                 "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
-            "required": true
+            "required": true,
+            "editable": true
           },
           "mod_1": {
             "options": {
@@ -114,7 +115,8 @@
                 "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
-            "required": true
+            "required": true,
+            "editable": true
           },
           "mod_2": {
             "options": {
@@ -164,7 +166,8 @@
                 "bundle": "chorus_d2:unflinching_harmonic"
               }
             },
-            "required": true
+            "required": true,
+            "editable": true
           }
         },
         "budgets": {

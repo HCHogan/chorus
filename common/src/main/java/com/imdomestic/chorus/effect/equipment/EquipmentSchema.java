@@ -17,8 +17,9 @@ public record EquipmentSchema(List<Slot> slots, List<Item> items, List<Limit> li
         public Effect { id(bundle); tags = ids(tags); Objects.requireNonNull(activation); parameters = EffectParameters.copy(parameters); parameters.values().forEach(EffectParameters::name); }
         public Effect(String bundle, Set<String> tags, Activation activation) { this(bundle, tags, activation, Map.of()); }
     }
-    public record Socket(Map<String, Effect> options, boolean required) {
+    public record Socket(Map<String, Effect> options, boolean required, boolean editable) {
         public Socket { options = locals(options); if (options.isEmpty()) throw new IllegalArgumentException("Socket has no choices"); }
+        public Socket(Map<String, Effect> options, boolean required) { this(options, required, false); }
     }
     public record Item(String id, Set<String> tags, Map<String, Effect> effects, Map<String, Socket> sockets, Map<String, Parameter> parameters, Map<String, Budget> budgets, Requirements requires) {
         public Item { EquipmentSchema.id(id); tags = ids(tags); effects = locals(effects); sockets = locals(sockets); parameters = EffectParameters.copy(parameters); budgets = locals(budgets); Objects.requireNonNull(requires); }

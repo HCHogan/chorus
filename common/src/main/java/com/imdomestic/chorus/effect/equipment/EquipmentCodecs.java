@@ -27,8 +27,9 @@ public final class EquipmentCodecs {
     ).apply(i, EquipmentSchema.Effect::new)), Set.of("bundle", "tags", "activation", "parameters"));
     private static final Codec<EquipmentSchema.Socket> SOCKET = strict(RecordCodecBuilder.create(i -> i.group(
             Codec.unboundedMap(Codec.STRING, EFFECT).fieldOf("options").forGetter(EquipmentSchema.Socket::options),
-            Codec.BOOL.optionalFieldOf("required", true).forGetter(EquipmentSchema.Socket::required)
-    ).apply(i, EquipmentSchema.Socket::new)), Set.of("options", "required"));
+            Codec.BOOL.optionalFieldOf("required", true).forGetter(EquipmentSchema.Socket::required),
+            Codec.BOOL.optionalFieldOf("editable", false).forGetter(EquipmentSchema.Socket::editable)
+    ).apply(i, EquipmentSchema.Socket::new)), Set.of("options", "required", "editable"));
     private static final Codec<Integer> ALLOCATION = FINITE.comapFlatMap(value -> value >= 0 && value <= Integer.MAX_VALUE && value == Math.rint(value)
             ? DataResult.success(value.intValue()) : DataResult.error(() -> "Expected a nonnegative integer allocation"), Integer::doubleValue);
     private static final Codec<EquipmentSchema.Budget> BUDGET = strict(RecordCodecBuilder.create(i -> i.group(

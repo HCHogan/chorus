@@ -214,6 +214,26 @@ runtime.equip(new EquipmentChange(holder, before, next));
 
 现有 equipment_view 只传展示信息，仍不传授权集合；revision/status 变化足以让旧请求失效和页面显示非法装备。`equipment_access.json` 验证通用链路，Unflinching 的普通/神器选项已有实际消费者。当前是按玩家持有者保存的通用授权入口，没有实现账号共享、Guardian Rank 进度、神器页面/点数树、赛季可用性、过期策略或外部账号同步；这些生产者须验证自己的条件后调用该入口。
 
+### 玩家编辑装备插槽
+
+`items[].sockets.<name>.editable` 显式允许玩家更换该插槽，缺省为 false。原型允许生成多种选项不等于允许玩家重掷；固定武器词条继续使用默认值，护甲模组等可修改内容写 `"editable": true`。它独立于 `required`：可选且可编辑的插槽可以清空，必选插槽必须保留一个合法选项。空效果选项 `none` 仍是目录中的正常选项。
+
+纯核心 `CompiledEquipment.configure(before, slot, choices)` 返回新的完整 Loadout，`choices` 是一件已持有装备的**完整选项集合**。所有未修改的只读选择也须包含；新增、删除或更换只读选择均拒绝。接口保留实例、原型、数值参数、其他物品、持握槽和服务端授权，验证最终整套装配的选项、预算、资格与数量限制。这样可以一次从 `6+4` 换到 `4+6`，也可以一次替换多个已失去资格的选项，不要求中间状态合法。
+
+原生入口为 `PlayerEquipment.get(player).configure(player, slot, choices, expectedRevision)`；普通玩家可用：
+
+```text
+/chorus equipment configure test:chest 7 {"mod_0":"solar","mod_1":"solar","mod_2":"none"}
+```
+
+示例槽位和选项来自测试目录；7 必须替换为当前 revision。命令只操作发起玩家当前装备栏内的物品，不接受实例、原型、参数、授权或 ItemStack 输入。宿主只替换该物品的 Gear.choices，名称、耐久、附魔和其他组件保留，背包不参与转移。预检成功后物理组件、revision 和来源在既有事务边界一起提交，反应看到完整新配置。完全相同且合法的选择不递增 revision、不重放效果，但仍要求当前 revision、活动目录与健康空闲运行时。
+
+来源只按实际 Bundle/标签/参数变化更新；仅改价格而仍映射同一效果的选项不重建来源。同实例仍处于同一持握槽时不产生 stow/draw；护甲模组编辑不会重置另一件武器的弹药或 perk。改变武器自身效果时仍执行其既有清理/安装规则。物理提交后的世界动作结果未知时，保留已写入的新选项和 revision，停止运行时，不回滚或重放该动作。
+
+授权过期后可以直接编辑失效物品，只要最终整套装配合法。其他物品仍非法、原型/插槽已从目录移除或只读选项损坏时，编辑不能绕过这些约束；可以先用既有取回操作移出相关物品。没有自动升级、改价、替换选项或消耗材料的隐含行为。
+
+旧 socket 检查点的两字段结构通过 `LegacyEquipmentSocketV1` 显式迁移为 `editable=false`；新目录写 `socket_v2`，不改写历史结构或原始检查点。Gear/玩家 NBT 结构不变。当前只提供服务端接口和本人命令，配装页的选项草稿、费用展示与网络编辑请求尚未接入。
+
 ### 每件装备的插槽预算
 
 `items[].budgets` 声明本物品的静态装配约束。预算键为本地名称，各预算独立检查，容量不在不同物品之间共享。下例为物品片段，假定已声明 mod_0/mod_1 插槽以及各自的 none/normal/harmonic 选项：

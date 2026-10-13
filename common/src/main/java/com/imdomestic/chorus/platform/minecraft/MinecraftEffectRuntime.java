@@ -639,10 +639,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void equip(com.imdomestic.chorus.effect.equipment.EquipmentChange change) {
         thread(); prepare(); program.changeEquipment(view(), change); start(change.signal());
     }
-    /** Server container boundary: preflight all pure work, transfer ownership, then reconcile before any reaction. */
-    public void commitEquipment(com.imdomestic.chorus.effect.equipment.EquipmentChange change, Runnable transferItems) {
+    void prepareEquipmentChange() {
         thread(); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Equipment requires a healthy idle runtime");
+    }
+    /** Server container boundary: preflight all pure work, transfer ownership, then reconcile before any reaction. */
+    public void commitEquipment(com.imdomestic.chorus.effect.equipment.EquipmentChange change, Runnable transferItems) {
+        prepareEquipmentChange();
         var transition = program.changeEquipment(view(), change);
         transferringEquipment = true;
         try { transferItems.run(); }

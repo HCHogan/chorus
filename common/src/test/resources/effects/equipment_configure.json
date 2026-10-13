@@ -1,0 +1,303 @@
+{
+  "version": "equipment-configure-test",
+  "equipment": {
+    "slots": [
+      {
+        "id": "test:arms",
+        "accepts": [
+          "test:armor"
+        ]
+      },
+      {
+        "id": "test:class_item",
+        "accepts": [
+          "test:armor"
+        ]
+      }
+    ],
+    "items": [
+      {
+        "id": "test:armor",
+        "tags": [
+          "test:armor"
+        ],
+        "sockets": {
+          "a": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "b": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "c": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": false,
+            "editable": false
+          }
+        },
+        "budgets": {
+          "energy": {
+            "capacity": 10,
+            "costs": {
+              "a": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              },
+              "b": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              },
+              "c": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              }
+            }
+          }
+        },
+        "requires": {
+          "all": [
+            "test:unlocked"
+          ],
+          "choices": {
+            "a": {
+              "expensive": [
+                "test:artifact"
+              ]
+            },
+            "b": {
+              "expensive": [
+                "test:artifact"
+              ]
+            },
+            "c": {
+              "expensive": [
+                "test:artifact"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "test:rolled_armor",
+        "tags": [
+          "test:armor"
+        ],
+        "sockets": {
+          "a": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "b": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": true,
+            "editable": true
+          },
+          "c": {
+            "options": {
+              "free": {
+                "bundle": "test:empty"
+              },
+              "cheap": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:cheap"
+                ]
+              },
+              "expensive": {
+                "bundle": "test:paid",
+                "tags": [
+                  "test:expensive"
+                ]
+              }
+            },
+            "required": false,
+            "editable": false
+          }
+        },
+        "budgets": {
+          "energy": {
+            "costs": {
+              "a": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              },
+              "b": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              },
+              "c": {
+                "free": 0,
+                "cheap": 4,
+                "expensive": 6
+              }
+            },
+            "capacity_parameter": "energy"
+          }
+        },
+        "parameters": {
+          "energy": {
+            "unit": "count",
+            "minimum": 0,
+            "maximum": 10,
+            "integral": true
+          }
+        },
+        "requires": {
+          "all": [
+            "test:unlocked"
+          ],
+          "choices": {
+            "a": {
+              "expensive": [
+                "test:artifact"
+              ]
+            },
+            "b": {
+              "expensive": [
+                "test:artifact"
+              ]
+            },
+            "c": {
+              "expensive": [
+                "test:artifact"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "bundles": [
+    {
+      "id": "test:empty"
+    },
+    {
+      "id": "test:paid",
+      "rules": [
+        {
+          "id": "attach",
+          "on": "chorus:source_attached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 10,
+                "unit": "damage"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

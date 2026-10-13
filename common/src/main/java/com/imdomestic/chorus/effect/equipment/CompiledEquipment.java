@@ -56,6 +56,23 @@ public final class CompiledEquipment {
         return Collections.unmodifiableMap(result);
     }
     public EquipmentSchema schema() { return schema; }
+    /** Replace one owned item's complete choice map; validate the final loadout so an invalid roll can be repaired. */
+    public Loadout configure(Loadout before, String slot, Map<String, String> choices) {
+        var gear = before.slots().get(slot);
+        if (!slots.containsKey(slot) || gear == null) throw new IllegalArgumentException("Unknown or empty equipment slot: " + slot);
+        var item = items.get(gear.definition());
+        if (item == null) throw new IllegalArgumentException("Unknown equipment item: " + gear.definition());
+        var configured = new Loadout.Gear(gear.instance(), gear.definition(), choices, gear.parameters());
+        var names = new TreeSet<>(gear.choices().keySet()); names.addAll(configured.choices().keySet());
+        for (String name : names) {
+            var socket = item.sockets().get(name);
+            if (socket == null) throw new IllegalArgumentException("Unknown equipment socket: " + name);
+            if (!Objects.equals(gear.choices().get(name), configured.choices().get(name)) && !socket.editable())
+                throw new IllegalArgumentException("Equipment socket is not editable: " + name);
+        }
+        var next = new TreeMap<>(before.slots()); next.put(slot, configured);
+        var result = new Loadout(next, before.drawn(), before.grants()); validate(result); return result;
+    }
     public void validate(Loadout loadout) {
         for (var entry : loadout.slots().entrySet()) {
             var slot = slots.get(entry.getKey()); var gear = entry.getValue(); var item = items.get(gear.definition());

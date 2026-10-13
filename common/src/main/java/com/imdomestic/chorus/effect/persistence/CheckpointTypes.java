@@ -418,7 +418,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/equipment/equipment_schema/limit", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Limit.class);
         types.put("chorus:effect/equipment/equipment_schema/parameter", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Parameter.class);
         types.put("chorus:effect/equipment/equipment_schema/slot", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Slot.class);
-        types.put("chorus:effect/equipment/equipment_schema/socket", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Socket.class);
+        types.put("chorus:effect/equipment/equipment_schema/socket", LegacyEquipmentSocketV1.class);
+        types.put("chorus:effect/equipment/equipment_schema/socket_v2", com.imdomestic.chorus.effect.equipment.EquipmentSchema.Socket.class);
         types.put("chorus:effect/equipment/loadout", LegacyLoadoutV1.class);
         types.put("chorus:effect/equipment/loadout_v2", com.imdomestic.chorus.effect.equipment.Loadout.class);
         types.put("chorus:effect/equipment/loadout/gear", com.imdomestic.chorus.effect.equipment.Loadout.Gear.class);
@@ -645,6 +646,7 @@ final class CheckpointTypes {
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV2.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV2::current),
+                new RecordTreeCodec.Migration<>(LegacyEquipmentSocketV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Socket.class, LegacyEquipmentSocketV1::current),
                 new RecordTreeCodec.Migration<>(LegacyLoadoutV1.class, com.imdomestic.chorus.effect.equipment.Loadout.class, LegacyLoadoutV1::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargingV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class, LegacyWeaponChargingV1::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargePlanV1.class, com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class, LegacyWeaponChargePlanV1::current),

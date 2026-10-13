@@ -118,6 +118,18 @@ public final class PlayerEquipment {
             if (!ItemStack.matches(player.getInventory().getItem(inventorySlot), incoming)) throw new IllegalStateException("Inventory changed during equipment preflight");
         }, () -> { player.getInventory().setItem(inventorySlot, outgoing); player.getInventory().setChanged(); });
     }
+    /** Player-editable sockets only; the owned instance and all other stack components are retained. */
+    public void configure(ServerPlayer player, String slot, Map<String, String> choices, long expectedRevision) {
+        check(player, expectedRevision);
+        var runtime = MinecraftEffectRuntime.installed(player.level()).orElseThrow(() -> new IllegalStateException("Configure requires an installed ruleset"));
+        var before = metadata(items, drawn, grants);
+        var after = runtime.program().equipment().configure(before, slot, choices);
+        runtime.trackEquipment(player); runtime.prepareEquipmentChange(); check(player, expectedRevision);
+        if (before.equals(after)) return;
+        var stack = item(slot); stack.set(ChorusComponents.EQUIPMENT.get(), after.slots().get(slot));
+        var next = new TreeMap<>(items); next.put(slot, stack);
+        change(player, next, drawn, expectedRevision, false, () -> {}, () -> {});
+    }
     /** Moves/swaps actual equipment ownership; the drawn item follows its instance to the destination slot. */
     public void move(ServerPlayer player, String from, String to, long expectedRevision) {
         check(player, expectedRevision); if (from.equals(to)) return;
