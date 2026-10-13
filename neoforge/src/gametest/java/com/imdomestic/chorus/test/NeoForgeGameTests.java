@@ -51,7 +51,7 @@ public final class NeoForgeGameTests {
                     .collect(java.util.stream.Collectors.toMap(name -> name, name -> event.registerEnvironment(Identifier.parse(name))));
             for (var test : cases) {
                 var data = new TestData<>(environments.get(test.metadata().environment()), ResourceKey.create(Registries.DIMENSION, Identifier.parse(test.metadata().dimension())),
-                        id("empty"), test.metadata().maxTicks(), 0, true, Rotation.NONE, false, 1, 1, false, 1);
+                        Identifier.parse(test.metadata().structure()), test.metadata().maxTicks(), 0, true, Rotation.NONE, false, 1, 1, false, 1);
                 event.registerTest(id(test.name()), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(test.name())), data));
             }
         });

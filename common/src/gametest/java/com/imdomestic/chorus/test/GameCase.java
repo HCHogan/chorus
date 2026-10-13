@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface GameCase {
+    String structure() default "chorus_gametest:empty";
     String environment() default "chorus_gametest:default";
     String dimension() default "minecraft:overworld";
     int maxTicks() default 20;

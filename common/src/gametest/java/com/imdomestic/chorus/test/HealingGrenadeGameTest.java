@@ -13,7 +13,6 @@ import java.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,22 +31,16 @@ public class HealingGrenadeGameTest {
     }
     static final class Scenario extends PhoenixDiveGameTest.Scenario {
         final List<Long> claimTimes = new ArrayList<>();
-        final Set<ChunkPos> forced = new HashSet<>();
         boolean closed;
         Scenario(GameTestHelper h) throws Exception {
             super(h, HealingGrenadeGameTest::prepare);
             t.owner.getFoodData().setFoodLevel(0); choose();
             var observe = t.beforeWorld;
             t.beforeWorld = r -> { observe.accept(r); if (r.command() instanceof WorldConstruct.Consume) claimTimes.add(BenevolenceGameTest.now(t)); };
-            var min = ChunkPos.containing(h.absolutePos(new BlockPos(4, 40, 2)));
-            var max = ChunkPos.containing(h.absolutePos(new BlockPos(9, 40, 8)));
-            for (int x = min.x(); x <= max.x(); x++) for (int z = min.z(); z <= max.z(); z++)
-                if (h.getLevel().setChunkForced(x, z, true)) forced.add(new ChunkPos(x, z));
         }
         @Override public void close() {
             if (closed) return; closed = true;
-            try { super.close(); }
-            finally { if (forced != null) forced.forEach(p -> h.getLevel().setChunkForced(p.x(), p.z(), false)); }
+            super.close();
         }
         void choose() { AscensionGameTest.choose(t, D + "grenade", ABILITY); }
         @Override void cast() {
@@ -84,15 +77,12 @@ public class HealingGrenadeGameTest {
     }
     static void readyScenario(GameTestHelper h, java.util.function.Consumer<Scenario> run) {
         ready(h, () -> {
+            // The dedicated structure includes the complete flight region. GameTest waits for its
+            // simulated chunks before starting its clock, instead of racing extra async tickets.
+            for (int x : new int[]{4, 9}) for (int z : new int[]{2, 8})
+                h.assertTrue(h.getLevel().isPositionEntityTicking(h.absolutePos(new BlockPos(x, 40, z))), "Healing Grenade physical region must be entity-ticking");
             var s = new Scenario(h);
-            // Loading/indexing chunks does not make them entity-ticking. The tiny GameTest structure
-            // does not ticket all flight geometry; explicitly own simulation tickets for this fixture.
-            boolean[] started = {false};
-            h.runAfterDelay(40, () -> { if (!started[0]) { s.close(); h.fail("Healing Grenade simulation tickets did not become ready"); } });
-            h.startSequence().thenWaitUntil(() -> {
-                for (int x : new int[]{4, 9}) for (int z : new int[]{2, 8})
-                    h.assertTrue(h.getLevel().isPositionEntityTicking(h.absolutePos(new BlockPos(x, 40, z))), "Healing Grenade physical region must be entity-ticking");
-            }).thenExecute(() -> { started[0] = true; try { run.accept(s); } catch (RuntimeException | Error e) { s.close(); throw e; } });
+            try { run.accept(s); } catch (RuntimeException | Error e) { s.close(); throw e; }
         });
     }
     static void homing(GameTestHelper h, boolean touch) {
@@ -116,9 +106,9 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_homing", maxTicks = 100)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_homing", maxTicks = 100)
     public void paidPhysicalFlightHomesToAllyAndCreatesConsumedRestorationOrb(GameTestHelper h) { homing(h, false); }
-    @GameCase(environment = "chorus_gametest:healing_grenade_touch", maxTicks = 100)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_touch", maxTicks = 100)
     public void capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace(GameTestHelper h) { homing(h, true); }
 
     static void surface(GameTestHelper h, String face) {
@@ -133,14 +123,14 @@ public class HealingGrenadeGameTest {
             ShieldThrowGameTest.settled(s.t); h.succeed();
         } });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_floor", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_floor", maxTicks = 60)
     public void floorImpactPlacesEntireOrbAboveTheContact(GameTestHelper h) { surface(h, "floor"); }
-    @GameCase(environment = "chorus_gametest:healing_grenade_wall", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_wall", maxTicks = 60)
     public void wallImpactPlacesEntireOrbOutsideTheWall(GameTestHelper h) { surface(h, "wall"); }
-    @GameCase(environment = "chorus_gametest:healing_grenade_ceiling", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_ceiling", maxTicks = 60)
     public void ceilingImpactPlacesEntireOrbBelowTheCeiling(GameTestHelper h) { surface(h, "ceiling"); }
 
-    @GameCase(environment = "chorus_gametest:healing_grenade_late", maxTicks = 100)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_late", maxTicks = 100)
     public void unclaimedOrbWaitsForFirstAlliedBatchAndNeverRewardsSubsequentArrivals(GameTestHelper h) {
         readyScenario(h, s -> {
             try {
@@ -156,7 +146,7 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_expiry", maxTicks = 190)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_expiry", maxTicks = 190)
     public void nativeOrbExpiresAfterSevenPointFiveSecondsWithoutAnEligibleCollector(GameTestHelper h) {
         readyScenario(h, s -> {
             try {
@@ -166,7 +156,7 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_destroyed", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_destroyed", maxTicks = 60)
     public void nativeDestructionBeforeFirstScanCancelsRestoration(GameTestHelper h) {
         readyScenario(h, s -> {
             try {
@@ -175,7 +165,7 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_denied", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_denied", maxTicks = 60)
     public void deniedStatusDoesNotRefundPaidThrowOrRecreateConsumedOrb(GameTestHelper h) {
         readyScenario(h, s -> {
             try {
@@ -187,7 +177,7 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_unknown", maxTicks = 60)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_unknown", maxTicks = 60)
     public void unknownNativeClaimKeepsPhysicalConsumptionAndNeverReplaysOrGrantsRestoration(GameTestHelper h) {
         readyScenario(h, s -> {
             try {
@@ -201,7 +191,7 @@ public class HealingGrenadeGameTest {
             } catch (Exception | Error e) { s.close(); throw e; }
         });
     }
-    @GameCase(environment = "chorus_gametest:healing_grenade_consumed", maxTicks = 100)
+    @GameCase(structure = "chorus_gametest:healing_grenade", environment = "chorus_gametest:healing_grenade_consumed", maxTicks = 100)
     public void actualHeldHeatRisesInputConsumesRealHealingGrenadeWithoutThrowing(GameTestHelper h) {
         readyScenario(h, s -> {
             try {

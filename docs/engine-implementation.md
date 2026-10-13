@@ -6,6 +6,14 @@
 
 ## 当前证据
 
+### 2026-10-14：治疗手雷场景在计时前准备完整模拟范围
+
+后续追踪接口的完整回归在 NeoForge 暴露了治疗手雷夹具的剩余加载竞态：`/tmp/chorus-projectile-life-full-gate.log` 中迟到领取场景等到第 40 tick，额外强制加载区块仍未进入实体模拟。原版 GameTestServer 会加速推进测试 tick，场景开始后增加票据并等待固定 tick 数，不能保证异步加载及时完成。
+
+治疗手雷的实际路径超出默认 8×8 水平结构。现为这 11 项场景指定 12×8×12 结构，共享 GameCase 新增 structure 元数据并由 NeoForge 读取，Fabric 同步指定同一资源。原版 GameTestInfo 在结构涉及的区块完成实体加载和模拟前不开始测试计时；场景仍断言整段飞行区域可模拟。移除了场景内部追加票据与 40 tick 超时，没有改变生产加载规则、飞行参数、拾取检查或 7.5 秒寿命断言。
+
+`/tmp/chorus-projectile-life-full-gate2.log` BUILD SUCCESSFUL（2 分 53 秒）：当前整合工作区的 2141 项 JUnit、Fabric 1231 项、NeoForge 1246 项及两端发布 jar 全部通过，包括本次场景修复与另行提交的生命绑定追踪。10 项 Compendium 工具测试、来源与覆盖报告一致性检查通过。此修复单独提交，不新增效果覆盖。
+
 ### 2026-10-14：Healing Grenade 的真实投掷、治疗球与共享恢复
 
 新增治疗手雷参考定义及选择期回充：119.7 秒基础周期、.875 CES，实际支付后按捕获的眼部位置 / 朝向投掷并追踪盟友。命中调用共享 Cure，再生成有限生命、可受伤的 Restoration Orb；球体保存自身生命引用，解析后选择当前盟友，只有确认消费回执才施加共享 Restoration。Touch 强度在接受时冻结，Solace 按拾取时各接收者求值，实际盟友收益组合 Benevolence。实际 Heat Rises 长按另验证消费本定义的费用和 Cure x3 / Touch Restoration x1，不同时执行投掷。
