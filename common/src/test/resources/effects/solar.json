@@ -474,82 +474,185 @@
                               ],
                               "else": [
                                 {
-                                  "action": {
-                                    "type": "chorus:capture_damage",
-                                    "amount": {
-                                      "type": "chorus:constant",
-                                      "value": 0,
-                                      "unit": "damage"
-                                    },
-                                    "damage_type": "chorus_d2:scorch",
-                                    "scaling_profile": "chorus_d2:solar_outgoing",
-                                    "tags": [
-                                      "chorus:solar_damage",
-                                      "chorus:status_damage",
-                                      "chorus_d2:scorch_damage"
-                                    ],
-                                    "kill_tags": [],
-                                    "non_lethal": false
+                                  "if": {
+                                    "type": "chorus:source_tag",
+                                    "tag": "chorus:class_damage"
                                   },
-                                  "as": "dot_capture"
-                                },
-                                {
-                                  "type": "chorus:write_damage_snapshot",
-                                  "buff": "chorus_d2:scorch",
-                                  "component": "dot",
-                                  "snapshot": "dot_capture"
-                                },
-                                {
-                                  "action": {
-                                    "type": "chorus:capture_damage",
-                                    "amount": {
-                                      "type": "chorus:constant",
-                                      "value": 0,
-                                      "unit": "damage"
+                                  "then": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:scorch",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:scorch_damage",
+                                          "chorus:class_damage",
+                                          "chorus:ability_damage"
+                                        ],
+                                        "kill_tags": [
+                                          "chorus:class_kill",
+                                          "chorus:ability_kill"
+                                        ],
+                                        "non_lethal": false
+                                      },
+                                      "as": "dot_capture"
                                     },
-                                    "damage_type": "chorus_d2:scorch",
-                                    "scaling_profile": "chorus_d2:solar_outgoing",
-                                    "tags": [
-                                      "chorus:solar_damage",
-                                      "chorus:status_damage",
-                                      "chorus_d2:scorch_damage"
-                                    ],
-                                    "kill_tags": [],
-                                    "non_lethal": true
-                                  },
-                                  "as": "dot_safe_capture"
-                                },
-                                {
-                                  "type": "chorus:write_damage_snapshot",
-                                  "buff": "chorus_d2:scorch",
-                                  "component": "dot_safe",
-                                  "snapshot": "dot_safe_capture"
-                                },
-                                {
-                                  "action": {
-                                    "type": "chorus:capture_damage",
-                                    "amount": {
-                                      "type": "chorus:constant",
-                                      "value": 0,
-                                      "unit": "damage"
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "dot",
+                                      "snapshot": "dot_capture"
                                     },
-                                    "damage_type": "chorus_d2:ignition",
-                                    "scaling_profile": "chorus_d2:solar_outgoing",
-                                    "tags": [
-                                      "chorus:solar_damage",
-                                      "chorus:status_damage",
-                                      "chorus_d2:ignition_damage"
-                                    ],
-                                    "kill_tags": [],
-                                    "non_lethal": false
-                                  },
-                                  "as": "ignition_capture"
-                                },
-                                {
-                                  "type": "chorus:write_damage_snapshot",
-                                  "buff": "chorus_d2:scorch",
-                                  "component": "ignition",
-                                  "snapshot": "ignition_capture"
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:scorch",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:scorch_damage",
+                                          "chorus:class_damage",
+                                          "chorus:ability_damage"
+                                        ],
+                                        "kill_tags": [
+                                          "chorus:class_kill",
+                                          "chorus:ability_kill"
+                                        ],
+                                        "non_lethal": true
+                                      },
+                                      "as": "dot_safe_capture"
+                                    },
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "dot_safe",
+                                      "snapshot": "dot_safe_capture"
+                                    },
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:ignition",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:ignition_damage",
+                                          "chorus:class_damage",
+                                          "chorus:ability_damage"
+                                        ],
+                                        "kill_tags": [
+                                          "chorus:class_kill",
+                                          "chorus:ability_kill"
+                                        ],
+                                        "non_lethal": false
+                                      },
+                                      "as": "ignition_capture"
+                                    },
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "ignition",
+                                      "snapshot": "ignition_capture"
+                                    }
+                                  ],
+                                  "else": [
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:scorch",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:scorch_damage"
+                                        ],
+                                        "kill_tags": [],
+                                        "non_lethal": false
+                                      },
+                                      "as": "dot_capture"
+                                    },
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "dot",
+                                      "snapshot": "dot_capture"
+                                    },
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:scorch",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:scorch_damage"
+                                        ],
+                                        "kill_tags": [],
+                                        "non_lethal": true
+                                      },
+                                      "as": "dot_safe_capture"
+                                    },
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "dot_safe",
+                                      "snapshot": "dot_safe_capture"
+                                    },
+                                    {
+                                      "action": {
+                                        "type": "chorus:capture_damage",
+                                        "amount": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        },
+                                        "damage_type": "chorus_d2:ignition",
+                                        "scaling_profile": "chorus_d2:solar_outgoing",
+                                        "tags": [
+                                          "chorus:solar_damage",
+                                          "chorus:status_damage",
+                                          "chorus_d2:ignition_damage"
+                                        ],
+                                        "kill_tags": [],
+                                        "non_lethal": false
+                                      },
+                                      "as": "ignition_capture"
+                                    },
+                                    {
+                                      "type": "chorus:write_damage_snapshot",
+                                      "buff": "chorus_d2:scorch",
+                                      "component": "ignition",
+                                      "snapshot": "ignition_capture"
+                                    }
+                                  ]
                                 }
                               ]
                             }

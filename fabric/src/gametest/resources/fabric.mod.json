@@ -143,6 +143,7 @@
       "com.imdomestic.chorus.HealClipGameTest",
       "com.imdomestic.chorus.GroundContactGameTest",
       "com.imdomestic.chorus.EntityAnchorComponentsGameTest",
+      "com.imdomestic.chorus.PhoenixDiveGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",
       "com.imdomestic.chorus.DirectionalMovementGameTest",
       "com.imdomestic.chorus.DomineeringGameTest",

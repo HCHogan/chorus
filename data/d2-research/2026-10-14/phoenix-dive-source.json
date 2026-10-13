@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T13:56:51.026863+00:00",
+  "status": "partial_reference_implementation",
+  "compendium": [
+    {
+      "name": "solar",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+      "gid": "1186062409",
+      "file": "data/d2-research/2026-10-14/phoenix-dive-solar.html.gz",
+      "html_sha256": "dfd11eaa890aa31db052eb003592415f7f439784cdc190ad82a361005466e820",
+      "gzip_sha256": "efd63723d44ece621c0f4a772faf1e6606fc8edbb4aa35ccaa83be85e3fcc1af",
+      "cells": [
+        {
+          "original": "B125",
+          "text": "Phoenix Dive",
+          "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f",
+          "snapshot": {
+            "sheet": "Solar",
+            "cell": "B73",
+            "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f"
+          }
+        },
+        {
+          "original": "D125",
+          "text": "Dive that applies Cure x2 to the user and their allies within 9 meters. While Heat Rises is active: Applies Restoration x2 for 3+1.5 seconds upon diving. Deals 100 damage and inflicts x40+20 Scorch to enemies within 6.5 metres upon landing.",
+          "text_sha256": "89c5ee2b01175d73c8bdd9c70300811aa5dd204c1c4a579d0cd55b81df47a89a",
+          "snapshot": {
+            "sheet": "Solar",
+            "cell": "D73",
+            "text_sha256": "19d11a95a329214a72d8316d4efab39193b2434d89607202d245a23f0c5e851a"
+          }
+        },
+        {
+          "original": "N125",
+          "text": "Base Cooldown: 79.6 seconds Chunk Scalar: 0.8x",
+          "text_sha256": "4069fa994933678263847141112d74430cc73b23fcd5fbeead93afcb942983b4",
+          "snapshot": {
+            "sheet": "Solar",
+            "cell": "N73",
+            "text_sha256": "849e54d378994d8ce8b2746178a5b16cee114327cf0369e2b4a374789ac568a9"
+          }
+        }
+      ]
+    },
+    {
+      "name": "class",
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+      "gid": "527596209",
+      "file": "data/d2-research/2026-10-14/phoenix-dive-class.html.gz",
+      "html_sha256": "6a5e1c2daf6853c8a6c6cfca0f13d0826735af1232d53f0ad339a5299dd2dc3d",
+      "gzip_sha256": "43e129390d2663c18d0a7e0449c0305301ade62b2f2d553bd534dfcd4698dddb",
+      "cells": [
+        {
+          "original": "B45",
+          "text": "Phoenix Dive",
+          "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f",
+          "snapshot": {
+            "sheet": "Class Abilities",
+            "cell": "B16",
+            "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f"
+          }
+        },
+        {
+          "original": "D45",
+          "text": "Dive that applies Cure x2 to the user and their allies within 9 meters. While Heat Rises is active: Applies Restoration x2 for 3+1.5 seconds upon diving. Deals 100 damage and x40+20 Scorch to enemies within 5 metres upon landing.",
+          "text_sha256": "efd8cba58b2ea1414acc0cd8758cbbba64259a6626687d5e1fcf91b30e28b249",
+          "snapshot": {
+            "sheet": "Class Abilities",
+            "cell": "D16",
+            "text_sha256": "23048d1620b885c65e97af48169bf4b0ab08d309930a1622a9a823661ac06d82"
+          }
+        },
+        {
+          "original": "N45",
+          "text": "Base Cooldown: 79.6 seconds Chunk Scalar: 0.8x",
+          "text_sha256": "4069fa994933678263847141112d74430cc73b23fcd5fbeead93afcb942983b4",
+          "snapshot": {
+            "sheet": "Class Abilities",
+            "cell": "N16",
+            "text_sha256": "849e54d378994d8ce8b2746178a5b16cee114327cf0369e2b4a374789ac568a9"
+          }
+        }
+      ]
+    }
+  ],
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/phoenix-dive-clarity.json",
+    "selected_sha256": "f963e28b19237307244c60d0bac45b420ee3b3f154c7ec6a155019f280e1e95b",
+    "reviewed_at": "2026-10-13T14:09:55.173613+00:00"
+  },
+  "compendium_text_normalization": "Whitespace collapsed for comparison; original HTML bytes are archived.",
+  "implementation_reviewed_at": "2026-10-13T15:20:05.890259+00:00",
+  "conflicts": [
+    {
+      "field": "heated_blast_radius_m",
+      "solar": 6.5,
+      "class_abilities": 5,
+      "clarity": 5,
+      "resolution": "No global default. The ability requires explicit blast_radius calibration; the native acceptance fixture selects 5 m."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/phoenix_dive.json",
+    "calibration": "common/src/test/resources/effects/phoenix_dive_test_calibration.json",
+    "base_cooldown_seconds": 79.6,
+    "chunk_scalar": 0.8,
+    "cure": {
+      "tier": 2,
+      "radius_m": 9,
+      "when": "First accepted physical landing of the saved casting life"
+    },
+    "heated": {
+      "restoration_tier": 2,
+      "restoration_seconds": 3,
+      "solace_seconds": 4.5,
+      "damage_before_scaling": 100,
+      "scorch": 40,
+      "scorch_with_ashes": 60
+    },
+    "policies": [
+      "Heat Rises is sampled at cast acceptance; Ashes and outgoing damage are evaluated at landing.",
+      "Native velocity uses explicit additive impulses; neutral input does not erase existing velocity. Missing input cannot invent a direction.",
+      "The saved pending life survives unequip and has no guessed fall timer; same-life confirmed death or removal cancels it.",
+      "Consume pending before same-life liveness verification and benefit commands; rejection or unknown results never refund the accepted cast or replay committed operations.",
+      "Cure and explosion query historical landing feet, spherical inclusive radii, no line-of-sight; host allied entities can receive Cure.",
+      "Scorch requires an applied nonlethal blast, per-target authorization and no scorch_lockout. First-source Solar snapshots preserve class and ability credit.",
+      "Only one pending cast is allowed for this ability. A new paid cast can complete independently; no global chain-depth or feedback prohibition."
+    ],
+    "gaps": [
+      "Conflicting blast radii remain unresolved.",
+      "Additive horizontal 3 m/s and downward 12 m/s, flat falloff and 0.1 health projection are synthetic calibration, not measured Destiny motion/damage.",
+      "Minimum height, velocity replacement, original input timing, camera and actual client trajectory are uncalibrated.",
+      "Heat Rises activation, Daybreak interaction, original refresh/unequip/sampling policies and all exotic/mod combinations remain incomplete.",
+      "Formal subclass equipment, production skill catalogue, HUD/assets and physical-world restart restoration are incomplete; current definitions remain acceptance resources."
+    ]
+  }
+}

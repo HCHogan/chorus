@@ -248,6 +248,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/heal_clip.json', 'effects/heal_clip_weapon.json'
         include 'effects/ground_contact.json'
         include 'effects/entity_anchor_components.json'
+        include 'effects/phoenix_dive.json', 'effects/phoenix_dive_test_calibration.json'
         include 'effects/drawn_weapon.json'
         include 'effects/directional_movement.json'
         include 'effects/directional_movement_attributes.json'

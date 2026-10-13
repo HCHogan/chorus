@@ -1,0 +1,133 @@
+{
+  "note": "Synthetic additive impulses: 3 m/s along current movement input and 12 m/s downward. Neutral input adds only the downward impulse and does not erase pre-existing velocity. These do not establish Destiny velocity replacement, motion curves, animation or minimum height. The 5 m blast selects the Class Abilities / Clarity branch; Solar says 6.5 m. Flat in-radius damage and 0.1 world damage scale are test calibration. Heat Rises is sampled at acceptance and retained until the first same-life physical landing; pending is canceled by confirmed same-life death/removal, not by a guessed timer or unequip. Daybreak and full Heat Rises activation remain separate content.",
+  "parameters": {
+    "horizontal_speed": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "meter_per_second"
+    },
+    "vertical_speed": {
+      "type": "chorus:constant",
+      "value": 12,
+      "unit": "meter_per_second"
+    },
+    "blast_radius": {
+      "type": "chorus:constant",
+      "value": 5,
+      "unit": "meter"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:phoenix_dive_falloff",
+        "version": "compendium-2026-10-05",
+        "input_unit": "meter",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "synthetic",
+            "output_unit": "multiplier",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                1
+              ],
+              "minimum": 0,
+              "maximum": 100000,
+              "boundary": "error"
+            }
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:phoenix_dive_damage_scale",
+        "version": "compendium-2026-10-05",
+        "input_unit": "multiplier",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "synthetic",
+            "output_unit": "multiplier",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 100000,
+              "boundary": "error"
+            }
+          }
+        ]
+      }
+    ],
+    "buffs": [
+      {
+        "definition": {
+          "id": "test:phoenix_heat",
+          "version": "compendium-2026-10-05",
+          "duration": 10,
+          "refresh": "reset",
+          "tags": [
+            "chorus_d2:heat_rises"
+          ]
+        }
+      }
+    ],
+    "bundles": [
+      {
+        "id": "test:phoenix_inputs",
+        "rules": [
+          {
+            "id": "heat",
+            "on": "test:phoenix_heat",
+            "do": [
+              {
+                "type": "chorus:grant_buff",
+                "buff": "test:phoenix_heat"
+              }
+            ]
+          },
+          {
+            "id": "unheat",
+            "on": "test:phoenix_unheat",
+            "do": [
+              {
+                "type": "chorus:remove_buff",
+                "buff": "test:phoenix_heat"
+              }
+            ]
+          },
+          {
+            "id": "full",
+            "on": "test:phoenix_full",
+            "do": [
+              {
+                "type": "chorus:grant_full_charge",
+                "resource": "chorus_d2:phoenix_dive_energy"
+              }
+            ]
+          },
+          {
+            "id": "chunk",
+            "on": "test:phoenix_chunk",
+            "do": [
+              {
+                "type": "chorus:grant_ability_energy",
+                "slot": "chorus_d2:class",
+                "amount": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "charge_fraction"
+                },
+                "value_basis": "base"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

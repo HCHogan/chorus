@@ -3897,3 +3897,15 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 定义要求确认击杀的 death_id 和合格换弹的 reload_completion_id，先按武器实例记账，再更新或消费窗口。普通补弹不触发；整段逐发装填共享 reload，但每次装入拥有独立完成身份。新的击杀可以在后续插入时再次触发，重复旧完成不得消费新窗口。窗口消费在 Cure 调用之前提交，不因共享冷却、授权拒绝或未知世界结果回退。
 
 自身 tier 2 / 范围盟友 tier 1 均调用 `chorus_d2:cure_application`，通过 `chorus_d2:bestow_cure` 与显式 tier 参数复用授权和共享冷却。调用保留武器来源；其实际盟友治疗可继续驱动 Ember of Benevolence 与当前所选技能回充。协议不包含整条因果链次数上限。具体时序政策、来源和未完成项见 [D2 规则集](d2-ruleset.md#heal-clip-的武器击杀窗口与共享-cure)。
+
+## Phoenix Dive 的 pending 与落地组合
+
+参考 `phoenix_dive.json` 使用已有 Ability、Buff 组件和世界动作，没有新增技能专用 Java 分支或存储类型。输入参数为 `horizontal_speed` / `vertical_speed`（meter_per_second）和 `blast_radius`（meter）；`heated` 由接受施放时是否持有 Heat Rises 标签计算。职业资源引用 `class_regeneration` / `class_gain`，基准 79.6 秒、CES 0.8，沿用当前选择账户的恢复规则。测试校准单独放在 `phoenix_dive_test_calibration.json`，不能作为原作已测数值发布。
+
+动作先 `capture_entity_anchor` 与 `capture_input_direction`，只在可用、存活与输入已观察时执行实际冲量。中立是已观察但无方向，与 missing / dead / unloaded / unsupported 分开；中立只添加世界向下冲量。运动确认后授予 pending，`write_entity_anchor` 保存 cast_life，并保存 heated / blast_radius 数字；热力升腾调用共享 Restoration 而非自建回血计时器。
+
+Pending 的 `chorus:landed` 规则用 `read_entity_anchor`、`read_landing`、`same_entity_life` 关联两个独立事件。先捕获组件数字再 `remove_buff`，避免结束普通 active BuffScope 后继续读取活动组件。随后 `resolve_entity_anchor` 验证当前同生命存活，`invoke_bundle` 调用 `cure_application`，历史 contact 则作为 `select_targets` 的 position 中心。共享 Cure 的确认治疗天然可驱动 Benevolence。
+
+热力升腾分支通过显式 `phoenix_dive_falloff` 和 `phoenix_dive_damage_scale` 构造伤害，使用 `chorus_d2:outgoing` 输出 Profile；职业、通用技能和日灼标签保留在原施放来源。伤害回执确认非致死应用、检查共享锁定并授权后调用 Scorch。首来源 Solar 快照为 class 选择 `class_damage` / `class_kill` 及通用技能标签，不把物理落地事件当成攻击所有者。
+
+确认死亡 / 移除规则同样比较保存生命后取消 pending。卸源不取消已接受施放，pending 不靠任意超时结束；后续真实离地、支付和落地可独立再次完成。当前内容不承诺对可信宿主任意重放久远落地事实提供永久去重。边界、来源冲突与仍缺少的生产装配见 [D2 凤凰俯冲规则](d2-ruleset.md#phoenix-dive-的实际落地与-solar-组合)。

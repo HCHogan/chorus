@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：Phoenix Dive 的实际落地内容与职业 Solar 归属
+
+新增凤凰俯冲参考定义：空中一次职业支付、观察移动输入后执行水平 / 向下冲量、保存施放生命与热力升腾标记；热力升腾在施放时调用共享 Restoration x2，保存生命的实际落地才消费 pending 并执行自身 / 9 米盟友 Cure x2及敌人范围爆炸。盟友实际治疗继续组合 Benevolence。落地攻击沿用原施放归属，Solar 首来源快照补齐 class 分支，使 DoT、非致命分支和点燃保留职业 / 通用技能信用。
+
+生命周期规则取消同生命的死亡 / 移除，卸下技能保留已接受的 pending；没有任意下落计时或全局反馈限制，下一次合法付费俯冲仍可完成。12 项 PhoenixDiveTest 覆盖两模式、显式校准、79.6 秒 / .8 CES、热力升腾 / Solace / Ashes、三账户 Benevolence、领域恢复、生命隔离和未知结果不重放；既有 Solar 信用 / 缩放测试加入 class。开发中修正了校准曲线缺失 `chorus:` 前缀、基础回能的测试预期及异步测试的受检异常处理。
+
+8 项共享世界用例使用实际 ServerPlayer、真实移动输入与接受 / 拒绝的原生移动包，核验下坠速度、落地后实际 HP、9 米 Cure 与显式 5 米爆炸边界、Scorch 的后续真实伤害、卸装保留、死亡 / 移除取消、合法重复施放，以及未知真实伤害 / 治疗后不重放。`/tmp/chorus-phoenix-native2.log` 的 Fabric 定向用例全部通过（13 秒）。
+
+完整 `/tmp/chorus-phoenix-full-gate.log` BUILD SUCCESSFUL（3 分钟）：2094 项 JUnit 无失败 / 错误 / 跳过、Fabric 1190 项与 NeoForge 1205 项世界测试、两端发布 jar 全部通过；共享场景 1189 项。`build/reports/phoenix-dive/audit.json` 核验存储 schema 未变、两端 1184 / 1177 个发布主类字节匹配，且发布包没有验收定义 / GameTest 泄漏，Gradle CRLF 保持。10 项 Compendium 工具测试、六个来源单元格与原始 HTML / Clarity 哈希检查通过。本批没有修改生产 UI、网络或原生钩子，未重复图形客户端回归，不宣称验证了原作俯冲轨迹。
+
+Compendium 增至 126 条审阅（124 partial、2 not_applicable、0 verified）。Solar 原表的 6.5 米爆炸与 Class Abilities / Clarity 的 5 米冲突保留；速度、衰减和生命投影需显式校准，当前值仅供验收。完整 Heat Rises 激活、Daybreak 分支、正式子职业 / 内容目录、HUD / 素材、全部组合和原作参数仍待完成。规则与当前取样 / 取消政策见 [Phoenix Dive 规则集](d2-ruleset.md#phoenix-dive-的实际落地与-solar-组合)。
+
 ### 2026-10-14：跨事件保存与比较实体生命观察
 
 为 Phoenix Dive 的施放 / 落地关联补齐 Buff 的有类型 entity_anchors 组件，以及 write_entity_anchor、read_entity_anchor、same_entity_life。保存完整回执而非仅 UUID 或位置，已知不可用结果与未写入明确区分；比较只识别 target / life / dimension，不以位置变化或观察时健康状态判断换生命。其他组件写入保留该集合，旧六字段 schema / components 使用精确迁移，原 653 项形状不变，新增五项后共 658 项。

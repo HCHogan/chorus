@@ -55,7 +55,7 @@ class SolarDamageScalingTest {
         }
     }
     @Test void sourceCreditRatherThanAWeaponIdentityDecidesWhetherWeaponBuffsApply()throws Exception {
-        for(String credit:List.of("weapon","grenade","melee","super")) {
+        for(String credit:List.of("weapon","grenade","melee","super","class")) {
             var h=new Harness(EffectState.Mode.PVE);h.charge(SolarTest.FIRST,"solar",3);h.radiant(SolarTest.FIRST,10);h.rampage(SolarTest.FIRST);
             var source=SolarTest.source("first",credit);h.bind(source);h.apply(0,source,60);h.until(500_000);
             assertEquals(1.6236*(credit.equals("weapon")?1.22*1.2*1.1:1),h.amounts.getFirst(),1e-9);

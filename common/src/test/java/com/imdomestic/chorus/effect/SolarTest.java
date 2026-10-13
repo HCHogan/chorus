@@ -148,7 +148,7 @@ class SolarTest {
         assertEquals(1,h.queries.size()); assertEquals(2,h.damage.size()); assertTrue(h.buff(SCORCH).isEmpty());
     }
     @Test void abilitySourceKindsKeepSpecificAndGenericCreditWithoutInventingWeaponCreditFromIdentity() throws Exception {
-        for(String credit:List.of("grenade","melee","super")) {
+        for(String credit:List.of("grenade","melee","super","class")) {
             var h=new Harness(EffectState.Mode.PVE); var source=source("ability",credit);
             h.session.start(0,SourceChange.bind(source));
             h.session.start(0,SourceChange.bind(new EffectSource("ability-solar","chorus_d2:solar_scaling",source.holder(),source.origin(),Set.of())));

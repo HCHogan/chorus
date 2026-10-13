@@ -579,7 +579,7 @@
           "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
         }
       ],
-      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。",
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲已接真实落地后的自身/9米盟友Cure x2及仁慈余烬。",
       "acceptance": [
         "每级60/30HP，0.1秒过程",
         "重复激活不延长冷却",
@@ -635,11 +635,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
           "symbol": "physicalShotKillReloadAndAlliedCureComposeWithBenevolenceAtTheRadiusBoundary"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "paidInputWaitsForAcceptedPhysicalLandingBeforeSharedCureAndBenevolence"
         }
       ],
       "gaps": [
         "两次等量脉冲为Chorus选择，原作细分恢复曲线未知",
-        "Icarus部分模板已调用；凤凰俯冲等其他生产者、正式技能 / 装备装配及全局生命缩放未完成"
+        "Icarus、Heal Clip与凤凰俯冲已有部分生产者模板；其他技能、正式技能/装备装配及全局生命缩放未完成"
       ]
     },
     {
@@ -660,7 +665,7 @@
           "text_sha256": "fd25529d29a57d9d040a024bfc590bc657d82b79225af6e762c1a644dd511f30"
         }
       ],
-      "scope": "连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick",
+      "scope": "连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick 凤凰俯冲热力升腾分支在施放时复用Restoration x2及Solace时长。",
       "acceptance": [
         "x1/x2环境恢复率",
         "保留最长时间和最高强度",
@@ -696,12 +701,17 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/EmberOfMercyGameTest.java",
           "symbol": "physicalCollectionUsesCurrentSolaceAndRecoverySurvivesDamageAndFragmentRemoval"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
         }
       ],
       "gaps": [
         "HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile",
         "与 Healing Rift 不叠加时的当前优先级未完整校准",
-        "Phoenix Dive 等真实技能来源、死亡生命周期与生产装配待实现；Mercy / Empyrean 已接延长"
+        "Phoenix Dive已接参考热力升腾分支，其他真实技能来源、共享状态死亡生命周期与生产装配仍待完成；Mercy / Empyrean已接延长"
       ]
     },
     {
@@ -4882,7 +4892,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -4959,6 +4969,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
           "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
         }
       ],
       "gaps": [
@@ -4993,7 +5008,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -5085,6 +5100,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponStatDamageGameTest.java",
           "symbol": "physicalIncandescentRetainsAmmoAndInitialStatForEachIgnitionRecipient"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
         }
       ],
       "gaps": [
@@ -13353,7 +13373,7 @@
           "text_sha256": "b745b47e7959f442b8939dd7a74867bbbeaf27a0cf394626b85fee7bdb380d8a"
         }
       ],
-      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。 Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。",
+      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。 Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲实际落地的盟友Cure已接线。",
       "acceptance": [
         "共享状态保留首来源而本次给予者获益；拒绝、未知、自身、非盟友与显式排除来源不触发。",
         "属性倍率先作用于基础，之后加300%基础回充；三类当前接收账户、额外基础家族与chunk gains相互独立。",
@@ -13486,6 +13506,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
           "symbol": "physicalShotKillReloadAndAlliedCureComposeWithBenevolenceAtTheRadiusBoundary"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "paidInputWaitsForAcceptedPhysicalLandingBeforeSharedCureAndBenevolence"
         }
       ]
     },
@@ -13632,6 +13657,177 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
           "symbol": "incrementalReloadConsumesOneWindowAndLaterInsertionsDoNotRepeatThatKill"
+        }
+      ]
+    },
+    {
+      "id": "class/phoenix_dive",
+      "name": "Phoenix Dive",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B73",
+          "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D73",
+          "text_sha256": "19d11a95a329214a72d8316d4efab39193b2434d89607202d245a23f0c5e851a"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N73",
+          "text_sha256": "849e54d378994d8ce8b2746178a5b16cee114327cf0369e2b4a374789ac568a9"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "B16",
+          "text_sha256": "b6dc20c7aa1bad1b812c39e775c92efbbd75bb8b43d2dbf9e44f8ad90664900f"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "D16",
+          "text_sha256": "23048d1620b885c65e97af48169bf4b0ab08d309930a1622a9a823661ac06d82"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "N16",
+          "text_sha256": "849e54d378994d8ce8b2746178a5b16cee114327cf0369e2b4a374789ac568a9"
+        }
+      ],
+      "scope": "空中一次职业支付、真实输入下坠、保存施放生命并等待接受的物理落地；共享Cure x2、热力升腾Restoration x2与职业归属爆炸/Scorch，组合Solace、Ashes和Benevolence；79.6秒基准与.8 CES。",
+      "acceptance": [
+        "地面与缺少校准参数在支付前拒绝；已观察输入控制水平/竖直增量，中立仅向下，未知输入不虚构运动或收益。",
+        "非计时落地、玩家拒绝包不结算、历史接触点9米盟友Cure与显式半径敌人伤害；共享授权/冷却及实际HP。",
+        "热力升腾施放时快照给3/4.5秒Restoration x2；落地100基础伤害、40/60 Scorch及首来源职业/技能信用贯穿DoT和点燃。",
+        "同一生命匹配、死亡/移除取消、旧生命事实隔离、卸装/领域检查点保留pending、合法连续新施放与未知世界结果不重放。",
+        "两模式职业79.6秒与.8接收系数，未选账户暂停；实际盟友Cure触发Benevolence，核心核验三个当前账户额外基础回充。"
+      ],
+      "gaps": [
+        "原表Solar爆炸6.5米与Class Abilities/Clarity的5米冲突；要求显式半径，世界验收仅选择5米分支。",
+        "3/12米每秒加法冲量、平坦范围伤害和.1生命投影为合成校准；最低高度、速度替换、原作动画/镜头和真实客户端轨迹待测。",
+        "Heat Rises施放时取样、Ashes落地时取样、pending无计时上限与卸装保留、消费先于收益、无视线脚底球形和宿主盟友实体资格均为明确政策，原作边界未完整校准。",
+        "未实现完整Heat Rises激活、Daybreak分支、全部金装/模组互动及正式子职业装配；定义仍在验收资源，HUD/素材与物理世界跨重启恢复未完成。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/phoenix_dive.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/phoenix_dive_test_calibration.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/phoenix-dive-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "groundUseAndMissingCalibrationDoNotPayAndTheReferenceProgramRoundTrips"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "airborneInputPaysOnceAndCureWaitsForActualLandingRatherThanATimerInBothModes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "heatRisesRestoresImmediatelyAndRetainsCastCreditThroughAshesScorchAndLanding"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "baseHeatGrantIsThreeSecondsAndBaseScorchIsFortyWithIndependentTargetAuthorization"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "neutralInputAddsOnlyTheDownwardImpulseAndUnavailableInputNeverArmsLandingBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "foreignLandingDoesNotConsumeTheCastAndCurrentDeathOrReplacementCannotReceiveBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "pendingReferenceAndAttributionSurviveUnequipAndCheckpointBeforeLanding"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "matchingLifecycleCancelsPendingButOldLifeNotificationsCannotCancelAnotherLife"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "consumedCastDoesNotRepeatAndAnotherPaidAirborneCastCanLandAgain"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "classAccountUsesTheCurrentBaseCooldownAndChunkScalarAndStopsWhenUnselected"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "confirmedAllyCureActivatesBenevolenceOnTheSelectedPhoenixClassAccountAndOtherTwoAccounts"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/PhoenixDiveTest.java",
+          "symbol": "unknownMotionStatusDamageAndHealingNeverReplayAlreadyCommittedStages"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "paidInputWaitsForAcceptedPhysicalLandingBeforeSharedCureAndBenevolence"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "unequippingAfterPaymentRetainsOneLandingAndItsOriginalAbilityCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "confirmedPlayerDeathCancelsThePendingDive"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "confirmedPlayerRemovalCancelsThePendingDive"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "unknownBlastReceiptRetainsNativeDamageAndConsumedLandingWithoutReplay"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "unknownCureReceiptRetainsTheFirstActualPulseWithoutInventingFragmentCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
+          "symbol": "aSubsequentPaidDiveCanLandAgainAfterTheFirstPendingIsConsumed"
         }
       ]
     }

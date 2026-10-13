@@ -2022,6 +2022,22 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 参考超能和手雷只有不可施放的元数据，不代表完整超能、棱镜或子职业装配。实际账号进度与神器选择生产者、完整 Tier/升级目录、正式配装/HUD、原作切换超能惩罚、技能宿主持久化、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。
 
+## Phoenix Dive 的实际落地与 Solar 组合
+
+原表 Solar B125/D125/N125 和 Class Abilities B45/D45/N45（固定 CSV 快照分别为 B73/D73/N73、B16/D16/N16）均给出自身与 9 米盟友 Cure x2、79.6 秒基础冷却和 0.8 chunk scalar。热力升腾分支在俯冲时给予 3 秒 Restoration x2，Solace 延至 4.5 秒，落地造成 100 基础伤害及 40 Scorch，Ashes 增至 60。原始 HTML、逐格快照映射、哈希和固定 Clarity 提交保存在[凤凰俯冲来源](../data/d2-research/2026-10-14/phoenix-dive-source.json)。Clarity 明确 Cure 在落地时、Restoration 在激活时，并区分运动输入与中立垂直下坠。
+
+**爆炸半径存在未解决的来源冲突：Solar 写 6.5 米，Class Abilities 与 Clarity 写 5 米。** `phoenix_dive.json` 要求显式 `blast_radius`，不通过猜测补默认值。当前测试选择 5 米分支；`horizontal_speed`、`vertical_speed`、`phoenix_dive_falloff` 和 `phoenix_dive_damage_scale` 同样要求校准。3 / 12 m/s 加法冲量、范围内平坦伤害及 0.1 生命投影均是合成输入。中立不添加水平冲量，但不清零已有速度；这不等于已复现原作速度替换、最低高度、输入锁定、动画或客户端完整轨迹。
+
+施放只允许空中且没有本技能 pending，支付一次当前职业账户。捕获生命与移动输入，在已观察的冲量回执后保存 pending；已知不可用输入不虚构运动和收益，已接受的费用不退还。Heat Rises 在施放接受时取样，成立时立即调用共享 Restoration x2 与 Solace 时长查询。这个取样点是当前明确政策，不能据此声称原作在落地前取消 Heat Rises 时必然保持爆炸。
+
+完成监听 `chorus:landed`，比较目标 / 生命代次 / 维度；只有保存生命的第一次实际落地消费 pending。玩家包被原版拒绝产生的试算碰撞、onGround 标志变化、固定延迟都不能结算。消费前保存热力升腾标记和半径，消费后再次核对当前生命可用且存活，再调用共享 Cure x2。盟友和敌人范围均使用历史落地脚部中心，球形、含端点、无视线检查；盟友包含宿主认定的友方实体。这些几何和目标资格为 Chorus 政策。实际盟友 Cure 回执继续触发 Benevolence，共用 Cure 冷却，不重写治疗算法。
+
+热力升腾爆炸在落地时读取 Ashes 与输出缩放；已应用且非致死的伤害、无 `scorch_lockout` 和每目标状态授权共同决定是否施加共享 Scorch。动作使用 pending 的 BOUND 原施放归属，不能改用没有技能身份的物理落地来源。Solar 首来源捕获现在区分 class，与 weapon / grenade / melee / super 并列，DoT、非致命分支和点燃保留职业与通用技能信用；后来的来源不覆盖既有 Scorch 首来源。
+
+Pending 没有猜测的最大下落计时，卸下技能后仍保留；同一生命的确认死亡或移除会取消，旧生命的生命周期事实不能取消新生命的独立施放。一次 pending 只结算一次，随后合法的新付费施放可再次完成；没有整条因果链的次数或深度封锁。未知运动、状态、伤害或治疗结果沿用停止且不重放，已付费用、已消费 pending 与实际世界写入保持提交。领域检查点保存 pending 不代表物理世界跨重启恢复已经完成。
+
+12 项核心用例和 8 项共享世界用例覆盖上述参考政策。完整 Heat Rises 激活、Daybreak 分支、全部金装/模组组合、正式子职业装配、HUD/素材和原作参数校准仍未完成；该条目保持 partial，定义仍位于验收资源。
+
 ## Ember of Benevolence 与额外基础回充
 
 原表 Solar B17/D17/N17（固定 CSV 快照 B14/D14/N14）给出：向盟友给予 Cure、Radiant、Restoration 或复活盟友后，获得 7 秒 PvE / 4 秒 PvP 的 300% 额外基础手雷、近战和职业技能回充，并扣 10 Grenade。来源、原始 HTML 与哈希见 [来源记录](../data/d2-research/2026-10-13/benevolence-source.json)。[官方 2025-07-31 说明](https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025)确认属性重做时降低回充加成并延长一秒；旧攻略中的 400% / 6 秒不用于本定义。

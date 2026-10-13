@@ -1,0 +1,168 @@
+{
+  "1444664836": {
+    "hash": 1444664836,
+    "name": "Phoenix Dive",
+    "lastUpload": 1732395122802,
+    "type": "Subclass Class",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Only usable while airborne."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Performs a dive to the ground in the direction of your movement input. Not inputting a movement direction results in a vertical downward dive."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Applies "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2 to you and allies within 9 meters upon landing."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "2979486801": {
+    "hash": 2979486801,
+    "name": "Phoenix Dive",
+    "lastUpload": 1723480728683,
+    "type": "Subclass Class",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Only usable while airborne."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Performs a dive to the ground in the direction of your movement input. Not inputting a movement direction results in a vertical downward dive."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Applies "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2 to you and allies within 9 meters upon landing."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Grants additional benefits if "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Heat Rises is active:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Grants you "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Restoration x2 for 3 seconds (4.5 with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Solace) instantly upon activation."
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Deals 100 Damage and applies 40 "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Scorch Stacks (60 with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Ashes) to enemies within 5 meters upon landing."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
