@@ -3842,3 +3842,11 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 `cure.json` 新增可调用的 `chorus_d2:cure_application`：`invoke_bundle` 使用事件 `chorus_d2:bestow_cure`、接收者 target 和必填 count 参数 tier（调用者须提供 1–3）。施加器检查接收者已有的共享 Cure 冷却，使用 `apply_status` 授权后开始两次原有治疗脉冲，保留实际给予者。已有自用 `chorus:cure_requested` / Icarus 入口不变，与盟友施加器共享同一定义和一秒冷却。Buff 授予本身不是 Cure 治疗完成，未知治疗回执不产生 Benevolence。
 
 [12 项单测](../common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java)与[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java)验证公式、双模式、重复绑定、给予者刷新、拒绝/未知、Cure 冷却、过量治疗、Restoration / 裂隙、Acrobat 完成阶段和账户生命周期。合成输入位于 `benevolence_test_inputs.json`，不随发布 jar 打包。复活、Assembler 特例、全部来源排除和正式技能/碎片装配仍需继续实现，不能把通用标签或来源绑定当成这些生产者的原生验收。
+
+### Heal Clip 的独立击杀窗口与治疗组合
+
+链接 `heal_clip.json` 与共享 `cure.json`，并通过武器效果绑定提供三个正秒数参数：`window_seconds`、`enhanced_window_seconds`、`receipt_seconds`。前两者是尚未精确确认的普通 / 强化窗口；后者是事实身份记账的保留期，不能当作游戏冷却。示例装配见 [heal_clip_weapon.json](../common/src/test/resources/effects/heal_clip_weapon.json)，其中武器弹量、射速、换弹和弹道均为合成测试输入，不能直接当作正式 D2 原型。
+
+定义要求确认击杀的 death_id 和合格换弹的 reload_completion_id，先按武器实例记账，再更新或消费窗口。普通补弹不触发；整段逐发装填共享 reload，但每次装入拥有独立完成身份。新的击杀可以在后续插入时再次触发，重复旧完成不得消费新窗口。窗口消费在 Cure 调用之前提交，不因共享冷却、授权拒绝或未知世界结果回退。
+
+自身 tier 2 / 范围盟友 tier 1 均调用 `chorus_d2:cure_application`，通过 `chorus_d2:bestow_cure` 与显式 tier 参数复用授权和共享冷却。调用保留武器来源；其实际盟友治疗可继续驱动 Ember of Benevolence 与当前所选技能回充。协议不包含整条因果链次数上限。具体时序政策、来源和未完成项见 [D2 规则集](d2-ruleset.md#heal-clip-的武器击杀窗口与共享-cure)。

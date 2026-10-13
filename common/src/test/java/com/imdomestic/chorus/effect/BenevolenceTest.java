@@ -31,7 +31,10 @@ class BenevolenceTest {
         boolean rejectHeal, unknownHeal, overheal;
         Harness() throws Exception { this(EffectState.Mode.PVE); }
         Harness(EffectState.Mode mode) throws Exception {
-            super(program(), mode); send(SourceChange.bind(input("player", false))); bind("player", "test:benevolence_observer");
+            this(program(), mode);
+        }
+        Harness(CompiledEffects program, EffectState.Mode mode) {
+            super(program, mode); send(SourceChange.bind(input("player", false))); bind("player", "test:benevolence_observer");
             send(SourceChange.bind(fragment("player", "fragment")));
             var old = state().abilities().get("player"); var slots = new HashMap<>(old.slots()); slots.put(D + "grenade", "test:benevolence_grenade"); slots.put(D + "melee", "test:benevolence_melee");
             send(new AbilityChange("player", old, new AbilityLoadout(slots)).signal());

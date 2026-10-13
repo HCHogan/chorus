@@ -1,0 +1,88 @@
+{
+  "3017780555": {
+    "hash": 3017780555,
+    "name": "Heal Clip",
+    "lastUpload": 1767715813450,
+    "type": "Weapon Trait",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishing a reload within 5.3? seconds of a Kill grants "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2 to you and "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x1 to allies within 15 meters."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "4223976499": {
+    "hash": 4223976499,
+    "name": "Heal Clip",
+    "lastUpload": 1693504657319,
+    "type": "Weapon Trait Enhanced",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Finishing a reload within 5.3? seconds of a Kill grants "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2 to you and "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x1 to allies within 15 meters."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "🡅",
+              "classNames": [
+                "enhancedArrow"
+              ]
+            },
+            {
+              "text": " Allowed time before reloading is increased."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

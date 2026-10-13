@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T13:19:22.171762+00:00",
+  "status": "partial",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278",
+    "file": "data/d2-research/2026-10-14/heal-clip-perks.html.gz",
+    "html_sha256": "0b66fb34277d79398f4b063040225b6688f9ef0fef2be6e8b3f562d8055cdb9d",
+    "gzip_sha256": "b47b626ca6a380aded2ea2b51ba1c21e1b7ff647730b43086968b18ba57adf8a",
+    "coordinate_system": "original_google_sheet",
+    "cells": [
+      {
+        "original": "A115",
+        "snapshot": "A114",
+        "text": "Heal Clip",
+        "text_sha256": "16cc03b3a5d9313307e863cd26e97a4d10de3187bd478be8723fe9c25aad2f1b"
+      },
+      {
+        "original": "C115",
+        "snapshot": "C114",
+        "text": "Upon finishing a reload within 5.3? ↑? seconds of a Kill:\nGrants x2 Cure.\nAllies within 15 metres receive x1 Cure.",
+        "text_sha256": "f8af858b891598e03da19f2b3ca81f6d0bd798aadc579847626bfffb15dbfe66"
+      }
+    ]
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/heal-clip-clarity.json",
+    "selected_sha256": "4325cf31f0533f8d6888ada0bad3a14b47c4fc309c2ba31c20a269925bafa65c"
+  },
+  "implementation_reviewed_at": "2026-10-13T13:49:43.035222+00:00",
+  "official": {
+    "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5",
+    "published": "2024-03-05",
+    "excerpt": "Now grants cure x2 to the player (still grants cure x1 to nearby allies).",
+    "excerpt_sha256": "bccb96f070d129ee3f2ce31d9203d427ee3605ad73a5437802cb1abc9f5022ae",
+    "supports": [
+      "Self Cure x2",
+      "Nearby ally Cure x1"
+    ],
+    "does_not_establish": [
+      "exact normal or enhanced activation window",
+      "reload/stow/life boundaries",
+      "radius geometry"
+    ]
+  },
+  "known_values": {
+    "self_cure_tier": 2,
+    "ally_cure_tier": 1,
+    "radius_meters": 15
+  },
+  "required_calibration": [
+    "window_seconds",
+    "enhanced_window_seconds",
+    "receipt_seconds"
+  ],
+  "reference_policy": [
+    "Qualified weapon-credit kills refresh a holder/weapon window; same-session death ids are recorded before live-owner qualification.",
+    "Every matching qualified reload completion is recorded, including completions without a window; a later replay cannot spend a newly opened window within the receipt retention.",
+    "Consume the window before invoking shared Cure for self tier 2 and allied tier 1; preserve real giver and weapon into delayed healing and Benevolence.",
+    "Receipt retention is finite and independently cleans each identity; it does not cap causal depth or valid feedback loops.",
+    "Stow keeps the window; perk detachment and confirmed owner death clear it. Accepted Cure follows its shared lifecycle."
+  ],
+  "synthetic_inputs": {
+    "normal_window_seconds": 5.3,
+    "enhanced_window_seconds": 6.3,
+    "receipt_seconds": 60,
+    "weapon": "common/src/test/resources/effects/heal_clip_weapon.json"
+  },
+  "gaps": [
+    "普通窗口在原表与 Clarity 仍为 5.3?，强化增加量未知；测试 5.3 / 6.3 秒均为显式校准输入，不是已测原作数值。",
+    "刷新不叠次数、按完成时刻的半开窗口、收枪保留、卸下/死亡清除、先消费再尝试治疗、冷却/拒绝不退回窗口均为明确参考政策，原作边界待核对。",
+    "每次实际插入与显式 VERIFIED 零转移均可触发；普通补弹不触发。各具体武器、闪身、异域生产者的原作换弹资格及特殊信用仍需逐条装配校准。",
+    "15 米按执行时脚底球形距离、含端点且无视线，宿主友方实体也可接受；原作目标分类/几何，以及共享 Cure 两次 50ms 脉冲、0.1 生命缩放和跨死亡/重生边界未完整校准。",
+    "六十秒测试身份缓存只覆盖有限重放窗口，不是原作冷却，也不保证任意久远或跨独立会话的事实去重。",
+    "内容仍在验收资源；正式武器目录、完整武器数值、Merciless 等异域装配、子职业/HUD/表现与物理世界跨重启未完成。"
+  ],
+  "validation": {
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java"
+  }
+}

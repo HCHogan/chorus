@@ -2037,3 +2037,15 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 参考定义已组合实际 Acrobat 完成阶段的 Radiant、Restoration 授予、共享 Cure 施加器和 Healing Rift。给予者信用来自本次 `buff_applied` 或治疗回执，不能取共享 Buff 最初来源。Radiant / Restoration 的连续存在不是新授予；持续 Restoration 回血也不反复刷新本碎片。Cure 等待真实治疗回执，包括已接受的过量治疗。裂隙当前按成员进入及胜出的连续治疗回执刷新。官方对 [Speaker’s Sight / Edge of Intent 的满血调整](https://www.bungie.net/7/en/News/article/twid-01-23-25)针对炮台选目标，不能推广为所有 Benevolence 触发必须产生正的有效回血。
 
 本参考仍为 partial：Cure 两次 50ms 脉冲均刷新、裂隙采样与重叠场信用、当前关系/存活查询、卸装后活动收益保留等是明确的 Chorus 政策，尚无原作完整时序实测。复活、Assembler 自触发例外、Well / Lumina / 支援框架及全部排除来源尚未装配；显式 `benevolence_excluded` 标签只是生产者契约，不能据此认定这些金装和模组完成。手雷与近战的 100 秒周期、.5 chunk scalar 和部分职业属性输入是合成验收输入；正式子职业、HUD、其他近战管线和全局生命缩放仍待完成。详见 [实现与缺口](../data/d2-research/2026-10-14/benevolence.json)。
+
+### Heal Clip 的武器击杀窗口与共享 Cure
+
+[原表 Weapon Perks A115/C115](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1662574278) 与固定快照 A114/C114 一致：击杀后在 `5.3? ↑?` 秒内完成换弹，给予自身 Cure x2、15 米内盟友 Cure x1。[Bungie 7.3.5](https://www.bungie.net/7/en/News/article/destiny_2_update_7_3_5) 确认自身 x2 / 盟友 x1；固定提交的 Clarity 普通 / 强化条目同样保留普通时间问号，强化只声明窗口延长。来源、原始 HTML 和校验见 [Heal Clip 研究记录](../data/d2-research/2026-10-14/heal-clip-source.json)。这些材料没有证明精确普通窗口或强化增加量，定义要求显式 `window_seconds` / `enhanced_window_seconds`，测试的 5.3 / 6.3 秒均是验收输入。
+
+`chorus_d2:heal_clip` 监听当前持有者、同武器实例且带 weapon_kill 信用的确认击杀。按 death_id 记账后，在持有者当前存活时刷新一个独立武器窗口。完成时读取窗口，合格 `reload_finished` 消耗窗口，再调用共享 `cure_application` 给自身 tier 2 和 15 米内盟友 tier 1。Cure 的授权、每接收者一秒共享冷却、两次 50ms 脉冲及 PvE / PvP 数值沿用现有定义；延迟治疗保留实际持有者与武器归属。Benevolence 只在收到确认的盟友 Cure 治疗回执后生效，冷却授予或未知治疗结果不产生收益；实际过量治疗资格沿用共享治疗协议。
+
+完成记账先于窗口判断：此前没有击杀窗口的完成事实也被记录，不能稍后重放并消费新击杀。独立 kills / reloads 集合使用 death_id / reload_completion_id，在必填 `receipt_seconds` 内去重并逐项清理；测试六十秒只规定记账保留，不是新触发冷却或循环次数。不能改用整段 reload 令牌：同一次逐发装填中，新击杀可以开放后续插入的窗口。每次正转移的手动插入均视作合格完成；技能换弹沿用生产者明确选择的 TRANSFERRED / VERIFIED 资格，后者可能在零转移时完成。普通 refill_magazine 不具备换弹资格。
+
+当前明确采用窗口按完成时刻、半开到期、连续击杀刷新而不累积次数、收枪保留、来源卸下 / 确认死亡清除、先消耗窗口再尝试治疗、Cure 被冷却或拒绝时不退回窗口的内容政策。半径按执行时脚底球形距离、含 15 米端点、无需视线；盟友包含宿主认定的友方实体。来源并未完整证明这些刷新 / 收枪 / 逐发 / 零转移 / 冷却消耗 / 目标分类边界，需原作校准。Cure 现有的等量脉冲、0.1 生命投影及跨死亡 / 重生边界也仍有原有缺口，不因接上 Heal Clip 自动完成。
+
+定义和合成武器位于测试资源，已覆盖实际容器开火、物理投射物确认击杀、手动及效果换弹、真实玩家与队友生命、Benevolence 当前三类接收账户、重复事实、逐发后续触发和未知结果不重放。完整武器原型、Merciless 等异域生产装配、正式武器目录 / 子职业 / HUD、原作精确参数及物理世界跨重启仍未完成，条目保持 partial。

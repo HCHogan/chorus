@@ -1,0 +1,388 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:heal_clip_window",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "refresh": "reset"
+      }
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:heal_clip_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": "permanent",
+        "attach": "holder",
+        "instanced_by": "weapon",
+        "on_stow": "keep",
+        "refresh": "reset",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "kills",
+            "reloads"
+          ]
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:heal_clip",
+      "parameters": {
+        "window_seconds": "second",
+        "enhanced_window_seconds": "second",
+        "receipt_seconds": "second"
+      },
+      "rules": [
+        {
+          "id": "kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              },
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:weapon_kill"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:heal_clip_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:heal_clip_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:heal_clip_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "kills",
+                "event_reference": "death_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:heal_clip_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:heal_clip_receipts",
+                      "component": "kills",
+                      "event_reference": "death_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "holder"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "holder",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "holder",
+                        "field": "alive"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:grant_buff",
+                      "buff": "chorus_d2:heal_clip_window",
+                      "duration": {
+                        "type": "chorus:enhanced",
+                        "base": {
+                          "type": "chorus:source_parameter",
+                          "name": "window_seconds"
+                        },
+                        "enhanced": {
+                          "type": "chorus:source_parameter",
+                          "name": "enhanced_window_seconds"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "reload",
+          "on": "chorus:reload_finished",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:source_is",
+                "source": "this_weapon"
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:heal_clip_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:heal_clip_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:heal_clip_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "reloads",
+                "event_reference": "reload_completion_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:heal_clip_receipts",
+                  "duration": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:source_parameter",
+                    "name": "receipt_seconds"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:heal_clip_receipts",
+                      "component": "reloads",
+                      "event_reference": "reload_completion_id"
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:has_buff",
+                    "buff": "chorus_d2:heal_clip_window"
+                  },
+                  "then": [
+                    {
+                      "type": "chorus:consume_buff",
+                      "buff": "chorus_d2:heal_clip_window"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "self"
+                      },
+                      "as": "holder"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "holder",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "holder",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:invoke_bundle",
+                          "bundle": "chorus_d2:cure_application",
+                          "event": "chorus_d2:bestow_cure",
+                          "target": "self",
+                          "parameters": {
+                            "tier": {
+                              "type": "chorus:constant",
+                              "value": 2,
+                              "unit": "count"
+                            }
+                          }
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:select_targets",
+                            "center": "self",
+                            "radius": {
+                              "type": "chorus:constant",
+                              "value": 15,
+                              "unit": "meter"
+                            },
+                            "relative_to": "self",
+                            "relation": "allied",
+                            "exclude": [
+                              "self"
+                            ],
+                            "target_anchor": "feet",
+                            "order": "identity",
+                            "line_of_sight": false
+                          },
+                          "as": "allies"
+                        },
+                        {
+                          "for_each": "allies",
+                          "as": "ally",
+                          "do": [
+                            {
+                              "type": "chorus:invoke_bundle",
+                              "bundle": "chorus_d2:cure_application",
+                              "event": "chorus_d2:bestow_cure",
+                              "target": {
+                                "binding": "ally"
+                              },
+                              "parameters": {
+                                "tier": {
+                                  "type": "chorus:constant",
+                                  "value": 1,
+                                  "unit": "count"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "detach",
+          "on": "chorus:source_detached",
+          "if": {
+            "type": "chorus:own_source"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:heal_clip_window"
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:heal_clip_window"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

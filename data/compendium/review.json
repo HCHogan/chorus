@@ -579,7 +579,7 @@
           "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
         }
       ],
-      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence",
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。",
       "acceptance": [
         "每级60/30HP，0.1秒过程",
         "重复激活不延长冷却",
@@ -630,6 +630,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
           "symbol": "actualCureOverhealingQualifiesButOrdinaryHealingAndSelfGrantsDoNot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "physicalShotKillReloadAndAlliedCureComposeWithBenevolenceAtTheRadiusBoundary"
         }
       ],
       "gaps": [
@@ -13348,7 +13353,7 @@
           "text_sha256": "b745b47e7959f442b8939dd7a74867bbbeaf27a0cf394626b85fee7bdb380d8a"
         }
       ],
-      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。",
+      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。 Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。",
       "acceptance": [
         "共享状态保留首来源而本次给予者获益；拒绝、未知、自身、非盟友与显式排除来源不触发。",
         "属性倍率先作用于基础，之后加300%基础回充；三类当前接收账户、额外基础家族与chunk gains相互独立。",
@@ -13476,6 +13481,157 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
           "symbol": "unknownNativeCureReceiptKeepsTheActualHealWithoutInventingFragmentCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "physicalShotKillReloadAndAlliedCureComposeWithBenevolenceAtTheRadiusBoundary"
+        }
+      ]
+    },
+    {
+      "id": "weapon_perks/heal_clip",
+      "name": "Heal Clip",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Weapon Perks",
+          "cell": "A114",
+          "text_sha256": "16cc03b3a5d9313307e863cd26e97a4d10de3187bd478be8723fe9c25aad2f1b"
+        },
+        {
+          "sheet": "Weapon Perks",
+          "cell": "C114",
+          "text_sha256": "f8af858b891598e03da19f2b3ca81f6d0bd798aadc579847626bfffb15dbfe66"
+        }
+      ],
+      "scope": "同武器确认击杀开放显式普通/强化窗口；合格换弹消费窗口，自身Cure x2与15米盟友Cure x1复用共享冷却和真实治疗，再组合Benevolence三类当前回充。",
+      "acceptance": [
+        "实际容器开火、物理投射物确认击杀、实际手动/逐发/显式技能换弹及原版生命变化；普通补弹不触发。",
+        "独立武器、完成时刻的半开窗口、普通/强化显式参数、重复死亡和完成事实、无窗口旧完成重放、新击杀在同段后续插入再次触发。",
+        "共享Cure授权与冷却、实际给予者和武器归属、PvE/PvP金额、盟友15米端点/超距/敌人、自身收益与Benevolence资格分离。",
+        "确认Cure后改变三类当前接收账户；领域检查点、收枪/卸下/死亡和未知实际治疗不重放已提交换弹。"
+      ],
+      "gaps": [
+        "普通窗口在原表与 Clarity 仍为 5.3?，强化增加量未知；测试 5.3 / 6.3 秒均为显式校准输入，不是已测原作数值。",
+        "刷新不叠次数、按完成时刻的半开窗口、收枪保留、卸下/死亡清除、先消费再尝试治疗、冷却/拒绝不退回窗口均为明确参考政策，原作边界待核对。",
+        "每次实际插入与显式 VERIFIED 零转移均可触发；普通补弹不触发。各具体武器、闪身、异域生产者的原作换弹资格及特殊信用仍需逐条装配校准。",
+        "15 米按执行时脚底球形距离、含端点且无视线，宿主友方实体也可接受；原作目标分类/几何，以及共享 Cure 两次 50ms 脉冲、0.1 生命缩放和跨死亡/重生边界未完整校准。",
+        "六十秒测试身份缓存只覆盖有限重放窗口，不是原作冷却，也不保证任意久远或跨独立会话的事实去重。",
+        "内容仍在验收资源；正式武器目录、完整武器数值、Merciless 等异域装配、子职业/HUD/表现与物理世界跨重启未完成。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/heal_clip.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/heal_clip_weapon.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/cure.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_benevolence.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/heal-clip-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "confirmedWeaponShotManualReloadAndSharedCureTriggerTheActualGiversBenevolence"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "modeChangesSharedCureAmountsAndSelfOnlyDoesNotTriggerBenevolence"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "weaponReloadHealingAcceleratesAllThreeCurrentReceivingAccountsOnlyAfterConfirmedCure"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "eachWeaponRequiresItsOwnKillAndOnlyAConfirmedLethalWeaponCreditOpensTheWindow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "ordinaryRefillAndRejectedCompletionPreserveTheWindowWithoutHealing"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "completionTimeAndHalfOpenExpiryApplyToExplicitNormalAndEnhancedWindows"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "duplicateDeathsCannotReopenAConsumedWindowAndOldCompletionsCannotConsumeANewKill"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "evenAnEarlierCompletionWithoutAKillIsRecordedBeforeLaterWindowQualification"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "laterInsertionInTheSameReloadCanUseANewKillAfterTheSharedCureCooldown"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "otherCureProducerSharesCooldownWhileAcceptedWindowIsConsumedOnce"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "deniedAllyCureDoesNotInventBenevolenceAndUnknownHealStopsWithoutReplayingReload"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "stowKeepsTheWindowButDetachAndDeathRemoveItAndCheckpointPreservesPendingReload"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealClipTest.java",
+          "symbol": "everyUnknownWindowAndReceiptLifetimeRequiresExplicitCalibration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "physicalShotKillReloadAndAlliedCureComposeWithBenevolenceAtTheRadiusBoundary"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "ordinaryRefillAfterAnActualKillCannotImpersonateACompletedReload"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "explicitlyQualifiedZeroTransferReloadUsesTheSameCureAndWeaponWindow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "unknownNativeCureKeepsCommittedAmmoAndHealthWithoutReplayingOrInventingCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealClipGameTest.java",
+          "symbol": "incrementalReloadConsumesOneWindowAndLaterInsertionsDoNotRepeatThatKill"
         }
       ]
     }

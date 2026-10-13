@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：Heal Clip 的真实击杀、换弹与盟友 Cure
+
+新增 `heal_clip.json` 参考定义，以同持有者 / 武器实例的确认 weapon_kill 开放独立窗口。death_id 与 reload_completion_id 分别有限记账；没有窗口的完成也会记录，因此旧完成重放不会消费后来新获得的窗口。完成后先消费窗口，再给自己调用共享 Cure x2，并查询 15 米盟友调用 x1。逐发装填每次正转移使用独立完成身份，新击杀可在同段后续插入再次触发；普通补弹不触发。显式 VERIFIED 的零转移资格沿用换弹生产者政策，未新增 Heal Clip 专用 Java 处理器或循环上限。
+
+13 项 HealClipTest 验证实际开火 / 命中回执与手动装填、来源和武器隔离、普通 / 强化完成窗口、精确到期、PvE / PvP、旧击杀和完成重放、共享 Cure 冷却 / 授权、逐发后续触发、领域检查点及卸下 / 死亡 / 未知结果。确认盟友 Cure 后，当前手雷、Solar melee progress、职业三个接收账户才获得 Benevolence 的额外基础回充。5 项共享世界场景使用真实玩家容器、物理投射物确认死亡、真实换弹和服务器 tick，验证自身 / 队友 HP、15 米端点 / 超距 / 敌人、普通补弹、零转移资格、后续插入不重复同次击杀及未知原版治疗保留已写入的 HP / 弹药而不重放。
+
+开发期修正了测试装配对部分内容提前单独编译、装备参数未声明完整契约的错误；修正后 12 项初始内容单测及 5 项 Fabric 定向场景通过（`/tmp/chorus-heal-clip-targeted.log`，20 秒）。补充三账户组合测试后，完整 `/tmp/chorus-heal-clip-final-gate.log` BUILD SUCCESSFUL（2 分 55 秒）：2071 项 JUnit、Fabric 1173 项、NeoForge 1188 项及两端发布 jar 全部通过，共享世界场景 1172 项。`build/reports/heal-clip/audit.json` 核对发布主类字节、无测试内容泄漏、两端与 common 的新增夹具字节、Gradle CRLF、来源归档哈希及 125 条审阅；10 项 Compendium 工具测试和报告一致性通过。没有客户端协议 / UI 变化，本批未重跑图形客户端。
+
+来源仍将普通时间写作 5.3?，强化增加量未知，所以定义强制显式普通 / 强化窗口；测试 5.3 / 6.3 秒不是原作测量。收枪保留、完成时刻半开窗口、重复击杀刷新、先消费再治疗、脚底球形与非玩家友方，以及 Cure 原有脉冲 / 生命缩放 / 生命代次边界均保持明确政策或缺口。正式武器目录、完整参数、Merciless 等异域装配、子职业 / HUD 与物理世界持久化未完成。Heal Clip 新增 partial，总计 123 partial / 2 not_applicable / 0 verified；Cure 与 Benevolence 更新组合证据。详见 [Heal Clip 规则集](d2-ruleset.md#heal-clip-的武器击杀窗口与共享-cure)。
+
 ### 2026-10-14：逐次装填与多武器换弹的完成身份
 
 为后续 Heal Clip 的击杀窗口和重放边界补齐 `reload_finished.references.reload_completion_id`。手动装填按持有者、武器、请求令牌、该步开始时刻与步数构造，整段 `reload` 令牌保持不变；技能换弹按原操作身份和被装填武器区分，包括显式 VERIFIED 的零转移完成。身份只在合格完成事实上发布，不从补弹、开始或取消推断完成。纯计算访问器不改变 Plan / Check 的持久化字段，也不在引擎加入触发额度或循环限制。
