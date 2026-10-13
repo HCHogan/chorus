@@ -1,0 +1,368 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "test:benevolence_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": [],
+      "effects": {
+        "recharge": {
+          "bundle": "test:benevolence_grenade_cycle"
+        }
+      }
+    },
+    {
+      "id": "test:benevolence_melee",
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "chorus_d2:solar_melee_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:solar_melee_progress",
+      "on_use": [],
+      "effects": {
+        "recharge": {
+          "bundle": "chorus_d2:solar_melee_cycle",
+          "parameters": {
+            "base_rate": {
+              "value": 0.01,
+              "unit": "charge_fraction_per_second"
+            },
+            "chunk_scalar": {
+              "value": 0.5,
+              "unit": "multiplier"
+            },
+            "intrinsic_extra": {
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:benevolence_inputs",
+      "rules": [
+        {
+          "id": "radiant_grant_buff",
+          "on": "test:radiant_grant_buff",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:radiant",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "radiant_apply_status",
+          "on": "test:radiant_apply_status",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:radiant",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "restoration_grant_buff",
+          "on": "test:restoration_grant_buff",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:restoration",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "restoration_apply_status",
+          "on": "test:restoration_apply_status",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:restoration",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "ordinary_heal",
+          "on": "test:ordinary_heal",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "clear_restoration",
+          "on": "test:clear_restoration",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:restoration",
+              "target": "victim"
+            }
+          ]
+        },
+        {
+          "id": "energy",
+          "on": "test:energy_gain",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:grenade",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            },
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:melee",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            },
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:class",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 0.1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        },
+        {
+          "id": "cure_bestow",
+          "on": "test:cure_bestow",
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "do": [
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:cure_application",
+              "event": "chorus_d2:bestow_cure",
+              "target": "victim",
+              "parameters": {
+                "tier": {
+                  "type": "chorus:constant",
+                  "value": 1,
+                  "unit": "count"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:benevolence_stats",
+      "parameters": {
+        "grenade": "stat_point",
+        "melee": "stat_point",
+        "class_delta": "delta"
+      },
+      "modifiers": [
+        {
+          "id": "grenade",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "test:grenade",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "grenade"
+          },
+          "reference": "Synthetic stat input",
+          "confidence": "assumed"
+        },
+        {
+          "id": "melee",
+          "profile": "chorus_d2:melee_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "test:melee",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "melee"
+          },
+          "reference": "Synthetic stat input",
+          "confidence": "assumed"
+        },
+        {
+          "id": "class",
+          "profile": "chorus_d2:class_regeneration",
+          "stage": "stat",
+          "group": "stat",
+          "op": "multiply",
+          "stacking_key": "test:class",
+          "value": {
+            "type": "chorus:source_parameter",
+            "name": "class_delta"
+          },
+          "reference": "Synthetic class rate input",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:benevolence_grenade_cycle",
+      "includes": [
+        "chorus_d2:grenade_energy_scaling"
+      ],
+      "modifiers": [
+        {
+          "id": "base_rate",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "base_rate",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.01,
+            "unit": "charge_fraction_per_second"
+          },
+          "reference": "Synthetic grenade 100-second baseline and .5 recipient scalar; not an original ability.",
+          "confidence": "assumed"
+        },
+        {
+          "id": "scalar",
+          "profile": "chorus_d2:grenade_recipient_scalar",
+          "stage": "scalar",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.5,
+            "unit": "multiplier"
+          },
+          "reference": "Synthetic grenade 100-second baseline and .5 recipient scalar; not an original ability.",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:benevolence_observer",
+      "rules": [
+        {
+          "id": "confirmed",
+          "on": "chorus:buff_applied",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "victim"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "buff_definition",
+                "is": "chorus_d2:benevolence_regeneration"
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:heal",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "damage"
+              },
+              "tags": [
+                "test:benevolence_credit"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:benevolence_independent_regeneration",
+      "modifiers": [
+        {
+          "id": "extra",
+          "profile": "chorus_d2:class_regeneration",
+          "stage": "additional_base",
+          "group": "additional_base",
+          "op": "base_percent",
+          "percent_of": "baseline",
+          "stacking_key": "test:independent_base",
+          "value": {
+            "type": "chorus:constant",
+            "value": 1.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic independent additional-base family; not a claim that Solar and Stasis fragments can be equipped together.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

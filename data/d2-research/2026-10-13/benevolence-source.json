@@ -40,7 +40,7 @@
       "finding": "Healing turrets from Speaker’s Sight and Edge of Intent stop selecting full-health allies. This is a producer target-selection change; it does not establish a universal requirement for positive effective healing on every Benevolence trigger."
     }
   ],
-  "status": "researched; fragment not yet implemented",
+  "status": "partial",
   "implementation_requirements": [
     "300% additional base regeneration for grenade, melee and class abilities; apply independently from the stat multiplier.",
     "7 seconds PvE, 4 seconds PvP, and -10 Grenade stat.",
@@ -48,5 +48,6 @@
     "Check ally versus self explicitly and preserve producer-specific exceptions, including Assembler self-trigger cases and excluded healing sources.",
     "Do not infer a revive from generic healing or invent a native revive signal.",
     "Audit continuous field refresh, Cure pulses, same-source refresh and detach/death behavior against available evidence. No new global loop limit."
-  ]
+  ],
+  "implementation": "data/d2-research/2026-10-14/benevolence.json"
 }

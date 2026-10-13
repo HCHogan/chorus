@@ -63,6 +63,9 @@
               },
               "chorus_d2:echo_of_domineering": {
                 "kind": "max"
+              },
+              "chorus_d2:ember_of_benevolence": {
+                "kind": "max"
               }
             }
           }

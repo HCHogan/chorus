@@ -579,7 +579,7 @@
           "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
         }
       ],
-      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复",
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence",
       "acceptance": [
         "每级60/30HP，0.1秒过程",
         "重复激活不延长冷却",
@@ -620,6 +620,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/IcarusCureGameTest.java",
           "symbol": "unknownNativeCureKeepsAppliedHealthAndConsumedProgressWithoutReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "alliedCureUsesTheSharedCooldownAndPreservesItsActualGiverAcrossDelayedPulses"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "actualCureOverhealingQualifiesButOrdinaryHealingAndSelfGrantsDoNot"
         }
       ],
       "gaps": [
@@ -13312,6 +13322,160 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
           "symbol": "unknownCompletionAuthorizationRetainsPaymentAndNativeVelocityWithoutReplay"
+        }
+      ]
+    },
+    {
+      "id": "solar/benevolence",
+      "name": "Ember of Benevolence",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B14",
+          "text_sha256": "7bee575a2591fa73910e02c10ea93f7858edb6a53d327e60c5b69e03b4880ef3"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D14",
+          "text_sha256": "fb323317ccad1c38358da4a32d3fb0f6a5b6c3fcfad4a4569e020741aefbe674"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N14",
+          "text_sha256": "b745b47e7959f442b8939dd7a74867bbbeaf27a0cf394626b85fee7bdb380d8a"
+        }
+      ],
+      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。",
+      "acceptance": [
+        "共享状态保留首来源而本次给予者获益；拒绝、未知、自身、非盟友与显式排除来源不触发。",
+        "属性倍率先作用于基础，之后加300%基础回充；三类当前接收账户、额外基础家族与chunk gains相互独立。",
+        "实际Cure/过量治疗、共享冷却、Restoration持续回血不重复触发、裂隙连续刷新，以及真实Acrobat完成阶段收益。",
+        "重复绑定与重复回执、领域检查点、卸装/清槽/死亡边界及未知世界结果不重放。"
+      ],
+      "gaps": [
+        "复活没有原生生产者；Well、Lumina、Assembler、Edge of Intent、Precious Scars 与支援框架尚未全部装配，Assembler 自触发例外仍未实现。",
+        "排除来源由显式 benevolence_excluded 来源标签表示，尚未连接所有被排除的护甲模组/套装/异域生产者；不能把标签夹具算作这些装备完成。",
+        "当前在实际施加后查询存活与盟友关系；接收者不限定玩家，是 Chorus 的友方实体政策。原作刷新、换装、死亡、持续场与重叠场信用仍需独立校准。",
+        "Cure 的两次等量 50ms 脉冲各可刷新，裂隙由进入确认与胜出的连续治疗回执刷新，Restoration 持续回血不重复触发；这些精确时序与重叠治疗来源政策尚未原作实测。",
+        "已接共享手雷、Solar melee progress 与职业回充 Profile；其余近战专用管线、正式子职业/碎片装配、HUD、全球生命缩放和物理世界跨重启未完成。",
+        "测试手雷/近战使用 100 秒基础周期与 .5 chunk scalar，职业属性倍率为合成输入；Acrobat 的 .2 秒完成、运动和伤害换算沿用其明确的测试校准。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/ember_of_benevolence.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/cure.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/grenade_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_melee_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/class_regeneration.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/benevolence_test_inputs.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/benevolence.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "sharedProfilesAddThreeTimesThePreStatBaselineForAllThreeSelectedReceivingAccounts"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "bothModesRefreshRatherThanStackAndExpirySplitsPassiveRecoveryAtTheExactBoundary"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "duplicatesDoNotRepeatTheFragmentPenaltyOrOneConfirmedBenefitReward"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "currentApplicantReceivesRefreshCreditEvenWhenRadiantKeepsTheOriginalGiver"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "selfEnemyUnknownRelationDeadMissingAndExplicitlyExcludedProducersCannotTrigger"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "cureNeedsAnAcceptedHealAndOverhealRemainsDistinctFromRejectedOrOrdinaryHealing"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "restorationGrantTriggersOnceWhileItsContinuousHealingDoesNotRefreshTheFragment"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "realAcrobatBenefitsReachTheFragmentOnlyAfterTheCompletionPhase"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "checkpointDetachDeselectionAndDeathRespectTheExistingBuffAndAccountLifetimes"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "unknownAuthorizationOrHealingStopsWithoutInventingRegeneration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "independentBaseFamiliesAddWhileChunkEnergyKeepsItsOwnStatAndRecipientScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+          "symbol": "alliedCureUsesTheSharedCooldownAndPreservesItsActualGiverAcrossDelayedPulses"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "actualAcrobatCompletionAcceleratesAllThreeSelectedReceivingAccounts"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "actualCureOverhealingQualifiesButOrdinaryHealingAndSelfGrantsDoNot"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "sharedRestorationKeepsItsFirstOriginWhileEachActualGiverGetsCredit"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "actualHealingRiftRefreshesFromItsConfirmedContinuousHealing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+          "symbol": "unknownNativeCureReceiptKeepsTheActualHealWithoutInventingFragmentCredit"
         }
       ]
     }

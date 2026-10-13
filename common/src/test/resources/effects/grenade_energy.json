@@ -53,6 +53,21 @@
             "name": "stat",
             "reduction": "max"
           }
+        },
+        {
+          "type": "chorus:apply",
+          "id": "additional_base",
+          "operation": "base_percent",
+          "percent_of": "base_rate",
+          "group": {
+            "name": "additional_base",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:benevolence_regeneration": {
+                "kind": "max"
+              }
+            }
+          }
         }
       ]
     },

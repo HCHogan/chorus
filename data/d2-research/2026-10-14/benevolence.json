@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T13:08:06.661174+00:00",
+  "status": "partial",
+  "source_record": "data/d2-research/2026-10-13/benevolence-source.json",
+  "known_values": {
+    "additional_base_regeneration": 3,
+    "duration_pve_pvp_seconds": [
+      7,
+      4
+    ],
+    "grenade_stat_penalty": -10
+  },
+  "implementation": [
+    "buff_applied for Radiant, Restoration and Healing Rift presence attributes a benefit to the current applicant, even when the shared state retains its first origin.",
+    "Confirmed heal receipts carrying Cure or Healing Rift tags can trigger; positive offered overhealing qualifies, while rejected/zero/ordinary healing and ongoing Restoration healing do not. The cooldown grant is not itself proof of a Cure heal.",
+    "cure_application / bestow_cure accepts an explicit 1..3 tier, shares the existing one-second per-recipient cooldown, authorizes the recipient and preserves the applicant through both delayed pulses. Existing self-Cure and Icarus paths retain their API and the same cooldown definition.",
+    "A currently alive giver, a currently alive other recipient, and an observed allied relation are required. Self is excluded in this reference; Assembler self-benefits remain a documented gap. An explicit benevolence_excluded origin tag vetoes otherwise matching producer facts.",
+    "The buff resets to 7 seconds PvE or 4 PvP and contributes +3 times the pre-stat baseline to all three selected receiving accounts. Solar melee uses recharge_resource rather than the spendable use counter. Duplicate fragment bindings share receipt credit and a single -10 Grenade family.",
+    "The fragment changes passive regeneration only. Chunk gains retain their independent stat and recipient scalar. Independent additional-base families sum; equal Benevolence modifiers use a max family.",
+    "Accepted buff lifetime survives fragment detachment, selection changes affect receiving accounts immediately, and a confirmed owner death removes the regeneration buff. Domain checkpoints preserve deadlines and receipt keys.",
+    "Duplicate copies of a receipt are suppressed for 60 seconds with independent grant/heal sets and finite cleanup; this is receipt accounting, not a causal-chain or feedback-loop limit."
+  ],
+  "gaps": [
+    "复活没有原生生产者；Well、Lumina、Assembler、Edge of Intent、Precious Scars 与支援框架尚未全部装配，Assembler 自触发例外仍未实现。",
+    "排除来源由显式 benevolence_excluded 来源标签表示，尚未连接所有被排除的护甲模组/套装/异域生产者；不能把标签夹具算作这些装备完成。",
+    "当前在实际施加后查询存活与盟友关系；接收者不限定玩家，是 Chorus 的友方实体政策。原作刷新、换装、死亡、持续场与重叠场信用仍需独立校准。",
+    "Cure 的两次等量 50ms 脉冲各可刷新，裂隙由进入确认与胜出的连续治疗回执刷新，Restoration 持续回血不重复触发；这些精确时序与重叠治疗来源政策尚未原作实测。",
+    "已接共享手雷、Solar melee progress 与职业回充 Profile；其余近战专用管线、正式子职业/碎片装配、HUD、全球生命缩放和物理世界跨重启未完成。",
+    "测试手雷/近战使用 100 秒基础周期与 .5 chunk scalar，职业属性倍率为合成输入；Acrobat 的 .2 秒完成、运动和伤害换算沿用其明确的测试校准。"
+  ],
+  "validation": {
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java",
+    "synthetic_inputs": "common/src/test/resources/effects/benevolence_test_inputs.json"
+  }
+}

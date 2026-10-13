@@ -25,6 +25,47 @@
           }
         }}
       ]}
-    ]}
+    ]},
+    {
+      "id": "chorus_d2:cure_application",
+      "parameters": {
+        "tier": "count"
+      },
+      "rules": [
+        {
+          "id": "bestow",
+          "on": "chorus_d2:bestow_cure",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:source_is",
+                "source": "owner"
+              },
+              {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:cure_cooldown",
+                  "target": "victim",
+                  "match": "any"
+                }
+              }
+            ]
+          },
+          "do": [
+            {
+              "type": "chorus:apply_status",
+              "buff": "chorus_d2:cure_cooldown",
+              "target": "victim",
+              "tier": {
+                "type": "chorus:source_parameter",
+                "name": "tier"
+              }
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

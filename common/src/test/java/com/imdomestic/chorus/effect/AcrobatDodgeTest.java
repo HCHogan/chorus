@@ -32,7 +32,7 @@ class AcrobatDodgeTest {
         parts.add(EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE, calibration).getOrThrow());
         return CompiledEffects.link(parts);
     }
-    static final class Harness {
+    static class Harness {
         final CompiledEffects p; EffectSession session; int cast, reads, failureAtImpulse;
         boolean alive = true, present = true, queryMissing, unknownStatus, unknownDamage;
         String life = "life-1"; double x;
@@ -45,7 +45,10 @@ class AcrobatDodgeTest {
         Harness() throws Exception { this(true, EffectState.Mode.PVE); }
         Harness(boolean calibrated, EffectState.Mode mode) throws Exception { this(calibrated, mode, false); }
         Harness(boolean calibrated, EffectState.Mode mode, boolean transferDamage) throws Exception {
-            p = program(calibrated, transferDamage); session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(mode), this::world);
+            this(program(calibrated, transferDamage), mode);
+        }
+        Harness(CompiledEffects program, EffectState.Mode mode) {
+            p = program; session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(mode), this::world);
             choose("class", "acrobat_dodge"); choose("air_move", "ascension"); bind("player", "test:acrobat_inputs");
         }
         WorldPosition position() { return new WorldPosition("world", x, 40, 0); }

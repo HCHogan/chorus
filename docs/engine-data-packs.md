@@ -3828,3 +3828,15 @@ pierces 限制整个路径中第一次之后的额外实体接触次数，不在
 `chorus_d2:unflinching_harmonic` 用 `selected_ability_tag` 查询当前持有者 `chorus_d2:super` 槽的五种元素标签，仅向所选超能的元素件数 Profile 贡献一件。空超能槽、他人的超能、其它槽的匹配技能和来源标签不能赋予资格；没有动能超能变体。固定属性与匹配 Harmonic 先合并件数再查档位，这是已明确标注、仍待原作混装实测的 Chorus 政策。改变超能选择影响下一次查询，不重启未变化的武器来源。`harmonic_selection.json` 提供不可施放的超能/手雷元数据夹具，不声明虚假的常驻效果，也不代表完整超能或棱镜目录。
 
 该模组是被动数值来源，无 Armor Charge 成本或安静瞄准等待，不生成额外受击动作。真实伤害和来源信用仍沿用同一个 receiver 与角度回执，未知写入不会因多个模组而重放。参考胸甲的 energy 预算为 10，三个插槽的 none/固定属性/Harmonic 分别占 0/3/2；费用不随当前超能或收益是否生效变化。每个非 none 选项要求 `chorus_d2:unlock/unflinching`；七种 `<element>_artifact` 选项各占 1，额外要求 `chorus_d2:artifact/unflinching_<element>`，调用与普通版相同的抗抖 Bundle。none 不需要解锁，只有别的属性授权不能装上当前优惠选项。资格撤销使非法装配停用、保留物品，不自动改选或改价；完整护甲目录、账号/神器进度生产者与 UI 尚未接入。研究与原作边界见 [规则集](d2-ruleset.md#unflinching-aim-护甲抗抖)。
+
+## Benevolence 与盟友增益组合
+
+`ember_of_benevolence.json` 的来源 Bundle 为 `chorus_d2:ember_of_benevolence`。监听 `buff_applied` 的 Radiant / Restoration / Healing Rift presence，以及 `heal` 的 Cure / Healing Rift 标签。只接受本来源持有者作为给予者、不同于自身的接收者、双方当前存在且存活和已观察为 allied 的关系。`event_source_tag: chorus_d2:benevolence_excluded` 可排除特定生产者；不把任意普通治疗当成 Cure，不从治疗推断复活。
+
+成功后授予共享 `benevolence_regeneration`，按当前模式重置为 7 / 4 秒；死亡事实移除收益。卸下碎片不撤销已经接受的有限收益；之后的新触发需要活动来源。`class_regeneration`、`grenade_regeneration`、`solar_melee_regeneration` 在属性阶段后使用 `base_percent` 加上三倍基准，`percent_of` 分别引用 baseline、base_rate、baseline。条件 `selected_ability_event_resource` 只修饰当前槽位的接收账户，Solar 近战通过 recharge_resource 匹配 progress，而非 uses；换槽不会同时回充所有保留账户。
+
+同族贡献 MAX、不同额外基础族 SUM；-10 Grenade 使用独立的碎片族，避免重复来源多扣属性。授予与治疗回执分别用 `buff_application_id` / `heal_id` 去重，60 秒后清理集合项；两个真实 Cure 脉冲有不同 heal_id，允许分别刷新。这是已提交回执的记账，不限制因果链或合法循环。
+
+`cure.json` 新增可调用的 `chorus_d2:cure_application`：`invoke_bundle` 使用事件 `chorus_d2:bestow_cure`、接收者 target 和必填 count 参数 tier（调用者须提供 1–3）。施加器检查接收者已有的共享 Cure 冷却，使用 `apply_status` 授权后开始两次原有治疗脉冲，保留实际给予者。已有自用 `chorus:cure_requested` / Icarus 入口不变，与盟友施加器共享同一定义和一秒冷却。Buff 授予本身不是 Cure 治疗完成，未知治疗回执不产生 Benevolence。
+
+[12 项单测](../common/src/test/java/com/imdomestic/chorus/effect/BenevolenceTest.java)与[世界场景](../common/src/gametest/java/com/imdomestic/chorus/test/BenevolenceGameTest.java)验证公式、双模式、重复绑定、给予者刷新、拒绝/未知、Cure 冷却、过量治疗、Restoration / 裂隙、Acrobat 完成阶段和账户生命周期。合成输入位于 `benevolence_test_inputs.json`，不随发布 jar 打包。复活、Assembler 特例、全部来源排除和正式技能/碎片装配仍需继续实现，不能把通用标签或来源绑定当成这些生产者的原生验收。

@@ -35,6 +35,9 @@
             "families": {
               "chorus_d2:winters_shroud_regeneration": {
                 "kind": "max"
+              },
+              "chorus_d2:benevolence_regeneration": {
+                "kind": "max"
               }
             }
           }

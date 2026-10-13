@@ -1,0 +1,561 @@
+{
+  "version": "compendium-2026-10-05",
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:benevolence_regeneration",
+        "version": "compendium-2026-10-05",
+        "duration": 7,
+        "refresh": "reset"
+      },
+      "bundle": "chorus_d2:benevolence_regeneration"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:benevolence_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 60,
+        "refresh": "reset",
+        "components": {
+          "numbers": {
+            "seen": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "grants",
+            "heals"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:benevolence_receipts"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:ember_of_benevolence",
+      "rules": [
+        {
+          "id": "bestowed",
+          "on": "chorus:buff_applied",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:target_is",
+                    "left": "self",
+                    "right": "event_actor"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:target_is",
+                      "left": "self",
+                      "right": "victim"
+                    }
+                  },
+                  {
+                    "type": "chorus:event_flag",
+                    "name": "applied"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:benevolence_excluded"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_reference",
+                    "name": "buff_definition",
+                    "is": "chorus_d2:radiant"
+                  },
+                  {
+                    "type": "chorus:event_reference",
+                    "name": "buff_definition",
+                    "is": "chorus_d2:restoration"
+                  },
+                  {
+                    "type": "chorus:event_reference",
+                    "name": "buff_definition",
+                    "is": "chorus_d2:healing_rift_presence"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:benevolence_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:benevolence_receipts"
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:benevolence_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "grants",
+                "event_reference": "buff_application_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:benevolence_receipts",
+                  "duration": {
+                    "type": "chorus:constant",
+                    "value": 60,
+                    "unit": "second"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 60,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:benevolence_receipts",
+                      "component": "grants",
+                      "event_reference": "buff_application_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "giver"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "giver",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "giver",
+                        "field": "alive"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "victim"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:inspect_relation",
+                            "left": "self",
+                            "right": "victim"
+                          },
+                          "as": "relation"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "relation",
+                            "field": "allied"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:benevolence_regeneration",
+                              "duration": {
+                                "type": "chorus:pvp",
+                                "pve": {
+                                  "type": "chorus:constant",
+                                  "value": 7,
+                                  "unit": "second"
+                                },
+                                "pvp": {
+                                  "type": "chorus:constant",
+                                  "value": 4,
+                                  "unit": "second"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "healed",
+          "on": "chorus:heal",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:target_is",
+                    "left": "self",
+                    "right": "event_actor"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:target_is",
+                      "left": "self",
+                      "right": "victim"
+                    }
+                  },
+                  {
+                    "type": "chorus:event_flag",
+                    "name": "applied"
+                  },
+                  {
+                    "type": "chorus:not",
+                    "of": {
+                      "type": "chorus:event_source_tag",
+                      "tag": "chorus_d2:benevolence_excluded"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:cure"
+                  },
+                  {
+                    "type": "chorus:event_tag",
+                    "tag": "chorus_d2:healing_rift"
+                  }
+                ]
+              }
+            ]
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:not",
+                "of": {
+                  "type": "chorus:has_buff",
+                  "buff": "chorus_d2:benevolence_receipts"
+                }
+              },
+              "then": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:benevolence_receipts"
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:update_component",
+                "buff": "chorus_d2:benevolence_receipts",
+                "component": "seen",
+                "op": "set",
+                "value": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                },
+                "once_set": "heals",
+                "event_reference": "heal_id"
+              },
+              "as": "receipt"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "receipt",
+                "field": "applied"
+              },
+              "then": [
+                {
+                  "type": "chorus:refresh_buff",
+                  "buff": "chorus_d2:benevolence_receipts",
+                  "duration": {
+                    "type": "chorus:constant",
+                    "value": 60,
+                    "unit": "second"
+                  }
+                },
+                {
+                  "after": {
+                    "type": "chorus:constant",
+                    "value": 60,
+                    "unit": "second"
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "type": "chorus:forget_set_entry",
+                      "buff": "chorus_d2:benevolence_receipts",
+                      "component": "heals",
+                      "event_reference": "heal_id"
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": "self"
+                  },
+                  "as": "giver"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "giver",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "giver",
+                        "field": "alive"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:inspect_entity",
+                        "target": "victim"
+                      },
+                      "as": "recipient"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "recipient",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:inspect_relation",
+                            "left": "self",
+                            "right": "victim"
+                          },
+                          "as": "relation"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "relation",
+                            "field": "allied"
+                          },
+                          "then": [
+                            {
+                              "type": "chorus:grant_buff",
+                              "buff": "chorus_d2:benevolence_regeneration",
+                              "duration": {
+                                "type": "chorus:pvp",
+                                "pve": {
+                                  "type": "chorus:constant",
+                                  "value": 7,
+                                  "unit": "second"
+                                },
+                                "pvp": {
+                                  "type": "chorus:constant",
+                                  "value": 4,
+                                  "unit": "second"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "grenade_penalty",
+          "profile": "chorus_d2:grenade_stat",
+          "stage": "bonuses",
+          "group": "bonuses",
+          "op": "add",
+          "stacking_key": "chorus_d2:ember_of_benevolence",
+          "value": {
+            "type": "chorus:constant",
+            "value": -10,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium original Solar N17: -10 Grenade. Duplicate bindings of the same fragment do not repeat the penalty.",
+          "confidence": "measured"
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:benevolence_regeneration",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "grenade_recovery",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "additional_base",
+          "group": "additional_base",
+          "op": "base_percent",
+          "percent_of": "base_rate",
+          "stacking_key": "chorus_d2:benevolence_regeneration",
+          "if": {
+            "type": "chorus:selected_ability_event_resource",
+            "slot": "chorus_d2:grenade"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 3,
+            "unit": "delta"
+          },
+          "reference": "Compendium original Solar D17: 300% additional base grenade, melee and class regeneration; retain the pre-stat baseline. Solar melee progress is the selected receiving account.",
+          "confidence": "measured"
+        },
+        {
+          "id": "melee_recovery",
+          "profile": "chorus_d2:solar_melee_regeneration",
+          "stage": "additional_base",
+          "group": "additional_base",
+          "op": "base_percent",
+          "percent_of": "baseline",
+          "stacking_key": "chorus_d2:benevolence_regeneration",
+          "if": {
+            "type": "chorus:selected_ability_event_resource",
+            "slot": "chorus_d2:melee"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 3,
+            "unit": "delta"
+          },
+          "reference": "Compendium original Solar D17: 300% additional base grenade, melee and class regeneration; retain the pre-stat baseline. Solar melee progress is the selected receiving account.",
+          "confidence": "measured"
+        },
+        {
+          "id": "class_recovery",
+          "profile": "chorus_d2:class_regeneration",
+          "stage": "additional_base",
+          "group": "additional_base",
+          "op": "base_percent",
+          "percent_of": "baseline",
+          "stacking_key": "chorus_d2:benevolence_regeneration",
+          "if": {
+            "type": "chorus:selected_ability_event_resource",
+            "slot": "chorus_d2:class"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": 3,
+            "unit": "delta"
+          },
+          "reference": "Compendium original Solar D17: 300% additional base grenade, melee and class regeneration; retain the pre-stat baseline. Solar melee progress is the selected receiving account.",
+          "confidence": "measured"
+        }
+      ],
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:death",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "type": "chorus:remove_buff",
+              "buff": "chorus_d2:benevolence_regeneration"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:benevolence_receipts",
+      "scope": "buff"
+    }
+  ]
+}

@@ -139,6 +139,7 @@
       "com.imdomestic.chorus.HarvestGameTest",
       "com.imdomestic.chorus.StatusApplicationGameTest",
       "com.imdomestic.chorus.BuffApplicationGameTest",
+      "com.imdomestic.chorus.BenevolenceGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",
       "com.imdomestic.chorus.DirectionalMovementGameTest",
       "com.imdomestic.chorus.DomineeringGameTest",

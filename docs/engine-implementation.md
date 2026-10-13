@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-14：Benevolence 的给予者信用与三类基础回充
+
+新增 Ember of Benevolence 参考定义，复用上一批 `buff_applied` 与既有 `heal` 事实，检查实际给予者、非自身、双方当前存活与 allied 关系。Radiant / Restoration / Healing Rift presence 的授予，以及 Cure / Rift 的确认治疗可以刷新 7 秒 PvE / 4 秒 PvP 的活动收益；持续 Restoration 回血不反复刷新。Cure 等待世界治疗回执，已接受的过量治疗可以触发，拒绝或未知结果不能凭空发放碎片收益。显式来源标签可排除生产者，但全部原生装备接线仍是缺口。
+
+共享 grenade / Solar melee / class 回充 Profile 在属性乘区后添加额外基础阶段，Benevolence 提供 3，引用覆盖后的基准。接收账户通过当前所选技能匹配，Solar 近战使用 progress 而非 uses；即时 chunk gains 不受该被动加成影响。碎片 -10 Grenade 在属性曲线之前计算，重复绑定不会多扣属性或重复发放同一回执的收益。持续有限 Buff 沿用卸装保留、死亡事实移除的明确参考政策；去重集合按 60 秒有限清理，不增加合法效果链的循环上限。
+
+共享 Cure 增加面向接收者的 `cure_application` / `bestow_cure` 入口，显式 tier、授权与原有一秒冷却组合后，两个延迟脉冲保留实际给予者。原有自用 / Icarus 入口不变；不同给予者在同一接收者冷却内不能重启治疗，冷却结束后才由新的给予者产生脉冲。这是可调用的施加器，尚不代表 Phoenix Dive、Heal Clip 等具体来源已装配。
+
+12 项 BenevolenceTest 验证双模式、公式与精确到期切段、重复来源 / 回执、刷新归属、当前关系、排除标记、Cure 冷却与实际治疗、持续恢复、Acrobat、检查点 / 卸装 / 清槽 / 死亡、独立基础家族和 chunk 接收系数。5 项共享世界场景通过真实实体、原版过量治疗、服务器 tick、团队关系与实际账户验证 Acrobat 完成阶段、Restoration 给予者、Rift 连续刷新及未知 Cure 结果不重放。
+
+`/tmp/chorus-benevolence-targeted.log`（20 秒）通过定向单测、5 项 Fabric 新场景和 NeoForge 测试编译。完整 `/tmp/chorus-benevolence-final-gate.log` BUILD SUCCESSFUL（3 分 4 秒）：2054 项 JUnit、Fabric 1168 项、NeoForge 1183 项，以及两端发布 jar 全部通过，共享世界场景为 1167 项。`build/reports/benevolence/audit.json` 确认 651 个存储形状及两份历史检查点不变，发布 jar 主类与构建输出匹配、没有测试内容泄漏，改动夹具在两加载器资源中一致。没有客户端协议 / UI 修改，未重跑图形客户端。
+
+Compendium 现有 124 条审阅，122 partial、2 not_applicable、0 verified；Benevolence 新增为 partial，Cure 补充盟友入口证据。复活、Assembler 自触发、全部装备生产者 / 排除规则、其余近战管线、正式子职业与 HUD、精确原作刷新和重叠治疗时序仍需继续实现与校准。来源与具体政策见 [Benevolence 规则集](d2-ruleset.md#ember-of-benevolence-与额外基础回充)。
+
 ### 2026-10-13：直接 Buff 授予的本次来源事实
 
 审查 Benevolence 的 Restoration / Healing Rift 组合时确认：直接 `grant_buff` 的生命周期通知沿用共享实例最初来源，无法把第二次给予的信用交给实际刷新者。新增 `BuffApplicationFacts`，在 `grant_buff` 与获准的 `apply_status` 提交后发布 `chorus:buff_applied`，携带本次来源、实际绑定键、独立操作身份和提交回执。`status_authorized` 区分世界授权与纯数据授予；既有 `status_applied`、Buff 生命周期来源、状态转换接口和合法循环语义保持原契约。计时器刷新、只读资格查询、移除、到期及检查点恢复不产生新的授予事实。

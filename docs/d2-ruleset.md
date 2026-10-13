@@ -2021,3 +2021,19 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 参考胸甲三个模组槽已显式允许编辑。本人 `equipment configure` 命令可以在同一物品上一次替换三格，并重新检查费用和授权；原型、实例和数值参数不变。普通与神器优惠版仍映射相同 Bundle，只有费用/选项变化时不重建效果来源。批量更换抗抖模组保留另一件武器的弹药、开镜和已激活 No Distractions；三格神器选项失去授权后可一次换回合法普通选项。这是 Chorus 的编辑/修复政策，原作换模组限制、收费、战斗锁定和神器重置交互仍需逐项核验；图形配装页现已接入草稿/费用/资格展示与原子编辑请求，显示现有抗抖图标；尚未完成原作人物预览、完整内容目录和 HUD。
 
 参考超能和手雷只有不可施放的元数据，不代表完整超能、棱镜或子职业装配。实际账号进度与神器选择生产者、完整 Tier/升级目录、正式配装/HUD、原作切换超能惩罚、技能宿主持久化、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。
+
+## Ember of Benevolence 与额外基础回充
+
+原表 Solar B17/D17/N17（固定 CSV 快照 B14/D14/N14）给出：向盟友给予 Cure、Radiant、Restoration 或复活盟友后，获得 7 秒 PvE / 4 秒 PvP 的 300% 额外基础手雷、近战和职业技能回充，并扣 10 Grenade。来源、原始 HTML 与哈希见 [来源记录](../data/d2-research/2026-10-13/benevolence-source.json)。[官方 2025-07-31 说明](https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025)确认属性重做时降低回充加成并延长一秒；旧攻略中的 400% / 6 秒不用于本定义。
+
+加成作用于覆盖后的基础速率 `r₀`，不作用于已乘属性的最终结果：
+
+```text
+被动回充率 = r₀ × 属性倍率 + r₀ × (Benevolence 3 + 其他额外基础加成)
+```
+
+例如显式 100 秒基础周期、属性倍率 2.75 时，活动期间每秒回充 `0.01 × (2.75 + 3) = 0.0575`。同族 Benevolence 不重复叠加，不同额外基础族求和。即时 chunk energy 仍走独立的属性收益与接收系数；Benevolence 不再放大它。碎片的 -10 Grenade 在属性曲线之前应用，重复绑定同一碎片只扣一次。
+
+参考定义已组合实际 Acrobat 完成阶段的 Radiant、Restoration 授予、共享 Cure 施加器和 Healing Rift。给予者信用来自本次 `buff_applied` 或治疗回执，不能取共享 Buff 最初来源。Radiant / Restoration 的连续存在不是新授予；持续 Restoration 回血也不反复刷新本碎片。Cure 等待真实治疗回执，包括已接受的过量治疗。裂隙当前按成员进入及胜出的连续治疗回执刷新。官方对 [Speaker’s Sight / Edge of Intent 的满血调整](https://www.bungie.net/7/en/News/article/twid-01-23-25)针对炮台选目标，不能推广为所有 Benevolence 触发必须产生正的有效回血。
+
+本参考仍为 partial：Cure 两次 50ms 脉冲均刷新、裂隙采样与重叠场信用、当前关系/存活查询、卸装后活动收益保留等是明确的 Chorus 政策，尚无原作完整时序实测。复活、Assembler 自触发例外、Well / Lumina / 支援框架及全部排除来源尚未装配；显式 `benevolence_excluded` 标签只是生产者契约，不能据此认定这些金装和模组完成。手雷与近战的 100 秒周期、.5 chunk scalar 和部分职业属性输入是合成验收输入；正式子职业、HUD、其他近战管线和全局生命缩放仍待完成。详见 [实现与缺口](../data/d2-research/2026-10-14/benevolence.json)。
