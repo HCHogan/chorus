@@ -1,0 +1,133 @@
+{
+  "note": "Synthetic 3 m collision-resolved ascent, 0.2 s dodge benefit delays, 7 Guardian damage in Minecraft units and neutral Guardian Class scaling. Combatant 181 maps to 18.1; maximum Class multiplier 1.65 comes from Compendium/Clarity, while linear interpolation is an explicit unverified calibration. Upward animation/velocity, falloff, PvP values and exact timing are unknown.",
+  "parameters": {
+    "distance": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "meter"
+    },
+    "guardian_damage": {
+      "type": "chorus:constant",
+      "value": 7,
+      "unit": "damage"
+    },
+    "class_multiplier": {
+      "type": "chorus:curve",
+      "of": {
+        "type": "chorus:attribute",
+        "profile": "chorus_d2:class_stat",
+        "input": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "stat_point"
+        }
+      },
+      "curve": {
+        "type": "chorus:polynomial",
+        "coefficients": [
+          0.35,
+          0.0065
+        ],
+        "minimum": 100,
+        "maximum": 200,
+        "boundary": "clamp"
+      },
+      "from": "stat_point",
+      "to": "multiplier"
+    },
+    "guardian_class_multiplier": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "reload_delay": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "second"
+    },
+    "return_delay": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "second"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "test:ascension_melee_energy",
+        "capacity": 2,
+        "initial": 2
+      }
+    ],
+    "abilities": [
+      {
+        "id": "test:ascension_melee",
+        "slot": "chorus_d2:melee",
+        "cost": {
+          "resource": "test:ascension_melee_energy",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "charge_fraction"
+          }
+        },
+        "on_use": []
+      }
+    ],
+    "bundles": [
+      {
+        "id": "test:ascension_stat",
+        "parameters": {
+          "points": "stat_point"
+        },
+        "modifiers": [
+          {
+            "id": "points",
+            "profile": "chorus_d2:class_stat",
+            "stage": "bonuses",
+            "group": "bonuses",
+            "op": "add",
+            "value": {
+              "type": "chorus:source_parameter",
+              "name": "points"
+            },
+            "stacking_key": "test:ascension_stat",
+            "reference": "Synthetic stat input for Ascension acceptance",
+            "confidence": "assumed"
+          }
+        ]
+      },
+      {
+        "id": "test:ascension_melee_stat",
+        "parameters": {
+          "points": "stat_point"
+        },
+        "modifiers": [
+          {
+            "id": "points",
+            "profile": "chorus_d2:melee_stat",
+            "stage": "bonuses",
+            "group": "bonuses",
+            "op": "add",
+            "value": {
+              "type": "chorus:source_parameter",
+              "name": "points"
+            },
+            "stacking_key": "test:ascension_melee_stat",
+            "reference": "Synthetic stat input for Ascension acceptance",
+            "confidence": "assumed"
+          }
+        ]
+      }
+    ]
+  }
+}

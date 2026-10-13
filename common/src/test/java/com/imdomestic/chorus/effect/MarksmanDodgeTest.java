@@ -78,7 +78,8 @@ class MarksmanDodgeTest {
         var h=new Harness(false);assertThrows(IllegalArgumentException.class,()->h.p.useAbility(h.state(),h.request()));
         assertEquals(1,h.energy());assertTrue(h.checks.isEmpty());
         var definition=h.p.program().resources().stream().filter(r->r.id().equals(ENERGY)).findFirst().orElseThrow();
-        assertEquals(1./42,definition.baseRate());assertTrue(definition.gainProfile().isEmpty()); // Explicit identity path: source CES is 1.
+        assertEquals(1./42,definition.baseRate());assertEquals(Optional.of("chorus_d2:marksman_dodge_gain"),definition.gainProfile());
+        assertEquals(1, definition.gainScalar()); // Source CES is 1; Class-stat gains are not yet calibrated.
         assertEquals(h.p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,h.p.program()).getOrThrow()).getOrThrow());
     }
     @Test void deniedDelayedReloadKeepsThePaidChargeAndTheTransferPolicySkipsAlreadyFullWeapons() throws Exception {

@@ -98,6 +98,11 @@ public class WeaponReloadGameTest {
                     .add("value", ThreadedSpikeGameTest.json("marksman_dodge_test_calibration").getAsJsonObject("parameters").get("reload_delay"));
             // Merge only into the older synthetic weapon harness; retain the content's original version on disk.
             data.add("resources", ability.get("resources")); data.add("abilities", ability.get("abilities"));
+            ability.getAsJsonArray("bundles").forEach(data.getAsJsonArray("bundles")::add);
+            ability.getAsJsonArray("profiles").forEach(profile -> {
+                profile.getAsJsonObject().addProperty("version", data.get("version").getAsString());
+                data.getAsJsonArray("profiles").add(profile);
+            });
         });
         try {
             var owner = t.player("dodge-"); t.player("other-"); String holder = owner.getUUID().toString();

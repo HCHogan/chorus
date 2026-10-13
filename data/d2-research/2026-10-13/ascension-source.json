@@ -29,7 +29,7 @@
     "selected_sha256": "a4433ddf48db67192f964abadcd7304b46b4c004358f0984ddb209602858cc59"
   },
   "reviewed_at": "2026-10-13",
-  "scope": "Research input for cross-slot payment and subsequent Ascension content; no complete Ascension implementation or coverage claim.",
+  "scope": "Provenance for partial Ascension reference content, shared dodge benefits and accepted class-ability classification; calibration and remaining content gaps are tracked in ascension.json.",
   "official": {
     "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0",
     "accessed_at": "2026-10-13",
@@ -41,9 +41,10 @@
   },
   "engine_requirement": "Air Move input consumes the currently equipped class ability declared cost once, retaining the actual air-action identity and payment receipt. This does not implicitly execute the donor skill or trigger a second cast.",
   "pending": [
-    "Actual Ascension upward movement, damage, Jolt and Amplified content.",
-    "Explicit composition of the currently equipped dodge benefit, without duplicate payment or cast facts.",
-    "Class-triggered mods currently checking input slot need accepted-ability classification where applicable.",
-    "Arc Staff super-specific cost, exact vertical motion, PvP values, full timing and damage calibration."
+    "3米碰撞位移、0.2秒收益延迟、Guardian伤害7及其无额外Class倍率均为合成校准；原作竖直速度/高度、动画时点、PvP伤害与Class曲线、范围衰减、伤害单位投影仍未确定。",
+    "181是表格最大战员伤害，当前10米内统一采用该最大值；100–200 Class线性插值只在校准夹具，原表/Clarity仅支持65%上限。共享Amplified 15秒及Jolt 10/5秒沿用现有状态模板，来源特例和完整缩放待校准。",
+    "初次爆炸会进入新Jolt的计数；该时序、免疫/取消/致死的状态资格、范围内先后死亡和多个Jolt连锁的原作边界仍需校准。",
+    "Arc Staff内重复Ascension的超能支付尚未实现；Marksman的15米弹药砖拾取、Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。闪身的追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+    "参考定义仍在测试资源；正式Aspect/子职业目录、装备约束、空中动作键位/UI/动画/素材、物理世界跨重启恢复尚未完成。纯领域检查点不代表世界持久化。"
   ]
 }

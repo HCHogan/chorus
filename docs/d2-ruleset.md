@@ -1629,13 +1629,25 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 
 [官方 9.0.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1) 曾单独列出 Ascension 可触发 Powerful Attraction；更晚的 [9.7.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0) 已明确 Ascension 对所有 perk / 技能都算职业技能，并让爆炸伤害受 100 以上 Class 属性影响。实际 Ascension 应声明职业技能分类，不能继续仅给它 Powerful Attraction 专用资格。资格读取已接受的实际技能定义，不要求输入槽必须是 class；专用资格标签仍可表达其他选择性的内容规则。已用真实 Marksman’s Dodge 定义、服务器命令及扣费验证范围拾取；它的 0.2 秒换弹延迟仍为既有合成验收参数。合成 ascent 替换仅证明资格表达，不算完整 Ascension 实现。
 
-Ascension 的原表 Arc B72/D72（固定快照 B48/D48）明确空中动作消耗职业技能充能，同时触发所选闪身效果。引擎新增 `cost_slot` 解决不同输入槽读取当前职业技能成本的问题；它只负责一次支付，不自动执行闪身动作。跨槽世界场景使用合成空中动作、真实 Marksman’s Dodge 账户和实际装备的 Powerful Attraction，检验扣费与一次拾取的组合。实际向上位移、范围伤害 / Jolt / Amplified、所选闪身收益、Arc Staff 内的特殊支付和完整模组组合仍需接入；位移高度、PvP 数值等未知量不填猜测值。来源存档见 [Ascension 研究输入](../data/d2-research/2026-10-13/ascension-source.json)。
+Ascension 的原表 Arc B72/D72（固定快照 B48/D48）明确空中动作消耗职业技能充能，同时触发所选闪身效果。`cost_slot` 只负责一次支付，不自动执行闪身动作；当前实际 Ascension 定义已组合位移、伤害、状态与共享闪身收益，并接入实际职业物品的 Kickstart / Powerful Attraction 组合，范围领取继续按位移后的实时位置复核。具体政策和缺口见下节，来源存档见 [Ascension 研究输入](../data/d2-research/2026-10-13/ascension-source.json)。
 
 每次接受施放只查询一次；已有 Orb 奖励继续给当前收集者回能，并触发共享 Armor Charge / Devour。领取按[反应结算协议](engine-data-packs.md#按范围主动收集拾取物)逐件复核：满超能且充能满时保留多余球；Starvation 的独立许可可允许继续领取。实际职业物品两件本模组与一件 Utility Kickstart 已验证同次技能先消耗原充能，再由附近球补回；换掉第二件后下一次查询回到 12.5 米。上述组合采用当前内容的拾取资格和时序政策，不能当作所有原作边界的实测校准。
 
 待校准政策包括免费施放资格、查询相对位移/动画的取样时机，以及满资源条件。当前查询在开始反应取样，领取等待技能动作和普通反应后复核位置；60 秒 cast 回执窗口是 Chorus 的有限去重策略。Compendium 另列 Mote / Crest，Clarity 还列 Echoes data mote；这些公共竞争和活动计分对象未接入，当前定义仅收集私有 Orb。参考物品、解锁授权和配装命令不等于完整职业 / 子职业目录、进度生产者、图标或 HUD。
 
 [Bungie 已知问题](https://help.bungie.net/hc/en-us/articles/39007140765204-Destiny-2-Known-Issues-and-Vital-Information) 还记录 Nessus 四件 Repurposed Charge 对同次职业技能的充能消耗 / 获得计数不正确，涉及 Utility Kickstart 与 Powerful Attraction。该套装另列未实现，不把已知原作缺陷作为本模组的正确算法。
+
+### Ascension 的空中动作与所选闪身收益
+
+[Ascension 定义](../common/src/test/resources/effects/ascension.json) 使用 `chorus_d2:air_move` 入口，要求离地且职业槽选择具有 hunter_dodge 分类，按 cost_slot 支付该当前选择的成本。接受后捕获施放者脚底位置和两类伤害快照，沿世界 Y 轴请求碰撞位移；已观察的零位移 / 截断位移仍继续效果，位置缺失或已知拒绝不继续，未知结果暂停且不退款或重播。
+
+范围从原捕获中心查询，半径 10 米、包含端点、当前按脚底距离且不检查视线。自身及盟友获得共享 Amplified，敌人逐个观察实际 Guardian 分类并执行伤害和 Jolt 授权。战员最大伤害 181 当前按 0.1 投影为 18.1；范围内统一最大值和实际 Class 插值曲线尚待校准。Jolt 在伤害动作后、其排队的 hit 事实前施加，因此首轮爆炸也进入共享计数并可立即触发链伤；这是一项明确的 Chorus 时序政策，不作为已实测的原作断言。
+
+Marksman 的装备武器装填和 Gambler 的延迟近战回能已拆成共享 bundle，由普通闪身和 Ascension 调用。Ascension 按付款时捕获的技能 ID 选择分支，后续换职业技能或清空空中槽不改变分支；结算时仍读取当前武器 / 近战账户。它不重做水平闪身、不重复扣费或发出第二次施放事实。Gambler 的追踪规避窗口未自动继承。Utility Kickstart 改用接受事实捕获的职业技能标签；真实职业物品组合验证先消费原 Armor Charge，再按当前缺口逐球补充。
+
+Marksman 资源补充显式 `marksman_dodge_gain` Profile，以原表 1× CES 接收通用技能回能；无修饰时该 Profile 是恒等路径。Class 属性回能与自然恢复曲线仍须另行校准，不能将这个修复视为完整冷却算法已完成。Marksman 原表列出的 15 米弹药砖拾取仍未实现，不能将共享装填分支称为全部闪身收益。
+
+[校准夹具](../common/src/test/resources/effects/ascension_test_calibration.json) 明确使用合成 3 米位移、0.2 秒收益延迟和 Guardian 伤害 7；100–200 Class 的线性插值只为验证属性接线，原表 / Clarity 仅给出 200 点时 65% 上限。正式定义缺少这些输入会在扣费前失败。Arc Staff 内超能支付、其他闪身收益、Winter’s Shroud / 金装 / 碎片等组合、原作动画 / 范围衰减和完整伤害校准，以及正式 Aspect 装配、键位和 HUD 仍未完成，故覆盖保持 partial；完整记录见 [Ascension 研究记录](../data/d2-research/2026-10-13/ascension.json)。
 
 ### Kickstart 的完整付费充能与回能表
 

@@ -28,11 +28,12 @@
     "scope": "Reload branch only; not a complete dodge ability.",
     "base_cooldown_seconds": 42,
     "chunk_scalar": 1,
-    "energy": "One-charge account, base rate 1/42; no Class stat modifiers yet. Identity gain path represents CES 1.",
+    "energy": "One-charge account, base rate 1/42. Explicit marksman_dodge_gain profile and CES 1 support external energy; the empty stat multiplier stage is neutral, not a calibrated Class-stat curve.",
     "reload": "Equipped declared weapons at the scheduled reload moment; physically verified then atomically transferred.",
     "timing": "calibration.reload_delay is required and snapshotted before payment. Test-only 0.2 seconds is not original-game timing.",
     "zero_transfer": "transferred policy is an explicit assumption; full magazine or zero reserves do not qualify without actual transfer.",
-    "lifetime": "Accepted reload is detached from later ability deselection; recipient liveness and physical equipment still checked at execution. This is a Chorus content policy, not original-game calibration."
+    "lifetime": "Accepted reload is detached from later ability deselection; recipient liveness and physical equipment still checked at execution. This is a Chorus content policy, not original-game calibration.",
+    "shared_benefit": "The reload branch is now a typed bundle invocation reused by Ascension; no extra payment, movement or cast facts. See data/d2-research/2026-10-13/ascension.json."
   },
   "limits": [
     "Dodge motion, animation, 15m ammo-brick pickup, combatant projectile tracking removal and Guardian aim-assist removal are not implemented.",

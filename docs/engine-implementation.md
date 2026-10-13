@@ -6,6 +6,22 @@
 
 ## 当前证据
 
+### 2026-10-13：Ascension 的实际动作、共享闪身收益和职业模组组合
+
+`ascension.json` 通过既有 cost_slot、位置 / 伤害快照、世界轴位移、范围查询、状态授权和共享 Buff 表达一次实际空中动作，没有增加 Ascension 专用解释器分支。Marksman 装填和 Gambler 回能被提取为共享 bundle，普通闪身继续调用原收益，Ascension 按捕获的 cost_ability 选择分支。原地面条件 / 水平位移 / 追踪规避不随收益调用，延迟任务保留已选分支与原技能信用，付款一次。
+
+九项核心测试覆盖必须的校准、拒绝和扣费、不同目标与敌我、Class 属性接线、顶到天花板/不可用移动、Jolt 拒绝、原始账户隔离、Gambler 两充能收益、未知结果停止，以及带 Amplified 周期取样和延迟装填的检查点恢复。七项共享世界场景覆盖实际碰撞、生命损失、十米原中心边界、盟友与原有移动属性、真实两把武器的装填/备弹、真实 tick 回能、未知位移和装备模组组合。
+
+组合场景发现 Utility Kickstart 原先只检查 class 输入槽，会漏掉已经分类为职业技能的 Ascension；现改为 `event_ability_tag` 读取已接受的实际定义。保留付款、充能和回能空间条件，验证先消费三层原充能，再由 Powerful Attraction 拾取三颗球补满，保留其余候选。状态顺序沿用共享 Jolt：首轮爆炸计入新状态并可能立刻链伤，额外伤害不另写一份 Ascension Jolt 算法。
+
+组合验收还发现 Marksman 原资源没有声明 gain_profile，通用回能会明确拒绝。现补 `marksman_dodge_gain` Profile 和原表的 1× CES；无修饰时保持恒等收益，Class 属性回能曲线仍未校准。开发期另补了组合夹具缺失的 Amplified 防御 Profile；没有用绕过状态验证或直接写余额的方式让测试通过。
+
+此前 Marksman 的旧版武器世界夹具只装配资源 / 技能，现随共享收益加入 bundle 和 Profile，并仅在该旧夹具内统一 Profile 版本。新增七个 Ascension 场景及旧 Marksman 场景各自定向运行通过，再执行两端全量回归；原始内容文件保持 Compendium 版本。
+
+已保存原表 / Clarity 来源与显式校准文件；3米、0.2秒、Guardian伤害7和 Class 线性插值均不是原作测量。此批新增一条 partial，不宣称完整 Aspect、超能内支付、所有职业模组或 UI 已完成。详细边界见 [Ascension 研究记录](../data/d2-research/2026-10-13/ascension.json)。
+
+最终 `build/reports/ascension/final-gate.log` BUILD SUCCESSFUL，2 分 22 秒：1996 项 JUnit 无失败/错误/跳过，Fabric 1135 / NeoForge 1150 项世界测试通过，共享 GameCase 1134 项。645 项存储形状逐字节保持；本批未修改生产 Java。双端发布 jar 分别 1261 / 1254 项，全部 1162 / 1155 个生产类及 27 个 PNG/JSON 素材与各自构建输出逐字节一致，无测试资源 / GameTest / TestMixin 泄漏；五份变更规则与双端验收资源一致。Gradle 保持 CRLF，10 项 Compendium 工具测试、原始来源哈希与覆盖报告检查通过。审阅现为 119 partial / 2 not_applicable / 0 verified，共 121 条；没有 UI / 客户端协议变更，未重复图形客户端验收。汇总见 `build/reports/ascension/audit.json`。
+
 ### 2026-10-13：跨输入槽读取实际技能成本
 
 Ascension 从 Air Move 入口消耗当前职业技能充能，暴露了既有 base_selection 只能读取同一输入槽的缺口。`AbilityDefinition.costSlot` / JSON `cost_slot` 现可读取同一持有者另一个当前所选技能的原始 cost。与自身 cost / base_selection 互斥，只读一层声明；付款槽的替换、准入条件、动作和事件不会跟着运行。调用方保持输入槽、已解析定义、伤害信用与参数上下文；接受事实补充实际成本槽和声明技能引用。空槽 / 无声明明确拒绝，有账户的零成本保留免费回执，未知世界结果不回滚付款或重试动作。

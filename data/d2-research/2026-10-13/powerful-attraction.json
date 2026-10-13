@@ -81,7 +81,7 @@
   ],
   "gaps": [
     "Public contested activity Motes/Crests and Echoes data-mote producers/scoring are not implemented. Only managed private Orbs are collected by this reference bundle.",
-    "Synthetic ascent replacement tests classification only; actual Ascension movement, damage, aspect selection and its complete interaction set remain pending.",
+    "Actual Ascension now has a separately tested reference body and an equipped Utility Kickstart / Powerful Attraction integration. Full Aspect selection, super-specific costs, animation timing and the complete interaction set remain pending.",
     "Official full class-item catalog, subclass constraints, unlock progression, icon/HUD, live Destiny timing and physical-world restart remain pending.",
     "Nessus Repurposed Charge set bonus and its documented original-game issue are separate unimplemented content."
   ]

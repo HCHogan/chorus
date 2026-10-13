@@ -1378,9 +1378,8 @@
                 "right": "event_actor"
               },
               {
-                "type": "chorus:event_reference",
-                "name": "ability_slot",
-                "is": "chorus_d2:class"
+                "type": "chorus:event_ability_tag",
+                "tag": "chorus:class_ability"
               },
               {
                 "type": "chorus:has_buff",

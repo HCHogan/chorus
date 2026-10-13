@@ -1,0 +1,404 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "chorus_d2:ascension",
+      "slot": "chorus_d2:air_move",
+      "cost_slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability",
+        "chorus_d2:ascension"
+      ],
+      "if": {
+        "type": "chorus:all",
+        "of": [
+          {
+            "type": "chorus:not",
+            "of": {
+              "type": "chorus:event_flag",
+              "name": "on_ground"
+            }
+          },
+          {
+            "type": "chorus:selected_ability_tag",
+            "slot": "chorus_d2:class",
+            "tag": "chorus_d2:hunter_dodge"
+          }
+        ]
+      },
+      "parameters": {
+        "distance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.distance",
+            "unit": "meter"
+          }
+        },
+        "guardian_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_damage",
+            "unit": "damage"
+          }
+        },
+        "class_multiplier": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.class_multiplier",
+            "unit": "multiplier"
+          }
+        },
+        "guardian_class_multiplier": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_class_multiplier",
+            "unit": "multiplier"
+          }
+        },
+        "reload_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.reload_delay",
+            "unit": "second"
+          }
+        },
+        "return_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.return_delay",
+            "unit": "second"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self"
+          },
+          "as": "center"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:arithmetic",
+              "op": "mul",
+              "of": [
+                {
+                  "type": "chorus:constant",
+                  "value": 18.1,
+                  "unit": "damage"
+                },
+                {
+                  "type": "chorus:event_number",
+                  "name": "param.class_multiplier",
+                  "unit": "multiplier"
+                }
+              ]
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "chorus_d2:outgoing",
+            "origin": "event",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:class_damage",
+              "chorus:arc_damage",
+              "chorus_d2:ascension_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:class_kill"
+            ]
+          },
+          "as": "combatant_blast"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:arithmetic",
+              "op": "mul",
+              "of": [
+                {
+                  "type": "chorus:event_number",
+                  "name": "param.guardian_damage",
+                  "unit": "damage"
+                },
+                {
+                  "type": "chorus:event_number",
+                  "name": "param.guardian_class_multiplier",
+                  "unit": "multiplier"
+                }
+              ]
+            },
+            "damage_type": "minecraft:generic",
+            "scaling_profile": "chorus_d2:outgoing",
+            "origin": "event",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:class_damage",
+              "chorus:arc_damage",
+              "chorus_d2:ascension_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:class_kill"
+            ]
+          },
+          "as": "guardian_blast"
+        },
+        {
+          "action": {
+            "type": "chorus:world_direction",
+            "position": "center",
+            "x": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "multiplier"
+            },
+            "y": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "z": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "multiplier"
+            }
+          },
+          "as": "up"
+        },
+        {
+          "action": {
+            "type": "chorus:displace_entity",
+            "direction": "up",
+            "distance": {
+              "type": "chorus:event_number",
+              "name": "param.distance",
+              "unit": "meter"
+            },
+            "origin": "event",
+            "tags": [
+              "chorus_d2:ascension"
+            ]
+          },
+          "as": "ascent"
+        },
+        {
+          "if": {
+            "type": "chorus:result_flag",
+            "binding": "ascent",
+            "field": "observed"
+          },
+          "then": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:amplified",
+              "target": "self"
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "center"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "meter"
+                },
+                "relative_to": "self",
+                "relation": "allied",
+                "exclude": [
+                  "self"
+                ],
+                "target_anchor": "feet",
+                "order": "identity",
+                "line_of_sight": false
+              },
+              "as": "allies"
+            },
+            {
+              "for_each": "allies",
+              "as": "ally",
+              "do": [
+                {
+                  "type": "chorus:grant_buff",
+                  "buff": "chorus_d2:amplified",
+                  "target": {
+                    "binding": "ally"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "center"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 10,
+                  "unit": "meter"
+                },
+                "relative_to": "self",
+                "relation": "not_allied",
+                "exclude": [
+                  "self"
+                ],
+                "target_anchor": "feet",
+                "order": "identity",
+                "line_of_sight": false
+              },
+              "as": "enemies"
+            },
+            {
+              "for_each": "enemies",
+              "as": "enemy",
+              "do": [
+                {
+                  "action": {
+                    "type": "chorus:inspect_entity",
+                    "target": {
+                      "binding": "enemy"
+                    }
+                  },
+                  "as": "enemy_view"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "enemy_view",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "enemy_view",
+                        "field": "alive"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "enemy_view",
+                        "field": "player"
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "guardian_blast",
+                            "target": {
+                              "binding": "enemy"
+                            }
+                          },
+                          "as": "hit"
+                        }
+                      ],
+                      "else": [
+                        {
+                          "action": {
+                            "type": "chorus:damage_snapshot",
+                            "snapshot": "combatant_blast",
+                            "target": {
+                              "binding": "enemy"
+                            }
+                          },
+                          "as": "hit"
+                        }
+                      ]
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:apply_status",
+                        "buff": "chorus_d2:jolt",
+                        "target": {
+                          "binding": "enemy"
+                        },
+                        "duration": {
+                          "type": "chorus:choose",
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "enemy_view",
+                            "field": "player"
+                          },
+                          "then": {
+                            "type": "chorus:constant",
+                            "value": 5,
+                            "unit": "second"
+                          },
+                          "else": {
+                            "type": "chorus:constant",
+                            "value": 10,
+                            "unit": "second"
+                          }
+                        }
+                      },
+                      "as": "jolt"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:event_reference",
+                "name": "cost_ability",
+                "is": "chorus_d2:marksman_dodge"
+              },
+              "then": [
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:marksman_dodge_reload",
+                  "event": "chorus_d2:invoke_marksman_dodge_reload",
+                  "holder": "self",
+                  "target": "self",
+                  "origin": "event",
+                  "parameters": {
+                    "delay": {
+                      "type": "chorus:event_number",
+                      "name": "param.reload_delay",
+                      "unit": "second"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "if": {
+                "type": "chorus:event_reference",
+                "name": "cost_ability",
+                "is": "chorus_d2:gamblers_dodge"
+              },
+              "then": [
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:gamblers_dodge_return",
+                  "event": "chorus_d2:invoke_gamblers_dodge_return",
+                  "holder": "self",
+                  "target": "self",
+                  "origin": "event",
+                  "parameters": {
+                    "delay": {
+                      "type": "chorus:event_number",
+                      "name": "param.return_delay",
+                      "unit": "second"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1851,6 +1851,8 @@ replace_with 必须在链接后的程序中存在且属于同槽；可选 abilit
 
 输入槽、实际技能定义、参数及攻击信用仍属于调用技能；支付只借用 resource / amount / profile，并在调用技能上下文中求值。接受事实的 `references.cost_slot` 和 `references.cost_ability` 记录实际读取的槽及成本声明技能，覆盖输入同名值；`ability_slot` 仍是本次输入槽。读取成本不会施放目标槽技能、执行它的 on_use 或产生第二组 Started / Used。若内容需要继承闪身收益，应显式组合相应效果，不能用第二次 use 模拟。
 
+Ascension 参考定义按接受事实捕获的 cost_ability 调用共享 `chorus_d2:marksman_dodge_reload` 或 `chorus_d2:gamblers_dodge_return` bundle。两者用类型化 delay 参数和 detached 延迟动作，普通闪身也调用同一份规则。调用不复制闪身的地面条件、水平位移或追踪规避窗口；后续换掉职业技能不改写已选收益分支，收益结算时仍按原规则读取当前装备武器 / 近战槽。Utility Kickstart 的职业技能资格改为 event_ability_tag，输入槽不再承担技能分类含义。
+
 声明 cost、`cost_from: base_selection` 或 `cost_slot` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选任一槽、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。`cost_slot` 不创建额外账户，也不把对 air_move 的回能自动转给 class；回能动作应明确指向实际接收槽。
 
 存储 ID `chorus:effect/ability/ability_definition_v2` 增加 costSlot。原 ID 保留完整旧字段形状，仅用于读取并迁移为 costSlot 为空的当前定义；新存档只写 v2，历史检查点无需改写。

@@ -64,103 +64,21 @@
           ]
         }
       ]
-    }
-  ],
-  "abilities": [
+    },
     {
-      "id": "chorus_d2:gamblers_dodge",
-      "slot": "chorus_d2:class",
-      "tags": [
-        "chorus:class_ability",
-        "chorus_d2:hunter_dodge",
-        "chorus_d2:gamblers_dodge"
-      ],
-      "if": {
-        "type": "chorus:event_flag",
-        "name": "on_ground"
-      },
-      "cost": {
-        "resource": "chorus_d2:gamblers_dodge_energy",
-        "amount": {
-          "type": "chorus:constant",
-          "value": 1,
-          "unit": "charge_fraction"
-        }
-      },
-      "effects": {
-        "recharge": {
-          "bundle": "chorus_d2:gamblers_dodge_recharge"
-        }
-      },
+      "id": "chorus_d2:gamblers_dodge_return",
       "parameters": {
-        "distance": {
-          "value": {
-            "type": "chorus:event_number",
-            "name": "calibration.distance",
-            "unit": "meter"
-          }
-        },
-        "return_delay": {
-          "value": {
-            "type": "chorus:event_number",
-            "name": "calibration.return_delay",
-            "unit": "second"
-          }
-        },
-        "animation_duration": {
-          "value": {
-            "type": "chorus:event_number",
-            "name": "calibration.animation_duration",
-            "unit": "second"
-          }
-        }
+        "delay": "second"
       },
-      "on_use": [
+      "rules": [
         {
-          "action": {
-            "type": "chorus:capture_direction",
-            "mode": "horizontal"
-          },
-          "as": "heading"
-        },
-        {
-          "action": {
-            "type": "chorus:displace_entity",
-            "direction": "heading",
-            "distance": {
-              "type": "chorus:event_number",
-              "name": "param.distance",
-              "unit": "meter"
-            },
-            "tags": [
-              "chorus_d2:gamblers_dodge"
-            ],
-            "origin": "event"
-          },
-          "as": "dodge"
-        },
-        {
-          "if": {
-            "type": "chorus:result_flag",
-            "binding": "dodge",
-            "field": "observed"
-          },
-          "then": [
-            {
-              "type": "chorus:grant_buff",
-              "buff": "chorus_d2:gamblers_dodge_tracking",
-              "target": "self",
-              "duration": {
-                "type": "chorus:event_number",
-                "name": "param.animation_duration",
-                "unit": "second"
-              }
-            },
+          "id": "grant",
+          "on": "chorus_d2:invoke_gamblers_dodge_return",
+          "do": [
             {
               "after": {
-                "type": "chorus:event_number",
-                "name": "param.return_delay",
-                "unit": "second"
+                "type": "chorus:source_parameter",
+                "name": "delay"
               },
               "lifetime": "detached",
               "do": [
@@ -368,6 +286,116 @@
                   ]
                 }
               ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:gamblers_dodge",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability",
+        "chorus_d2:hunter_dodge",
+        "chorus_d2:gamblers_dodge"
+      ],
+      "if": {
+        "type": "chorus:event_flag",
+        "name": "on_ground"
+      },
+      "cost": {
+        "resource": "chorus_d2:gamblers_dodge_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "recharge": {
+          "bundle": "chorus_d2:gamblers_dodge_recharge"
+        }
+      },
+      "parameters": {
+        "distance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.distance",
+            "unit": "meter"
+          }
+        },
+        "return_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.return_delay",
+            "unit": "second"
+          }
+        },
+        "animation_duration": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.animation_duration",
+            "unit": "second"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_direction",
+            "mode": "horizontal"
+          },
+          "as": "heading"
+        },
+        {
+          "action": {
+            "type": "chorus:displace_entity",
+            "direction": "heading",
+            "distance": {
+              "type": "chorus:event_number",
+              "name": "param.distance",
+              "unit": "meter"
+            },
+            "tags": [
+              "chorus_d2:gamblers_dodge"
+            ],
+            "origin": "event"
+          },
+          "as": "dodge"
+        },
+        {
+          "if": {
+            "type": "chorus:result_flag",
+            "binding": "dodge",
+            "field": "observed"
+          },
+          "then": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:gamblers_dodge_tracking",
+              "target": "self",
+              "duration": {
+                "type": "chorus:event_number",
+                "name": "param.animation_duration",
+                "unit": "second"
+              }
+            },
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:gamblers_dodge_return",
+              "event": "chorus_d2:invoke_gamblers_dodge_return",
+              "holder": "self",
+              "target": "self",
+              "origin": "event",
+              "parameters": {
+                "delay": {
+                  "type": "chorus:event_number",
+                  "name": "param.return_delay",
+                  "unit": "second"
+                }
+              }
             }
           ]
         }

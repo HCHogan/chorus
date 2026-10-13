@@ -221,7 +221,8 @@
       "com.imdomestic.chorus.PickupCollectionGameTest",
       "com.imdomestic.chorus.OrbCollectionGameTest",
       "com.imdomestic.chorus.PowerfulAttractionGameTest",
-      "com.imdomestic.chorus.AbilityCrossSlotCostGameTest"
+      "com.imdomestic.chorus.AbilityCrossSlotCostGameTest",
+      "com.imdomestic.chorus.AscensionGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
