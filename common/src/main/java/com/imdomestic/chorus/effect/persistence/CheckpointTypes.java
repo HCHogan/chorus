@@ -308,6 +308,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/condition/target_is", com.imdomestic.chorus.effect.data.Condition.TargetIs.class);
         types.put("chorus:effect/data/condition/target_ref_present", com.imdomestic.chorus.effect.data.Condition.TargetRefPresent.class);
         types.put("chorus:effect/data/condition/weapon_drawn", com.imdomestic.chorus.effect.data.Condition.WeaponDrawn.class);
+        types.put("chorus:effect/data/action/offset_position", com.imdomestic.chorus.effect.data.Action.OffsetPosition.class);
         types.put("chorus:effect/data/construct_actions/consume", com.imdomestic.chorus.effect.data.ConstructActions.Consume.class);
         types.put("chorus:effect/object/world_construct/consume", com.imdomestic.chorus.effect.object.WorldConstruct.Consume.class);
         types.put("chorus:effect/object/world_construct/consume_outcome", com.imdomestic.chorus.effect.object.WorldConstruct.ConsumeOutcome.class);

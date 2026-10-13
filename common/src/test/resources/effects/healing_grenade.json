@@ -1,0 +1,857 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "chorus_d2:healing_grenade",
+      "slot": "chorus_d2:grenade",
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:solar",
+        "chorus_d2:healing_grenade"
+      ],
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:healing_grenade_energy_scaling"
+        }
+      },
+      "parameters": {
+        "speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.drag",
+            "unit": "multiplier"
+          }
+        },
+        "lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lifetime",
+            "unit": "second"
+          }
+        },
+        "tracking_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.tracking_radius",
+            "unit": "meter"
+          }
+        },
+        "turn_rate": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.turn_rate",
+            "unit": "degree_per_second"
+          }
+        },
+        "acquisition_angle": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.acquisition_angle",
+            "unit": "degree"
+          }
+        },
+        "orb_width": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.orb_width",
+            "unit": "meter"
+          }
+        },
+        "orb_height": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.orb_height",
+            "unit": "meter"
+          }
+        },
+        "orb_clearance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.orb_clearance",
+            "unit": "meter"
+          }
+        },
+        "orb_health_scale": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.orb_health_scale",
+            "unit": "multiplier"
+          }
+        },
+        "first_scan_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.first_scan_delay",
+            "unit": "second"
+          }
+        },
+        "scan_interval": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.scan_interval",
+            "unit": "second"
+          }
+        },
+        "strength": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:has_source_tag",
+              "tag": "chorus_d2:touch_of_flame"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 2,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "aim",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "tracking": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.tracking_radius",
+                "unit": "meter"
+              },
+              "turn_rate": {
+                "type": "chorus:event_number",
+                "name": "param.turn_rate",
+                "unit": "degree_per_second"
+              },
+              "acquisition_angle": {
+                "type": "chorus:event_number",
+                "name": "param.acquisition_angle",
+                "unit": "degree"
+              },
+              "target_anchor": "body",
+              "relation": "allied",
+              "line_of_sight": true,
+              "redirect_on_contact": false
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "impact"
+                    },
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 7.5,
+                      "unit": "meter"
+                    },
+                    "relative_to": "source_owner",
+                    "relation": "allied",
+                    "include_center": true,
+                    "exclude": [],
+                    "order": "identity",
+                    "target_anchor": "feet",
+                    "line_of_sight": false
+                  },
+                  "as": "allies"
+                },
+                {
+                  "for_each": "allies",
+                  "as": "ally",
+                  "do": [
+                    {
+                      "type": "chorus:invoke_bundle",
+                      "bundle": "chorus_d2:cure_application",
+                      "event": "chorus_d2:bestow_cure",
+                      "target": {
+                        "binding": "ally"
+                      },
+                      "parameters": {
+                        "tier": {
+                          "type": "chorus:event_number",
+                          "name": "param.strength",
+                          "unit": "count"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:arithmetic",
+                              "op": "mul",
+                              "of": [
+                                {
+                                  "type": "chorus:event_number",
+                                  "name": "param.orb_width",
+                                  "unit": "meter"
+                                },
+                                {
+                                  "type": "chorus:constant",
+                                  "value": 0.5,
+                                  "unit": "multiplier"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.orb_clearance",
+                              "unit": "meter"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:arithmetic",
+                              "op": "add",
+                              "of": [
+                                {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:event_number",
+                                      "name": "param.orb_height",
+                                      "unit": "meter"
+                                    },
+                                    {
+                                      "type": "chorus:constant",
+                                      "value": 0.5,
+                                      "unit": "multiplier"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "chorus:event_number",
+                                  "name": "param.orb_clearance",
+                                  "unit": "meter"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:arithmetic",
+                              "op": "mul",
+                              "of": [
+                                {
+                                  "type": "chorus:event_number",
+                                  "name": "param.orb_height",
+                                  "unit": "meter"
+                                },
+                                {
+                                  "type": "chorus:constant",
+                                  "value": 0.5,
+                                  "unit": "multiplier"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "chorus:constant",
+                              "value": -1,
+                              "unit": "multiplier"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "add",
+                          "of": [
+                            {
+                              "type": "chorus:arithmetic",
+                              "op": "mul",
+                              "of": [
+                                {
+                                  "type": "chorus:event_number",
+                                  "name": "param.orb_width",
+                                  "unit": "meter"
+                                },
+                                {
+                                  "type": "chorus:constant",
+                                  "value": 0.5,
+                                  "unit": "multiplier"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.orb_clearance",
+                              "unit": "meter"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "orb_place"
+                },
+                {
+                  "action": {
+                    "type": "chorus:spawn_construct",
+                    "position": "orb_place",
+                    "kind": "chorus_d2:restoration_orb",
+                    "health": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:constant",
+                          "value": 100,
+                          "unit": "damage"
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.orb_health_scale",
+                          "unit": "multiplier"
+                        }
+                      ]
+                    },
+                    "width": {
+                      "type": "chorus:event_number",
+                      "name": "param.orb_width",
+                      "unit": "meter"
+                    },
+                    "height": {
+                      "type": "chorus:event_number",
+                      "name": "param.orb_height",
+                      "unit": "meter"
+                    },
+                    "lifetime": {
+                      "type": "chorus:constant",
+                      "value": 7.5,
+                      "unit": "second"
+                    },
+                    "tags": [
+                      "chorus_d2:solar_construct"
+                    ]
+                  },
+                  "as": "spawned"
+                },
+                {
+                  "for_each": "spawned",
+                  "as": "orb",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_entity_anchor",
+                        "target": {
+                          "binding": "orb"
+                        },
+                        "anchor": "body"
+                      },
+                      "as": "orb_life"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "orb_life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "orb_life",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:grant_buff",
+                          "buff": "chorus_d2:healing_grenade_orb_behavior",
+                          "target": {
+                            "binding": "orb"
+                          },
+                          "tier": {
+                            "type": "chorus:event_number",
+                            "name": "param.strength",
+                            "unit": "count"
+                          }
+                        },
+                        {
+                          "type": "chorus:write_entity_anchor",
+                          "buff": "chorus_d2:healing_grenade_orb_behavior",
+                          "target": {
+                            "binding": "orb"
+                          },
+                          "component": "orb_life",
+                          "reference": "orb_life"
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:healing_grenade_orb_behavior",
+                          "target": {
+                            "binding": "orb"
+                          },
+                          "component": "scan_interval",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:event_number",
+                            "name": "param.scan_interval",
+                            "unit": "second"
+                          }
+                        },
+                        {
+                          "type": "chorus:update_component",
+                          "buff": "chorus_d2:healing_grenade_orb_behavior",
+                          "target": {
+                            "binding": "orb"
+                          },
+                          "component": "first_scan_delay",
+                          "op": "set",
+                          "value": {
+                            "type": "chorus:event_number",
+                            "name": "param.first_scan_delay",
+                            "unit": "second"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:healing_grenade_orb_behavior",
+        "version": "compendium-2026-10-05",
+        "duration": 7.5,
+        "attach": "target",
+        "components": {
+          "numbers": {
+            "first_scan_delay": {
+              "unit": "second",
+              "initial": 0
+            },
+            "scan_interval": {
+              "unit": "second",
+              "initial": 0
+            }
+          },
+          "entity_anchors": [
+            "orb_life"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:healing_grenade_orb_behavior"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:healing_grenade_orb_behavior",
+      "scope": "buff",
+      "rules": [
+        {
+          "id": "start",
+          "on": "chorus:buff_gained",
+          "if": {
+            "type": "chorus:own_buff"
+          },
+          "do": [
+            {
+              "type": "chorus:schedule",
+              "name": "scan",
+              "event": "chorus_d2:healing_grenade_orb_scan",
+              "delay": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:healing_grenade_orb_behavior",
+                "component": "first_scan_delay"
+              },
+              "interval": {
+                "type": "chorus:component",
+                "buff": "chorus_d2:healing_grenade_orb_behavior",
+                "component": "scan_interval"
+              },
+              "repeat": -1
+            }
+          ]
+        },
+        {
+          "id": "collect",
+          "on": "chorus_d2:healing_grenade_orb_scan",
+          "if": {
+            "type": "chorus:own_timer",
+            "name": "scan"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_anchor",
+                "buff": "chorus_d2:healing_grenade_orb_behavior",
+                "component": "orb_life"
+              },
+              "as": "saved_life"
+            },
+            {
+              "action": {
+                "type": "chorus:resolve_entity_anchor",
+                "reference": "saved_life"
+              },
+              "as": "current_life"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "current_life",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "current_life",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "current_life"
+                    },
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 7.5,
+                      "unit": "meter"
+                    },
+                    "relative_to": "source_owner",
+                    "relation": "allied",
+                    "include_center": true,
+                    "exclude": [
+                      "self"
+                    ],
+                    "order": "identity",
+                    "target_anchor": "feet",
+                    "line_of_sight": false
+                  },
+                  "as": "collectors"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "collectors",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:compare",
+                        "op": "gt",
+                        "left": {
+                          "type": "chorus:result",
+                          "binding": "collectors",
+                          "field": "count"
+                        },
+                        "right": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "count"
+                        }
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_value",
+                        "value": {
+                          "type": "chorus:by_buff_tier",
+                          "values": [
+                            1,
+                            2
+                          ],
+                          "unit": "count"
+                        }
+                      },
+                      "as": "tier"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:consume_construct",
+                        "reference": "current_life"
+                      },
+                      "as": "claim"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "claim",
+                        "field": "consumed"
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:remove_buff",
+                          "buff": "chorus_d2:healing_grenade_orb_behavior"
+                        },
+                        {
+                          "for_each": "collectors",
+                          "as": "collector",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:solar_effect_duration",
+                                "target": {
+                                  "binding": "collector"
+                                },
+                                "input": {
+                                  "type": "chorus:constant",
+                                  "value": 4,
+                                  "unit": "second"
+                                },
+                                "tags": [
+                                  "chorus_d2:restoration"
+                                ]
+                              },
+                              "as": "duration"
+                            },
+                            {
+                              "type": "chorus:apply_status",
+                              "buff": "chorus_d2:restoration",
+                              "target": {
+                                "binding": "collector"
+                              },
+                              "tier": {
+                                "type": "chorus:result",
+                                "binding": "tier",
+                                "field": "value"
+                              },
+                              "duration": {
+                                "type": "chorus:result",
+                                "binding": "duration",
+                                "field": "value"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_grenade_orb_behavior"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "death",
+          "on": "chorus:entity_life_died",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_anchor",
+                "buff": "chorus_d2:healing_grenade_orb_behavior",
+                "component": "orb_life"
+              },
+              "as": "orb_life"
+            },
+            {
+              "action": {
+                "type": "chorus:read_entity_death"
+              },
+              "as": "ended_life"
+            },
+            {
+              "if": {
+                "type": "chorus:same_entity_life",
+                "left": "orb_life",
+                "right": "ended_life"
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_grenade_orb_behavior"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "removal",
+          "on": "chorus:entity_removed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_anchor",
+                "buff": "chorus_d2:healing_grenade_orb_behavior",
+                "component": "orb_life"
+              },
+              "as": "orb_life"
+            },
+            {
+              "action": {
+                "type": "chorus:read_entity_removal"
+              },
+              "as": "ended_life"
+            },
+            {
+              "if": {
+                "type": "chorus:same_entity_life",
+                "left": "orb_life",
+                "right": "ended_life"
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:healing_grenade_orb_behavior"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

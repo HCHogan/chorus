@@ -1,0 +1,70 @@
+{
+  "note": "Synthetic flight, homing, world-body dimensions, clearance, HP projection and scan phase; not measured Destiny physics. First qualifying scan consumes one shared orb and grants to its captured allied batch; this multiplayer policy needs calibration.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "tracking_radius": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter"
+    },
+    "turn_rate": {
+      "type": "chorus:constant",
+      "value": 720,
+      "unit": "degree_per_second"
+    },
+    "acquisition_angle": {
+      "type": "chorus:constant",
+      "value": 180,
+      "unit": "degree"
+    },
+    "orb_width": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    },
+    "orb_height": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    },
+    "orb_clearance": {
+      "type": "chorus:constant",
+      "value": 0.01,
+      "unit": "meter"
+    },
+    "orb_health_scale": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "multiplier"
+    },
+    "first_scan_delay": {
+      "type": "chorus:constant",
+      "value": 0.05,
+      "unit": "second"
+    },
+    "scan_interval": {
+      "type": "chorus:constant",
+      "value": 0.05,
+      "unit": "second"
+    }
+  }
+}

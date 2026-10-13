@@ -633,6 +633,10 @@ public final class EffectCodecs {
                 .register("chorus:resolve_entity_anchor", EntityAnchorActions.Resolve.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("reference").forGetter(EntityAnchorActions.Resolve::reference)
                 ).apply(i, EntityAnchorActions.Resolve::new)))
+                .register("chorus:offset_position", Action.OffsetPosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("position").forGetter(Action.OffsetPosition::position), values.fieldOf("x").forGetter(Action.OffsetPosition::x),
+                        values.fieldOf("y").forGetter(Action.OffsetPosition::y), values.fieldOf("z").forGetter(Action.OffsetPosition::z)
+                ).apply(i, Action.OffsetPosition::new)))
                 .register("chorus:rebase_position", Action.RebasePosition.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("position").forGetter(Action.RebasePosition::position),
                         Codec.STRING.fieldOf("from").forGetter(Action.RebasePosition::from), Codec.STRING.fieldOf("to").forGetter(Action.RebasePosition::to)

@@ -3945,4 +3945,27 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 
 动作不会扣生命值或伪造 hit / death / kill / pickup。原生移除仍排队发布 `construct_ended(removed)` 及实体移除事实，在当前动作体完成后的边界处理；从构造物自己的 Buff 执行时，确认后的收益可完成，然后生命周期规则清理行为和计时器。已经捕获的目标 / 数值应在消费前保存，收益不能依赖移除后重新查询物体仍存在。实际移除后回执未知会停止运行，保留既有本地提交与物理移除，不重放消费或推测收益成功。
 
-这只提供确认消费的通用原语。何时拾取、谁能拾取、范围与视线、同一时刻多人的分配，以及治疗球是否按每位玩家独立保留，都必须由内容明确决定；不能把这个接口的验收当作 Healing Grenade 已完成。研究见 [治疗手雷来源](../data/d2-research/2026-10-14/healing-grenade-source.json)。
+这只提供确认消费的通用原语。何时拾取、谁能拾取、范围与视线、同一时刻多人的分配，以及治疗球是否按每位玩家独立保留，都必须由内容明确决定。治疗手雷现已有下述参考生产者，但完整原作校准和正式装配仍未完成。研究见 [治疗手雷来源](../data/d2-research/2026-10-14/healing-grenade-source.json)。
+
+## 对已捕获位置应用数值偏移
+
+`chorus:offset_position` 是纯本地动作：输入一个位置绑定和三个 METER 表达式，返回同维度的 POSITION，不读取实体或世界，不默认使用原点。缺失位置仍返回 missing；结果可直接作为查询中心或生成位置，并沿用相应世界动作的已知拒绝。错误绑定类型、未绑定引用和非长度单位在编译时拒绝，非有限计算不能成为世界坐标。
+
+```json
+{"action":{"type":"chorus:offset_position","position":"impact",
+ "x":{"type":"chorus:constant","value":0,"unit":"meter"},
+ "y":{"type":"chorus:constant","value":0.01,"unit":"meter"},
+ "z":{"type":"chorus:constant","value":0,"unit":"meter"}},"as":"placement"}
+```
+
+这里的 0.01 只是示例。它不自动旋转、归一化法线、寻找空位或证明位置可生成物体；实际 `spawn_construct` 仍检查加载范围、边界与完整实体碰撞。与 `rebase_position` 的三个已捕获点平移不同，偏移量由内容的有单位公式提供。
+
+## 治疗手雷的投掷与确认拾取组合
+
+`healing_grenade.json` 选择期挂载共享手雷回充，接受时支付一份，捕获眼部位置 / 朝向和 Touch of Flame 强度，再生成追踪盟友的真实投射物。实体或方块命中后按原接触位置查询盟友并调用共享 `cure_application`；飞行到期 / 卸载不伪造命中。球体使用独立构造物生命、7.5 秒 TTL 和显式 HP 投影。
+
+放置公式为 `impact + normal × (half_extent + clearance) - (0, half_height, 0)`，把中心转换为原生实体脚部，并保留命中治疗原中心。宽 / 高 / clearance 全是 METER；乘法按“长度 × 无量纲法线”表达。球体 Buff 保存已确认生命，在计划扫描时解析该生命，再按当前关系查询 7.5 米内盟友。消费前保存 tier，只有 `consumed` 才移除行为并逐个计算 Solace 时长、施加共享 Restoration；不能在删除行为后再读取其 tier。
+
+当前首个合格扫描消费一个共享球并奖励当时捕获的整批盟友，是待校准的明确内容政策。球体受伤死亡 / 到期 / 移除取消后续扫描，后来的盟友无法重复领取。关系参照不可用时不猜阵营；暂不领取并等待后续扫描或到期。原生消费不会产生虚构击杀；接收者拒绝、Cure 冷却和未知世界写入继续遵守各自回执边界。
+
+参数来自单独的 `healing_grenade_test_calibration.json`：速度、重力、阻力、追踪、尺寸 / 偏移、生命投影及扫描相位均需显式提供。Touch 来源标签只供本分支采样，不能代表完整 Aspect 已实现。参考定义、实际热力升腾长按组合与原生碰撞测试均不等于原作多人领取政策或全套子职业 UI 已校准；完整范围见 [D2 规则集](d2-ruleset.md#healing-grenade-的来源与待装配机制)。

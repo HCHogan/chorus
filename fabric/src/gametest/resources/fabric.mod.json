@@ -145,6 +145,7 @@
       "com.imdomestic.chorus.EntityAnchorComponentsGameTest",
       "com.imdomestic.chorus.PhoenixDiveGameTest",
       "com.imdomestic.chorus.HeatRisesGameTest",
+      "com.imdomestic.chorus.HealingGrenadeGameTest",
       "com.imdomestic.chorus.AbilityPreviousCostGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",
       "com.imdomestic.chorus.DirectionalMovementGameTest",

@@ -664,6 +664,27 @@ public interface Action {
                     observation.requirePosition(e.target(target), anchor)), List.of());
         }
     }
+    /** Pure displacement of a captured point. Missing observations remain missing. */
+    record OffsetPosition(String position, Value x, Value y, Value z) implements Action {
+        public OffsetPosition {
+            com.imdomestic.chorus.effect.EffectTimers.localName(position);
+            java.util.Objects.requireNonNull(x); java.util.Objects.requireNonNull(y); java.util.Objects.requireNonNull(z);
+        }
+        @Override public ResultShape validate(Validation v) {
+            v.result(position).requirePosition();
+            for (var value : List.of(x, y, z)) Validation.same(value.unit(v), Unit.METER);
+            return ResultShape.POSITION;
+        }
+        private static double offset(Value value, Evaluation e) {
+            var result = value.evaluate(e); Validation.same(result.unit(), Unit.METER); return result.value();
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            double dx = offset(x, e), dy = offset(y, e), dz = offset(z, e);
+            var point = e.results().get(position).position(e.context().bindings().get(position));
+            var result = point.map(p -> new com.imdomestic.chorus.effect.target.WorldPosition(p.dimension(), p.x() + dx, p.y() + dy, p.z() + dz));
+            return new RuleEngine.Local<>(e.state(), new com.imdomestic.chorus.effect.target.PositionResult.Stored(result), List.of());
+        }
+    }
     /** Pure translation of three observations. No implicit entity lookup, fallback, rotation or scale. */
     record RebasePosition(String position, String from, String to) implements Action {
         public RebasePosition {

@@ -579,7 +579,7 @@
           "text_sha256": "47d53568076e9dcd8ab56f1fe08d82019c6afde05a677af315e6ba5b7b2950ea"
         }
       ],
-      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲已接真实落地后的自身/9米盟友Cure x2及仁慈余烬。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。",
+      "scope": "两次50ms脉冲、环境总量、1秒冷却；真实tick与HP；Icarus Dash空中击杀调用共享定义，与独立生产者共用冷却及实际生命恢复；新增授权盟友施加入口，保持共享冷却与实际给予者，并以确认治疗组合Benevolence Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲已接真实落地后的自身/9米盟友Cure x2及仁慈余烬。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。 治疗手雷的实际命中Cure与确认拾取Restoration已组合Touch、逐受益者Solace和Benevolence。",
       "acceptance": [
         "每级60/30HP，0.1秒过程",
         "重复激活不延长冷却",
@@ -645,11 +645,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "consumedTouchHealingGrenadeGrantsSharedRestorationWithEachRecipientsSolace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace"
         }
       ],
       "gaps": [
         "两次等量脉冲为Chorus选择，原作细分恢复曲线未知",
-        "Icarus、Heal Clip、凤凰俯冲与Heat Rises已有部分生产者模板；其他技能、正式技能/装备装配及全局生命缩放未完成"
+        "Icarus、Heal Clip、凤凰俯冲、Heat Rises与治疗手雷已有部分生产者模板；其他技能、正式技能/装备装配及全局生命缩放未完成"
       ]
     },
     {
@@ -670,7 +675,7 @@
           "text_sha256": "fd25529d29a57d9d040a024bfc590bc657d82b79225af6e762c1a644dd511f30"
         }
       ],
-      "scope": "连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick 凤凰俯冲热力升腾分支在施放时复用Restoration x2及Solace时长。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。",
+      "scope": "连续恢复、强度/环境分支、历史时间、取高互斥、到期残段；真实tick 凤凰俯冲热力升腾分支在施放时复用Restoration x2及Solace时长。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。 治疗手雷的实际命中Cure与确认拾取Restoration已组合Touch、逐受益者Solace和Benevolence。",
       "acceptance": [
         "x1/x2环境恢复率",
         "保留最长时间和最高强度",
@@ -716,12 +721,17 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "consumedTouchHealingGrenadeGrantsSharedRestorationWithEachRecipientsSolace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace"
         }
       ],
       "gaps": [
         "HP/s 到 Minecraft HP/s 的缩放未校准；新定义要求 restoration_rate Profile",
         "与 Healing Rift 不叠加时的当前优先级未完整校准",
-        "Phoenix Dive与Heat Rises消费已接共享恢复，其他真实技能来源、共享状态死亡生命周期与生产装配仍待完成；Mercy / Empyrean已接延长"
+        "Phoenix Dive、Heat Rises消费与治疗手雷已接共享恢复，其他真实技能来源、共享状态死亡生命周期与生产装配仍待完成；Mercy / Empyrean已接延长"
       ]
     },
     {
@@ -5657,7 +5667,7 @@
           "text_sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112"
         }
       ],
-      "scope": "受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。",
+      "scope": "受益者持续时间 Profile +50%，Mercy 2→3 秒和外部 Restoration 4→6 秒；非全局自动变换 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。 治疗手雷的实际命中Cure与确认拾取Restoration已组合Touch、逐受益者Solace和Benevolence。",
       "acceptance": [
         "按受益者的当前来源计算，施加者的碎片不泄漏到其他目标",
         "拾取前装上/卸下影响此次时长，既有倒计时不追溯重写"
@@ -5685,6 +5695,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "consumedTouchHealingGrenadeGrantsSharedRestorationWithEachRecipientsSolace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace"
         }
       ],
       "gaps": [
@@ -13393,7 +13408,7 @@
           "text_sha256": "b745b47e7959f442b8939dd7a74867bbbeaf27a0cf394626b85fee7bdb380d8a"
         }
       ],
-      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。 Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲实际落地的盟友Cure已接线。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。",
+      "scope": "成功给予盟友Radiant/Restoration/裂隙或Cure治疗后，按本次给予者刷新7/4秒的三类额外基础回充；-10 Grenade、重复来源、共享Cure冷却及真实Acrobat/裂隙组合。 Heal Clip已通过同武器真实击杀/换弹与盟友Cure组合验收。 凤凰俯冲实际落地的盟友Cure已接线。 Heat Rises消费已调用共享定义，实际盟友治疗/恢复及逐受益者Solace已验收。 治疗手雷的实际命中Cure与确认拾取Restoration已组合Touch、逐受益者Solace和Benevolence。",
       "acceptance": [
         "共享状态保留首来源而本次给予者获益；拒绝、未知、自身、非盟友与显式排除来源不触发。",
         "属性倍率先作用于基础，之后加300%基础回充；三类当前接收账户、额外基础家族与chunk gains相互独立。",
@@ -13536,6 +13551,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "consumedTouchHealingGrenadeGrantsSharedRestorationWithEachRecipientsSolace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace"
         }
       ]
     },
@@ -13891,7 +13911,7 @@
       ],
       "gaps": [
         "完整三种Glide、滑翔中武器/技能行为、99%激活/维持费用降低、敌方精度与25米雷达未实现；AE仅数值查询，完整空中弹道/瞄准未接线。",
-        "长按阈值为必填校准参数，.3秒不代表原作；Healing Grenade、Touch of Flame和Song of Flame Wisp为合成生产者，Wisp .25费用和独立账户仅验证消费协议。",
+        "长按阈值为必填校准参数，.3秒不代表原作；Healing Grenade已有实际投掷生产者及长按消费组合；Touch of Flame仍以资格标签提供治疗分支，Song of Flame Wisp为合成生产者，Wisp .25费用和独立账户仅验证消费协议。",
         "球形脚部含端点无视线筛选、同生命死亡/移除清理、卸下Aspect保留活动状态、Guardian优先和有限回执寿命为Chorus显式政策，原作交互边界未完整实测。",
         "原生世界场景按明确实体tier标签验证T1到T4，Guardian和两模式由核心用例覆盖；完整D2敌人目录、武器/技能击杀信用与混合交战分类仍待装配。",
         "共享Cure两次等量脉冲、生命投影、Restoration覆盖和所有特殊生产者仍需校准；正式Aspect/子职业装配、HUD/素材、物理世界跨重启与全部组合未完成；定义仍在验收资源。"
@@ -14023,6 +14043,185 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "unknownActualCureRetainsPaymentAndHeatWithoutReplayingHealing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "actualHeldHeatRisesInputConsumesRealHealingGrenadeWithoutThrowing"
+        }
+      ]
+    },
+    {
+      "id": "solar/healing_grenade",
+      "name": "Healing Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B33",
+          "text_sha256": "5ff45a3cfbc110285846ec02cd8ccdca65089f00d4d67fb58bf87cc3b719fab6"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D33",
+          "text_sha256": "246fdde1ae765b4b14af61eccc653d9ed50d9c2822668c52d8d587cb3fe7fa85"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N33",
+          "text_sha256": "d550c57b707dd954a255d35d47445d71294925081f50f99d2a857bfd6569020d"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "B34",
+          "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D34",
+          "text_sha256": "121c1b3f6b91fe463c7934eea41a628d23887c8b2c67cfa4212a891d27d65595"
+        }
+      ],
+      "scope": "实际付费投掷与盟友追踪、命中共享Cure、生成可受伤/过期Restoration Orb；首批盟友确认消费后获得共享Restoration，组合Touch强度、逐受益者Solace、Benevolence及实际Heat Rises长按消费。",
+      "acceptance": [
+        "119.7秒基础回充与0.875接收系数；轨迹/追踪/尺寸/生命投影/扫描参数缺失时拒绝接受施放，不默填原作未知参数。",
+        "命中球形7.5米范围的自身及盟友调用共享Cure x1；Touch在接受时冻结为Cure x2，卸装不改写已接受飞行。",
+        "真实投射物接触后生成7.5秒、100 HP乘显式投影的构造物；纯位置偏移将完整球体放在地板上、墙外、天花板下，不移动Cure中心。",
+        "保存球体生命引用，按当前盟友关系筛选后确认消费；仅成功回执授予首批捕获盟友Restoration x1/Touch x2，逐受益者Solace为4→6秒，实际盟友收益触发Benevolence。",
+        "迟到盟友可在有效期内领取，消费后的后续到达者不重复领取；原生摧毁/到期、拒绝施加、未知写入和领域检查点保持明确边界。",
+        "Heat Rises长按消费实际治疗手雷定义的账户，授予Cure x3和Touch的Restoration x1，不执行投掷/生成治疗球。"
+      ],
+      "gaps": [
+        "弹道速度/重力/阻力、追踪范围/角速度/锥角、尺寸/偏移、生命投影、首扫/间隔均为必填校准；当前测试参数不是原作实测。",
+        "首个合格扫描消费一个共享球并奖励该批全部盟友是Chorus政策；原作多人是否独立保留、重复领取、拾取后寿命与精确接收资格未确认。",
+        "命中和拾取均按脚部球形距离/含端点/无视线，施放者仅在命中范围内获得Cure；失去阵营参照等待后续扫描或到期；这些几何/失联/强度取样/卸装政策待原作校准。",
+        "Touch of Flame通过来源标签提供资格，仅覆盖治疗手雷分支；完整Aspect装配及Firebolt/Solar/Fusion强化未实现，不能把测试标签当作完整Aspect。",
+        "共享Cure两次等量脉冲/冷却、Restoration速率和生命投影仍有原有校准缺口；正式技能/子职业目录、球体图形/HUD/素材、物理世界跨重启、全部金装/模组组合仍未完成；定义在验收资源。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/healing_grenade.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/healing_grenade_energy.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/healing-grenade-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "paidFlightRequiresExplicitCalibrationAndUsesTheRealCooldownAndRecipientScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "impactCureAndDelayedOrbRestorationUseSharedDefinitionsInBothModesAndTouchVariants"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "bodyPlacementUsesImpactNormalForFloorWallAndCeilingWithoutMovingTheCureCenter"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "firstQualifyingScanConsumesTheSharedOrbForItsCapturedAlliedBatchAndCannotRewardLaterArrivals"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "anUnclaimedOrbWaitsForAnAllyButNeverRewardsAtItsExpiryBoundary"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "touchStrengthIsCapturedAtCastWhileSolaceIsReadFromEachActualCollector"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "orbDestructionAndKnownClaimRejectionsDoNotGrantRestoration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "deniedRecipientAndSharedCureCooldownDoNotRollBackPhysicalOrbOrPayment"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "expiryOrUnloadOfTheFlightAndRejectedOrbSpawnNeverInventRestoration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "unknownSpawnClaimAndRestorationStopWithoutRetryingTheAlreadyCommittedWorldStage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+          "symbol": "heatRisesConsumesThisActualDefinitionWithoutLaunchingTheGrenadeOrItsOrb"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "paidPhysicalFlightHomesToAllyAndCreatesConsumedRestorationOrb"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "capturedTouchStrengthSurvivesUnbindAndComposesWithCollectorSolace"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "floorImpactPlacesEntireOrbAboveTheContact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "wallImpactPlacesEntireOrbOutsideTheWall"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "ceilingImpactPlacesEntireOrbBelowTheCeiling"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "unclaimedOrbWaitsForFirstAlliedBatchAndNeverRewardsSubsequentArrivals"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "nativeOrbExpiresAfterSevenPointFiveSecondsWithoutAnEligibleCollector"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "nativeDestructionBeforeFirstScanCancelsRestoration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "deniedStatusDoesNotRefundPaidThrowOrRecreateConsumedOrb"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "unknownNativeClaimKeepsPhysicalConsumptionAndNeverReplaysOrGrantsRestoration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+          "symbol": "actualHeldHeatRisesInputConsumesRealHealingGrenadeWithoutThrowing"
         }
       ]
     }

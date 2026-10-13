@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-13T16:27:04.625933+00:00",
-  "status": "researching",
+  "status": "partial",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
     "gid": "1186062409",
@@ -116,5 +116,41 @@
     "Strong ally homing and very light trajectory do not supply speed, gravity, drag, acquisition cone/range or turn rate.",
     "Orb size, spawn offset relative to impact, HP projection, collector eligibility, simultaneous or per-player pickup and post-pickup lifetime need explicit calibration/policy.",
     "Source gives 119.7s base cooldown, 0.875 chunk scalar, 7.5m Cure/collection radius, 7.5s orb life and 100 HP; this is not independent live-game measurement."
-  ]
+  ],
+  "implementation": {
+    "definitions": [
+      "common/src/test/resources/effects/healing_grenade.json",
+      "common/src/test/resources/effects/healing_grenade_energy.json"
+    ],
+    "calibration": "common/src/test/resources/effects/healing_grenade_test_calibration.json",
+    "unit_tests": "common/src/test/java/com/imdomestic/chorus/effect/HealingGrenadeTest.java",
+    "world_tests": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
+    "source_values": {
+      "base_cooldown_seconds": 119.7,
+      "chunk_scalar": 0.875,
+      "impact_cure_radius_meters": 7.5,
+      "orb_lifetime_seconds": 7.5,
+      "orb_hp": 100,
+      "collection_radius_meters": 7.5,
+      "restoration_seconds": 4,
+      "restoration_with_solace_seconds": 6,
+      "base_cure_tier": 1,
+      "base_restoration_tier": 1,
+      "touch_of_flame_tiers": 2
+    },
+    "policies": [
+      "Capture Touch of Flame strength at accepted cast. Query each actual recipient for Solace when the orb is consumed. Accepted flight/orb survives selection/source changes.",
+      "Cure uses a 7.5m sphere around the historical contact, querying allied feet without line of sight. Caster receives Cure only when within that sphere.",
+      "Offset the captured contact along its surface normal by body half extent plus clearance, then subtract half height to convert body center to native feet. Entity contacts have zero normal and center the body at contact.",
+      "The first qualifying scheduled scan consumes one shared orb before granting Restoration to its captured allied batch; later arrivals get nothing. This multiplayer policy is not confirmed by the cited sources.",
+      "Collection uses current allied feet in a 7.5m sphere centered on current same-life orb body, includes the caster, excludes the orb, and uses identity ordering without line of sight.",
+      "Missing/dead orb life removes behavior; source-owner relation unavailable yields no collection and waits until a later successful scan or expiry. Same-life death/removal cancels behavior.",
+      "Known recipient denial/shared Cure cooldown does not refund the throw or claim. Rejected orb spawn retains already accepted Cure. Unknown world results stop without replaying committed writes.",
+      "Touch of Flame is supplied by a typed source tag; full Aspect production selection and its other grenade branches are not implemented by this definition."
+    ],
+    "limits": [
+      "All movement, homing, body dimensions/clearance, health projection and scan phase values are explicit synthetic calibration, not measured Destiny physics.",
+      "Reference definitions remain in acceptance resources; full production subclass/Aspect wiring, renderer/HUD, native cross-restart restoration and all exotic/mod combinations remain incomplete."
+    ]
+  }
 }
