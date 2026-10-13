@@ -1,0 +1,13 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [{
+    "id": "test:orb_collector",
+    "rules": [{
+      "id": "collect", "on": "test:collect_orbs",
+      "if": {"type": "chorus:target_is", "left": "self", "right": "event_actor"},
+      "do": [{"type": "chorus:collect_pickups", "collector": "self",
+        "radius": {"type": "chorus:constant", "value": 20, "unit": "meter"},
+        "kinds": ["chorus_d2:orb_of_power"], "line_of_sight": false}]
+    }]
+  }]
+}

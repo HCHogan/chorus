@@ -22,8 +22,20 @@ public final class RuleEngine<S> {
     public interface WorldCommand {}
     public enum Empty implements Payload, ActionResult { INSTANCE }
 
+    private static final String AFTER_REACTIONS = "chorus:internal/after_reactions";
+    /** Run at the same logical time once ordinary queued reactions have settled. No nested envelope. */
+    public record AfterReactions(Signal signal) implements Payload {
+        public AfterReactions {
+            Objects.requireNonNull(signal);
+            if (signal.payload() instanceof AfterReactions) throw new IllegalArgumentException("Nested after-reactions envelope");
+        }
+    }
+    public static Signal afterReactions(Signal signal) { return new Signal(AFTER_REACTIONS, new AfterReactions(signal)); }
     public record Signal(String type, Payload payload) {
-        public Signal { Objects.requireNonNull(type); Objects.requireNonNull(payload); }
+        public Signal {
+            Objects.requireNonNull(type); Objects.requireNonNull(payload);
+            if (AFTER_REACTIONS.equals(type) != (payload instanceof AfterReactions)) throw new IllegalArgumentException("Invalid after-reactions envelope");
+        }
     }
     public record Event(long id, long root, Optional<Long> parent, long timeMicros, Signal signal) {}
     public record OperationId(long frame, int pc, int invocation) {}
@@ -284,7 +296,7 @@ public final class RuleEngine<S> {
             try {
                 if (cursor.frames.isEmpty()) {
                     if (cursor.facts.isEmpty()) break;
-                    Event event = cursor.facts.removeFirst();
+                    Event event = cursor.takeEvent();
                     cursor.distributing = event;
                     var unique = new LinkedHashMap<String, RuleBinding>();
                     for (RuleBinding binding : resolver.resolve(cursor.domain, event)) {
@@ -360,6 +372,18 @@ public final class RuleEngine<S> {
 
         long eventId() { long id = nextEvent; nextEvent = Math.incrementExact(nextEvent); return id; }
         long frameId() { long id = nextFrame; nextFrame = Math.incrementExact(nextFrame); return id; }
+
+        Event takeEvent() {
+            // Keep FIFO within both classes. A deferred event's ordinary descendants settle
+            // before the next deferred event; no requeue spins, new IDs or clock advancement.
+            var iterator = facts.iterator();
+            while (iterator.hasNext()) {
+                var event = iterator.next();
+                if (!(event.signal().payload() instanceof AfterReactions)) { iterator.remove(); return event; }
+            }
+            var event = facts.removeFirst();
+            return new Event(event.id(), event.root(), event.parent(), event.timeMicros(), ((AfterReactions) event.signal().payload()).signal());
+        }
 
         void commit(Frame frame, Instruction<S> instruction, Local<S> result) {
             domain = result.state();

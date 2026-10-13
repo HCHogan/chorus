@@ -98,7 +98,7 @@ public final class TimelineEngine<S> {
             if (state.engine().failure().isPresent()) throw new IllegalStateException("Failed timeline requires explicit recovery");
             if (!state.idle()) throw new IllegalStateException("Cannot interleave a requested timeline event");
             if (start.timeMicros() < clock.time(state.engine().domain()) || start.timeMicros() == NEVER) throw new IllegalArgumentException("Invalid event time");
-            if (start.signal().type().equals(ADVANCE) || start.following().stream().anyMatch(signal -> signal.type().equals(ADVANCE))) {
+            if (reserved(start.signal()) || start.following().stream().anyMatch(TimelineEngine::reserved)) {
                 throw new IllegalArgumentException("Reserved timeline event");
             }
             return dispatch(new State<>(state.engine(), Optional.of(start), Map.of(), Optional.empty()));
@@ -115,6 +115,11 @@ public final class TimelineEngine<S> {
         if (state.engine().failure().isPresent()) return new Transition<>(state, List.of());
         if (!state.engine().idle()) return wrap(state, state.requested(), engine.transition(state.engine(), Pump.INSTANCE));
         return dispatch(state);
+    }
+
+    private static boolean reserved(Signal signal) {
+        var actual = signal.payload() instanceof AfterReactions deferred ? deferred.signal() : signal;
+        return actual.type().equals(ADVANCE);
     }
 
     private Transition<S> dispatch(State<S> state) {

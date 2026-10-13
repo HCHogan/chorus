@@ -135,7 +135,18 @@ class ObservedFactsTest {
     }
     @Test void observedBatchCannotInjectTheReservedClockEvent() {
         var engine = timeline();
-        assertThrows(IllegalArgumentException.class, () -> engine.transition(engine.initial(new Timed(0, List.of())),
-                new Start(90, List.of(signal("first"), signal("chorus:internal/advance_time")))));
+        for (var reserved : List.of(signal("chorus:internal/advance_time"), afterReactions(signal("chorus:internal/advance_time")))) {
+            assertThrows(IllegalArgumentException.class, () -> engine.transition(engine.initial(new Timed(0, List.of())), new Start(90, reserved)));
+            assertThrows(IllegalArgumentException.class, () -> engine.transition(engine.initial(new Timed(0, List.of())),
+                    new Start(90, List.of(signal("first"), reserved))));
+        }
+    }
+    @Test void deferredFactsStayInsideTheBoundaryAfterClockExpiryAndOrdinaryFacts() {
+        var engine = timeline();
+        var result = engine.transition(engine.initial(new Timed(0, List.of())), new Start(90, List.of(afterReactions(signal("second")), signal("first"))));
+        for (int i = 0; result.needsPump() && i < 200; i++) result = engine.transition(result.state(), Pump.INSTANCE);
+        assertTrue(result.state().idle()); assertTrue(result.state().engine().failure().isEmpty());
+        assertEquals(List.of("expiry@50", "first@90", "second@90"), result.state().engine().domain().observations());
+        assertEquals(90, engine.checkpoint(result.state()).timeMicros());
     }
 }

@@ -30,7 +30,7 @@ public final class PickupActions {
             var result = (PickupCollection.Result) value;
             if (!result.query().equals(e.context().command(PickupCollection.Query.class))) throw new IllegalArgumentException("Pickup candidates differ from issued query");
             return new RuleEngine.Local<>(e.state(), result, result.entries().isEmpty() ? List.of()
-                    : List.of(new RuleEngine.Signal(PickupCollection.EVENT, new PickupCollection.Batch(result.query(), result.entries()))));
+                    : List.of(new PickupCollection.Batch(result.query(), result.entries()).signal()));
         }
     }
 }

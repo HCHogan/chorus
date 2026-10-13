@@ -101,6 +101,8 @@ class PickupCollectionTest {
         var batch = new PickupCollection.Batch(new PickupCollection.Query("target", 5, Set.of("test:pickup"), false), h.entries);
         assertEquals(batch, EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(batch), PickupCollection.Batch.class));
         assertEquals(batch.scope(), EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(batch.scope()), EffectContinuations.Pending.class));
+        var event = new RuleEngine.Event(42, 1, Optional.of(30L), 90, batch.signal());
+        assertEquals(event, EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(event), RuleEngine.Event.class));
     }
     @Test void invalidUnitsNegativeRadiusAndEmptyKindsFailBeforeWorldExecution() throws Exception {
         for (String fault : List.of("unit", "radius", "kinds", "unknown")) {

@@ -577,6 +577,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_reload/scope", com.imdomestic.chorus.effect.weapon.WeaponReload.Scope.class);
         types.put("chorus:effect/weapon/weapon_reload/verified", com.imdomestic.chorus.effect.weapon.WeaponReload.Verified.class);
         types.put("chorus:effect/weapon/weapon_reload/verify", com.imdomestic.chorus.effect.weapon.WeaponReload.Verify.class);
+        types.put("chorus:rule/rule_engine/after_reactions", com.imdomestic.chorus.rule.RuleEngine.AfterReactions.class);
         types.put("chorus:rule/rule_engine/empty", com.imdomestic.chorus.rule.RuleEngine.Empty.class);
         types.put("chorus:rule/rule_engine/event", com.imdomestic.chorus.rule.RuleEngine.Event.class);
         types.put("chorus:rule/rule_engine/operation_id", com.imdomestic.chorus.rule.RuleEngine.OperationId.class);

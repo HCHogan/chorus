@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-13：批量拾取等待派生反应结算
+
+接入 Powerful Attraction 前，用现有 Orb / Armor Charge / Stacks on Stacks / Devour 定义复现了跨规则时序缺口：满超能、三层充能容量、五颗候选时实际消费五颗；叠叠不休实际消费四颗而非两颗；第一颗球的嵌套 Devour 恢复结果未知时已经消费第二颗。`sequence-before.log` 的四项定向测试有三项失败，因此此前“直接 pickup 反应先于下一件”的保证不足以支持这些组合。
+
+新增纯数据 `RuleEngine.AfterReactions` 信封。首次领取及本批下一件等待当前边界所有普通事件和后续普通派生反应结算；两类事件各自 FIFO，保留原事件 id / root / parent / time。依旧使用原状态转换、世界回执与 Pump，不推进时钟、不重入解释器、不限制合法循环。包装后的保留时钟事件也由时间轴拒绝。新增一个存储类型，原有 642 个形状不变；会话检查点仍只接受成功结算的边界，数据往返不等于活动批次或物理对象的重启恢复。
+
+五项 OrbCollectionTest 复用真实内容规则，验证普通充能、双倍充能、首次领取前的其他反应、独立吞噬许可和未知恢复；六项 AfterReactionsTest 验证多代 FIFO、世界观察、因果身份、不同工作预算、持续循环、失败及信封约束，另补时间轴边界回归。四项共享世界场景验证实际球实体留下多余数量、后续缺口再收集、真实恢复和未知结果停止领取。本批仅修复通用调度与已有内容组合，Powerful Attraction 的具体触发、半径和正式模组装配仍待完成，Compendium 不新增完成项。
+
+最终 `build/reports/powerful-attraction/sequence-final-gate.log` BUILD SUCCESSFUL，3 分 17 秒：1965 项 JUnit 无失败/错误/跳过，Fabric 1117 / NeoForge 1132 项世界测试通过，共享 GameCase 1116 项。双端发布 jar 分别 1259 / 1252 项，27 个 PNG/JSON 资源及六个变更类（含新增信封类）与对应构建产物逐字节一致，无测试夹具、GameTest 或 TestMixin 泄漏；643 项存储目录保留原 642 项精确形状，Gradle 文件保持 CRLF。10 项 Compendium 工具测试、119 条审阅及报告一致性检查通过，仍为 117 partial / 2 not_applicable / 0 verified。没有客户端协议或 UI 变化，本批未重复图形客户端验收。汇总见 `build/reports/powerful-attraction/sequence-audit.json`，首次失败记录见同目录 `sequence-before.log`。
+
 ### 2026-10-13：逐件确认的主动范围拾取
 
 新增 collect_pickups：按收集者、非空 kind 集合、meter 范围和可选视线查询已加载私有拾取物，再通过单独的领取回执执行原奖励。查询结果只表示候选；每件物品重新校验原 Spawn/实体、所属运行时、寿命、存活、范围、视线和 collect_if。物理消费与奖励同一规则帧串行，下一件读取前一件已提交的资源；直接 pickup 反应排在本批下一件前，其他派生仍遵守全局 FIFO。没有嵌套调用运行时、抢占解释器或合并整个批次的世界事务。

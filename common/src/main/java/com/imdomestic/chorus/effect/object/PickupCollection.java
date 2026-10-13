@@ -37,7 +37,8 @@ public final class PickupCollection {
     public record Batch(Query query, List<Entry> entries) implements RuleEngine.Payload, RuleEngine.ActionResult {
         public Batch { Objects.requireNonNull(query); entries = PickupCollection.entries(query, entries); if (entries.isEmpty()) throw new IllegalArgumentException("Empty collection batch"); }
         public Entry first() { return entries.getFirst(); }
-        public List<RuleEngine.Signal> next() { return entries.size() == 1 ? List.of() : List.of(new RuleEngine.Signal(EVENT, new Batch(query, entries.subList(1, entries.size())))); }
+        public RuleEngine.Signal signal() { return RuleEngine.afterReactions(new RuleEngine.Signal(EVENT, this)); }
+        public List<RuleEngine.Signal> next() { return entries.size() == 1 ? List.of() : List.of(new Batch(query, entries.subList(1, entries.size())).signal()); }
         public EffectContinuations.Pending scope() {
             var p = first().spawn().continuation(); var bindings = new HashMap<>(p.bindings());
             if (bindings.putIfAbsent(BATCH_SLOT, this) != null) throw new IllegalArgumentException("Reserved pickup binding");

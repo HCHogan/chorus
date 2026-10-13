@@ -260,6 +260,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/proximity_ward.json'
         include 'effects/kickstart.json'
         include 'effects/kickstart_inputs.json'
+        include 'effects/pickup_collection_inputs.json'
         include 'effects/weapon_surge.json'
         include 'effects/weapon_surge_inputs.json'
         include 'effects/weapon_surge_weapon.json'
