@@ -2,6 +2,7 @@ package com.imdomestic.chorus.platform.minecraft;
 
 import com.imdomestic.chorus.effect.EffectEvent;
 import com.imdomestic.chorus.effect.object.WorldPickup;
+import com.imdomestic.chorus.effect.object.PickupCollection;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.stat.*;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -38,6 +39,34 @@ public final class EffectObject extends Entity implements ItemSupplier {
     private WorldPosition point(Vec3 p) { return new WorldPosition(level().dimension().identifier().toString(), p.x, p.y, p.z); }
     private void abandon() { consumed = true; discard(); }
     boolean ownedBy(MinecraftEffectRuntime candidate) { return runtime == candidate; }
+    boolean remoteCandidate(MinecraftEffectRuntime candidate, PickupCollection.Query query, LivingEntity collector) {
+        if (consumed || isRemoved() || pickup == null || runtime != candidate || runtime.failure().isPresent()
+                || !query.collector().equals(pickup.recipient()) || !query.kinds().contains(pickup.kind())
+                || runtime.state().engine().timeMicros() - createdMicros >= pickup.parameters().lifetimeMicros()) return false;
+        var server = (ServerLevel) level();
+        return position().distanceTo(collector.position()) <= query.radius()
+                && MinecraftVisibility.trace(server, point(position()), point(position())).isPresent()
+                && (!query.lineOfSight() || MinecraftVisibility.visible(server, point(position()), point(collector.position())));
+    }
+    PickupCollection.Claimed claim(PickupCollection.Claim claim) {
+        var server = (ServerLevel) level(); var query = claim.query();
+        var outcome = PickupCollection.ClaimOutcome.COLLECTED;
+        long age = runtime == null ? 0 : Math.subtractExact(runtime.state().engine().timeMicros(), createdMicros);
+        var collector = MinecraftPickupCollection.collector(server, query.collector());
+        if (consumed || isRemoved() || pickup == null || !getUUID().toString().equals(claim.entry().entity()) || !pickup.equals(claim.entry().spawn())
+                || MinecraftEffectRuntime.installed(server).orElse(null) != runtime || runtime.failure().isPresent()
+                || MinecraftVisibility.trace(server, point(position()), point(position())).isEmpty()) outcome = PickupCollection.ClaimOutcome.UNAVAILABLE;
+        else if (age >= pickup.parameters().lifetimeMicros()) outcome = PickupCollection.ClaimOutcome.EXPIRED;
+        else if (collector == null) outcome = PickupCollection.ClaimOutcome.MISSING_COLLECTOR;
+        else if (position().distanceTo(collector.position()) > query.radius()) outcome = PickupCollection.ClaimOutcome.OUT_OF_RANGE;
+        else if (query.lineOfSight() && !MinecraftVisibility.visible(server, point(position()), point(collector.position()))) outcome = PickupCollection.ClaimOutcome.OCCLUDED;
+        else if (!runtime.program().canCollectPickup(runtime.state().engine().domain(), pickup)) outcome = PickupCollection.ClaimOutcome.INELIGIBLE;
+        if (outcome != PickupCollection.ClaimOutcome.COLLECTED) return new PickupCollection.Claimed(claim, outcome, Optional.empty());
+        var contact = new WorldPickup.Contact(WorldPickup.End.COLLECTED, point(position()), Optional.of(query.collector()), age);
+        var result = new PickupCollection.Claimed(claim, outcome, Optional.of(contact));
+        abandon(); // The original reward body resumes only after this physical claim is confirmed.
+        return result;
+    }
     @Override public void tick() {
         if (consumed || isRemoved()) return;
         super.tick();

@@ -311,6 +311,11 @@ public final class EffectCodecs {
                         finite -> DataResult.success(new AmmoActions.ReserveSpec(java.util.Optional.of(finite)))),
                 value -> DataResult.success(value.finite().<Either<String, AmmoActions.FiniteReserve>>map(Either::right).orElseGet(() -> Either.left("unlimited"))));
         return new TypeRegistry<Action>()
+                .register("chorus:collect_pickups", PickupActions.Collect.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        TARGET.fieldOf("collector").forGetter(PickupActions.Collect::collector), values.fieldOf("radius").forGetter(PickupActions.Collect::radius),
+                        ID.listOf().xmap(Set::copyOf, s -> s.stream().sorted().toList()).fieldOf("kinds").forGetter(PickupActions.Collect::kinds),
+                        Codec.BOOL.optionalFieldOf("line_of_sight", false).forGetter(PickupActions.Collect::lineOfSight)
+                ).apply(i, PickupActions.Collect::new)))
                 .register("chorus:begin_shot", ShotActions.Begin.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         values.fieldOf("pellets").forGetter(ShotActions.Begin::pellets), values.fieldOf("lifetime").forGetter(ShotActions.Begin::lifetime)).apply(i, ShotActions.Begin::new)))
                 .register("chorus:sample_random", RandomActions.Sample.class, RecordCodecBuilder.mapCodec(i -> i.group(

@@ -217,7 +217,8 @@
       "com.imdomestic.chorus.CyclicRechargeGameTest",
       "com.imdomestic.chorus.GamblersDodgeGameTest",
       "com.imdomestic.chorus.GamblersTrackingGameTest",
-      "com.imdomestic.chorus.EquipmentEditorGameTest"
+      "com.imdomestic.chorus.EquipmentEditorGameTest",
+      "com.imdomestic.chorus.PickupCollectionGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

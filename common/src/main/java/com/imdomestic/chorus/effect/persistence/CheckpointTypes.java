@@ -8,6 +8,15 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/data/pickup_actions/collect", com.imdomestic.chorus.effect.data.PickupActions.Collect.class);
+        types.put("chorus:effect/object/pickup_collection/query", com.imdomestic.chorus.effect.object.PickupCollection.Query.class);
+        types.put("chorus:effect/object/pickup_collection/entry", com.imdomestic.chorus.effect.object.PickupCollection.Entry.class);
+        types.put("chorus:effect/object/pickup_collection/outcome", com.imdomestic.chorus.effect.object.PickupCollection.Outcome.class);
+        types.put("chorus:effect/object/pickup_collection/result", com.imdomestic.chorus.effect.object.PickupCollection.Result.class);
+        types.put("chorus:effect/object/pickup_collection/batch", com.imdomestic.chorus.effect.object.PickupCollection.Batch.class);
+        types.put("chorus:effect/object/pickup_collection/claim", com.imdomestic.chorus.effect.object.PickupCollection.Claim.class);
+        types.put("chorus:effect/object/pickup_collection/claim_outcome", com.imdomestic.chorus.effect.object.PickupCollection.ClaimOutcome.class);
+        types.put("chorus:effect/object/pickup_collection/claimed", com.imdomestic.chorus.effect.object.PickupCollection.Claimed.class);
         types.put("chorus:effect/data/aim_actions/apply", com.imdomestic.chorus.effect.data.AimActions.Apply.class);
         types.put("chorus:effect/motion/aim_impulse/command", com.imdomestic.chorus.effect.motion.AimImpulse.Command.class);
         types.put("chorus:effect/motion/aim_impulse/rotation", com.imdomestic.chorus.effect.motion.AimImpulse.Rotation.class);

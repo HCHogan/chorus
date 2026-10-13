@@ -1040,7 +1040,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     nestedResults.put(pickup.bind(), ResultShape.PICKUP_CONTACT); nestedSlots.put(pickup.bind(), contactSlot);
                     var body = new ArrayList<RuleEngine.Instruction<EffectState>>();
                     nestedSlots.forEach((name, slot) -> body.add(new RuleEngine.Instruction<>((state, context) -> {
-                        var value = ((EffectContinuations.Pending) context.scope()).bindings().get(slot);
+                        var value = slot.equals(contactSlot) && context.bindings().containsKey(com.imdomestic.chorus.effect.object.PickupCollection.CLAIM_SLOT)
+                                ? ((com.imdomestic.chorus.effect.object.PickupCollection.Claimed) context.bindings().get(com.imdomestic.chorus.effect.object.PickupCollection.CLAIM_SLOT)).contact().orElseThrow()
+                                : ((EffectContinuations.Pending) context.scope()).bindings().get(slot);
                         if (value == null) throw new IllegalArgumentException("Pickup is missing captured binding: " + name);
                         return new RuleEngine.Local<>(state, value, List.of());
                     }, slot)));
@@ -1053,6 +1055,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     }, ""));
                     body.addAll(compileSteps(bundle, pickup.body(), nestedResults, nestedSlots, path + index + "/pickup/", ownerRule, continuations));
                     continuations.add(new RuleEngine.EventRule<>(definition, com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, (_, _) -> true, body));
+                    continuations.add(compilePickupCollection(definition, body));
                     String spawnSlot = pickup.spawnBind().map(name -> {
                         localId(name);
                         if (name.equals(pickup.bind()) || results.putIfAbsent(name, ResultShape.PICKUP_SPAWN) != null) throw new IllegalArgumentException("Duplicate or shadowed pickup spawn binding: " + name);
@@ -1095,6 +1098,28 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return List.copyOf(output);
     }
 
+    /** Claim and reward share one frame, so later candidates observe the previous reward's committed state. */
+    private static RuleEngine.EventRule<EffectState> compilePickupCollection(String definition, List<RuleEngine.Instruction<EffectState>> body) {
+        var actions = new ArrayList<RuleEngine.Instruction<EffectState>>();
+        actions.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
+            @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                var batch = com.imdomestic.chorus.effect.object.PickupCollection.batch(context);
+                return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.object.PickupCollection.Claim(batch.query(), batch.first()));
+            }
+            @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult value) {
+                var result = (com.imdomestic.chorus.effect.object.PickupCollection.Claimed) value;
+                if (!result.claim().equals(context.command(com.imdomestic.chorus.effect.object.PickupCollection.Claim.class))) throw new IllegalArgumentException("Pickup claim differs from request");
+                return new RuleEngine.Local<>(state, result, List.of());
+            }
+        }, com.imdomestic.chorus.effect.object.PickupCollection.CLAIM_SLOT));
+        actions.add(new RuleEngine.Instruction<>((state, _) -> new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of()), "",
+                (_, context) -> ((com.imdomestic.chorus.effect.object.PickupCollection.Claimed) context.bindings().get(com.imdomestic.chorus.effect.object.PickupCollection.CLAIM_SLOT)).contact().isPresent(), body.size() + 1));
+        actions.addAll(body);
+        actions.add(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE,
+                com.imdomestic.chorus.effect.object.PickupCollection.batch(context).next()), ""));
+        return new RuleEngine.EventRule<>(definition + "/remote_collect", com.imdomestic.chorus.effect.object.PickupCollection.EVENT, (_, _) -> true, actions);
+    }
+
     /** Read-only claim eligibility: captured lexical scope and cause, current state and time. The host claims once after this check. */
     public boolean canCollectPickup(EffectState state, com.imdomestic.chorus.effect.object.WorldPickup.Spawn pickup) {
         validateState(state);
@@ -1110,6 +1135,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
 
     @Override public List<RuleEngine.RuleBinding> resolve(EffectState state, RuleEngine.Event event) {
         validateState(state);
+        if (event.signal().type().equals(com.imdomestic.chorus.effect.object.PickupCollection.EVENT)) {
+            var batch = (com.imdomestic.chorus.effect.object.PickupCollection.Batch) event.signal().payload();
+            var pending = batch.scope();
+            if (!program.version().equals(pending.version()) || !pickupChecks.containsKey(pending.definition()) || pending.cause().timeMicros() > event.timeMicros())
+                throw new IllegalArgumentException("Unknown or incompatible remote pickup continuation");
+            return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition() + "/remote_collect", pending));
+        }
         if (event.signal().type().equals(EffectContinuations.EVENT) || event.signal().type().equals(com.imdomestic.chorus.effect.projectile.ProjectileFlight.EVENT)
                 || event.signal().type().equals(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT)) {
             if (!(event.signal().payload() instanceof EffectContinuations.Pending pending) || !program.version().equals(pending.version())

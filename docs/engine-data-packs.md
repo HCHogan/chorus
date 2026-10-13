@@ -2526,6 +2526,29 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 寿命按运行时逻辑时钟计算，暂时不 tick 不会重置剩余时间；实体重新 tick 时先判断到期，再判断接触。短命实体 noSave / noSummon，运行时关闭、替换或失败后丢弃，不跨重启或维度迁移。拾取先消费实体再执行动作体；故障后不重新生成或重试奖励。当前外观为原版物品渲染器的萤石粉占位，逻辑上不可捡入背包；私有只约束拾取资格，按收集者过滤客户端可见性尚未实现。Firesprite 首批内容已通过显式校准 Profile 与 grant_ability_energy 路由当前手雷账户，见 [D2 规则集](d2-ruleset.md#firesprite-与-ember-of-tempering)。特殊 / 重型弹药砖和 Overflow 已有独立数据模板及物理链路，数量 / 分配需要外部校准，见 [满溢与弹药砖](d2-ruleset.md#overflow-与特殊--重型弹药砖)。视觉合并、队友副本自动分发、公共抢占及完整 D2 拾取内容仍待完成。
 
 
+### 按范围主动收集拾取物
+
+```json
+{
+  "action": {
+    "type": "chorus:collect_pickups",
+    "collector": "self",
+    "radius": {"type": "chorus:constant", "value": 5, "unit": "meter"},
+    "kinds": ["example:energy_pickup"],
+    "line_of_sight": false
+  },
+  "as": "candidates"
+}
+```
+
+该通用动作查询收集者脚底球形范围内、明确 kind 集合中的私有拾取物，不要求移动到原来的接触半径。示例 5 米只是测试值。kinds 必须非空；radius 是非负 meter 表达式，可以读取 Profile 或来源参数。line_of_sight 默认 false，内容可显式要求方块视线。候选按当前距离、再按实体 UUID 排序，只查询当前维度已加载的实体，不加载区块，不转移其他收集者的私有单位。
+
+返回值 `count` 是候选数量，`found / missing_collector` 描述查询结果；found 可以同时 count=0，不能把候选数量当作已领取数量。查询不消费物品，当前动作体结束后进入排队的领取流程。每一件物品都重新检查实体/原 Spawn 身份、所属运行时、寿命、收集者存活、距离、可选视线和当前 `collect_if`。拒绝没有奖励或拾取事实，剩余候选继续；到期单位留给原有过期流程处理。候选列表固定，不自动加入本轮奖励新生成的单位。
+
+每次确认领取先消费物理实体，再在同一个执行帧中运行该单位原来的 detached 奖励动作体，保留生成者来源和捕获值。当前单位的奖励和直接 `chorus:pickup` 反应排在本批下一件之前，下一件不会借用查询时的旧资格；原有全局 FIFO 规则仍适用于其他事件及进一步派生的反应。多个收集请求交错时，每一件的领取与基础奖励仍同帧完成，不能重复消费同一物体。未知世界结果停止后续执行，保留已经消费的实体及已提交资源，不重放奖励；不把整批拾取伪装为可回滚事务。
+
+`PickupCollection` 的候选、批次和领取回执可存入会话检查点，已有 Pickup / Spawn / Contact 存储形状不变。这不代表短命 EffectObject 已支持物理世界重启恢复。当前能力面向受管私有拾取物；原版物品、公共抢占、Mote/Crest 活动物体、Shoot to Loot 的子弹命中和 Powerful Attraction 的完整内容装配仍需各自接线。
+
 ## 事实携带的 Buff 观察值
 
 需要确认历史事件确实属于当前规则绑定的那一代 Buff 时，使用 `event_has_buff` 的 `match: instance`。它只允许在 BUFF 作用域中声明，同时比较逻辑实例键和 generation；刷新 / 加层保留代次，结束后同键重新授予会产生新代次。旧事件因此不会被新冻结等状态计入受伤阈值。对应的 `has_buff match: instance` 检查该代次现在是否仍存活；结束回调仍能匹配自己的历史观察，但不会把新代次当作旧状态复活。原有 bound / any 的含义保持不变；这是逐事件的状态资格条件，不是跨目标连锁的次数或深度限制。
