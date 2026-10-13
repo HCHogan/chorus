@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-13：Winter’s Shroud 与共享职业回充
+
+新增独立 Stasis / Prismatic 参考来源，按已接受职业技能开始事实捕获范围目标并授予战员减伤，复用共享 Slow / Freeze 和 Durance。任意生产者实际向敌人成功施加 Slow 后，三秒内向当前所选职业账户提供 PvE +300% / PvP +150% 额外基础回充；被拒绝的状态、盟友或未知关系不产生该收益。共享 Slow 保留首次来源时，本次施加者仍能获得自己的收益。
+
+Marksman 与 Gambler 接入同一 class_regeneration Profile，将基础值、属性倍率和额外基础百分比分开计算；Gambler 的基础替换限定到自己的账户。已保留账户仍沿用原来的基础恢复策略，不新增统一职业账户或猜测换装惩罚。未定的 Stasis 战员 Slow / Durance 延长、减伤时长，以及 Slow / Freeze 物理数值均要求显式输入；测试 8+4 秒与减伤 4 秒不作为原作测量。正式子职业 / Aspect 装配、全部组合、HUD 和世界持久化仍未完成，新增一条 partial。
+
+11 项核心测试覆盖双模式 / 双目标分类、重复来源、成功状态归属、刷新与去重、基础百分比和属性倍率分离、切换 / 清槽、死亡 / 卸装、未知结果以及检查点恢复。6 项共享世界场景验证实际职业输入、边界与阵营、原版移速 / 扣血、真实 tick 积分、切换账户，以及 Ascension 的 Slow / Freeze / Jolt / Amplified 组合。实际测试发现 invoke_bundle 的队列会把 pulse 查询推迟到 Ascension 位移后，已改为开始反应直接捕获目标；精确原作动画帧仍未校准。
+
+开发期补齐了 Fabric 环境注册，修正边界场景目的区块加载。首轮完整回归的 NeoForge 另有一个已有弹药砖夹具出现无消息异常；夹具改为先加载目的区块再移动锚点，并断言每次生成恰好一个新砖，避免直接 getLast 掩盖生成失败。首次失败日志保留为 `build/reports/winters-shroud/first-full-gate.log`；未删除测试世界或放宽未知结果的停机规则。详细定义 / 数值政策见 [研究记录](../data/d2-research/2026-10-13/winters-shroud.json)。
+
+修正后完整门禁 `build/reports/winters-shroud/final-gate.log` BUILD SUCCESSFUL，2 分 30 秒：2020 项 JUnit 无失败 / 错误 / 跳过，Fabric 1151 / NeoForge 1166 项世界测试通过，共享 GameCase 1150 项。647 项存储形状及两份历史检查点逐字节保持；本批未改生产 Java。双端发布 jar 为 1263 / 1256 项，全部 1164 / 1157 个生产类和 27 个 PNG/JSON 素材与构建输出一致，无测试泄漏；6 份变更规则与双端验收资源一致。Gradle CRLF、原始来源哈希、10 项 Compendium 工具测试和覆盖报告检查通过，审阅为 120 partial / 2 not_applicable / 0 verified。无 UI / 协议改动，未重复图形客户端验收；汇总为 `build/reports/winters-shroud/audit.json`。
+
 ### 2026-10-13：资源查询匹配当前技能槽的接收账户
 
 准备 Winter’s Shroud 回充收益时确认，增益需要区分当前接收账户与换槽后仍保留的账户。新增通用条件 selected_ability_resource / selected_ability_event_resource，比较指定持有者当前基础技能的 energyResource 与静态 ID / 事件引用；沿用 recharge_resource 优先、cost.resource 次之的现有规则。条件不解析施放替换、不追随 cost_slot 支付委托，不初始化或改变账户。

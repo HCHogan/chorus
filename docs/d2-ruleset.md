@@ -1232,7 +1232,7 @@ Arcbolt、Duskfield 和独立 Bleak Watcher 现统一支付 [grenade_energy.json
 
 Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一次迁移中恢复两把并清空满账户后的进度；不足填满时保留下一轮进度。Ophidia 的当前周期收益仍参与这次转换，真实闪身刷新已有 Scissor Fingers，且不创建或增加层数。已接受的延迟回能在取消职业技能选择后继续，但重新读取当前近战选择和属性；死亡 / 缺失施放者跳过，未知世界结果保留已付款与已移动的位置，不重放。这些时点、资格与换装政策均是当前明确实现，仍需原作交互校准。
 
-职业账户初始一份，CES为0.8；选中技能的常驻来源提供1/56的基础秒回能，取消选择暂停并保留余额。完整 `chorus_d2:gamblers_dodge_regeneration`（baseline replace阶段）与 `chorus_d2:class_gain` 必须由外部Profile链接，缺失则拒绝编译；测试只保留已知基础值、不给Class属性额外缩放。这不是完整职业属性曲线，也不是把56秒设为所有属性下的实测冷却。当前技能拥有独立职业账户，其他职业技能的共享池迁移、换装能量惩罚和额外充能金装仍待装配。
+职业账户初始一份，CES为0.8；选中技能的常驻来源提供1/56的基础秒回能，取消选择暂停并保留余额。共享 `chorus_d2:class_regeneration`（baseline replace、stat multiply、additional_base 三阶段）与 `chorus_d2:class_gain` 必须显式链接，缺失则拒绝编译；Gambler 的基础替换仅作用于自身账户，不能覆盖换槽后保留的 Marksman 账户。测试只保留已知基础值、不给Class属性额外缩放。这不是完整职业属性曲线，也不是把56秒设为所有属性下的实测冷却。当前技能拥有独立职业账户，其他职业技能的共享池迁移、换装能量惩罚和额外充能金装仍待装配。
 
 追踪窗口另要求显式 `animation_duration: second`，独立于 `return_delay`。成功或零位移的观察之后授予自身 `gamblers_dodge_tracking`，在目标侧拒绝 Combatant 弹体的 start / continue；已知拒绝与未知移动均不授予。宿主在发射时按信用 owner 捕获 player / mob / other / unavailable，内容将 mob 对应为 Combatant，既不按 PvE / PvP 模式判断，也不把独立物理 emitter 当作信用 owner。来源卸下、施放者 / 发射者移除和当前实体观察不会重写已经捕获的分类；未识别 owner 不被猜作 Combatant。此映射属于 Minecraft 宿主政策，仍须由生产敌人 / 构造物接线维持信用。
 
@@ -1651,7 +1651,19 @@ Marksman 的装备武器装填和 Gambler 的延迟近战回能已拆成共享 b
 
 Marksman 资源补充显式 `marksman_dodge_gain` Profile，以原表 1× CES 接收通用技能回能；无修饰时该 Profile 是恒等路径。Class 属性回能与自然恢复曲线仍须另行校准，不能将这个修复视为完整冷却算法已完成。共享 marksman_dodge_benefits 已包含 15 米弹药砖拾取和延迟装填；拾取中心为收益执行时的当前位置，动画 / 追踪规避等仍未包含，不能称为全部闪身收益。
 
-[校准夹具](../common/src/test/resources/effects/ascension_test_calibration.json) 明确使用合成 3 米位移、0.2 秒收益延迟和 Guardian 伤害 7；100–200 Class 的线性插值只为验证属性接线，原表 / Clarity 仅给出 200 点时 65% 上限。正式定义缺少这些输入会在扣费前失败。Arc Staff 内超能支付、其他闪身收益、Winter’s Shroud / 金装 / 碎片等组合、原作动画 / 范围衰减和完整伤害校准，以及正式 Aspect 装配、键位和 HUD 仍未完成，故覆盖保持 partial；完整记录见 [Ascension 研究记录](../data/d2-research/2026-10-13/ascension.json)。
+[校准夹具](../common/src/test/resources/effects/ascension_test_calibration.json) 明确使用合成 3 米位移、0.2 秒收益延迟和 Guardian 伤害 7；100–200 Class 的线性插值只为验证属性接线，原表 / Clarity 仅给出 200 点时 65% 上限。正式定义缺少这些输入会在扣费前失败。Prismatic Winter’s Shroud 已组合实际 Ascension：开始反应在上升前捕获 Slow 目标，随后共享 Slow / Jolt / Amplified；该精确空间时序是 Chorus 政策，官方只确认 on cast 触发。Arc Staff 内超能支付、其他闪身收益、完整金装 / 碎片组合、原作动画 / 范围衰减和完整伤害校准，以及正式 Aspect 装配、键位和 HUD 仍未完成，故覆盖保持 partial；完整记录见 [Ascension 研究记录](../data/d2-research/2026-10-13/ascension.json)。
+
+### Winter’s Shroud 的范围 Slow、减伤与额外基础回充
+
+[凛冬之幕定义](../common/src/test/resources/effects/winters_shroud.json) 分开声明 Stasis / Prismatic 来源，均监听已接受技能的 `chorus:class_ability` 标签，包含 Ascension 的空中入口。开始反应直接观察施放者、授予减伤并捕获范围目标，不再经一次排队的 pulse 调用后读取移动过的位置。目标列表按身份排序，脚底球形半径为 PvE 9 / PvP 8 米，包含边界、不额外要求视线；实际目标类型分别获得 60 战员 / 40 Guardian 层 Slow。后续调用共享 Slow / Freeze，保留施放技能信用。施加前仍复核存活和授权，选择目标的时点不保证之后必然施加成功。
+
+Stasis Guardian 的 1.5 秒基础与 Durance +0.5 秒已明确；战员的 `8+4?` 按显式基础时间、延长参数输入。Prismatic 固定为战员 8 / Guardian 1.5 秒，无 Durance 延长。两表均写减伤 `4?` 秒，因此 50% 战员减伤要求独立时长参数；测试 4 秒和 Stasis 8+4 秒不作为原作实测值。跳跃、Freeze / Shatter 的未定数值继续沿用独立校准输入。原表与快照坐标、原文及哈希见[来源记录](../data/d2-research/2026-10-13/winters-shroud-source.json)。
+
+任何生产者成功向敌人施加共享 Slow 后，以 `status_applied` 的实际施加者授予三秒回充增益。共享 Slow 保留首次来源不影响本次收益归属；拒绝、未知阵营和盟友不触发。收益按当前选择的职业账户查询，公式为 `baseline × stat_factor + baseline × additional_base`，additional_base 为 PvE 3 / PvP 1.5。它不把属性调整后的回充率再乘四，也不经技能 chunk 回能的 CES。切换选择后收益跟随新账户，取消选择不再应用；既有 Marksman 保留基础恢复、Gambler 取消选择暂停的策略保持，不等于原作换装惩罚或统一职业能量池已实现。
+
+成功 Slow 刷新三秒期限，减伤刷新至校准期限；同一 cast / status_id 在 60 秒窗口内去重并按时遗忘，独立效果连锁照常执行。已授予收益在卸下来源后保留至到期，死亡移除；这些刷新、卸装、信用及开始帧政策仍需原作校准。50% 减伤只接受明确战员攻击来源，Guardian 标签优先排除，未知来源不补分类。未知世界结果保留付款和此前提交状态，停止且不自动重播。
+
+11 项核心测试和 6 项共享世界场景覆盖以上组合、真实扣血 / 移速 / tick 积分、切换选择、授权失败及领域恢复。内容仍为测试资源，正式 Aspect / 子职业装配、三碎片容量、Class 回充曲线、完整金装 / 碎片交互、HUD 和物理世界恢复尚未完成；保持 partial，详见[研究与未定政策](../data/d2-research/2026-10-13/winters-shroud.json)。
 
 ### Kickstart 的完整付费充能与回能表
 

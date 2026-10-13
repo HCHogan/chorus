@@ -1,0 +1,60 @@
+{
+  "note": "Synthetic inputs for unverified Stasis combatant timing (8 + 4?), DR duration (4?), jump delta and Freeze/Shatter calibration. Prismatic uses its documented 8 / 1.5 seconds without Durance extension. These are not original-game measurements.",
+  "parameters": {
+    "resist_duration": {
+      "value": 4,
+      "unit": "second"
+    },
+    "slow_jump_delta": {
+      "value": -0.3,
+      "unit": "delta"
+    },
+    "combatant_threshold": {
+      "value": 100,
+      "unit": "damage"
+    },
+    "shatter_radius": {
+      "value": 4,
+      "unit": "meter"
+    },
+    "guardian_shatter_damage": {
+      "value": 80,
+      "unit": "damage"
+    }
+  },
+  "stasis_parameters": {
+    "combatant_slow_duration": {
+      "value": 8,
+      "unit": "second"
+    },
+    "combatant_durance_extension": {
+      "value": 4,
+      "unit": "second"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "bundles": [
+      {
+        "id": "test:winters_shroud_stat",
+        "modifiers": [
+          {
+            "id": "rate",
+            "profile": "chorus_d2:class_regeneration",
+            "stage": "stat",
+            "group": "stat",
+            "op": "multiply",
+            "value": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "delta"
+            },
+            "stacking_key": "test:winters_shroud_stat",
+            "reference": "Synthetic doubled baseline to verify additional base percentage independence.",
+            "confidence": "assumed"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -21,7 +21,7 @@ class GamblersDodgeTest {
     static CompiledEffects program(boolean calibrated)throws Exception {
         var data=json("gamblers_dodge");var calibration=json("gamblers_dodge_test_calibration");
         if(calibrated)calibration.getAsJsonObject("parameters").entrySet().forEach(e->data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));
-        return CompiledEffects.link(List.of(LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,calibration.get("program")).getOrThrow()));
+        return CompiledEffects.link(List.of(load("class_regeneration").program(),LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,calibration.get("program")).getOrThrow()));
     }
     static final class Harness {
         final CompiledEffects p=program(true);final EffectSession session;
@@ -55,7 +55,7 @@ class GamblersDodgeTest {
         Optional<BuffInstance> scissor(){return state().buffs().instances().values().stream().filter(b->b.definition().id().equals(D+"scissor_fingers")).findFirst();}
     }
     @Test void calibrationAndExternalClassProfilesAreRequiredAndGroundGatePrecedesPayment()throws Exception {
-        var h=new Harness(EffectState.Mode.PVE);assertThrows(RuntimeException.class,()->CompiledEffects.link(List.of(LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json("gamblers_dodge")).getOrThrow())));
+        var h=new Harness(EffectState.Mode.PVE);assertThrows(RuntimeException.class,()->CompiledEffects.link(List.of(load("class_regeneration").program(),LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,json("gamblers_dodge")).getOrThrow())));
         assertThrows(IllegalArgumentException.class,()->program(false).useAbility(h.state(),h.request(SLOT,true)));assertEquals(1,h.account("gamblers_dodge_energy").value());
         assertEquals(AbilityUse.Outcome.CONDITION,h.use(SLOT,false));assertTrue(h.moves.isEmpty());assertEquals(1,h.account("gamblers_dodge_energy").value());
         assertEquals(h.p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,h.p.program()).getOrThrow()).getOrThrow());

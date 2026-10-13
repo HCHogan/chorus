@@ -22,8 +22,7 @@ class MarksmanAmmoTest {
         Harness(boolean overflow) throws Exception {
             super(data -> {
                 try {
-                    var dodge = json("marksman_dodge");
-                    for (var e : dodge.entrySet()) if (e.getValue().isJsonArray()) {
+                    for (String name : List.of("marksman_dodge", "class_regeneration")) for (var e : json(name).entrySet()) if (e.getValue().isJsonArray()) {
                         if (!data.has(e.getKey())) data.add(e.getKey(), new com.google.gson.JsonArray());
                         e.getValue().getAsJsonArray().forEach(v -> data.getAsJsonArray(e.getKey()).add(v));
                     }

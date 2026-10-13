@@ -31,7 +31,7 @@ public class AscensionGameTest {
     }
     static void prepare(JsonObject data) {
         calibrate("ascension", data);
-        for (String name : List.of("marksman_dodge", "gamblers_dodge", "character_stats", "amplified", "amplified_inputs", "amplified_movement", "movement_attributes", "weapon_stats", "jolt", "weapons", "kill_clip")) {
+        for (String name : List.of("marksman_dodge", "gamblers_dodge", "class_regeneration", "character_stats", "amplified", "amplified_inputs", "amplified_movement", "movement_attributes", "weapon_stats", "jolt", "weapons", "kill_clip")) {
             var part = ThreadedSpikeGameTest.json(name); if (name.endsWith("_dodge")) calibrate(name, part); GamblersDodgeGameTest.merge(data, part);
         }
         for (String name : List.of("ascension", "gamblers_dodge")) GamblersDodgeGameTest.merge(data, ThreadedSpikeGameTest.json(name + "_test_calibration").getAsJsonObject("program"));

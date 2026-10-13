@@ -52,7 +52,7 @@ class GamblersTrackingTest {
     @Test void animationCalibrationIsRequiredIndependentlyOfMovementAndReturnCalibration()throws Exception {
         var data=json("gamblers_dodge");var calibration=json("gamblers_dodge_test_calibration");
         for(String name:List.of("distance","return_delay"))data.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(name).add("value",calibration.getAsJsonObject("parameters").get(name));
-        var p=CompiledEffects.link(List.of(LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,calibration.get("program")).getOrThrow()));
+        var p=CompiledEffects.link(List.of(load("class_regeneration").program(),LightweightKnifeTest.program(true).program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,data).getOrThrow(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,calibration.get("program")).getOrThrow()));
         var h=new GamblersDodgeTest.Harness(EffectState.Mode.PVE);var before=h.state();assertThrows(IllegalArgumentException.class,()->p.useAbility(before,h.request(GamblersDodgeTest.SLOT,true)));assertEquals(1,h.account("gamblers_dodge_energy").value());assertTrue(active(h).isEmpty());
     }
 }

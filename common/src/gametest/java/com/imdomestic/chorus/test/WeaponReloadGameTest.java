@@ -94,6 +94,7 @@ public class WeaponReloadGameTest {
     public void marksmanDodgeReloadsTheCurrentPhysicalLoadoutAfterItsCalibratedDelay(GameTestHelper h) throws Exception {
         var t = new Harness(h, data -> {
             var ability = ThreadedSpikeGameTest.json("marksman_dodge");
+            GamblersDodgeGameTest.merge(ability, ThreadedSpikeGameTest.json("class_regeneration"));
             ability.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject("reload_delay")
                     .add("value", ThreadedSpikeGameTest.json("marksman_dodge_test_calibration").getAsJsonObject("parameters").get("reload_delay"));
             // Merge only into the older synthetic weapon harness; retain the content's original version on disk.

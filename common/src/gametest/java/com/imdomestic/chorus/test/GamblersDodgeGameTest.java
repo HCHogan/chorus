@@ -23,7 +23,7 @@ public class GamblersDodgeGameTest {
     }
     static ProjectileGameTest.Harness open(GameTestHelper h,java.util.function.Consumer<JsonObject> edit)throws Exception {
         var t=new ProjectileGameTest.Harness(h,"lightweight_knife",data->{
-            LightweightKnifeGameTest.prepare(data);var dodge=ThreadedSpikeGameTest.json("gamblers_dodge");var calibration=ThreadedSpikeGameTest.json("gamblers_dodge_test_calibration");
+            LightweightKnifeGameTest.prepare(data);merge(data,ThreadedSpikeGameTest.json("class_regeneration"));var dodge=ThreadedSpikeGameTest.json("gamblers_dodge");var calibration=ThreadedSpikeGameTest.json("gamblers_dodge_test_calibration");
             calibration.getAsJsonObject("parameters").entrySet().forEach(e->dodge.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value",e.getValue()));merge(data,dodge);merge(data,calibration.getAsJsonObject("program"));edit.accept(data);
         },true);
         t.owner.getFoodData().setFoodLevel(0);select(t,true);return t;

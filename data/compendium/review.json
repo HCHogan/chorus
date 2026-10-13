@@ -6845,10 +6845,15 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
           "symbol": "twoPhysicalBurstsApplyTenStacksPerGuardianHitAndReachFreeze"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses"
         }
       ],
       "gaps": [
-        "Withering Blade, Bleak Watcher和Duskfield已调用共享Slow/Freeze与Durance；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
+        "Withering Blade、Bleak Watcher、Duskfield和Winter’s Shroud已调用共享Slow/Freeze；各自显式Durance延长；其余生产者及全部来源/目标时长仍未装配，原有2秒及客户端10秒只是合成验收输入",
         "Guardian空中速度尚未适配；jump delta -0.3只是冲量校准输入，不能声称已复现跳高减半；NPC瞄准精度和Guardian Flinch未完成",
         "共享刷新、第一Slow施加者/最后Freeze施加者信用、冻结期间忽略Slow、失败保留及重试均为暂定内容政策，需原作实测",
         "四项武器数值已进入共享Profile，但稳定性、操控、后坐力的完整实际武器反馈与Champion过载反应未完成",
@@ -6962,11 +6967,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/BleakWatcherGameTest.java",
           "symbol": "alliedTurretsDoNotTargetEachOtherAndKeepIndependentDuranceLifetimes"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "acceptedDodgeUsesNineMeterEnemyBoundaryAndDuranceAndSingleAspectPulse"
         }
       ],
       "gaps": [
         "Withering Blade, Duskfield and Bleak Watcher now invoke shared duration profiles; other producers, Aspect hold conversion and global grenade overrides remain incomplete.",
-        "Winter’s Shroud战员时长有问号，未假定确定数值；其他来源需逐条核对",
+        "Winter’s Shroud已接Guardian 1.5+0.5及显式战员校准输入；战员8+4?仍不视为确定数值。Prismatic无Durance延长；其他来源需逐条核对",
         "施加时取样、重复MAX、共享刷新和来源信用仍是待原作实测的Chorus政策",
         "正式子职业/装备内容、HUD、状态持久化与NeoForge真实客户端仍未验收"
       ]
@@ -12882,13 +12892,14 @@
         "十米包含端点、盟友排除伤害、原始中心不随上升移动、真实生命损失、状态授权拒绝和原有Amplified移动投影。",
         "Marksman实际装备弹匣/备弹转移，Gambler延迟两充能收益；施放后换槽或清槽不替换已接受的收益、不重做闪身位移或支付。",
         "核心混合目标分类、Class属性校准、共享Jolt首击计数、未知动作停机及检查点恢复；组合职业物品先由Kickstart消费充能，再逐球按当前缺口补充。",
-        "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。"
+        "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。",
+        "Prismatic Winter’s Shroud 的上升前目标捕获、共享 Slow/Freeze 与 Jolt/Amplified 组合已在真实世界验收；精确动画帧是待校准的 Chorus 政策。"
       ],
       "gaps": [
         "3米碰撞位移、0.2秒收益延迟、Guardian伤害7及其无额外Class倍率均为合成校准；原作竖直速度/高度、动画时点、PvP伤害与Class曲线、范围衰减、伤害单位投影仍未确定。",
         "181是表格最大战员伤害，当前10米内统一采用该最大值；100–200 Class线性插值只在校准夹具，原表/Clarity仅支持65%上限。共享Amplified 15秒及Jolt 10/5秒沿用现有状态模板，来源特例和完整缩放待校准。",
         "初次爆炸会进入新Jolt的计数；该时序、免疫/取消/致死的状态资格、范围内先后死亡和多个Jolt连锁的原作边界仍需校准。",
-        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
         "参考定义仍在测试资源；正式Aspect/子职业目录、装备约束、空中动作键位/UI/动画/素材、物理世界跨重启恢复尚未完成。纯领域检查点不代表世界持久化。"
       ],
       "id": "arc/ascension",
@@ -13005,6 +13016,164 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/MarksmanAmmoGameTest.java",
           "symbol": "ascensionInvokesTheSamePickupBenefitAtItsCurrentPositionAndRetainsTheCapturedDodge"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses"
+        }
+      ]
+    },
+    {
+      "id": "stasis/winters_shroud",
+      "name": "Winter's Shroud (Stasis / Prismatic)",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "scope": "职业技能接受反应捕获范围Slow、明确战员减伤；任意成功敌方Slow授予三秒额外基础职业回充，按当前接收账户积分；两种子职业与Durance、实际Ascension组合。",
+      "acceptance": [
+        "A paid Marksman cast produces one pulse even with duplicate Aspect sources. Actual target classification selects 60 combatant or 40 Guardian Slow stacks; activity mode selects the 9/8 meter range.",
+        "Stasis Guardian timing is 1.5 seconds plus a Durance-specific .5. Combatant duration and extension are required calibration inputs. Prismatic uses 8/1.5 seconds with no Durance extension.",
+        "Denied or missing Slow does not grant regeneration. An accepted class use still grants resistance. Rejected abilities and non-class abilities carrying forged input tags do not trigger the Aspect.",
+        "Every successful enemy Slow application can qualify. Credit uses the actual applying actor even when shared Slow retains its first applier. Allies and unknown relations do not qualify.",
+        "The rate is stat-adjusted baseline plus baseline times 3 in PvE or 1.5 in PvP, for three seconds. Selection changes redirect the bonus; retained accounts keep only their existing baseline policy. Repeated successes refresh the duration and duplicate status identities do not.",
+        "Shared Slow converts at 100 stacks through the existing authorized Freeze application. Ascension composes the same Slow, Jolt and Amplified and pays the selected dodge only once.",
+        "The 50 percent combatant-only resistance changes real health loss and excludes unclassified and Guardian-tagged attacks. Granted benefits have independent deadlines, persist after source removal, and are removed on death.",
+        "Unknown authorization retains prior state and payment and stops without replay. Pure session restoration preserves timers, receipt retention and regeneration integration."
+      ],
+      "gaps": [
+        "Stasis combatant Slow 8+4? and resistance 4? seconds are explicitly uncertain in the source. Test 8+4 and 4 seconds remain synthetic. Complete Class-stat recovery curves and gameplay scaling are not calibrated.",
+        "Slow jump delta, Freeze/Shatter threshold, radius and Guardian damage are inherited explicit test inputs; original-game spatial timing, refresh/credit, source-detach and death-order edge cases need calibration.",
+        "The Aspect is a trusted-host source, with separate Stasis and Prismatic templates. Production subclass/Aspect slots, three-fragment capacity, unlocks and legal loadout constraints are not yet assembled.",
+        "All other producer, exotic and fragment combinations, formal effects assets/HUD, physical world persistence and the NeoForge graphical client remain incomplete. Definitions currently live in test resources."
+      ],
+      "sources": [
+        {
+          "sheet": "Stasis",
+          "cell": "B45",
+          "text_sha256": "1cb432928be25d10eaba3c4c72480597d47ca906f24eb2ff7725d645d0616bed"
+        },
+        {
+          "sheet": "Stasis",
+          "cell": "D45",
+          "text_sha256": "fc43da3f886a29e05e4f0691896658059fe6302f3fd08feb6ead8c2e3e02a290"
+        },
+        {
+          "sheet": "Prismatic",
+          "cell": "B40",
+          "text_sha256": "1cb432928be25d10eaba3c4c72480597d47ca906f24eb2ff7725d645d0616bed"
+        },
+        {
+          "sheet": "Prismatic",
+          "cell": "D40",
+          "text_sha256": "07e6ea89c39aa7f466f2faa8eca65b7463940532bac2f97c4ee7410f3dd28606"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/winters_shroud.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/class_regeneration.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/winters_shroud_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-13/winters-shroud.json"
+        },
+        {
+          "kind": "source",
+          "path": "data/d2-research/2026-10-13/winters-shroud-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "acceptedClassCastAppliesTargetSpecificSlowAndDeduplicatesAspectCopies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "prismaticHasItsOwnDurationsEvenWhenHostIncorrectlyAlsoBindsDurance"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "deniedMissingAndNonClassActionsCannotInventSuccessfulSlowRegeneration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "everySuccessfulEnemySlowProducerQualifiesUsingLatestActorNotRetainedStatusOwner"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "basePercentageIsIndependentOfStatFactorAndStopsAtTheExactDeadline"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "regenerationFollowsSelectionAndClearLeavesOnlyExistingBaselinePolicies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "refreshUsesSuccessfulStatusIdentityAndSharedHundredStackFreezeConversion"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "combatantDefenseExpiresAndDeathClearsBothBenefitsButDetachingPreservesGrantedDuration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "actualAscensionPaysDodgeOnceAndComposesSlowWithJoltAndAmplified"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "unknownAuthorizationRetainsPaymentAndPriorDefenseWithoutReplaying"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+          "symbol": "restoreRetainsTimersAndCalibrationIsRequiredRatherThanAssumed"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "acceptedDodgeUsesNineMeterEnemyBoundaryAndDuranceAndSingleAspectPulse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "realTicksIntegrateAdditionalBaseRateThenExpireWhileDetachedAspectDoesNotEraseGrantedBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "deniedSlowCannotAwardRegenerationButClassUsageStillHalvesCombatantHealthLoss"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "changingCurrentDodgeRoutesBonusToNewAccountAndClearingStopsItsRecovery"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+          "symbol": "unknownSlowAuthorizationKeepsPaidEnergyAndDefenseAndNeverRetries"
         }
       ]
     }

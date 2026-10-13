@@ -32,7 +32,8 @@
     "十米包含端点、盟友排除伤害、原始中心不随上升移动、真实生命损失、状态授权拒绝和原有Amplified移动投影。",
     "Marksman实际装备弹匣/备弹转移，Gambler延迟两充能收益；施放后换槽或清槽不替换已接受的收益、不重做闪身位移或支付。",
     "核心混合目标分类、Class属性校准、共享Jolt首击计数、未知动作停机及检查点恢复；组合职业物品先由Kickstart消费充能，再逐球按当前缺口补充。",
-    "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。"
+    "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。",
+    "Prismatic Winter’s Shroud now samples targets during the accepted-start reaction before ascent, then applies shared Slow/Freeze alongside Jolt/Amplified; this exact timing remains a Chorus policy. See winters-shroud.json."
   ],
   "policies": [
     "Capture feet position and both damage snapshots before Ascension movement, when the accepted action body starts. Apply collision-resolved vertical displacement before effects. An observed zero/clipped move qualifies; missing/rejected movement stops the body without refund. Exact animation timing and explosion center need calibration.",
@@ -47,7 +48,7 @@
     "3米碰撞位移、0.2秒收益延迟、Guardian伤害7及其无额外Class倍率均为合成校准；原作竖直速度/高度、动画时点、PvP伤害与Class曲线、范围衰减、伤害单位投影仍未确定。",
     "181是表格最大战员伤害，当前10米内统一采用该最大值；100–200 Class线性插值只在校准夹具，原表/Clarity仅支持65%上限。共享Amplified 15秒及Jolt 10/5秒沿用现有状态模板，来源特例和完整缩放待校准。",
     "初次爆炸会进入新Jolt的计数；该时序、免疫/取消/致死的状态资格、范围内先后死亡和多个Jolt连锁的原作边界仍需校准。",
-    "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+    "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
     "参考定义仍在测试资源；正式Aspect/子职业目录、装备约束、空中动作键位/UI/动画/素材、物理世界跨重启恢复尚未完成。纯领域检查点不代表世界持久化。"
   ]
 }

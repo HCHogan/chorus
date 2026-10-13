@@ -21,31 +21,6 @@
     "version": "compendium-2026-10-05",
     "profiles": [
       {
-        "id": "chorus_d2:gamblers_dodge_regeneration",
-        "version": "compendium-2026-10-05",
-        "input_unit": "charge_fraction_per_second",
-        "steps": [
-          {
-            "type": "chorus:apply",
-            "id": "baseline",
-            "operation": "replace",
-            "group": {
-              "name": "baseline",
-              "reduction": "max"
-            }
-          },
-          {
-            "type": "chorus:apply",
-            "id": "stat",
-            "operation": "multiply",
-            "group": {
-              "name": "stat",
-              "reduction": "max"
-            }
-          }
-        ]
-      },
-      {
         "id": "chorus_d2:class_gain",
         "version": "compendium-2026-10-05",
         "input_unit": "charge_fraction",

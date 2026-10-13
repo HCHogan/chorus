@@ -26,7 +26,7 @@ class MarksmanDodgeTest {
         weapons.getAsJsonObject("equipment").getAsJsonArray("slots").add(JsonParser.parseString("""
             {"id":"test:heavy","accepts":["test:weapon"],"weapon":true}
             """));
-        return CompiledEffects.link(List.of(weapons,json("kill_clip"),ability).stream()
+        return CompiledEffects.link(List.of(weapons,json("kill_clip"),ability,json("class_regeneration")).stream()
                 .map(j->EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,JsonParser.parseString(j.toString().replace("test-1","compendium-2026-10-05"))).getOrThrow()).toList());
     }
     static Loadout equipped(String primary) {

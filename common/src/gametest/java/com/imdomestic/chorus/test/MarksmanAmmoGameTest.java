@@ -17,6 +17,7 @@ import net.minecraft.world.level.GameType;
 public class MarksmanAmmoGameTest {
     static void prepare(JsonObject data, boolean ascension) {
         AscensionGameTest.calibrate("marksman_dodge", data);
+        GamblersDodgeGameTest.merge(data, ThreadedSpikeGameTest.json("class_regeneration"));
         OverflowGameTest.prepare(data); GamblersDodgeGameTest.merge(data, ThreadedSpikeGameTest.json("overflow"));
         if (ascension) {
             for (String name : List.of("ascension", "gamblers_dodge", "character_stats", "amplified", "amplified_inputs", "amplified_movement", "movement_attributes", "weapon_stats", "jolt")) {
@@ -43,8 +44,15 @@ public class MarksmanAmmoGameTest {
             return t;
         } catch (Exception | Error e) { t.close(); throw e; }
     }
+    static net.minecraft.world.entity.LivingEntity anchor(ProjectileGameTest.Harness t, double x, double y) {
+        var point = t.owner.position().add(x, y, 0);
+        // Load the destination before moving the entity; a moved anchor in an unloaded section may be absent from lookup.
+        t.h.getLevel().getChunk(net.minecraft.core.BlockPos.containing(point)); var anchor = t.cow(2.5, 40, 3.5); anchor.setPos(point); return anchor;
+    }
     static EffectObject brick(ProjectileGameTest.Harness t, String kind, double x, double y) {
-        var anchor = t.cow(2.5, 40, 3.5); anchor.setPos(t.owner.position().add(x, y, 0)); t.h.getLevel().getChunk(net.minecraft.core.BlockPos.containing(anchor.position())); return spawn(t, kind, anchor);
+        var anchor = anchor(t, x, y); int before = t.pickups.size();
+        t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_" + kind + "_ammo", new EffectEvent(owner(t), anchor.getUUID().toString(), new BuffInstance.Origin(owner(t), "drop-request", "", ""), Set.of(), Map.of())));
+        t.h.assertValueEqual(t.pickups.size(), before + 1, "ammo fixture must create one new brick at its loaded anchor"); return t.pickups.getLast();
     }
     static void dodge(ProjectileGameTest.Harness t) { t.h.assertValueEqual(t.runtime.useAbility(t.owner, "chorus_d2:class").outcome(), AbilityUse.Outcome.ACCEPTED, "dodge rejected"); ShieldThrowGameTest.settled(t); }
     @GameCase(environment="chorus_gametest:marksman_ammo_reload", maxTicks=16)
@@ -85,7 +93,7 @@ public class MarksmanAmmoGameTest {
     }
     @GameCase public void privateBricksOfAnotherRecipientCannotBeTakenByTheDodge(GameTestHelper h) throws Exception {
         try (var t = open(h, false, false)) {
-            var other = t.cow(2.5, 40, 3.5); other.setPos(t.owner.position().add(8, 0, 0)); String who = other.getUUID().toString();
+            var other = anchor(t, 8, 0); String who = other.getUUID().toString();
             t.runtime.bind(new EffectSource("foreign", "chorus_d2:ammo_pickups", who, new BuffInstance.Origin(who, "foreign", "", ""), Set.of(), Map.of("lifetime", new Measure(10, Unit.SECOND), "radius", new Measure(.5, Unit.METER))));
             t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_special_ammo", new EffectEvent(who, who, new BuffInstance.Origin(who, "request", "", ""), Set.of(), Map.of())));
             var foreign = t.pickups.getLast(); var own = brick(t, "special", 9, 0); dodge(t);

@@ -6,7 +6,7 @@
       "capacity": 1,
       "initial": 1,
       "base_rate": 0,
-      "rate_profile": "chorus_d2:gamblers_dodge_regeneration",
+      "rate_profile": "chorus_d2:class_regeneration",
       "gain_scalar": 0.8,
       "gain_profile": "chorus_d2:class_gain"
     }
@@ -17,7 +17,7 @@
       "modifiers": [
         {
           "id": "base",
-          "profile": "chorus_d2:gamblers_dodge_regeneration",
+          "profile": "chorus_d2:class_regeneration",
           "stage": "baseline",
           "group": "baseline",
           "op": "replace",
@@ -28,7 +28,12 @@
           },
           "stacking_key": "chorus_d2:gamblers_dodge_base",
           "reference": "Compendium Class Abilities N7 (CSV N5): base 56 seconds; external Class regeneration profile requires calibration",
-          "confidence": "assumed"
+          "confidence": "assumed",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:gamblers_dodge_energy"
+          }
         }
       ]
     },

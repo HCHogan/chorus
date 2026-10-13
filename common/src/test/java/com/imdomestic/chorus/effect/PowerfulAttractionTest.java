@@ -27,7 +27,7 @@ class PowerfulAttractionTest {
         final Set<String> consumed = new HashSet<>(); final List<PickupCollection.Query> queries = new ArrayList<>();
         List<RuleEngine.Signal> lastFacts = List.of(); int cast;
         Harness() throws Exception {
-            super("powerful_attraction", "powerful_attraction_inputs", "powerful_attraction_equipment", "marksman_dodge", "kickstart", "kickstart_inputs");
+            super("powerful_attraction", "powerful_attraction_inputs", "powerful_attraction_equipment", "marksman_dodge", "class_regeneration", "kickstart", "kickstart_inputs");
             bind("kick_inputs", "test:kick_inputs", "player"); selectMore("class", "kick_class");
         }
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest request) {

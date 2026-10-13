@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-13T10:35:04.000494+00:00",
-  "status": "research_pending_implementation",
+  "status": "partial",
   "sources": [
     {
       "sheet": "Stasis",
@@ -62,11 +62,12 @@
       "Prismatic Ascension can activate Winters Shroud on cast."
     ]
   },
-  "implementation_dependency": "selected_ability_event_resource identifies the receiving account during current regeneration queries; the new synthetic test demonstrates additional base regeneration independently of stat scaling. Winter Shroud content is not yet implemented.",
+  "implementation_dependency": "Implemented reference content uses shared class_regeneration and selected_ability_event_resource, accepted class-start reactions and shared Slow/Freeze; see winters-shroud.json for acceptance and remaining gaps.",
   "pending": [
-    "Use the shared Slow application and actual successful status_applied facts for the three-second rate buff.",
-    "Distinguish Stasis and Prismatic templates; Stasis combatant Slow extension and resistance duration contain question marks and require explicit calibration.",
-    "Class-account regeneration profiles need a shared base_percent channel and receiving-account predicate.",
-    "Assemble accepted class-ability activation, current target classification, Durance, combatant-only defense, death/detach and actual Ascension integration."
-  ]
+    "Stasis combatant Slow 8+4? and resistance 4? seconds are explicitly uncertain in the source. Test 8+4 and 4 seconds remain synthetic. Complete Class-stat recovery curves and gameplay scaling are not calibrated.",
+    "Slow jump delta, Freeze/Shatter threshold, radius and Guardian damage are inherited explicit test inputs; original-game spatial timing, refresh/credit, source-detach and death-order edge cases need calibration.",
+    "The Aspect is a trusted-host source, with separate Stasis and Prismatic templates. Production subclass/Aspect slots, three-fragment capacity, unlocks and legal loadout constraints are not yet assembled.",
+    "All other producer, exotic and fragment combinations, formal effects assets/HUD, physical world persistence and the NeoForge graphical client remain incomplete. Definitions currently live in test resources."
+  ],
+  "implementation_record": "data/d2-research/2026-10-13/winters-shroud.json"
 }

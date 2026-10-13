@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13",
+  "status": "partial",
+  "source_record": "data/d2-research/2026-10-13/winters-shroud-source.json",
+  "effects": ["Winter's Shroud", "Whisper of Durance", "Ascension"],
+  "scope": "Accepted class-ability use invokes shared Slow and grants combatant resistance; actual successful enemy Slow from any producer grants three seconds of additional base regeneration to the currently selected class account.",
+  "implementation": {
+    "definition": "common/src/test/resources/effects/winters_shroud.json",
+    "class_profile": "common/src/test/resources/effects/class_regeneration.json",
+    "calibration": "common/src/test/resources/effects/winters_shroud_test_calibration.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/WintersShroudTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
+    "core_changes": "No new engine primitives or storage shapes. Uses accepted ability facts, typed bundle invocation, successful status facts, resource selection, base_percent and existing status/world adapters."
+  },
+  "acceptance": [
+    "A paid Marksman cast produces one pulse even with duplicate Aspect sources. Actual target classification selects 60 combatant or 40 Guardian Slow stacks; activity mode selects the 9/8 meter range.",
+    "Stasis Guardian timing is 1.5 seconds plus a Durance-specific .5. Combatant duration and extension are required calibration inputs. Prismatic uses 8/1.5 seconds with no Durance extension.",
+    "Denied or missing Slow does not grant regeneration. An accepted class use still grants resistance. Rejected abilities and non-class abilities carrying forged input tags do not trigger the Aspect.",
+    "Every successful enemy Slow application can qualify. Credit uses the actual applying actor even when shared Slow retains its first applier. Allies and unknown relations do not qualify.",
+    "The rate is stat-adjusted baseline plus baseline times 3 in PvE or 1.5 in PvP, for three seconds. Selection changes redirect the bonus; retained accounts keep only their existing baseline policy. Repeated successes refresh the duration and duplicate status identities do not.",
+    "Shared Slow converts at 100 stacks through the existing authorized Freeze application. Ascension composes the same Slow, Jolt and Amplified and pays the selected dodge only once.",
+    "The 50 percent combatant-only resistance changes real health loss and excludes unclassified and Guardian-tagged attacks. Granted benefits have independent deadlines, persist after source removal, and are removed on death.",
+    "Unknown authorization retains prior state and payment and stops without replay. Pure session restoration preserves timers, receipt retention and regeneration integration."
+  ],
+  "policies": [
+    "Class usage means a trusted accepted resolved ability with chorus:class_ability, including Ascension. The rule is not restricted to the class input slot. Formal legal subclass/Aspect selection remains separate.",
+    "The pulse observes living caster and targets at the accepted-start reaction. Its inclusive feet-position sphere has no additional line-of-sight requirement. The precise original-game animation frame, range anchors and obstruction rules remain unverified.",
+    "Resistance is granted before the target query; the duration must be explicitly calibrated because both source sheets say 4? seconds. Tests use 4 seconds, not a measured claim.",
+    "Successful status_id and accepted cast identities are shared across Aspect copies for a finite 60-second retention window. Timed forgetting bounds retained identities; this does not suppress legal independent effect chains.",
+    "Regeneration refreshes to three seconds; combatant resistance refreshes to its calibrated duration. Already granted buffs persist when the Aspect is removed, while future status facts no longer trigger it. These lifecycle choices require original-game validation.",
+    "The shared class profile separates baseline replacement, stat multiplication and additional_base. Gambler baseline modifiers are restricted to the Gambler resource ID so they cannot override retained Marksman accounts.",
+    "Marksman keeps its existing independent 1/42 baseline after deselection. Gambler obtains 1/56 only while selected and pauses after clearing. A unified class resource pool and original-game swap penalties are not introduced by this change."
+  ],
+  "gaps": [
+    "Stasis combatant Slow 8+4? and resistance 4? seconds are explicitly uncertain in the source. Test 8+4 and 4 seconds remain synthetic. Complete Class-stat recovery curves and gameplay scaling are not calibrated.",
+    "Slow jump delta, Freeze/Shatter threshold, radius and Guardian damage are inherited explicit test inputs; original-game spatial timing, refresh/credit, source-detach and death-order edge cases need calibration.",
+    "The Aspect is a trusted-host source, with separate Stasis and Prismatic templates. Production subclass/Aspect slots, three-fragment capacity, unlocks and legal loadout constraints are not yet assembled.",
+    "All other producer, exotic and fragment combinations, formal effects assets/HUD, physical world persistence and the NeoForge graphical client remain incomplete. Definitions currently live in test resources."
+  ]
+}

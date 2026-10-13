@@ -21,7 +21,7 @@ class AscensionTest {
     static final String D = "chorus_d2:", ABILITY = D + "ascension", SLOT = D + "air_move";
     static CompiledEffects program(boolean calibrated) throws Exception {
         var parts = new ArrayList<EffectProgram>();
-        for (String name : List.of("ascension", "marksman_dodge", "gamblers_dodge", "character_stats", "amplified", "amplified_inputs", "weapon_stats", "jolt")) {
+        for (String name : List.of("ascension", "marksman_dodge", "gamblers_dodge", "class_regeneration", "character_stats", "amplified", "amplified_inputs", "weapon_stats", "jolt")) {
             var d = json(name); AmplifiedTest.version(d);
             if (List.of("ascension", "marksman_dodge", "gamblers_dodge").contains(name) && (!name.equals("ascension") || calibrated))
                 json(name + "_test_calibration").getAsJsonObject("parameters").entrySet().forEach(e -> d.getAsJsonArray("abilities").get(0).getAsJsonObject().getAsJsonObject("parameters").getAsJsonObject(e.getKey()).add("value", e.getValue()));
