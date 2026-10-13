@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-13：捕获实际玩家移动输入方向
+
+Acrobat’s Dodge 的前翻需要读取移动输入，既有 capture_direction 只有完整视线和水平朝向。新增通用 capture_input_direction 与 InputDirection 查询 / 回执，读取服务器收到且已过滤的按键，按当前 yaw 转成水平单位向量；相反按键抵消，斜向归一化，俯仰和已有速度不参与。中立输入、目标缺失 / 死亡 / 未加载、非玩家宿主分别保留语义，不自动猜一个朝前方向。
+
+结果复用 DirectionResult，允许已有冲量、位移、圆锥及延迟捕获消费。未知 / 错配回执保留已接受技能付款并停机，不重新读取或重放。四个新增存储 ID 保持原来 647 项字段与枚举形状；DirectionQuery.Mode 未增加或重排值。五项核心测试覆盖方向、中立 / 未观察分支、实际付款、延迟与检查点恢复、归属和严格校验；三项共享世界场景验证原版按键包、既有移动限制清理按键、延迟原生冲量和转身 / 换键 / 卸装后的捕获值。
+
+原表 Class Abilities B5 / D5 / N5 与固定快照 B4 / D4 / N4 逐字一致。固定 Clarity 的两份技能描述仍写只能地面使用，上传时间为 2024；官方 9.7.0 明确允许空中施放，以官方更新优先。已保存[来源与冲突](../data/d2-research/2026-10-13/acrobat-dodge-source.json)。本批仅完成方向前置能力，不增加 Acrobat’s Dodge 覆盖；实际位移 / 完成时机、Radiant / 范围伤害、冷却 / CES 和 Ascension 收益仍需内容装配。新版空中施放的完成条件需要核实，原表 “upon landing” 尚不足以证明必须接触地形。
+
+首轮核心测试修正了单位方向在反序列化归一化后的末位浮点比较；原生定向场景随后通过。全量 NeoForge 暴露“移动玩家到远处即可构造未加载状态”的夹具假设不成立；检查 26.3.0.45-beta 源码确认 Entity.setPosRaw 会自动加载已加入世界的实体的目标区块。现以未加入世界但仍可由适配器解析的玩家句柄验证 UNLOADED，并断言查询前后区块都未加载；原版按键包与延迟冲量仍使用实际加入世界的玩家。已有弹药夹具确认地形区块加载完成不代表异步实体索引已经就绪；现于安装运行时前等待场景区块的实体索引加载，直接在最终位置生成锚点并确认 UUID 查询可见。七项场景使用独立测试环境，等待只发生于准备阶段，不重试技能、生成或拾取，也不改变施放后的时间断言。前三次失败日志保留为 `build/reports/acrobat-dodge/input-first-gate.log`、`input-second-gate.log` 与 `input-third-gate.log`；未放宽生产世界检查或清除测试世界。
+
+最终 `build/reports/acrobat-dodge/input-final-gate.log` BUILD SUCCESSFUL，2 分 33 秒：2025 项 JUnit 无失败 / 错误 / 跳过，Fabric 1154 / NeoForge 1169 项世界测试通过，共享 GameCase 1153 项。存储新增四项，共 651 项，原来 647 项字段 / 枚举形状和两份历史检查点保持不变。双端发布 jar 为 1268 / 1261 项，全部 1169 / 1162 个生产类、27 个 PNG/JSON 素材及新增输入方向夹具与对应构建输出一致，无测试泄漏；Gradle 保持 CRLF，原始来源哈希校验通过。覆盖台账仍为 120 partial / 2 not_applicable / 0 verified；本批没有客户端 UI 或协议改动，未重复图形客户端验收。汇总见 `build/reports/acrobat-dodge/input-audit.json`。
+
 ### 2026-10-13：Winter’s Shroud 与共享职业回充
 
 新增独立 Stasis / Prismatic 参考来源，按已接受职业技能开始事实捕获范围目标并授予战员减伤，复用共享 Slow / Freeze 和 Durance。任意生产者实际向敌人成功施加 Slow 后，三秒内向当前所选职业账户提供 PvE +300% / PvP +150% 额外基础回充；被拒绝的状态、盟友或未知关系不产生该收益。共享 Slow 保留首次来源时，本次施加者仍能获得自己的收益。

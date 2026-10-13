@@ -1,4 +1,8 @@
 {
+  "chorus:effect/data/action/capture_input_direction": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
+  "chorus:effect/target/input_direction/query": ["target:java.lang.String"],
+  "chorus:effect/target/input_direction/outcome": ["OBSERVED", "MISSING_TARGET", "DEAD", "UNLOADED", "UNSUPPORTED"],
+  "chorus:effect/target/input_direction/result": ["query:com.imdomestic.chorus.effect.target.InputDirection$Query", "outcome:com.imdomestic.chorus.effect.target.InputDirection$Outcome", "direction:java.util.Optional<com.imdomestic.chorus.effect.target.WorldDirection>"],
   "chorus:effect/ability/ability_definition_v2": ["id:java.lang.String", "slot:java.lang.String", "cost:java.util.Optional<com.imdomestic.chorus.effect.ability.AbilityDefinition$Cost>", "condition:com.imdomestic.chorus.effect.data.Condition", "tags:java.util.Set<java.lang.String>", "parameters:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.ability.AbilityDefinition$Parameter>", "onUse:java.util.List<com.imdomestic.chorus.effect.data.EffectProgram$Step>", "effects:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.ability.AbilityDefinition$Effect>", "costFrom:com.imdomestic.chorus.effect.ability.AbilityDefinition$CostFrom", "rechargeResource:java.util.Optional<java.lang.String>", "rechargeYieldProfile:java.util.Optional<java.lang.String>", "costSlot:java.util.Optional<java.lang.String>"],
   "chorus:effect/data/condition/event_ability_tag": ["tag:java.lang.String"],
   "chorus:rule/rule_engine/after_reactions": ["signal:com.imdomestic.chorus.rule.RuleEngine$Signal"],

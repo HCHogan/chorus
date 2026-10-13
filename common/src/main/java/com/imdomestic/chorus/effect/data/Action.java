@@ -703,6 +703,16 @@ public interface Action {
             return new RuleEngine.Local<>(e.state(), result, List.of());
         }
     }
+    record CaptureInputDirection(Evaluation.Target target) implements Action {
+        public CaptureInputDirection { java.util.Objects.requireNonNull(target); }
+        @Override public ResultShape validate(Validation v) { v.target(target); return ResultShape.INPUT_DIRECTION; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.target.InputDirection.Query(e.target(target))); }
+        @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
+            var result = (com.imdomestic.chorus.effect.target.InputDirection.Result) receipt;
+            if (!result.query().equals(e.context().command(com.imdomestic.chorus.effect.target.InputDirection.Query.class))) throw new IllegalArgumentException("Input direction receipt does not match request");
+            return new RuleEngine.Local<>(e.state(), result, List.of());
+        }
+    }
     record SelectTargets(Evaluation.Center center, TargetArea area, com.imdomestic.chorus.effect.target.TargetQuery.Relation relation,
             Evaluation.Target relativeTo, boolean includeCenter, List<Evaluation.Target> exclude,
             com.imdomestic.chorus.effect.target.TargetQuery.Order order, Optional<Value> limit, com.imdomestic.chorus.effect.target.TargetQuery.Anchor centerAnchor,

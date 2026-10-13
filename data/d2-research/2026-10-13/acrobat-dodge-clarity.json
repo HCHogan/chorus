@@ -1,0 +1,214 @@
+{
+  "2711519343": {
+    "hash": 2711519343,
+    "name": "Acrobat's Dodge",
+    "lastUpload": 1723480728683,
+    "type": "Subclass Class",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Only usable while on the ground."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Performs a front flip in your movement input's direction and slams down the ground with a "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Knife."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Upon landing after using "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Acrobat's Dodge:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Grants you and allies within ? meters "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Radiant for 10 seconds (15 with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Solace)"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Deals up to "
+            },
+            {
+              "text": "40",
+              "classNames": [
+                "pve"
+              ]
+            },
+            {
+              "text": " "
+            },
+            {
+              "text": "[20]",
+              "classNames": [
+                "pvp"
+              ]
+            },
+            {
+              "text": " damage to targets in a ? meter radius"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "3636300852": {
+    "hash": 3636300852,
+    "name": "Acrobat's Dodge",
+    "lastUpload": 1732219732702,
+    "type": "Subclass Class",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Only usable while on the ground."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Performs a front flip in your movement input's direction and slams down the ground with a "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Knife."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Upon landing after using "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Acrobat's Dodge:"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Grants you and allies within ? meters "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Radiant for 10 seconds (15 with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Solace)"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Deals up to "
+            },
+            {
+              "text": "40",
+              "classNames": [
+                "pve"
+              ]
+            },
+            {
+              "text": " "
+            },
+            {
+              "text": "[20]",
+              "classNames": [
+                "pvp"
+              ]
+            },
+            {
+              "text": " damage to targets in a ? meter radius"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

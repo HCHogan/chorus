@@ -196,6 +196,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/action/capture_damage", com.imdomestic.chorus.effect.data.Action.CaptureDamage.class);
         types.put("chorus:effect/data/action/capture_tagged_damage", com.imdomestic.chorus.effect.data.Action.CaptureTaggedDamage.class);
         types.put("chorus:effect/data/action/capture_direction", com.imdomestic.chorus.effect.data.Action.CaptureDirection.class);
+        types.put("chorus:effect/data/action/capture_input_direction", com.imdomestic.chorus.effect.data.Action.CaptureInputDirection.class);
         types.put("chorus:effect/data/action/capture_position", com.imdomestic.chorus.effect.data.Action.CapturePosition.class);
         types.put("chorus:effect/data/action/rebase_position", com.imdomestic.chorus.effect.data.Action.RebasePosition.class);
         types.put("chorus:effect/data/action/capture_value", com.imdomestic.chorus.effect.data.Action.CaptureValue.class);
@@ -511,6 +512,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/target/direction_query/mode", com.imdomestic.chorus.effect.target.DirectionQuery.Mode.class);
         types.put("chorus:effect/target/direction_query/result", com.imdomestic.chorus.effect.target.DirectionQuery.Result.class);
         types.put("chorus:effect/target/direction_result/stored", com.imdomestic.chorus.effect.target.DirectionResult.Stored.class);
+        types.put("chorus:effect/target/input_direction/query", com.imdomestic.chorus.effect.target.InputDirection.Query.class);
+        types.put("chorus:effect/target/input_direction/outcome", com.imdomestic.chorus.effect.target.InputDirection.Outcome.class);
+        types.put("chorus:effect/target/input_direction/result", com.imdomestic.chorus.effect.target.InputDirection.Result.class);
         types.put("chorus:effect/target/entity_observation", com.imdomestic.chorus.effect.target.EntityObservation.class);
         types.put("chorus:effect/target/entity_query", com.imdomestic.chorus.effect.target.EntityQuery.class);
         types.put("chorus:effect/target/entity_query/movement", com.imdomestic.chorus.effect.target.EntityQuery.Movement.class);

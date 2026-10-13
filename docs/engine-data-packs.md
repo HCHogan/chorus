@@ -2058,6 +2058,22 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 
 该动作可以表达驱散或结束以 Buff 生命周期建模的活动技能；它不自动发现任意 Java 宿主中运行的技能，不取消没有绑定到这些 Buff 的动作，也不代替具体 Super 的结束行为。[buff_removal.json](../common/src/test/resources/effects/buff_removal.json) 使用合成活动状态，验证整批结束、不同来源与持有者、暂停状态、真实清理回血及 detached 延迟回血。
 
+## 捕获玩家移动输入方向
+
+`{"action":{"type":"chorus:capture_input_direction","target":"self"},"as":"input"}` 读取服务端已经接收的玩家移动按键状态，并按查询时的 yaw 转成水平单位方向。前后、左右相反键分别抵消，斜向归一化；pitch、当前速度和外部击退不参与。它读取原版处理和 Chorus 移动输入限制之后的 `lastClientInput`，不接受调用者在效果事件中伪造一个输入方向，也不会修改按键或产生位移。
+
+| 查询结果 | observed | available | neutral | missing |
+| --- | --- | --- | --- | --- |
+| 已观察且有方向 | true | true | false | false |
+| 已观察但无有效方向键 | true | false | true | false |
+| 目标缺失 / 死亡 / 未加载 / 宿主不支持 | false | false | false | true |
+
+`available` 表示有可供动作消费的方向；`observed` 表示确实观察到了输入。中立输入不自动改成朝前，内容可显式在 `neutral` 分支另外读取 horizontal 朝向；未知输入不能被混作中立。当前 Minecraft 适配只支持服务端玩家；普通生物返回 UNSUPPORTED，不用其速度猜测输入。目标实体已从宿主索引移除时返回 MISSING_TARGET；仍可解析但位于未加载区块时返回 UNLOADED。
+
+结果实现既有 DirectionResult，可传给 `apply_impulse`、`displace_entity`、圆锥或延迟动作。`after` 保留捕获值，之后转身、换键和卸下技能不会重新观察；检查点恢复保留方向和中立 / 未观察状态。动作核对回执目标，未知或错配回执按既有失败边界停机，保留已接受技能付款，不自动重读或重放。新增四个存储 ID，不改变旧 capture_direction、DirectionQuery.Mode 或其字段。
+
+Acrobat’s Dodge 是该能力的内容需求之一，但 `input_direction.json` 仅为通用验收夹具，不等于已实现跳跃、完成时授予 Radiant 或 Ascension 的完整收益。五项 InputDirectionTest 和三项 InputDirectionGameTest 验证方向、输入限制、原生延迟冲量、未知边界及纯领域恢复；真实轨迹和技能完成时机仍须由内容另行表达。原表的 “upon landing” 与新版允许空中施放要一起核实，不能仅凭旧描述认定完成条件必定是接触地面。
+
 ## 一次性物理冲量与派生方向
 
 `chorus:apply_impulse` 在一次明确的世界操作中向目标当前速度加上冲量；单位为 meter_per_second。它接受已捕获的方向，不在执行或回执阶段重读施放者朝向，也不直接移动位置：
@@ -2091,7 +2107,7 @@ Minecraft 宿主确认目标存在且处于当前维度，拒绝死亡、旁观�
 
 它不读取世界，也不伪装成方向查询回执。任一位置不可用、维度不同或两点重合时返回 missing，不选择任意替代方向；available 时可交给冲量、圆锥和投射物。位置和方向都能被 after 捕获，后续目标移动不改写已捕获值；冲量执行时仍检查目标及维度。反向交换 from / to 可表达朝中心拉动，配合已有目标列表可逐目标推开。
 
-[impulse.json](../common/src/test/resources/effects/impulse.json) 是合成夹具，含已付款延迟冲量和两点推开示例；20 / 10 米每秒、延迟和治疗观察器不是 D2 数值。持续钩爪 / 摆荡的预测状态机、移动属性、按键与输入方向、移动 / 落地事实、闪身 / 急切刀锋的正式触发与距离时间曲线仍需实现。
+[impulse.json](../common/src/test/resources/effects/impulse.json) 是合成夹具，含已付款延迟冲量和两点推开示例；20 / 10 米每秒、延迟和治疗观察器不是 D2 数值。移动输入方向可用上节的 capture_input_direction 捕获；持续钩爪 / 摆荡的预测状态机、技能专用移动属性与输入语义、移动 / 落地事实、闪身 / 急切刀锋的正式触发与距离时间曲线仍需实现。
 
 ## 区域形状、方向快照与视线
 
@@ -2117,7 +2133,7 @@ Minecraft 宿主确认目标存在且处于当前维度，拒绝死亡、旁观�
 ]
 ```
 
-此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 的可选 mode 默认为 look，读取服务器实体的完整 look vector；horizontal 则直接按服务器 yaw 捕获水平朝向，y=0，即使实体正向上 / 下看也有确定方向。两种模式均保存带维度的归一化方向，回执必须匹配原请求的目标和 mode。horizontal 表示朝向，不是客户端移动按键方向。capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。它还没有可写入 Buff 的方向组件或持久化 Codec。
+此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 的可选 mode 默认为 look，读取服务器实体的完整 look vector；horizontal 则直接按服务器 yaw 捕获水平朝向，y=0，即使实体正向上 / 下看也有确定方向。两种模式均保存带维度的归一化方向，回执必须匹配原请求的目标和 mode。horizontal 表示朝向，不是客户端移动按键方向。capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。延迟捕获可随领域检查点保存；不代表实体运动或物理世界的跨重启恢复。
 
 直接以实体为 center 的查询可以给 center_anchor；target_anchor 决定每个候选实体的取样点，均为 feet / body（碰撞箱中心高度）/ eyes。已捕获位置是精确坐标，不再叠加 center_anchor；这类查询若指定非默认 center_anchor 会在编译时报错。区域判断、距离和可选视线均使用同一对取样点，**不是整个碰撞箱与区域的相交测试**。球形旧请求仍保留脚底语义；非球形回执另保存相对坐标并验证它位于区域内，结果读取不再访问世界。
 

@@ -225,7 +225,8 @@
       "com.imdomestic.chorus.AbilityCrossSlotCostGameTest",
       "com.imdomestic.chorus.AscensionGameTest",
       "com.imdomestic.chorus.MarksmanAmmoGameTest",
-      "com.imdomestic.chorus.WintersShroudGameTest"
+      "com.imdomestic.chorus.WintersShroudGameTest",
+      "com.imdomestic.chorus.InputDirectionGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",

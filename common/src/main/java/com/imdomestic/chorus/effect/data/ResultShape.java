@@ -134,6 +134,11 @@ public record ResultShape(Map<String, Field> fields, Map<String, Predicate<RuleE
     public static final ResultShape DIRECTION = new ResultShape(Map.of(), Map.of(
             "available", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isPresent(),
             "missing", result -> ((com.imdomestic.chorus.effect.target.DirectionResult) result).direction().isEmpty()), false, Reference.DIRECTION);
+    public static final ResultShape INPUT_DIRECTION = new ResultShape(Map.of(), Map.of(
+            "available", result -> ((com.imdomestic.chorus.effect.target.InputDirection.Result) result).direction().isPresent(),
+            "observed", result -> ((com.imdomestic.chorus.effect.target.InputDirection.Result) result).observed(),
+            "neutral", result -> ((com.imdomestic.chorus.effect.target.InputDirection.Result) result).neutral(),
+            "missing", result -> !((com.imdomestic.chorus.effect.target.InputDirection.Result) result).observed()), false, Reference.DIRECTION);
     public void requireAttachment() { if (reference != Reference.ATTACHMENT) throw new IllegalArgumentException("Result is not an attachment handle"); }
     public void requireAttachmentPosition() { if (reference != Reference.ATTACHMENT_POSITION) throw new IllegalArgumentException("Result is not an attachment resolution"); }
     public void requireEntityAnchor() { if (reference != Reference.ENTITY_ANCHOR) throw new IllegalArgumentException("Result is not an entity life anchor"); }

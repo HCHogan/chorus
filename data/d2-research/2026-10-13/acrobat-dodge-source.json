@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T11:33:26.207983+00:00",
+  "status": "research_pending_implementation",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+    "file": "data/d2-research/2026-10-13/marksman-ammo-class.html.gz",
+    "html_sha256": "f4fb623aaeba7cfe1a13dc447b71def623c49f7d3a1f32b29e71bf7bd78e3e76",
+    "gzip_sha256": "cd1794e8f369f4b6c575bc6b79eed5ad8cf7e709bccc0fca9079c10d13cb86c7",
+    "coordinate_system": "original_google_sheet",
+    "cells": [
+      {
+        "original": "B5",
+        "snapshot": "B4",
+        "text": "Acrobat's Dodge",
+        "text_sha256": "c00898c38867be2c4af8a0d6e4df512b48a3790ed914973a26071413916334bb"
+      },
+      {
+        "original": "D5",
+        "snapshot": "D4",
+        "text": "Performs an acrobatic leap, that, upon landing, grants the user and their allies within 10 meters Radiant for 10+5 seconds.\nEnemies within 6.5 meters are dealt up to 40 [20] Solar Damage upon landing.",
+        "text_sha256": "906e01ad3ead5cc9995fc1fb3437b76b2c99660bd5aba83b75ca41e7558ed72d"
+      },
+      {
+        "original": "N5",
+        "snapshot": "N4",
+        "text": "Base Cooldown: 56 [148.4]s\n\nChunk Scalar: 0.5x",
+        "text_sha256": "89b43de8141cea02b696546716ffb47808c01cd17dd13f49f965a997caebb083"
+      }
+    ]
+  },
+  "clarity": {
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-13/acrobat-dodge-clarity.json",
+    "selected_sha256": "a36b6bb038b7f9bea7eee229a2f64a174dae3f1631fb4be3305572a10ea8615d",
+    "conflict": "Both descriptions still require ground activation, but their lastUpload is from 2024. Official 9.7.0 explicitly permits airborne activation and takes precedence."
+  },
+  "official": {
+    "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+    "publication_date": "2026-06-09",
+    "verified_on": "2026-10-13",
+    "fact": "Acrobats Dodge can now be activated while airborne."
+  },
+  "engine_dependency": "Generic capture_input_direction captures held movement input independently of facing and velocity, and distinguishes observed neutral from unavailable observations. Existing capture_direction still supplies LOOK/HORIZONTAL facing without storage-shape changes. The prerequisite passed core tests and full Fabric / NeoForge world gates; Acrobat content remains pending.",
+  "pending": [
+    "Actual leap and skill-completion lifecycle. Verify the modern airborne completion trigger: the older upon landing wording alone does not establish whether completion requires terrain contact or an animation phase. Do not claim either policy as verified.",
+    "Required trajectory and completion-timing calibration; inclusive 10 m allies and 6.5 m enemies, explicit unknown damage falloff and world-unit scaling.",
+    "Shared Radiant and per-recipient Solace, 56 / 148.4 second baseline, .5 CES and current selected class account.",
+    "Ascension uses the selected dodge benefit without replaying leap, paying twice or emitting a second class use; precise damage/timing transfer remains to be verified.",
+    "Production subclass/skill assembly, animation, HUD, full interactions and world persistence."
+  ]
+}

@@ -10,6 +10,7 @@ import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.effect.target.TargetShape;
 import com.imdomestic.chorus.effect.target.WorldDirection;
 import com.imdomestic.chorus.effect.target.DirectionQuery;
+import com.imdomestic.chorus.effect.target.InputDirection;
 import com.imdomestic.chorus.effect.target.PositionQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.target.EntityQuery;
@@ -122,6 +123,20 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                     }
                 }
                 yield new DirectionQuery.Result(query, direction);
+            }
+            case InputDirection.Query query -> {
+                var target = entities.apply(query.target());
+                var outcome = !present(target) ? InputDirection.Outcome.MISSING_TARGET
+                        : !target.isAlive() ? InputDirection.Outcome.DEAD
+                        : !level.hasChunkAt(target.blockPosition()) ? InputDirection.Outcome.UNLOADED
+                        : !(target instanceof net.minecraft.server.level.ServerPlayer) ? InputDirection.Outcome.UNSUPPORTED
+                        : InputDirection.Outcome.OBSERVED;
+                var direction = Optional.<WorldDirection>empty();
+                if (outcome == InputDirection.Outcome.OBSERVED) {
+                    var player = (net.minecraft.server.level.ServerPlayer) target; var input = player.getLastClientInput();
+                    direction = InputDirection.held(level.dimension().identifier().toString(), player.getYRot(), input.forward(), input.backward(), input.left(), input.right());
+                }
+                yield new InputDirection.Result(query, outcome, direction);
             }
             case TargetQuery query -> select(query);
             case com.imdomestic.chorus.effect.projectile.Hitscan.Query query -> MinecraftHitscan.trace(level, query);
