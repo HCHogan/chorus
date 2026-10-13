@@ -3605,6 +3605,22 @@ Explosive Head 参考消费者通过既有 `capture_position`、`position_distan
 
 强化 +5 Accuracy 使用独立 `chorus_d2:weapon_accuracy`，stat_point 输入，perks 加值阶段按 accuracy 分组，Explosive Head 家族 MAX，最终限幅 0–100。它只提供属性查询；实际弓散布、拉弓与动画需要另行装配。距离定义、来源冲突和测试范围见 [D2 规则集](d2-ruleset.md#explosive-head-的分量与距离引信)。
 
+## 真实落地事实与历史落点
+
+`chorus:landed` 携带 `GroundContact.Landed`，记录生物实体通过原生向下移动从无支撑到有支撑的接触。actor / victim / owner 都是落地实体；`references` 包含 `landing_id`、`entity_life`、`entity_dimension`，`numbers.requested_y` / `moved_y` 为本次请求 / 实际竖直位移（米），`flags.ground_contact=true`。它没有武器或技能信用，不能单凭普通落地证明某次俯冲已经完成。
+
+```json
+{"action":{"type":"chorus:read_landing","anchor":"feet"},"as":"contact"}
+```
+
+`read_landing` 默认 feet，也可选 body / eyes；只读取真实 typed carrier，返回与 `capture_entity_anchor` 相同形状的历史生命引用和位置，不重新查世界。同名普通事件不能冒充该回执。后续范围查询可使用捕获的落点；需要操作当前实体时先 `resolve_entity_anchor` 并检查 available / alive，避免同 UUID 的新生命接收旧落地收益。detached 延迟和领域检查点可保留该事实及位置；具体技能负责关联待完成施放、同一生命、取消和超时。
+
+Minecraft 宿主以碰撞盒当前无重叠、向下偏移 `1e-6` 方块后出现碰撞作为支撑观察；这个容差是宿主几何政策。要求移动开始前无支撑，结束后有支撑，允许请求刚好抵达地面而未被截短。`onGround` 标志与物理支撑分别保存：客户端声称着地、仅切换标志、瞬移至地面及站立后的重复向下移动都不会制造落地。乘客、旁观者、noPhysics 实体不参与，流体接触不自动等于实体碰撞支撑。
+
+玩家包中的碰撞移动可能只是原版试算，只有原版接受最终位置后才发布；被驳回并回退的移动不产生事实。回调只排队，外部移动在运行时 prepare / tick 结算，规则世界动作内的移动在其回执边界合入，均不递归进入解释器。下游未知结果保留实际移动且不重放；新的真实离地再落地仍可再次触发，没有按根事件、链深或实体设置循环禁令。
+
+当前通过普通碰撞、精确距离、玩家包接受 / 拒绝、历史位置、替换生命及未知结果的双端场景验收；这不是 Phoenix Dive 内容、客户端俯冲轨迹、流体落地或其他模组自定义移动的完整验收。存储目录新增两个 ID，旧形状不变。
+
 ## 独立实体附着实例
 
 `begin_entity_attachment` 接受可用的生命挂点 `reference`、可用位置 `position`、可选正秒数 `lifetime` 和必填的五项 `policy`，返回独立 Handle。例如外层已经绑定 initial 和 impact 时：

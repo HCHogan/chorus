@@ -87,8 +87,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
     private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
     private List<RuleEngine.Signal> settlingLifecycleFacts = List.of();
+    private final boolean observesLandings;
+    boolean observesLandings() { return observesLandings; }
 
-    /** Removal callbacks record committed facts; they never recursively execute a rule frame. */
+    /** Lifecycle and physical callbacks record committed facts; they never recursively execute a rule frame. */
     void recordNativeLifecycle(RuleEngine.Signal fact) {
         if (closed || MinecraftCheckpointLifecycle.deferStop(level.getServer())) return;
         ownerThread();
@@ -110,6 +112,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources, Optional<EffectSession.Checkpoint> checkpoint) {
         this.level = Objects.requireNonNull(level); this.sources = Objects.requireNonNull(sources);
         this.program = Objects.requireNonNull(program);
+        this.observesLandings = program.program().bundles().stream().flatMap(b -> b.rules().stream())
+                .anyMatch(r -> r.on().equals(com.imdomestic.chorus.effect.motion.GroundContact.LANDED));
         this.nativeAttributes = new MinecraftAttributeProjection(level,program);
         this.nativeMovement = new MinecraftMovementProjection(level,program);
         this.nativeHorizontalSpeed = new MinecraftHorizontalSpeedProjection(level,program);
@@ -730,14 +734,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         int begin = 0;
         while (begin < pending.size()) {
             var first = pending.get(begin);
-            long at = com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(first)
-                    ? com.imdomestic.chorus.effect.target.EntityAttachments.time(first) : state().engine().timeMicros();
+            long at = nativeFactTime(first, state().engine().timeMicros());
             at = Math.max(at, state().engine().timeMicros());
             int end = begin + 1;
             while (end < pending.size()) {
                 var next = pending.get(end);
-                long nextAt = com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(next)
-                        ? com.imdomestic.chorus.effect.target.EntityAttachments.time(next) : at;
+                long nextAt = nativeFactTime(next, at);
                 if (nextAt > at) break;
                 end++;
             }
@@ -748,6 +750,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             finally { settlingLifecycleFacts = List.of(); }
             begin = end;
         }
+    }
+    private static long nativeFactTime(RuleEngine.Signal fact, long fallback) {
+        if (fact.payload() instanceof com.imdomestic.chorus.effect.motion.GroundContact.Landed landed) return landed.observation().timeMicros();
+        return com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(fact)
+                ? com.imdomestic.chorus.effect.target.EntityAttachments.time(fact) : fallback;
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
         thread();

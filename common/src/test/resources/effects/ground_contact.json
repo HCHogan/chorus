@@ -1,0 +1,22 @@
+{
+  "version": "test-ground-contact",
+  "bundles": [
+    {"id": "test:projectile"},
+    {"id": "test:power"},
+    {"id": "test:landing", "rules": [
+      {"id": "landed", "on": "chorus:landed", "if": {"type":"chorus:source_is","source":"owner"}, "do": [
+        {"action":{"type":"chorus:read_landing"},"as":"contact"},
+        {"type":"chorus:select_targets","center":{"position":"contact"},"radius":{"type":"chorus:constant","value":2,"unit":"meter"},"relation":"any"},
+        {"type":"chorus:play_cue","cue":"test:landed"},
+        {"after":{"type":"chorus:constant","value":0.1,"unit":"second"},"lifetime":"detached","do":[
+          {"action":{"type":"chorus:read_landing"},"as":"history"},
+          {"type":"chorus:select_targets","center":{"position":"history"},"radius":{"type":"chorus:constant","value":2,"unit":"meter"},"relation":"any"},
+          {"action":{"type":"chorus:resolve_entity_anchor","reference":"history"},"as":"current"},
+          {"if":{"type":"chorus:result_flag","binding":"current","field":"available"},"then":[{"type":"chorus:play_cue","cue":"test:current_life"}],"else":[{"type":"chorus:play_cue","cue":"test:old_life"}]},
+          {"type":"chorus:play_cue","cue":"test:delayed_landing"}
+        ]}
+      ]},
+      {"id":"move","on":"test:move","do":[{"type":"chorus:play_cue","cue":"test:move"},{"type":"chorus:play_cue","cue":"test:after_move"}]}
+    ]}
+  ]
+}

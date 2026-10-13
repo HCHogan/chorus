@@ -11,6 +11,8 @@
     "LivingAttributeLoadMixin",
     "LivingEntityLifeMixin",
     "EntityRemovalMixin",
+    "EntityGroundContactMixin",
+    "ServerGroundContactMixin",
     "ServerPlayerLifeMixin",
     "PlayerSaveCaptureMixin",
     "LevelSaveCaptureMixin",

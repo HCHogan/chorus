@@ -1,4 +1,6 @@
 {
+  "chorus:effect/motion/ground_contact/landed": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference", "landingId:java.lang.String", "requestedY:double", "movedY:double", "observation:com.imdomestic.chorus.effect.target.EntityObservation"],
+  "chorus:effect/data/ground_contact_actions/read_landing": ["anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor"],
   "chorus:effect/data/action/capture_input_direction": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target"],
   "chorus:effect/target/input_direction/query": ["target:java.lang.String"],
   "chorus:effect/target/input_direction/outcome": ["OBSERVED", "MISSING_TARGET", "DEAD", "UNLOADED", "UNSUPPORTED"],

@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：原生碰撞落地与玩家包的接受边界
+
+新增通用 `chorus:landed` 事实与 `read_landing`，供 Phoenix Dive 等需要实际接触地面的内容组合。向下原生移动从无支撑到有支撑才记录，精确抵达地面也有效；不依赖可由客户端声明的 onGround 标志。玩家移动包先由原版试算与验证，只有接受最终位置后才发布；回退包不泄漏临时接触。实体 / 玩家回调只排队，世界动作回执或下一次 prepare / tick 才执行反应，保持原有状态迁移和未知结果不重放语义。
+
+历史事实保存落地实例、生命代次、维度、实体观察和三个挂点，`read_landing` 无世界读取；后续 `resolve_entity_anchor` 区分同 UUID 的新生命。领域检查点可保存 detached 续体，但没有新增物理世界恢复承诺。四项 GroundContactTest 覆盖严格载荷、历史读取、Codec、延迟 / 卸源 / 检查点；七项共享世界场景覆盖真实支撑、精确距离与重复离地、标志 / 瞬移、玩家接受 / 拒绝、世界动作中的排队、未知结果和生命替换。
+
+首轮定向世界验证暴露夹具在 prepare 前读取队列以及传送确认前未初始化位置基准的问题；修正夹具后 `/tmp/chorus-ground-contact-targeted2.log` 的七项 Fabric 场景与 NeoForge 编译通过（19 秒），未放宽物理落地或原版移动验证。随后补充客户端声明未着地但实际抵达支撑面的断言。完整 `/tmp/chorus-ground-contact-final-gate.log` BUILD SUCCESSFUL（5 分 42 秒）：2075 项 JUnit 无失败 / 错误 / 跳过，Fabric 1180 项和 NeoForge 1195 项世界测试、两端发布 jar 及全部 25 项已注册 Fabric 客户端回归通过；共享世界场景 1179 项。本批没有新增专用落地客户端场景，NeoForge 图形客户端仍未执行。
+
+`build/reports/ground-contact/audit.json` 核对两端全部 1179 / 1172 个发布主类字节与各自编译输出一致，没有测试类 / 夹具泄漏；新增世界资源与公共定义相同，Gradle CRLF 保持。存储新增两个类型，共 653 项，原来 651 项字段 / 枚举形状不变；schema 仅增加两行，历史夹具未修改。10 项 Compendium 工具测试、来源检查与覆盖报告一致性通过。
+
+支撑容差 `1e-6` 方块、排除 noPhysics / 旁观 / 乘客、普通流体不等同支撑均为显式宿主政策。该事实不携带特定技能信用；俯冲待完成实例、取消 / 死亡处理和 Phoenix Dive 的 Cure / Restoration / Scorch 内容仍待装配。Compendium 审阅数量和状态不变，本批不计作新技能完成。数据契约见[真实落地事实与历史落点](engine-data-packs.md#真实落地事实与历史落点)。
+
 ### 2026-10-14：Heal Clip 的真实击杀、换弹与盟友 Cure
 
 新增 `heal_clip.json` 参考定义，以同持有者 / 武器实例的确认 weapon_kill 开放独立窗口。death_id 与 reload_completion_id 分别有限记账；没有窗口的完成也会记录，因此旧完成重放不会消费后来新获得的窗口。完成后先消费窗口，再给自己调用共享 Cure x2，并查询 15 米盟友调用 x1。逐发装填每次正转移使用独立完成身份，新击杀可在同段后续插入再次触发；普通补弹不触发。显式 VERIFIED 的零转移资格沿用换弹生产者政策，未新增 Heal Clip 专用 Java 处理器或循环上限。
