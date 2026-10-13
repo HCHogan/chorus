@@ -38,8 +38,8 @@
       "on_use": [
         {
           "type": "chorus:invoke_bundle",
-          "bundle": "chorus_d2:marksman_dodge_reload",
-          "event": "chorus_d2:invoke_marksman_dodge_reload",
+          "bundle": "chorus_d2:marksman_dodge_benefits",
+          "event": "chorus_d2:invoke_marksman_dodge_benefits",
           "holder": "self",
           "target": "self",
           "origin": "event",
@@ -56,15 +56,29 @@
   ],
   "bundles": [
     {
-      "id": "chorus_d2:marksman_dodge_reload",
+      "id": "chorus_d2:marksman_dodge_benefits",
       "parameters": {
         "delay": "second"
       },
       "rules": [
         {
           "id": "grant",
-          "on": "chorus_d2:invoke_marksman_dodge_reload",
+          "on": "chorus_d2:invoke_marksman_dodge_benefits",
           "do": [
+            {
+              "type": "chorus:collect_pickups",
+              "collector": "self",
+              "radius": {
+                "type": "chorus:constant",
+                "value": 15,
+                "unit": "meter"
+              },
+              "kinds": [
+                "chorus_d2:special_ammo",
+                "chorus_d2:heavy_ammo"
+              ],
+              "line_of_sight": false
+            },
             {
               "after": {
                 "type": "chorus:source_parameter",

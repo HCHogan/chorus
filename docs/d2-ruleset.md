@@ -1003,17 +1003,21 @@ Radiant 对显式 weapon_damage / golden_gun_damage 生效，普通 grenade / me
 
 覆盖保持 partial：普通 / 精英迷失方向等完整 AI 失能、过载勇士眩晕、全部压制来源及特例、真实 Super / Transcendence 原型与持续耗能、宿主移动模式、HUD / 客户端提示、生产装配和持久化仍未完成。原版射击路径已接线，其他模组自定义攻击、NPC Chorus 武器发射装配及正式 D2 敌人等级目录仍待完成。上述共享状态还不能代表完整压制行为。
 
-## Marksman's Dodge（神射手闪身）：换弹分支
+## Marksman's Dodge（神射手闪身）：换弹与弹药拾取
 
 2026-10-11 原表 `Class Abilities!B9/D9/N9` 说明：闪身换弹全部武器、拾取 15 米内弹药，并在动画期间移除 PvE 投射物追踪和对玩家的辅助瞄准；基础冷却 42 秒、Chunk Scalar 1。对应固定 CSV 坐标为 `B6/D6/N6`。原表 `Weapon Perks!C251`（CSV C250）将 Marksman's Dodge 与 Dragon's Shadow 列为触发换弹 perk 的 Reload。[来源记录](../data/d2-research/2026-10-11/marksman-dodge.json) 保存原始 HTML、哈希、坐标和实现边界。
 
-[marksman_dodge.json](../common/src/test/resources/effects/marksman_dodge.json) 只提供换弹分支的技能模板：职业槽单份能量，基础再生率 1/42、默认直接回能路径对应 CES 1；不包含 Class 属性倍率。接受施放先求值并固定 calibration.reload_delay，然后支付 1 份能量，detached 延迟执行 reload_weapons(equipped)。延迟必须为正的整数微秒；未提供校准参数时不能施放，且不会扣费。[测试校准](../common/src/test/resources/effects/marksman_dodge_test_calibration.json) 的 0.2 秒只用于验收，不能作为原作动画时间。
+[marksman_dodge.json](../common/src/test/resources/effects/marksman_dodge.json) 提供换弹与弹药拾取的技能模板：职业槽单份能量，基础再生率 1/42、显式 marksman_dodge_gain Profile 对应 CES 1；不包含 Class 属性倍率。接受施放先求值并固定 calibration.reload_delay，然后支付 1 份能量，调用共享 marksman_dodge_benefits：立即查询并逐件领取 15 米内特殊 / 威能弹药砖，detached 延迟执行 reload_weapons(equipped)。延迟必须为正的整数微秒；未提供校准参数时不能施放，且不会扣费。[测试校准](../common/src/test/resources/effects/marksman_dodge_test_calibration.json) 的 0.2 秒只用于验收，不能作为原作动画时间。
+
+2026-10-13 重新核对原表 B9/D9/N9，文本未变化；[官方 9.1.5](https://www.bungie.net/7/en/News/Article/destiny_update_9_1_5) 确认启动时拾取弹药并装填全部武器，但没有给出二者顺序和精确动画帧。[拾取研究记录](../data/d2-research/2026-10-13/marksman-ammo.json) 将以下内容明确列为 Chorus 政策：按收益体执行时的施放者位置作含端点球形查询、无额外视线限制；先完成拾取反应，后按正校准延迟换弹。Ascension 在上升后调用相同收益，因此拾取中心是此时位置，与它在上升前捕获的伤害中心不同，原作对应空间 / 时序尚待校准。
+
+领取复用原物体的私有接收者、实时配装资格、各武器弹药砖收益 Profile 和 pickup 事实；不是直接清除物体并凭空补弹。每块砖的奖励及 Overflow 等派生反应结算后才判断下一块，备弹已满就保留剩余砖。查询只执行一次；已因满备弹跳过的远处砖不会在后续换弹腾出空间后重试。接触拾取仍可独立发生。未知结果停止后续领取及换弹，已实际领取和入账的部分保留。
 
 换弹执行时才取得当前配装，经过真实容器 / 存活资格复核后统一转移全部武器弹药，再发布各自完成事件。因此接受后替换武器时，新装备武器会被换弹，已卸下的旧武器保持余额；同一批的第一项完成反应不会改变后续武器的已定转移。接受后的任务在取消技能选择后继续，重新选择不补满能量。这些取样 / 生命周期规则是明确的 Chorus 内容政策，原作边界尚未实测。
 
-当前 completion=transferred：只有实际装入子弹的武器触发换弹 perk，满弹匣 / 无储备不发完成。这是待校准政策；原表只明确它属于 Reload，未证明零转移资格，核心的 verified 政策可表达另一种结果。普通 refill_magazine 不因这条技能定义改变语义。有限储备守恒、无限储备保持无限；本定义不会生成弹药或为另一持有者换弹。
+当前 completion=transferred：只有实际装入子弹的武器触发换弹 perk，满弹匣 / 无储备不发完成。这是待校准政策；原表只明确它属于 Reload，未证明零转移资格，核心的 verified 政策可表达另一种结果。普通 refill_magazine 不因这条技能定义改变语义。装填本身保持有限储备守恒、无限储备无限，不生成弹药或为另一持有者换弹；拾取获得的备弹由原物体奖励另行入账。Overflow 已装入的超容量子弹不会被这次换弹裁掉。
 
-四项纯核心测试和两端共享的实际玩家场景验证了支付 / 延迟、三武器批量转移、实例信用、延迟期间换装、另一玩家隔离、零转移政策及 Kill Clip 激活。测试里的武器弹量、无限弹药武器和治疗观察器为合成输入。闪身位移 / 动画、15 米拾取、追踪 / 辅助瞄准中断、Class 被动 / 块状回能倍率与增强护盾、金装组合、职业选择限制、正式内容装配、按键 / HUD 和弹药持久化仍未完成，审阅状态保持 partial。
+原换弹测试验证支付 / 延迟、三武器批量转移、实例信用、延迟期间换装、另一玩家隔离、零转移政策及 Kill Clip 激活；新增 MarksmanAmmoTest / MarksmanAmmoGameTest 验证真实特殊 / 威能砖、15 米边界、满备弹、批量与 Overflow 组合、私有接收者、Ascension 复用、未知结果停止。测试武器弹量、砖收益、无限弹药武器和治疗观察器为合成输入。闪身位移 / 动画、追踪 / 辅助瞄准中断、Class 被动 / 块状回能倍率与增强护盾、全部金装组合、职业选择限制、正式内容装配、按键 / HUD 和弹药持久化仍未完成，审阅状态保持 partial。
 
 
 ## Slow / Freeze / Suspend 的控制接口核对
@@ -1645,7 +1649,7 @@ Ascension 的原表 Arc B72/D72（固定快照 B48/D48）明确空中动作消�
 
 Marksman 的装备武器装填和 Gambler 的延迟近战回能已拆成共享 bundle，由普通闪身和 Ascension 调用。Ascension 按付款时捕获的技能 ID 选择分支，后续换职业技能或清空空中槽不改变分支；结算时仍读取当前武器 / 近战账户。它不重做水平闪身、不重复扣费或发出第二次施放事实。Gambler 的追踪规避窗口未自动继承。Utility Kickstart 改用接受事实捕获的职业技能标签；真实职业物品组合验证先消费原 Armor Charge，再按当前缺口逐球补充。
 
-Marksman 资源补充显式 `marksman_dodge_gain` Profile，以原表 1× CES 接收通用技能回能；无修饰时该 Profile 是恒等路径。Class 属性回能与自然恢复曲线仍须另行校准，不能将这个修复视为完整冷却算法已完成。Marksman 原表列出的 15 米弹药砖拾取仍未实现，不能将共享装填分支称为全部闪身收益。
+Marksman 资源补充显式 `marksman_dodge_gain` Profile，以原表 1× CES 接收通用技能回能；无修饰时该 Profile 是恒等路径。Class 属性回能与自然恢复曲线仍须另行校准，不能将这个修复视为完整冷却算法已完成。共享 marksman_dodge_benefits 已包含 15 米弹药砖拾取和延迟装填；拾取中心为收益执行时的当前位置，动画 / 追踪规避等仍未包含，不能称为全部闪身收益。
 
 [校准夹具](../common/src/test/resources/effects/ascension_test_calibration.json) 明确使用合成 3 米位移、0.2 秒收益延迟和 Guardian 伤害 7；100–200 Class 的线性插值只为验证属性接线，原表 / Clarity 仅给出 200 点时 65% 上限。正式定义缺少这些输入会在扣费前失败。Arc Staff 内超能支付、其他闪身收益、Winter’s Shroud / 金装 / 碎片等组合、原作动画 / 范围衰减和完整伤害校准，以及正式 Aspect 装配、键位和 HUD 仍未完成，故覆盖保持 partial；完整记录见 [Ascension 研究记录](../data/d2-research/2026-10-13/ascension.json)。
 

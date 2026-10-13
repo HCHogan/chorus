@@ -82,7 +82,8 @@ class PowerfulAttractionTest {
         var h = new Harness(); h.mod(PERK, 0); h.choose(D + "marksman_dodge"); h.orbAt(4);
         assertEquals(AbilityUse.Outcome.ACCEPTED, h.use().outcome()); assertEquals(1, h.consumed.size());
         assertEquals(0, h.state().resources().get(new com.imdomestic.chorus.effect.resource.ResourceState.Key("player", D + "marksman_dodge_energy")).value());
-        h.orbAt(4); assertEquals(AbilityUse.Outcome.INSUFFICIENT_ENERGY, h.use().outcome()); assertEquals(1, h.queries.size());
+        h.orbAt(4); assertEquals(AbilityUse.Outcome.INSUFFICIENT_ENERGY, h.use().outcome()); assertEquals(2, h.queries.size());
+        assertEquals(Set.of(Set.of(D + "orb_of_power"), Set.of(D + "special_ammo", D + "heavy_ammo")), h.queries.stream().map(PickupCollection.Query::kinds).collect(java.util.stream.Collectors.toSet()));
     }
     @Test void actualResolvedReplacementQualifiesWithoutInheritingTheBaseClassTag() throws Exception {
         for (String replacement : List.of("nonclass", "ascent")) {

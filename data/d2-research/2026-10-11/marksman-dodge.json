@@ -25,7 +25,7 @@
   ],
   "implementation": {
     "ability": "chorus_d2:marksman_dodge",
-    "scope": "Reload branch only; not a complete dodge ability.",
+    "scope": "Reload and 15 m ammo pickup branches; not a complete dodge ability.",
     "base_cooldown_seconds": 42,
     "chunk_scalar": 1,
     "energy": "One-charge account, base rate 1/42. Explicit marksman_dodge_gain profile and CES 1 support external energy; the empty stat multiplier stage is neutral, not a calibrated Class-stat curve.",
@@ -33,10 +33,10 @@
     "timing": "calibration.reload_delay is required and snapshotted before payment. Test-only 0.2 seconds is not original-game timing.",
     "zero_transfer": "transferred policy is an explicit assumption; full magazine or zero reserves do not qualify without actual transfer.",
     "lifetime": "Accepted reload is detached from later ability deselection; recipient liveness and physical equipment still checked at execution. This is a Chorus content policy, not original-game calibration.",
-    "shared_benefit": "The reload branch is now a typed bundle invocation reused by Ascension; no extra payment, movement or cast facts. See data/d2-research/2026-10-13/ascension.json."
+    "shared_benefit": "Shared marksman_dodge_benefits invokes original private ammo rewards before the delayed equipped reload, also used by Ascension. See data/d2-research/2026-10-13/marksman-ammo.json"
   },
   "limits": [
-    "Dodge motion, animation, 15m ammo-brick pickup, combatant projectile tracking removal and Guardian aim-assist removal are not implemented.",
+    "Dodge motion, animation, combatant projectile tracking removal and Guardian aim-assist removal are not implemented; ammo pickup geometry and ordering still require original-game calibration.",
     "Class stat recharge/gain curves, enhanced Class overshield, exotic interactions, subclass restrictions, input/HUD and production selection assembly remain incomplete.",
     "Reload timing, equipment sampling, deselection/cancellation and zero-transfer perk qualification need original-game validation.",
     "Test weapons, capacities and reload healing observers are synthetic; weapon ammunition is not yet persisted across runtimes.",

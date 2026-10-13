@@ -4,6 +4,7 @@ import static com.imdomestic.chorus.effect.EffectTestSupport.*;
 import static org.junit.jupiter.api.Assertions.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.object.PickupCollection;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.motion.Displacement;
@@ -42,6 +43,7 @@ class AscensionTest {
         }
         RuleEngine.ActionResult world(RuleEngine.WorldRequest r) {
             return switch (r.command()) {
+                case PickupCollection.Query q -> new PickupCollection.Result(q, PickupCollection.Outcome.FOUND, List.of());
                 case PositionQuery q -> new PositionQuery.Result(q, Optional.of(new WorldPosition("world", 0, 40, 0)));
                 case Displacement.Command c -> {
                     moves.add(c); if (failMove) throw new IllegalStateException("Unknown ascent");

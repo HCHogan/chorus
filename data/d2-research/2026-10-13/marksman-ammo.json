@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13",
+  "status": "partial",
+  "source_record": "data/d2-research/2026-10-13/marksman-ammo-source.json",
+  "effects": ["Marksman's Dodge", "Ascension"],
+  "scope": "Shared Marksman benefit collects private special/heavy ammo bricks within 15 meters before its calibrated all-weapon reload; Ascension invokes the same benefit using the captured cost ability.",
+  "implementation": {
+    "definition": "common/src/test/resources/effects/marksman_dodge.json",
+    "bundle": "chorus_d2:marksman_dodge_benefits",
+    "caller": "common/src/test/resources/effects/ascension.json",
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanAmmoTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/MarksmanAmmoGameTest.java",
+    "core_changes": "None. Reuses collect_pickups, the original ammo_pickups callbacks, queued reaction settlement and positive-delay continuations."
+  },
+  "acceptance": [
+    "Actual private special/heavy entities at the inclusive 15 m boundary are consumed; 15.001 m and other recipients remain.",
+    "Rewards use the original producer and current per-weapon profiles. Newly received reserves supply the later real reload. Unit timing also checks the minimum positive delay of one microsecond.",
+    "Full corresponding reserves preserve the brick even with an empty magazine. The later reload does not revisit a previously rejected remote candidate.",
+    "Each reward and its Overflow reactions settle before the next claim. Four bricks with a five-round reserve gap consume one without Overflow and two with enhanced Overflow in the synthetic fixture.",
+    "Reload preserves Overflow magazines and emits completion only for actual transfers. Rejection of the later reload preserves the earlier pickup reward.",
+    "Ascension uses the same definition at its post-displacement position. Later changes to class/air slots do not replace the captured Marksman branch or pay again.",
+    "Unknown pickup reactions stop later claims and the delayed reload, retaining the first actual consumption and committed ammo; no replay."
+  ],
+  "policies": [
+    "Bungie 9.1.5 confirms both benefits on activation but does not specify their order or animation frame. Chorus collects at the accepted benefit body, settles all current-time pickup reactions, then reloads after a required positive delay. Test .2 seconds is synthetic.",
+    "Range is an inclusive feet-position sphere centered on the current collector, without extra line of sight. This query geometry is not original-game calibration.",
+    "Ascension invokes the benefit after its observed displacement. Its ammo collection center therefore differs from its captured pre-displacement damage center. This is explicit policy, not an original-game measurement.",
+    "The sampled batch visits each candidate once and rechecks live position, ownership and original reward eligibility. It does not poll for later reserves or future bricks. Independent contact collection still applies.",
+    "Pickup facts retain their original producer; reload facts retain the invoking ability. The shared bundle was renamed from marksman_dodge_reload to marksman_dodge_benefits in reference fixtures."
+  ],
+  "gaps": [
+    "Original-game pickup/reload ordering, animation timing, range anchor, line of sight, Ascension center and all exotic interactions require calibration.",
+    "Brick yield, test weapon magazine/reserve sizes, enhanced Overflow weapon calibration and ammunition economy are synthetic test inputs, not a complete D2 sandbox.",
+    "Dodge movement, tracking/aim-assist removal, Class-stat curves/overshield, subclass constraints, production content selection, input/HUD and world persistence remain incomplete."
+  ]
+}

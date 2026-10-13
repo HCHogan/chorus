@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.google.gson.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.object.PickupCollection;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.equipment.*;
@@ -38,6 +39,7 @@ class MarksmanDodgeTest {
         boolean allowed=true; int casts;
         Harness(boolean calibrated) throws Exception {
             p=program(calibrated);session=new EffectSession(engine(p),EffectState.empty(),request->switch(request.command()) {
+                case PickupCollection.Query q -> new PickupCollection.Result(q, PickupCollection.Outcome.FOUND, List.of());
                 case InstantReload.Check check -> {checks.add(check);yield new InstantReload.Checked(check,allowed);}
                 case HealingCommand heal -> {heals.add(heal);beforeHeals.add(state());yield new HealingReceipt(request.id().toString(),heal,HealingReceipt.Outcome.APPLIED,heal.amount(),heal.amount(),0);}
                 case Action.CueCommand ignored -> RuleEngine.Empty.INSTANCE;

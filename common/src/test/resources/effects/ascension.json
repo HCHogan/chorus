@@ -357,8 +357,8 @@
               "then": [
                 {
                   "type": "chorus:invoke_bundle",
-                  "bundle": "chorus_d2:marksman_dodge_reload",
-                  "event": "chorus_d2:invoke_marksman_dodge_reload",
+                  "bundle": "chorus_d2:marksman_dodge_benefits",
+                  "event": "chorus_d2:invoke_marksman_dodge_benefits",
                   "holder": "self",
                   "target": "self",
                   "origin": "event",

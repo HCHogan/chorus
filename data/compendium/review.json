@@ -6105,13 +6105,15 @@
           "text_sha256": "a1bac32414a613ed803754a6a29a9306f1a267896ba8048eca6cd0a8bd56e208"
         }
       ],
-      "scope": "技能定义的换弹分支：支付职业能量、显式校准延迟后原子换弹全部当前装备武器，逐武器触发换弹perk；42秒基础冷却、CES 1；不是完整闪身",
+      "scope": "技能模板的15米私有弹药拾取与换弹：一次职业能量支付，逐砖原始奖励/Overflow反应结算，显式校准延迟后原子换弹当前装备武器；Ascension共享收益；不是完整闪身",
       "acceptance": [
         "缺少校准参数时在支付之前失败；参数在施放接受时固定，测试0.2秒不代表原作动画",
         "三把装备武器均被选择；有限储备守恒、无限储备不生成有限账户，全部转移先于任何完成反应",
         "装备在延迟期间变化时以执行瞬间的配装为准；原始技能原因和每把武器的换弹信用保留",
         "实际玩家使用普通技能命令，替换原武器后新武器和另一把武器补满，其他玩家及原武器不变，Kill Clip获得对应武器完成",
-        "已付款任务在取消选择后继续，重新选择不补满能量；失去资格不退费；满弹匣不触发为当前显式策略"
+        "已付款任务在取消选择后继续，重新选择不补满能量；失去资格不退费；满弹匣不触发为当前显式策略",
+        "15米实际特殊/威能砖、含端点与超距、私有接收者、满备弹保留、多砖逐件与Overflow派生反应、未知结果停止均已接实际世界",
+        "同一共享收益由Ascension调用；上升后当前位置查询，施放后换槽不重选收益或再次支付"
       ],
       "evidence": [
         {
@@ -6142,13 +6144,34 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WeaponReloadGameTest.java",
           "symbol": "marksmanDodgeReloadsTheCurrentPhysicalLoadoutAfterItsCalibratedDelay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanAmmoTest.java",
+          "symbol": "newlyCollectedSpecialAndHeavyReservesFeedTheReloadEvenAtTheMinimumPositiveDelay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/MarksmanAmmoTest.java",
+          "symbol": "serialClaimsFillOnlyTheRemainingSpaceAndOverflowReactionsCanCreateAnotherGap"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/MarksmanAmmoGameTest.java",
+          "symbol": "fifteenMeterSpecialAndHeavyBricksSupplyTheActualDelayedReload"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/MarksmanAmmoGameTest.java",
+          "symbol": "unknownPickupReactionRetainsOneRealRewardAndStopsFurtherClaimsAndReloads"
         }
       ],
       "gaps": [
-        "闪身位移/动画、15米弹药拾取、PvE投射物追踪与PvP辅助瞄准中断尚未实现",
+        "闪身位移/动画、PvE投射物追踪与PvP辅助瞄准中断尚未实现",
         "Class属性对被动/块状回能的曲线、增强属性护盾、金装组合、职业/子职业限制与正式装配未完成",
         "实际换弹帧、延迟期间的配装取样/取消选择语义、满弹匣/无储备时perk资格仍待原作校准；当前策略均显式记录",
-        "测试武器弹量和完成后的治疗为合成观察器；按键/HUD与弹药持久化未完成"
+        "测试武器弹量和完成后的治疗为合成观察器；按键/HUD与弹药持久化未完成",
+        "拾取/换弹先后、球形无视线范围及Ascension上升后取中心为明确Chorus政策，原作尚待校准；各武器弹药砖收益为独立合成输入"
       ]
     },
     {
@@ -12726,7 +12749,7 @@
       ],
       "gaps": [
         "Mote/Crest/Echoes活动对象的公共竞争、计分和真实生产者未实现；当前只收集受管私有Orb。",
-        "Arc Staff内重复Ascension的超能支付尚未实现；Marksman的15米弹药砖拾取、Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。闪身的追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
         "免费施放、满资源资格和查询相对动画/位移的准确取样时机仍待原作校准；60秒回执窗口是Chorus有限去重政策。",
         "内容仍为参考测试资源；完整职业物品/子职业限制/解锁进度、模组图标/HUD和物理世界重启未完成；Nessus Repurposed Charge套装及其官方已知问题另待实现。"
       ],
@@ -12858,13 +12881,14 @@
         "地面、空职业槽、余额不足和缺失校准拒绝；实际支付与技能信用分离，顶到天花板仍保留已观察的施放效果。",
         "十米包含端点、盟友排除伤害、原始中心不随上升移动、真实生命损失、状态授权拒绝和原有Amplified移动投影。",
         "Marksman实际装备弹匣/备弹转移，Gambler延迟两充能收益；施放后换槽或清槽不替换已接受的收益、不重做闪身位移或支付。",
-        "核心混合目标分类、Class属性校准、共享Jolt首击计数、未知动作停机及检查点恢复；组合职业物品先由Kickstart消费充能，再逐球按当前缺口补充。"
+        "核心混合目标分类、Class属性校准、共享Jolt首击计数、未知动作停机及检查点恢复；组合职业物品先由Kickstart消费充能，再逐球按当前缺口补充。",
+        "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。"
       ],
       "gaps": [
         "3米碰撞位移、0.2秒收益延迟、Guardian伤害7及其无额外Class倍率均为合成校准；原作竖直速度/高度、动画时点、PvP伤害与Class曲线、范围衰减、伤害单位投影仍未确定。",
         "181是表格最大战员伤害，当前10米内统一采用该最大值；100–200 Class线性插值只在校准夹具，原表/Clarity仅支持65%上限。共享Amplified 15秒及Jolt 10/5秒沿用现有状态模板，来源特例和完整缩放待校准。",
         "初次爆炸会进入新Jolt的计数；该时序、免疫/取消/致死的状态资格、范围内先后死亡和多个Jolt连锁的原作边界仍需校准。",
-        "Arc Staff内重复Ascension的超能支付尚未实现；Marksman的15米弹药砖拾取、Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。闪身的追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、Winter’s Shroud及完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
         "参考定义仍在测试资源；正式Aspect/子职业目录、装备约束、空中动作键位/UI/动画/素材、物理世界跨重启恢复尚未完成。纯领域检查点不代表世界持久化。"
       ],
       "id": "arc/ascension",
@@ -12976,6 +13000,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/AscensionGameTest.java",
           "symbol": "actualAscensionTriggersEquippedKickstartThenAttractionRefillsOnlyTheLiveChargeGap"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/MarksmanAmmoGameTest.java",
+          "symbol": "ascensionInvokesTheSamePickupBenefitAtItsCurrentPositionAndRetainsTheCapturedDodge"
         }
       ]
     }

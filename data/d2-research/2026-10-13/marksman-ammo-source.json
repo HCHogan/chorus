@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T10:15:43.572344+00:00",
+  "sources": [
+    {
+      "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
+      "file": "data/d2-research/2026-10-13/marksman-ammo-class.html.gz",
+      "html_sha256": "f4fb623aaeba7cfe1a13dc447b71def623c49f7d3a1f32b29e71bf7bd78e3e76",
+      "gzip_sha256": "cd1794e8f369f4b6c575bc6b79eed5ad8cf7e709bccc0fca9079c10d13cb86c7",
+      "coordinate_system": "original_google_sheet",
+      "cells": {
+        "B9": "Marksman's Dodge",
+        "D9": "Performs an evasive maneuver that reloads all weapons and picks up Ammo Bricks within 15 meters.\nRemoves Combatant Projectile Tracking, as well as Aim Assist against Guardians during the Dodge Animation.",
+        "N9": "Base Cooldown: 42 seconds\n\nChunk Scalar:  1x"
+      },
+      "unchanged_from": "data/d2-research/2026-10-11/marksman-dodge.json"
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_1_5",
+      "publication_date": "2025-10-07",
+      "verification": "Read with web.run on 2026-10-13, Hunter / Class Ability / Marksman Dodge section. Direct urllib only returned an app shell, so no article HTML archive is claimed.",
+      "statement": "Now picks up nearby ammo bricks on activation.",
+      "interpretation": "Activation also reloads all weapons; the patch does not specify ordering, radius or exact animation timing."
+    }
+  ]
+}
