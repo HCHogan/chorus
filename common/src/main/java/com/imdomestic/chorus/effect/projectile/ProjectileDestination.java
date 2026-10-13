@@ -2,19 +2,24 @@ package com.imdomestic.chorus.effect.projectile;
 
 import com.imdomestic.chorus.effect.target.TargetQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
+import com.imdomestic.chorus.effect.target.EntityAnchor;
 import com.imdomestic.chorus.stat.Numbers;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.Optional;
 
 /** A captured entity identity with a live arrival sphere, independent of nearest-enemy acquisition. */
-public record ProjectileDestination(String target, double turnRate, double arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<ProjectileCatch> catching) {
+public record ProjectileDestination(String target, double turnRate, double arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<ProjectileCatch> catching, Optional<EntityAnchor.Reference> reference) {
+    public ProjectileDestination(String target, double turnRate, double arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<ProjectileCatch> catching) {
+        this(target, turnRate, arrivalRadius, anchor, collideEntities, catching, Optional.empty());
+    }
     public ProjectileDestination(String target, double turnRate, double arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities) {
         this(target, turnRate, arrivalRadius, anchor, collideEntities, Optional.empty());
     }
     public ProjectileDestination {
-        Objects.requireNonNull(target); Objects.requireNonNull(anchor); Objects.requireNonNull(catching);
+        Objects.requireNonNull(target); Objects.requireNonNull(anchor); Objects.requireNonNull(catching); Objects.requireNonNull(reference);
         if (target.isBlank()) throw new IllegalArgumentException("Missing projectile destination identity");
+        if (reference.filter(r -> !r.target().equals(target)).isPresent()) throw new IllegalArgumentException("Projectile destination differs from captured life");
         Numbers.nonnegative(turnRate, "destination turn rate"); Numbers.nonnegative(arrivalRadius, "arrival radius");
     }
     /** First entry on the closed segment, including a start already inside. Does not sample endpoints only. */

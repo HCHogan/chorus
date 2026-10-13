@@ -52,7 +52,8 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
                 || ageMicros >= launch.parameters().lifetimeMicros()
                 || launch.member().filter(m -> !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), m)).isPresent()) return OptionalDouble.empty();
         var destination = launch.parameters().destination().orElse(null);
-        if (destination == null || !destination.target().equals(player.getUUID().toString()) || destination.catching().isEmpty()) return OptionalDouble.empty();
+        if (destination == null || !destination.target().equals(player.getUUID().toString()) || destination.catching().isEmpty()
+                || !matchesDestinationLife(destination, player)) return OptionalDouble.empty();
         var policy = destination.catching().orElseThrow(); var center = anchor(player, destination.anchor());
         double distance = position().distanceTo(center);
         if (!policy.allows(ageMicros, distance) || policy.lineOfSight() && !MinecraftVisibility.visible((ServerLevel) level(), point(position()), point(center))) return OptionalDouble.empty();
@@ -151,12 +152,17 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         return new Vec3(target.getX(), y, target.getZ());
     }
     private WorldDirection direction(Vec3 vector) { return new WorldDirection(level().dimension().identifier().toString(), vector.x, vector.y, vector.z); }
+    private static boolean matchesDestinationLife(com.imdomestic.chorus.effect.projectile.ProjectileDestination destination, LivingEntity target) {
+        return destination.reference().map(r -> r.dimension().equals(target.level().dimension().identifier().toString())
+                && r.life().equals(MinecraftEntityLife.get(target).id())).orElse(true);
+    }
     private LivingEntity destinationTarget(ServerLevel level) {
         var destination = launch.parameters().destination().orElseThrow();
         Entity entity;
         try { entity = level.getEntity(UUID.fromString(destination.target())); }
         catch (IllegalArgumentException invalidIdentity) { return null; }
-        return entity instanceof LivingEntity living && living.isAlive() && !living.isRemoved() && !living.isSpectator() && living.level() == level ? living : null;
+        return entity instanceof LivingEntity living && living.isAlive() && !living.isRemoved() && !living.isSpectator() && living.level() == level
+                && matchesDestinationLife(destination, living) ? living : null;
     }
     private boolean trackable(ServerLevel level, LivingEntity candidate, ProjectileTracking.Policy policy, boolean acquire, boolean redirect) {
         if (!candidate.isAlive() || candidate.isRemoved() || candidate.isSpectator() || candidate.level() != level

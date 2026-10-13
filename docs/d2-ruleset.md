@@ -2022,6 +2022,16 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 参考超能和手雷只有不可施放的元数据，不代表完整超能、棱镜或子职业装配。实际账号进度与神器选择生产者、完整 Tier/升级目录、正式配装/HUD、原作切换超能惩罚、技能宿主持久化、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。
 
+## Firebolt 的扫描、延迟追踪与来源冲突
+
+2026-10-14 重新读取 Solar 原表 B34/D34/N34、Touch 分支 B35/D35 及完整 Aspect B150/D150，对应固定快照 B29/D29/N29、B30/D30、B85/D85；七格规范化全文一致。Clarity head 仍为 `039cfbc4732c33573568b28cc6335dd3332a9296`，只有 Touch of Flame 项，没有独立 Firebolt 条目。原始 HTML、坐标与固定子集见 [Firebolt 来源记录](../data/d2-research/2026-10-14/firebolt-source.json)。
+
+原表要求重轨迹投掷，在命中时扫描视线内至多 4 个、8.5 米范围的敌人，延迟一秒后发射二次日灼追踪弹；每弹 337 [PvP 65] 伤害和 20 层 Scorch，Ashes 为 30 层。基础周期 83.8 秒，CES 为 1。Touch 分支明确最多 5 个、12 米；但 Aspect 总述仍写增加 50%，Clarity 明写 8→12 米，与基础行的 8.5 米冲突，不能据此计算成 12.75 米或称所有来源一致。
+
+[官方 4.1.0](https://www.bungie.net/7/en/News/article/51380)确认 Scorch 来自二次追踪弹命中；[官方 9.0.0.1](https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1)将 Firebolt 列入对 Boss / Miniboss / Champion 额外提高 15% 伤害的手雷。它们分别提供历史机制和一次伤害调整，仍须核对原表基础伤害已包含哪些目标倍率，不能未经核验再乘一次。
+
+引擎现为延迟扫描结果提供可选的 destination.reference：保留选中实体的生命，在飞行及主动接回边界拒绝同 UUID 的另一生命。Firebolt 尚未装配完整生产者；追踪弹速度 / 转向 / 寿命、扫描与发射锚点、按何顺序选取、目标躲入掩体或改阵营后的行为、伤害快照和 Scorch 资格仍需明确内容政策与校准。通用生命锁定验收不增加已实现 Firebolt 或完整 Touch of Flame 的覆盖计数。
+
 ## Healing Grenade 的来源与待装配机制
 
 Healing Grenade 原表 Solar B40/D40/N40 对应固定快照 B33/D33/N33；紧邻 Touch of Flame 分支 B41/D41 对应 B34/D34，完整 Aspect B150/D150 对应 B85/D85。七格规范化全文与本轮已归档的原表一致。最新 Clarity 文件提交核对为 `039cfbc4732c33573568b28cc6335dd3332a9296`，包含 Touch of Flame 83039193，但没有独立命名的 Healing Grenade 项；不把缺失项当作额外交叉确认。文本、映射与哈希见[来源记录](../data/d2-research/2026-10-14/healing-grenade-source.json)。

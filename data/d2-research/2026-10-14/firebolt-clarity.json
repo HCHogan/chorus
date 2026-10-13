@@ -1,0 +1,117 @@
+{
+  "83039193": {
+    "hash": 83039193,
+    "name": "Touch of Flame",
+    "lastUpload": 1787265837991,
+    "type": "Subclass Aspect",
+    "uploadedBy": "Hawkmoona",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Enhances your "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Healing, Firebolt, Solar, and Fusion Grenade Abilities:"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Healing Grenades grant "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2 and "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Restoration x2 for 4 seconds (6 with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Solace)"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Firebolt Grenades gain 50% increased search radius (8🠚12 Meters) and targets 5 enemies (up from 4)."
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Grenades last 2 seconds longer and release 'Molten Lava Orbs' that deal additional damage."
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Fusion Grenades detonate a second time after 0.5 seconds, dealing additional damage in an 8 meter radius."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

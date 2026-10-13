@@ -1,0 +1,170 @@
+{
+  "version": "test-destination-life-v1",
+  "bundles": [
+    {
+      "id": "test:destination_life",
+      "rules": [
+        {
+          "id": "launch",
+          "on": "test:destination_launch",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_entity_anchor",
+                "target": "victim",
+                "anchor": "body"
+              },
+              "as": "chosen_life"
+            },
+            {
+              "action": {
+                "type": "chorus:capture_position",
+                "target": "self",
+                "anchor": "eyes"
+              },
+              "as": "muzzle"
+            },
+            {
+              "action": {
+                "type": "chorus:direction_between",
+                "from": "muzzle",
+                "to": "chosen_life"
+              },
+              "as": "aim"
+            },
+            {
+              "after": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "second"
+              },
+              "lifetime": "detached",
+              "do": [
+                {
+                  "projectile": {
+                    "position": "muzzle",
+                    "direction": "aim",
+                    "speed": {
+                      "type": "chorus:constant",
+                      "value": 20,
+                      "unit": "meter_per_second"
+                    },
+                    "gravity": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "meter_per_second_squared"
+                    },
+                    "drag": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "multiplier"
+                    },
+                    "lifetime": {
+                      "type": "chorus:constant",
+                      "value": 2,
+                      "unit": "second"
+                    },
+                    "destination": {
+                      "target": "victim",
+                      "reference": "chosen_life",
+                      "turn_rate": {
+                        "type": "chorus:constant",
+                        "value": 720,
+                        "unit": "degree_per_second"
+                      },
+                      "arrival_radius": {
+                        "type": "chorus:constant",
+                        "value": 0.1,
+                        "unit": "meter"
+                      },
+                      "target_anchor": "body",
+                      "collide_entities": false,
+                      "catch": {
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 5,
+                          "unit": "meter"
+                        },
+                        "opens_after": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "second"
+                        },
+                        "closes_after": {
+                          "type": "chorus:constant",
+                          "value": 2,
+                          "unit": "second"
+                        },
+                        "line_of_sight": false
+                      }
+                    }
+                  },
+                  "as": "contact",
+                  "do": [
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "contact",
+                        "field": "arrived"
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:heal",
+                          "target": "victim",
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 5,
+                            "unit": "damage"
+                          }
+                        },
+                        {
+                          "type": "chorus:play_cue",
+                          "cue": "test:arrived"
+                        }
+                      ]
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "contact",
+                        "field": "caught"
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:heal",
+                          "target": "victim",
+                          "amount": {
+                            "type": "chorus:constant",
+                            "value": 10,
+                            "unit": "damage"
+                          }
+                        },
+                        {
+                          "type": "chorus:play_cue",
+                          "cue": "test:caught"
+                        }
+                      ]
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "contact",
+                        "field": "target_lost"
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:play_cue",
+                          "cue": "test:lost"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -773,8 +773,9 @@ public final class EffectCodecs {
                     values.fieldOf("turn_rate").forGetter(ProjectileSpec.Destination::turnRate), values.fieldOf("arrival_radius").forGetter(ProjectileSpec.Destination::arrivalRadius),
                     enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("target_anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.BODY).forGetter(ProjectileSpec.Destination::anchor),
                     Codec.BOOL.optionalFieldOf("collide_entities", true).forGetter(ProjectileSpec.Destination::collideEntities),
-                    catching.optionalFieldOf("catch").forGetter(ProjectileSpec.Destination::catching)
-            ).apply(i, ProjectileSpec.Destination::new)), Set.of("target", "turn_rate", "arrival_radius", "target_anchor", "collide_entities", "catch"));
+                    catching.optionalFieldOf("catch").forGetter(ProjectileSpec.Destination::catching),
+                    Codec.STRING.optionalFieldOf("reference").forGetter(ProjectileSpec.Destination::reference)
+            ).apply(i, ProjectileSpec.Destination::new)), Set.of("target", "turn_rate", "arrival_radius", "target_anchor", "collide_entities", "catch", "reference"));
             Codec<ProjectileSpec> projectileSpec = strict(RecordCodecBuilder.create(i -> i.group(
                     Codec.STRING.fieldOf("position").forGetter(ProjectileSpec::position), Codec.STRING.fieldOf("direction").forGetter(ProjectileSpec::direction),
                     values.fieldOf("speed").forGetter(ProjectileSpec::speed), values.fieldOf("gravity").forGetter(ProjectileSpec::gravity),

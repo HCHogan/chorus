@@ -237,6 +237,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/phoenix_dive.json', 'effects/phoenix_dive_test_calibration.json'
         include 'effects/heat_rises.json', 'effects/heat_rises_test_inputs.json'
         include 'effects/healing_grenade.json', 'effects/healing_grenade_energy.json', 'effects/healing_grenade_test_calibration.json'
+        include 'effects/projectile_destination_life.json'
         include 'effects/ability_cost_previous.json'
         include 'effects/drawn_weapon.json'
         include 'effects/directional_movement.json'

@@ -663,5 +663,7 @@
   "chorus:effect/object/world_construct/consume": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference"],
   "chorus:effect/object/world_construct/consume_outcome": ["CONSUMED","MISSING","WRONG_DIMENSION","REPLACED","NOT_CONSTRUCT","FOREIGN_RUNTIME","INACTIVE"],
   "chorus:effect/object/world_construct/consume_receipt": ["command:com.imdomestic.chorus.effect.object.WorldConstruct$Consume","outcome:com.imdomestic.chorus.effect.object.WorldConstruct$ConsumeOutcome"],
-  "chorus:effect/data/action/offset_position": ["position:java.lang.String", "x:com.imdomestic.chorus.effect.data.Value", "y:com.imdomestic.chorus.effect.data.Value", "z:com.imdomestic.chorus.effect.data.Value"]
+  "chorus:effect/data/action/offset_position": ["position:java.lang.String", "x:com.imdomestic.chorus.effect.data.Value", "y:com.imdomestic.chorus.effect.data.Value", "z:com.imdomestic.chorus.effect.data.Value"],
+  "chorus:effect/data/projectile_spec/destination_v2": ["target:com.imdomestic.chorus.effect.data.Evaluation$Target", "turnRate:com.imdomestic.chorus.effect.data.Value", "arrivalRadius:com.imdomestic.chorus.effect.data.Value", "anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor", "collideEntities:boolean", "catching:java.util.Optional<com.imdomestic.chorus.effect.data.ProjectileSpec$Catch>", "reference:java.util.Optional<java.lang.String>"],
+  "chorus:effect/projectile/projectile_destination_v2": ["target:java.lang.String", "turnRate:double", "arrivalRadius:double", "anchor:com.imdomestic.chorus.effect.target.TargetQuery$Anchor", "collideEntities:boolean", "catching:java.util.Optional<com.imdomestic.chorus.effect.projectile.ProjectileCatch>", "reference:java.util.Optional<com.imdomestic.chorus.effect.target.EntityAnchor$Reference>"]
 }

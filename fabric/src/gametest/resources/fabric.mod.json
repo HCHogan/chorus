@@ -109,6 +109,7 @@
       "com.imdomestic.chorus.CheckpointBoundaryGameTest",
       "com.imdomestic.chorus.CheckpointRestartGameTest",
       "com.imdomestic.chorus.ProjectileDestinationGameTest",
+      "com.imdomestic.chorus.ProjectileDestinationLifeGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",
       "com.imdomestic.chorus.StrandDefenseGameTest",

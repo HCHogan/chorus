@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "status": "researching",
+  "reviewed_at": "2026-10-13T17:15:17.705587+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/firebolt-solar.html.gz",
+    "html_sha256": "e380181f2857ecf4e424b6081b35ec0eece479a9d7460097effb711b2776b302",
+    "gzip_sha256": "818f4641470fb7e4a3d1cd1384311db7e32c0e89e8bda42376cb600476828a18",
+    "cells": [
+      {
+        "original": "B34",
+        "text": "Firebolt Grenade",
+        "text_sha256": "c597dc93deafc9d15619902408f8189a38d490f4e34e0f0e5648e6e4b42ba2d4"
+      },
+      {
+        "original": "D34",
+        "text": "Heavy Trajectory | Scan Scans up to 4 enemies in Line of Sight within 8.5 metres upon impact, firing a bolt of Solar Light towards scanned enemies after a 1 second delay. Solar Light Bolts deal 337 [65] damage and inflict x20+10 Scorch.",
+        "text_sha256": "3f8285dc43a6dbaf7e90891e55eac116f870f80b0e3b1446c6fe9f1cd1f03053"
+      },
+      {
+        "original": "N34",
+        "text": "Base Cooldown: 83.8 seconds Chunk Scalar: 1x",
+        "text_sha256": "6bcc7a1bf37f282aab7ac59ccead131f89b1431037d7e679453a3130f81e2f6d"
+      },
+      {
+        "original": "B35",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D35",
+        "text": "Scans up to ↑5 enemies in Line of Sight within ↑12 metres upon impact.",
+        "text_sha256": "e8899649b7136b3e7d6d2cf846db5a7c72d6b34c884183fe964bbba4440412d2"
+      },
+      {
+        "original": "B150",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D150",
+        "text": "Enhances certain Grenade types: Healing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds. Firebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies. Solar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff. Fusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "51289915247b4170152c4aa9f7ecc12488a3895c70e503dbfef2a45f0701fc0c"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B29",
+        "text": "Firebolt Grenade",
+        "text_sha256": "c597dc93deafc9d15619902408f8189a38d490f4e34e0f0e5648e6e4b42ba2d4"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D29",
+        "text": "Heavy Trajectory | Scan\n\nScans up to 4 enemies in Line of Sight within 8.5 metres upon impact, firing a bolt of Solar Light towards scanned enemies after a 1 second delay.\n\nSolar Light Bolts deal 337 [65] damage and inflict x20+10 Scorch.",
+        "text_sha256": "fa0cea1e5931277e677d4188323aa186f4cbd4e7d58a3bb6c98fd713b61e45e0"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "N29",
+        "text": "Base Cooldown: 83.8 seconds\n\nChunk Scalar:  1x",
+        "text_sha256": "a106699b0d621fc387d51280c49966ad04878be125e2495f549ccf83cd5f5a73"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B30",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D30",
+        "text": "Scans up to ↑5 enemies in Line of Sight within ↑12 metres upon impact.",
+        "text_sha256": "e8899649b7136b3e7d6d2cf846db5a7c72d6b34c884183fe964bbba4440412d2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B85",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D85",
+        "text": "Enhances certain Grenade types:\n\nHealing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds.\nFirebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies.\nSolar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff.\nFusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
+      }
+    ],
+    "normalization": "Whitespace collapsed; original source coordinates retained separately from CSV snapshot."
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "head_query": "https://api.github.com/repos/Database-Clarity/Live-Clarity-Database/commits?path=descriptions/clarity.json&per_page=1",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/firebolt-clarity.json",
+    "selected_sha256": "83f913b93abb5cc78b9d6cd77d8dd4d57476d6d071dd5e9ac0c1b9e087563d3b",
+    "coverage": "Touch of Flame 83039193 only; no standalone Firebolt Grenade named entry in this pinned file."
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/51380",
+      "published": "2022-05-24",
+      "supports": "Secondary seekers apply 20 Scorch stacks; historical mechanism, not a current trajectory or full damage calibration."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/destiny_update_9_0_0_1",
+      "published": "2025-07-15",
+      "supports": "Firebolt included in grenades gaining 15 percent damage against bosses, minibosses and Champions; must check how source base damage incorporates target modifiers before composing."
+    }
+  ],
+  "requirements": {
+    "impact_scan": "Up to 4 enemies in line of sight within 8.5m; Touch of Flame up to 5 within 12m. Scan on impact, then one-second delay before secondary bolts.",
+    "damage_and_scorch": "Secondary Solar bolts 337 PvE / 65 PvP and 20 Scorch, 30 with Ember of Ashes; reuse shared Solar attribution and lockout.",
+    "energy": "83.8-second base cooldown and 1x chunk scalar.",
+    "engine_dependency": "Optional typed destination life reference must survive delayed launch and every seek/arrival/catch check. Existing identity-only destinations keep their semantics; no global feedback guard."
+  },
+  "conflicts": [
+    "Firebolt row says 8.5m base, whereas Touch of Flame summary says 50 percent to 12m and Clarity explicitly says 8→12m. Do not multiply 8.5 by 1.5 or treat this as three-way numeric agreement."
+  ],
+  "uncertainties": [
+    "Heavy trajectory and secondary seekers do not supply speed, gravity, drag, turn rate, dimensions, scan-anchor offset, bolt origin or travel lifetime.",
+    "Nearest ordering, scan-time life binding, post-scan movement/cover/relationship changes, intervening entity collision, per-target application and modifier snapshot boundaries require explicit content policy and further calibration.",
+    "Base-damage projection and 2025 tier multiplier composition, Scorch receipt qualification and all Aspect/exotic/artifact combinations are not proven by generic engine tests."
+  ],
+  "not_claimed": "Research and a typed-life destination primitive do not constitute a Firebolt Grenade producer or complete Touch of Flame."
+}

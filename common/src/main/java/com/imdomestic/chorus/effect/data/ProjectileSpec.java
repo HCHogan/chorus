@@ -32,14 +32,20 @@ public record ProjectileSpec(String position, String direction, Value speed, Val
         }
         ProjectileCatch resolve(Evaluation e) { return new ProjectileCatch(measure(radius, Unit.METER, e), time(measure(opensAfter, Unit.SECOND, e)), time(measure(closesAfter, Unit.SECOND, e)), lineOfSight); }
     }
-    public record Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<Catch> catching) {
+    public record Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<Catch> catching, Optional<String> reference) {
+        public Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities, Optional<Catch> catching) { this(target, turnRate, arrivalRadius, anchor, collideEntities, catching, Optional.empty()); }
         public Destination(Evaluation.Target target, Value turnRate, Value arrivalRadius, TargetQuery.Anchor anchor, boolean collideEntities) { this(target, turnRate, arrivalRadius, anchor, collideEntities, Optional.empty()); }
+        public Destination { java.util.Objects.requireNonNull(reference); reference.ifPresent(com.imdomestic.chorus.effect.EffectTimers::localName); }
         void validate(Validation v) {
             v.target(target); Validation.same(turnRate.unit(v), TURN_RATE); Validation.same(arrivalRadius.unit(v), Unit.METER);
+            reference.ifPresent(r -> v.result(r).requireEntityAnchor());
             catching.ifPresent(c -> c.validate(v));
             new ProjectileDestination("validation", turnRate instanceof Value.Constant c ? c.value() : 0, arrivalRadius instanceof Value.Constant c ? c.value() : 0, anchor, collideEntities);
         }
-        ProjectileDestination resolve(Evaluation e) { return new ProjectileDestination(e.target(target), measure(turnRate, TURN_RATE, e), measure(arrivalRadius, Unit.METER, e), anchor, collideEntities, catching.map(c -> c.resolve(e))); }
+        ProjectileDestination resolve(Evaluation e) {
+            var life = reference.map(r -> e.context().result(r, com.imdomestic.chorus.effect.target.EntityAnchor.Result.class).requireObservation().reference());
+            return new ProjectileDestination(e.target(target), measure(turnRate, TURN_RATE, e), measure(arrivalRadius, Unit.METER, e), anchor, collideEntities, catching.map(c -> c.resolve(e)), life);
+        }
     }
     public static final Unit SPEED = new Unit("chorus:meter_per_second"), GRAVITY = new Unit("chorus:meter_per_second_squared");
     public static final Unit ANGLE = new Unit("chorus:degree"), TURN_RATE = new Unit("chorus:degree_per_second");
