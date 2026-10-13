@@ -23,9 +23,13 @@ public class ConstructGameTest {
         final GameTestHelper h; final LivingEntity owner; final EffectSource source;
         final MinecraftWorldActions world; final MinecraftEffectRuntime runtime;
         final List<WorldConstruct.Receipt> receipts = new ArrayList<>(); final List<Action.CueCommand> cues = new ArrayList<>();
+        final List<WorldConstruct.ConsumeReceipt> consumptions = new ArrayList<>(); boolean consumeThrows;
         WorldPosition point; boolean fail, eraseThrows; EffectConstruct erase;
         Harness(GameTestHelper h) { this(h, false); }
         Harness(GameTestHelper h, boolean observeEnds) {
+            this(h, observeEnds, _ -> {});
+        }
+        Harness(GameTestHelper h, boolean observeEnds, java.util.function.Consumer<com.google.gson.JsonObject> edit) {
             this.h = h; owner = h.spawnWithNoFreeWill(EntityTypes.COW, 1, 40, 1); owner.setNoGravity(true);
             String id = owner.getUUID().toString(); source = new EffectSource("source", "test:construct", id, new BuffInstance.Origin(id, "cast", "", "test:ability"), Set.of());
             var pos = h.absoluteVec(new Vec3(3.5, 40, 3.5)); point = new WorldPosition(h.getLevel().dimension().identifier().toString(), pos.x, pos.y, pos.z);
@@ -51,6 +55,7 @@ public class ConstructGameTest {
                     """).getAsJsonArray();
                 extra.forEach(rules::add);
             }
+            edit.accept(definition);
             var compiled = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, definition).getOrThrow();
             runtime = MinecraftEffectRuntime.install(h.getLevel(), compiled, EffectState.empty().withSource(source), new EffectClock((_, _) -> new EffectClock.Rate(0, List.of())), request -> {
                 if (request.command() instanceof PositionQuery q) return new PositionQuery.Result(q, Optional.of(point));
@@ -61,6 +66,7 @@ public class ConstructGameTest {
                 if (request.command() instanceof Action.CueCommand cue && cue.cue().equals("test:after_erase"))
                     h.assertTrue(behavior(erase), "construct fact recursively entered the parent action frame");
                 if (result instanceof WorldConstruct.Receipt receipt) { receipts.add(receipt); if (fail) throw new IllegalStateException("Unknown construct spawn outcome"); }
+                if (result instanceof WorldConstruct.ConsumeReceipt receipt) { consumptions.add(receipt); if (consumeThrows) throw new IllegalStateException("Unknown construct consumption outcome"); }
                 return result;
             }, MinecraftEffectRuntime::nativeSource);
         }

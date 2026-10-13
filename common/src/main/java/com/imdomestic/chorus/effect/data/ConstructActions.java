@@ -10,12 +10,30 @@ import java.util.function.Predicate;
 public final class ConstructActions {
     private ConstructActions() {}
     public static final ResultShape RESULT;
+    public static final ResultShape CONSUME_RESULT;
     static {
+        var consumed = new HashMap<String, Predicate<RuleEngine.ActionResult>>();
+        for (var outcome : WorldConstruct.ConsumeOutcome.values())
+            consumed.put(outcome.name().toLowerCase(Locale.ROOT), r -> ((WorldConstruct.ConsumeReceipt) r).outcome() == outcome);
+        CONSUME_RESULT = new ResultShape(Map.of(), consumed);
         var flags = new HashMap<String, Predicate<RuleEngine.ActionResult>>();
         for (var outcome : WorldConstruct.Outcome.values())
             flags.put(outcome.name().toLowerCase(Locale.ROOT), r -> ((WorldConstruct.Receipt) r).outcome() == outcome);
         RESULT = new ResultShape(Map.of("count", new ResultShape.Field(Unit.COUNT,
                 r -> ((WorldConstruct.Receipt) r).targets().size())), flags, false, ResultShape.Reference.TARGET_IDENTITIES);
+    }
+    public record Consume(String reference) implements Action {
+        public Consume { EffectTimers.localName(reference); }
+        @Override public ResultShape validate(Validation v) { v.result(reference).requireEntityAnchor(); return CONSUME_RESULT; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var anchor = e.context().result(reference, com.imdomestic.chorus.effect.target.EntityAnchor.Result.class).requireObservation();
+            return new RuleEngine.Await<>(new WorldConstruct.Consume(anchor.reference()));
+        }
+        @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult value) {
+            var receipt = (WorldConstruct.ConsumeReceipt) value;
+            if (!receipt.command().equals(e.context().command(WorldConstruct.Consume.class))) throw new IllegalArgumentException("Construct consume receipt differs from issued command");
+            return new RuleEngine.Local<>(e.state(), receipt, List.of());
+        }
     }
     public record Spawn(String position, String kind, Value health, Value width, Value height, Value lifetime,
             ActionOrigin origin, Set<String> tags) implements Action {

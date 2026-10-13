@@ -9,6 +9,25 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 
 final class MinecraftConstructExecutor {
     private MinecraftConstructExecutor() {}
+    static WorldConstruct.ConsumeReceipt consume(ServerLevel level, WorldConstruct.Consume command,
+            java.util.function.Function<String, net.minecraft.world.entity.LivingEntity> entities) {
+        var reference = command.reference();
+        WorldConstruct.ConsumeOutcome result;
+        if (!level.dimension().identifier().toString().equals(reference.dimension())) result = WorldConstruct.ConsumeOutcome.WRONG_DIMENSION;
+        else {
+            var target = entities.apply(reference.target());
+            if (target == null || target.isRemoved() || target.level() != level) result = WorldConstruct.ConsumeOutcome.MISSING;
+            else if (!MinecraftEntityLife.get(target).id().equals(reference.life())) result = WorldConstruct.ConsumeOutcome.REPLACED;
+            else if (!(target instanceof EffectConstruct construct)) result = WorldConstruct.ConsumeOutcome.NOT_CONSTRUCT;
+            else if (!construct.ownedBy(MinecraftEffectRuntime.installed(level).orElse(null))) result = WorldConstruct.ConsumeOutcome.FOREIGN_RUNTIME;
+            else if (!construct.isAlive()) result = WorldConstruct.ConsumeOutcome.INACTIVE;
+            else {
+                // Main-thread claim: later consumers see a removed entity. Lifecycle facts remain queued.
+                construct.discard(); result = WorldConstruct.ConsumeOutcome.CONSUMED;
+            }
+        }
+        return new WorldConstruct.ConsumeReceipt(command, result);
+    }
     static WorldConstruct.Receipt spawn(ServerLevel level, WorldConstruct.Spawn command) {
         if (command.position().isEmpty()) return WorldConstruct.Receipt.rejected(command, MISSING_POSITION);
         var at = command.position().orElseThrow(); var p = command.parameters();

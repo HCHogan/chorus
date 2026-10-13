@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：可受伤构造物的确认消费
+
+为 Healing Grenade 的 Restoration Orb 补齐 `chorus:consume_construct`。它消费保存的实体生命引用，实际写入时核对维度、生命代次、构造物类型、当前运行时归属和活动状态；成功后移除物体，以 consumed 回执控制收益。重复调用、旧生命、普通生物、无关运行时、死亡 / 过期对象分别得到已知拒绝，不以致死伤害替代拾取，也不自动发放 pickup / kill / refund。构造物自己的 Buff 可以在当前动作体中完成已确认收益，之后才处理排队的 removed 生命周期事实并清理行为。
+
+5 项核心用例覆盖回执身份、全部已知拒绝、重复消费、未知物理写入不重放、程序 / 存储往返与领域恢复、错误绑定类型；连同既有构造物与 schema 共 15 项定向测试通过。6 项共享原生场景验证实际移除、其他实体不受影响、自己的 Buff 完成顺序、死亡 / 过期 / 无管理归属拒绝，以及原生已移除但回执未知时保留先前提交且不发收益。Fabric 定向 6 项通过（11 秒）。
+
+完整 `/tmp/chorus-construct-consumption-full-gate.log` BUILD SUCCESSFUL（2 分 50 秒）：2120 项 JUnit 无失败 / 错误 / 跳过、Fabric 1211 项、NeoForge 1226 项世界测试及两端发布 jar 通过，共享场景 1210 项。`build/reports/construct-consumption/audit.json` 确认原 660 项存储形状未变，仅新增动作、命令、结果枚举和回执四项，共 664 项；发布主类 1190 / 1183 个字节匹配、无测试泄漏、Gradle CRLF 保持。10 项 Compendium 工具测试及报告一致性通过。本批仅新增服务器动作分派，没有改动原生钩子、UI 或网络，未重复图形客户端测试。
+
+Healing Grenade / Touch of Flame 的原表七格与固定快照核对一致，Clarity 文件 head 与子集哈希已保存；官方历史说明确认命中 Cure 与拾取 Restoration 是两个阶段。此批完成通用消费依赖，具体投掷、追踪、治疗球与多人拾取内容尚未完成，因此 Compendium 仍为 127 条审阅（125 partial、2 not_applicable、0 verified）。后续以 [治疗手雷来源和待装配机制](d2-ruleset.md#healing-grenade-的来源与待装配机制) 的完整需求实现生产者；消费契约见 [数据包说明](engine-data-packs.md#确认消费可受伤构造物)。
+
 ### 2026-10-14：Heat Rises 的实际消费与共享 Solar 组合
 
 新增 `heat_rises.json`：Aspect 的被动 20 AE 查询与空中击杀近战回能；服务端长按释放消费上一实际手雷定义的费用，15 秒活动状态、自身 / 9 米盟友共享 Cure，以及治疗手雷 / Touch of Flame / Wisp 的分支和逐接收者 Solace。普通 → Wisp → consume 不支付基础手雷账户、不运行中间技能动作，治疗信用仍属于本次消费。实际盟友治疗 / 恢复继续触发 Benevolence。

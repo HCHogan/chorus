@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T16:27:04.625933+00:00",
+  "status": "researching",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/heat-rises-solar.html.gz",
+    "html_sha256": "9c64b960d465a34c789200d8baedc50060146c9d55cec0078efdf472975a0f4b",
+    "gzip_sha256": "b2256b272e187746b6967a20fcf9d45b93f3bc556e5619875c23dd181dc64ab6",
+    "cells": [
+      {
+        "original": "B40",
+        "text": "Healing Grenade",
+        "text_sha256": "5ff45a3cfbc110285846ec02cd8ccdca65089f00d4d67fb58bf87cc3b719fab6"
+      },
+      {
+        "original": "D40",
+        "text": "Very Light Trajectory | Strong Ally Homing Applies Cure x1 to the user and allies within 7.5 metres of impact, and creates a Restoration Orb that lasts 7.5 seconds. Restoration Orb applies Restoration x1 for 4+2 seconds upon being picked up. Orb has a 7.5 meter pickup radius, and 100 HP.",
+        "text_sha256": "ca7aed7ca378896242c71b959e4596f4e99ebc9406e948c9ab9ba59978d6520f"
+      },
+      {
+        "original": "N40",
+        "text": "Base Cooldown: 119.7 seconds Chunk Scalar: 0.875x",
+        "text_sha256": "d664e0d118baa5383dc54ca5d68bf7223be1c1532e2ace5372c129dceb5f081f"
+      },
+      {
+        "original": "B41",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D41",
+        "text": "Applies Cure ↑x2 to user and allies. Restoration Orb applies ↑x2 Restoration for 4+2 seconds.",
+        "text_sha256": "121c1b3f6b91fe463c7934eea41a628d23887c8b2c67cfa4212a891d27d65595"
+      },
+      {
+        "original": "B150",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D150",
+        "text": "Enhances certain Grenade types: Healing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds. Firebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies. Solar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff. Fusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "51289915247b4170152c4aa9f7ecc12488a3895c70e503dbfef2a45f0701fc0c"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B33",
+        "text": "Healing Grenade",
+        "text_sha256": "5ff45a3cfbc110285846ec02cd8ccdca65089f00d4d67fb58bf87cc3b719fab6"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D33",
+        "text": "Very Light Trajectory | Strong Ally Homing\n\nApplies Cure x1 to the user and allies within 7.5 metres of impact, and creates a Restoration Orb that lasts 7.5 seconds.\n\nRestoration Orb applies Restoration x1 for 4+2 seconds upon being picked up. Orb has a 7.5 meter pickup radius, and 100 HP.",
+        "text_sha256": "246fdde1ae765b4b14af61eccc653d9ed50d9c2822668c52d8d587cb3fe7fa85"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "N33",
+        "text": "Base Cooldown: 119.7 seconds\n\nChunk Scalar: 0.875x",
+        "text_sha256": "d550c57b707dd954a255d35d47445d71294925081f50f99d2a857bfd6569020d"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B34",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D34",
+        "text": "Applies Cure ↑x2 to user and allies. Restoration Orb applies ↑x2 Restoration for 4+2 seconds.",
+        "text_sha256": "121c1b3f6b91fe463c7934eea41a628d23887c8b2c67cfa4212a891d27d65595"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B85",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D85",
+        "text": "Enhances certain Grenade types:\n\nHealing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds.\nFirebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies.\nSolar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff.\nFusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
+      }
+    ],
+    "normalization": "Whitespace collapsed; reuse exact Solar HTML archived for Heat Rises in this same session."
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "head_query": "https://api.github.com/repos/Database-Clarity/Live-Clarity-Database/commits?path=descriptions/clarity.json&per_page=1",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/healing-grenade-clarity.json",
+    "selected_sha256": "83f913b93abb5cc78b9d6cd77d8dd4d57476d6d071dd5e9ac0c1b9e087563d3b",
+    "coverage": "Touch of Flame 83039193; no standalone Healing Grenade named entry exists in this pinned file."
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/51380",
+      "published": "2022-05-24",
+      "supports": "Historical introduction: allied tracking; impact Cure; a separate blessing grants Restoration on pickup. Does not establish current cooldown, exact projectile parameters or multi-recipient pickup policy."
+    }
+  ],
+  "implementation_dependency": {
+    "requirement": "A damageable finite-lifetime Restoration Orb must be consumed through a confirmed world write before dependent rewards; consumption is not damage or death.",
+    "engine_action": "chorus:consume_construct with an exact entity life anchor, current-runtime ownership and explicit outcomes.",
+    "not_claimed": "The consumption action is not a Healing Grenade implementation or an automatically qualified pickup."
+  },
+  "uncertainties": [
+    "Strong ally homing and very light trajectory do not supply speed, gravity, drag, acquisition cone/range or turn rate.",
+    "Orb size, spawn offset relative to impact, HP projection, collector eligibility, simultaneous or per-player pickup and post-pickup lifetime need explicit calibration/policy.",
+    "Source gives 119.7s base cooldown, 0.875 chunk scalar, 7.5m Cure/collection radius, 7.5s orb life and 100 HP; this is not independent live-game measurement."
+  ]
+}

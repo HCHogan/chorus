@@ -194,6 +194,7 @@ tasks.named('processGametestResources', ProcessResources) {
         include 'effects/bleak_watcher_inputs.json'
         include 'effects/bleak_watcher_test_calibration.json'
         include 'effects/construct.json'
+        include 'effects/construct_consumption.json'
         include 'effects/duskfield_energy.json'
         include 'effects/duskfield_test_calibration.json'
         include 'effects/duskfield_damage_test_calibration.json'

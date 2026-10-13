@@ -658,5 +658,9 @@
   "chorus:effect/projectile/hitscan/piercing_query": ["ray:com.imdomestic.chorus.effect.projectile.Hitscan$Query", "pierces:int"],
   "chorus:effect/projectile/hitscan/prepared_path": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$PiercingQuery"],
   "chorus:effect/projectile/hitscan/path_contact": ["observed:com.imdomestic.chorus.effect.projectile.Hitscan$Result", "sequence:long", "terminal:boolean"],
-  "chorus:effect/projectile/hitscan/path_result": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$PiercingQuery", "contacts:java.util.List<com.imdomestic.chorus.effect.projectile.Hitscan$PathContact>"]
+  "chorus:effect/projectile/hitscan/path_result": ["query:com.imdomestic.chorus.effect.projectile.Hitscan$PiercingQuery", "contacts:java.util.List<com.imdomestic.chorus.effect.projectile.Hitscan$PathContact>"],
+  "chorus:effect/data/construct_actions/consume": ["reference:java.lang.String"],
+  "chorus:effect/object/world_construct/consume": ["reference:com.imdomestic.chorus.effect.target.EntityAnchor$Reference"],
+  "chorus:effect/object/world_construct/consume_outcome": ["CONSUMED","MISSING","WRONG_DIMENSION","REPLACED","NOT_CONSTRUCT","FOREIGN_RUNTIME","INACTIVE"],
+  "chorus:effect/object/world_construct/consume_receipt": ["command:com.imdomestic.chorus.effect.object.WorldConstruct$Consume","outcome:com.imdomestic.chorus.effect.object.WorldConstruct$ConsumeOutcome"]
 }

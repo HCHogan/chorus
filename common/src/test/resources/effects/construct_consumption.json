@@ -1,0 +1,29 @@
+{
+  "version": "test-1",
+  "bundles": [{
+    "id": "test:consume_construct",
+    "rules": [
+      {
+        "id": "consume", "on": "test:consume",
+        "if": {"type": "chorus:source_is", "source": "owner"},
+        "do": [
+          {"type": "chorus:grant_buff", "buff": "test:paid"},
+          {"action": {"type": "chorus:capture_entity_anchor", "target": "victim"}, "as": "life"},
+          {
+            "if": {"type": "chorus:result_flag", "binding": "life", "field": "available"},
+            "then": [
+              {"action": {"type": "chorus:consume_construct", "reference": "life"}, "as": "claim"},
+              {
+                "if": {"type": "chorus:result_flag", "binding": "claim", "field": "consumed"},
+                "then": [{"type": "chorus:play_cue", "cue": "test:reward", "target": "victim"}]
+              }
+            ]
+          }
+        ]
+      },
+      {"id": "end", "on": "chorus:construct_ended", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:play_cue", "cue": "test:ended", "target": "victim"}]},
+      {"id": "kill", "on": "chorus:kill", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [{"type": "chorus:play_cue", "cue": "test:kill", "target": "victim"}]},
+      {"id": "death", "on": "chorus:death", "do": [{"type": "chorus:play_cue", "cue": "test:death", "target": "victim"}]}
+    ]
+  }]
+}

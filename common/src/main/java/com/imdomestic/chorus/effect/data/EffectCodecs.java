@@ -669,6 +669,9 @@ public final class EffectCodecs {
                         enumeration(ActionOrigin.class).optionalFieldOf("origin", ActionOrigin.BOUND).forGetter(MotionActions.Apply::origin),
                         ID.listOf().xmap(Set::copyOf, v -> v.stream().sorted().toList()).optionalFieldOf("tags", Set.of()).forGetter(MotionActions.Apply::tags)
                 ).apply(i, MotionActions.Apply::new)))
+                .register("chorus:consume_construct", ConstructActions.Consume.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("reference").forGetter(ConstructActions.Consume::reference)
+                ).apply(i, ConstructActions.Consume::new)))
                 .register("chorus:spawn_construct", ConstructActions.Spawn.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("position").forGetter(ConstructActions.Spawn::position), ID.fieldOf("kind").forGetter(ConstructActions.Spawn::kind),
                         values.fieldOf("health").forGetter(ConstructActions.Spawn::health), values.fieldOf("width").forGetter(ConstructActions.Spawn::width),

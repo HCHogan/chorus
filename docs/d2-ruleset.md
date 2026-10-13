@@ -2022,6 +2022,14 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 参考超能和手雷只有不可施放的元数据，不代表完整超能、棱镜或子职业装配。实际账号进度与神器选择生产者、完整 Tier/升级目录、正式配装/HUD、原作切换超能惩罚、技能宿主持久化、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。
 
+## Healing Grenade 的来源与待装配机制
+
+Healing Grenade 原表 Solar B40/D40/N40 对应固定快照 B33/D33/N33；紧邻 Touch of Flame 分支 B41/D41 对应 B34/D34，完整 Aspect B150/D150 对应 B85/D85。七格规范化全文与本轮已归档的原表一致。最新 Clarity 文件提交核对为 `039cfbc4732c33573568b28cc6335dd3332a9296`，包含 Touch of Flame 83039193，但没有独立命名的 Healing Grenade 项；不把缺失项当作额外交叉确认。文本、映射与哈希见[来源记录](../data/d2-research/2026-10-14/healing-grenade-source.json)。
+
+原表给出 119.7 秒基础冷却、0.875 chunk scalar、轻轨迹 / 强盟友追踪。命中对自身及 7.5 米内盟友施加 Cure x1，另生成存活 7.5 秒、100 HP、7.5 米拾取半径的 Restoration Orb，拾取授予 4 秒 Restoration x1，Solace 为 6 秒；Touch of Flame 将两种强度提升为 x2。[官方 4.1.0](https://www.bungie.net/7/en/News/article/51380)支持追踪盟友、命中 Cure 与拾取 Restoration 的两段结构，是历史依据而非当前全部数值的实测证明。
+
+当前补齐的是确认消费可受伤构造物的接口，尚未把治疗手雷列为效果完成。投掷速度 / 重力 / 阻力、追踪参数、球体尺寸 / 命中后偏移、生命投影、多人拾取分配及是否按接收者独立保留等仍需内容装配与校准，不能用瞬间回血或私有无敌拾取物替代整个机制。
+
 ## Heat Rises 的来源核对与待装配内容
 
 2026-10-14 重新读取原表 Solar B144/D144，对应固定 CSV 快照 B82/D82；全文规范化一致。Clarity 最新文件提交仍为 `039cfbc4732c33573568b28cc6335dd3332a9296`，Heat Rises 项为 83039194。原始 HTML、逐格映射、Clarity 子集和完整文件哈希见[来源记录](../data/d2-research/2026-10-14/heat-rises-source.json)。[官方 4.1.0.2](https://www.bungie.net/7/en/News/article/51440)说明了消费手雷的治疗及 Touch of Flame 组合；[官方 7.0.0.1](https://www.bungie.net/7/en/News/article/update_7_0_0_1)确认 20 被动 + 50 激活的 Airborne Effectiveness。这两篇是历史机制依据，当前参数仍以本次固定来源复审为准。

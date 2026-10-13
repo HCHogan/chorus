@@ -12,6 +12,14 @@ import java.util.*;
 /** A damageable entity with its own identity, physical dimensions and finite lifetime. */
 public final class WorldConstruct {
     private WorldConstruct() {}
+    /** Consume one exact live construct without inventing damage, death, pickup or refund facts. */
+    public record Consume(EntityAnchor.Reference reference) implements RuleEngine.WorldCommand {
+        public Consume { Objects.requireNonNull(reference); }
+    }
+    public enum ConsumeOutcome { CONSUMED, MISSING, WRONG_DIMENSION, REPLACED, NOT_CONSTRUCT, FOREIGN_RUNTIME, INACTIVE }
+    public record ConsumeReceipt(Consume command, ConsumeOutcome outcome) implements RuleEngine.ActionResult {
+        public ConsumeReceipt { Objects.requireNonNull(command); Objects.requireNonNull(outcome); }
+    }
     public static final String ENDED = "chorus:construct_ended";
     public enum End { DESTROYED, EXPIRED, REMOVED }
     /** A host-confirmed disappearance, not damage, a kill, a refund or an implicit state deletion. */

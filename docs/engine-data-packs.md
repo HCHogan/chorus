@@ -3932,3 +3932,17 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 被动规则监听本持有者的确认 `chorus:kill`，通过 `read_event_entity` 读取冻结的 actor 移动 / victim 分类。共享有限寿命回执 Buff 以 `update_component` 的 `once_set` 保存 death_id，以返回的 `applied` 标志控制后续回能与 `extend_buff`；重复 Aspect 不重复领取同一笔收益。新击杀继续合法运行，回执桶到期不删除活动 Heat Rises，也没有全局因果链上限。
 
 活动状态使用 15 秒 `reset`、30 秒 `extension_cap`，AE 的 passive / active 两族各自 MAX。保存生命与确认死亡 / 移除比较后取消状态；卸源后的保留政策、未连接的滑翔 / 雷达 / 完整 AE 行为和来源证据见 [Heat Rises 规则](d2-ruleset.md#heat-rises-的来源核对与待装配内容)。
+
+## 确认消费可受伤构造物
+
+`chorus:consume_construct` 用于治疗球等“移除一个物体后给予收益”的效果。先 `capture_entity_anchor` 或读取已有完整生命观察，再传入 `reference`；普通位置、UUID 字符串和未写入的绑定不能替代有类型生命引用。
+
+```json
+{"action":{"type":"chorus:consume_construct","reference":"orb_life"},"as":"claim"}
+```
+
+后续收益显式判断 `result_flag(claim, consumed)`。服务器在实际写入边界比较维度、实体生命和当前运行时归属，只消费仍存活的 `EffectConstruct`；成功后实体立即移除，第二次消费得到已知拒绝。其他结果分别为 `missing`、`wrong_dimension`、`replaced`、`not_construct`、`foreign_runtime`、`inactive`，不会删除普通生物或替换后的新生命，也不自动取消费用、给予掉落或恢复能量。
+
+动作不会扣生命值或伪造 hit / death / kill / pickup。原生移除仍排队发布 `construct_ended(removed)` 及实体移除事实，在当前动作体完成后的边界处理；从构造物自己的 Buff 执行时，确认后的收益可完成，然后生命周期规则清理行为和计时器。已经捕获的目标 / 数值应在消费前保存，收益不能依赖移除后重新查询物体仍存在。实际移除后回执未知会停止运行，保留既有本地提交与物理移除，不重放消费或推测收益成功。
+
+这只提供确认消费的通用原语。何时拾取、谁能拾取、范围与视线、同一时刻多人的分配，以及治疗球是否按每位玩家独立保留，都必须由内容明确决定；不能把这个接口的验收当作 Healing Grenade 已完成。研究见 [治疗手雷来源](../data/d2-research/2026-10-14/healing-grenade-source.json)。
