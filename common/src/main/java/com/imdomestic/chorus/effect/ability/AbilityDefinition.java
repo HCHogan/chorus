@@ -6,19 +6,27 @@ import java.util.*;
 /** Instant action kind. The chosen definition and numeric parameters are pinned at acceptance. */
 public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
         Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
-        Optional<String> rechargeResource, Optional<String> rechargeYieldProfile) {
+        Optional<String> rechargeResource, Optional<String> rechargeYieldProfile, Optional<String> costSlot) {
     /** Only the final resolved definition chooses the payment policy; BASE_SELECTION reads its original selection's declared cost. */
     public enum CostFrom { DEFINITION, BASE_SELECTION }
     public AbilityDefinition {
         id(id); id(slot); Objects.requireNonNull(cost); Objects.requireNonNull(condition); Objects.requireNonNull(costFrom);
         Objects.requireNonNull(rechargeResource); rechargeResource.ifPresent(AbilityDefinition::id);
         Objects.requireNonNull(rechargeYieldProfile); rechargeYieldProfile.ifPresent(AbilityDefinition::id);
+        Objects.requireNonNull(costSlot); costSlot.ifPresent(AbilityDefinition::id);
+        if (costSlot.isPresent() && (cost.isPresent() || costFrom != CostFrom.DEFINITION || costSlot.orElseThrow().equals(slot)))
+            throw new IllegalArgumentException("Cross-slot payment needs a different slot and no other payment declaration");
         if (rechargeResource.isPresent() && cost.isEmpty()) throw new IllegalArgumentException("An explicit recharge resource requires a declared cost account");
         if (rechargeYieldProfile.isPresent() && rechargeResource.isEmpty()) throw new IllegalArgumentException("Cyclic recharge requires an explicit progress resource");
         tags = Set.copyOf(tags); tags.forEach(AbilityDefinition::id);
         parameters = Collections.unmodifiableMap(new TreeMap<>(parameters)); parameters.keySet().forEach(com.imdomestic.chorus.effect.EffectTimers::localName);
         onUse = List.copyOf(onUse);
         effects = com.imdomestic.chorus.effect.EffectParameters.copy(effects);
+    }
+    public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
+            Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
+            Optional<String> rechargeResource, Optional<String> rechargeYieldProfile) {
+        this(id, slot, cost, condition, tags, parameters, onUse, effects, costFrom, rechargeResource, rechargeYieldProfile, Optional.empty());
     }
     public AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
             Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
@@ -37,7 +45,7 @@ public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Con
             Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects) {
         this(id, slot, cost, condition, tags, parameters, onUse, effects, CostFrom.DEFINITION);
     }
-    public boolean hasPayment() { return cost.isPresent() || costFrom == CostFrom.BASE_SELECTION; }
+    public boolean hasPayment() { return cost.isPresent() || costFrom == CostFrom.BASE_SELECTION || costSlot.isPresent(); }
     /** External energy follows the current base selection, independently of a replacement's payment policy. */
     public Optional<String> energyResource() { return rechargeResource.or(() -> cost.map(Cost::resource)); }
     /** Static selection configuration, independent of the parameters evaluated for each accepted cast. */

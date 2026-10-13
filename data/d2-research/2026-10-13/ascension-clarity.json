@@ -1,0 +1,60 @@
+{
+  "4194622039": {
+    "hash": 4194622039,
+    "name": "Ascension",
+    "lastUpload": 1787265837991,
+    "type": "Subclass Aspect",
+    "uploadedBy": "Hawkmoona",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Casting [Air Move] with full Class Ability Energy consumes the charge and vertically thrusts you ? meters into the air."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Ascension deals damage and "
+            },
+            {
+              "classNames": [
+                "arc"
+              ]
+            },
+            {
+              "text": "Jolts enemies within a 10 meter radius of the cast, while granting "
+            },
+            {
+              "classNames": [
+                "arc"
+              ]
+            },
+            {
+              "text": "Amplified to you and all allies within that same radius."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Casting Ascension triggers the effects of your equipped dodge. Scales up to 65% increased damage at 200 Class Stat."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

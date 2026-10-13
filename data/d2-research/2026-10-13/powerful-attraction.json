@@ -47,6 +47,12 @@
       "finding": "Ascension can activate Powerful Attraction. Accepted resolved-ability classification must support explicit replacement qualification, rather than assume any occupied class slot qualifies."
     },
     {
+      "kind": "official",
+      "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+      "accessed_at": "2026-10-13",
+      "finding": "Supersedes the earlier selective Ascension trigger list: Ascension now counts as a class ability for all perks and abilities. Actual content must use general class-ability classification; the synthetic selective replacement remains a generic condition test."
+    },
+    {
       "kind": "official_known_issue",
       "url": "https://help.bungie.net/hc/en-us/articles/39007140765204-Destiny-2-Known-Issues-and-Vital-Information",
       "accessed_at": "2026-10-13",
@@ -66,7 +72,7 @@
     "class_item_energy_cost": 2
   },
   "policies": [
-    "Accepted Started fact qualifies by captured resolved definition, not incidental input tags or current selection. Explicit replacement qualification is effect-specific.",
+    "Accepted Started fact qualifies by captured resolved definition, not incidental input tags or current selection. Effect-specific replacement qualification remains available, but actual Ascension must use general class-ability classification under update 9.7.0.",
     "Each holder/cast claims a shared receipt once across copies; per-entry forgetting and refresh use a 60-second finite replay window, a Chorus policy rather than a Destiny cooldown.",
     "Free accepted class use qualifies; rejected or non-class casts do not. Free-use interactions remain to be calibrated.",
     "Candidate query samples actor feet at the start reaction. Claims wait for ordinary reactions and ability body to settle and recheck live range/eligibility. Exact original animation and movement timing is not established.",

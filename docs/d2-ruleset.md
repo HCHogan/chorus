@@ -1627,7 +1627,9 @@ Proximity Ward 在确认接受终结后获得 **200 HP 的普通额外护盾**�
 
 2026-10-13 抓取的 Compendium Armor Mods N12 / P12 与固定快照同坐标文本一致；Clarity `039cfbc` 的 11126525 条目明确一件 12.5 米、两件及以上 18.5 米。参考定义按持有者当前副本数取范围，职业物品每格消耗 2 能量，三格独立装配通过既有容量和授权接口生成来源。[研究记录与来源哈希](../data/d2-research/2026-10-13/powerful-attraction.json)。
 
-[官方 9.0.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1) 说明 Ascension 可触发 Powerful Attraction，因此资格读取已接受的实际技能标签，不只检查基础职业槽；单独的替换资格标签避免把所有消耗职业能量的替换动作视为职业技能。已用真实 Marksman’s Dodge 定义、服务器命令及扣费验证范围拾取；它的 0.2 秒换弹延迟仍为既有合成验收参数。合成 ascent 替换仅证明资格表达，不算完整 Ascension 实现。
+[官方 9.0.0.1](https://www.bungie.net/7/en/News/Article/destiny_update_9_0_0_1) 曾单独列出 Ascension 可触发 Powerful Attraction；更晚的 [9.7.0](https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0) 已明确 Ascension 对所有 perk / 技能都算职业技能，并让爆炸伤害受 100 以上 Class 属性影响。实际 Ascension 应声明职业技能分类，不能继续仅给它 Powerful Attraction 专用资格。资格读取已接受的实际技能定义，不要求输入槽必须是 class；专用资格标签仍可表达其他选择性的内容规则。已用真实 Marksman’s Dodge 定义、服务器命令及扣费验证范围拾取；它的 0.2 秒换弹延迟仍为既有合成验收参数。合成 ascent 替换仅证明资格表达，不算完整 Ascension 实现。
+
+Ascension 的原表 Arc B72/D72（固定快照 B48/D48）明确空中动作消耗职业技能充能，同时触发所选闪身效果。引擎新增 `cost_slot` 解决不同输入槽读取当前职业技能成本的问题；它只负责一次支付，不自动执行闪身动作。跨槽世界场景使用合成空中动作、真实 Marksman’s Dodge 账户和实际装备的 Powerful Attraction，检验扣费与一次拾取的组合。实际向上位移、范围伤害 / Jolt / Amplified、所选闪身收益、Arc Staff 内的特殊支付和完整模组组合仍需接入；位移高度、PvP 数值等未知量不填猜测值。来源存档见 [Ascension 研究输入](../data/d2-research/2026-10-13/ascension-source.json)。
 
 每次接受施放只查询一次；已有 Orb 奖励继续给当前收集者回能，并触发共享 Armor Charge / Devour。领取按[反应结算协议](engine-data-packs.md#按范围主动收集拾取物)逐件复核：满超能且充能满时保留多余球；Starvation 的独立许可可允许继续领取。实际职业物品两件本模组与一件 Utility Kickstart 已验证同次技能先消耗原充能，再由附近球补回；换掉第二件后下一次查询回到 12.5 米。上述组合采用当前内容的拾取资格和时序政策，不能当作所有原作边界的实测校准。
 

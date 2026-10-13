@@ -485,9 +485,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new AbilityUse.Receipt(request.cast(),request.slot(),base,selected.id(),AbilityUse.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var evaluation = evaluation(state, new RuleEngine.Context(queryEvent(state, query), "cast/" + request.cast(), scope, Map.of()), Map.of());
         if (!selected.condition().test(evaluation)) return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.CONDITION, Optional.empty());
-        // Read the original selection's declaration, never an intermediate replacement or a recursively resolved policy.
-        var paymentCost = selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION ? abilities.get(base).cost() : selected.cost();
-        if (selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION && paymentCost.isEmpty())
+        // Read a base selection's declared cost once; never follow its replacement or another cost policy.
+        var paymentAbility = selected.costSlot().isPresent() ? selectedAbility(state, request.holder(), selected.costSlot().orElseThrow())
+                : Optional.of(selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION ? abilities.get(base) : selected);
+        var paymentCost = paymentAbility.flatMap(AbilityDefinition::cost);
+        if ((selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION || selected.costSlot().isPresent()) && paymentCost.isEmpty())
             return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.NO_BASE_COST, Optional.empty());
         var numbers = new HashMap<>(query.numbers());
         for (var entry : selected.parameters().entrySet()) {
@@ -511,7 +513,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         }
         double paid = payment.map(value -> value.receipt().paid()).orElse(0.0); numbers.put("paid", new Measure(paid, Unit.CHARGE));
         var flags = new HashMap<>(query.flags()); flags.put("free", paid == 0);
-        var usedEvent = new EffectEvent(query.actor(), query.victim(), query.source(), query.tags(), numbers, flags, query.references(), query.impact());
+        var references = new HashMap<>(query.references());
+        references.put("cost_slot", selected.costSlot().orElse(request.slot()));
+        references.put("cost_ability", paymentAbility.map(AbilityDefinition::id).orElse(""));
+        var usedEvent = new EffectEvent(query.actor(), query.victim(), query.source(), query.tags(), numbers, flags, references, query.impact());
         var receipt = new AbilityUse.Receipt(request.cast(), request.slot(), base, selected.id(), AbilityUse.Outcome.ACCEPTED, payment);
         facts.add(new RuleEngine.Signal(AbilityUse.STARTED, new AbilityUse.Started(usedEvent, selected, receipt)));
         facts.add(new RuleEngine.Signal("chorus:ability_used", new AbilityUse.Used(usedEvent, selected, receipt)));

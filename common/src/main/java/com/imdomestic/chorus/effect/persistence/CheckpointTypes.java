@@ -89,7 +89,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/source_change", com.imdomestic.chorus.effect.SourceChange.class);
         types.put("chorus:effect/source_change/fact", com.imdomestic.chorus.effect.SourceChange.Fact.class);
         types.put("chorus:effect/ability/ability_change", com.imdomestic.chorus.effect.ability.AbilityChange.class);
-        types.put("chorus:effect/ability/ability_definition", com.imdomestic.chorus.effect.ability.AbilityDefinition.class);
+        types.put("chorus:effect/ability/ability_definition", LegacyAbilityDefinitionV1.class);
+        types.put("chorus:effect/ability/ability_definition_v2", com.imdomestic.chorus.effect.ability.AbilityDefinition.class);
         types.put("chorus:effect/ability/ability_definition/cost", com.imdomestic.chorus.effect.ability.AbilityDefinition.Cost.class);
         types.put("chorus:effect/ability/ability_definition/cost_from", com.imdomestic.chorus.effect.ability.AbilityDefinition.CostFrom.class);
         types.put("chorus:effect/ability/ability_definition/effect", com.imdomestic.chorus.effect.ability.AbilityDefinition.Effect.class);
@@ -655,6 +656,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_charge/commit", com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit.class);
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
+                new RecordTreeCodec.Migration<>(LegacyAbilityDefinitionV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.class, LegacyAbilityDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV2.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV2::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentSocketV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Socket.class, LegacyEquipmentSocketV1::current),

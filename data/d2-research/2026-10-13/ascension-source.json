@@ -1,0 +1,49 @@
+{
+  "arc": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=618967225",
+    "sha256": "9bcc0fa2873911ad805ad2f6e95986d23b3c2fbd7ab0207984aa8bb280ce5cc1",
+    "archived_html": "data/d2-research/2026-10-13/ascension-arc.html.gz",
+    "gzip_sha256": "2bff7023ca50fb308df6bec5a530207252685c1a660411065b21ab709f3ca1ab",
+    "cells": [
+      {
+        "original_cell": "B72",
+        "snapshot_cell": "B48",
+        "snapshot_text_sha256": "4555a94832c0af847c0d295e7e7b95663b3c9347430ec2d3ecbf5f888f847a5e",
+        "normalized_text": "Ascension",
+        "match": "normalized_equal"
+      },
+      {
+        "original_cell": "D72",
+        "snapshot_cell": "D48",
+        "snapshot_text_sha256": "d3265203ef74a83cf5b18600b989ff1a1447937fcc91882666fdae25dfc3ee6e",
+        "normalized_text": "While Airborne and having a Class Ability Charge: [Air Move] consumes a Class Ability Charge to perform an upwards Arc Staff Twirl. Triggers the effects of the equipped Class Ability on usage. Grants Amplified to the user and allies within 10 meters. Deals up to 181 [?] damage, as well as Jolting enemies within 10 metres. Aspect's Damage scales with Class Stat above 100, up to 65% [?%] at 200 Stat.",
+        "match": "normalized_equal"
+      }
+    ]
+  },
+  "clarity": {
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "selected": "data/d2-research/2026-10-13/ascension-clarity.json",
+    "selected_sha256": "a4433ddf48db67192f964abadcd7304b46b4c004358f0984ddb209602858cc59"
+  },
+  "reviewed_at": "2026-10-13",
+  "scope": "Research input for cross-slot payment and subsequent Ascension content; no complete Ascension implementation or coverage claim.",
+  "official": {
+    "url": "https://www.bungie.net/7/en/News/Article/destiny_update_9_7_0",
+    "accessed_at": "2026-10-13",
+    "findings": [
+      "Ascension now counts as a class ability for all perks and abilities.",
+      "Detonation damage scales with Class stat above 100.",
+      "Prismatic Ascension can activate Winters Shroud on cast."
+    ]
+  },
+  "engine_requirement": "Air Move input consumes the currently equipped class ability declared cost once, retaining the actual air-action identity and payment receipt. This does not implicitly execute the donor skill or trigger a second cast.",
+  "pending": [
+    "Actual Ascension upward movement, damage, Jolt and Amplified content.",
+    "Explicit composition of the currently equipped dodge benefit, without duplicate payment or cast facts.",
+    "Class-triggered mods currently checking input slot need accepted-ability classification where applicable.",
+    "Arc Staff super-specific cost, exact vertical motion, PvP values, full timing and damage calibration."
+  ]
+}

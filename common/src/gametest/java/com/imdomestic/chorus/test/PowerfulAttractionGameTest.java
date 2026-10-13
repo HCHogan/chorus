@@ -19,6 +19,9 @@ import net.minecraft.world.level.GameType;
 public class PowerfulAttractionGameTest {
     static final String D = "chorus_d2:", PERK = "powerful_attraction";
     static ProjectileGameTest.Harness open(GameTestHelper h) throws Exception {
+        return open(h, _ -> {});
+    }
+    static ProjectileGameTest.Harness open(GameTestHelper h, java.util.function.Consumer<com.google.gson.JsonObject> edit) throws Exception {
         var t = new ProjectileGameTest.Harness(h, "shield_throw", data -> {
             ShieldThrowGameTest.prepare(data); FeedTheVoidGameTest.modules(data);
             for (String name : List.of("echo_of_starvation", "void_breach", "orb_of_power", "starvation_inputs", "armor_charge", "armor_charge_mods", "armor_charge_inputs", "kickstart", "kickstart_inputs", "powerful_attraction", "powerful_attraction_inputs", "powerful_attraction_equipment", "marksman_dodge")) {
@@ -27,6 +30,7 @@ public class PowerfulAttractionGameTest {
                         .add("value", ThreadedSpikeGameTest.json("marksman_dodge_test_calibration").getAsJsonObject("parameters").get("reload_delay"));
                 GamblersDodgeGameTest.merge(data, part);
             }
+            edit.accept(data);
         }, true);
         try {
             t.owner.setGameMode(GameType.SURVIVAL); t.owner.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000); t.owner.setHealth(100);

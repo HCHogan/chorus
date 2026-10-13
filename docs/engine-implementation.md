@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-13：跨输入槽读取实际技能成本
+
+Ascension 从 Air Move 入口消耗当前职业技能充能，暴露了既有 base_selection 只能读取同一输入槽的缺口。`AbilityDefinition.costSlot` / JSON `cost_slot` 现可读取同一持有者另一个当前所选技能的原始 cost。与自身 cost / base_selection 互斥，只读一层声明；付款槽的替换、准入条件、动作和事件不会跟着运行。调用方保持输入槽、已解析定义、伤害信用与参数上下文；接受事实补充实际成本槽和声明技能引用。空槽 / 无声明明确拒绝，有账户的零成本保留免费回执，未知世界结果不回滚付款或重试动作。
+
+十项新增核心测试覆盖当前选择、最终替换策略、调用方成本 Profile、缺失 / 无成本 / 零成本、地面拒绝和余额不足、持有者隔离、未知世界结果、延迟退款跨换槽及检查点恢复、DSL / 存储往返和旧格式迁移。五项共享世界场景验证服务端实际输入、治疗和真实 tick 退款，并组合真实 Marksman’s Dodge 账户、独立职业物品与 Powerful Attraction，确认一次空中动作支付一次并只收集一次。这里的空中治疗动作是合成验收输入，不是 Ascension 内容实现。
+
+存储新增 `ability_definition_v2`；原 ID 映射完整旧字段记录并迁移为 costSlot 为空，新写入禁止退休类型。开发中修正了迁移测试误用当前编码器写退休类型的问题，并补齐 Fabric 延迟退款场景的测试环境声明。原表 Arc B72/D72 与固定快照 B48/D48 逐格一致；Clarity 固定提交摘录已保存。官方 9.7.0 已将 Ascension 归为对所有 perk / 技能有效的职业技能，已修正文档此前只引用 9.0.0.1 部分模组资格的表述。
+
+此批仍需后续内容完成 Ascension 位移、伤害 / Jolt / Amplified、当前闪身收益及超能内支付；按 class 输入槽判断的模组也需逐项接入实际技能分类。`cost_slot` 本身不新增回能来源，不自动转发 air_move 回能，不自动调用所选闪身，也不增加 Compendium 完整覆盖项。
+
+最终 `build/reports/ability-cross-slot-cost/final-gate.log` BUILD SUCCESSFUL，2 分 21 秒：1987 项 JUnit 无失败/错误/跳过，Fabric 1128 / NeoForge 1143 项世界测试通过，共享 GameCase 1127 项。原有 644 项精确存储形状保持，现为 645 项。双端发布 jar 分别 1261 / 1254 项，27 个 PNG/JSON 素材与五个相关变更类逐字节匹配构建产物，无测试资源或 GameTest / TestMixin 泄漏；新效果夹具与双端验收资源一致，Gradle 保持 CRLF。10 项 Compendium 工具测试与审核报告检查通过，审阅仍为 118 partial / 2 not_applicable / 0 verified。此批没有 UI / 客户端协议改动，未重复图形客户端验收；汇总见 `build/reports/ability-cross-slot-cost/audit.json`。
+
 ### 2026-10-13：Powerful Attraction 的技能触发与真实职业物品
 
 新增 `event_ability_tag` 条件读取已接受、已解析技能的捕获定义，排除输入借用标签、当前基础选择、拒绝回执和错配事实；快照冻结布尔值。Powerful Attraction 使用该条件与显式替换资格，按当前持有者一件 / 两件以上选择 12.5 / 18.5 米；共享 cast 回执避免多个模组各执行一次收集。Orb 仍执行原有私有资格、Super 回能、Armor Charge 与 Devour，模组本身不启用充能池。

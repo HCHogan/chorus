@@ -1834,7 +1834,26 @@ replace_with 必须在链接后的程序中存在且属于同槽；可选 abilit
 
 `base_selection` 不表示免费兜底。基础选择没有 cost 时返回 `NO_BASE_COST`，在行动门槛和技能条件之后、参数求值和支付之前拒绝；即使转换定义有自己的 cost，也不改扣另一个池。基础 cost.amount 为零则是有账户的免费支付，仍产生零支付回执。费用表达式和 Profile 使用最终施放的上下文：伤害 / 技能信用和标签属于转换后技能，references.base_ability 保留原选择；不会在算费用时偷偷切回基础技能信用。
 
-声明 cost 或 `cost_from: base_selection` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选技能、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。
+需要从另一个输入入口消耗当前所选技能的账户时，可以声明 `cost_slot`：
+
+```json
+{
+  "id": "example:air_action",
+  "slot": "example:air_move",
+  "cost_slot": "example:class",
+  "tags": ["chorus:class_ability"],
+  "if": {"type":"chorus:not", "of":{"type":"chorus:event_flag", "name":"on_ground"}},
+  "on_use": []
+}
+```
+
+此例仅说明支付声明，实际效果需由内容定义。`cost_slot` 必须是与自身 slot 不同的命名空间 ID；不能同时声明 cost 或 `cost_from: base_selection`。它读取**同一持有者当前选中**的另一个槽位技能的原始 cost，不解析该槽的技能替换，也不追随另一条成本策略。最终调用技能的声明决定支付策略；目标槽为空或没有声明 cost 时返回 `NO_BASE_COST`，有账户且金额为零才是免费支付。这个规则只限定成本引用的含义，不限制效果事件的合法循环。
+
+输入槽、实际技能定义、参数及攻击信用仍属于调用技能；支付只借用 resource / amount / profile，并在调用技能上下文中求值。接受事实的 `references.cost_slot` 和 `references.cost_ability` 记录实际读取的槽及成本声明技能，覆盖输入同名值；`ability_slot` 仍是本次输入槽。读取成本不会施放目标槽技能、执行它的 on_use 或产生第二组 Started / Used。若内容需要继承闪身收益，应显式组合相应效果，不能用第二次 use 模拟。
+
+声明 cost、`cost_from: base_selection` 或 `cost_slot` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选任一槽、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。`cost_slot` 不创建额外账户，也不把对 air_move 的回能自动转给 class；回能动作应明确指向实际接收槽。
+
+存储 ID `chorus:effect/ability/ability_definition_v2` 增加 costSlot。原 ID 保留完整旧字段形状，仅用于读取并迁移为 costSlot 为空的当前定义；新存档只写 v2，历史检查点无需改写。
 
 服务端 API：
 
