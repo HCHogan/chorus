@@ -1,0 +1,828 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "chorus_d2:acrobat_dodge_energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0,
+      "rate_profile": "chorus_d2:class_regeneration",
+      "gain_scalar": 0.5,
+      "gain_profile": "chorus_d2:class_gain"
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:acrobat_dodge",
+      "slot": "chorus_d2:class",
+      "tags": [
+        "chorus:class_ability",
+        "chorus_d2:hunter_dodge",
+        "chorus_d2:acrobat_dodge"
+      ],
+      "cost": {
+        "resource": "chorus_d2:acrobat_dodge_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "effects": {
+        "recharge": {
+          "bundle": "chorus_d2:acrobat_dodge_recharge"
+        },
+        "ascension": {
+          "bundle": "chorus_d2:acrobat_dodge_ascension"
+        }
+      },
+      "parameters": {
+        "horizontal_speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.horizontal_speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "vertical_speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.vertical_speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "neutral_heading_sign": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.neutral_heading_sign",
+            "unit": "multiplier"
+          }
+        },
+        "completion_delay": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.completion_delay",
+            "unit": "second"
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_entity_anchor",
+            "target": "self"
+          },
+          "as": "cast_life"
+        },
+        {
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:result_flag",
+                "binding": "cast_life",
+                "field": "available"
+              },
+              {
+                "type": "chorus:result_flag",
+                "binding": "cast_life",
+                "field": "alive"
+              }
+            ]
+          },
+          "then": [
+            {
+              "action": {
+                "type": "chorus:capture_input_direction",
+                "target": "self"
+              },
+              "as": "input"
+            },
+            {
+              "if": {
+                "type": "chorus:result_flag",
+                "binding": "input",
+                "field": "available"
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:apply_impulse",
+                    "direction": "input",
+                    "speed": {
+                      "type": "chorus:event_number",
+                      "name": "param.horizontal_speed",
+                      "unit": "meter_per_second"
+                    },
+                    "axis_scale": {
+                      "x": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      },
+                      "y": {
+                        "type": "chorus:constant",
+                        "value": 0,
+                        "unit": "multiplier"
+                      },
+                      "z": {
+                        "type": "chorus:constant",
+                        "value": 1,
+                        "unit": "multiplier"
+                      }
+                    },
+                    "origin": "event",
+                    "tags": [
+                      "chorus_d2:acrobat_dodge"
+                    ]
+                  },
+                  "as": "horizontal_motion"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "horizontal_motion",
+                    "field": "observed"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:world_direction",
+                        "position": "cast_life",
+                        "x": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "multiplier"
+                        },
+                        "y": {
+                          "type": "chorus:constant",
+                          "value": 1,
+                          "unit": "multiplier"
+                        },
+                        "z": {
+                          "type": "chorus:constant",
+                          "value": 0,
+                          "unit": "multiplier"
+                        }
+                      },
+                      "as": "up"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:apply_impulse",
+                        "direction": "up",
+                        "speed": {
+                          "type": "chorus:event_number",
+                          "name": "param.vertical_speed",
+                          "unit": "meter_per_second"
+                        },
+                        "origin": "event",
+                        "tags": [
+                          "chorus_d2:acrobat_dodge"
+                        ]
+                      },
+                      "as": "vertical_motion"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "vertical_motion",
+                        "field": "observed"
+                      },
+                      "then": [
+                        {
+                          "after": {
+                            "type": "chorus:event_number",
+                            "name": "param.completion_delay",
+                            "unit": "second"
+                          },
+                          "lifetime": "detached",
+                          "do": [
+                            {
+                              "action": {
+                                "type": "chorus:resolve_entity_anchor",
+                                "reference": "cast_life"
+                              },
+                              "as": "completion_life"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:all",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "completion_life",
+                                    "field": "available"
+                                  },
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "completion_life",
+                                    "field": "alive"
+                                  }
+                                ]
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:invoke_bundle",
+                                  "bundle": "chorus_d2:acrobat_dodge_benefits",
+                                  "event": "chorus_d2:invoke_acrobat_dodge_benefits",
+                                  "holder": "self",
+                                  "target": "self",
+                                  "origin": "event",
+                                  "parameters": {
+                                    "damage_enabled": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "input",
+                    "field": "neutral"
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:capture_direction",
+                        "target": "self",
+                        "mode": "horizontal"
+                      },
+                      "as": "heading"
+                    },
+                    {
+                      "action": {
+                        "type": "chorus:apply_impulse",
+                        "direction": "heading",
+                        "speed": {
+                          "type": "chorus:event_number",
+                          "name": "param.horizontal_speed",
+                          "unit": "meter_per_second"
+                        },
+                        "axis_scale": {
+                          "x": {
+                            "type": "chorus:event_number",
+                            "name": "param.neutral_heading_sign",
+                            "unit": "multiplier"
+                          },
+                          "y": {
+                            "type": "chorus:constant",
+                            "value": 0,
+                            "unit": "multiplier"
+                          },
+                          "z": {
+                            "type": "chorus:event_number",
+                            "name": "param.neutral_heading_sign",
+                            "unit": "multiplier"
+                          }
+                        },
+                        "origin": "event",
+                        "tags": [
+                          "chorus_d2:acrobat_dodge"
+                        ]
+                      },
+                      "as": "horizontal_motion"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:result_flag",
+                        "binding": "horizontal_motion",
+                        "field": "observed"
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:world_direction",
+                            "position": "cast_life",
+                            "x": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "multiplier"
+                            },
+                            "y": {
+                              "type": "chorus:constant",
+                              "value": 1,
+                              "unit": "multiplier"
+                            },
+                            "z": {
+                              "type": "chorus:constant",
+                              "value": 0,
+                              "unit": "multiplier"
+                            }
+                          },
+                          "as": "up"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:apply_impulse",
+                            "direction": "up",
+                            "speed": {
+                              "type": "chorus:event_number",
+                              "name": "param.vertical_speed",
+                              "unit": "meter_per_second"
+                            },
+                            "origin": "event",
+                            "tags": [
+                              "chorus_d2:acrobat_dodge"
+                            ]
+                          },
+                          "as": "vertical_motion"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:result_flag",
+                            "binding": "vertical_motion",
+                            "field": "observed"
+                          },
+                          "then": [
+                            {
+                              "after": {
+                                "type": "chorus:event_number",
+                                "name": "param.completion_delay",
+                                "unit": "second"
+                              },
+                              "lifetime": "detached",
+                              "do": [
+                                {
+                                  "action": {
+                                    "type": "chorus:resolve_entity_anchor",
+                                    "reference": "cast_life"
+                                  },
+                                  "as": "completion_life"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "completion_life",
+                                        "field": "available"
+                                      },
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "completion_life",
+                                        "field": "alive"
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:invoke_bundle",
+                                      "bundle": "chorus_d2:acrobat_dodge_benefits",
+                                      "event": "chorus_d2:invoke_acrobat_dodge_benefits",
+                                      "holder": "self",
+                                      "target": "self",
+                                      "origin": "event",
+                                      "parameters": {
+                                        "damage_enabled": {
+                                          "type": "chorus:constant",
+                                          "value": 1,
+                                          "unit": "count"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:acrobat_dodge_recharge",
+      "modifiers": [
+        {
+          "id": "base",
+          "profile": "chorus_d2:class_regeneration",
+          "stage": "baseline",
+          "group": "baseline",
+          "op": "replace",
+          "value": {
+            "type": "chorus:pvp",
+            "pve": {
+              "type": "chorus:constant",
+              "value": 0.017857142857142856,
+              "unit": "charge_fraction_per_second"
+            },
+            "pvp": {
+              "type": "chorus:constant",
+              "value": 0.0067385444743935305,
+              "unit": "charge_fraction_per_second"
+            }
+          },
+          "stacking_key": "chorus_d2:acrobat_dodge_base",
+          "reference": "Compendium original Class Abilities N5 / snapshot N4: 56 [148.4] seconds. Stat scaling remains an external profile.",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:acrobat_dodge_energy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:acrobat_dodge_benefits",
+      "parameters": {
+        "damage_enabled": "count"
+      },
+      "rules": [
+        {
+          "id": "grant",
+          "on": "chorus_d2:invoke_acrobat_dodge_benefits",
+          "do": [
+            {
+              "action": {
+                "type": "chorus:inspect_entity",
+                "target": "self"
+              },
+              "as": "caster"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "caster",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "caster",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:solar_effect_duration",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 10,
+                      "unit": "second"
+                    }
+                  },
+                  "as": "self_duration"
+                },
+                {
+                  "type": "chorus:apply_status",
+                  "buff": "chorus_d2:radiant",
+                  "target": "self",
+                  "duration": {
+                    "type": "chorus:result",
+                    "binding": "self_duration",
+                    "field": "value"
+                  }
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": "self",
+                    "radius": {
+                      "type": "chorus:constant",
+                      "value": 10,
+                      "unit": "meter"
+                    },
+                    "relative_to": "self",
+                    "relation": "allied",
+                    "exclude": [
+                      "self"
+                    ],
+                    "target_anchor": "feet",
+                    "order": "identity",
+                    "line_of_sight": false
+                  },
+                  "as": "allies"
+                },
+                {
+                  "for_each": "allies",
+                  "as": "ally",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:solar_effect_duration",
+                        "target": {
+                          "binding": "ally"
+                        },
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 10,
+                          "unit": "second"
+                        }
+                      },
+                      "as": "ally_duration"
+                    },
+                    {
+                      "type": "chorus:apply_status",
+                      "buff": "chorus_d2:radiant",
+                      "target": {
+                        "binding": "ally"
+                      },
+                      "duration": {
+                        "type": "chorus:result",
+                        "binding": "ally_duration",
+                        "field": "value"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "left": {
+                      "type": "chorus:source_parameter",
+                      "name": "damage_enabled"
+                    },
+                    "op": "eq",
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 1,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:select_targets",
+                        "center": "self",
+                        "radius": {
+                          "type": "chorus:constant",
+                          "value": 6.5,
+                          "unit": "meter"
+                        },
+                        "relative_to": "self",
+                        "relation": "not_allied",
+                        "exclude": [
+                          "self"
+                        ],
+                        "target_anchor": "feet",
+                        "order": "identity",
+                        "line_of_sight": false
+                      },
+                      "as": "enemies"
+                    },
+                    {
+                      "for_each": "enemies",
+                      "as": "enemy",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "enemy"
+                            }
+                          },
+                          "as": "target_view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "target_view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "target_view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:acrobat_dodge_falloff",
+                                "target": "self",
+                                "victim": {
+                                  "binding": "enemy"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "enemy",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:damage",
+                                "target": {
+                                  "binding": "enemy"
+                                },
+                                "amount": {
+                                  "type": "chorus:arithmetic",
+                                  "op": "mul",
+                                  "of": [
+                                    {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:result_flag",
+                                        "binding": "target_view",
+                                        "field": "player"
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 20,
+                                        "unit": "damage"
+                                      },
+                                      "else": {
+                                        "type": "chorus:constant",
+                                        "value": 40,
+                                        "unit": "damage"
+                                      }
+                                    },
+                                    {
+                                      "type": "chorus:result",
+                                      "binding": "falloff",
+                                      "field": "value"
+                                    },
+                                    {
+                                      "type": "chorus:profile_value",
+                                      "profile": "chorus_d2:acrobat_dodge_damage_scale",
+                                      "input": {
+                                        "type": "chorus:constant",
+                                        "value": 1,
+                                        "unit": "multiplier"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "damage_type": "minecraft:generic",
+                                "scaling_profile": "chorus_d2:outgoing",
+                                "origin": "event",
+                                "tags": [
+                                  "chorus:ability_damage",
+                                  "chorus:class_damage",
+                                  "chorus:solar_damage",
+                                  "chorus_d2:acrobat_dodge_damage"
+                                ],
+                                "kill_tags": [
+                                  "chorus:ability_kill",
+                                  "chorus:class_kill"
+                                ]
+                              },
+                              "as": "hit"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:acrobat_dodge_ascension",
+      "rules": [
+        {
+          "id": "ascension_benefit",
+          "on": "chorus_d2:ascension_dodge_benefits",
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:target_is",
+                "left": "self",
+                "right": "event_actor"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "ability",
+                "is": "chorus_d2:ascension"
+              },
+              {
+                "type": "chorus:event_reference",
+                "name": "cost_ability",
+                "is": "chorus_d2:acrobat_dodge"
+              }
+            ]
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:capture_entity_anchor",
+                "target": "self"
+              },
+              "as": "cast_life"
+            },
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "cast_life",
+                    "field": "available"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "cast_life",
+                    "field": "alive"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "after": {
+                    "type": "chorus:profile_value",
+                    "profile": "chorus_d2:acrobat_ascension_delay",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "second"
+                    }
+                  },
+                  "lifetime": "detached",
+                  "do": [
+                    {
+                      "action": {
+                        "type": "chorus:resolve_entity_anchor",
+                        "reference": "cast_life"
+                      },
+                      "as": "completion_life"
+                    },
+                    {
+                      "if": {
+                        "type": "chorus:all",
+                        "of": [
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "completion_life",
+                            "field": "available"
+                          },
+                          {
+                            "type": "chorus:result_flag",
+                            "binding": "completion_life",
+                            "field": "alive"
+                          }
+                        ]
+                      },
+                      "then": [
+                        {
+                          "type": "chorus:invoke_bundle",
+                          "bundle": "chorus_d2:acrobat_dodge_benefits",
+                          "event": "chorus_d2:invoke_acrobat_dodge_benefits",
+                          "holder": "self",
+                          "target": "self",
+                          "origin": "event",
+                          "parameters": {
+                            "damage_enabled": {
+                              "type": "chorus:profile_value",
+                              "profile": "chorus_d2:acrobat_ascension_damage",
+                              "input": {
+                                "type": "chorus:constant",
+                                "value": 0,
+                                "unit": "count"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

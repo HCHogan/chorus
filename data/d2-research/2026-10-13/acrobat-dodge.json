@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T12:20:01.265717+00:00",
+  "status": "partial",
+  "source_record": "data/d2-research/2026-10-13/acrobat-dodge-source.json",
+  "official_airborne_rule": {
+    "url": "https://www.bungie.net/7/en-us/News/Article/destiny_update_9_7_0",
+    "publication_date": "2026-06-09",
+    "verified_on": "2026-10-13",
+    "fact": "Acrobats Dodge can now be activated while airborne."
+  },
+  "known_values": {
+    "radiant_base_seconds": 10,
+    "solace_seconds": 15,
+    "allied_radius_meters": 10,
+    "enemy_radius_meters": 6.5,
+    "maximum_damage_combatant_guardian": [
+      40,
+      20
+    ],
+    "base_cooldown_pve_pvp_seconds": [
+      56,
+      148.4
+    ],
+    "chunk_energy_scalar": 0.5
+  },
+  "implementation": [
+    "Acrobat reference selects its own class energy account and mode-specific baseline through the shared class_regeneration profile. Gain uses .5 CES and shared class_gain; clearing selection pauses this retained account, following the existing Gambler reference policy.",
+    "The native cast captures one entity life and filtered held input, then issues additive horizontal and vertical impulses. Neutral input uses an explicitly calibrated signed horizontal facing fallback; missing input does not fabricate a direction.",
+    "A detached completion waits for its required calibrated delay, resolves the original life and only continues if alive. It survives unequip/input changes and pure-domain checkpoint restore; it does not claim physical-world restart recovery.",
+    "Shared benefit applies existing Radiant through per-recipient solar_effect_duration and authorization. Self and allies use ten meters; enemies use 6.5 meters, target classification and an externally supplied falloff / world damage scale. Radiant authorization denial is local; unknown observations halt without replay.",
+    "Ascension emits chorus_d2:ascension_dodge_benefits only inside its observed-displacement branch. The selected Acrobat source matches the emitted accepted ability and cost_ability references, schedules a same-life completion and invokes the same benefit bundle without leap, second cost or second ability use.",
+    "Ascension blast transfer is an explicit calibration profile: the default synthetic test transfers Radiant only; the alternate unit fixture transfers the Solar blast while preserving Ascension credit. Neither is asserted to be the current Destiny behavior."
+  ],
+  "explicit_unverified_policies": [
+    "Modern airborne completion timing is unresolved. Required completion_delay represents a calibrated animation-phase policy in these reference tests, not proof that physical terrain contact is or is not required.",
+    "Synthetic impulses are 6 m/s horizontal plus 4 m/s upward, idle direction is backward and completion delay is .2 s. No original animation, displacement curve, friction compensation, velocity replacement or client prediction has been measured.",
+    "Synthetic blast falloff is linear from full at zero to zero at 6.5 meters, with .1 damage-unit projection. Public peak/radius values do not establish this curve or world conversion. Damage classification follows combatant / Guardian targets independently of the mode-specific cooldown.",
+    "Completion selects targets around the caster current feet, without line of sight, in stable identity order. Source-side damage is evaluated when the blast executes. Precise original query anchors, sight rules, snapshot timing and damage / Radiant ordering need verification.",
+    "Ascension shared delay .2 s and whether its selected dodge transfers the Solar explosion remain unverified. The event is a Chorus content extension point, not a newly claimed Bungie lifecycle event.",
+    "Class regeneration stat curve and any Acrobat-specific damage scaling above 100 Class are not inferred from Ascension. Full exotics/fragments/mod interactions, animation, formal subclass assembly, HUD, assets and physical-world persistence remain incomplete."
+  ],
+  "validation": {
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+    "world_test": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+    "synthetic_calibration": "common/src/test/resources/effects/acrobat_dodge_test_calibration.json"
+  }
+}

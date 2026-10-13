@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-13T11:33:26.207983+00:00",
-  "status": "research_pending_implementation",
+  "status": "partially_implemented",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=527596209",
     "file": "data/d2-research/2026-10-13/marksman-ammo-class.html.gz",
@@ -45,10 +45,11 @@
   },
   "engine_dependency": "Generic capture_input_direction captures held movement input independently of facing and velocity, and distinguishes observed neutral from unavailable observations. Existing capture_direction still supplies LOOK/HORIZONTAL facing without storage-shape changes. The prerequisite passed core tests and full Fabric / NeoForge world gates; Acrobat content remains pending.",
   "pending": [
-    "Actual leap and skill-completion lifecycle. Verify the modern airborne completion trigger: the older upon landing wording alone does not establish whether completion requires terrain contact or an animation phase. Do not claim either policy as verified.",
-    "Required trajectory and completion-timing calibration; inclusive 10 m allies and 6.5 m enemies, explicit unknown damage falloff and world-unit scaling.",
-    "Shared Radiant and per-recipient Solace, 56 / 148.4 second baseline, .5 CES and current selected class account.",
-    "Ascension uses the selected dodge benefit without replaying leap, paying twice or emitting a second class use; precise damage/timing transfer remains to be verified.",
-    "Production subclass/skill assembly, animation, HUD, full interactions and world persistence."
-  ]
+    "Modern airborne completion timing is unresolved. Required completion_delay represents a calibrated animation-phase policy in these reference tests, not proof that physical terrain contact is or is not required.",
+    "Synthetic impulses are 6 m/s horizontal plus 4 m/s upward, idle direction is backward and completion delay is .2 s. No original animation, displacement curve, friction compensation, velocity replacement or client prediction has been measured.",
+    "Synthetic blast falloff is linear from full at zero to zero at 6.5 meters, with .1 damage-unit projection. Public peak/radius values do not establish this curve or world conversion. Damage classification follows combatant / Guardian targets independently of the mode-specific cooldown.",
+    "Ascension shared delay .2 s and whether its selected dodge transfers the Solar explosion remain unverified. The event is a Chorus content extension point, not a newly claimed Bungie lifecycle event.",
+    "Class regeneration stat curve and any Acrobat-specific damage scaling above 100 Class are not inferred from Ascension. Full exotics/fragments/mod interactions, animation, formal subclass assembly, HUD, assets and physical-world persistence remain incomplete."
+  ],
+  "implementation": "data/d2-research/2026-10-13/acrobat-dodge.json"
 }

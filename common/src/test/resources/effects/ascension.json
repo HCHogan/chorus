@@ -349,6 +349,10 @@
               ]
             },
             {
+              "type": "chorus:emit",
+              "event": "chorus_d2:ascension_dodge_benefits"
+            },
+            {
               "if": {
                 "type": "chorus:event_reference",
                 "name": "cost_ability",

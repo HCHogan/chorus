@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-13：Acrobat’s Dodge 与 Ascension 的完成阶段收益
+
+新增 Acrobat’s Dodge 参考定义，使用现有输入方向、原生冲量、生命引用、detached after、范围查询、Radiant 和职业账户实现。地面 / 空中均可接受，实际按键方向决定水平冲量；中立方向政策和水平 / 竖直速度由必填参数提供。完成延迟后重新解析同一生命，向自己和十米内盟友按各自 Solace 授予 Radiant，并向 6.5 米内敌人计算 40 / 20 峰值乘显式衰减与伤害单位换算。职业基准为 PvE 56 / PvP 148.4 秒，CES 为 .5；沿用 class_regeneration / class_gain，清槽后保留账户暂停回充的参考政策与 Gambler 一致。
+
+Ascension 在已观察位移分支中发出 `chorus_d2:ascension_dodge_benefits` 数据事件，携带原施放的 ability / cost_ability 引用；所选 Acrobat 来源捕获同一生命并安排共享收益。开发中曾用 ability_started 作为入口，新增已知位移失败用例证明该入口过早，现改为位移回执之后；既有 EventAbilityTag 的规范事件限制保持不变。已观察但未移动的回执仍允许收益，缺失 / 未加载等已知失败不安排收益，未知世界结果继续停机。共享收益不重做闪身、第二次付款或第二次职业施放，延迟期间卸装不替换已捕获归属。
+
+10 项核心测试覆盖双模式 / 空地施放、付款与 CES、基准回充与换槽、中立 / 缺失输入、两轴命令、受益者 Solace 与拒绝、同一生命 / 替换、领域恢复、未知结果，以及 Ascension 不传 / 传递爆炸两种显式配置。6 项共享世界场景通过实际按键包、真实速度 / 扣血、完成时当前位置与范围端点、空中中立输入、Ascension 位移与支付、死亡前后查询和未知授权验证主要链路；夹具在安装运行时前等待实体索引就绪。定向核心与 Fabric 验收已通过。
+
+原表与公开更新的边界见[研究记录](../data/d2-research/2026-10-13/acrobat-dodge.json)。6 / 4 米每秒增量、后退中立方向、.2 秒动画阶段完成、线性衰减和 .1 换算均为合成校准。空中施放的精确完成条件尚未确认，不能把时间续体称为原作落地事件；原生速度回执也不证明完整客户端轨迹。Ascension 测试默认只传 Radiant，另一核心配置允许传爆炸，两者的原作对应关系仍待确认。正式子职业、全组合、HUD / 动画 / 素材和物理世界持久化未完成，覆盖新增一条 partial。
+
+最终 `build/reports/acrobat-dodge/content-final-gate.log` BUILD SUCCESSFUL，2 分 57 秒：2035 项 JUnit 无失败 / 错误 / 跳过，Fabric 1160 / NeoForge 1175 项世界测试通过，共享 GameCase 1159 项。651 项存储形状和两份历史检查点保持不变，本批无生产 Java 改动。双端发布 jar 为 1268 / 1261 项，全部 1169 / 1162 个生产类与 27 个 PNG/JSON 素材匹配构建输出，无测试泄漏，三份变更规则与双端验收资源一致。Gradle CRLF、原始来源哈希、10 项 Compendium 工具测试及覆盖报告检查通过；审阅为 121 partial / 2 not_applicable / 0 verified。无 UI / 协议改动，未重复图形客户端验收；汇总见 `build/reports/acrobat-dodge/content-audit.json`。
+
 ### 2026-10-13：捕获实际玩家移动输入方向
 
 Acrobat’s Dodge 的前翻需要读取移动输入，既有 capture_direction 只有完整视线和水平朝向。新增通用 capture_input_direction 与 InputDirection 查询 / 回执，读取服务器收到且已过滤的按键，按当前 yaw 转成水平单位向量；相反按键抵消，斜向归一化，俯仰和已有速度不参与。中立输入、目标缺失 / 死亡 / 未加载、非玩家宿主分别保留语义，不自动猜一个朝前方向。

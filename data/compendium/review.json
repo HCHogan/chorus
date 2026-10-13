@@ -12893,13 +12893,14 @@
         "Marksman实际装备弹匣/备弹转移，Gambler延迟两充能收益；施放后换槽或清槽不替换已接受的收益、不重做闪身位移或支付。",
         "核心混合目标分类、Class属性校准、共享Jolt首击计数、未知动作停机及检查点恢复；组合职业物品先由Kickstart消费充能，再逐球按当前缺口补充。",
         "Marksman共享15米原始弹药砖拾取；上升后当前位置包含端点，后续清槽仍保留已提交换弹，详见marksman-ammo研究。",
-        "Prismatic Winter’s Shroud 的上升前目标捕获、共享 Slow/Freeze 与 Jolt/Amplified 组合已在真实世界验收；精确动画帧是待校准的 Chorus 政策。"
+        "Prismatic Winter’s Shroud 的上升前目标捕获、共享 Slow/Freeze 与 Jolt/Amplified 组合已在真实世界验收；精确动画帧是待校准的 Chorus 政策。",
+        "已观察位移后的共享收益入口接入Acrobat；同一生命、换槽后延迟Radiant与不重复闪身/付款通过组合验收。爆炸是否转移仍为显式校准策略。"
       ],
       "gaps": [
         "3米碰撞位移、0.2秒收益延迟、Guardian伤害7及其无额外Class倍率均为合成校准；原作竖直速度/高度、动画时点、PvP伤害与Class曲线、范围衰减、伤害单位投影仍未确定。",
         "181是表格最大战员伤害，当前10米内统一采用该最大值；100–200 Class线性插值只在校准夹具，原表/Clarity仅支持65%上限。共享Amplified 15秒及Jolt 10/5秒沿用现有状态模板，来源特例和完整缩放待校准。",
         "初次爆炸会进入新Jolt的计数；该时序、免疫/取消/致死的状态资格、范围内先后死亡和多个Jolt连锁的原作边界仍需校准。",
-        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge等其余职业技能收益、完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
+        "Arc Staff内重复Ascension的超能支付尚未实现；Acrobat’s Dodge共享收益已接线但精确时序/爆炸转移仍需确认，完整金装/碎片/模组交互待接线。Marksman拾取已接共享收益，但原作拾取中心/时序待校准；闪身追踪/瞄准辅助规避窗口未作为Ascension收益继承，需独立原作证据。",
         "参考定义仍在测试资源；正式Aspect/子职业目录、装备约束、空中动作键位/UI/动画/素材、物理世界跨重启恢复尚未完成。纯领域检查点不代表世界持久化。"
       ],
       "id": "arc/ascension",
@@ -13021,6 +13022,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
           "symbol": "ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "actualAscensionPaysAcrobatAccountAndRetainsOnlyConfiguredSharedBenefits"
         }
       ]
     },
@@ -13174,6 +13180,138 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/WintersShroudGameTest.java",
           "symbol": "unknownSlowAuthorizationKeepsPaidEnergyAndDefenseAndNeverRetries"
+        }
+      ]
+    },
+    {
+      "id": "class/acrobat_dodge",
+      "name": "Acrobat's Dodge",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Class Abilities",
+          "cell": "B4",
+          "text_sha256": "c00898c38867be2c4af8a0d6e4df512b48a3790ed914973a26071413916334bb"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "D4",
+          "text_sha256": "906e01ad3ead5cc9995fc1fb3437b76b2c99660bd5aba83b75ca41e7558ed72d"
+        },
+        {
+          "sheet": "Class Abilities",
+          "cell": "N4",
+          "text_sha256": "89b43de8141cea02b696546716ffb47808c01cd17dd13f49f965a997caebb083"
+        }
+      ],
+      "scope": "实际移动输入、双轴原生冲量、同一生命的校准完成阶段、共享Radiant与受益者Solace、敌人范围伤害、职业基准回充/CES，以及Ascension共享收益。",
+      "acceptance": [
+        "地面与空中接受一次职业支付；方向来自真实按键，未知与中立分离；水平/竖直实际速度先于延迟收益。",
+        "10米盟友范围与6.5米敌人范围按完成时位置查询；受益者Solace分别计算，真实生命损失验证合成衰减。",
+        "56/148.4秒模式基准和.5 CES；换槽后保留账户按当前参考政策暂停回充。",
+        "换装、换键和领域恢复保留施放归属；同一生命已失效时取消收益，未知世界结果保留已付成本且不重放。",
+        "Ascension只在位移结果已观察后发共享入口，复用Radiant而不重做闪身/支付；可配置爆炸传递的另一分支以核心测试保留原Ascension归属。"
+      ],
+      "gaps": [
+        "6/4米每秒增量、后退中立方向和.2秒完成延迟是合成校准；新版空中施放的完成条件与原作运动/动画仍未确定。",
+        "40[20]峰值与6.5米半径不能确定衰减；线性衰减、.1伤害换算、无视线球形查询、脚部锚点和完成时快照均为显式测试政策。",
+        "Ascension传递爆炸与精确共享收益时机待确认；Class属性曲线、全部碎片/金装/模组组合尚未完整校准。",
+        "仍为测试资源中的参考定义，正式子职业装配、HUD/动画/素材、真实客户端轨迹和物理世界跨重启恢复未完成。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/acrobat_dodge.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/acrobat_dodge_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-13/acrobat-dodge.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "requiredCalibrationFailsBeforePaymentAndDefinitionsRoundTrip"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "bothModesAcceptGroundOrAirUseAndPayOnceBeforeTwoRealMotionCommands"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "neutralUsesExplicitCalibrationWhileUnavailableInputNeverInventsMotionOrBenefits"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "sameLifeCompletionSurvivesUnequipNewInputAndCheckpointButRejectsDeathOrReplacement"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "recipientSolaceAndAuthorizationDoNotLeakCasterDurationToOtherAllies"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "baselineModeCesAndUnselectionUseTheSameSelectedClassAccount"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "ascensionReusesRadiantWithoutLeapSecondPaymentOrWrongDamageAttribution"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "onlyObservedAscensionMotionCanTransferBenefitsAndConfiguredBlastKeepsAscensionCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "rejectedImpulseSkipsCompletionWhileKnownUnchangedMotionCanComplete"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/AcrobatDodgeTest.java",
+          "symbol": "unknownMotionOrLaterBenefitRetainsPaymentAndNeverReplaysCommittedWork"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "actualInputSetsHorizontalAndVerticalVelocityBeforeDelayedSameLifeBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "completionUsesCurrentCasterPositionAndRecipientSolaceWithRealEnemyDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "airborneNeutralUsesTheExplicitCalibratedBackwardFallback"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "actualAscensionPaysAcrobatAccountAndRetainsOnlyConfiguredSharedBenefits"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "actualDeathBeforeCompletionPreventsRadiantAndBlast"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/AcrobatDodgeGameTest.java",
+          "symbol": "unknownCompletionAuthorizationRetainsPaymentAndNativeVelocityWithoutReplay"
         }
       ]
     }

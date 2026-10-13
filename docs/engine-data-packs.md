@@ -2074,6 +2074,18 @@ Minecraft 26.3 接线覆盖全部九个 `RangedAttackMob` 实现：骷髅系、�
 
 Acrobat’s Dodge 是该能力的内容需求之一，但 `input_direction.json` 仅为通用验收夹具，不等于已实现跳跃、完成时授予 Radiant 或 Ascension 的完整收益。五项 InputDirectionTest 和三项 InputDirectionGameTest 验证方向、输入限制、原生延迟冲量、未知边界及纯领域恢复；真实轨迹和技能完成时机仍须由内容另行表达。原表的 “upon landing” 与新版允许空中施放要一起核实，不能仅凭旧描述认定完成条件必定是接触地面。
 
+## Acrobat’s Dodge 参考技能与共享收益
+
+[acrobat_dodge.json](../common/src/test/resources/effects/acrobat_dodge.json) 装配已有引擎动作，不引入技能专用 Java 分支。职业槽声明独立 `acrobat_dodge_energy`：容量 / 初值一格、CES .5，所选技能来源把共享 class_regeneration 的基础速率替换为 PvE 1/56、PvP 1/148.4，并限定到该账户；stat 与额外基础回充继续使用共享阶段。未选中时该账户 base_rate 为零，已付余额保留。这是当前参考内容的换装政策，不是完整的 Destiny 换装惩罚模型。
+
+原生施放需要 horizontal_speed / vertical_speed（meter_per_second）、neutral_heading_sign（multiplier）、completion_delay（second）四个明确校准输入。先捕获生命引用和实际移动输入；有输入沿输入方向，中立输入沿另行捕获的水平朝向乘 neutral_heading_sign。随后发出水平和竖直两次速度增量操作，只有每次回执为 observed 才安排后续阶段。它们是 additive impulse，不承诺原作位移曲线。缺失校准在技能接受前报错；世界操作未知时保留已付能量和已有速度，不重新执行。
+
+完成阶段通过 detached after 保留生命引用和原施放，转身、换键和清槽不改写这些捕获值；解析时生命被替换、缺失或已死亡便结束。共享 `acrobat_dodge_benefits` 调用现有 Radiant / solar_effect_duration，对自己和十米内盟友逐个计算十秒基础时长与受益者自己的 Solace，再经 apply_status 授权。敌人范围为 6.5 米，按目标类型选择 40 / 20 峰值，再乘必需的 acrobat_dodge_falloff 与 acrobat_dodge_damage_scale 校准 Profile，最后进入 outgoing。查询使用完成时当前脚部位置、稳定身份顺序、无视线球形范围；这些空间 / 快照细节是显式内容政策。
+
+Ascension 在有效位移回执分支发出 `chorus_d2:ascension_dodge_benefits`，payload 沿用原接受事实。Acrobat 所选来源检查该数据事件的 ability / cost_ability 引用后捕获生命，使用独立 acrobat_ascension_delay 安排同一份收益，保留 Ascension 归属。该扩展事件不是规范 ability_started / ability_used，不能用只接受规范事实的 event_ability_tag 来识别它。已观察但未改变位置可以触发，已知不可用的位移不会触发；普通职业模组仍只收到一次原始职业施放事实。
+
+[校准夹具](../common/src/test/resources/effects/acrobat_dodge_test_calibration.json) 使用 6 / 4 米每秒增量、后退中立方向、.2 秒完成延迟、线性衰减及 .1 世界伤害换算。acrobat_ascension_damage 决定是否连同爆炸传递：默认合成值零只授 Radiant，核心测试另验证值一传爆炸。新版允许空中使用，但公开来源尚未确定精确完成帧或必须接触地形；时间续体是待校准的完成阶段政策。两种 Ascension 爆炸配置、动画 / 速度曲线、Class 属性曲线、正式装配与完整组合均未达到原作完整验收。
+
 ## 一次性物理冲量与派生方向
 
 `chorus:apply_impulse` 在一次明确的世界操作中向目标当前速度加上冲量；单位为 meter_per_second。它接受已捕获的方向，不在执行或回执阶段重读施放者朝向，也不直接移动位置：

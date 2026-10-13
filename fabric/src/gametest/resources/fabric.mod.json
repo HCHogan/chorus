@@ -226,7 +226,8 @@
       "com.imdomestic.chorus.AscensionGameTest",
       "com.imdomestic.chorus.MarksmanAmmoGameTest",
       "com.imdomestic.chorus.WintersShroudGameTest",
-      "com.imdomestic.chorus.InputDirectionGameTest"
+      "com.imdomestic.chorus.InputDirectionGameTest",
+      "com.imdomestic.chorus.AcrobatDodgeGameTest"
     ],
     "fabric-client-gametest": [
       "com.imdomestic.chorus.EquipmentClientGameTest",
