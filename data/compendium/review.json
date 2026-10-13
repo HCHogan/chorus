@@ -14728,7 +14728,7 @@
           "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
         }
       ],
-      "scope": "真实付费物理投掷与5米碰撞伤害、独立4米持续场、目标分类的小数灼烧、Touch真实熔岩球与无衰减爆炸、199.5秒/CES .5回充及实际Heat Rises消费。",
+      "scope": "真实付费物理投掷与5米碰撞伤害、独立4米持续场、目标分类的小数灼烧、Touch真实熔岩球与无衰减爆炸、199.5秒/CES .5回充及实际Heat Rises消费。 Sunbracers两秒延长/校准Fastball与限时回能已通过真实组合。",
       "acceptance": [
         "命中63/20及17/21.5或10/20灼烧；场78/25每.267秒，按实际接收者玩家类别分支；共享Scorch保留小数与原手雷信用。",
         "每次施放独立场实例及own_timer，当前BODY/视线/敌我查询与写入边界生命核对；Touch/Ashes与进攻快照在接受时固定，卸装不取消。",
@@ -14741,7 +14741,7 @@
         "初始弹道/偏移/衰减、熔岩球间隔/数量/弹道/分布/爆炸半径、目标等级和.1生命投影须原作校准；.6秒一弹及均匀方位只为显式测试输入。",
         "跨玩家重叠、强弱场优先及相位未核实；当前目标共享.267秒APPLIED门槛是Chorus政策，只限制场伤害，不限制独立灼烧和熔岩球。BODY/视线/阵营/来源失联及快照时点也须校准。",
         "官方2025-07-31全文的Touch减伤10%与当前表基准关系未核实，不重复乘.9。完整等级/活动/力量及构造物倍率未完成。",
-        "Touch已有四种参考分支，但完整Aspect/子职业选择、Sunbracers等金装与模组/神器全组合、生产目录、HUD/素材与物理世界跨进程重启未完成；定义在验收资源。"
+        "Touch已有四种参考分支，但完整Aspect/子职业选择、Sunbracers完整原作校准及其他金装/模组/神器全组合、生产目录、HUD/素材与物理世界跨进程重启未完成；定义在验收资源。"
       ],
       "evidence": [
         {
@@ -14864,6 +14864,149 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
           "symbol": "unknownNativeFieldHitPreservesCommittedHpAndCannotReplay"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "actualPoweredKillArmsAndEveryPhysicalThrowPaysFromTheTimedRegeneration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "capturedFastballAndTouchLifetimePersistAfterUnequippingBothSources"
+        }
+      ]
+    },
+    {
+      "id": "armor/sunbracers",
+      "name": "Sunbracers",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Exotic Armors",
+          "cell": "G80",
+          "text_sha256": "4bfa6e7638420eafd1aceda4247dccf639dc6c5c87a0a7f20eb038ded7dd073b"
+        },
+        {
+          "sheet": "Exotic Armors",
+          "cell": "I80",
+          "text_sha256": "a575ee7dc1c46afa646cdedf83ba52225b4d7df2b6b0bcb8fba779f4100b5694"
+        }
+      ],
+      "scope": "实际近战投射物击杀回执到5秒Ready、付费手雷使用到4秒额外基础回能；仅所选Solar Grenade接收，延长2秒与校准Fastball，组合Touch/Heat Rises/Benevolence及卸装生命周期。",
+      "acceptance": [
+        "Ready不立即发能量；费用不足不消费。实际接受的手雷使用消费Ready并开启200倍额外基础回能，逐次支付，不设置无限余额或固定投掷次数。",
+        "实际Lightweight Knife物理击杀验证powered-melee来源资格；普通手雷击杀不触发，未确认的死亡回执不发奖励。测试混合职业生产者不代表合法Warlock配装。",
+        "基础4/Touch6秒加2秒；独立Fastball源参数在接受时通过profile取样。重复来源不翻倍，武器Solar效果不借用技能修饰，已接受的场在卸装后保留。",
+        "共享手雷账户在切换时分段积分；Sunbracers与Benevolence加在属性缩放前的基础速率上，Benevolence的-10属性照常生效；一次性回能不乘爆发倍率。",
+        "Ready/活动状态与回执保存领域检查点；60秒死亡ID去重、不同有效击杀可再准备；最后一个金装来源卸下清理活动状态，已提交未知发射不回滚付款或重放。",
+        "实际长按Heat Rises消费Solar费用并激活回能，不发射手雷；Touch持续场的延长/发射在卸装后继续。"
+      ],
+      "gaps": [
+        "当前表199.5秒基准与Clarity约132%/秒不一致；官方2024投掷数和2025属性调整不能直接给出当前完整公式。保留原表20000%额外基础率，不宣称已经校准原作每档回能。",
+        "Fastball每种手雷强度未知；.25投速delta、继承4.25/6.25并加2秒的场时序、动画/投掷频率均为显式校准。五次付费测试包含初始与截止点投掷，不等于原作投掷次数验收。",
+        "活动期重新准备、重复Ready刷新、近战衍生灼烧/点燃资格、Heat Rises消费、换装/切换/死亡政策尚待原作验证；官方旧物品Solar melee和社区Powered Melee文字差异保留。",
+        "真实Warlock技能生产者、子职业/装备限制、生产目录、所有金装/碎片/神器组合、HUD/素材和物理世界跨进程重启未完成。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/sunbracers.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/solar_grenade.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/sunbracers-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "paidPhysicalKnifeReceiptArmsFiveSecondsWithoutGivingAnyImmediateGrenadeEnergy"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "passiveLifetimeAndFastballAreCapturedAndDuplicateExoticsDoNotMultiplyThem"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "weaponCreatedSolarEffectsCannotBorrowTheGrenadeAbilityLifetimeOrFastballModifiers"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "activationConsumesReadyAndPaysEachThrowUsingAdditionalBaseRegenerationUntilItsExactEnd"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "onlySelectedSolarGrenadeReceivesTheBurstAndSwitchingAccountsSplitsRegeneration"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "statAndBenevolenceAreAdditiveToTheUnscaledBaseAndBurstDoesNotAlterChunkGains"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "duplicateDeathCannotRearmButANewPoweredKillCanRearmDuringTheActiveWindow"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "unpoweredAndForeignKillFactsCannotArmEvenWhenTheirDamageWasLethal"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "removingTheLastExoticStopsRegenerationButRetainsPreviouslyAcceptedPhysicalField"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "heatRisesConsumesTheSelectedSolarChargeAndStartsTheBurstWithoutThrowing"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+          "symbol": "unknownKillDoesNotArmAndUnknownPaidLaunchCannotRefundReplayOrRollBackTheActivatedBurst"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "actualPoweredKillArmsAndEveryPhysicalThrowPaysFromTheTimedRegeneration"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "capturedFastballAndTouchLifetimePersistAfterUnequippingBothSources"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "heatRisesUsesTheSelectedSolarCostAndActivatesTheSameRegenerationWithoutThrowing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "actualSolarGrenadeKillCannotSubstituteForAPoweredMeleeKill"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "removingTheExoticSplitsActualRechargeWithoutDeletingAlreadyAcceptedFields"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+          "symbol": "unknownNativePoweredKillKeepsItsWorldDeathButCannotInventReadyOrReplay"
         }
       ]
     }

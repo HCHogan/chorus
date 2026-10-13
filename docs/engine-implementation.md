@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：Sunbracers 的击杀准备态与太阳手雷组合
+
+新增 Sunbracers 参考定义：确认的充能近战击杀创建 5 秒 Ready，接受且付款的手雷动作消费 Ready 并创建 4 秒活动状态；只有当前选择的 Solar Grenade 接收账户获得额外 200 倍基础恢复，不修改一次性回能或创建无限余额。被动延长 2 秒、必填校准 Fastball 由数值 Profile 处理，重复来源按家族取高，武器 Solar 效果不能借用技能修饰。卸下最后一个金装来源清理准备 / 活动状态，已接受场和投射物保留原参数。本批没有生产 Java 或存储类型变更。
+
+11 项 `SunbracersTest` 覆盖真实 Lightweight Knife 伤害回执、Ready 精确边界与费用不足、逐次付费回能、Fastball / Touch 取样、重复来源、武器事件隔离、选择切换、Benevolence 的额外基础率及 −10 属性、一次性收益保持、死亡 ID 去重与独立重新准备、卸装 / 领域恢复、Heat Rises 消费、未知死亡 / 发射不重放。6 项共享原生场景通过实际物理近战击杀、连续真实投掷、Touch 延长场、Heat Rises、手雷击杀排除、卸装恢复分段和未知已提交死亡。使用现有 Lightweight Knife 证明 powered-melee 接口，不代表合法 Warlock 配装或其全部近战生产者。
+
+定向 `/tmp/chorus-sunbracers-targeted5.log` 通过 23 项核心回归、全部 6 项 Fabric 场景及 NeoForge 测试编译（15 秒）。开发中数值预期遗漏了 Benevolence 的 −10 手雷属性及完整一次性收益曲线，已按实际已声明 Profile 修正组合断言。新增武器事件隔离后发现 `profile_value` 刻意使用独立只读上下文，无法提供施放事件资格；Solar 的 field_time 与 speed 改用现有技能参数 profile 字段，在接受阶段带真实事件计算，未扩大只读查询权限或放松解析器。
+
+完整 `/tmp/chorus-sunbracers-full-gate2.log` BUILD SUCCESSFUL（3 分 12 秒）：2206 项 JUnit 无失败 / 错误 / 跳过、Fabric 1274 项、NeoForge 1289 项世界测试及两端发布 jar 通过，共享场景 1273 项。`build/reports/sunbracers/audit.json` 核验 673 项存储形状完全未变、发布主类 1199 / 1192 个字节匹配、无测试泄漏和 Gradle CRLF 保持。10 项 Compendium 工具测试、两格 Sunbracers 原表 / 固定快照、两个 Fastball 快照格、固定 Clarity 子集、沿用的七格 Solar 原表与哈希及报告一致性通过。本批未改生产 Java、原生钩子、UI 或网络，未重复图形客户端验收。
+
+原表 G118/I118 与固定快照 G80/I80、两个 Fastball 快照格及固定 Clarity 子集已归档。Clarity 约 132%/秒与原表 199.5 秒基准的算术差异、2024 / 2025 官方调整的适用范围，以及再准备 / 热力升腾 / 原生投掷频率等政策保留校准缺口。Compendium 新增一条 partial，合计 132 条审阅（130 partial、2 not_applicable、0 verified）。完整 Warlock 技能生产者、职业 / 装备装配、生产目录、全部组合、HUD / 素材和物理世界跨重启仍未完成。详见 [Sunbracers 数值与来源](d2-ruleset.md#sunbracers-的准备窗口基础回能与投掷修饰) 和 [组合契约](engine-data-packs.md#sunbracers消费准备态与限定接收账户)。
+
 ### 2026-10-14：Solar Grenade 的持续场与独立物理熔岩球
 
 新增 Solar Grenade 参考定义、199.5 秒 / CES .5 选择期回充与独立校准文件。真实付费投掷接触实体或地形后创建独立固定场，初始 5 米伤害和小数 Scorch、4 米周期伤害、PvP 小数周期施加及 PvE 自然到期施加分别组合。Touch 保存延长寿命与实际向上发射的熔岩球，真实碰撞后执行无范围衰减的爆炸。进攻快照与 Touch / Ashes 在接受时固定；每跳重新选择当前敌人，写入边界复核生命，已发弹体在场结束后保留参数与原手雷信用。实际长按 Heat Rises 消费本手雷且不投掷。本批仅组合已有 DSL，没有新增生产 Java 特例。

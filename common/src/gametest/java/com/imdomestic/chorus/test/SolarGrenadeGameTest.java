@@ -21,8 +21,9 @@ public class SolarGrenadeGameTest {
         for(String name:List.of("solar_grenade","solar_grenade_energy")){var part=ThreadedSpikeGameTest.json(name);if(name.equals("solar_grenade"))AscensionGameTest.calibrate(name,part);GamblersDodgeGameTest.merge(data,part);}
         GamblersDodgeGameTest.merge(data,ThreadedSpikeGameTest.json("solar_grenade_test_calibration").getAsJsonObject("program"));AscensionGameTest.version(data);
     }
-    static final class Scenario extends FireboltGameTest.Scenario {
-        Scenario(GameTestHelper h)throws Exception {super(h,SolarGrenadeGameTest::prepare,ABILITY);}
+    static class Scenario extends FireboltGameTest.Scenario {
+        Scenario(GameTestHelper h)throws Exception {this(h,SolarGrenadeGameTest::prepare);}
+        Scenario(GameTestHelper h,java.util.function.Consumer<JsonObject> prepare)throws Exception {super(h,prepare,ABILITY);}
         EffectState state(){return t.runtime.state().engine().domain();}
         List<BuffInstance> fields(){return state().buffs().instances().values().stream().filter(b->b.definition().id().equals(FIELD)).toList();}
         WorldPosition center(){return fields().getFirst().components().positions().get("anchor").orElseThrow();}

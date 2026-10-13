@@ -2147,3 +2147,17 @@ Touch / Ashes、四份场与熔岩球进攻快照、参数和固定位置保存�
 其余合成校准为：初始弹体 20 m/s、重力 15 m/s²、drag 1、寿命 3 秒；场中心偏移碰撞法线 .03 米加竖直 .5 米。Touch 在 1 秒后开始，每 .6 秒发一个真实熔岩球，速度 6 m/s、重力 12 m/s²、drag 1、寿命 2 秒；方位在 0～2π 均匀抽样、竖直比例 1、发射高度 .2 米，碰撞爆炸半径 1.5 米、法线 .03 米加竖直 .1 米偏移。初始碰撞衰减为每米减 .15、五米处 .25 倍，世界伤害投影 .1；场和熔岩球没有该衰减阶段。上述值、分布、视线 / 阵营政策、快照时点与目标等级倍率仍须原作校准。
 
 Touch 现在有 Healing / Firebolt / Fusion / Solar 四种参考分支，资格仍由可信来源标签提供。完整 Aspect / 子职业选择、Sunbracers 等金装与模组 / 神器全组合、正式生产目录、HUD / 素材和物理世界整体重启仍未完成；定义在验收资源中，Solar Grenade 维持 partial。
+
+## Sunbracers 的准备窗口、基础回能与投掷修饰
+
+2026-10-14 核对 [原表 Exotic Armors G118/I118](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1500097863)，与固定快照 G80/I80 规范化一致：名为 Solar Grenade 的手雷自带 Fastball、延长 2 秒；充能近战击杀给予 5 秒 Ready，手雷使用时给予 4 秒 Sunbracers，其间额外基础手雷回能率 +20,000%。[固定 Clarity Helium Spirals / Fastball 子集](../data/d2-research/2026-10-14/sunbracers-clarity.json) 进一步限定必须选择 Solar Grenade，持续时间为 4→6 秒、Touch 6→8 秒；Fastball 约增加 25% 投速。完整来源、归档哈希、坐标和检索限制见 [研究记录](../data/d2-research/2026-10-14/sunbracers-source.json)。
+
+`sunbracers.json` 要求击杀属于佩戴者、具有 melee_kill 和保留的 melee_ability 来源资格，且当前选择 Solar Grenade。确认的击杀给予 Ready，不立即加能量；接受并付款的手雷动作消耗 Ready，再授予活动 Buff。费用不足不消费 Ready，未知死亡回执不触发奖励。当前允许活动期间另一场有效近战击杀重新准备、下一次使用重置活动 4 秒；相同 death_id 在显式 60 秒回执保留期内不重复触发。此刷新 / 再准备政策依照表中文字表达，仍需原作交互实测，未加全局反循环限制。
+
+回能贡献使用 `grenade_regeneration.additional_base` 的 base_percent，值为 delta 200，引用选择期 `base_rate`。即普通属性缩放项加 `200 × 基础速率`，不把结果替换为无限余额，也不再乘 CES 或改变一次性 grant_energy。Benevolence 单独增加 `3 × 基础速率`，其 −10 手雷属性仍先参与普通属性曲线。切换成 Firebolt 等其他手雷时，Sunbracers 不增强它们的共享账户恢复；切回后只在剩余活动时间内恢复资格。当前换装和共用余额政策仍不代表原作能量惩罚。
+
+来源存在明确数值差异：Clarity 同时写约 132%/秒，而固定原表 Solar 基础周期为 199.5 秒；零属性下 `201 / 199.5 ≈ 100.75%/秒`，`201 / 152 ≈ 132.24%/秒`。后一个算式说明其近似值可能沿用了旧基准，但不能据此断言版本原因。[官方 8.0.0.1](https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1) 的搜索索引段落说明历史持续时间由额外 4 秒改为 2 秒、调节回能以减少连续投掷数，并修复投掷后 Ready 未清除；本次全文与备用域名未读取成功。[官方 2025-07-31 正文](https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025) 说明属性重做以 70 点手雷属性保持原效能，但没有给出完整现行公式。当前实现保留原表额外基础率，不拼出“已经校准的当前 D2 回能曲线”，也不硬编码四次或五次投掷上限。
+
+被动延长在 `solar_grenade_lifetime` 的 exotic 阶段加 2 秒，再进入独立相位校准；测试因此得到 6.25/8.25 秒，原表对应的是 6/8 秒。投速通过技能参数的 profile 在接受时取样，必填源参数 `fastball_speed_delta` 在测试中为 .25，使 20 m/s 变为 25 m/s；强度随手雷变化，未视为精确原作弹道。两项修饰要求 Solar Grenade 技能事件标签，武器生成的 Solar 效果不能借用；重复金装来源按家族取高，不重复加 2 秒或投速。此接口也不代表已经完成所有手雷的 Fastball 模组接入。
+
+最后一个带资格标签的金装来源卸下会清理 Ready / 活动回能 / 回执状态；已接受的场、投射物和伤害仍保存原参数。Heat Rises 消费所选 Solar 的实际费用并激活同一窗口，没有投掷动作；该组合、活动期再准备、近战衍生灼烧 / 点燃的具体资格、死亡与换装政策都需原作验证。原生验收以现有 Lightweight Knife 的真实击杀证明 powered-melee 接口，这不是合法 Warlock 配装验收。Incinerator Snap / Celestial Fire 等生产者、完整职业 / 装备限制、生产目录、所有金装 / 碎片 / 神器组合、HUD / 素材和物理世界跨进程重启仍未完成，Sunbracers 维持 partial。

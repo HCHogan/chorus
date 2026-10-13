@@ -4021,3 +4021,13 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 熔岩球发射前读取场位置、伤害快照、爆炸半径和接触偏移，保存到独立续体，再用 sample_random、cosine 和 world_direction 生成真实飞行方向。实体 / 地形接触重新查询附近敌人，使用不含 radial 阶段的伤害快照；领域恢复保留随机序列，场结束或卸装后仍在飞行的弹体不再读取已结束场组件。核心回归验证两场各发一弹、两个爆炸独立叠加；原生场景验证实际实体碰撞后两个不同距离目标同伤害。
 
 `solar_grenade_energy.json` 提供 199.5 秒 / CES .5，Heat Rises 消费实际选择的费用而不执行投掷。`solar_grenade_test_calibration.json` 单独提供物理参数、场启动与寿命 Profile、到期 Scorch Profile、命中门槛、熔岩球分布 / 周期、初始衰减及世界投影。测试值不补写成原表事实；时间线冲突、重叠政策和生产接入缺口见 [D2 规则](d2-ruleset.md#solar-grenade-的持续场独立熔岩球与校准边界)。
+
+## Sunbracers：消费准备态与限定接收账户
+
+`sunbracers.json` 用现有 Buff / kill / ability_started / 数值贡献组合。持有者的合格充能近战击杀创建 5 秒 Ready；只有已接受并付款的 grenade_ability 才消费它并创建 4 秒活动状态。不能用输入按键或尚未确认的伤害触发。`selected_ability_tag` 检查基础选择为 Solar Grenade，`selected_ability_event_resource` 限定活动修饰作用于实际被查询的接收账户；不把替换后的 Heat Rises 技能 ID 当成原选择，也不让其他手雷共享账户时获得错误加速。
+
+活动 Buff 自己拥有额外基础回能贡献；Ready 与去重状态仅拥有清理规则，避免三份状态各加一次倍率。声明 base_percent=200、percent_of=base_rate，沿用普通恢复、Benevolence 和切换账户的时间分段。死亡 ID 用显式 60 秒集合窗口去重，独立击杀仍可重新准备。最后一个带 sunbracers 标签的来源卸下清理该组状态，持有者死亡也清理；来源标签必须由可信装备装配提供。已知失败费用不消费 Ready；接受后未知发射结果保留已提交付款和状态，不重放。
+
+Solar 参考定义新增普通 `solar_grenade_throw_speed` Profile，speed 参数通过其 profile 字段在接受阶段计算；校准只替换原始 value，不覆盖修饰管线。Fastball 为家族 MAX 的 delta，来自必填 `fastball_speed_delta`，没有固定在 Java 投射物代码中。外部 `solar_grenade_lifetime` 契约增加 exotic ADD 阶段及 Sunbracers 家族 MAX，再进入原相位校准。两项被动贡献要求 actual grenade_ability + solar_grenade 事件标签，武器生成场不能借用；卸装不修改已接受投掷保存的数值。具体来源冲突、刷新与物理校准政策见 [D2 规则](d2-ruleset.md#sunbracers-的准备窗口基础回能与投掷修饰)。
+
+`field_time` 同样使用技能参数的 profile 字段，而不把带事件资格的修饰放进只读 `profile_value` 查询。后者有独立查询上下文，刻意不继承任意伤害 / 施放事件；前者使用本次接受的技能事件，因此可以验证技能标签并在付款前完成数值取样。来源隔离回归同时检查普通武器 Solar 事件仍为原始速度与未增强寿命。

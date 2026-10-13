@@ -1,0 +1,105 @@
+{
+  "2649291407": {
+    "hash": 2649291407,
+    "name": "Fastball",
+    "lastUpload": 1755815364903,
+    "type": "Armor Mod General",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Increases velocity of thrown grenade abilities by ~25%."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "2731901711": {
+    "hash": 2731901711,
+    "name": "Helium Spirals",
+    "itemHash": 950745251,
+    "itemName": "Sunbracers",
+    "lastUpload": 1767472203079,
+    "type": "Armor Trait Exotic",
+    "uploadedBy": "Stardust",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Only works with the "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Element Grenades named "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Grenade equipped."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Solar Grenades have Fastball intrinsically and last 2 seconds longer (4🠚6s normally, 6🠚8s with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Touch of Flame equipped)."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Powered Melee Kills grant 5 seconds of Sunbracers Ready. Using your Grenade Ability while Sunbracers Ready is active grants the Sunbracers buff."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "'Sunbracers' grants 20,000% Additional Base 'Solar Grenade' Regeneration Rate for 4 seconds. (Effectively recharges ~132% of a 'Solar Grenade' charge per second)"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

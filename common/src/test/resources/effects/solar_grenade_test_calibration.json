@@ -365,6 +365,20 @@
         "input_unit": "second",
         "steps": [
           {
+            "type": "chorus:apply",
+            "id": "exotic",
+            "operation": "add",
+            "group": {
+              "name": "exotic",
+              "reduction": "sum",
+              "families": {
+                "chorus_d2:sunbracers_duration": {
+                  "kind": "max"
+                }
+              }
+            }
+          },
+          {
             "type": "chorus:curve",
             "id": "calibrated_expiry",
             "curve": {

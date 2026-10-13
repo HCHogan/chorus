@@ -34,7 +34,8 @@
             "type": "chorus:event_number",
             "name": "calibration.speed",
             "unit": "meter_per_second"
-          }
+          },
+          "profile": "chorus_d2:solar_grenade_throw_speed"
         },
         "gravity": {
           "value": {
@@ -204,27 +205,23 @@
         },
         "field_time": {
           "value": {
-            "type": "chorus:profile_value",
-            "profile": "chorus_d2:solar_grenade_lifetime",
-            "target": "self",
-            "input": {
-              "type": "chorus:choose",
-              "if": {
-                "type": "chorus:has_source_tag",
-                "tag": "chorus_d2:touch_of_flame"
-              },
-              "then": {
-                "type": "chorus:constant",
-                "value": 6,
-                "unit": "second"
-              },
-              "else": {
-                "type": "chorus:constant",
-                "value": 4,
-                "unit": "second"
-              }
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:has_source_tag",
+              "tag": "chorus_d2:touch_of_flame"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 6,
+              "unit": "second"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 4,
+              "unit": "second"
             }
-          }
+          },
+          "profile": "chorus_d2:solar_grenade_lifetime"
         },
         "impact_scorch_combatant": {
           "value": {
@@ -2572,6 +2569,29 @@
           },
           "reference": "External Fusion radial calibration evaluated per detonation and frozen as impact data.",
           "confidence": "assumed"
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "chorus_d2:solar_grenade_throw_speed",
+      "version": "compendium-2026-10-05",
+      "input_unit": "meter_per_second",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "fastball",
+          "operation": "multiply",
+          "group": {
+            "name": "fastball",
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:fastball": {
+                "kind": "max"
+              }
+            }
+          }
         }
       ]
     }

@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "status": "partial_reference_content_with_explicit_calibration",
+  "reviewed_at": "2026-10-13T19:45:20.944914+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1500097863",
+    "gid": "1500097863",
+    "file": "data/d2-research/2026-10-14/sunbracers-exotic-armors.html.gz",
+    "html_sha256": "dd565658cd59b8a31a0dfeecb911e5873ca73ba2e17beb3ad1aa2f0e66c4983e",
+    "gzip_sha256": "887699d6ccfea2deffb8256a4b2b864342eda964b0d6209035d342645efe7109",
+    "cells": [
+      {
+        "original": "G118",
+        "text": "Sunbracers",
+        "text_sha256": "4bfa6e7638420eafd1aceda4247dccf639dc6c5c87a0a7f20eb038ded7dd073b"
+      },
+      {
+        "original": "I118",
+        "text": "The Solar-Element Grenades named \"Solar Grenades\" have Fastball intrinsically and last 2 seconds longer. Powered Melee Kills grant 5 seconds of Sunbracers Ready. On Grenade Ability Usage while Sunbracers Ready is active: Grants Sunbracers buff for 4 seconds. Sunbracers grants 20,000% Additional Base \"Solar Grenade\" Grenade Regeneration Rate.",
+        "text_sha256": "f2cf2dd8bd09417684f5ce45c226378c99954b963dc6b81dde286335f1b72d9c"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Exotic Armors",
+        "cell": "G80",
+        "text": "Sunbracers",
+        "text_sha256": "4bfa6e7638420eafd1aceda4247dccf639dc6c5c87a0a7f20eb038ded7dd073b"
+      },
+      {
+        "sheet": "Exotic Armors",
+        "cell": "I80",
+        "text": "The Solar-Element Grenades named \"Solar Grenades\" have Fastball intrinsically and last 2 seconds longer.\n\nPowered Melee Kills grant 5 seconds of Sunbracers Ready.\n\nOn Grenade Ability Usage while Sunbracers Ready is active:\nGrants Sunbracers buff for 4 seconds.\n\nSunbracers grants 20,000% Additional Base \"Solar Grenade\" Grenade Regeneration Rate.",
+        "text_sha256": "a575ee7dc1c46afa646cdedf83ba52225b4d7df2b6b0bcb8fba779f4100b5694"
+      }
+    ],
+    "supplementary_snapshot": [
+      {
+        "sheet": "Armor Mods",
+        "cell": "E4",
+        "text": "Fastball\n[1 Energy]",
+        "text_sha256": "b9a8338c6cd418a0550d1ceefb03e35d75b2b665f2de906fce591a7a7c531ec7"
+      },
+      {
+        "sheet": "Armor Mods",
+        "cell": "G4",
+        "text": "Grenades travel ~25% faster and farther.\nStrength of the effect varies between grenades.",
+        "text_sha256": "3661313fcd7674de9d918739e05ec4b98136d2661975a9eba5fa471032a0355b"
+      }
+    ],
+    "solar_numbers": "data/d2-research/2026-10-14/solar-grenade-source.json"
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "head_query": "https://api.github.com/repos/Database-Clarity/Live-Clarity-Database/commits?path=descriptions/clarity.json&per_page=1",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/sunbracers-clarity.json",
+    "selected_sha256": "f18933acb996ddaf7452c3ce8cc0b2fc2e6a2771834e93df3611801c8c996ba8",
+    "entries": [
+      "2731901711",
+      "2649291407"
+    ]
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/destiny_2_update_8_0_0_1",
+      "published": "2024-06-04",
+      "retrieval": "Official search-index excerpt; full page and alternate host did not load in web tool.",
+      "supports": "Historical extra duration reduced from four to two seconds; regeneration tuned for four versus five grenades; Ready should be removed when a grenade is thrown."
+    },
+    {
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025",
+      "published": "2025-07-31",
+      "retrieval": "Full article, Reported Issues / Warlock.",
+      "supports": "Stat rework intended comparable Sunbracers behavior at 70 grenade stat; threshold bug expected fixed in 9.0.0.4. Does not provide a complete current rate formula."
+    },
+    {
+      "url": "https://www.bungie.net/en/Explore/Detail/Item/1862800747",
+      "retrieval": "Official legacy item page; not a current numerical table.",
+      "supports": "Description says Solar melee kills and brief unlimited Solar Grenade energy; numerical reference uses powered-melee qualification and finite regeneration."
+    }
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/sunbracers.json",
+    "producer": "common/src/test/resources/effects/solar_grenade.json",
+    "calibration": {
+      "intrinsic_fastball": "Required source parameter fastball_speed_delta; .25 used in tests, not exact per-grenade D2 measurement.",
+      "lifetime": "Solar source 4/6 plus exotic 2 gives 6/8; inherited synthetic phase correction produces 6.25/8.25 in tests.",
+      "throw_count": "Tests pay five throws at 0,1,2,3,4 seconds including initial charge and the boundary throw; no throw-animation gate or hardcoded count. Not a claim about current native D2 throw capacity."
+    },
+    "unit_test": "common/src/test/java/com/imdomestic/chorus/effect/SunbracersTest.java",
+    "native_test": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
+    "scope": "Powered-melee kill receipt, five-second Ready, accepted grenade use consumes Ready and activates four seconds of additional-base regeneration for the selected Solar Grenade account. Passive two-second duration and explicit calibrated intrinsic Fastball.",
+    "policies": [
+      "Selected base ability must carry solar_grenade. Kill must belong to wearer, carry melee_kill and retained melee_ability source qualification; damage with unknown result cannot arm.",
+      "Duplicate death IDs suppressed within explicit 60-second receipt retention. A distinct powered kill may rearm during the active window; another accepted use resets active duration. This is an explicit policy, not a verified current D2 refresh measurement.",
+      "Heat Rises consumption activates from a selected Solar Grenade; failed costs do not consume Ready. Paid unknown projectile launch preserves activation and payment and cannot replay.",
+      "Last tagged exotic source removal and wearer death clear Ready, active and receipt states. Accepted grenade fields and launched projectiles retain previously captured values.",
+      "Lifetime and throw-speed modifiers require actual Solar Grenade ability event tags; weapon-created Solar effects cannot borrow them. Duplicate intrinsic sources use max family reduction.",
+      "Regeneration is additional 200 times the unscaled base plus the normal stat-scaled rate; it neither grants infinite energy nor alters chunk grants. Benevolence adds its own base term and its minus-ten grenade stat still participates.",
+      "Real Lightweight Knife is a powered-melee producer for host tests, not a legal Warlock loadout. Full class constraints and Warlock melee producers remain separate work."
+    ],
+    "calibration_file": "common/src/test/resources/effects/solar_grenade_test_calibration.json"
+  },
+  "uncertainties": [
+    "Clarity says roughly 132 percent charge per second while current source cooldown is 199.5 seconds. 201/199.5 is roughly 100.75 percent per second at zero stat; the Clarity approximation matches 201/152. This arithmetic suggests a stale cooldown-derived approximation, not a proven version diagnosis.",
+    "Official 2024 throw-count tuning and 2025 stat-rework statement do not independently verify current regeneration at every stat, animation rate, countdown endpoint or available throws. Preserve explicit version conflict, do not add a fixed four-throw cap.",
+    "Compendium/Clarity powered-melee wording differs from legacy item Solar-melee text. Retained melee status/ignition kill qualification, rearming while active, Ready refresh, Heat Rises consumption and loadout switching need original-game verification.",
+    "Fastball strength varies by grenade; .25 delta, physical trajectory and field timing remain explicit calibration. No claim of complete Fastball mod support for every grenade.",
+    "Full Warlock subclass/equipment assembly, Incinerator Snap/Celestial Fire producers, all exotic/fragment/artifact interactions, production catalog, HUD/assets and physical process restart are unfinished."
+  ]
+}
