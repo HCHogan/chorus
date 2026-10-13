@@ -15,6 +15,24 @@ import net.minecraft.world.level.GameType;
 
 /** Private world bricks, real weapon containers and the shared Marksman / Ascension benefit. */
 public class MarksmanAmmoGameTest {
+    @FunctionalInterface private interface Scenario { void run() throws Exception; }
+    static void ready(GameTestHelper h, Scenario scenario) {
+        // A FULL terrain chunk can precede its asynchronously loaded entity index. Wait before
+        // installing this scenario's runtime or issuing spawn/query actions, rather than retrying them.
+        var min = net.minecraft.world.level.ChunkPos.containing(h.absolutePos(new net.minecraft.core.BlockPos(-16, 40, 0)));
+        var max = net.minecraft.world.level.ChunkPos.containing(h.absolutePos(new net.minecraft.core.BlockPos(20, 40, 8)));
+        var chunks = new ArrayList<net.minecraft.world.level.ChunkPos>();
+        for (int x = min.x(); x <= max.x(); x++) for (int z = min.z(); z <= max.z(); z++) {
+            h.getLevel().getChunk(x, z); chunks.add(new net.minecraft.world.level.ChunkPos(x, z));
+        }
+        h.startSequence().thenWaitUntil(() -> {
+            for (var chunk : chunks) h.assertTrue(h.getLevel().areEntitiesLoaded(chunk.pack()), "ammo fixture entity index must finish loading");
+        }).thenExecute(() -> {
+            try { scenario.run(); }
+            catch (RuntimeException | Error failure) { throw failure; }
+            catch (Exception failure) { throw new IllegalStateException("Ammo scenario setup failed", failure); }
+        });
+    }
     static void prepare(JsonObject data, boolean ascension) {
         AscensionGameTest.calibrate("marksman_dodge", data);
         GamblersDodgeGameTest.merge(data, ThreadedSpikeGameTest.json("class_regeneration"));
@@ -46,8 +64,13 @@ public class MarksmanAmmoGameTest {
     }
     static net.minecraft.world.entity.LivingEntity anchor(ProjectileGameTest.Harness t, double x, double y) {
         var point = t.owner.position().add(x, y, 0);
-        // Load the destination before moving the entity; a moved anchor in an unloaded section may be absent from lookup.
-        t.h.getLevel().getChunk(net.minecraft.core.BlockPos.containing(point)); var anchor = t.cow(2.5, 40, 3.5); anchor.setPos(point); return anchor;
+        // Register at the final position: moving a previously registered cow across sections can
+        // remove it from the UUID lookup before the destination's entity visibility catches up.
+        t.h.getLevel().getChunk(net.minecraft.core.BlockPos.containing(point));
+        var anchor = t.h.spawnWithNoFreeWill(net.minecraft.world.entity.EntityTypes.COW, t.h.relativeVec(point));
+        anchor.setNoGravity(true); t.entities.add(anchor);
+        t.h.assertTrue(t.resolve(anchor.getUUID().toString()) == anchor, "ammo anchor must be visible in the world entity index before requesting a drop");
+        return anchor;
     }
     static EffectObject brick(ProjectileGameTest.Harness t, String kind, double x, double y) {
         var anchor = anchor(t, x, y); int before = t.pickups.size();
@@ -57,67 +80,81 @@ public class MarksmanAmmoGameTest {
     static void dodge(ProjectileGameTest.Harness t) { t.h.assertValueEqual(t.runtime.useAbility(t.owner, "chorus_d2:class").outcome(), AbilityUse.Outcome.ACCEPTED, "dodge rejected"); ShieldThrowGameTest.settled(t); }
     @GameCase(environment="chorus_gametest:marksman_ammo_reload", maxTicks=16)
     public void fifteenMeterSpecialAndHeavyBricksSupplyTheActualDelayedReload(GameTestHelper h) throws Exception {
-        var t = open(h, false, false);
-        try {
-            var special = brick(t, "special", 15, 0); var heavy = brick(t, "heavy", 14, 0); var outside = brick(t, "special", 15.001, 0);
-            t.runtime.unbind("factory"); dodge(t);
-            h.assertTrue(special.isRemoved() && heavy.isRemoved() && !outside.isRemoved(), "inclusive 15 m / kinds failed");
-            h.assertValueEqual(reserve(t, "b"), 12, "original special reward"); h.assertValueEqual(reserve(t, "c"), 10, "heavy capacity clamp"); h.assertValueEqual(magazine(t, "b"), 0, "reload too early");
-            h.assertValueEqual(special.pickup().orElseThrow().origin().owner(), "producer", "collector replaced producer credit");
-            t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "new reserves were not reloaded"); h.assertValueEqual(reserve(t, "b"), 7, "special ammo conservation"); h.assertValueEqual(magazine(t, "c"), 1, "heavy reload"); h.assertValueEqual(reserve(t, "c"), 9, "heavy ammo conservation"); h.assertValueEqual(cues(t, "reloaded"), 3L, "three real reload facts"); h.assertTrue(!outside.isRemoved(), "later timer recollected outside brick"); });
-        } catch (Exception | Error e) { t.close(); throw e; }
+        ready(h, () -> {
+            var t = open(h, false, false);
+            try {
+                var special = brick(t, "special", 15, 0); var heavy = brick(t, "heavy", 14, 0); var outside = brick(t, "special", 15.001, 0);
+                t.runtime.unbind("factory"); dodge(t);
+                h.assertTrue(special.isRemoved() && heavy.isRemoved() && !outside.isRemoved(), "inclusive 15 m / kinds failed");
+                h.assertValueEqual(reserve(t, "b"), 12, "original special reward"); h.assertValueEqual(reserve(t, "c"), 10, "heavy capacity clamp"); h.assertValueEqual(magazine(t, "b"), 0, "reload too early");
+                h.assertValueEqual(special.pickup().orElseThrow().origin().owner(), "producer", "collector replaced producer credit");
+                t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "new reserves were not reloaded"); h.assertValueEqual(reserve(t, "b"), 7, "special ammo conservation"); h.assertValueEqual(magazine(t, "c"), 1, "heavy reload"); h.assertValueEqual(reserve(t, "c"), 9, "heavy ammo conservation"); h.assertValueEqual(cues(t, "reloaded"), 3L, "three real reload facts"); h.assertTrue(!outside.isRemoved(), "later timer recollected outside brick"); });
+            } catch (Exception | Error e) { t.close(); throw e; }
+        });
     }
     @GameCase(environment="chorus_gametest:marksman_ammo_full", maxTicks=16)
     public void fullReservesKeepTheRemoteBrickEvenWhenTheLaterReloadCreatesSpace(GameTestHelper h) throws Exception {
-        var t = open(h, false, false);
-        try {
-            reserve(t, "b", 30); var object = brick(t, "special", 8, 0); dodge(t); h.assertTrue(!object.isRemoved(), "full reserves consumed brick");
-            t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "full reserve reload"); h.assertValueEqual(reserve(t, "b"), 25, "reload transfer"); h.assertTrue(!object.isRemoved(), "one-shot collection revisited rejected brick"); h.assertValueEqual(cues(t, "collected"), 0L, "rejected brick dispatched fact"); });
-        } catch (Exception | Error e) { t.close(); throw e; }
+        ready(h, () -> {
+            var t = open(h, false, false);
+            try {
+                reserve(t, "b", 30); var object = brick(t, "special", 8, 0); dodge(t); h.assertTrue(!object.isRemoved(), "full reserves consumed brick");
+                t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "full reserve reload"); h.assertValueEqual(reserve(t, "b"), 25, "reload transfer"); h.assertTrue(!object.isRemoved(), "one-shot collection revisited rejected brick"); h.assertValueEqual(cues(t, "collected"), 0L, "rejected brick dispatched fact"); });
+            } catch (Exception | Error e) { t.close(); throw e; }
+        });
     }
-    @GameCase public void multipleBricksStopAtCapacityAndAnExhaustedSecondCastCannotCollectAgain(GameTestHelper h) throws Exception {
-        try (var t = open(h, false, false)) {
-            reserve(t, "b", 25); for (int i = 0; i < 4; i++) brick(t, "special", 8 + i, 0); dodge(t);
-            h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 1L, "extra bricks consumed"); h.assertValueEqual(reserve(t, "b"), 30, "first reward not committed");
-            h.assertValueEqual(t.runtime.useAbility(t.owner, "chorus_d2:class").outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "second cast accepted"); h.assertValueEqual(cues(t, "collected"), 1L, "duplicate collection fact");
-        } h.succeed();
+    @GameCase(environment="chorus_gametest:marksman_ammo_capacity", maxTicks=16) public void multipleBricksStopAtCapacityAndAnExhaustedSecondCastCannotCollectAgain(GameTestHelper h) throws Exception {
+        ready(h, () -> {
+            try (var t = open(h, false, false)) {
+                reserve(t, "b", 25); for (int i = 0; i < 4; i++) brick(t, "special", 8 + i, 0); dodge(t);
+                h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 1L, "extra bricks consumed"); h.assertValueEqual(reserve(t, "b"), 30, "first reward not committed");
+                h.assertValueEqual(t.runtime.useAbility(t.owner, "chorus_d2:class").outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "second cast accepted"); h.assertValueEqual(cues(t, "collected"), 1L, "duplicate collection fact");
+            } h.succeed();
+        });
     }
     @GameCase(environment="chorus_gametest:marksman_ammo_overflow", maxTicks=16)
     public void equippedOverflowSettlesBeforeTheNextBrickAndTheDodgeReloadPreservesOverfilledMagazines(GameTestHelper h) throws Exception {
-        var t = open(h, true, false);
-        try {
-            reserve(t, "b", 25); for (int i = 0; i < 4; i++) brick(t, "special", 8 + i, 0); dodge(t);
-            h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 2L, "Overflow gap not reevaluated"); h.assertValueEqual(magazine(t, "b"), 11, "enhanced Overflow"); h.assertValueEqual(reserve(t, "b"), 30, "second brick fills new gap");
-            t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 11, "reload trimmed overflow"); h.assertValueEqual(reserve(t, "b"), 30, "reload lost reserves"); h.assertValueEqual(cues(t, "reloaded"), 0L, "zero transfers forged reloads"); h.assertValueEqual(cues(t, "collected"), 2L, "original pickup facts"); });
-        } catch (Exception | Error e) { t.close(); throw e; }
+        ready(h, () -> {
+            var t = open(h, true, false);
+            try {
+                reserve(t, "b", 25); for (int i = 0; i < 4; i++) brick(t, "special", 8 + i, 0); dodge(t);
+                h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 2L, "Overflow gap not reevaluated"); h.assertValueEqual(magazine(t, "b"), 11, "enhanced Overflow"); h.assertValueEqual(reserve(t, "b"), 30, "second brick fills new gap");
+                t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 11, "reload trimmed overflow"); h.assertValueEqual(reserve(t, "b"), 30, "reload lost reserves"); h.assertValueEqual(cues(t, "reloaded"), 0L, "zero transfers forged reloads"); h.assertValueEqual(cues(t, "collected"), 2L, "original pickup facts"); });
+            } catch (Exception | Error e) { t.close(); throw e; }
+        });
     }
-    @GameCase public void privateBricksOfAnotherRecipientCannotBeTakenByTheDodge(GameTestHelper h) throws Exception {
-        try (var t = open(h, false, false)) {
-            var other = anchor(t, 8, 0); String who = other.getUUID().toString();
-            t.runtime.bind(new EffectSource("foreign", "chorus_d2:ammo_pickups", who, new BuffInstance.Origin(who, "foreign", "", ""), Set.of(), Map.of("lifetime", new Measure(10, Unit.SECOND), "radius", new Measure(.5, Unit.METER))));
-            t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_special_ammo", new EffectEvent(who, who, new BuffInstance.Origin(who, "request", "", ""), Set.of(), Map.of())));
-            var foreign = t.pickups.getLast(); var own = brick(t, "special", 9, 0); dodge(t);
-            h.assertTrue(!foreign.isRemoved() && own.isRemoved(), "private recipient bypass"); h.assertValueEqual(reserve(t, "b"), 12, "foreign reward stolen");
-        } h.succeed();
+    @GameCase(environment="chorus_gametest:marksman_ammo_private", maxTicks=16) public void privateBricksOfAnotherRecipientCannotBeTakenByTheDodge(GameTestHelper h) throws Exception {
+        ready(h, () -> {
+            try (var t = open(h, false, false)) {
+                var other = anchor(t, 8, 0); String who = other.getUUID().toString();
+                t.runtime.bind(new EffectSource("foreign", "chorus_d2:ammo_pickups", who, new BuffInstance.Origin(who, "foreign", "", ""), Set.of(), Map.of("lifetime", new Measure(10, Unit.SECOND), "radius", new Measure(.5, Unit.METER))));
+                t.runtime.start(new RuleEngine.Signal("chorus_d2:spawn_special_ammo", new EffectEvent(who, who, new BuffInstance.Origin(who, "request", "", ""), Set.of(), Map.of())));
+                var foreign = t.pickups.getLast(); var own = brick(t, "special", 9, 0); dodge(t);
+                h.assertTrue(!foreign.isRemoved() && own.isRemoved(), "private recipient bypass"); h.assertValueEqual(reserve(t, "b"), 12, "foreign reward stolen");
+            } h.succeed();
+        });
     }
     @GameCase(environment="chorus_gametest:marksman_ammo_ascension", maxTicks=16)
     public void ascensionInvokesTheSamePickupBenefitAtItsCurrentPositionAndRetainsTheCapturedDodge(GameTestHelper h) throws Exception {
-        var t = open(h, false, true);
-        try {
-            var atLandingHeight = brick(t, "special", 15, 3); var onlyBeforeAscent = brick(t, "special", -15, 0); double y = t.owner.getY();
-            AscensionGameTest.cast(t); near(h, t.owner.getY(), y + 3, "test ascent displacement");
-            h.assertTrue(atLandingHeight.isRemoved() && !onlyBeforeAscent.isRemoved(), "benefit query did not use current caster position"); h.assertValueEqual(reserve(t, "b"), 12, "shared original pickup reward");
-            AscensionGameTest.choose(t, "chorus_d2:class", "chorus_d2:gamblers_dodge"); AscensionGameTest.choose(t, AscensionGameTest.SLOT, null);
-            t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "captured Marksman reload lost"); h.assertValueEqual(reserve(t, "b"), 7, "shared reload duplicated ammo"); near(h, AscensionGameTest.energy(t, "chorus_d2:gamblers_dodge_energy"), 1, "benefit paid current selection twice"); });
-        } catch (Exception | Error e) { t.close(); throw e; }
+        ready(h, () -> {
+            var t = open(h, false, true);
+            try {
+                var atLandingHeight = brick(t, "special", 15, 3); var onlyBeforeAscent = brick(t, "special", -15, 0); double y = t.owner.getY();
+                AscensionGameTest.cast(t); near(h, t.owner.getY(), y + 3, "test ascent displacement");
+                h.assertTrue(atLandingHeight.isRemoved() && !onlyBeforeAscent.isRemoved(), "benefit query did not use current caster position"); h.assertValueEqual(reserve(t, "b"), 12, "shared original pickup reward");
+                AscensionGameTest.choose(t, "chorus_d2:class", "chorus_d2:gamblers_dodge"); AscensionGameTest.choose(t, AscensionGameTest.SLOT, null);
+                t.finish(6, () -> { h.assertValueEqual(magazine(t, "b"), 5, "captured Marksman reload lost"); h.assertValueEqual(reserve(t, "b"), 7, "shared reload duplicated ammo"); near(h, AscensionGameTest.energy(t, "chorus_d2:gamblers_dodge_energy"), 1, "benefit paid current selection twice"); });
+            } catch (Exception | Error e) { t.close(); throw e; }
+        });
     }
-    @GameCase public void unknownPickupReactionRetainsOneRealRewardAndStopsFurtherClaimsAndReloads(GameTestHelper h) throws Exception {
-        try (var t = open(h, false, false)) {
-            brick(t, "special", 8, 0); brick(t, "special", 9, 0);
-            t.onCue = c -> { if (c.cue().equals("test:collected")) throw new IllegalStateException("unknown committed pickup reaction"); };
-            boolean failed = false; try { dodge(t); } catch (IllegalStateException expected) { failed = true; }
-            h.assertTrue(failed && t.runtime.failure().isPresent(), "unknown reaction reported success"); h.assertValueEqual(reserve(t, "b"), 12, "first reward was rolled back");
-            MinecraftEffectRuntime.tick(h.getLevel()); h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 1L, "failed batch continued"); h.assertValueEqual(magazine(t, "b"), 0, "failed runtime reloaded"); h.assertValueEqual(cues(t, "collected"), 1L, "pickup reaction replayed");
-        } h.succeed();
+    @GameCase(environment="chorus_gametest:marksman_ammo_unknown", maxTicks=16) public void unknownPickupReactionRetainsOneRealRewardAndStopsFurtherClaimsAndReloads(GameTestHelper h) throws Exception {
+        ready(h, () -> {
+            try (var t = open(h, false, false)) {
+                brick(t, "special", 8, 0); brick(t, "special", 9, 0);
+                t.onCue = c -> { if (c.cue().equals("test:collected")) throw new IllegalStateException("unknown committed pickup reaction"); };
+                boolean failed = false; try { dodge(t); } catch (IllegalStateException expected) { failed = true; }
+                h.assertTrue(failed && t.runtime.failure().isPresent(), "unknown reaction reported success"); h.assertValueEqual(reserve(t, "b"), 12, "first reward was rolled back");
+                MinecraftEffectRuntime.tick(h.getLevel()); h.assertValueEqual(t.pickups.stream().filter(o -> o.isRemoved()).count(), 1L, "failed batch continued"); h.assertValueEqual(magazine(t, "b"), 0, "failed runtime reloaded"); h.assertValueEqual(cues(t, "collected"), 1L, "pickup reaction replayed");
+            } h.succeed();
+        });
     }
 }
