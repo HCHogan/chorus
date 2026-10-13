@@ -3562,6 +3562,37 @@ Minecraft 26.3 使用 LivingEntity NBT 字符串 chorus:entity_life 保存随机
 此阶段新增 EntityAnchor 的六个记录/枚举和 EntityAnchorActions 的三个动作存储 ID，总数从 552 增至 561，旧类型形状与历史检查点不变。生命引用和结果可随领域检查点恢复，但这不等于物理弹体已能跨世界重启。引用只在查询/写入时校验，不自动订阅移除事件或永久终止附着，同一生命回到原维度可再次使用旧引用。下一节提供通用移除事实及历史位置，内容仍需明确如何消费它们。
 
 
+## 在 Buff 中保存实体生命观察
+
+多阶段效果可声明 `components.entity_anchors`，把一次施放捕获的生命引用保存到后续独立事件。它与普通 positions、damage_snapshots 分开；数字、集合、引用、位置等组件之间不能重名。
+
+```json
+"components": {"entity_anchors": ["cast_life"]}
+```
+
+取得 `capture_entity_anchor` / `read_landing` 等有类型结果后，在已存在的 Buff 上写入，再于另一事件读取：
+
+```json
+{"type":"chorus:write_entity_anchor","buff":"example:pending","component":"cast_life","reference":"initial"}
+```
+
+后续事件中读取并比较（contact 来自 `read_landing`）：
+
+```json
+[
+  {"action":{"type":"chorus:read_entity_anchor","buff":"example:pending","component":"cast_life"},"as":"initial"},
+  {"if":{"type":"chorus:same_entity_life","left":"initial","right":"contact"},"then":[]}
+]
+```
+
+读写的 target 默认 self，选择的是保存状态的 Buff 持有者；被引用实体由原始回执决定，不必等于持有者。写入和读取都是纯状态动作，完整保留原查询、结果、生命、世界、挂点、位置及当时 alive；已观察到的 missing / replaced / wrong_dimension 也原样保存。未写入时没有任何观察，读取会明确报错，不能用一个伪造的“世界目标不存在”结果替代。普通位置或伤害快照不能写入这种组件。
+
+`same_entity_life` 要求两边均有观察且 target / life / dimension 全部相等；位置、feet/body/eyes 和当时 alive 不参与身份比较。两个不可用回执不会因为都为空就匹配。该条件无世界读取，参与快照时固定为当时比较结果。它本身不承诺当前仍存活：需要当前实体收益时，继续 `resolve_entity_anchor` 并检查 available / alive；可能跨世界写入边界的伤害继续使用受保护伤害动作。
+
+组件遵循所属 Buff 的实例、刷新、移除与期限政策，其他组件更新不得丢失它。刷新保留旧组件，写入才替换观察；若新施放需要新的归属或实例，应由内容明确移除旧 Buff 再授予。保存并不自动开启完成监听、取消策略、重复事实记账或技能收益。示例验收组合将引用保留到真实落地，再消费 pending 状态并以 detached 续体解析原生命，历史范围中心仍取自落地事实。
+
+存储新增 buff_schema_v2 / buff_components_v2 及读、写、比较三个独立类型，目录共 658 项；原有 653 项字段形状不变。精确旧六字段 schema / components 经迁移添加空声明 / 空观察集合，保留全部旧数字、集合、来源引用、成员、位置及伤害快照，旧类型 ID 下插入新字段仍拒绝。领域检查点覆盖保存前后及 detached 续体；这不等于物理世界整体恢复。
+
 ## 实体移除事实与历史挂点
 
 服务器首次写入 LivingEntity 的原版 removalReason 标记时记录 chorus:entity_removed：先捕获同一生命和位置，字段写入成功后立即排队，后续 onRemoval 回调即使抛错或重新启用对象，也不抹去已经发生的转换。事实由 EntityLifecycle.Removed 承载，包含 target/life/dimension、kind、原版 reason、wasAlive 和全部 feet/body/eyes 历史位置。kind 为 destroyed/removed/unloaded/transferred；reason 保留 minecraft:killed、minecraft:discarded、minecraft:unloaded_to_chunk、minecraft:unloaded_with_player 或 minecraft:changed_dimension。destroyed 表示原生移除原因，不单独证明一次伤害击杀。

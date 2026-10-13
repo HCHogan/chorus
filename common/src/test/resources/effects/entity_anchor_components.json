@@ -1,0 +1,29 @@
+{
+  "version": "test-entity-anchor-components",
+  "buffs": [{"definition": {"id": "test:pending", "version": "test-entity-anchor-components", "duration": 10, "refresh": "reset", "components": {"entity_anchors": ["initial"]}}, "bundle": "test:pending"}],
+  "bundles": [
+    {"id": "test:projectile"}, {"id": "test:power"},
+    {"id": "test:arm", "rules": [{"id": "arm", "on": "test:arm", "if": {"type": "chorus:source_is", "source": "owner"}, "do": [
+      {"action": {"type": "chorus:capture_entity_anchor", "target": "self"}, "as": "initial"},
+      {"type": "chorus:grant_buff", "buff": "test:pending"},
+      {"type": "chorus:write_entity_anchor", "buff": "test:pending", "component": "initial", "reference": "initial"}
+    ]}]},
+    {"id": "test:pending", "scope": "buff", "rules": [{"id": "land", "on": "chorus:landed", "if": {"type": "chorus:target_is", "left": "self", "right": "victim"}, "do": [
+      {"action": {"type": "chorus:read_entity_anchor", "buff": "test:pending", "component": "initial"}, "as": "initial"},
+      {"action": {"type": "chorus:read_landing"}, "as": "contact"},
+      {"if": {"type": "chorus:same_entity_life", "left": "initial", "right": "contact"}, "then": [
+        {"type": "chorus:remove_buff", "buff": "test:pending"},
+        {"after": {"type": "chorus:constant", "value": 0.1, "unit": "second"}, "lifetime": "detached", "do": [
+          {"action": {"type": "chorus:resolve_entity_anchor", "reference": "initial"}, "as": "current"},
+          {"if": {"type": "chorus:all", "of": [
+            {"type": "chorus:result_flag", "binding": "current", "field": "available"},
+            {"type": "chorus:result_flag", "binding": "current", "field": "alive"}
+          ]}, "then": [
+            {"action": {"type": "chorus:select_targets", "center": {"position": "contact"}, "radius": {"type": "chorus:constant", "value": 2, "unit": "meter"}, "relation": "any"}, "as": "nearby"},
+            {"type": "chorus:play_cue", "cue": "test:completed"}
+          ]}
+        ]}
+      ]}
+    ]}]}
+  ]
+}

@@ -8,6 +8,9 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/data/entity_anchor_actions/read", com.imdomestic.chorus.effect.data.EntityAnchorActions.Read.class);
+        types.put("chorus:effect/data/entity_anchor_actions/write", com.imdomestic.chorus.effect.data.EntityAnchorActions.Write.class);
+        types.put("chorus:effect/data/entity_anchor_actions/same_life", com.imdomestic.chorus.effect.data.EntityAnchorActions.SameLife.class);
         types.put("chorus:effect/motion/ground_contact/landed", com.imdomestic.chorus.effect.motion.GroundContact.Landed.class);
         types.put("chorus:effect/data/ground_contact_actions/read_landing", com.imdomestic.chorus.effect.data.GroundContactActions.ReadLanding.class);
         types.put("chorus:effect/data/pickup_actions/collect", com.imdomestic.chorus.effect.data.PickupActions.Collect.class);
@@ -119,7 +122,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/ammo/ammunition/result", com.imdomestic.chorus.effect.ammo.Ammunition.Result.class);
         types.put("chorus:effect/attribute/native_attribute_binding", com.imdomestic.chorus.effect.attribute.NativeAttributeBinding.class);
         types.put("chorus:effect/attribute/native_attribute_binding/operation", com.imdomestic.chorus.effect.attribute.NativeAttributeBinding.Operation.class);
-        types.put("chorus:effect/buff/buff_components", com.imdomestic.chorus.effect.buff.BuffComponents.class);
+        types.put("chorus:effect/buff/buff_components", LegacyBuffComponentsV1.class);
+        types.put("chorus:effect/buff/buff_components_v2", com.imdomestic.chorus.effect.buff.BuffComponents.class);
         types.put("chorus:effect/buff/buff_components/update", com.imdomestic.chorus.effect.buff.BuffComponents.Update.class);
         types.put("chorus:effect/buff/buff_definition", com.imdomestic.chorus.effect.buff.BuffDefinition.class);
         types.put("chorus:effect/buff/buff_definition/affects", com.imdomestic.chorus.effect.buff.BuffDefinition.Affects.class);
@@ -140,7 +144,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/buff/buff_observation/entry", com.imdomestic.chorus.effect.buff.BuffObservation.Entry.class);
         types.put("chorus:effect/buff/buff_removal/receipt", com.imdomestic.chorus.effect.buff.BuffRemoval.Receipt.class);
         types.put("chorus:effect/buff/buff_rules/scope", com.imdomestic.chorus.effect.buff.BuffRules.Scope.class);
-        types.put("chorus:effect/buff/buff_schema", com.imdomestic.chorus.effect.buff.BuffSchema.class);
+        types.put("chorus:effect/buff/buff_schema", LegacyBuffSchemaV1.class);
+        types.put("chorus:effect/buff/buff_schema_v2", com.imdomestic.chorus.effect.buff.BuffSchema.class);
         types.put("chorus:effect/buff/buff_store", com.imdomestic.chorus.effect.buff.BuffStore.class);
         types.put("chorus:effect/buff/buffs/change", com.imdomestic.chorus.effect.buff.Buffs.Change.class);
         types.put("chorus:effect/buff/buffs/kind", com.imdomestic.chorus.effect.buff.Buffs.Kind.class);
@@ -664,6 +669,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/weapon/weapon_charge/commit", com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit.class);
         return new RecordTreeCodec(types, java.util.List.of(new RecordTreeCodec.Migration<>(
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
+                new RecordTreeCodec.Migration<>(LegacyBuffSchemaV1.class, com.imdomestic.chorus.effect.buff.BuffSchema.class, LegacyBuffSchemaV1::current),
+                new RecordTreeCodec.Migration<>(LegacyBuffComponentsV1.class, com.imdomestic.chorus.effect.buff.BuffComponents.class, LegacyBuffComponentsV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityDefinitionV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.class, LegacyAbilityDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV1.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEquipmentItemV2.class, com.imdomestic.chorus.effect.equipment.EquipmentSchema.Item.class, LegacyEquipmentItemV2::current),

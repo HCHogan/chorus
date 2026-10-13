@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.EffectTimers;
+import com.imdomestic.chorus.effect.buff.Buffs;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.effect.target.EntityAnchor;
 import com.imdomestic.chorus.effect.target.TargetQuery;
@@ -44,6 +45,41 @@ public final class EntityAnchorActions {
             return new RuleEngine.Await<>(new EntityAnchor.Query(prior.reference().target(), prior.anchor(), Optional.of(prior.reference())));
         }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult r) { return finish(e, r); }
+    }
+    /** Persist the complete typed result, including a known unavailable outcome; never re-observe it. */
+    public record Write(String buff, Evaluation.Target target, String component, String reference) implements Action {
+        public Write { Objects.requireNonNull(target); EffectTimers.localName(component); EffectTimers.localName(reference); }
+        @Override public ResultShape validate(Validation v) {
+            v.target(target); v.buff(buff).components().requireEntityAnchor(component); v.result(reference).requireEntityAnchor(); return RESULT;
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var key = e.key(buff, target); var instance = e.state().buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Cannot update a missing buff"));
+            instance.definition().components().requireEntityAnchor(component);
+            var value = e.context().result(reference, EntityAnchor.Result.class);
+            var components = instance.components().entityAnchor(component, value);
+            var state = components.equals(instance.components()) ? e.state() : e.state().withBuffs(Buffs.components(e.state().buffs(), key, components));
+            return new RuleEngine.Local<>(state, value, List.of());
+        }
+    }
+    /** Unwritten is a content error, distinct from a recorded MISSING world observation. */
+    public record Read(String buff, Evaluation.Target target, String component) implements Action {
+        public Read { Objects.requireNonNull(target); EffectTimers.localName(component); }
+        @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff).components().requireEntityAnchor(component); return RESULT; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var value = e.readBuff(buff, target).components().entityAnchors().get(component);
+            if (value == null) throw new IllegalArgumentException("Entity anchor component has not been written: " + component);
+            return new RuleEngine.Local<>(e.state(), value, List.of());
+        }
+    }
+    /** Identity comparison of two observations, independent of position, anchor choice or observed health. */
+    public record SameLife(String left, String right) implements Condition {
+        public SameLife { EffectTimers.localName(left); EffectTimers.localName(right); }
+        @Override public void validate(Validation v) { v.result(left).requireEntityAnchor(); v.result(right).requireEntityAnchor(); }
+        @Override public boolean test(Evaluation e) {
+            var a = e.context().result(left, EntityAnchor.Result.class).observation();
+            var b = e.context().result(right, EntityAnchor.Result.class).observation();
+            return a.isPresent() && b.isPresent() && a.orElseThrow().reference().equals(b.orElseThrow().reference());
+        }
     }
     public record Damage(String reference, Action.DamageCaptured damage) implements Action {
         public Damage { EffectTimers.localName(reference); Objects.requireNonNull(damage); }

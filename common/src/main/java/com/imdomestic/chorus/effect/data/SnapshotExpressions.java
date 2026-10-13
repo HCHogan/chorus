@@ -72,6 +72,7 @@ public final class SnapshotExpressions {
                 yield left instanceof Value.Constant && right instanceof Value.Constant ? new Condition.Constant(bound.test(e)) : bound;
             }
             case Condition.SourceIs c -> new Condition.Constant(c.test(e));
+            case EntityAnchorActions.SameLife c -> new Condition.Constant(c.test(e));
             case Condition.EventEntityObserved c -> new Condition.Constant(c.test(e));
             case Condition.EventPositionObserved c -> new Condition.Constant(c.test(e));
             case Condition.EventBuffsAvailable c -> new Condition.Constant(c.test(e));

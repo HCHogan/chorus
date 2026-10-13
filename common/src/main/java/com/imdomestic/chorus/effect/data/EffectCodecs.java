@@ -182,6 +182,9 @@ public final class EffectCodecs {
                         ID.fieldOf("tag").forGetter(Condition.SourceTag::tag)).apply(i, Condition.SourceTag::new)))
                 .register("chorus:event_source_tag", Condition.EventSourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.EventSourceTag::tag)).apply(i, Condition.EventSourceTag::new)))
+                .register("chorus:same_entity_life", EntityAnchorActions.SameLife.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("left").forGetter(EntityAnchorActions.SameLife::left), Codec.STRING.fieldOf("right").forGetter(EntityAnchorActions.SameLife::right)
+                ).apply(i, EntityAnchorActions.SameLife::new)))
                 .register("chorus:event_reference", Condition.EventReference.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("name").forGetter(Condition.EventReference::name), Codec.STRING.fieldOf("is").forGetter(Condition.EventReference::expected)
                 ).apply(i, Condition.EventReference::new)))
@@ -607,6 +610,14 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(EntityAnchorActions.Capture::target),
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(EntityAnchorActions.Capture::anchor)
                 ).apply(i, EntityAnchorActions.Capture::new)))
+                .register("chorus:write_entity_anchor", EntityAnchorActions.Write.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(EntityAnchorActions.Write::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EntityAnchorActions.Write::target),
+                        Codec.STRING.fieldOf("component").forGetter(EntityAnchorActions.Write::component), Codec.STRING.fieldOf("reference").forGetter(EntityAnchorActions.Write::reference)
+                ).apply(i, EntityAnchorActions.Write::new)))
+                .register("chorus:read_entity_anchor", EntityAnchorActions.Read.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        ID.fieldOf("buff").forGetter(EntityAnchorActions.Read::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(EntityAnchorActions.Read::target),
+                        Codec.STRING.fieldOf("component").forGetter(EntityAnchorActions.Read::component)
+                ).apply(i, EntityAnchorActions.Read::new)))
                 .register("chorus:read_landing", GroundContactActions.ReadLanding.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         enumeration(com.imdomestic.chorus.effect.target.TargetQuery.Anchor.class).optionalFieldOf("anchor", com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET).forGetter(GroundContactActions.ReadLanding::anchor)
                 ).apply(i, GroundContactActions.ReadLanding::new)))

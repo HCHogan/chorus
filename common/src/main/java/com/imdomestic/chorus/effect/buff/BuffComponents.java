@@ -11,7 +11,8 @@ import java.util.Optional;
 /** Explicit state components used by counters, distinct-hit sets, references and history. */
 public record BuffComponents(Map<String, Double> numbers, Map<String, Set<String>> sets, Map<String, String> references,
         Map<String, com.imdomestic.chorus.effect.target.Targets.Identities> targetSets, Map<String, Optional<WorldPosition>> positions,
-        Map<String, Optional<com.imdomestic.chorus.effect.data.DamageSnapshot>> damageSnapshots) {
+        Map<String, Optional<com.imdomestic.chorus.effect.data.DamageSnapshot>> damageSnapshots,
+        Map<String, com.imdomestic.chorus.effect.target.EntityAnchor.Result> entityAnchors) {
     public static final BuffComponents EMPTY = new BuffComponents(Map.of(), Map.of(), Map.of());
     public enum Update { SET, ADD, MAX, MIN }
     public BuffComponents {
@@ -24,6 +25,12 @@ public record BuffComponents(Map<String, Double> numbers, Map<String, Set<String
         targetSets = Map.copyOf(targetSets);
         positions = Map.copyOf(positions);
         damageSnapshots = Map.copyOf(damageSnapshots);
+        entityAnchors = Map.copyOf(entityAnchors);
+    }
+    public BuffComponents(Map<String, Double> numbers, Map<String, Set<String>> sets, Map<String, String> references,
+            Map<String, com.imdomestic.chorus.effect.target.Targets.Identities> targetSets, Map<String, Optional<WorldPosition>> positions,
+            Map<String, Optional<com.imdomestic.chorus.effect.data.DamageSnapshot>> damageSnapshots) {
+        this(numbers, sets, references, targetSets, positions, damageSnapshots, Map.of());
     }
     public BuffComponents(Map<String, Double> numbers, Map<String, Set<String>> sets, Map<String, String> references,
             Map<String, com.imdomestic.chorus.effect.target.Targets.Identities> targetSets, Map<String, Optional<WorldPosition>> positions) {
@@ -46,38 +53,42 @@ public record BuffComponents(Map<String, Double> numbers, Map<String, Set<String
             case MAX -> previous == null ? value : Math.max(previous, value);
             case MIN -> previous == null ? value : Math.min(previous, value);
         });
-        return new BuffComponents(copy, sets, references, targetSets, positions, damageSnapshots);
+        return new BuffComponents(copy, sets, references, targetSets, positions, damageSnapshots, entityAnchors);
     }
     public BuffComponents remember(String name, String value) {
         var copy = new HashMap<>(sets);
         var members = new HashSet<>(sets.getOrDefault(name, Set.of()));
         members.add(value); copy.put(name, members);
-        return new BuffComponents(numbers, copy, references, targetSets, positions, damageSnapshots);
+        return new BuffComponents(numbers, copy, references, targetSets, positions, damageSnapshots, entityAnchors);
     }
     public BuffComponents reference(String name, String value) {
         var copy = new HashMap<>(references); copy.put(name, value);
-        return new BuffComponents(numbers, sets, copy, targetSets, positions, damageSnapshots);
+        return new BuffComponents(numbers, sets, copy, targetSets, positions, damageSnapshots, entityAnchors);
     }
     public BuffComponents forget(String name, String value) {
         if (!sets.containsKey(name)) throw new IllegalArgumentException("Missing set component: " + name);
         var copy = new HashMap<>(sets);
         var members = new HashSet<>(sets.get(name));
         members.remove(value); copy.put(name, members);
-        return new BuffComponents(numbers, copy, references, targetSets, positions, damageSnapshots);
+        return new BuffComponents(numbers, copy, references, targetSets, positions, damageSnapshots, entityAnchors);
     }
     public BuffComponents targets(String name, com.imdomestic.chorus.effect.target.Targets.Identities value) {
         if (!targetSets.containsKey(name)) throw new IllegalArgumentException("Missing target set component: " + name);
         var copy = new HashMap<>(targetSets); copy.put(name, value);
-        return new BuffComponents(numbers, sets, references, copy, positions, damageSnapshots);
+        return new BuffComponents(numbers, sets, references, copy, positions, damageSnapshots, entityAnchors);
     }
     public BuffComponents position(String name, Optional<WorldPosition> value) {
         if (!positions.containsKey(name)) throw new IllegalArgumentException("Missing position component: " + name);
         var copy = new HashMap<>(positions); copy.put(name, value);
-        return new BuffComponents(numbers, sets, references, targetSets, copy, damageSnapshots);
+        return new BuffComponents(numbers, sets, references, targetSets, copy, damageSnapshots, entityAnchors);
     }
     public BuffComponents damageSnapshot(String name, Optional<com.imdomestic.chorus.effect.data.DamageSnapshot> value) {
         if (!damageSnapshots.containsKey(name)) throw new IllegalArgumentException("Missing damage snapshot component: " + name);
         var copy = new HashMap<>(damageSnapshots); copy.put(name, value);
-        return new BuffComponents(numbers, sets, references, targetSets, positions, copy);
+        return new BuffComponents(numbers, sets, references, targetSets, positions, copy, entityAnchors);
+    }
+    public BuffComponents entityAnchor(String name, com.imdomestic.chorus.effect.target.EntityAnchor.Result value) {
+        var copy = new HashMap<>(entityAnchors); copy.put(name, value);
+        return new BuffComponents(numbers, sets, references, targetSets, positions, damageSnapshots, copy);
     }
 }

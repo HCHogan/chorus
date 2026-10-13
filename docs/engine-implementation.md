@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：跨事件保存与比较实体生命观察
+
+为 Phoenix Dive 的施放 / 落地关联补齐 Buff 的有类型 entity_anchors 组件，以及 write_entity_anchor、read_entity_anchor、same_entity_life。保存完整回执而非仅 UUID 或位置，已知不可用结果与未写入明确区分；比较只识别 target / life / dimension，不以位置变化或观察时健康状态判断换生命。其他组件写入保留该集合，旧六字段 schema / components 使用精确迁移，原 653 项形状不变，新增五项后共 658 项。
+
+七项 EntityAnchorComponentsTest 覆盖身份与世界隔离、位置 / 挂点变化、不可变状态、既有组件更新、独立事件跨检查点、生命替换 / 死亡、未知结果不重放、类型声明和旧存储严格迁移。两项共享世界场景以原生实体碰撞完成 pending 状态，验证历史中心及相同 UUID 的新生命必须独立重新施放。开发期修正了测试 lambda 的变量捕获、动作字段、规则版本声明及执行器包装异常的断言；`/tmp/chorus-anchor-components-targeted3.log` 的 18 项核心 / 兼容性测试、两项 Fabric 场景与 NeoForge 编译通过（22 秒）。
+
+完整 `/tmp/chorus-anchor-components-final-gate.log` BUILD SUCCESSFUL（2 分 35 秒）：2082 项 JUnit 无失败 / 错误 / 跳过、Fabric 1182 项和 NeoForge 1197 项世界测试及两端发布 jar 通过；共享场景 1181 项。`build/reports/anchor-components/audit.json` 确认原 653 项存储形状不变、两端 1184 / 1177 个发布主类字节匹配且无测试泄漏，新增资源相同，Gradle CRLF 保持。10 项 Compendium 工具测试、来源和报告一致性通过。本批没有改原生移动钩子、网络或 UI，未重复上一批已通过的 25 项 Fabric 图形客户端回归；NeoForge 图形客户端未执行。
+
+这一批没有新的原作技能完成声明，Compendium 审阅数量 / 状态不变。具体 Phoenix Dive 的输入、热力升腾取样、恢复、治疗 / 爆炸、取消和数值冲突仍由后续内容装配验收。数据契约见[在 Buff 中保存实体生命观察](engine-data-packs.md#在-buff-中保存实体生命观察)。
+
 ### 2026-10-14：原生碰撞落地与玩家包的接受边界
 
 新增通用 `chorus:landed` 事实与 `read_landing`，供 Phoenix Dive 等需要实际接触地面的内容组合。向下原生移动从无支撑到有支撑才记录，精确抵达地面也有效；不依赖可由客户端声明的 onGround 标志。玩家移动包先由原版试算与验证，只有接受最终位置后才发布；回退包不泄漏临时接触。实体 / 玩家回调只排队，世界动作回执或下一次 prepare / tick 才执行反应，保持原有状态迁移和未知结果不重放语义。
