@@ -2022,6 +2022,16 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 参考超能和手雷只有不可施放的元数据，不代表完整超能、棱镜或子职业装配。实际账号进度与神器选择生产者、完整 Tier/升级目录、正式配装/HUD、原作切换超能惩罚、技能宿主持久化、动态武器属性切换和物理世界整体重启未完成；基础 flinch 与参考装备的绝对伤害/弹药/时长仍为合成输入，原作过渡插值、视觉晃动和后坐力恢复也需继续校准。故该条目保持 partial。
 
+## Heat Rises 的来源核对与待装配内容
+
+2026-10-14 重新读取原表 Solar B144/D144，对应固定 CSV 快照 B82/D82；全文规范化一致。Clarity 最新文件提交仍为 `039cfbc4732c33573568b28cc6335dd3332a9296`，Heat Rises 项为 83039194。原始 HTML、逐格映射、Clarity 子集和完整文件哈希见[来源记录](../data/d2-research/2026-10-14/heat-rises-source.json)。[官方 4.1.0.2](https://www.bungie.net/7/en/News/article/51440)说明了消费手雷的治疗及 Touch of Flame 组合；[官方 7.0.0.1](https://www.bungie.net/7/en/News/article/update_7_0_0_1)确认 20 被动 + 50 激活的 Airborne Effectiveness。这两篇是历史机制依据，当前参数仍以本次固定来源复审为准。
+
+待实现的内容包括：Aspect 被动 20 AE、滑翔中使用武器 / 技能和空中击杀近战回能；长按消费一份实际手雷技能费用，给予 15 秒 Heat Rises 及自身 / 9 米盟友 Cure x2。治疗手雷改为 Cure x3，Touch of Flame 治疗手雷另给 Restoration x1；Song of Flame Wisp 则为 Cure x3 与 Restoration x2。两种 Restoration 基础 4 秒、受益者 Solace 延为 6 秒。空中击杀按 T1/T2/T3/T4/Guardian 分别给予 20/25/35/50/50% 近战能量；激活时按 5/10/10/15/5 秒延长，最多剩余 30 秒；重新消费手雷明确覆盖为 15 秒，即使旧剩余更长。
+
+消费对象必须与费用及收益身份一致。普通手雷先由超能替换为 Wisp、再被长按动作消费时，不能根据原始装配手雷判断 Cure 强度或支付普通手雷账户。核心已提供 `cost_from: previous_definition` 和 `cast_ability_tag` 来表达这类转换；它只读取上一实际不同定义的已声明费用，不递归推断超能的付款政策。具体 Wisp 定义仍须声明正确账户、金额和准入条件，不能把通用接口验收当作超能已实现。
+
+目前仅完成此费用 / 身份接口及来源研究，尚未新增完整 Heat Rises 效果定义或提升覆盖状态。原作长按阈值、三种 Glide 运动、99% 激活 / 维持费用降低、敌方精度调整、25 米雷达暴露、正式 Aspect / 超能装配、全部交互及原作刷新 / 卸装边界都需后续实现与校准。Phoenix Dive 和 Icarus Dash 的既有 Heat Rises 标签消费者仍保留各自已记录的验收范围。
+
 ## Phoenix Dive 的实际落地与 Solar 组合
 
 原表 Solar B125/D125/N125 和 Class Abilities B45/D45/N45（固定 CSV 快照分别为 B73/D73/N73、B16/D16/N16）均给出自身与 9 米盟友 Cure x2、79.6 秒基础冷却和 0.8 chunk scalar。热力升腾分支在俯冲时给予 3 秒 Restoration x2，Solace 延至 4.5 秒，落地造成 100 基础伤害及 40 Scorch，Ashes 增至 60。原始 HTML、逐格快照映射、哈希和固定 Clarity 提交保存在[凤凰俯冲来源](../data/d2-research/2026-10-14/phoenix-dive-source.json)。Clarity 明确 Cure 在落地时、Restoration 在激活时，并区分运动输入与中立垂直下坠。

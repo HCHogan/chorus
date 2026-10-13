@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：多级技能转换的上一阶段费用与身份
+
+为 Heat Rises 消耗普通 / 治疗手雷或 Song of Flame Wisp 的不同分支补齐 `cost_from: previous_definition`。最终动作读取上一实际不同定义的已声明费用，A → B → C 时 C 可以消费 B 的账户；同身份覆盖不改写前一步，缺失前一步 / 未声明费用明确拒绝，不借用基础或最终备用账户，也不递归跟随中间支付策略。最终动作仍保留自己的信用，只支付一次，不运行中间技能动作或自动挂载中间常驻来源。
+
+`replaced_ability` 在解析与接受事实中保存上一阶段身份并覆盖输入同名引用，`cast_ability_tag` 读取该身份或 base_ability 的定义标签，支持接受时参数选择并可在攻击快照中冻结。原有 definition / base_selection / cost_slot 语义保留；参数和费用 Profile 在最终动作上下文求值，已提交退款仍固定实际付款账户。原 CostFrom 双值枚举使用保留的存储 ID 与显式迁移，新三值枚举另用 cost_from_v2。
+
+9 项 AbilityPreviousCostTest 覆盖直接与多级转换、同身份 / 多来源 / 冲突、缺失与耗尽 / 零费用、转换后费用修饰、输入引用与标签隔离、退款 / 领域恢复、未知结果不重放、数据往返与旧枚举严格迁移。连同现有两种费用和 schema 回归，28 项定向测试通过（9 秒）。4 项共享真实世界场景验证实际玩家生命、不同账户、变更选择后的真实 tick 退款和未知原生治疗；Fabric 定向验收通过（15 秒）。
+
+完整 `/tmp/chorus-previous-cost-full-gate.log` BUILD SUCCESSFUL（2 分 58 秒）：2103 项 JUnit 无失败 / 错误 / 跳过、Fabric 1194 项与 NeoForge 1209 项世界测试、两端发布 jar 通过；共享场景 1193 项。`build/reports/previous-cost/audit.json` 确认原 658 项存储形状不变，新增两项后共 660 项；发布主类 1186 / 1179 个字节匹配且无测试泄漏，Gradle CRLF 保持。10 项 Compendium 工具测试和来源 / 报告一致性通过。本批没有修改原生钩子、UI 或网络，未重复图形客户端测试。
+
+重新取得 Heat Rises 的原表 B144/D144、固定快照 B82/D82 与最新固定 Clarity 项 83039194；文本及归档哈希已核验，消费收益、空中击杀回能 / 延长和滑翔需求写入 [D2 规则集](d2-ruleset.md#heat-rises-的来源核对与待装配内容)。本批是必要的通用费用接口，尚非 Heat Rises 内容完成；Compendium 仍为 126 条审阅（124 partial、2 not_applicable）。下一步使用该接口实现实际消费、共享 Cure / Restoration、15 秒状态 / 30 秒上限和既有 Phoenix / Icarus 消费者组合。
+
 ### 2026-10-14：Phoenix Dive 的实际落地内容与职业 Solar 归属
 
 新增凤凰俯冲参考定义：空中一次职业支付、观察移动输入后执行水平 / 向下冲量、保存施放生命与热力升腾标记；热力升腾在施放时调用共享 Restoration x2，保存生命的实际落地才消费 pending 并执行自身 / 9 米盟友 Cure x2及敌人范围爆炸。盟友实际治疗继续组合 Benevolence。落地攻击沿用原施放归属，Solar 首来源快照补齐 class 分支，使 DoT、非致命分支和点燃保留职业 / 通用技能信用。

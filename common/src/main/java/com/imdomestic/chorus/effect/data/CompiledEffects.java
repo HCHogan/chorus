@@ -393,10 +393,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         }
         return sites.stream().sorted(java.util.Comparator.comparingInt(site -> site.replacement().priority())).toList();
     }
-    private static EffectEvent abilityEvent(AbilityUse.Request request, String base, AbilityDefinition definition) {
+    private static EffectEvent abilityEvent(AbilityUse.Request request, String base, AbilityDefinition definition, Optional<AbilityDefinition> previous) {
         var tags = new HashSet<>(request.input().tags()); tags.addAll(definition.tags());
         var origin = new BuffInstance.Origin(request.holder(), "cast/" + request.cast(), "", definition.id(), java.util.Set.copyOf(tags));
         var refs = new HashMap<>(request.input().references()); refs.put("ability", definition.id()); refs.put("base_ability", base); refs.put("ability_slot", request.slot()); refs.put("cast", request.cast());
+        refs.put("replaced_ability", previous.map(AbilityDefinition::id).orElse(""));
         return new EffectEvent(request.holder(), request.input().victim(), origin, tags, request.input().numbers(), request.input().flags(), refs, request.input().impact());
     }
     private record GateSite(ActionGate.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
@@ -450,46 +451,55 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private RuleEngine.Local<EffectState> rejectedAbility(EffectState state, AbilityUse.Request request, String base, String resolved, AbilityUse.Outcome outcome, Optional<Resources.SpendResult> cost) {
         return new RuleEngine.Local<>(state, new AbilityUse.Receipt(request.cast(), request.slot(), base, resolved, outcome, cost), List.of());
     }
-    private record AbilityResolution(String base, Optional<AbilityDefinition> selected, Optional<AbilityUse.Outcome> rejection) {}
+    private record AbilityResolution(String base, Optional<AbilityDefinition> selected, Optional<AbilityDefinition> previous, Optional<AbilityUse.Outcome> rejection) {}
     private AbilityResolution resolveAbility(EffectState state, AbilityUse.Request request) {
         settled(state);
         String base = state.abilities().getOrDefault(request.holder(), AbilityLoadout.EMPTY).slots().get(request.slot());
-        if (base == null) return new AbilityResolution("", Optional.empty(), Optional.of(AbilityUse.Outcome.EMPTY_SLOT));
+        if (base == null) return new AbilityResolution("", Optional.empty(), Optional.empty(), Optional.of(AbilityUse.Outcome.EMPTY_SLOT));
         var selected = validateSelection(request.slot(), base); var sites = abilityReplacements(state, request.holder());
+        Optional<AbilityDefinition> previous = Optional.empty();
         for (int i = 0; i < sites.size();) {
             int priority = sites.get(i).replacement().priority(); var matches = new HashSet<String>();
-            var query = queryEvent(state, abilityEvent(request, base, selected));
+            var query = queryEvent(state, abilityEvent(request, base, selected, previous));
             while (i < sites.size() && sites.get(i).replacement().priority() == priority) {
                 var site = sites.get(i++); var replacement = site.replacement();
                 if (!replacement.slot().equals(request.slot()) || replacement.ability().isPresent() && !replacement.ability().orElseThrow().equals(selected.id())) continue;
                 if (site.scope() instanceof BuffRules.Scope scope && !scope.snapshot().affects("", selected.id())) continue;
                 if (replacement.condition().test(evaluation(state, new RuleEngine.Context(query, site.instance(), site.scope(), Map.of()), Map.of()))) matches.add(replacement.replaceWith());
             }
-            if (matches.size() > 1) return new AbilityResolution(base, Optional.of(selected), Optional.of(AbilityUse.Outcome.CONFLICT));
-            if (!matches.isEmpty()) selected = validateSelection(request.slot(), matches.iterator().next());
+            if (matches.size() > 1) return new AbilityResolution(base, Optional.of(selected), previous, Optional.of(AbilityUse.Outcome.CONFLICT));
+            if (!matches.isEmpty()) {
+                var replacement = validateSelection(request.slot(), matches.iterator().next());
+                // Identity overrides do not manufacture another consumed ability or change its payment provenance.
+                if (!replacement.id().equals(selected.id())) { previous = Optional.of(selected); selected = replacement; }
+            }
         }
-        return new AbilityResolution(base, Optional.of(selected), Optional.empty());
+        return new AbilityResolution(base, Optional.of(selected), previous, Optional.empty());
     }
     /** Preliminary held-input gate: resolve replacements first, without querying parameters, cost, or committing a cast. */
     public boolean abilityInputAllowed(EffectState state, AbilityUse.Request request) {
         var resolved = resolveAbility(state, request);
         return resolved.rejection().isEmpty() && checkAction(state, ActionGate.Kind.ABILITY_USE, ActionGate.Phase.START,
-                abilityEvent(request, resolved.base(), resolved.selected().orElseThrow())).allowed();
+                abilityEvent(request, resolved.base(), resolved.selected().orElseThrow(), resolved.previous())).allowed();
     }
     public RuleEngine.Local<EffectState> useAbility(EffectState state, AbilityUse.Request request) {
         var resolved = resolveAbility(state, request);
         if (resolved.rejection().isPresent()) return rejectedAbility(state, request, resolved.base(), resolved.selected().map(AbilityDefinition::id).orElse(""), resolved.rejection().orElseThrow(), Optional.empty());
         String base = resolved.base(); var selected = resolved.selected().orElseThrow();
-        var query = abilityEvent(request, base, selected); var scope = new AbilityUse.Scope(query);
+        var query = abilityEvent(request, base, selected, resolved.previous()); var scope = new AbilityUse.Scope(query);
         var restriction=checkAction(state,ActionGate.Kind.ABILITY_USE,ActionGate.Phase.START,query);
         if(!restriction.allowed())return new RuleEngine.Local<>(state,new AbilityUse.Receipt(request.cast(),request.slot(),base,selected.id(),AbilityUse.Outcome.RESTRICTED,Optional.empty(),Optional.of(restriction)),List.of());
         var evaluation = evaluation(state, new RuleEngine.Context(queryEvent(state, query), "cast/" + request.cast(), scope, Map.of()), Map.of());
         if (!selected.condition().test(evaluation)) return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.CONDITION, Optional.empty());
-        // Read a base selection's declared cost once; never follow its replacement or another cost policy.
+        // Read the chosen definition's declared cost once; never follow its replacement or another cost policy.
         var paymentAbility = selected.costSlot().isPresent() ? selectedAbility(state, request.holder(), selected.costSlot().orElseThrow())
-                : Optional.of(selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION ? abilities.get(base) : selected);
+                : switch (selected.costFrom()) {
+                    case DEFINITION -> Optional.of(selected);
+                    case BASE_SELECTION -> Optional.of(abilities.get(base));
+                    case PREVIOUS_DEFINITION -> resolved.previous();
+                };
         var paymentCost = paymentAbility.flatMap(AbilityDefinition::cost);
-        if ((selected.costFrom() == AbilityDefinition.CostFrom.BASE_SELECTION || selected.costSlot().isPresent()) && paymentCost.isEmpty())
+        if ((selected.costFrom() != AbilityDefinition.CostFrom.DEFINITION || selected.costSlot().isPresent()) && paymentCost.isEmpty())
             return rejectedAbility(state, request, base, selected.id(), AbilityUse.Outcome.NO_BASE_COST, Optional.empty());
         var numbers = new HashMap<>(query.numbers());
         for (var entry : selected.parameters().entrySet()) {
@@ -523,6 +533,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new RuleEngine.Local<>(updated, receipt, facts);
     }
     public EffectProgram program() { return program; }
+    /** Definition metadata only; does not consult selections, resolve overrides or spend resources. */
+    public boolean abilityHasTag(String id, String tag) {
+        var definition = abilities.get(id); return definition != null && definition.tags().contains(tag);
+    }
     /** The base selection owns external energy gains; cast-time replacements do not change this selection. */
     public Optional<AbilityDefinition> selectedAbility(EffectState state, String holder, String slot) {
         AbilityDefinition.id(slot);

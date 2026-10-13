@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-13T15:38:54.382217+00:00",
+  "status": "researching",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/heat-rises-solar.html.gz",
+    "html_sha256": "9c64b960d465a34c789200d8baedc50060146c9d55cec0078efdf472975a0f4b",
+    "gzip_sha256": "b2256b272e187746b6967a20fcf9d45b93f3bc556e5619875c23dd181dc64ab6",
+    "cells": [
+      {
+        "original": "B144",
+        "text": "Heat Rises",
+        "text_sha256": "f79ff96b081b1a8dee94b4b07eef8ae677db7c4f0a753ff81aa6c80c21c666aa"
+      },
+      {
+        "original": "D144",
+        "text": "Passively grants +20 Airborne Effectiveness, and allows Weapon and Ability Usage while gliding. Kills while Airborne grant Melee Energy. Tier 1 Combatant = 20% | T2 = 25% | T3 = 35% | T4 = 50% | Guardians = 50% Hold [Grenade] to consume a Grenade Ability Charge, granting Heat Rises and releasing a burst of Cure x2 that affects the user and their allies within 9 meters. Consuming a Healing Grenade increases Cure to x3. Consuming a Touch of Flame Healing Grenade additionally grants Restoration x1 for 4+2 seconds. Consuming a Song of Flame' Wisp releases a burst of Cure x3 and grants Restoration x2 for 4+2 seconds to the user and their allies within 9 meters. Heat Rises Grants +50 Airborne Effectiveness, and a modified Glide that changes depending on the selected Movement Ability for 15 seconds. Combatants are less accurate at targeting the wearer while active. Modified Glide has -99% Glide Upkeep and Activation cost, extending maximum glide duration by 100 times, and marks the user's location on radar to Guardians within 25 meters. Balanced Glide: Strong Directional and Initial Burst | Burst Glide: Strong Directional Control | Strafe Glide: Strong Initial Burst. Scoring additional Airborne Kills while Heat Rises is active extends the buff duration, up to 30 seconds. Tier 1 Combatant = +5 seconds | T2 & T3 = +10 seconds | T4 = +15 seconds | Guardians = +5 seconds Consuming a Grenade always overwrites the duration to 15 seconds, even if it was previously higher.",
+        "text_sha256": "d69a0bab23f6ae90e813549f49c3579703463d5a8bb57baeb356ba51cd55f349"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B82",
+        "text": "Heat Rises",
+        "text_sha256": "f79ff96b081b1a8dee94b4b07eef8ae677db7c4f0a753ff81aa6c80c21c666aa"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D82",
+        "text": "Passively grants +20 Airborne Effectiveness, and allows Weapon and Ability Usage while gliding. \n\nKills while Airborne grant Melee Energy.\nTier 1 Combatant = 20% | T2 = 25% | T3 = 35% | T4 = 50% | Guardians = 50%\n\nHold [Grenade] to consume a Grenade Ability Charge, granting Heat Rises and releasing a burst of Cure x2 that affects the user and their allies within 9 meters.\nConsuming a Healing Grenade increases Cure to x3. Consuming a Touch of Flame Healing Grenade additionally grants Restoration x1 for 4+2 seconds.\nConsuming a Song of Flame' Wisp releases a burst of Cure x3 and grants Restoration x2 for 4+2 seconds to the user and their allies within 9 meters.\n\nHeat Rises\nGrants +50 Airborne Effectiveness, and a modified Glide that changes depending on the selected Movement Ability for 15 seconds.\nCombatants are less accurate at targeting the wearer while active.\nModified Glide has -99% Glide Upkeep and Activation cost, extending maximum glide duration by 100 times, and marks the user's location on radar to Guardians within 25 meters.\nBalanced Glide: Strong Directional and Initial Burst | Burst Glide: Strong Directional Control | Strafe Glide: Strong Initial Burst.\n\nScoring additional Airborne Kills while Heat Rises is active extends the buff duration, up to 30 seconds.\nTier 1 Combatant = +5 seconds | T2 & T3 = +10 seconds | T4 = +15 seconds | Guardians = +5 seconds\nConsuming a Grenade always overwrites the duration to 15 seconds, even if it was previously higher.",
+        "text_sha256": "2eb99cc587d2a5371d25b2c398b2c0d73a89b82c82c2236e92356f0625b4b545"
+      }
+    ],
+    "normalization": "Whitespace collapsed for original/snapshot comparison; exact archived HTML and snapshot texts are preserved."
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "head_query": "https://api.github.com/repos/Database-Clarity/Live-Clarity-Database/commits?path=descriptions/clarity.json&per_page=1",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/heat-rises-clarity.json",
+    "selected_sha256": "387409bb43d68446575402bb9d3ee99d176e9ce030ef5d3c779d7d684b00556a"
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/51440",
+      "published": "2022-06-07",
+      "supports": "Grenade consumption heals self and nearby allies; Healing Grenade increases Cure, Touch of Flame adds Restoration. Historical introduction, not proof of all current values."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/update_7_0_0_1",
+      "published": "2023-02-27",
+      "supports": "20 passive plus 50 active Airborne Effectiveness; historical change corroborates the Compendium total of 70."
+    }
+  ],
+  "implementation_dependency": {
+    "requirement": "A consume conversion must preserve the actual transformed grenade cost and identify the immediately replaced ability without changing final action credit.",
+    "engine_mode": "previous_definition reads the immediately replaced definition's declared cost; absent cost rejects, with no recursive fallback.",
+    "not_claimed": "This mechanism alone does not implement Heat Rises, Healing Grenade, Song of Flame, glide movement or their complete cost policies."
+  }
+}

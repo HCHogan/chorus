@@ -1,0 +1,253 @@
+{
+  "83039194": {
+    "hash": 83039194,
+    "name": "Heat Rises",
+    "lastUpload": 1787265837991,
+    "type": "Subclass Aspect",
+    "uploadedBy": "Hawkmoona",
+    "descriptions": {
+      "en": [
+        {
+          "linesContent": [
+            {
+              "text": "Passively grants 20 Airborne Effectiveness. Allows you to use your weapons and abilities while gliding."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Kills while Airborne grant Melee Energy based on "
+            },
+            {
+              "text": "Combatant Rank",
+              "link": "https://url.d2clarity.com/combatants",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": ":"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Minors: 20%"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Elites: 25%"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Minibosses: 35%"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Bosses and Players: 50%"
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Hold [Grenade] to consume it, activating 'Heat Rises' for 15 seconds, and grant "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Healing to you and allies within a 9 meter radius based on what was consumed."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Consuming a "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Healing Grenade grants "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x3. If "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Touch of Flame is equipped, this also grants "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Restoration x1 for 4 seconds."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Consuming a "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Song of Flame Wisp grants "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x3 and "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Restoration x2 for 4 seconds."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Restoration effects are extended to 6 seconds with "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Ember of Solace. All other grenades grant "
+            },
+            {
+              "classNames": [
+                "solar"
+              ]
+            },
+            {
+              "text": "Cure x2."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Heat Rises grants 50 Airborne Effectiveness and effectively infinite Glide flight time, along with improved base movement capabilities of your equipped Glide. Enemy combatants are less accurate while Heat Rises is active."
+            }
+          ]
+        },
+        {
+          "classNames": [
+            "spacer"
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "Scoring kills while Airborne extends Heat Rises, up to a maximum of 30 seconds based off "
+            },
+            {
+              "text": "Combatant Rank",
+              "link": "https://url.d2clarity.com/combatants",
+              "classNames": [
+                "link"
+              ]
+            },
+            {
+              "text": ":"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Minors and Players: 5 seconds"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Elites and Minibosses: 10 seconds"
+            }
+          ]
+        },
+        {
+          "linesContent": [
+            {
+              "text": "• Bosses: 15 Seconds"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

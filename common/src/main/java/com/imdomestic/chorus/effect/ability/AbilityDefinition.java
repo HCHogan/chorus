@@ -7,8 +7,8 @@ import java.util.*;
 public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Condition condition,
         Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects, CostFrom costFrom,
         Optional<String> rechargeResource, Optional<String> rechargeYieldProfile, Optional<String> costSlot) {
-    /** Only the final resolved definition chooses the payment policy; BASE_SELECTION reads its original selection's declared cost. */
-    public enum CostFrom { DEFINITION, BASE_SELECTION }
+    /** The final definition chooses whose declared cost to read; inherited policies are not followed recursively. */
+    public enum CostFrom { DEFINITION, BASE_SELECTION, PREVIOUS_DEFINITION }
     public AbilityDefinition {
         id(id); id(slot); Objects.requireNonNull(cost); Objects.requireNonNull(condition); Objects.requireNonNull(costFrom);
         Objects.requireNonNull(rechargeResource); rechargeResource.ifPresent(AbilityDefinition::id);
@@ -45,7 +45,7 @@ public record AbilityDefinition(String id, String slot, Optional<Cost> cost, Con
             Set<String> tags, Map<String, Parameter> parameters, List<EffectProgram.Step> onUse, Map<String, Effect> effects) {
         this(id, slot, cost, condition, tags, parameters, onUse, effects, CostFrom.DEFINITION);
     }
-    public boolean hasPayment() { return cost.isPresent() || costFrom == CostFrom.BASE_SELECTION || costSlot.isPresent(); }
+    public boolean hasPayment() { return cost.isPresent() || costFrom != CostFrom.DEFINITION || costSlot.isPresent(); }
     /** External energy follows the current base selection, independently of a replacement's payment policy. */
     public Optional<String> energyResource() { return rechargeResource.or(() -> cost.map(Cost::resource)); }
     /** Static selection configuration, independent of the parameters evaluated for each accepted cast. */

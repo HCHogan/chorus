@@ -80,6 +80,7 @@ public final class SnapshotExpressions {
             case Condition.EventHasBuffTag c -> new Condition.Constant(c.test(e));
             case Condition.EventTag c -> new Condition.Constant(c.test(e));
             case Condition.EventAbilityTag c -> new Condition.Constant(c.test(e));
+            case Condition.CastAbilityTag c -> new Condition.Constant(c.test(e));
             case Condition.LayerTag ignored -> condition;
             case Condition.SourceTag c -> new Condition.Constant(c.test(e));
             case Condition.EventSourceTag c -> new Condition.Constant(c.test(e));

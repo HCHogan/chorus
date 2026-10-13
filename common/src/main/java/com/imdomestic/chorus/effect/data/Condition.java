@@ -33,6 +33,18 @@ public interface Condition {
         @Override public boolean test(Evaluation e) { return !value.test(e); }
     }
     enum Source { THIS_WEAPON, THIS_ABILITY, OWNER }
+    /** Read canonical base or immediately replaced cast identity; neither inherits incidental input tags. */
+    record CastAbilityTag(String reference, String tag) implements Condition {
+        public CastAbilityTag {
+            if (!java.util.Set.of("base_ability", "replaced_ability").contains(reference)) throw new IllegalArgumentException("Invalid cast ability reference: " + reference);
+            AbilityDefinition.id(tag);
+        }
+        @Override public void validate(Validation v) {}
+        @Override public boolean test(Evaluation e) {
+            String id = e.event().references().getOrDefault(reference, "");
+            return !id.isEmpty() && e.program().orElseThrow(() -> new IllegalStateException("Cast ability metadata requires a compiled program")).abilityHasTag(id, tag);
+        }
+    }
     /** Read the committed base selection, independently of cast replacements and retained event credit. */
     record SelectedAbilityTag(String slot, String tag, Evaluation.Target target) implements Condition {
         public SelectedAbilityTag {

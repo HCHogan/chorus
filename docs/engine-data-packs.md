@@ -1848,8 +1848,17 @@ replace_with 必须在链接后的程序中存在且属于同槽；可选 abilit
 | --- | --- |
 | `definition`（默认） | 使用最终技能自己的 `cost`；省略表示无账户成本，保持原有语义 |
 | `base_selection` | 使用本次请求开始时基础选择的 `cost`，包括 resource、amount 和可选 profile |
+| `previous_definition` | 使用最终转换前、上一实际不同技能定义的已声明 `cost`；没有前一步或前一步未声明成本则拒绝 |
 
-例如给转换后的技能加入 `"cost_from":"base_selection"`，暮域被转换为冰炮台时消费暮域账户；直接选择冰炮台时，基础选择就是冰炮台，使用其自身声明的 cost。可以省略转换定义自身的 cost，但它被直接选中且无可继承成本时不能施放。多级替换始终读取最初选择的声明，不递归解析中间技能的成本策略；只有最终定义决定策略。
+例如给转换后的技能加入 `"cost_from":"base_selection"`，暮域被转换为冰炮台时消费暮域账户；直接选择冰炮台时，基础选择就是冰炮台，使用其自身声明的 cost。可以省略转换定义自身的 cost，但它被直接选中且无可继承成本时不能施放。`base_selection` 在多级替换中始终读取最初选择的声明；只有最终定义决定支付策略，各种委托均不递归解析供给成本的技能策略。
+
+### 读取上一转换阶段的成本与身份
+
+`previous_definition` 用于消耗已被其他来源替换的技能。例如 A（普通手雷）先变成 B（超能替代物），再变成 C（消费动作），C 可以读取 B 的已声明账户、金额与 Profile，而不支付 A 的费用。若只有 A → C 则读取 A。A → A 或 C → C 这种同身份覆盖不产生新的前一步；A → B → C → D 中 D 读取 C 的声明，不递归追随 C 的 cost_from / cost_slot。缺失前一步、前一步无 cost 均以 `NO_BASE_COST` 在参数查询前拒绝，不借用基础或最终定义的备用池；显式零金额仍保留免费支付回执。中间定义的条件、on_use 和常驻 effects 不会因此执行。
+
+解析期间和接受事实的 `references.replaced_ability` 保存上一个实际不同定义的 ID；没有前一步时为存在的空字符串，覆盖输入同名引用。`base_ability` 始终是基础装配，`ability` 和动作来源始终是最终定义，接受事实的 `cost_ability` 则记录最终选择的费用声明身份。参数 / 最终条件可用 `{"type":"chorus:cast_ability_tag","reference":"replaced_ability","tag":"example:wisp"}` 读取该定义标签；reference 只允许 base_ability / replaced_ability，未知或空 ID 为 false。该查询读取事件引用的定义元数据，不把临时输入标签当作定义标签，不查询后来换上的技能，也不授予施放权限。可信宿主若自行构造普通事件，需要自行保证这些引用的来源；它不等同只接受规范 Started / Used 的 event_ability_tag。攻击快照会冻结此条件。
+
+费用的数值表达式和 Profile 继续在最终动作上下文求值，保持最终技能信用；预检查和正式使用共享同一转换解析。退款只认已提交的付款回执，改选技能、移除替换源和领域检查点均不重定向原账户。CostFrom 的原双值存储枚举保留原 ID 并显式迁移，新三值枚举使用 cost_from_v2；旧 ID 下伪装的新枚举值仍被拒绝。
 
 `base_selection` 不表示免费兜底。基础选择没有 cost 时返回 `NO_BASE_COST`，在行动门槛和技能条件之后、参数求值和支付之前拒绝；即使转换定义有自己的 cost，也不改扣另一个池。基础 cost.amount 为零则是有账户的免费支付，仍产生零支付回执。费用表达式和 Profile 使用最终施放的上下文：伤害 / 技能信用和标签属于转换后技能，references.base_ability 保留原选择；不会在算费用时偷偷切回基础技能信用。
 
@@ -1866,7 +1875,7 @@ replace_with 必须在链接后的程序中存在且属于同槽；可选 abilit
 }
 ```
 
-此例仅说明支付声明，实际效果需由内容定义。`cost_slot` 必须是与自身 slot 不同的命名空间 ID；不能同时声明 cost 或 `cost_from: base_selection`。它读取**同一持有者当前选中**的另一个槽位技能的原始 cost，不解析该槽的技能替换，也不追随另一条成本策略。最终调用技能的声明决定支付策略；目标槽为空或没有声明 cost 时返回 `NO_BASE_COST`，有账户且金额为零才是免费支付。这个规则只限定成本引用的含义，不限制效果事件的合法循环。
+此例仅说明支付声明，实际效果需由内容定义。`cost_slot` 必须是与自身 slot 不同的命名空间 ID；不能同时声明 cost 或非 definition 的 cost_from。它读取**同一持有者当前选中**的另一个槽位技能的原始 cost，不解析该槽的技能替换，也不追随另一条成本策略。最终调用技能的声明决定支付策略；目标槽为空或没有声明 cost 时返回 `NO_BASE_COST`，有账户且金额为零才是免费支付。这个规则只限定成本引用的含义，不限制效果事件的合法循环。
 
 输入槽、实际技能定义、参数及攻击信用仍属于调用技能；支付只借用 resource / amount / profile，并在调用技能上下文中求值。接受事实的 `references.cost_slot` 和 `references.cost_ability` 记录实际读取的槽及成本声明技能，覆盖输入同名值；`ability_slot` 仍是本次输入槽。读取成本不会施放目标槽技能、执行它的 on_use 或产生第二组 Started / Used。若内容需要继承闪身收益，应显式组合相应效果，不能用第二次 use 模拟。
 
@@ -1874,7 +1883,7 @@ Ascension 参考定义按接受事实捕获的 cost_ability 调用共享 `chorus
 
 Marksman 共享收益先用 collect_pickups 查询当前施放者 15 米内的 `chorus_d2:special_ammo` / `chorus_d2:heavy_ammo`，再安排正 delay 的装备换弹。候选数不代表领取数；原物体奖励、私有资格与逐件派生反应仍走通用领取链路。该次领取在当前时间边界结算，后续计时边界才执行换弹，所以一微秒的最小正延迟也能消费新拾取的备弹。满备弹候选只跳过一次，延迟换弹不会重新发起收集。Ascension 的伤害中心是上升前捕获的位置，而此共享拾取查询使用上升后的当前位置；这是显式内容政策，完整原作动画时序仍需校准。
 
-声明 cost、`cost_from: base_selection` 或 `cost_slot` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选任一槽、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。`cost_slot` 不创建额外账户，也不把对 air_move 的回能自动转给 class；回能动作应明确指向实际接收槽。
+声明 cost、非 definition 的 cost_from 或 `cost_slot` 的 on_use 均有 `cast_cost` 绑定。它保存实际付款账户与实付额，refund_cost 和 retain_cost 沿用同一退款额度；延迟退款仍须显式 retain，不能直接把普通 cast_cost 跨帧捕获。改选任一槽、卸下替换来源、世界效果失败都不把这笔付款转到新账户。外部 grant_ability_energy 与自然回充仍由基础选择 / 资源定义路由，成本策略本身不重设 CES、恢复率、容量、余额或常驻 effects。`cost_slot` 不创建额外账户，也不把对 air_move 的回能自动转给 class；回能动作应明确指向实际接收槽。
 
 存储 ID `chorus:effect/ability/ability_definition_v2` 增加 costSlot。原 ID 保留完整旧字段形状，仅用于读取并迁移为 costSlot 为空的当前定义；新存档只写 v2，历史检查点无需改写。
 

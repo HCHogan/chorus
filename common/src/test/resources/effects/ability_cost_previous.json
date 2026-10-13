@@ -1,0 +1,442 @@
+{
+  "version": "test-selected-cost",
+  "resources": [
+    {
+      "id": "test:energy",
+      "capacity": 2,
+      "initial": 2,
+      "gain_profile": "test:gain"
+    },
+    {
+      "id": "test:other",
+      "capacity": 2,
+      "initial": 2,
+      "gain_profile": "test:gain"
+    },
+    {
+      "id": "test:converted_energy",
+      "capacity": 2,
+      "initial": 2,
+      "gain_profile": "test:gain"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "test:cost",
+      "version": "test-selected-cost",
+      "input_unit": "charge_fraction",
+      "steps": [
+        {
+          "type": "chorus:apply",
+          "id": "discount",
+          "operation": "multiply",
+          "group": {
+            "name": "discount",
+            "reduction": "sum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:gain",
+      "version": "test-selected-cost",
+      "input_unit": "charge_fraction",
+      "steps": []
+    }
+  ],
+  "abilities": [
+    {
+      "id": "test:a",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "tags": [
+        "test:base"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:b",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:other",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.5,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 2,
+            "unit": "damage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test:middle",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:converted_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.2,
+          "unit": "charge_fraction"
+        },
+        "profile": "test:cost"
+      },
+      "on_use": [],
+      "tags": [
+        "test:wisp"
+      ]
+    },
+    {
+      "id": "test:converted",
+      "slot": "test:grenade",
+      "cost_from": "previous_definition",
+      "cost": {
+        "resource": "test:converted_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1.5,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "test:converted"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:event_number",
+            "name": "param.benefit",
+            "unit": "damage"
+          }
+        }
+      ],
+      "parameters": {
+        "benefit": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:cast_ability_tag",
+              "reference": "replaced_ability",
+              "tag": "test:wisp"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 8,
+              "unit": "damage"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 4,
+              "unit": "damage"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "test:refund",
+      "slot": "test:grenade",
+      "cost_from": "previous_definition",
+      "tags": [
+        "test:converted"
+      ],
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:retain_cost",
+            "cost": "cast_cost",
+            "duration": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "second"
+            }
+          },
+          "as": "right"
+        },
+        {
+          "type": "chorus:heal",
+          "amount": {
+            "type": "chorus:constant",
+            "value": 4,
+            "unit": "damage"
+          }
+        },
+        {
+          "after": {
+            "type": "chorus:constant",
+            "value": 0.1,
+            "unit": "second"
+          },
+          "lifetime": "detached",
+          "do": [
+            {
+              "type": "chorus:refund_retained_cost",
+              "cost": "right",
+              "fraction": {
+                "type": "chorus:constant",
+                "value": 0.75,
+                "unit": "multiplier"
+              }
+            },
+            {
+              "type": "chorus:refund_retained_cost",
+              "cost": "right",
+              "fraction": {
+                "type": "chorus:constant",
+                "value": 0.75,
+                "unit": "multiplier"
+              }
+            },
+            {
+              "type": "chorus:close_retained_cost",
+              "cost": "right"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:free",
+      "slot": "test:grenade",
+      "on_use": []
+    },
+    {
+      "id": "test:zero",
+      "slot": "test:grenade",
+      "cost": {
+        "resource": "test:energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0,
+          "unit": "charge_fraction"
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:missing_parameter",
+      "slot": "test:grenade",
+      "cost_from": "previous_definition",
+      "parameters": {
+        "missing": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "missing",
+            "unit": "damage"
+          }
+        }
+      },
+      "on_use": []
+    },
+    {
+      "id": "test:relay",
+      "slot": "test:grenade",
+      "cost_from": "base_selection",
+      "on_use": []
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:convert",
+      "ability_overrides": [
+        {
+          "id": "convert",
+          "slot": "test:grenade",
+          "replace_with": "test:converted",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "id": "test:chain",
+      "ability_overrides": [
+        {
+          "id": "middle",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:middle",
+          "priority": 0
+        },
+        {
+          "id": "converted",
+          "slot": "test:grenade",
+          "ability": "test:middle",
+          "replace_with": "test:converted",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "id": "test:refund_override",
+      "ability_overrides": [
+        {
+          "id": "refund",
+          "slot": "test:grenade",
+          "replace_with": "test:refund",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "id": "test:missing_override",
+      "ability_overrides": [
+        {
+          "id": "missing",
+          "slot": "test:grenade",
+          "replace_with": "test:missing_parameter",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "id": "test:discount",
+      "modifiers": [
+        {
+          "id": "discount",
+          "profile": "test:cost",
+          "stage": "discount",
+          "group": "discount",
+          "op": "multiply",
+          "stacking_key": "test:discount",
+          "if": {
+            "type": "chorus:event_tag",
+            "tag": "test:converted"
+          },
+          "value": {
+            "type": "chorus:constant",
+            "value": -0.5,
+            "unit": "delta"
+          },
+          "reference": "Synthetic converted-only discount",
+          "confidence": "assumed"
+        }
+      ]
+    },
+    {
+      "id": "test:gain",
+      "rules": [
+        {
+          "id": "gain",
+          "on": "test:gain",
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "test:grenade",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 0.25,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "base"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "test:middle_only",
+      "ability_overrides": [
+        {
+          "id": "middle",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:middle",
+          "priority": 0
+        }
+      ]
+    },
+    {
+      "id": "test:relay_only",
+      "ability_overrides": [
+        {
+          "id": "relay",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:relay",
+          "priority": 0
+        }
+      ]
+    },
+    {
+      "id": "test:identity",
+      "ability_overrides": [
+        {
+          "id": "same",
+          "slot": "test:grenade",
+          "ability": "test:converted",
+          "replace_with": "test:converted",
+          "priority": 30
+        }
+      ]
+    },
+    {
+      "id": "test:identity_first",
+      "ability_overrides": [
+        {
+          "id": "same",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:a",
+          "priority": -10
+        }
+      ]
+    },
+    {
+      "id": "test:conflict",
+      "ability_overrides": [
+        {
+          "id": "other",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:b",
+          "priority": 0
+        }
+      ]
+    },
+    {
+      "id": "test:middle_alternative",
+      "ability_overrides": [
+        {
+          "id": "middle",
+          "slot": "test:grenade",
+          "ability": "test:a",
+          "replace_with": "test:b",
+          "priority": -5
+        },
+        {
+          "id": "convert",
+          "slot": "test:grenade",
+          "ability": "test:b",
+          "replace_with": "test:converted",
+          "priority": 10
+        }
+      ]
+    }
+  ]
+}
