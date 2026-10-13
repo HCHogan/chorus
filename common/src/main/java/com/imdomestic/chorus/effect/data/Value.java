@@ -125,7 +125,7 @@ public interface Value {
     }
     record BuffCount(String buff, Evaluation.Target target) implements Value {
         @Override public Unit unit(Validation v) { v.target(target); v.buff(buff); return Unit.COUNT; }
-        @Override public Measure evaluate(Evaluation e) { return new Measure(e.state().buffs().active(e.key(buff, target)).map(instance -> instance.count()).orElse(0), Unit.COUNT); }
+        @Override public Measure evaluate(Evaluation e) { return new Measure(e.state().buffs().active(e.key(buff, target)).map(instance -> instance.quantity()).orElse(0.), Unit.COUNT); }
     }
     record Component(String buff, Evaluation.Target target, String component) implements Value {
         @Override public Unit unit(Validation v) { v.target(target); return v.buff(buff).components().number(component).unit(); }
@@ -167,7 +167,9 @@ public interface Value {
             values.forEach(value -> Numbers.finite(value, "stack table")); return quantity;
         }
         @Override public Measure evaluate(Evaluation e) {
-            int count = e.ownBuff().count();
+            double amount = e.ownBuff().quantity();
+            if (amount != Math.rint(amount)) throw new IllegalArgumentException("Fractional stacks require an explicit numeric curve, not an indexed stack table");
+            int count = (int) amount;
             if (count < 1 || count > values.size()) throw new IllegalArgumentException("Undefined stack table entry: " + count);
             return new Measure(values.get(count - 1), quantity);
         }

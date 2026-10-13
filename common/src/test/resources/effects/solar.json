@@ -7,6 +7,7 @@
         "version": "compendium-2026-10-05",
         "duration": "permanent",
         "max_stacks": 100,
+        "fractional_stacks": true,
         "attach": "target",
         "components": {
           "damage_snapshots": [

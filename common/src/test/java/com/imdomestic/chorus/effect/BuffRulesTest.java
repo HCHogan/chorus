@@ -13,7 +13,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class BuffRulesTest {
-    private record Recorded(String weapon, int count) implements WorldCommand {}
+    private record Recorded(String weapon, double count) implements WorldCommand {}
     private static Instruction<BuffStore> action(Action<BuffStore> action) { return new Instruction<>(action, ""); }
     private static EventRule<BuffStore> rule(String id, String event, List<Instruction<BuffStore>> actions) {
         return new EventRule<>(id, event, (_, _) -> true, actions);

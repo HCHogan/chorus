@@ -7,7 +7,7 @@ import java.util.OptionalLong;
 
 public record BuffInstance(long generation, Key key, BuffDefinition definition, Origin origin,
         List<Stack> stacks, long nextStackId, int tier, long originalDurationMicros, long longestDurationMicros,
-        OptionalLong pausedAt, BuffComponents components) {
+        OptionalLong pausedAt, BuffComponents components, double quantity) {
     public record Key(String holder, String definition, String instance) implements Comparable<Key> {
         public Key { Objects.requireNonNull(holder); Objects.requireNonNull(definition); Objects.requireNonNull(instance); }
         @Override public int compareTo(Key other) {
@@ -29,6 +29,9 @@ public record BuffInstance(long generation, Key key, BuffDefinition definition, 
     public BuffInstance {
         Objects.requireNonNull(key); Objects.requireNonNull(definition); Objects.requireNonNull(origin);
         stacks = List.copyOf(stacks); Objects.requireNonNull(pausedAt); Objects.requireNonNull(components);
+        if (!Double.isFinite(quantity) || quantity < 0 || Math.ceil(quantity) != stacks.size()
+                || (!definition.fractionalStacks() && quantity != stacks.size()))
+            throw new IllegalArgumentException("Invalid buff stack quantity");
         if (generation < 1 || nextStackId < 1 || tier < 1 || originalDurationMicros <= 0 || longestDurationMicros < originalDurationMicros
                 || !key.definition().equals(definition.id()) || stacks.size() > definition.maximumStacks()
                 || (pausedAt.isPresent() && (pausedAt.getAsLong() < 0 || pausedAt.getAsLong() == BuffDefinition.FOREVER))) {
@@ -40,7 +43,16 @@ public record BuffInstance(long generation, Key key, BuffDefinition definition, 
             throw new IllegalArgumentException("Shared timer stacks must have the same deadline");
         }
     }
+    public BuffInstance(long generation, Key key, BuffDefinition definition, Origin origin, List<Stack> stacks,
+            long nextStackId, int tier, long originalDurationMicros, long longestDurationMicros, OptionalLong pausedAt, BuffComponents components) {
+        this(generation, key, definition, origin, stacks, nextStackId, tier, originalDurationMicros, longestDurationMicros, pausedAt, components, stacks.size());
+    }
+    /** Storage slots, including a possible fractional final slot. Use quantity for gameplay thresholds. */
     public int count() { return stacks.size(); }
+    public double activeQuantity(long now) { int slots = activeCount(now); return definition.fractionalStacks() ? (slots == 0 ? 0 : quantity) : slots; }
+    public static double decimalAdd(double left, double right) {
+        return java.math.BigDecimal.valueOf(left).add(java.math.BigDecimal.valueOf(right)).doubleValue();
+    }
     public long deadline() {
         if (pausedAt.isPresent()) return BuffDefinition.FOREVER;
         return stacks.stream().mapToLong(Stack::expiresAt).min().orElse(BuffDefinition.FOREVER);
@@ -58,6 +70,6 @@ public record BuffInstance(long generation, Key key, BuffDefinition definition, 
     }
     public BuffInstance withComponents(BuffComponents value) {
         return new BuffInstance(generation, key, definition, origin, stacks, nextStackId, tier,
-                originalDurationMicros, longestDurationMicros, pausedAt, value);
+                originalDurationMicros, longestDurationMicros, pausedAt, value, quantity);
     }
 }

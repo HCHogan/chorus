@@ -39,6 +39,14 @@ public interface Action {
             throw new IllegalArgumentException("Expected positive integral count");
         }
     }
+    private static void validateStacks(String buff, Value value, Validation v) {
+        Validation.same(value.unit(v), Unit.COUNT);
+        if (value instanceof Value.Constant c) Buffs.validateQuantity(v.buff(buff), c.value());
+    }
+    static double stackQuantity(String buff, Value value, Evaluation e) {
+        var number = value.evaluate(e); Validation.same(number.unit(), Unit.COUNT);
+        Buffs.validateQuantity(e.definition(buff), number.value()); return number.value();
+    }
     static void validateDuration(Value value, Validation v) {
         Validation.same(value.unit(v), Unit.SECOND);
         if (value instanceof Value.Constant c) {
@@ -58,12 +66,12 @@ public interface Action {
     }
     record GrantBuff(String buff, Evaluation.Target target, Value stacks, Value tier, Optional<Value> duration) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target);
-            v.buff(buff); validateCount(stacks, v); validateCount(tier, v);
+            v.buff(buff); validateStacks(buff, stacks, v); validateCount(tier, v);
             duration.ifPresent(value -> validateDuration(value, v)); return ResultShape.BUFF;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             String holder = e.target(target); var definition = e.definition(buff);
-            var applied = Buffs.grant(e.state().buffs(), definition, holder, holder, e.origin(), count(stacks, e), count(tier, e),
+            var applied = Buffs.grant(e.state().buffs(), definition, holder, holder, e.origin(), stackQuantity(buff, stacks, e), count(tier, e),
                     duration.map(value -> micros(value, e)).orElse(definition.timer().durationMicros()));
             var signals = new java.util.ArrayList<>(applied.signals());
             signals.add(com.imdomestic.chorus.effect.buff.BuffApplicationFacts.granted(e.context().operation(),
@@ -72,8 +80,8 @@ public interface Action {
         }
     }
     record ConsumeBuff(String buff, Evaluation.Target target, Value stacks) implements Action {
-        @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff); validateCount(stacks, v); return ResultShape.BUFF; }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return local(e, Buffs.consume(e.state().buffs(), e.key(buff, target), count(stacks, e))); }
+        @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff); validateStacks(buff, stacks, v); return ResultShape.BUFF; }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return local(e, Buffs.consume(e.state().buffs(), e.key(buff, target), stackQuantity(buff, stacks, e))); }
     }
     record RemoveBuff(String buff, Evaluation.Target target) implements Action {
         @Override public ResultShape validate(Validation v) { v.target(target); v.buff(buff); return ResultShape.BUFF; }
@@ -105,7 +113,7 @@ public interface Action {
         @Override public ResultShape validate(Validation v) { new GrantBuff(buff, target, stacks, tier, duration).validate(v); return ResultShape.STATUS_CHECK; }
         private StatusResult.Check request(Evaluation e) {
             var definition = e.definition(buff);
-            return new StatusResult.Check(e.target(target), definition, e.origin(), count(stacks, e), count(tier, e),
+            return new StatusResult.Check(e.target(target), definition, e.origin(), stackQuantity(buff, stacks, e), count(tier, e),
                     duration.map(value -> micros(value, e)).orElse(definition.timer().durationMicros()), allowDead);
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(request(e)); }
@@ -119,7 +127,7 @@ public interface Action {
         @Override public ResultShape validate(Validation v) { v.target(target); new GrantBuff(buff, target, stacks, tier, duration).validate(v); return ResultShape.STATUS; }
         private StatusResult.Check request(Evaluation e) {
             var definition = e.definition(buff);
-            return new StatusResult.Check(e.target(target), definition, e.origin(), count(stacks, e), count(tier, e),
+            return new StatusResult.Check(e.target(target), definition, e.origin(), stackQuantity(buff, stacks, e), count(tier, e),
                     duration.map(value -> micros(value, e)).orElse(definition.timer().durationMicros()));
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return new RuleEngine.Await<>(request(e)); }
@@ -127,14 +135,14 @@ public interface Action {
             var checked = (StatusResult.Checked) receipt; var request = e.context().command(StatusResult.Check.class);
             if (!checked.request().equals(request)) throw new IllegalArgumentException("Status authorization does not match the request");
             var key = e.key(buff, target);
-            int before = e.state().buffs().active(key).map(BuffInstance::count).orElse(0);
+            double before = e.state().buffs().active(key).map(BuffInstance::quantity).orElse(0.);
             Optional<String> cause = EffectTimers.event(e.context().event().signal().payload()).flatMap(event -> Optional.ofNullable(event.references().get("damage_id")));
             if (checked.decision() != StatusResult.Decision.ALLOWED) {
                 return new RuleEngine.Local<>(e.state(), new StatusResult(cause, false, before, before, Optional.empty(), checked.decision()), List.of());
             }
             var applied = Buffs.grant(e.state().buffs(), request.definition(), request.target(), request.target(), request.source(), request.stacks(), request.tier(), request.duration());
             var instance = applied.store().active(key).orElseThrow();
-            var result = new StatusResult(cause, true, before, instance.count(), Optional.of(new EffectState.Lifetime(key, instance.generation())), checked.decision());
+            var result = new StatusResult(cause, true, before, instance.quantity(), Optional.of(new EffectState.Lifetime(key, instance.generation())), checked.decision());
             var signals = new java.util.ArrayList<>(applied.signals());
             signals.add(StatusFacts.applied(e.context().operation(), request, result));
             signals.add(com.imdomestic.chorus.effect.buff.BuffApplicationFacts.granted(e.context().operation(),

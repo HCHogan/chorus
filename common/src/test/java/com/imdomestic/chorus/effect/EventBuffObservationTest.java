@@ -75,7 +75,7 @@ class EventBuffObservationTest {
         var p=load("event_buffs");assertEquals(p.program(),EffectCodecs.PROGRAM.parse(JsonOps.INSTANCE,EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE,p.program()).getOrThrow()).getOrThrow());
         for(String change:List.of("minimum","buff","target")){
             var data=json("event_buffs");var condition=data.getAsJsonArray("bundles").get(1).getAsJsonObject().getAsJsonArray("rules").get(1).getAsJsonObject().getAsJsonObject("if");
-            if(change.equals("minimum"))condition.addProperty("minimum",0);else if(change.equals("buff"))condition.addProperty("buff","test:missing");else condition.add("target",com.google.gson.JsonParser.parseString("{\"binding\":\"missing\"}"));
+            if(change.equals("minimum"))condition.addProperty("minimum",-1);else if(change.equals("buff"))condition.addProperty("buff","test:missing");else condition.add("target",com.google.gson.JsonParser.parseString("{\"binding\":\"missing\"}"));
             assertThrows(RuntimeException.class,()->compile(data));
         }
         var observation=BuffObservation.capture(marked(p,"other",2).buffs(),"target");var e=evaluation(p,EffectState.empty(),event(SOURCE).withObservedBuffs(Optional.of(observation)));

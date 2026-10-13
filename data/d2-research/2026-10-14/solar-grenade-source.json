@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "status": "researched_fractional_stack_prerequisite_implemented_producer_pending",
+  "reviewed_at": "2026-10-13T18:50:27.245833+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/solar-grenade-solar.html.gz",
+    "html_sha256": "6fafcea26f1167d24b36a5831d8f18b389bafd84785849e1ac4f1ea6cc4c4c16",
+    "gzip_sha256": "4546a57c0b3fbcabeb9f12cd23095314953ea926bd3f3118ea92b728d35254a5",
+    "cells": [
+      {
+        "original": "B45",
+        "text": "Solar Grenade",
+        "text_sha256": "02feb2e1ca5cc0a3e0c289c16a911755d34805ceaa737626d4261d0deb3cd101"
+      },
+      {
+        "original": "D45",
+        "text": "Medium Trajectory | DoT Field Deals up to 63 [20] damage and inflicts x17+4.5 [x10+10] Scorch to enemies within 5 metres on impact, as well as creating a Solar Flare. Solar Flare: Deals 78 [25] damage every 0.267 seconds up to 13 times over its 4 second duration, for a total of 1,014 [325] damage to enemies within its 4 metre radius. Does not Scorch within its DoT Field, it inflicts up to x17+13 Scorch to Combatants inside the Solar Flare when it expires, although it's inconsistent. Inflicts x1 Scorch after 0.75 seconds, followed by x7.5+2.5 Scorch every 0.533 seconds, up to x53+27 Scorch over its duration. Solar Flare only begin dealing damage or inflicting scorch after 1 second of being created.",
+        "text_sha256": "e6e00f4c6ffc2f4a6d277609f93cf8a4bfe907a86a288f78989e3a8883ed255f"
+      },
+      {
+        "original": "N45",
+        "text": "Base Cooldown: 199.5 seconds Chunk Scalar: 0.5x",
+        "text_sha256": "5d239b5bea0eb22670bb02d7084a3eb285a4cb52d7eeccd0cb46f80347ae6e1b"
+      },
+      {
+        "original": "B46",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D46",
+        "text": "Solar Grenade lasts for ↑6 seconds. Solar Flare releases Magma Orbs around it every ? seconds, each dealing 125 [50] damage without falloff.",
+        "text_sha256": "91bafedc2c1fba29e1be1ef3048f37f1d5cf39e179f4ff283ead96b71142ea12"
+      },
+      {
+        "original": "B150",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D150",
+        "text": "Enhances certain Grenade types: Healing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds. Firebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies. Solar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff. Fusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "51289915247b4170152c4aa9f7ecc12488a3895c70e503dbfef2a45f0701fc0c"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B36",
+        "text": "Solar Grenade",
+        "text_sha256": "02feb2e1ca5cc0a3e0c289c16a911755d34805ceaa737626d4261d0deb3cd101"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D36",
+        "text": "Medium Trajectory | DoT Field\n\nDeals up to 63 [20] damage and inflicts x17+4.5 [x10+10] Scorch to enemies within 5 metres on impact, as well as creating a Solar Flare. \n\nSolar Flare:\nDeals 78 [25] damage every 0.267 seconds up to 13 times over its 4 second duration, for a total of 1,014 [325] damage to enemies within its 4 metre radius.\nDoes not Scorch within its DoT Field, it inflicts up to x17+13 Scorch to Combatants inside the Solar Flare when it expires, although it's inconsistent.\nInflicts x1 Scorch after 0.75 seconds, followed by x7.5+2.5 Scorch every 0.533 seconds, up to x53+27 Scorch over its duration.\nSolar Flare only begin dealing damage or inflicting scorch after 1 second of being created.",
+        "text_sha256": "d7b0fdbda39b9a55c9599d333e084d07818de10313db05fa8169fe07fce6aadd"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "N36",
+        "text": "Base Cooldown: 199.5 seconds\n\nChunk Scalar: 0.5x",
+        "text_sha256": "c17b9a832a507e3f8787fa703448d0cfa7616429e1947e5ef2d367e3cdbb9d3e"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B37",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D37",
+        "text": "Solar Grenade lasts for ↑6 seconds.\nSolar Flare releases Magma Orbs around it every ? seconds, each dealing 125 [50] damage without falloff.",
+        "text_sha256": "f3d6b00902a1f1c762dcf3a4e531af3173a015af371bffbb61baff32391acca4"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B85",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D85",
+        "text": "Enhances certain Grenade types:\n\nHealing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds.\nFirebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies.\nSolar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff.\nFusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
+      }
+    ],
+    "formatting_evidence": {
+      "D45_blue_a4c2f4": "Combatants: no Scorch during field; up to 17+13 at expiry, explicitly inconsistent.",
+      "D45_red_ea9999": "PvP: 1 Scorch after 0.75 seconds, then 7.5+2.5 every 0.533 seconds, up to 53+27.",
+      "D45_small_type": "Additive Ashes bonuses remain distinct from base amounts; impact 17+4.5 and PvP 10+10."
+    }
+  },
+  "official": [
+    {
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025",
+      "published": "2025-07-31",
+      "retrieval": "Full article read on official alternate host, Warlock paragraph in Missing Patch Notes.",
+      "supports": "Touch of Flame enhanced Solar and Fusion grenade damage decreased by ten percent in the stat rework. Relation to current Compendium bases remains unresolved."
+    }
+  ],
+  "requirements": [
+    "Paid medium-trajectory grenade; impact radius 5 m, damage 63/20, Scorch 17+4.5 or 10+10 with separate Ashes contribution.",
+    "Fixed Solar Flare radius 4 m, base lifetime 4 s, Touch extension 2 s; field damage 78/25 per 0.267 s, stated 13 pulses.",
+    "Mode-specific Scorch: PvE expiry application versus PvP fractional periodic applications, preserving original formatting.",
+    "Touch magma orbs deal 125/50 without damage falloff; projectile emission cadence and physical parameters must be explicit calibration.",
+    "Base recharge 199.5 s and chunk scalar 0.5; reuse shared grenade resource and Heat Rises consumption."
+  ],
+  "uncertainties": [
+    "The 1 s field startup plus thirteen pulses spaced 0.267 s places the last pulse at 4.204 s; source also states a 4 s duration. Startup, lifetime origin and last-pulse policy require explicit calibration.",
+    "PvP first Scorch at 0.75 s conflicts with the final one-second startup note unless separate timer origins are intended; source does not resolve this.",
+    "PvE expiry Scorch is explicitly inconsistent; no invented deterministic success probability.",
+    "Magma emission interval is marked unknown; trajectory, speed, spread, gravity, impact radius, number of orbs, overlap policies and ally/LOS rules need calibration.",
+    "Do not apply the historical ten-percent reduction again without knowing whether the table already incorporates it.",
+    "Complete production subclass assembly, formal content catalog, visuals and physical world restart are pending."
+  ],
+  "implementation": {
+    "scope": "Opt-in shared fractional Buff quantities, integrated into shared Scorch; Solar Grenade field and magma producer are still pending.",
+    "core_test": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
+    "native_test": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
+    "reference": "common/src/test/resources/effects/solar.json"
+  },
+  "not_claimed": [
+    "Complete Solar Grenade / Touch of Flame implementation",
+    "Calibrated current Destiny 2 numerical parity",
+    "Independent per-stack fractional lifetimes"
+  ]
+}

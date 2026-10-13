@@ -5,7 +5,7 @@ import java.util.Set;
 
 /** Resolved lifetime policy. Value expressions are evaluated before entering the buff service. */
 public record BuffDefinition(String id, String version, int maximumStacks, Timer timer, Binding binding,
-        StackMode stackMode, boolean keepHighestTier, boolean creditOverflow, Set<String> tags, BuffSchema components) {
+        StackMode stackMode, boolean keepHighestTier, boolean creditOverflow, Set<String> tags, BuffSchema components, boolean fractionalStacks) {
     public enum TimerMode { SHARED, PER_STACK }
     public enum Decay { ALL, ONE_BY_ONE }
     public enum Refresh { NONE, RESET, EXTEND, HISTORIC_MAX, MAX_REMAINING }
@@ -43,6 +43,11 @@ public record BuffDefinition(String id, String version, int maximumStacks, Timer
         if (timer.mode() == TimerMode.PER_STACK && stackMode != StackMode.ADD) {
             throw new IllegalArgumentException("Per-stack lifetimes require additive stack applications");
         }
+        if (fractionalStacks && timer.mode() != TimerMode.SHARED) throw new IllegalArgumentException("Fractional accumulation requires a shared timer");
+    }
+    public BuffDefinition(String id, String version, int maximumStacks, Timer timer, Binding binding,
+            StackMode stackMode, boolean keepHighestTier, boolean creditOverflow, Set<String> tags, BuffSchema components) {
+        this(id, version, maximumStacks, timer, binding, stackMode, keepHighestTier, creditOverflow, tags, components, false);
     }
     public BuffDefinition(String id, String version, int maximumStacks, Timer timer, Binding binding,
             StackMode stackMode, boolean keepHighestTier, boolean creditOverflow, Set<String> tags) {

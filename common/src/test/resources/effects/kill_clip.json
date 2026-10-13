@@ -22,7 +22,7 @@
       ]}, "do": [{"type": "chorus:grant_buff", "buff": "chorus_d2:kill_clip_window"}]},
       {"id": "activate", "on": "chorus:reload_finished", "if": {"type": "chorus:all", "of": [
         {"type": "chorus:source_is", "source": "this_weapon"},
-        {"type": "chorus:has_buff", "buff": "chorus_d2:kill_clip_window"}
+        {"type": "chorus:has_buff", "buff": "chorus_d2:kill_clip_window", "minimum": 1}
       ]}, "do": [
         {"type": "chorus:consume_buff", "buff": "chorus_d2:kill_clip_window"},
         {"type": "chorus:grant_buff", "buff": "chorus_d2:kill_clip", "duration": {

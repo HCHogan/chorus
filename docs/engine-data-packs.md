@@ -463,6 +463,18 @@ maximum 在接收护盾层的 Buff 作用域中求值；例如 self / component 
 
 effective > 0 时产生 `chorus:shield_restored`，携带恢复来源、受益者、层定义标签、shield_definition / shield_generation，以及 requested / effective / overflow / layer_before / layer_remaining / maximum 和 full。满容量或零量补充不产生此事实。状态先提交，再按原有队列分发事实；与世界动作等待组合时，重复回执不能再次补盾。它不调用原版 heal，也不改变 Absorption。
 
+### 共享 Buff 的小数层数
+
+Buff 的 definition 可显式设置 `"fractional_stacks": true`，默认 false。仅与 shared 计时兼容；max_stacks 仍是正整数上限，tier 仍为正整数。grant_buff、consume_buff、check_status、apply_status 的 stacks 表达式保持 count 单位；小数模式接受有限正数，默认模式要求正整数。请求上限仍为 Integer.MAX_VALUE，超出定义容量的授予按既有封顶 / credit_overflow 政策处理。
+
+例如对同一实例授予 21.5 和 78，buff_count 返回 99.5；继续授予 0.5 才返回 100。ADD 累加、消费和 stored_delta 用有限 double 的规范十进制加减后返回 double，避免每次 .1 累加产生阈值残差；这不提供任意精度小数存储。MAX / REPLACE 比较或替换实际量。共享 one_by_one 衰减使 2.25 → 1.25 → .25 → 0，每步沿用定义间隔。
+
+回执 requested / credited / stored_delta、状态 before / after、生命周期 stacks_before / stacks_after、buff_applied 及移除合计、事件观察都保留实际量。Java BuffInstance.quantity() 是游戏层数，count() 是内部计时槽数 ceil(quantity)，不得据它计算阈值。暂停、刷新、延长和领域检查点保留小数。默认整数 Buff 与独立层计时的既有行为保留；fractional_stacks + per_stack、逐槽 modifier multiplicity:stack 在链接时拒绝。by_stacks 只接受整数实际层数，小数使用 buff_count 配合显式 numeric curve / profile。
+
+has_buff / event_has_buff 的 minimum 省略或为 0 表示存在一个正实际量实例；显式 1 仍要求至少 1 层，因此 .5 的存在性为真、minimum=1 为假。minimum 仍是非负整数；需要 .5、21.5 等阈值时使用 buff_count 数值比较。过期 / 缺失实例不会因 minimum=0 而变成存在，any 仍不跨实例累加。事件查询读取回执时保存的量，后续消费 / 到期不改写观察。
+
+BuffDefinition、BuffInstance、Buffs.Receipt、StatusResult、StatusResult.Check、BuffObservation.Entry 各有独立的 `_v2` 存储 ID；旧 ID 保留原字段形状，旧整数数据迁移成相等的实际量，旧定义 fractional_stacks=false。旧程序已固定的 minimum 值与目录身份不被改写。存储协议顶层版本保持 1，领域恢复仍要求一致的固定目录；原生实体 / 整个世界跨重启是独立验收范围。
+
 | 条件 | 含义 |
 | --- | --- |
 | has_buff 的 match:bound | 默认行为，按当前来源和 Buff 的实例键匹配 |
@@ -2648,7 +2660,7 @@ Minecraft 宿主目前用 `chorus:effect_entity` 承载一个私有逻辑单位�
 
 需要确认历史事件确实属于当前规则绑定的那一代 Buff 时，使用 `event_has_buff` 的 `match: instance`。它只允许在 BUFF 作用域中声明，同时比较逻辑实例键和 generation；刷新 / 加层保留代次，结束后同键重新授予会产生新代次。旧事件因此不会被新冻结等状态计入受伤阈值。对应的 `has_buff match: instance` 检查该代次现在是否仍存活；结束回调仍能匹配自己的历史观察，但不会把新代次当作旧状态复活。原有 bound / any 的含义保持不变；这是逐事件的状态资格条件，不是跨目标连锁的次数或深度限制。
 
-`event_has_buff`（buff、target 默认 victim、minimum 默认 1、match 默认 any）与 `event_has_buff_tag`（tag、target 默认 victim）读取事实的不可变观察值。它们不会重新查询当前 BuffStore。`event_buffs_available` 可先判断指定 target 是否确实被观察；未观察会报错，确认观察为空才表示没有 Buff，not 也不能把缺数据转成“不存在”的证据。match:bound 按当前绑定来源计算实例键；any 要求某一个实例独立达到 minimum，不跨来源相加。暂停实例保留存在性，已到期层不进入观察。
+`event_has_buff`（buff、target 默认 victim、minimum 默认 0（存在性）、match 默认 any）与 `event_has_buff_tag`（tag、target 默认 victim）读取事实的不可变观察值。它们不会重新查询当前 BuffStore。`event_buffs_available` 可先判断指定 target 是否确实被观察；未观察会报错，确认观察为空才表示没有 Buff，not 也不能把缺数据转成“不存在”的证据。match:bound 按当前绑定来源计算实例键；any 要求某一个实例独立达到 minimum，不跨来源相加。暂停实例保留存在性，已到期层不进入观察。
 
 伤害适配器在**回执确认、该次 Buff 消费与派生事实执行之前**采样攻击者和受击者。此时物理伤害及护盾写入已经发生，因此它不是攻击进入前的完整状态快照。每份原版嵌套伤害分别采样；其后的 hit / damage_taken / shield / death / kill 共享该份观察，后来清理、授予、刷新或到期不会改写历史。纯核心 Action 在宿主尚未结算消费且没有提供观察时，从完成动作的状态补采样；已由宿主结算消费却没有观察的回执保持未知，不假造消费前值。
 

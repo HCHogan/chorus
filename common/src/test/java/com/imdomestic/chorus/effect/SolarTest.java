@@ -20,7 +20,7 @@ class SolarTest {
     static final EffectSource FIRST = source("first", "weapon"), SECOND = source("second", "grenade");
     static CompiledEffects program() throws Exception { return link("solar", "empowering_damage", "solar_test_calibration", "solar_test_source"); }
     static class Harness {
-        final CompiledEffects program; final EffectSession session;
+        final CompiledEffects program; EffectSession session;
         final Map<String, EntityQuery.View> views = new HashMap<>();
         final List<DamageCommand> damage = new ArrayList<>(); final List<Double> amounts = new ArrayList<>(); final List<Long> times = new ArrayList<>();
         final List<TargetQuery> queries = new ArrayList<>();
@@ -32,7 +32,7 @@ class SolarTest {
             views.put("target", view(false, false)); views.put("neighbor", view(false, false));
             var state = EffectState.empty().withMode(mode);
             for (var s : List.of(FIRST, SECOND)) state = state.withSource(s).withSource(new EffectSource(s.instance()+"-solar", "chorus_d2:solar_scaling", s.holder(), s.origin(), Set.of()));
-            session = new EffectSession(engine(program), state, this::execute);
+            session = new EffectSession(program, EffectCheckpointTest.clock(), 1, state, this::execute);
         }
         RuleEngine.ActionResult execute(RuleEngine.WorldRequest request) {
             return switch (request.command()) {
@@ -52,8 +52,8 @@ class SolarTest {
         }
         EffectState state() { return session.state().engine().domain(); }
         void healthy() { assertTrue(session.state().engine().failure().isEmpty(), session.state().engine().failure().toString()); assertTrue(session.state().idle()); }
-        void apply(long at, EffectSource source, int stacks) { apply(at, source, "target", stacks); }
-        void apply(long at, EffectSource source, String target, int stacks) { session.start(at, new RuleEngine.Signal("test:scorch_apply",
+        void apply(long at, EffectSource source, double stacks) { apply(at, source, "target", stacks); }
+        void apply(long at, EffectSource source, String target, double stacks) { session.start(at, new RuleEngine.Signal("test:scorch_apply",
                 new EffectEvent(source.holder(), target, source.origin(), Set.of(), Map.of("stacks", new Measure(stacks, Unit.COUNT))))); healthy(); }
         void until(long at) { session.observe(at, List.of()); healthy(); }
         Optional<BuffInstance> buff(String id) { return state().buffs().instances().values().stream().filter(b -> b.definition().id().equals(id)).findFirst(); }

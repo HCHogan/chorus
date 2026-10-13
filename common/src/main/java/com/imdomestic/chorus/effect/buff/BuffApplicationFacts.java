@@ -24,7 +24,7 @@ public final class BuffApplicationFacts {
         var event = new EffectEvent(applicant.owner(), recipient, applicant, definition.tags(),
                 Map.of("requested", count(result.receipt().requested()), "credited", count(result.receipt().credited()),
                         "stored_delta", count(result.receipt().storedDelta()),
-                        "stacks_before", count(previous.map(BuffInstance::count).orElse(0)), "stacks_after", count(instance.count())),
+                        "stacks_before", count(previous.map(BuffInstance::quantity).orElse(0.)), "stacks_after", count(instance.quantity())),
                 Map.of("applied", true, "new_instance", previous.isEmpty(), "status_authorized", statusAuthorized),
                 Map.of("buff_application_id", "buff/" + operation.frame() + "/" + operation.pc() + "/" + operation.invocation(),
                         "buff_definition", definition.id(), "buff_holder", key.holder(), "buff_instance", key.instance(),
@@ -32,5 +32,5 @@ public final class BuffApplicationFacts {
         return new RuleEngine.Signal("chorus:buff_applied", event);
     }
 
-    private static Measure count(int value) { return new Measure(value, Unit.COUNT); }
+    private static Measure count(double value) { return new Measure(value, Unit.COUNT); }
 }

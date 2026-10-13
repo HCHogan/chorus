@@ -255,7 +255,8 @@ Outcome step(RuleState state, Frame frame, RuleContext ctx);
 | 字段 | 取值 | 表里对应的写法（出现比例） |
 | --- | --- | --- |
 | `duration` | 数值表达式 | for N seconds（35%） |
-| `max_stacks` | 整数 | stacks、up to xN（17.5%） |
+| `max_stacks` | 正整数上限 | stacks、up to xN（17.5%） |
+| `fractional_stacks` | 默认 false；true 允许共享计时实例累计有限正小数 | Solar Grenade 的 4.5 / 7.5 层 Scorch |
 | `refresh` | `reset` 重置 / `extend`（加多少、上限）/ `historic_max` 恢复历史最长时间 / `max_remaining` 取当前剩余与新时长的较大值 / `none` 到期前不可刷新 | refresh / extend（13%）；Restoration 的历史时间；Woven Mail 保留较长剩余时间 |
 | `decay` | `all` 一次全掉 / `one_by_one`（可带延迟） | Stacks decay one at a time |
 | `scope` | 已拆成 `attach`、`instanced_by`、`affects`、`on_stow` 四个字段，见「核心语义 v0.3」 | removed on stow / persists through stow（16.5%） |
@@ -266,6 +267,14 @@ Outcome step(RuleState state, Frame frame, RuleContext ctx);
 | `display` | 图标、名称、是否显示层数 |  |
 
 buff 实例用「持有者 × buff 定义 × 实例键」区分，状态除了层数和计时器，还可以带累加器、去重集合、引用、历史值等组件，见「核心语义 v0.3」。实例键由 instanced_by 决定，可以是来源实体、武器实例，或者为空。
+
+### 小数叠层与实际量
+
+`fractional_stacks: true` 是通用 Buff 定义选项，当前限定共享计时。实际层数保存在 `quantity`，与计时槽数量分开；`count()` / `stacks` 列表保留 `ceil(quantity)` 个内部槽，不能用于伤害或阈值。查询、状态授权、授予 / 消费回执、生命周期和施加事实、移除合计及事件观察都读取实际量。比如 99.5 层不会达到 100 的点燃阈值，再加 0.5 才到阈值；0.5 层仍是一份存在的状态。
+
+ADD / MAX / REPLACE 和上限都作用于实际量。逐层衰减每次减 1，最后不足 1 的尾数在下一次衰减归零；暂停、刷新、延长、组件修改和恢复检查点保留尾数。默认整数 Buff 继续拒绝小数请求，独立层计时与小数模式的组合在定义验证时拒绝。逐槽 modifier multiplicity 也不适用于小数累计；连续加成用 buff_count 和显式曲线，by_stacks 遇到非整数实际量时拒绝，不隐式选上一档。
+
+has_buff / event_has_buff 的省略 minimum 现在表示存在性（内部为 0），仍要求确实有活动 / 已观察实例；显式 minimum=1 表示至少 1 层。小数阈值可用 buff_count 的数值比较；minimum 本身仍是非负整数。旧检查点内显式保存的 minimum=1 保留该含义。六种相关存储记录以新版本 ID 写入，旧记录形状原样保留并迁移整数实际量；这不自动把旧目录里的 Buff 升级成小数定义。
 
 ### 常见模式怎么用 buff 表达
 
@@ -541,7 +550,7 @@ T0 为 **0 属性下**的一份充能基础冷却，P 为被动倍率，A0_i 为
 
 `cure.json` 已通过双加载器验证 x1 / x2 / x3 的环境总量、50 / 100 ms 两次恢复与从激活起的 1 秒冷却。数值取快照 Solar D4，每级总量 60 [PvP 30] HP；示例采用 0.1 缩放，两次等量脉冲是 Chorus 的实现选择，原作更细的恢复曲线未知。`restoration.json` 已接入强度 / 环境速率、历史时间及与 Healing Rift 的恢复互斥；两端验证真实生命值、到期残段和 tick 驱动。快照只明确不叠加，示例同优先级取较高速率为暂定规则；Rift 满血补盾已按离散脉冲组合实现，但首次生成与满血切换时序仍待校准；Heat Rises 消费已接 4/6 秒 Restoration，Phoenix Dive 热力升腾分支为 3/4.5 秒；治疗手雷现已另接实际命中 Cure 与确认领取后的 4/6 秒 Restoration。三者复用共享定义与接收者 Solace。其他生产者、交互校准与正式装配仍待完成。
 
-内部伤害、治疗、资源使用 double，固定归约顺序。资源加减、积分量与阈值截止时间使用有限 double 的规范十进制值运算，截止时间向上取到整数微秒，避免 `0.7 + 0.1` 未到 `0.8` 及截止时间多一微秒；这不改变 Profile 和状态存储的 double 精度边界。DSL 算术表达式的 add / mul 先按有限操作数的规范十进制计算，再返回 double，避免 100 × 1.1 的表示残差在上取整时多给一发；Profile 等其他阶段保持各自契约。弹药数量与层数是整数，各效果声明 floor / ceil / nearest；显示取整与实际扣除分开。Clown Cartridge 已由随机动作和 refill.ceiling 组合，完成实际换弹验收，分布与组合顺序仍待校准；Clown Cartridge、Rewind Rounds 等上取整写在对应效果里，不使用全局整数伤害。随机收益现有显式 sample_random 动作：版本固定的 RNG 种子 / 前后抽样序号随回执和 random_sampled 事实保留，游标属于域状态。均匀实数与无偏整数抽样已实现，数值查询只读取已抽出的结果，不会偷偷重抽；具体 D2 分布仍须内容证据，不能用范围或均值推断。
+内部伤害、治疗、资源使用 double，固定归约顺序。资源加减、积分量与阈值截止时间使用有限 double 的规范十进制值运算，截止时间向上取到整数微秒，避免 `0.7 + 0.1` 未到 `0.8` 及截止时间多一微秒；这不改变 Profile 和状态存储的 double 精度边界。DSL 算术表达式的 add / mul 先按有限操作数的规范十进制计算，再返回 double，避免 100 × 1.1 的表示残差在上取整时多给一发；Profile 等其他阶段保持各自契约。弹药数量与默认 Buff 层数是整数；显式 fractional_stacks 的共享 Buff 使用小数实际量，累计 / 消费按规范十进制加减后返回 double，不逐次取整。各效果在确需离散结果时声明 floor / ceil / nearest；显示取整与实际扣除分开。Clown Cartridge 已由随机动作和 refill.ceiling 组合，完成实际换弹验收，分布与组合顺序仍待校准；Clown Cartridge、Rewind Rounds 等上取整写在对应效果里，不使用全局整数伤害。随机收益现有显式 sample_random 动作：版本固定的 RNG 种子 / 前后抽样序号随回执和 random_sampled 事实保留，游标属于域状态。均匀实数与无偏整数抽样已实现，数值查询只读取已抽出的结果，不会偷偷重抽；具体 D2 分布仍须内容证据，不能用范围或均值推断。
 
 射速、装填、切枪、DOT、弹药返还与 Buff 覆盖都进入同一时间轴。窗口使用 `[t0,t1)` 且 t1>t0，DPS 为 `窗口内已提交的有效伤害之和 / 窗口时长`，另行报告理论伤害和过量伤害；不能用单发伤害乘理论射速代表完整输出循环。
 
@@ -1255,7 +1264,7 @@ record ShieldLayerHit(LayerId layer, ComponentId component,
 // ComponentDamageResult 含各阶段值、precisionApplied、immune、护盾/生命损失和未消耗预算。
 
 record StatusResult(Optional<DamageId> cause,      // 触发它的那次伤害
-        boolean applied, int stacksBefore, int stacksAfter,
+        boolean applied, double stacksBefore, double stacksAfter,
         Optional<BuffInstanceRef> instance) {}
 ```
 

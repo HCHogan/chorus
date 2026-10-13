@@ -48,7 +48,7 @@ public final class BuffCodecs {
             enumeration(OnStow.class).optionalFieldOf("on_stow", OnStow.KEEP).forGetter(Binding::onStow)
     ).apply(i, Binding::new));
     private record DefinitionData(String id, String version, int maximum, Timer timer, Binding binding, StackMode stackMode,
-            boolean highestTier, boolean creditOverflow, List<String> tags, BuffSchema components) {}
+            boolean highestTier, boolean creditOverflow, List<String> tags, BuffSchema components, boolean fractional) {}
     private static final Codec<BuffDefinition> DEFINITION_FIELDS = RecordCodecBuilder.<DefinitionData>create(i -> i.group(
             ID.fieldOf("id").forGetter(DefinitionData::id),
             Codec.STRING.fieldOf("version").forGetter(DefinitionData::version),
@@ -58,12 +58,13 @@ public final class BuffCodecs {
             Codec.BOOL.optionalFieldOf("keep_highest_tier", false).forGetter(DefinitionData::highestTier),
             Codec.BOOL.optionalFieldOf("credit_overflow", false).forGetter(DefinitionData::creditOverflow),
             ID.listOf().optionalFieldOf("tags", List.of()).forGetter(DefinitionData::tags),
-            SCHEMA.optionalFieldOf("components", BuffSchema.EMPTY).forGetter(DefinitionData::components)
+            SCHEMA.optionalFieldOf("components", BuffSchema.EMPTY).forGetter(DefinitionData::components),
+            Codec.BOOL.optionalFieldOf("fractional_stacks", false).forGetter(DefinitionData::fractional)
     ).apply(i, DefinitionData::new)).flatXmap(data -> safe(() -> new BuffDefinition(data.id(), data.version(), data.maximum(), data.timer(), data.binding(),
-            data.stackMode(), data.highestTier(), data.creditOverflow(), Set.copyOf(data.tags()), data.components())), definition -> DataResult.success(new DefinitionData(
+            data.stackMode(), data.highestTier(), data.creditOverflow(), Set.copyOf(data.tags()), data.components(), data.fractional())), definition -> DataResult.success(new DefinitionData(
             definition.id(), definition.version(), definition.maximumStacks(), definition.timer(), definition.binding(), definition.stackMode(),
-            definition.keepHighestTier(), definition.creditOverflow(), definition.tags().stream().sorted().toList(), definition.components())));
+            definition.keepHighestTier(), definition.creditOverflow(), definition.tags().stream().sorted().toList(), definition.components(), definition.fractionalStacks())));
     public static final Codec<BuffDefinition> DEFINITION = strict(DEFINITION_FIELDS, Set.of("id", "version", "duration", "max_stacks",
             "timer_mode", "decay", "decay_interval", "refresh", "extension_cap", "pause_rounding", "attach", "instanced_by", "affects",
-            "on_stow", "stack_mode", "keep_highest_tier", "credit_overflow", "tags", "components"));
+            "on_stow", "stack_mode", "keep_highest_tier", "credit_overflow", "tags", "components", "fractional_stacks"));
 }

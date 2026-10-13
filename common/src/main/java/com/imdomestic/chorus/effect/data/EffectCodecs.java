@@ -226,14 +226,14 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventBuffsAvailable::target)).apply(i, Condition.EventBuffsAvailable::new)))
                 .register("chorus:event_has_buff", Condition.EventHasBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Condition.EventHasBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventHasBuff::target),
-                        Codec.INT.optionalFieldOf("minimum", 1).forGetter(Condition.EventHasBuff::minimum),
+                        Codec.INT.optionalFieldOf("minimum", 0).forGetter(Condition.EventHasBuff::minimum),
                         enumeration(Condition.BuffMatch.class).optionalFieldOf("match", Condition.BuffMatch.ANY).forGetter(Condition.EventHasBuff::match)).apply(i, Condition.EventHasBuff::new)))
                 .register("chorus:event_has_buff_tag", Condition.EventHasBuffTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.EventHasBuffTag::tag), TARGET.optionalFieldOf("target", Evaluation.Target.VICTIM).forGetter(Condition.EventHasBuffTag::target)
                 ).apply(i, Condition.EventHasBuffTag::new)))
                 .register("chorus:has_buff", Condition.HasBuff.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("buff").forGetter(Condition.HasBuff::buff), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasBuff::target),
-                        Codec.INT.optionalFieldOf("minimum", 1).forGetter(Condition.HasBuff::minimum),
+                        Codec.INT.optionalFieldOf("minimum", 0).forGetter(Condition.HasBuff::minimum),
                         enumeration(Condition.BuffMatch.class).optionalFieldOf("match", Condition.BuffMatch.BOUND).forGetter(Condition.HasBuff::match)).apply(i, Condition.HasBuff::new)))
                 .register("chorus:has_source_tag", Condition.HasSourceTag.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         ID.fieldOf("tag").forGetter(Condition.HasSourceTag::tag), TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Condition.HasSourceTag::target)

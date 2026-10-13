@@ -283,13 +283,13 @@ public interface Condition {
     record HasBuff(String buff, Evaluation.Target target, int minimum, BuffMatch match) implements Condition {
         public HasBuff { java.util.Objects.requireNonNull(match); }
         public HasBuff(String buff, Evaluation.Target target, int minimum) { this(buff, target, minimum, BuffMatch.BOUND); }
-        @Override public void validate(Validation v) { v.target(target); v.buff(buff); if (match == BuffMatch.INSTANCE) v.requireBuffSource(); if (minimum < 1) throw new IllegalArgumentException("Invalid minimum stacks"); }
+        @Override public void validate(Validation v) { v.target(target); v.buff(buff); if (match == BuffMatch.INSTANCE) v.requireBuffSource(); if (minimum < 0) throw new IllegalArgumentException("Invalid minimum stacks"); }
         @Override public boolean test(Evaluation e) {
             if (match != BuffMatch.ANY) return e.state().buffs().active(e.key(buff, target))
-                    .filter(value -> value.count() >= minimum && (match != BuffMatch.INSTANCE || value.generation() == e.ownBuff().generation())).isPresent();
+                    .filter(value -> value.quantity() >= minimum && (match != BuffMatch.INSTANCE || value.generation() == e.ownBuff().generation())).isPresent();
             String holder = e.target(target);
             return e.state().buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder) && value.definition().id().equals(buff)
-                    && value.activeCount(e.state().buffs().timeMicros()) >= minimum);
+                    && value.activeQuantity(e.state().buffs().timeMicros()) > 0 && value.activeQuantity(e.state().buffs().timeMicros()) >= minimum);
         }
     }
     /** Query currently bound sources on a holder, independently of this action's retained origin. */

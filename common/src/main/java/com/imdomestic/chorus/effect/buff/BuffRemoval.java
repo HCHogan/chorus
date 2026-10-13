@@ -18,7 +18,7 @@ public final class BuffRemoval {
             for(var buff:removed)if(!buff.key().holder().equals(holder)||!buff.definition().tags().contains(tag)||!keys.add(buff.key()))
                 throw new IllegalArgumentException("Removal receipt differs from its selection");
         }
-        public long stacks(){long total=0;for(var buff:removed)total=Math.addExact(total,buff.count());return total;}
+        public double stacks(){double total=0;for(var buff:removed)total=BuffInstance.decimalAdd(total,buff.quantity());return total;}
         public boolean changed(){return !removed.isEmpty();}
         @Override public EffectEvent event(){
             return new EffectEvent(cause.owner(),holder,cause,Set.of("chorus:buff_removal"),

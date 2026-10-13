@@ -17,7 +17,12 @@ public final class Buffs {
     private Buffs() {}
     public enum Kind { GAINED, STACKS_CHANGED, REFRESHED, ENDED, PAUSED, RESUMED, EXTENDED }
     public enum Reason { APPLIED, EXPIRED, CONSUMED, REMOVED, STOWED, DRAWN, EXTENDED }
-    public record Receipt(int requested, int credited, int storedDelta, boolean applied) implements RuleEngine.ActionResult {}
+    public record Receipt(double requested, double credited, double storedDelta, boolean applied) implements RuleEngine.ActionResult {
+        public Receipt {
+            if (!Double.isFinite(requested) || !Double.isFinite(credited) || !Double.isFinite(storedDelta) || requested < 0 || credited < 0)
+                throw new IllegalArgumentException("Invalid buff receipt quantity");
+        }
+    }
     public record Change(long timeMicros, Kind kind, Reason reason, Optional<BuffInstance> before,
             Optional<BuffInstance> after, Receipt receipt) implements com.imdomestic.chorus.effect.EffectEvent.Carrier {
         public Change {
@@ -31,13 +36,13 @@ public final class Buffs {
             var value = instance();
             return new com.imdomestic.chorus.effect.EffectEvent(value.origin().owner(), value.key().holder(), value.origin(), value.definition().tags(),
                     java.util.Map.of("requested", count(receipt.requested()), "credited", count(receipt.credited()),
-                            "stored_delta", count(receipt.storedDelta()), "stacks_before", count(before.map(BuffInstance::count).orElse(0)),
-                            "stacks_after", count(after.map(BuffInstance::count).orElse(0))),
+                            "stored_delta", count(receipt.storedDelta()), "stacks_before", count(before.map(BuffInstance::quantity).orElse(0.)),
+                            "stacks_after", count(after.map(BuffInstance::quantity).orElse(0.))),
                     java.util.Map.of("applied", receipt.applied()),
                     java.util.Map.of("buff_definition", value.definition().id(), "buff_generation", Long.toString(value.generation()),
                             "reason", reason.name().toLowerCase(java.util.Locale.ROOT)));
         }
-        private static com.imdomestic.chorus.stat.Measure count(int value) {
+        private static com.imdomestic.chorus.stat.Measure count(double value) {
             return new com.imdomestic.chorus.stat.Measure(value, com.imdomestic.chorus.stat.Unit.COUNT);
         }
     }
@@ -66,9 +71,10 @@ public final class Buffs {
     }
 
     public static Result grant(BuffStore store, BuffDefinition definition, String holder, String target,
-            Origin origin, int requested, int tier, long durationMicros) {
+            Origin origin, double requested, int tier, long durationMicros) {
         settled(store);
-        if (requested < 1 || tier < 1 || durationMicros < 1) throw new IllegalArgumentException("Invalid buff application");
+        validateQuantity(definition, requested);
+        if (tier < 1 || durationMicros < 1) throw new IllegalArgumentException("Invalid buff application");
         Key key = key(definition, holder, target, origin);
         BuffInstance before = store.instances().get(key);
         if (before != null && !before.definition().equals(definition)) throw new IllegalArgumentException("Live buff definition changed");
@@ -76,14 +82,15 @@ public final class Buffs {
                 || (definition.binding().affects() == Affects.ABILITY && !before.origin().ability().equals(origin.ability())))) {
             throw new IllegalArgumentException("Incompatible effect binding; use a separate instance key");
         }
-        int oldCount = before == null ? 0 : before.count();
-        long count = switch (definition.stackMode()) {
-            case ADD -> (long) oldCount + requested;
+        double oldCount = before == null ? 0 : before.quantity();
+        double count = switch (definition.stackMode()) {
+            case ADD -> BuffInstance.decimalAdd(oldCount, requested);
             case MAX -> Math.max(oldCount, requested);
             case REPLACE -> requested;
         };
-        int newCount = (int) Math.min(definition.maximumStacks(), count);
-        int delta = newCount - oldCount;
+        double quantity = Math.min(definition.maximumStacks(), count);
+        int newCount = (int) Math.ceil(quantity);
+        double delta = BuffInstance.decimalAdd(quantity, -oldCount);
         long clock = before == null ? store.timeMicros() : before.pausedAt().orElse(store.timeMicros());
         long history = before == null ? durationMicros : Math.max(before.longestDurationMicros(), durationMicros);
         long deadline = at(clock, durationMicros);
@@ -112,7 +119,7 @@ public final class Buffs {
                 before == null ? origin : before.origin(), stacks, nextStackId,
                 before != null && definition.keepHighestTier() ? Math.max(before.tier(), tier) : tier,
                 before == null ? durationMicros : before.originalDurationMicros(), history,
-                before == null ? OptionalLong.empty() : before.pausedAt(), before == null ? definition.components().initial() : before.components());
+                before == null ? OptionalLong.empty() : before.pausedAt(), before == null ? definition.components().initial() : before.components(), quantity);
         var receipt = new Receipt(requested, definition.creditOverflow() ? requested : Math.max(0, delta), delta, true);
         var changes = new ArrayList<Change>();
         changes.add(change(store, Kind.GAINED, Reason.APPLIED, before, after, receipt));
@@ -121,16 +128,24 @@ public final class Buffs {
         return new Result(replace(store, key, after, before == null ? Math.incrementExact(store.nextGeneration()) : store.nextGeneration()), receipt, changes);
     }
 
-    public static Result consume(BuffStore store, Key key, int requested) {
+    /** Shared fractional meters consume an amount; ordinary buffs still require integral requests. */
+    public static Result consume(BuffStore store, Key key, double requested) {
         settled(store);
-        if (requested < 1) throw new IllegalArgumentException("Consumption must be positive");
+        if (!Double.isFinite(requested) || requested <= 0 || requested > Integer.MAX_VALUE) throw new IllegalArgumentException("Consumption must be positive and finite");
         BuffInstance before = store.instances().get(key);
         if (before == null) return unchanged(store, requested);
+        validateQuantity(before.definition(), requested);
+        double quantity = Math.max(0, BuffInstance.decimalAdd(before.quantity(), -requested));
         var remaining = new ArrayList<>(before.stacks());
         remaining.sort(Comparator.comparingLong(Stack::expiresAt).thenComparingLong(Stack::id));
-        int consumed = Math.min(requested, remaining.size());
-        remaining.subList(0, consumed).clear();
-        return updateStacks(store, before, remaining, requested, Reason.CONSUMED);
+        remaining.subList(0, remaining.size() - (int) Math.ceil(quantity)).clear();
+        return updateStacks(store, before, remaining, requested, Reason.CONSUMED, quantity);
+    }
+
+    public static void validateQuantity(BuffDefinition definition, double requested) {
+        if (!Double.isFinite(requested) || requested <= 0 || requested > Integer.MAX_VALUE
+                || (!definition.fractionalStacks() && requested != Math.rint(requested)))
+            throw new IllegalArgumentException("Invalid buff stack quantity");
     }
 
     public static Result remove(BuffStore store, Key key, Reason reason) {
@@ -230,23 +245,29 @@ public final class Buffs {
         return replace(store, key, before.withComponents(components), store.nextGeneration());
     }
 
-    private static Result updateStacks(BuffStore store, BuffInstance before, List<Stack> stacks, int requested, Reason reason) {
-        BuffInstance after = stacks.isEmpty() ? null : copy(before, stacks, before.longestDurationMicros(), before.pausedAt());
-        var receipt = new Receipt(requested, 0, stacks.size() - before.count(), true);
+    private static Result updateStacks(BuffStore store, BuffInstance before, List<Stack> stacks, double requested, Reason reason) {
+        return updateStacks(store, before, stacks, requested, reason, stacks.isEmpty() ? 0 : BuffInstance.decimalAdd(before.quantity(), stacks.size() - before.count()));
+    }
+    private static Result updateStacks(BuffStore store, BuffInstance before, List<Stack> stacks, double requested, Reason reason, double quantity) {
+        BuffInstance after = stacks.isEmpty() ? null : copy(before, stacks, before.longestDurationMicros(), before.pausedAt(), quantity);
+        var receipt = new Receipt(requested, 0, BuffInstance.decimalAdd(quantity, -before.quantity()), true);
         return new Result(replace(store, before.key(), after, store.nextGeneration()), receipt,
                 List.of(change(store, after == null ? Kind.ENDED : Kind.STACKS_CHANGED, reason, before, after, receipt)));
     }
     private static Result changed(BuffStore store, BuffInstance before, BuffInstance after, Kind kind, Reason reason) {
-        var receipt = new Receipt(0, 0, after.count() - before.count(), true);
+        var receipt = new Receipt(0, 0, BuffInstance.decimalAdd(after.quantity(), -before.quantity()), true);
         return new Result(replace(store, before.key(), after, store.nextGeneration()), receipt, List.of(change(store, kind, reason, before, after, receipt)));
     }
-    private static Result unchanged(BuffStore store, int requested) { return new Result(store, new Receipt(requested, 0, 0, false), List.of()); }
+    private static Result unchanged(BuffStore store, double requested) { return new Result(store, new Receipt(requested, 0, 0, false), List.of()); }
     private static Change change(BuffStore store, Kind kind, Reason reason, BuffInstance before, BuffInstance after, Receipt receipt) {
         return new Change(store.timeMicros(), kind, reason, Optional.ofNullable(before), Optional.ofNullable(after), receipt);
     }
     private static BuffInstance copy(BuffInstance before, List<Stack> stacks, long history, OptionalLong paused) {
+        return copy(before, stacks, history, paused, before.quantity());
+    }
+    private static BuffInstance copy(BuffInstance before, List<Stack> stacks, long history, OptionalLong paused, double quantity) {
         return new BuffInstance(before.generation(), before.key(), before.definition(), before.origin(), stacks, before.nextStackId(),
-                before.tier(), before.originalDurationMicros(), history, paused, before.components());
+                before.tier(), before.originalDurationMicros(), history, paused, before.components(), quantity);
     }
     private static BuffStore replace(BuffStore store, Key key, BuffInstance after, long sequence) {
         var instances = new TreeMap<>(store.instances());

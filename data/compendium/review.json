@@ -4912,7 +4912,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -5004,6 +5004,26 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
           "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
+          "symbol": "sharedScorchUsesFractionalAmountsForDamageAndDoesNotIgniteBelowOneHundred"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
+          "symbol": "fractionalScorchRefreshDecayAndCheckpointPreserveTheHalfStack"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
+          "symbol": "ninetyNineAndAHalfDoesNotIgniteUntilTheLastHalfArrives"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
+          "symbol": "subunitScorchIsPresentDamagesAndDecaysWithoutInventingAWholeStack"
         }
       ],
       "gaps": [
@@ -5012,7 +5032,8 @@
         "共享来源缩放目录、来源特例和状态持久化 / 跨维度迁移未完成",
         "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配",
         "Incandescent 的等级倍率排除与通用非 Boss 20% 的关系未确认，需显式 scorch_nonboss_factor 校准",
-        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
+        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖",
+        "Solar Grenade 的小数状态依赖已接；实际持续场 / 熔岩球尚未实现，原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
       ]
     },
     {
@@ -5038,7 +5059,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -5145,6 +5166,26 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
           "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
+          "symbol": "sharedScorchUsesFractionalAmountsForDamageAndDoesNotIgniteBelowOneHundred"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FractionalBuffTest.java",
+          "symbol": "fractionalScorchRefreshDecayAndCheckpointPreserveTheHalfStack"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
+          "symbol": "ninetyNineAndAHalfDoesNotIgniteUntilTheLastHalfArrives"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
+          "symbol": "subunitScorchIsPresentDamagesAndDecaysWithoutInventingAWholeStack"
         }
       ],
       "gaps": [
@@ -5153,7 +5194,8 @@
         "当前 on_use 攻击冻结与实时目标分类为明确内容政策；近战倍率需继续与 Solar 专属 Profile 隔离",
         "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 已有 partial 实际武器接线",
         "阈值至爆炸延迟需要显式 Profile；0 / 1 / 2 秒验收均为合成参数。当前固定阈值位置与禁用起算点待原作校准",
-        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖"
+        "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖",
+        "Solar Grenade 的小数状态依赖已接；实际持续场 / 熔岩球尚未实现，原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
       ]
     },
     {

@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：共享小数叠层与 Scorch 的实际量
+
+Solar Grenade 原表的 17+4.5 命中量与 PvP 7.5+2.5 周期量暴露了整数层数限制。新增通用 `fractional_stacks` 选项，默认整数，显式开启后以共享计时保存实际 `quantity`。授予 / 消费、ADD / MAX / REPLACE、上限、credit_overflow、逐层衰减尾数、暂停 / 刷新 / 延长和组件更新统一保留实际量；规范十进制加减后返回有限 double，不逐次取整。buff_count、状态授权与回执、生命周期 / 施加 / 移除事实及事件观察都读取 quantity。has_buff / event_has_buff 的省略 minimum 表示正量存在性，显式 1 继续要求一整层；独立层计时及逐槽 modifier multiplicity 不与小数模式混用，by_stacks 遇小数拒绝。
+
+六种存储记录新增独立版本 ID，旧 ID 的字段形状完全保留，整数旧数据显式迁移；已有目录不自动变更小数资格和 minimum。17 项 FractionalBuffTest 验证 .1 累计边界、极小正量、溢出信用、生命周期、存在性与冻结观察、实际动作回执、畸形存储、六种迁移及旧整数 Scorch 目录恢复。5 项共享世界场景验证 99.5 + .5 精确点燃、亚一层实际 DoT / 衰减、真实 Guardian 的 7.5 层累计、原生状态序列化与未知扣血不重放。共享 Scorch 已启用该能力，来源信用和合法点燃反馈沿用原契约。
+
+定向 `/tmp/chorus-fractional-targeted8.log` 通过 50 项核心回归、全部 5 项 Fabric 场景及 NeoForge 测试编译（16 秒）。开发时修正了旧 int 测试数据的字符串编码、已结束规则作用域和 60 层以上专属的 2.5% 伤害预期；首轮完整回归找到历史 Kill Clip 检查点保留 minimum=1，参考定义现在明确写出这个整数消费门槛，保留原检查点原件及严格目录比较。 完整世界回归另找到旧观察断言比较 boxed Integer 2 与 Double 2.0，已把两处预期改为 double 精确相等；没有放宽数值容差。
+
+完整 `/tmp/chorus-fractional-full-gate3.log` BUILD SUCCESSFUL（3 分 23 秒）：2183 项 JUnit 无失败 / 错误 / 跳过、Fabric 1259 项、NeoForge 1274 项世界测试及两端发布 jar 通过，共享场景 1258 项。`build/reports/fractional-buffs/audit.json` 确认 667 项旧存储形状未变，新增六项后共 673 项；发布主类 1199 / 1192 个字节匹配、无测试内容泄漏、Gradle CRLF 保持。10 项 Compendium 工具测试、七格来源 / 固定快照与归档哈希及报告一致性检查通过。本批修改了生产核心、DSL 与存储接口，没有改动原生钩子、UI 或网络格式，未重复图形客户端验收。
+
+原表七格与固定快照、富文本中的 PvE 蓝色 / PvP 红色已核对归档；官方 2025-07-31 的 Touch 调整全文已在官方备用域名读取并更新 Fusion 来源说明。完整 Solar Grenade 持续场 / 熔岩球生产者仍未实现，启动 / 周期 / 寿命冲突与未知熔岩球间隔明确保留。Compendium 仍为 130 条审阅，仅补充 Scorch / Ignition 证据，不提升为完整效果验收；生产目录、UI 与物理世界整体重启仍有独立缺口。
+
 ### 2026-10-14：Fusion Grenade 的实际附着与两段爆炸
 
 新增 Fusion 参考定义、95.8 秒 / CES 1 选择期回充和独立校准文件。付费投掷使用真实弱追踪弹体，ENTITY / BLOCK 接触后进入引信；实体分支保存原生命及接触偏移，地形分支固定位置。首爆查询当前 6 米范围，Touch 在 0.5 秒后重新解析附着并查询当前 8 米范围。两次分别使用战斗人员 / 玩家进攻快照和晚绑定范围衰减，逐目标写入核对生命。首爆才授权 40/60 层共享 Scorch，第二爆不重复叠层；两次合法 Ashes 投掷可达到共享点燃，保留原手雷信用。实际长按 Heat Rises 消费本定义费用，不执行投掷。

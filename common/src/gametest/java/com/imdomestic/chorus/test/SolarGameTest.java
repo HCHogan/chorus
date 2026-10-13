@@ -74,8 +74,8 @@ public class SolarGameTest {
         LivingEntity resolve(String value) { return h.getLevel().getEntity(UUID.fromString(value)) instanceof LivingEntity e?e:null; }
         EffectState state() { return runtime.state().engine().domain(); }
         Optional<BuffInstance> buff(String name,LivingEntity target) { return state().buffs().instances().values().stream().filter(v->v.definition().id().equals(name)&&v.key().holder().equals(id(target))).findFirst(); }
-        void apply(EffectSource source,int stacks) { apply(source,target,stacks); }
-        void apply(EffectSource source,LivingEntity victim,int stacks) { runtime.start(new RuleEngine.Signal("test:scorch_apply",new EffectEvent(source.holder(),id(victim),source.origin(),Set.of(),Map.of("stacks",new Measure(stacks,Unit.COUNT))))); h.assertTrue(runtime.failure().isEmpty(),"Solar runtime failed: "+runtime.failure()); }
+        void apply(EffectSource source,double stacks) { apply(source,target,stacks); }
+        void apply(EffectSource source,LivingEntity victim,double stacks) { runtime.start(new RuleEngine.Signal("test:scorch_apply",new EffectEvent(source.holder(),id(victim),source.origin(),Set.of(),Map.of("stacks",new Measure(stacks,Unit.COUNT))))); h.assertTrue(runtime.failure().isEmpty(),"Solar runtime failed: "+runtime.failure()); }
         void detach() { runtime.unbind(a.instance()); runtime.unbind(a.instance()+"-solar"); }
         @Override public void close() { runtime.close(); for(var e:List.of(first,second,target,neighbor)) e.discard(); }
     }

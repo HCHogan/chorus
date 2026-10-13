@@ -221,6 +221,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         for (var buff : program.buffs()) if (!buff.bundle().isEmpty()) {
             var bundle = bundle(buff.bundle());
             if (bundle.scope() != EffectProgram.Scope.BUFF) throw new IllegalArgumentException("Buff needs a buff-scoped bundle: " + buff.bundle());
+            if (buff.definition().fractionalStacks() && bundle.modifiers().stream().anyMatch(m -> m.multiplicity() == EffectProgram.Multiplicity.STACK))
+                throw new IllegalArgumentException("Fractional accumulation requires a numeric modifier, not per-stack multiplicity");
             // Reusing a bundle gives each definition its own pinned rule identity.
             var copies = compiled.get(bundle.id()).stream().map(rule -> new RuleEngine.EventRule<>(
                     buff.definition().id() + "/attached/" + rule.definition(), rule.eventType(), rule.condition(), rule.actions())).toList();
@@ -1449,6 +1451,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             String provider = modifier.provider() == EffectProgram.ModifierProvider.VICTIM ? victim : holder;
             if (provider.isBlank() || !evaluation.self().equals(provider)) continue;
             if (modifier.multiplicity() == EffectProgram.Multiplicity.STACK) {
+                if (buff.definition().fractionalStacks()) throw new IllegalArgumentException("Fractional accumulation requires one numeric modifier, not per-stack multiplicity");
                 for (var stack : buff.stacks()) visitor.accept(new ModifierSite(evaluation, modifier, instanceId + "/stack/" + stack.id(),
                         stack.origin().source().isEmpty() ? sourceId : stack.origin().source(), bundle.id(), program.version()));
             } else visitor.accept(new ModifierSite(evaluation, modifier, instanceId, sourceId, bundle.id(), program.version()));

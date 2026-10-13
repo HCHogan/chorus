@@ -4,10 +4,10 @@ import java.util.*;
 
 /** Immutable presence at a fact's observation boundary, independent of subsequent reactions or expiry. */
 public record BuffObservation(long timeMicros, Map<String, List<Entry>> holders) {
-    public record Entry(BuffInstance.Key key, long generation, BuffInstance.Origin origin, Set<String> tags, int stacks, int tier, boolean paused) {
+    public record Entry(BuffInstance.Key key, long generation, BuffInstance.Origin origin, Set<String> tags, double stacks, int tier, boolean paused) {
         public Entry {
             Objects.requireNonNull(key); Objects.requireNonNull(origin); tags=Set.copyOf(tags);
-            if(generation<1||stacks<1||tier<1)throw new IllegalArgumentException("Invalid observed buff");
+            if(generation<1||!Double.isFinite(stacks)||stacks<=0||tier<1)throw new IllegalArgumentException("Invalid observed buff");
         }
     }
     public BuffObservation {
@@ -32,7 +32,7 @@ public record BuffObservation(long timeMicros, Map<String, List<Entry>> holders)
         var entries=new TreeMap<String,List<Entry>>();
         for(String holder:selected)if(!holder.isBlank())entries.putIfAbsent(holder,new ArrayList<>());
         for(var instance:store.instances().values()){
-            var destination=entries.get(instance.key().holder());int count=instance.activeCount(store.timeMicros());
+            var destination=entries.get(instance.key().holder());double count=instance.activeQuantity(store.timeMicros());
             if(destination!=null&&count>0)destination.add(new Entry(instance.key(),instance.generation(),instance.origin(),instance.definition().tags(),count,instance.tier(),instance.pausedAt().isPresent()));
         }
         return new BuffObservation(store.timeMicros(),entries);

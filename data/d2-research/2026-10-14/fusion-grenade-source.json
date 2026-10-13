@@ -107,9 +107,10 @@
       "supports": "Fusion blast applies 40 Scorch; historical mechanism, not current full numeric calibration."
     },
     {
-      "url": "https://www.bungie.net/7/en/News/article/twid_07_31_2025",
+      "url": "https://origin-static01.bungie.net/7/en/News/Article/twid_07_31_2025",
       "published": "2025-07-31",
-      "supports": "Official indexed excerpt reports Touch of Flame enhanced Solar and Fusion damage reduced by 10 percent during stat rework. Full direct page response did not expose article text in this retrieval; unresolved relationship to current Compendium base."
+      "supports": "Touch of Flame enhanced Solar and Fusion grenade damage decreased by ten percent in the stat rework. Relation to current Compendium bases remains unresolved.",
+      "retrieval": "Full article read on official alternate host, Warlock paragraph in Missing Patch Notes."
     }
   ],
   "requirements": {

@@ -34,11 +34,11 @@ public class EventBuffObservationGameTest {
             var victim=t.cow(2.5,46,3.5);victim.setHealth(5);event(t,victim,"mark");
             if(managed)event(t,victim,"attack");else {
                 var receipt=MinecraftDamageExecutor.execute("observation/"+UUID.randomUUID(),victim,h.getLevel().damageSources().playerAttack(t.owner),10,false);
-                h.assertValueEqual(receipt.observedBuffs().orElseThrow().require(victim.getUUID().toString()).getFirst().stacks(),2,"native receipt before death reactions");
+                h.assertValueEqual(receipt.observedBuffs().orElseThrow().require(victim.getUUID().toString()).getFirst().stacks(),2.0,"native receipt before death reactions");
             }
             h.assertTrue(victim.isDeadOrDying(),"real death");h.assertTrue(t.runtime.state().engine().domain().buffs().instances().isEmpty(),"death cleanup retained live mark");
             h.assertValueEqual(t.cues.stream().map(Action.CueCommand::cue).toList(),List.of("test:cleaned","test:copied"),"kill and copied event saw original observation");
-            if(managed)h.assertValueEqual(t.receipts.getFirst().observedBuffs().orElseThrow().require(victim.getUUID().toString()).getFirst().stacks(),2,"managed receipt observed the same state");
+            if(managed)h.assertValueEqual(t.receipts.getFirst().observedBuffs().orElseThrow().require(victim.getUUID().toString()).getFirst().stacks(),2.0,"managed receipt observed the same state");
             h.assertTrue(t.runtime.failure().isEmpty(),"observation runtime failed");
         }h.succeed();
     }
