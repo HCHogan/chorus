@@ -3985,3 +3985,15 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 共享 Scorch 在已接受非致命伤害后独立授权，沿用同目标的点燃锁定期。技能来源同时声明 `chorus:grenade_damage`、`chorus:ability_damage` 和 `chorus:solar_damage`，使状态首来源的 DoT / 点燃继承原技能信用；只给直接 DamageCommand 标签不足以替代状态来源的声明。连续合法付费施放仍可叠满触发点燃，不添加全局循环限制。
 
 `firebolt_energy.json` 复用共享手雷账户，选择期覆盖基准 83.8 秒与 CES 1；Heat Rises 消费实际定义只走消费动作。必填的物理参数与外部 `firebolt_outgoing` 校准 Profile 分别存放，测试 Profile 复用普通进攻阶段和合成生命换算，目标等级倍率仍待校准。当前定义保存在验收资源，正式目录、完整 Touch / 子职业装配、客户端表现及跨重启能力另需交付；具体数值和政策见 [D2 规则](d2-ruleset.md#firebolt-的扫描延迟追踪与来源冲突)。
+
+## Fusion Grenade 的附着与两段爆炸组合
+
+`fusion_grenade.json` 复用投射物追踪、生命引用、实体附着、伤害快照和 detached 续体。接受时保存 Touch / Ashes 参数及两种目标类别、两次爆炸的四份进攻快照；选择期来源提供共享手雷回充与晚绑定的范围衰减修饰。投射物对敌人弱追踪，ENTITY / BLOCK 接触才安排引信，EXPIRED / UNLOADED 不触发爆炸，碰撞本身不额外造成一份伤害。
+
+实体接触保存 `capture_entity_anchor` 与经过显式偏移的接触点，再 `begin_entity_attachment`。引信结束用 `resolve_entity_attachment` 取原生命当前位置；首爆后若有 Touch，再等待 0.5 秒重新解析同一句柄。每段各自 `select_targets`，按当前 BODY / 视线 / 敌我关系选取受害者；每名受害者另捕获生命引用，`damage_entity_snapshot` 在实际写入边界复核。附着目标通过同一次范围查询受伤，不再额外补一次直接伤害。地形分支保存固定中心，仍在两次爆炸时分别查询世界。
+
+附着采用 death=follow、destroyed/removed=fix、unloaded/transferred=end。已确认的移除固定最后观察位置，附近的新生命可以正常受到范围伤害，但不会继承旧附着；未经生命周期观察的 missing/replaced/wrong-dimension 没有合法中心，结束该链。完成或已知无法解析时关闭句柄。每次付费投掷有独立句柄和引信，领域检查点保留剩余延迟；卸装不取消已接受动作。这些是当前显式内容政策，需要原作验证。
+
+首爆的 APPLIED 非致命回执且没有共享点燃锁定期才申请 Scorch；APPLIED 零生命损失仍申请是明确政策。第二爆没有 Scorch 动作，因此两个爆炸不是两份 40/60 层。状态已知拒绝不撤销伤害、不取消独立第二爆；未知世界结果停止会话并保留先前提交，不重放伤害或补发状态。来源声明手雷 / 技能 / Solar 标签，使共享 DoT 与点燃保留本次 Fusion 信用。
+
+`fusion_grenade_energy.json` 覆盖基准 95.8 秒、CES 1；Heat Rises 读取并消费实际费用。`fusion_grenade_outgoing` 与 `fusion_grenade_falloff` 是必须提供的外部 Profile。后者输入“到中心距离 / 本次爆炸半径”，输出 multiplier，经 `radial_delta` 传入已捕获伤害的晚绑定阶段。测试只采用线性 1→0.25 衰减和 0.1 生命投影，不宣称原作曲线。物理参数、初次引信和接触偏移同样必须校准；详见 [D2 规则](d2-ruleset.md#fusion-grenade-的附着两次爆炸与数值缺口)。

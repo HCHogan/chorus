@@ -28,9 +28,10 @@ public class FireboltGameTest {
         for(String name:List.of("firebolt","firebolt_energy","ability_stat_damage")) {var part=ThreadedSpikeGameTest.json(name);if(name.equals("firebolt"))AscensionGameTest.calibrate(name,part);GamblersDodgeGameTest.merge(data,part);}
         GamblersDodgeGameTest.merge(data,ThreadedSpikeGameTest.json("firebolt_test_calibration").getAsJsonObject("program"));AscensionGameTest.version(data);
     }
-    static final class Scenario extends PhoenixDiveGameTest.Scenario {
+    static class Scenario extends PhoenixDiveGameTest.Scenario {
         boolean closed;
-        Scenario(GameTestHelper h)throws Exception {super(h,FireboltGameTest::prepare);AscensionGameTest.choose(t,D+"grenade",ABILITY);bind("test:heat_inputs");bind(D+"ability_stat_damage");}
+        Scenario(GameTestHelper h)throws Exception {this(h,FireboltGameTest::prepare,ABILITY);}
+        Scenario(GameTestHelper h,java.util.function.Consumer<JsonObject> prepare,String ability)throws Exception {super(h,prepare);AscensionGameTest.choose(t,D+"grenade",ability);bind("test:heat_inputs");bind(D+"ability_stat_damage");}
         @Override public void close(){if(!closed){closed=true;super.close();}}
         @Override double energy(){return AscensionGameTest.energy(t,D+"grenade_energy");}
         @Override void cast(){h.assertValueEqual(t.runtime.useAbility(t.owner,D+"grenade").outcome(),AbilityUse.Outcome.ACCEPTED,"paid Firebolt");near(h,energy(),0,"one grenade payment");}

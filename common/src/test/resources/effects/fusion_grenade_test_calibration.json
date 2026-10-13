@@ -1,0 +1,198 @@
+{
+  "note": "Synthetic flight, tracking, 0.6s initial fuse, contact offset and linear radial falloff 1 to 0.25; 0.1 world damage projection. Required external outgoing/falloff profiles do not claim calibrated D2 damage. Source damage 738/130 and 851/50 retained pending resolution of official July 2025 Touch tuning. Cast-time Touch/Ashes/outgoing snapshot; first blast alone applies Scorch, second independently selects current enemies with LOS and follows original attached life or confirmed removal location. All attachment, LOS, ordering and snapshot policies require original-game verification.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 10,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "second"
+    },
+    "tracking_radius": {
+      "type": "chorus:constant",
+      "value": 6,
+      "unit": "meter"
+    },
+    "turn_rate": {
+      "type": "chorus:constant",
+      "value": 30,
+      "unit": "degree_per_second"
+    },
+    "acquisition_angle": {
+      "type": "chorus:constant",
+      "value": 30,
+      "unit": "degree"
+    },
+    "fuse": {
+      "type": "chorus:constant",
+      "value": 0.6,
+      "unit": "second"
+    },
+    "clearance": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "meter"
+    },
+    "lift": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:fusion_grenade_outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": [
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "precision",
+              "operation": "multiply",
+              "factor": "chorus:precision",
+              "group": {
+                "name": "precision",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "ability_stat",
+              "operation": "multiply",
+              "group": {
+                "name": "ability_stat",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "melee",
+              "operation": "multiply",
+              "group": {
+                "name": "melee",
+                "reduction": "sum",
+                "children": [
+                  {
+                    "name": "one_two_or_frozen",
+                    "reduction": "max"
+                  }
+                ],
+                "families": {
+                  "chorus_d2:ophidia_knife": {
+                    "kind": "max"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "perk",
+              "operation": "multiply",
+              "group": {
+                "name": "perk",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "frozen_damage_type",
+              "operation": "multiply",
+              "group": {
+                "name": "frozen_damage_type",
+                "reduction": "product"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "outgoing_debuff",
+              "operation": "resist",
+              "group": {
+                "name": "outgoing_debuff",
+                "reduction": "resist"
+              }
+            }
+          },
+          {
+            "type": "chorus:apply",
+            "id": "radial",
+            "operation": "multiply",
+            "group": {
+              "name": "radial",
+              "reduction": "max"
+            },
+            "factor": "chorus_d2:radial_falloff"
+          },
+          {
+            "type": "chorus:curve",
+            "id": "synthetic_world_units",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0,
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 1000000,
+              "boundary": "error"
+            },
+            "output_unit": "damage"
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:fusion_grenade_falloff",
+        "version": "compendium-2026-10-05",
+        "input_unit": "multiplier",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "synthetic",
+            "output_unit": "multiplier",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                1,
+                -0.75
+              ],
+              "minimum": 0,
+              "maximum": 1,
+              "boundary": "error"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

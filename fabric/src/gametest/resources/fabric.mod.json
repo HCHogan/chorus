@@ -148,6 +148,7 @@
       "com.imdomestic.chorus.HeatRisesGameTest",
       "com.imdomestic.chorus.HealingGrenadeGameTest",
       "com.imdomestic.chorus.FireboltGameTest",
+      "com.imdomestic.chorus.FusionGrenadeGameTest",
       "com.imdomestic.chorus.AbilityPreviousCostGameTest",
       "com.imdomestic.chorus.DrawnWeaponGameTest",
       "com.imdomestic.chorus.DirectionalMovementGameTest",

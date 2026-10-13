@@ -37,9 +37,12 @@ class FireboltTest {
         boolean failLaunch, failDamage, failStatus, rejectLaunch, noLoss; DamageReceipt.Outcome damageOutcome = DamageReceipt.Outcome.APPLIED;
         Harness() throws Exception { this(EffectState.Mode.PVE); }
         Harness(EffectState.Mode mode) throws Exception {
-            p = program(true); session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(mode), this::world);
+            this(mode, program(true), ABILITY);
+        }
+        Harness(EffectState.Mode mode, CompiledEffects program, String ability) {
+            p = program; session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(mode), this::world);
             put("player", -20); put("ally", .5); for (int i=1; i<=6; i++) put("enemy"+i, i);
-            choose(ABILITY); bind("test:heat_inputs"); bind(D+"ability_stat_damage");
+            choose(ability); bind("test:heat_inputs"); bind(D+"ability_stat_damage");
         }
         void put(String id, double x) { positions.put(id, point(x)); lives.putIfAbsent(id, "first/"+id); hp.putIfAbsent(id, 1000.); }
         boolean alive(String id) { return positions.containsKey(id) && hp.getOrDefault(id, 0.) > 0; }

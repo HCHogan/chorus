@@ -4912,7 +4912,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -4999,6 +4999,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
         }
       ],
       "gaps": [
@@ -5033,7 +5038,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -5135,6 +5140,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
         }
       ],
       "gaps": [
@@ -13909,7 +13919,7 @@
           "text_sha256": "2eb99cc587d2a5371d25b2c398b2c0d73a89b82c82c2236e92356f0625b4b545"
         }
       ],
-      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。 已验证消费实际Firebolt定义的费用与普通Cure分支。",
+      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。 已验证消费实际Firebolt定义的费用与普通Cure分支。 已验证消费实际Fusion Grenade费用。",
       "acceptance": [
         "短按使用基础技能；消费只支付上一实际定义的账户，Wisp分支不扣基础治疗手雷或运行中间动作；所有治疗保留本次消费归属。",
         "普通Cure x2、治疗手雷Cure x3、Touch治疗手雷另给Restoration x1、Wisp为Cure x3与Restoration x2；自身及9米盟友独立授权/冷却，Restoration 4秒与受益者Solace 6秒。",
@@ -14063,6 +14073,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "heldHeatRisesConsumesThisRealGrenadeAndNeverExecutesItsThrow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "heldHeatRisesConsumesTheRealFusionChargeWithoutLaunchingAShell"
         }
       ]
     },
@@ -14112,7 +14127,7 @@
         "弹道速度/重力/阻力、追踪范围/角速度/锥角、尺寸/偏移、生命投影、首扫/间隔均为必填校准；当前测试参数不是原作实测。",
         "首个合格扫描消费一个共享球并奖励该批全部盟友是Chorus政策；原作多人是否独立保留、重复领取、拾取后寿命与精确接收资格未确认。",
         "命中和拾取均按脚部球形距离/含端点/无视线，施放者仅在命中范围内获得Cure；失去阵营参照等待后续扫描或到期；这些几何/失联/强度取样/卸装政策待原作校准。",
-        "Touch of Flame通过来源标签提供资格，已覆盖治疗手雷和Firebolt参考分支；完整Aspect装配及Solar/Fusion强化未实现，不能把测试标签当作完整Aspect。",
+        "Touch of Flame通过来源标签提供资格，已覆盖治疗手雷、Firebolt和Fusion参考分支；完整Aspect装配及Solar强化未实现，不能把测试标签当作完整Aspect。",
         "共享Cure两次等量脉冲/冷却、Restoration速率和生命投影仍有原有校准缺口；正式技能/子职业目录、球体图形/HUD/素材、物理世界跨重启、全部金装/模组组合仍未完成；定义在验收资源。"
       ],
       "evidence": [
@@ -14286,7 +14301,7 @@
         "重轨迹和二次追踪弹的速度/重力/阻力/寿命、转向、抵达球及扫描偏移为必填校准。测试20米每秒、20重力、720度每秒、.2米抵达、法线.1米加竖直.5米偏移均非原作实测。",
         "firebolt_outgoing为必须提供的外部伤害Profile；测试共享普通进攻阶段后仅乘.1，Boss/Miniboss/Champion的官方15%调整与337基准的组合尚未证明，未声称已校准完整目标倍率表。",
         "以偏移点为扫描/二次发射中心、BODY锚点、最近优先、施放时Touch/Ashes/进攻快照、扫描时生命/阵营固定、延迟只复核生命、穿过其他实体但受地形阻挡均是明确Chorus政策；原作排序、抵达/命中区域、换阵营及取样时机仍待校准。",
-        "Touch只完成治疗手雷与Firebolt参考分支，Solar/Fusion强化、完整Aspect/子职业装配、全部金装/神器/模组组合、正式目录、弹体素材/HUD及物理世界跨重启未完成；定义仍在验收资源。"
+        "Touch已有治疗手雷、Firebolt与Fusion参考分支，Solar强化、完整Aspect/子职业装配、全部金装/神器/模组组合、正式目录、弹体素材/HUD及物理世界跨重启未完成；定义仍在验收资源。"
       ],
       "evidence": [
         {
@@ -14363,11 +14378,6 @@
         {
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
-          "symbol": "close"
-        },
-        {
-          "kind": "world_test",
-          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "paidImpactScansFourVisibleEnemiesBeforeDelayedPhysicalBolts"
         },
         {
@@ -14419,6 +14429,202 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
+        }
+      ]
+    },
+    {
+      "id": "solar/fusion_grenade",
+      "name": "Fusion Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B31",
+          "text_sha256": "bd3187ca224fb8520fa6e535ea4812b2fd07149899e3176e10134def707b781f"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D31",
+          "text_sha256": "21a4b26cf17db5caf6205d68fd337391f524ca499606541fd9945f4100485a67"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N31",
+          "text_sha256": "101d4fe6cfa7e199e3d8eb568cb9c8eb3eeba5100d9d17ec6c09e49589ccc6b6"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "B32",
+          "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D32",
+          "text_sha256": "154db6e807e2969e468d5449d4d3f6b68c39d4905100c29ea60b5a51a10c6fc1"
+        }
+      ],
+      "scope": "真实付费投掷与弱敌方追踪、实体或地形附着、显式引信后6米爆炸；Touch在0.5秒后独立查询8米第二爆炸，首爆共享40/60灼烧与连续付费点燃、95.8秒/CES 1回充及真实Heat Rises消费。",
+      "acceptance": [
+        "首爆738战斗人员/130玩家、次爆851/50为来源基准，逐接收者按真实玩家类别选取；伤害衰减与世界投影必须外部校准，状态只由首爆APPLIED非致命回执授权。",
+        "Touch、Ashes及共享进攻阶段在接受时保存，附着于原生命并保存接触偏移；每次爆炸重新查询当前视线内敌人，逐目标写入复核生命，不对附着者另加重复伤害。",
+        "地形固定原位置；实体移动/尚在的尸体继续平移接触点，确认移除/摧毁固定最后观察位置，卸载/转移终止。未观察到的缺失/替换停止而不附着新生命；新生命仍可作为当前附近爆炸受害者。",
+        "领域检查点保留两段延迟及独立附着句柄，卸装保留已接受动作；已知拒绝Scorch不撤销伤害或取消第二爆炸，未知世界写入保留先前提交且不重放/退费。",
+        "真实偏轴飞行会向敌人转向并碰撞附着；掩体在两爆之间改变会影响第二次查询。两次合法Ashes投掷接入共享点燃；单次Touch不重复施加灼烧。实际长按Heat Rises消费Fusion费用且不投掷。"
+      ],
+      "gaps": [
+        "官方2025-07-31页面索引摘要说明Touch强化Solar/Fusion伤害调低10%，与Compendium中738/851的基准关系未核实；保留原表数值，不重复乘0.9。目标等级/活动/力量及构造物伤害表未校准。",
+        "初次引信、弹速/重力/阻力/寿命、弱追踪范围/转角/角速度、接触偏移、范围衰减须校准。当前.6秒引信、20米每秒、10重力、6米/30度/30度每秒追踪、法线.1米加竖直.5米、线性降至.25及.1投影仅为测试输入。",
+        "首爆独占Scorch、第二爆跟随旧附着生命/确认移除位置、BODY/视线要求/最近优先、施放时参数与进攻快照、APPLIED零损失仍授权均是显式Chorus政策，不能视为完整原作测量。",
+        "Touch已有Healing/Firebolt/Fusion参考分支，Solar熔岩球、完整Aspect与子职业目录、Ashen Wake/Starfire/Verity/神器/模组全组合、正式资源包、HUD/素材、物理世界跨重启未完成；定义仍位于验收资源。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fusion_grenade.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fusion_grenade_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/fusion_grenade_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/fusion-grenade-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "requiredCalibrationAndPaidSlightHomingUseTheSelectedCooldownAndChunkScalar"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "surfaceFuseSelectsCurrentVisibleEnemiesWithIndependentRadialFalloff"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "attachedContactFollowsTheSameLifeAcrossBothFusesAndReselectsNeighbors"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "touchAshesAndOutgoingSnapshotsSurviveUnequipAndCheckpointWithNoDoubleScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "eachExplosionUsesActualRecipientPlayerClassIndependentOfGlobalMode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "unobservedMissingReplacedAndWrongDimensionLivesNeverTransferTheAttachment"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "confirmedRemovalFixesTheLastContactButUnloadEndsIt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "deadPresentAttachmentStillExplodesAroundTheCorpseAndEachPaidThrowHasItsOwnHandle"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "immuneLethalDeniedAndZeroLossReceiptsKeepExplicitScorchQualification"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "twoSeparateAshesThrowsReachSharedIgnitionWithoutDoubleCountingTouch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "flightTerminationAndKnownSpawnRejectionNeverInventAFuseOrRefund"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "unknownFirstDamageOrStatusStopsWithoutReplayingOrInventingASecondBlast"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "damageBoundaryReplacementCannotInheritASnapshottedBlastVictim"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FusionGrenadeTest.java",
+          "symbol": "sharedGrenadeStatDamageIsCapturedBeforeFlightAndRetainedForBothExplosions"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "paidSurfaceImpactWaitsThenSelectsCurrentVisibleEnemiesWithRadialDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "capturedTouchAshesAndUnequipRetainTheSecondBlastWithoutApplyingScorchTwice"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "attachedPhysicalContactFollowsBothMovesAndEachExplosionQueriesNewNeighbors"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "slightPhysicalHomingTurnsTowardAnOffAxisEnemyBeforeAttaching"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "confirmedRemovalFixesTheLastPositionAndCannotAttachToTheReplacementLife"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "nativeUnloadEndsThePendingAttachmentBeforeEitherExplosion"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "firstExplosionKillsAttachedLifeAndSecondStillHitsTheSurroundingWorld"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "newlyRaisedCoverExcludesTheRecipientFromOnlyTheSecondBlast"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "deniedStatusRetainsFirstDamageAndDoesNotCancelIndependentSecondExplosion"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "unknownAppliedBlastDamagePreservesHpLossAndStopsBeforeStatusAndReplay"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "heldHeatRisesConsumesTheRealFusionChargeWithoutLaunchingAShell"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
+          "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
         }
       ]
     }

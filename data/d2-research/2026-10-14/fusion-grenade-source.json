@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "status": "partial",
+  "reviewed_at": "2026-10-13T18:17:05.430661+00:00",
+  "compendium": {
+    "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
+    "gid": "1186062409",
+    "file": "data/d2-research/2026-10-14/fusion-grenade-solar.html.gz",
+    "html_sha256": "066916e65baca9cc047662c149a4071668f8eeab079dfe4cc420f0c22538d05d",
+    "gzip_sha256": "a052bc9ba3d0faea6892d313de6bdf43b93c230259fc43e0e301774c13a21e05",
+    "cells": [
+      {
+        "original": "B37",
+        "text": "Fusion Grenade",
+        "text_sha256": "bd3187ca224fb8520fa6e535ea4812b2fd07149899e3176e10134def707b781f"
+      },
+      {
+        "original": "D37",
+        "text": "Light Trajectory | Slightly Homing | Sticky Attaches to enemies or surfaces, exploding after a brief delay. Explosion deals up to 738 [130] damage and inflict x40+20 Scorch over 6 meters on detonation.",
+        "text_sha256": "af065200cb7d5cdd6edc7d3abad6fd41ba73934bdd20ed4981ad9b6f5c20b1b5"
+      },
+      {
+        "original": "N37",
+        "text": "Base Cooldown: 95.8 seconds Chunk Scalar: 1x",
+        "text_sha256": "4673859cbfacef3829dad4eea17d0b2089f8eb903c87d7f4a1feb601089d6050"
+      },
+      {
+        "original": "B38",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D38",
+        "text": "Explodes again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius. Deals up to 1,589 [180] damage and inflicts x40+20 Scorch with both explosions.",
+        "text_sha256": "91aa6bd892898f63619fa9cf5a09a8171bc962450a36def0e9238213597bc5da"
+      },
+      {
+        "original": "B150",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "original": "D150",
+        "text": "Enhances certain Grenade types: Healing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds. Firebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies. Solar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff. Fusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "51289915247b4170152c4aa9f7ecc12488a3895c70e503dbfef2a45f0701fc0c"
+      }
+    ],
+    "snapshot": [
+      {
+        "sheet": "Solar",
+        "cell": "B31",
+        "text": "Fusion Grenade",
+        "text_sha256": "bd3187ca224fb8520fa6e535ea4812b2fd07149899e3176e10134def707b781f"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D31",
+        "text": "Light Trajectory | Slightly Homing | Sticky\n\nAttaches to enemies or surfaces, exploding after a brief delay.\n\nExplosion deals up to 738 [130] damage and inflict x40+20 Scorch over 6 meters on detonation.",
+        "text_sha256": "21a4b26cf17db5caf6205d68fd337391f524ca499606541fd9945f4100485a67"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "N31",
+        "text": "Base Cooldown: 95.8 seconds\n\nChunk Scalar:  1x",
+        "text_sha256": "101d4fe6cfa7e199e3d8eb568cb9c8eb3eeba5100d9d17ec6c09e49589ccc6b6"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B32",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D32",
+        "text": "Explodes again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.\nDeals up to 1,589 [180] damage and inflicts x40+20 Scorch with both explosions.",
+        "text_sha256": "154db6e807e2969e468d5449d4d3f6b68c39d4905100c29ea60b5a51a10c6fc1"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "B85",
+        "text": "Touch of Flame",
+        "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+      },
+      {
+        "sheet": "Solar",
+        "cell": "D85",
+        "text": "Enhances certain Grenade types:\n\nHealing Grenades grant Cure x2 and Restoration x2 for 4+2 seconds.\nFirebolt Grenades seek radius is increased by 50% to 12 meters and target up to 5 enemies.\nSolar Grenades linger for 2 seconds longer and release Magma Orbs that deal 125 [50] damage each. Magma Orbs do not have damage falloff.\nFusion Grenades explode again after 0.5 seconds, dealing up to 851 [50] damage in a 8 metre radius.",
+        "text_sha256": "e67ad7c7f841333951228124fb364f5ceefca319d7ad7131259c9f5be7c53cde"
+      }
+    ],
+    "normalization": "Whitespace collapsed; original source coordinates retained separately from CSV snapshot."
+  },
+  "clarity": {
+    "commit": "039cfbc4732c33573568b28cc6335dd3332a9296",
+    "url": "https://raw.githubusercontent.com/Database-Clarity/Live-Clarity-Database/039cfbc4732c33573568b28cc6335dd3332a9296/descriptions/clarity.json",
+    "head_query": "https://api.github.com/repos/Database-Clarity/Live-Clarity-Database/commits?path=descriptions/clarity.json&per_page=1",
+    "full_sha256": "881ed03880ad1869f4c82e2f0c879cacc3f5e9feae21b2d51ae80a2002175384",
+    "selected": "data/d2-research/2026-10-14/firebolt-clarity.json",
+    "selected_sha256": "83f913b93abb5cc78b9d6cd77d8dd4d57476d6d071dd5e9ac0c1b9e087563d3b",
+    "coverage": "Rechecked head unchanged 2026-10-14. Existing pinned Touch of Flame 83039193 subset confirms second explosion 0.5s / 8m; no damage or initial fuse calibration."
+  },
+  "official": [
+    {
+      "url": "https://www.bungie.net/7/en/News/article/51380",
+      "published": "2022-05-24",
+      "supports": "Fusion blast applies 40 Scorch; historical mechanism, not current full numeric calibration."
+    },
+    {
+      "url": "https://www.bungie.net/7/en/News/article/twid_07_31_2025",
+      "published": "2025-07-31",
+      "supports": "Official indexed excerpt reports Touch of Flame enhanced Solar and Fusion damage reduced by 10 percent during stat rework. Full direct page response did not expose article text in this retrieval; unresolved relationship to current Compendium base."
+    }
+  ],
+  "requirements": {
+    "flight": "Light trajectory, slight enemy homing, attaches to enemies or surfaces; initial brief fuse unspecified.",
+    "first": "Up to 738 combatant / 130 guardian damage, 6m, 40 Scorch or 60 with Ashes.",
+    "touch": "Second explosion after 0.5s, up to 851 / 50 damage, 8m; listed combined total 1589 / 180 damage and 40 / 60 Scorch, not twice that status.",
+    "energy": "95.8-second base cooldown; 1x chunk scalar."
+  },
+  "uncertainties": [
+    "Official July 2025 Touch damage tuning cannot yet be unambiguously composed with Compendium 738/851 damage basis. Keep source numbers; do not blindly multiply by 0.9 again.",
+    "Source does not give initial fuse, flight speed/gravity/drag/lifetime, homing cone/rate/range, collision dimensions, radial falloff, contact offset, recipient LOS or self damage.",
+    "First explosion alone applies Scorch is the reference policy consistent with total listed stacks; recipients hit only by the second explosion, lifecycle handling, attachment center after first blast, and snapshot boundaries need original-game verification.",
+    "Reference snapshots preserve selected outgoing stages; target-rank/construct/power/activity tables, complete Aspect, Ashen Wake, Starfire, Verity and artifact combinations remain uncalibrated."
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/fusion_grenade.json",
+    "energy": "common/src/test/resources/effects/fusion_grenade_energy.json",
+    "calibration": "common/src/test/resources/effects/fusion_grenade_test_calibration.json",
+    "review": "solar/fusion_grenade",
+    "policy": "Touch/Ashes/outgoing captured at acceptance. Entity contact owns independent life-bound attachment; follow living/dead present original entity; confirmed destroy/removal fixes last observed contact; unload/transfer ends; unavailable unobserved anchor cancels. Requery current visible nonallies per detonation, guard each native recipient life. Surface keeps original center. Only first APPLIED nonlethal damage authorizes Scorch, including accepted zero loss. Second still occurs after known denied status. Unknown world operation stops without replay."
+  },
+  "not_claimed": "Partial executable reference definition and native acceptance, not production catalog, exact D2 calibration, complete subclass/HUD/art, all exotic/artifact combinations, or native projectile world-restart persistence."
+}
