@@ -158,6 +158,8 @@ common 子项目内的分层：上层只把自己的类型注册进 rule 层，�
 | `chorus:grapple_attached` / `grapple_end` | 钩住了什么 | Grappling a Tangle |
 | `chorus:tick` | 周期 | 周期性效果 |
 
+`reload_finished.references.reload_completion_id` 标识每次合格完成，`reload` 保留整段请求身份。逐发步骤、同一技能操作里的不同武器以及后续独立换弹不能共用完成身份；具体词条可据此去重确认事实，不应把整段请求当作一次性总额度。这个身份只覆盖当前运行时及其检查点恢复，不构成跨会话的全局标识，也不增加效果链循环限制。
+
 目标协议区分 event id、attack id、component id、batch id、cast id、root / parent。attack 表示一次攻击，batch 表示效果定义指定的同时发生批次，不能混为一谈。规则声明自己按分量、射击、批次还是目标计数。毒池、丝线、闪电可以保留背后的武器或技能来源；是否算武器伤害、能否触发词条仍由 credit 和 proc_policy 决定，不能仅凭 via 判断。
 
 当前已实现 event / root / parent、每个世界伤害回执的 damage_id、物理 shot / pellet / contact，以及显式 batch_id。`begin_damage_batch` 生成类型化句柄，由 `damage` / `damage_snapshot` 明确绑定，未绑定时每个回执各算一批。数值快照本身不冻结批次；派生伤害也不自动继承。同 root 或同 tick 不合并，规则可以分别按 damage_id 或 batch_id 更新自己的组件集合。句柄可跨延迟显式保留逻辑关系，但引擎不据此推断物理同时性。显式 damage_group 已提供受管多分量共享一次性增益资格；它独立于 batch，事实携带 attack_group。通用 component / cast 关联与批次完成聚合仍未完成，见 [数据包批次协议](engine-data-packs.md#显式伤害批次)。

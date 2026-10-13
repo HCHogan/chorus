@@ -945,6 +945,8 @@ reload.value 是接受请求时求值的 Value。没有 Profile 时单位必须�
 
 三类事实的 actor 为持有者，victim 为武器实例，source 带物品标签和 `chorus:manual_reload`。引用包含 weapon / item / reload（请求标识）/ reason，manual 标志为 true，duration 是接受的秒数，scheduled_duration 是向上取整后的秒数。完成事实另带 requested / applied / unfulfilled、前后弹数、有效 / 未修饰容量及有限储备差值；不把它伪装成原版实体目标。
 
+完成事实还包含 `reload_completion_id`，用于识别本次合格装填。`reload` 仍标识整段请求，逐次装填的每一步共享该请求，但各有独立完成身份。手动完成身份由持有者、武器实例、请求令牌、该步开始时刻和步数确定；再次接受同令牌的后续换弹不会与已完成步骤混同。技能换弹按操作身份和武器实例区分，因此一次 EQUIPPED 操作中的多把武器也各有身份；显式 VERIFIED 策略下零转移的合格完成同样带此引用。开始、取消和普通补弹不产生完成身份。身份在所属会话及其检查点恢复范围内稳定，不承诺跨独立运行时全局唯一；去重时长、触发窗口和逐发资格由具体内容决定，不以请求令牌或根事件限制合法后续触发。
+
 [weapons.json](../common/src/test/resources/effects/weapons.json) 与 kill_clip.json 链接的测试验证实际容器及手动换弹激活对应词条；该场景的武器击杀事实仍由测试宿主提供。下文单次开火已支持接受后中断换弹；当前实现整弹匣与逐次装填，尚无冲刺中断、排热、完整闪身 / Dragon's Shadow 内容、按键 / 动画 / HUD、跨运行时保存恢复；效果触发的合格换弹动作见下文。需要这些行为时扩展武器流程；不能让通用 refill 自动获得合格换弹资格。
 
 #### 逐次装填

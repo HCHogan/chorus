@@ -151,7 +151,8 @@ final class CompiledWeapons {
                 numbers.put("reload_step", new Measure(0, Unit.COUNT)); numbers.put("planned_rounds", new Measure(transfer.mutation().requested(), Unit.ROUND));
                 var event = new EffectEvent(request.holder(), transfer.gear().instance(), transfer.origin(), transfer.origin().tags(), numbers,
                         Map.of("manual", false, "instant", true, "incremental", false), Map.of("weapon", transfer.gear().instance(), "item", transfer.gear().definition(),
-                                "reason", request.reason(), "reload", request.token(), "cause_owner", request.cause().owner(), "cause_source", request.cause().source(), "cause_weapon", request.cause().weapon(), "cause_ability", request.cause().ability()));
+                                "reason", request.reason(), "reload", request.token(), "reload_completion_id", request.completionId(transfer.gear().instance()),
+                                "cause_owner", request.cause().owner(), "cause_source", request.cause().source(), "cause_weapon", request.cause().weapon(), "cause_ability", request.cause().ability()));
                 facts.add(new RuleEngine.Signal("chorus:reload_finished", new InstantReload.Completed(event, request, transfer)));
             }
         }
@@ -358,8 +359,10 @@ final class CompiledWeapons {
         var numbers = new HashMap<>(ammo); numbers.put("duration", plan.duration()); numbers.put("reload_step", new Measure(plan.step(), Unit.COUNT));
         plan.portion().ifPresent(portion -> numbers.put("planned_rounds", new Measure(portion.rounds(), Unit.ROUND)));
         numbers.put("scheduled_duration", new Measure((plan.dueAt() - plan.startedAt()) / 1_000_000.0, Unit.SECOND));
+        var references = new HashMap<>(Map.of("weapon", plan.gear().instance(), "item", plan.gear().definition(), "reload", plan.token(), "reason", reason));
+        if (type.equals("chorus:reload_finished")) references.put("reload_completion_id", plan.completionId());
         var event = new EffectEvent(plan.holder(), plan.gear().instance(), plan.origin(), plan.origin().tags(), numbers,
-                Map.of("manual", true, "incremental", plan.portion().isPresent()), Map.of("weapon", plan.gear().instance(), "item", plan.gear().definition(), "reload", plan.token(), "reason", reason));
+                Map.of("manual", true, "incremental", plan.portion().isPresent()), references);
         return new RuleEngine.Signal(type, event);
     }
 }

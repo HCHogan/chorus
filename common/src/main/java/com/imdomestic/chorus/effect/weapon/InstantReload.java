@@ -22,6 +22,11 @@ public final class InstantReload {
                 throw new IllegalArgumentException("Invalid instant reload identity");
         }
         public String token() { return "instant/" + operation.frame() + "/" + operation.pc() + "/" + operation.invocation(); }
+        /** One operation may complete several weapons; those completions must not share a receipt identity. */
+        public String completionId(String weapon) {
+            if (weapon == null || weapon.isBlank()) throw new IllegalArgumentException("Missing reloaded weapon");
+            return "reload/instant/" + holder.length() + ":" + holder + "/" + token() + "/" + weapon.length() + ":" + weapon;
+        }
     }
     public record Checked(Check query, boolean allowed) implements RuleEngine.ActionResult {
         public Checked { Objects.requireNonNull(query); }

@@ -6,6 +6,12 @@
 
 ## 当前证据
 
+### 2026-10-14：逐次装填与多武器换弹的完成身份
+
+为后续 Heal Clip 的击杀窗口和重放边界补齐 `reload_finished.references.reload_completion_id`。手动装填按持有者、武器、请求令牌、该步开始时刻与步数构造，整段 `reload` 令牌保持不变；技能换弹按原操作身份和被装填武器区分，包括显式 VERIFIED 的零转移完成。身份只在合格完成事实上发布，不从补弹、开始或取消推断完成。纯计算访问器不改变 Plan / Check 的持久化字段，也不在引擎加入触发额度或循环限制。
+
+4 项 ReloadCompletionTest 通过实际逐步余额与内容组件集合验证每次插入独立、旧计时器不重放、后续换弹复用请求令牌、取消 / 普通补弹、全部装备武器及零转移资格。定向测试通过后，完整 `/tmp/chorus-reload-completion-gate.log` BUILD SUCCESSFUL（3 分 7 秒）：2058 项 JUnit、Fabric 1168 项、NeoForge 1183 项及两端发布 jar 通过。10 项 Compendium 工具测试和 124 条审阅报告检查通过；本批只是核心事实协议扩展，没有新增效果覆盖。Heal Clip 的窗口、Cure 调用、Benevolence 组合和原作边界继续实现。
+
 ### 2026-10-14：Benevolence 的给予者信用与三类基础回充
 
 新增 Ember of Benevolence 参考定义，复用上一批 `buff_applied` 与既有 `heal` 事实，检查实际给予者、非自身、双方当前存活与 allied 关系。Radiant / Restoration / Healing Rift presence 的授予，以及 Cure / Rift 的确认治疗可以刷新 7 秒 PvE / 4 秒 PvP 的活动收益；持续 Restoration 回血不反复刷新。Cure 等待世界治疗回执，已接受的过量治疗可以触发，拒绝或未知结果不能凭空发放碎片收益。显式来源标签可排除生产者，但全部原生装备接线仍是缺口。

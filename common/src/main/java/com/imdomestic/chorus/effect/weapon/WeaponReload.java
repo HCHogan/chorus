@@ -50,6 +50,11 @@ public final class WeaponReload {
             return new Plan(holder, token, gear, origin, startedAt, dueAt, input, duration, calculation, portion, step, Phase.BETWEEN_INSERTS);
         }
         public String timerId() { return "reload/" + holder.length() + ":" + holder + "/" + token + "/" + step; }
+        /** Stable within the owning session/checkpoint; each actual insertion has its own receipt identity. */
+        public String completionId() {
+            return "reload/manual/" + holder.length() + ":" + holder + "/" + gear.instance().length() + ":" + gear.instance()
+                    + "/" + token.length() + ":" + token + "/" + startedAt + "/" + step;
+        }
         public EffectState.Timer timer() {
             if (phase != Phase.WAITING) throw new IllegalStateException("Insertion has already committed");
             return new EffectState.Timer(timerId(), dueAt, 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
