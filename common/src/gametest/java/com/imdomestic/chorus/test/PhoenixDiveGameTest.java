@@ -31,11 +31,14 @@ public class PhoenixDiveGameTest {
         GamblersDodgeGameTest.merge(data, ThreadedSpikeGameTest.json("phoenix_dive_test_calibration").getAsJsonObject("program"));
         AscensionGameTest.version(data);
     }
-    static final class Scenario implements AutoCloseable {
+    static class Scenario implements AutoCloseable {
         final GameTestHelper h; final ProjectileGameTest.Harness t; final PlayerTeam team;
         final List<HealingCommand> heals = new ArrayList<>(); final List<Impulse.Command> impulses = new ArrayList<>();
         Scenario(GameTestHelper h) throws Exception {
-            this.h = h; t = new ProjectileGameTest.Harness(h, "ascension", PhoenixDiveGameTest::prepare, true);
+            this(h, PhoenixDiveGameTest::prepare);
+        }
+        Scenario(GameTestHelper h, java.util.function.Consumer<JsonObject> prepare) throws Exception {
+            this.h = h; t = new ProjectileGameTest.Harness(h, "ascension", prepare, true);
             var board = h.getLevel().getScoreboard(); team = board.addPlayerTeam("phoenix-" + UUID.randomUUID());
             try {
                 t.owner.setGameMode(GameType.SURVIVAL); t.owner.setHealth(20); t.owner.setDeltaMovement(0, 0, 0);

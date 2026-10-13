@@ -1,0 +1,995 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "id": "chorus_d2:heat_rises_consume",
+      "slot": "chorus_d2:grenade",
+      "cost_from": "previous_definition",
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:solar",
+        "chorus_d2:heat_rises_consume"
+      ],
+      "parameters": {
+        "cure_tier": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:any",
+              "of": [
+                {
+                  "type": "chorus:cast_ability_tag",
+                  "reference": "replaced_ability",
+                  "tag": "chorus_d2:healing_grenade"
+                },
+                {
+                  "type": "chorus:cast_ability_tag",
+                  "reference": "replaced_ability",
+                  "tag": "chorus_d2:song_of_flame_wisp"
+                }
+              ]
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 3,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 2,
+              "unit": "count"
+            }
+          }
+        },
+        "restoration_tier": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:cast_ability_tag",
+              "reference": "replaced_ability",
+              "tag": "chorus_d2:song_of_flame_wisp"
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 2,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:choose",
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:cast_ability_tag",
+                    "reference": "replaced_ability",
+                    "tag": "chorus_d2:healing_grenade"
+                  },
+                  {
+                    "type": "chorus:has_source_tag",
+                    "tag": "chorus_d2:touch_of_flame"
+                  }
+                ]
+              },
+              "then": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "count"
+              },
+              "else": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_entity_anchor",
+            "target": "self"
+          },
+          "as": "cast_life"
+        },
+        {
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:result_flag",
+                "binding": "cast_life",
+                "field": "available"
+              },
+              {
+                "type": "chorus:result_flag",
+                "binding": "cast_life",
+                "field": "alive"
+              }
+            ]
+          },
+          "then": [
+            {
+              "type": "chorus:grant_buff",
+              "buff": "chorus_d2:heat_rises"
+            },
+            {
+              "type": "chorus:write_entity_anchor",
+              "buff": "chorus_d2:heat_rises",
+              "component": "cast_life",
+              "reference": "cast_life"
+            },
+            {
+              "type": "chorus:invoke_bundle",
+              "bundle": "chorus_d2:cure_application",
+              "event": "chorus_d2:bestow_cure",
+              "target": "self",
+              "parameters": {
+                "tier": {
+                  "type": "chorus:event_number",
+                  "name": "param.cure_tier",
+                  "unit": "count"
+                }
+              }
+            },
+            {
+              "if": {
+                "type": "chorus:compare",
+                "op": "gt",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "param.restoration_tier",
+                  "unit": "count"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:calculate",
+                    "profile": "chorus_d2:solar_effect_duration",
+                    "target": "self",
+                    "input": {
+                      "type": "chorus:constant",
+                      "value": 4,
+                      "unit": "second"
+                    }
+                  },
+                  "as": "duration"
+                },
+                {
+                  "type": "chorus:apply_status",
+                  "buff": "chorus_d2:restoration",
+                  "target": "self",
+                  "tier": {
+                    "type": "chorus:event_number",
+                    "name": "param.restoration_tier",
+                    "unit": "count"
+                  },
+                  "duration": {
+                    "type": "chorus:result",
+                    "binding": "duration",
+                    "field": "value"
+                  }
+                }
+              ]
+            },
+            {
+              "action": {
+                "type": "chorus:select_targets",
+                "center": {
+                  "position": "cast_life"
+                },
+                "radius": {
+                  "type": "chorus:constant",
+                  "value": 9,
+                  "unit": "meter"
+                },
+                "relative_to": "self",
+                "relation": "allied",
+                "exclude": [
+                  "self"
+                ],
+                "target_anchor": "feet",
+                "order": "identity",
+                "line_of_sight": false
+              },
+              "as": "allies"
+            },
+            {
+              "for_each": "allies",
+              "as": "ally",
+              "do": [
+                {
+                  "type": "chorus:invoke_bundle",
+                  "bundle": "chorus_d2:cure_application",
+                  "event": "chorus_d2:bestow_cure",
+                  "target": {
+                    "binding": "ally"
+                  },
+                  "parameters": {
+                    "tier": {
+                      "type": "chorus:event_number",
+                      "name": "param.cure_tier",
+                      "unit": "count"
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "type": "chorus:compare",
+                    "op": "gt",
+                    "left": {
+                      "type": "chorus:event_number",
+                      "name": "param.restoration_tier",
+                      "unit": "count"
+                    },
+                    "right": {
+                      "type": "chorus:constant",
+                      "value": 0,
+                      "unit": "count"
+                    }
+                  },
+                  "then": [
+                    {
+                      "action": {
+                        "type": "chorus:calculate",
+                        "profile": "chorus_d2:solar_effect_duration",
+                        "target": {
+                          "binding": "ally"
+                        },
+                        "input": {
+                          "type": "chorus:constant",
+                          "value": 4,
+                          "unit": "second"
+                        }
+                      },
+                      "as": "duration"
+                    },
+                    {
+                      "type": "chorus:apply_status",
+                      "buff": "chorus_d2:restoration",
+                      "target": {
+                        "binding": "ally"
+                      },
+                      "tier": {
+                        "type": "chorus:event_number",
+                        "name": "param.restoration_tier",
+                        "unit": "count"
+                      },
+                      "duration": {
+                        "type": "chorus:result",
+                        "binding": "duration",
+                        "field": "value"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "buffs": [
+    {
+      "definition": {
+        "id": "chorus_d2:heat_rises",
+        "version": "compendium-2026-10-05",
+        "duration": 15,
+        "extension_cap": 30,
+        "refresh": "reset",
+        "tags": [
+          "chorus_d2:heat_rises"
+        ],
+        "components": {
+          "entity_anchors": [
+            "cast_life"
+          ]
+        }
+      },
+      "bundle": "chorus_d2:heat_rises_active"
+    },
+    {
+      "definition": {
+        "id": "chorus_d2:heat_rises_kill_receipts",
+        "version": "compendium-2026-10-05",
+        "duration": 1,
+        "refresh": "none",
+        "components": {
+          "numbers": {
+            "accepted": {
+              "initial": 0,
+              "unit": "count"
+            }
+          },
+          "sets": [
+            "deaths"
+          ]
+        }
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:heat_rises_aspect",
+      "parameters": {
+        "hold_time": "second",
+        "receipt_seconds": "second"
+      },
+      "ability_overrides": [
+        {
+          "id": "consume",
+          "slot": "chorus_d2:grenade",
+          "replace_with": "chorus_d2:heat_rises_consume",
+          "priority": 100,
+          "if": {
+            "type": "chorus:all",
+            "of": [
+              {
+                "type": "chorus:event_tag",
+                "tag": "chorus:ability_input_release"
+              },
+              {
+                "type": "chorus:compare",
+                "op": "gt",
+                "left": {
+                  "type": "chorus:source_parameter",
+                  "name": "hold_time"
+                },
+                "right": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "second"
+                }
+              },
+              {
+                "type": "chorus:compare",
+                "op": "ge",
+                "left": {
+                  "type": "chorus:event_number",
+                  "name": "input_hold_time",
+                  "unit": "second"
+                },
+                "right": {
+                  "type": "chorus:source_parameter",
+                  "name": "hold_time"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "modifiers": [
+        {
+          "id": "airborne",
+          "profile": "chorus_d2:weapon_airborne_effectiveness",
+          "stage": "perks",
+          "group": "airborne_effectiveness",
+          "op": "add",
+          "stacking_key": "chorus_d2:heat_rises_passive_ae",
+          "value": {
+            "type": "chorus:constant",
+            "value": 20,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium Solar D144 / snapshot D82; Bungie 7.0.0.1: 20 passive plus 50 active. Stat query; native aim/glide projection is separate.",
+          "confidence": "measured"
+        }
+      ],
+      "rules": [
+        {
+          "id": "airborne_kill",
+          "on": "chorus:kill",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "if": {
+                "type": "chorus:all",
+                "of": [
+                  {
+                    "type": "chorus:event_entity_observed",
+                    "target": "event_actor"
+                  },
+                  {
+                    "type": "chorus:event_entity_observed",
+                    "target": "victim"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:read_event_entity",
+                    "target": "event_actor"
+                  },
+                  "as": "actor"
+                },
+                {
+                  "if": {
+                    "type": "chorus:all",
+                    "of": [
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "actor",
+                        "field": "available"
+                      },
+                      {
+                        "type": "chorus:result_flag",
+                        "binding": "actor",
+                        "field": "movement_observed"
+                      }
+                    ]
+                  },
+                  "then": [
+                    {
+                      "if": {
+                        "type": "chorus:not",
+                        "of": {
+                          "type": "chorus:result_flag",
+                          "binding": "actor",
+                          "field": "on_ground"
+                        }
+                      },
+                      "then": [
+                        {
+                          "action": {
+                            "type": "chorus:read_event_entity",
+                            "target": "victim"
+                          },
+                          "as": "victim"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "victim",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:any",
+                                "of": [
+                                  {
+                                    "type": "chorus:result_flag",
+                                    "binding": "victim",
+                                    "field": "player"
+                                  },
+                                  {
+                                    "type": "chorus:compare",
+                                    "op": "eq",
+                                    "left": {
+                                      "type": "chorus:arithmetic",
+                                      "op": "add",
+                                      "of": [
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 1,
+                                            "unit": "count"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 0,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_2"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_2"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 1,
+                                            "unit": "count"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 0,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 1,
+                                            "unit": "count"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 0,
+                                            "unit": "count"
+                                          }
+                                        },
+                                        {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_4"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_4"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 1,
+                                            "unit": "count"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 0,
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "type": "chorus:constant",
+                                      "value": 1,
+                                      "unit": "count"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "if": {
+                                "type": "chorus:not",
+                                "of": {
+                                  "type": "chorus:has_buff",
+                                  "buff": "chorus_d2:heat_rises_kill_receipts",
+                                  "match": "any"
+                                }
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_buff",
+                                  "buff": "chorus_d2:heat_rises_kill_receipts",
+                                  "duration": {
+                                    "type": "chorus:source_parameter",
+                                    "name": "receipt_seconds"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "action": {
+                                "type": "chorus:update_component",
+                                "buff": "chorus_d2:heat_rises_kill_receipts",
+                                "component": "accepted",
+                                "op": "add",
+                                "value": {
+                                  "type": "chorus:constant",
+                                  "value": 0,
+                                  "unit": "count"
+                                },
+                                "once_set": "deaths",
+                                "event_reference": "death_id"
+                              },
+                              "as": "receipt"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "receipt",
+                                "field": "applied"
+                              },
+                              "then": [
+                                {
+                                  "type": "chorus:grant_ability_energy",
+                                  "slot": "chorus_d2:melee",
+                                  "amount": {
+                                    "type": "chorus:choose",
+                                    "if": {
+                                      "type": "chorus:result_flag",
+                                      "binding": "victim",
+                                      "field": "player"
+                                    },
+                                    "then": {
+                                      "type": "chorus:constant",
+                                      "value": 0.5,
+                                      "unit": "charge_fraction"
+                                    },
+                                    "else": {
+                                      "type": "chorus:choose",
+                                      "if": {
+                                        "type": "chorus:any",
+                                        "of": [
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "victim",
+                                            "source": "entity",
+                                            "tag": "chorus_d2:combatant_tier_1"
+                                          },
+                                          {
+                                            "type": "chorus:observed_entity_tag",
+                                            "binding": "victim",
+                                            "source": "type",
+                                            "tag": "chorus_d2:combatant_tier_1"
+                                          }
+                                        ]
+                                      },
+                                      "then": {
+                                        "type": "chorus:constant",
+                                        "value": 0.2,
+                                        "unit": "charge_fraction"
+                                      },
+                                      "else": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:any",
+                                          "of": [
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "victim",
+                                              "source": "entity",
+                                              "tag": "chorus_d2:combatant_tier_2"
+                                            },
+                                            {
+                                              "type": "chorus:observed_entity_tag",
+                                              "binding": "victim",
+                                              "source": "type",
+                                              "tag": "chorus_d2:combatant_tier_2"
+                                            }
+                                          ]
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 0.25,
+                                          "unit": "charge_fraction"
+                                        },
+                                        "else": {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_3"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 0.35,
+                                            "unit": "charge_fraction"
+                                          },
+                                          "else": {
+                                            "type": "chorus:constant",
+                                            "value": 0.5,
+                                            "unit": "charge_fraction"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "value_basis": "base",
+                                  "tags": [
+                                    "chorus_d2:heat_rises"
+                                  ]
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:has_buff",
+                                    "buff": "chorus_d2:heat_rises",
+                                    "match": "any"
+                                  },
+                                  "then": [
+                                    {
+                                      "type": "chorus:extend_buff",
+                                      "buff": "chorus_d2:heat_rises",
+                                      "amount": {
+                                        "type": "chorus:choose",
+                                        "if": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "victim",
+                                          "field": "player"
+                                        },
+                                        "then": {
+                                          "type": "chorus:constant",
+                                          "value": 5,
+                                          "unit": "second"
+                                        },
+                                        "else": {
+                                          "type": "chorus:choose",
+                                          "if": {
+                                            "type": "chorus:any",
+                                            "of": [
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "entity",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              },
+                                              {
+                                                "type": "chorus:observed_entity_tag",
+                                                "binding": "victim",
+                                                "source": "type",
+                                                "tag": "chorus_d2:combatant_tier_1"
+                                              }
+                                            ]
+                                          },
+                                          "then": {
+                                            "type": "chorus:constant",
+                                            "value": 5,
+                                            "unit": "second"
+                                          },
+                                          "else": {
+                                            "type": "chorus:choose",
+                                            "if": {
+                                              "type": "chorus:any",
+                                              "of": [
+                                                {
+                                                  "type": "chorus:observed_entity_tag",
+                                                  "binding": "victim",
+                                                  "source": "entity",
+                                                  "tag": "chorus_d2:combatant_tier_2"
+                                                },
+                                                {
+                                                  "type": "chorus:observed_entity_tag",
+                                                  "binding": "victim",
+                                                  "source": "type",
+                                                  "tag": "chorus_d2:combatant_tier_2"
+                                                }
+                                              ]
+                                            },
+                                            "then": {
+                                              "type": "chorus:constant",
+                                              "value": 10,
+                                              "unit": "second"
+                                            },
+                                            "else": {
+                                              "type": "chorus:choose",
+                                              "if": {
+                                                "type": "chorus:any",
+                                                "of": [
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "entity",
+                                                    "tag": "chorus_d2:combatant_tier_3"
+                                                  },
+                                                  {
+                                                    "type": "chorus:observed_entity_tag",
+                                                    "binding": "victim",
+                                                    "source": "type",
+                                                    "tag": "chorus_d2:combatant_tier_3"
+                                                  }
+                                                ]
+                                              },
+                                              "then": {
+                                                "type": "chorus:constant",
+                                                "value": 10,
+                                                "unit": "second"
+                                              },
+                                              "else": {
+                                                "type": "chorus:constant",
+                                                "value": 15,
+                                                "unit": "second"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "cap": {
+                                        "type": "chorus:constant",
+                                        "value": 30,
+                                        "unit": "second"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "else": [
+                            {
+                              "type": "chorus:play_cue",
+                              "cue": "chorus_d2:heat_rises_unclassified_kill"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "else": [
+                    {
+                      "type": "chorus:play_cue",
+                      "cue": "chorus_d2:heat_rises_unobserved_airborne"
+                    }
+                  ]
+                }
+              ],
+              "else": [
+                {
+                  "type": "chorus:play_cue",
+                  "cue": "chorus_d2:heat_rises_unobserved_airborne"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chorus_d2:heat_rises_active",
+      "scope": "buff",
+      "modifiers": [
+        {
+          "id": "airborne",
+          "profile": "chorus_d2:weapon_airborne_effectiveness",
+          "stage": "perks",
+          "group": "airborne_effectiveness",
+          "op": "add",
+          "stacking_key": "chorus_d2:heat_rises_active_ae",
+          "value": {
+            "type": "chorus:constant",
+            "value": 50,
+            "unit": "stat_point"
+          },
+          "reference": "Compendium Solar D144 / snapshot D82; Bungie 7.0.0.1: 20 passive plus 50 active. Stat query; native aim/glide projection is separate.",
+          "confidence": "measured"
+        }
+      ],
+      "rules": [
+        {
+          "id": "death",
+          "on": "chorus:entity_life_died",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_anchor",
+                "buff": "chorus_d2:heat_rises",
+                "component": "cast_life"
+              },
+              "as": "cast_life"
+            },
+            {
+              "action": {
+                "type": "chorus:read_entity_death"
+              },
+              "as": "ended_life"
+            },
+            {
+              "if": {
+                "type": "chorus:same_entity_life",
+                "left": "cast_life",
+                "right": "ended_life"
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:heat_rises"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "removal",
+          "on": "chorus:entity_removed",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "victim"
+          },
+          "do": [
+            {
+              "action": {
+                "type": "chorus:read_entity_anchor",
+                "buff": "chorus_d2:heat_rises",
+                "component": "cast_life"
+              },
+              "as": "cast_life"
+            },
+            {
+              "action": {
+                "type": "chorus:read_entity_removal"
+              },
+              "as": "ended_life"
+            },
+            {
+              "if": {
+                "type": "chorus:same_entity_life",
+                "left": "cast_life",
+                "right": "ended_life"
+              },
+              "then": [
+                {
+                  "type": "chorus:remove_buff",
+                  "buff": "chorus_d2:heat_rises"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

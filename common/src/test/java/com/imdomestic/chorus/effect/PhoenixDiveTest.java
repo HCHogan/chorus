@@ -33,7 +33,10 @@ class PhoenixDiveTest {
         String failBuff = ""; boolean rejectedBlast;
         Harness() throws Exception { this(true, EffectState.Mode.PVE); }
         Harness(boolean calibrated, EffectState.Mode mode) throws Exception {
-            super(program(calibrated), mode); choose("class", "phoenix_dive"); bind("player", "test:phoenix_inputs");
+            this(program(calibrated), mode);
+        }
+        Harness(CompiledEffects program, EffectState.Mode mode) {
+            super(program, mode); choose("class", "phoenix_dive"); bind("player", "test:phoenix_inputs");
         }
         @Override double energy() { return state().resources().get(new ResourceState.Key("player", ENERGY)).value(); }
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r) {

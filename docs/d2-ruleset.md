@@ -472,7 +472,7 @@ Super 使用独立 Profile：属性不缩短其基础被动冷却；造成伤害
 
 可执行示例 [cure.json](../common/src/test/resources/effects/cure.json) 已覆盖 x1 / x2 / x3、活动规则集的 PvE / PvP 分支及重复激活冷却。测试采用 0.1 的绝对量缩放：PvE 总量为 6 / 12 / 18 Minecraft HP，PvP 为 3 / 6 / 9；这不是已经校准的全局玩法缩放因子。恢复在激活后 50 ms、100 ms 各执行一半，冷却从激活时开始。**两次等量恢复是 Chorus 的实现选择，快照没有给出更细的原作恢复曲线。**
 
-示例由明确的 Cure 请求驱动，已通过纯核心及双加载器真实服务器 tick 验证。Icarus Dash 的空中击杀分支通过 `invoke_bundle` 调用同一 Cure 定义，与其他生产者共用接收者的一秒冷却；独立来源不会各自恢复一次。原表 Solar B6 / D6 与固定 CSV B4 / D4 的文本及哈希已核对，记录在 [Icarus 研究记录](../data/d2-research/2026-10-11/icarus-dash.json)。凤凰俯冲等其他技能和装备来源尚未自动装配。
+示例由明确的 Cure 请求驱动，已通过纯核心及双加载器真实服务器 tick 验证。Icarus Dash 的空中击杀分支通过 `invoke_bundle` 调用同一 Cure 定义，与其他生产者共用接收者的一秒冷却；独立来源不会各自恢复一次。原表 Solar B6 / D6 与固定 CSV B4 / D4 的文本及哈希已核对，记录在 [Icarus 研究记录](../data/d2-research/2026-10-11/icarus-dash.json)。Phoenix Dive、Heal Clip 与 Heat Rises 已有部分生产者组合；正式技能和装备装配仍未完成。
 
 ## Restoration 与 Healing Rift
 
@@ -492,7 +492,7 @@ healing_rift.json 已用 `restore_shield` 接入每 50 ms 的离散补盾：观�
 
 **这仍是部分内容，脉冲和生命周期策略需要校准。**本次采样刚恢复满血也会得到一个完整脉冲，尚未按满血的实际持续时间分段积分；首次补盾时刻、最后一个场退出就删盾、空层创建即占 FIFO 顺序，以及重叠池保留首个来源，均不是上述快照完整规定的时序。当前行为已测试并显式记录，不能据此宣称复刻完成。
 
-固定位置不依赖施放实体继续存在；当前友方筛选却仍需在原维度解析该实体。示例选择在阵营参照缺失时结束场，不能当作原作死亡 / 离线策略；保存阵营及跨维度生命周期尚未完成。尚未覆盖 Phoenix Dive 在 Healing Grenade 后的 4+2 秒例外、真实技能施加、118.7 秒基础冷却与 0.5 主动回能系数装配，以及施放动画的 20% 减伤和移动。
+固定位置不依赖施放实体继续存在；当前友方筛选却仍需在原维度解析该实体。示例选择在阵营参照缺失时结束场，不能当作原作死亡 / 离线策略；保存阵营及跨维度生命周期尚未完成。Rift 的 118.7 秒基础冷却、0.5 主动回能系数、施放时 20% 减伤和移动已有参考内容；完整施放动画及原作参数校准仍待完成。Heat Rises 消费的 4/6 秒与 Phoenix Dive 的 3/4.5 秒 Restoration 现由各自生产者调用共享状态。
 
 ## Under-Over 的护盾专属增伤
 
@@ -1268,7 +1268,7 @@ Lightweight Knife 已显式接入 recharge_yield_profile，整笔收益可在一
 
 服务端的 on_ground 输入在付款前检查，只有离地才接受。接受时保存位移距离：通常8米，Daybreak标签下10米。随后 capture_direction(mode=horizontal) 按服务器yaw捕获朝向，displace_entity 用完整碰撞箱裁剪并执行授权位置更新；垂直视角不改变高度，碰墙不隐式退费，未知世界结果保留已付款和已发生的移动。这个瞬时位移是明确的 Minecraft 投影，未复现原作冲刺动画、速度曲线、惯性、方向按键或滑翔行为。
 
-10项单元测试和6项共享世界场景覆盖资格、实际玩家位置、墙体碰撞、真实tick分段、到期边界、基础近战选择与未知结果。Heat Rises / Song of Flame / Daybreak 的测试生产者为合成Buff，Incinerator选择为合成标记技能。完整状态生产者、两次冲刺间隔、Daybreak专属消耗 / 冷却、正式子职业装配、空中移动按键、HUD及存档仍未实现，覆盖保持 **partial**。
+10项单元测试和6项共享世界场景覆盖资格、实际玩家位置、墙体碰撞、真实tick分段、到期边界、基础近战选择与未知结果。原有用例中的 Heat Rises / Song of Flame / Daybreak 生产者为合成 Buff；Heat Rises 现已另用实际长按消费验证与 Icarus 的组合。完整滑翔、其他状态生产者、Incinerator 正式技能、两次冲刺间隔、Daybreak 专属消耗 / 冷却、正式子职业装配、空中移动按键、HUD 及存档仍未实现，覆盖保持 **partial**。
 
 ### 空中击杀触发 Cure
 
@@ -2026,11 +2026,17 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 2026-10-14 重新读取原表 Solar B144/D144，对应固定 CSV 快照 B82/D82；全文规范化一致。Clarity 最新文件提交仍为 `039cfbc4732c33573568b28cc6335dd3332a9296`，Heat Rises 项为 83039194。原始 HTML、逐格映射、Clarity 子集和完整文件哈希见[来源记录](../data/d2-research/2026-10-14/heat-rises-source.json)。[官方 4.1.0.2](https://www.bungie.net/7/en/News/article/51440)说明了消费手雷的治疗及 Touch of Flame 组合；[官方 7.0.0.1](https://www.bungie.net/7/en/News/article/update_7_0_0_1)确认 20 被动 + 50 激活的 Airborne Effectiveness。这两篇是历史机制依据，当前参数仍以本次固定来源复审为准。
 
-待实现的内容包括：Aspect 被动 20 AE、滑翔中使用武器 / 技能和空中击杀近战回能；长按消费一份实际手雷技能费用，给予 15 秒 Heat Rises 及自身 / 9 米盟友 Cure x2。治疗手雷改为 Cure x3，Touch of Flame 治疗手雷另给 Restoration x1；Song of Flame Wisp 则为 Cure x3 与 Restoration x2。两种 Restoration 基础 4 秒、受益者 Solace 延为 6 秒。空中击杀按 T1/T2/T3/T4/Guardian 分别给予 20/25/35/50/50% 近战能量；激活时按 5/10/10/15/5 秒延长，最多剩余 30 秒；重新消费手雷明确覆盖为 15 秒，即使旧剩余更长。
+`heat_rises.json` 已实现 Aspect 的被动 20 AE 数值查询、空中击杀近战回能，以及长按释放后消费实际手雷的规则。消费授予 15 秒 Heat Rises、自身 / 9 米盟友 Cure x2；治疗手雷为 Cure x3，Touch of Flame 治疗手雷另给 Restoration x1；Song of Flame Wisp 为 Cure x3 与 Restoration x2。两种 Restoration 基础 4 秒、各受益者自己的 Solace 延为 6 秒。共享 Cure 的授权、两次脉冲和一秒冷却继续适用，实际盟友收益可触发 Benevolence；Cure 冷却或单个接收者拒绝不会退还已付能量或阻止 Heat Rises。
+
+空中击杀回能属于装备 Aspect 后的被动，不要求 Heat Rises 正在激活，也不限定武器击杀。确认击杀的 actor 必须是本来源持有者，使用伤害回执冻结的移动与目标等级；落地后、目标改标签或删除尸体不改写这次资格。T1/T2/T3/T4/Guardian 分别给予 20/25/35/50/50% **base** 近战能量，经当前近战接收账户的 CES / 数值管线结算；不能把百分比直接加到可用次数。未知移动、目标或不唯一的战斗人员等级不猜测收益。Guardian 使用玩家分支。激活时同次击杀按 5/10/10/15/5 秒延长，最多剩余 30 秒；重新消费手雷明确覆盖为 15 秒，即使旧剩余更长。
 
 消费对象必须与费用及收益身份一致。普通手雷先由超能替换为 Wisp、再被长按动作消费时，不能根据原始装配手雷判断 Cure 强度或支付普通手雷账户。核心已提供 `cost_from: previous_definition` 和 `cast_ability_tag` 来表达这类转换；它只读取上一实际不同定义的已声明费用，不递归推断超能的付款政策。具体 Wisp 定义仍须声明正确账户、金额和准入条件，不能把通用接口验收当作超能已实现。
 
-目前仅完成此费用 / 身份接口及来源研究，尚未新增完整 Heat Rises 效果定义或提升覆盖状态。原作长按阈值、三种 Glide 运动、99% 激活 / 维持费用降低、敌方精度调整、25 米雷达暴露、正式 Aspect / 超能装配、全部交互及原作刷新 / 卸装边界都需后续实现与校准。Phoenix Dive 和 Icarus Dash 的既有 Heat Rises 标签消费者仍保留各自已记录的验收范围。
+活动状态额外贡献 50 AE，与被动合计 70；两个族各自 MAX，重复装配来源不叠加数值。固定寿命的共享 death_id 回执桶只对近期同一次死亡去重，不限制合法新击杀或连续延长；新死亡可持续超过回执桶寿命。确认同一实体生命死亡 / 移除会取消活动状态，旧生命通知不取消新状态。卸下 Aspect 后已经授予的有限状态和 50 AE 保留至到期，新击杀回能 / 延长需要活动 Aspect 来源。这些卸装、死亡、回执保存和几何政策是显式 Chorus 选择，不能当作已实测的原作边界。
+
+12 项核心用例与 11 项共享世界场景覆盖两模式、四种消费分支、实际按住 / 松开、真实 HP / 击杀、时长重置、死亡与未知结果，以及实际消费后 Icarus 扩容 / 位移和 Phoenix 的 Restoration / 物理落地 / Scorch。原作长按阈值未提供，作为来源必填参数；测试 .3 秒和 60 秒回执桶仅是校准输入。Healing Grenade、Touch of Flame、Song of Flame Wisp 的生产者和费用仍用明确的合成夹具，不代表这些技能已完成。
+
+三种 Glide 的运动及滑翔中武器 / 技能使用、99% 激活 / 维持费用降低、敌方精度调整、25 米雷达暴露尚未实现。AE 当前进入数值查询，未接完整空中弹道 / 瞄准。正式 Aspect / 超能 / 子职业装配、全部交互、HUD、跨世界重启与原作边界校准仍待完成；定义仍在验收资源，Compendium 状态为 **partial**。
 
 ## Phoenix Dive 的实际落地与 Solar 组合
 
@@ -2046,7 +2052,7 @@ Harmonic 已接当前装备超能的属性。[官方 8.0.0.1 更新](https://www
 
 Pending 没有猜测的最大下落计时，卸下技能后仍保留；同一生命的确认死亡或移除会取消，旧生命的生命周期事实不能取消新生命的独立施放。一次 pending 只结算一次，随后合法的新付费施放可再次完成；没有整条因果链的次数或深度封锁。未知运动、状态、伤害或治疗结果沿用停止且不重放，已付费用、已消费 pending 与实际世界写入保持提交。领域检查点保存 pending 不代表物理世界跨重启恢复已经完成。
 
-12 项核心用例和 8 项共享世界用例覆盖上述参考政策。完整 Heat Rises 激活、Daybreak 分支、全部金装/模组组合、正式子职业装配、HUD/素材和原作参数校准仍未完成；该条目保持 partial，定义仍位于验收资源。
+12 项核心用例和 8 项共享世界用例覆盖上述参考政策。Heat Rises 已另通过实际长按消费与本技能的组合验证；完整滑翔、Daybreak 分支、全部金装/模组组合、正式子职业装配、HUD/素材和原作参数校准仍未完成；该条目保持 partial，定义仍位于验收资源。
 
 ## Ember of Benevolence 与额外基础回充
 

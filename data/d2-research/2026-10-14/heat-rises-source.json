@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reviewed_at": "2026-10-13T15:38:54.382217+00:00",
-  "status": "researching",
+  "status": "partial",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
     "gid": "1186062409",
@@ -60,5 +60,12 @@
     "requirement": "A consume conversion must preserve the actual transformed grenade cost and identify the immediately replaced ability without changing final action credit.",
     "engine_mode": "previous_definition reads the immediately replaced definition's declared cost; absent cost rejects, with no recursive fallback.",
     "not_claimed": "This mechanism alone does not implement Heat Rises, Healing Grenade, Song of Flame, glide movement or their complete cost policies."
+  },
+  "implementation": {
+    "definition": "common/src/test/resources/effects/heat_rises.json",
+    "calibration": "common/src/test/resources/effects/heat_rises_test_inputs.json",
+    "covered": "Held consumption of the actual predecessor cost; shared Cure/Restoration and recipient Solace; passive airborne melee energy; 15-second reset and 30-second remaining cap; 20+50 AE queries; same-life cancellation; Icarus/Phoenix composition.",
+    "policies": "Server-measured release threshold and finite receipt lifetime are required source parameters; test values are 0.3s and 60s. Feet-centered inclusive 9m sphere without LOS. Accepted active buff survives Aspect removal; passive rewards require an active Aspect. Same-life death/removal cancels active heat. Duplicate-source AE uses MAX per family.",
+    "remaining": "Complete Glide, airborne weapon/ability behavior, aim/accuracy and radar; real Healing Grenade/Touch of Flame/Song of Flame producers and cost policies; production subclass/Aspect assembly, HUD and physical-world restart; original-game timing and policy calibration."
   }
 }

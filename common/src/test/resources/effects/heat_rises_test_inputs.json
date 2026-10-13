@@ -1,0 +1,158 @@
+{
+  "version": "compendium-2026-10-05",
+  "resources": [
+    {
+      "id": "test:heat_wisp_energy",
+      "capacity": 1,
+      "initial": 1,
+      "base_rate": 0
+    }
+  ],
+  "abilities": [
+    {
+      "id": "chorus_d2:test_heat_grenade",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:solar"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:ordinary_grenade"
+        }
+      ],
+      "effects": {
+        "recharge": {
+          "bundle": "test:benevolence_grenade_cycle"
+        }
+      }
+    },
+    {
+      "id": "chorus_d2:test_heat_healing",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "chorus_d2:grenade_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:healing_grenade"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:healing_grenade"
+        }
+      ],
+      "effects": {
+        "recharge": {
+          "bundle": "test:benevolence_grenade_cycle"
+        }
+      }
+    },
+    {
+      "id": "chorus_d2:test_heat_wisp",
+      "slot": "chorus_d2:grenade",
+      "cost": {
+        "resource": "test:heat_wisp_energy",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 0.25,
+          "unit": "charge_fraction"
+        }
+      },
+      "tags": [
+        "chorus:grenade_ability",
+        "chorus_d2:song_of_flame_wisp"
+      ],
+      "on_use": [
+        {
+          "type": "chorus:play_cue",
+          "cue": "test:wisp"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "test:heat_wisp",
+      "ability_overrides": [
+        {
+          "id": "super",
+          "slot": "chorus_d2:grenade",
+          "replace_with": "chorus_d2:test_heat_wisp",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "id": "test:heat_touch"
+    },
+    {
+      "id": "test:heat_inputs",
+      "rules": [
+        {
+          "id": "full",
+          "on": "test:heat_full",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:grant_ability_energy",
+              "slot": "chorus_d2:grenade",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1,
+                "unit": "charge_fraction"
+              },
+              "value_basis": "fixed"
+            }
+          ]
+        },
+        {
+          "id": "kill",
+          "on": "test:heat_kill",
+          "if": {
+            "type": "chorus:target_is",
+            "left": "self",
+            "right": "event_actor"
+          },
+          "do": [
+            {
+              "type": "chorus:damage",
+              "target": "victim",
+              "amount": {
+                "type": "chorus:constant",
+                "value": 1000,
+                "unit": "damage"
+              },
+              "damage_type": "minecraft:generic",
+              "tags": [
+                "test:heat_kill"
+              ],
+              "kill_tags": [
+                "chorus:weapon_kill"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

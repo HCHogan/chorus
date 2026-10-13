@@ -3918,3 +3918,17 @@ Pending 的 `chorus:landed` 规则用 `read_entity_anchor`、`read_landing`、`s
 热力升腾分支通过显式 `phoenix_dive_falloff` 和 `phoenix_dive_damage_scale` 构造伤害，使用 `chorus_d2:outgoing` 输出 Profile；职业、通用技能和日灼标签保留在原施放来源。伤害回执确认非致死应用、检查共享锁定并授权后调用 Scorch。首来源 Solar 快照为 class 选择 `class_damage` / `class_kill` 及通用技能标签，不把物理落地事件当成攻击所有者。
 
 确认死亡 / 移除规则同样比较保存生命后取消 pending。卸源不取消已接受施放，pending 不靠任意超时结束；后续真实离地、支付和落地可独立再次完成。当前内容不承诺对可信宿主任意重放久远落地事实提供永久去重。边界、来源冲突与仍缺少的生产装配见 [D2 凤凰俯冲规则](d2-ruleset.md#phoenix-dive-的实际落地与-solar-组合)。
+
+## Heat Rises 的消费与被动收益组合
+
+`heat_rises.json` 提供 `chorus_d2:heat_rises_aspect` 来源、`heat_rises_consume` 转换技能和 `heat_rises` 活动 Buff。链接共享 Cure / Restoration、`solar_effect_duration`、武器 AE Profile 与当前近战回能管线；测试生产者独立位于 `heat_rises_test_inputs.json`。没有新增技能专用 Java 分支或存储类型。
+
+Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数。前者是长按阈值，要求大于零；后者指定近期死亡回执集合的有限保存窗口，不能借此宣称永久重放保护。验收采用 .3 / 60 秒，不是原作参数。服务端 `AbilityInput` 观察 PRESS / RELEASE 并测量时长，只有匹配的 release 和足够 hold 才由 priority 100 的 grenade override 进入消费；短按仍使用原技能。
+
+消费技能使用 `cost_from: previous_definition`，没有自己的备用费用或回充账户。`cast_ability_tag` 从 `replaced_ability` 的定义元数据读取 `healing_grenade` / `song_of_flame_wisp`，计算接受时的 `cure_tier` / `restoration_tier`；Touch of Flame 由已装配来源标签提供。普通手雷 → Wisp → consume 只支付 Wisp 已声明费用，保留基础手雷选择和其回充来源，不执行两个被替换定义的动作。Wisp 的真实费用 / 冷却和准入必须由其完整生产者定义，不能由此示例推断。
+
+付款后捕获当前实体生命，只在可用且存活时授予状态并保存 `cast_life`。自身及历史消费脚部中心 9 米内的盟友分别调用共享 Cure；需要 Restoration 时，每个受益者独立查询 Solace 后授权施加。同一次消费的治疗继续使用本次 consume 来源，活动 Buff 保留既有首来源的策略不冒充新的给予者。单个接收者的已知拒绝不回滚其他收益，未知世界结果则停止执行、不重放已写入的生命值。
+
+被动规则监听本持有者的确认 `chorus:kill`，通过 `read_event_entity` 读取冻结的 actor 移动 / victim 分类。共享有限寿命回执 Buff 以 `update_component` 的 `once_set` 保存 death_id，以返回的 `applied` 标志控制后续回能与 `extend_buff`；重复 Aspect 不重复领取同一笔收益。新击杀继续合法运行，回执桶到期不删除活动 Heat Rises，也没有全局因果链上限。
+
+活动状态使用 15 秒 `reset`、30 秒 `extension_cap`，AE 的 passive / active 两族各自 MAX。保存生命与确认死亡 / 移除比较后取消状态；卸源后的保留政策、未连接的滑翔 / 雷达 / 完整 AE 行为和来源证据见 [Heat Rises 规则](d2-ruleset.md#heat-rises-的来源核对与待装配内容)。

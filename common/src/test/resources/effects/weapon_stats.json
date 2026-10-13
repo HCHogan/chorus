@@ -142,7 +142,11 @@
           "operation": "add",
           "group": {
             "name": "airborne_effectiveness",
-            "reduction": "sum"
+            "reduction": "sum",
+            "families": {
+              "chorus_d2:heat_rises_passive_ae": {"kind": "max"},
+              "chorus_d2:heat_rises_active_ae": {"kind": "max"}
+            }
           }
         },
         {
