@@ -3975,3 +3975,13 @@ Aspect 来源必须提供 `hold_time` 与 `receipt_seconds` 两个 SECOND 参数
 当前首个合格扫描消费一个共享球并奖励当时捕获的整批盟友，是待校准的明确内容政策。球体受伤死亡 / 到期 / 移除取消后续扫描，后来的盟友无法重复领取。关系参照不可用时不猜阵营；暂不领取并等待后续扫描或到期。原生消费不会产生虚构击杀；接收者拒绝、Cure 冷却和未知世界写入继续遵守各自回执边界。
 
 参数来自单独的 `healing_grenade_test_calibration.json`：速度、重力、阻力、追踪、尺寸 / 偏移、生命投影及扫描相位均需显式提供。Touch 来源标签只供本分支采样，不能代表完整 Aspect 已实现。参考定义、实际热力升腾长按组合与原生碰撞测试均不等于原作多人领取政策或全套子职业 UI 已校准；完整范围见 [D2 规则集](d2-ruleset.md#healing-grenade-的来源与待装配机制)。
+
+## Firebolt 的扫描与延迟追踪弹组合
+
+`firebolt.json` 使用已有接口组合，不新增 Java 效果分支：技能参数保存 Touch / Ashes，`capture_damage` 保存战斗人员与玩家两份进攻快照；真实初始投射物的 ENTITY / BLOCK 才进入 `offset_position` 和 `select_targets`。扫描以偏移点为中心，按当前视线 / 敌我关系筛选，再按距离及身份截取 4 / 5 个目标，逐个保存 `capture_entity_anchor`。
+
+每个目标拥有独立的一秒 `after` 续体。`resolve_entity_anchor` 成功且仍存活才计算当前方向并发射；destination.reference 继续使用最初保存的引用，而不是重新捕获同 UUID 的新生命。目标消失不从原扫描剩余候选或世界中补位，来源卸下不取消已接受的动作。二次弹体只在 ARRIVED 时读取当前目标类别，并通过 `damage_entity_snapshot` 在实际写入边界再次核对生命；BLOCK / TARGET_LOST / EXPIRED 不产生伤害或状态。
+
+共享 Scorch 在已接受非致命伤害后独立授权，沿用同目标的点燃锁定期。技能来源同时声明 `chorus:grenade_damage`、`chorus:ability_damage` 和 `chorus:solar_damage`，使状态首来源的 DoT / 点燃继承原技能信用；只给直接 DamageCommand 标签不足以替代状态来源的声明。连续合法付费施放仍可叠满触发点燃，不添加全局循环限制。
+
+`firebolt_energy.json` 复用共享手雷账户，选择期覆盖基准 83.8 秒与 CES 1；Heat Rises 消费实际定义只走消费动作。必填的物理参数与外部 `firebolt_outgoing` 校准 Profile 分别存放，测试 Profile 复用普通进攻阶段和合成生命换算，目标等级倍率仍待校准。当前定义保存在验收资源，正式目录、完整 Touch / 子职业装配、客户端表现及跨重启能力另需交付；具体数值和政策见 [D2 规则](d2-ruleset.md#firebolt-的扫描延迟追踪与来源冲突)。

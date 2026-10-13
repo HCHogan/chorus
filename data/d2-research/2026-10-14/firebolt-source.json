@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "researching",
+  "status": "partial",
   "reviewed_at": "2026-10-13T17:15:17.705587+00:00",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
@@ -126,5 +126,12 @@
     "Nearest ordering, scan-time life binding, post-scan movement/cover/relationship changes, intervening entity collision, per-target application and modifier snapshot boundaries require explicit content policy and further calibration.",
     "Base-damage projection and 2025 tier multiplier composition, Scorch receipt qualification and all Aspect/exotic/artifact combinations are not proven by generic engine tests."
   ],
-  "not_claimed": "Research and a typed-life destination primitive do not constitute a Firebolt Grenade producer or complete Touch of Flame."
+  "not_claimed": "Physical content chain is a partial reference producer, not a calibrated D2 physics/damage table, complete Touch of Flame, or production subclass/HUD/restart integration.",
+  "implementation": {
+    "definition": "common/src/test/resources/effects/firebolt.json",
+    "energy": "common/src/test/resources/effects/firebolt_energy.json",
+    "calibration": "common/src/test/resources/effects/firebolt_test_calibration.json",
+    "review": "solar/firebolt",
+    "policy": "Fixed scan and captured lives; delayed same-life revalidation, physical secondary seekers, cast-time Touch/Ashes/outgoing snapshots, live recipient player classification, no post-scan faction recheck. Explicitly uncalibrated target-tier damage profile."
+  }
 }

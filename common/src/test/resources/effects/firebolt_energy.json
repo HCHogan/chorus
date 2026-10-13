@@ -1,0 +1,56 @@
+{
+  "version": "compendium-2026-10-05",
+  "bundles": [
+    {
+      "id": "chorus_d2:firebolt_energy_scaling",
+      "scope": "source",
+      "modifiers": [
+        {
+          "id": "base_rate",
+          "profile": "chorus_d2:grenade_regeneration",
+          "stage": "base_rate",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
+          "value": {
+            "type": "chorus:constant",
+            "value": 0.011933174224343675,
+            "unit": "charge_fraction_per_second"
+          },
+          "reference": "Compendium Solar original N34 / snapshot N29; data/d2-research/2026-10-14/firebolt-source.json.",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        },
+        {
+          "id": "scalar",
+          "profile": "chorus_d2:grenade_recipient_scalar",
+          "stage": "scalar",
+          "group": "override",
+          "op": "replace",
+          "stacking_key": "chorus_d2:grenade_base_override",
+          "priority": 0,
+          "value": {
+            "type": "chorus:constant",
+            "value": 1,
+            "unit": "multiplier"
+          },
+          "reference": "Compendium Solar original N34 / snapshot N29; data/d2-research/2026-10-14/firebolt-source.json.",
+          "confidence": "measured",
+          "if": {
+            "type": "chorus:event_reference",
+            "name": "resource",
+            "is": "chorus_d2:grenade_energy"
+          }
+        }
+      ],
+      "includes": [
+        "chorus_d2:grenade_energy_scaling"
+      ]
+    }
+  ]
+}

@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：Firebolt 的实际投掷、扫描与二次追踪弹
+
+新增 Firebolt 参考定义、选择期 83.8 秒 / CES 1 回充与独立校准文件。接受时支付共享手雷能量，保存 Touch / Ashes 和两类目标的进攻快照；初始实体或地形碰撞只扫描视线内 4 个 / 8.5 米敌人，Touch 为 5 个 / 12 米。一秒 detached 延迟后核对每个已选生命，发射真实目的地追踪弹；失去目标不补位，卸装保留已接受动作。只有物理抵达后的同生命伤害写入成功且非致命才授权共享 Scorch，后续 DoT 与点燃保留原手雷信用。
+
+实现使用已有数据接口，没有新增生产 Java 分支。初版测试暴露两个夹具问题：祖先 Ascension 夹具的空 outgoing Profile 不能提供共享伤害阶段，已在 Firebolt 组合中替换为实际普通进攻阶段；长度乘法表达式的无量纲因子顺序及非地形回执的法线也按已有类型契约修正。后续 Scorch 归属断言发现技能来源缺少 grenade / ability / solar damage 标签，已补入定义，使状态来源与直接伤害信用一致。
+
+11 项核心测试验证缺失参数 / 已知生成拒绝、共享费用与回充、4 / 5 目标与半径、视线和排序、精确一秒延迟、保存生命 / 不补位、领域恢复、两模式与实际目标类别、共享属性进攻快照、拒绝 / 非致命资格、飞行终止、重复付费触发点燃，以及未知生成 / 伤害 / 状态不重放。11 项共享原生场景覆盖真实初始实体 / 地形接触、延迟二次弹体、实际 HP / Scorch、后来出现的掩体、移动 / 替换、Touch / Ashes 卸下、四次真实投掷触发点燃和实际长按 Heat Rises 消费。测试使用独立 32×8×16 结构，让完整物理区域在 GameTest 计时前进入模拟。
+
+定向 `/tmp/chorus-firebolt-targeted3.log` BUILD SUCCESSFUL（18 秒）：11 项核心、11 项 Fabric 世界场景和 NeoForge 测试编译通过。完整 `/tmp/chorus-firebolt-full-gate.log` BUILD SUCCESSFUL（2 分 57 秒）：2152 项 JUnit 无失败 / 错误 / 跳过、Fabric 1242 项、NeoForge 1257 项及两端发布 jar 通过，共享场景 1241 项。`build/reports/firebolt/content-audit.json` 核验 667 项存储形状不变、发布主类 1193 / 1186 个字节匹配且无测试泄漏，Gradle CRLF 保持；原表七格、固定快照和 Clarity 子集哈希一致，10 项 Compendium 工具测试与覆盖报告检查通过。此批仅新增参考内容与验收，无生产 UI / 原生钩子 / 网络变动，未重复图形客户端测试。
+
+覆盖新增 Firebolt partial，共 129 条审阅（127 partial、2 not_applicable、0 verified）。8.5 与 8→12 米来源冲突仍保留；物理参数、扫描偏移、排序 / 阵营 / 取样政策及 .1 生命投影均显式校准，外部 firebolt_outgoing Profile 尚未校准 Boss / Miniboss / Champion 目标倍率。完整 Touch 的 Solar / Fusion 分支、正式子职业 / 装备目录、全部组合、HUD / 素材与物理世界跨重启仍未完成。数据契约见 [Firebolt 组合](engine-data-packs.md#firebolt-的扫描与延迟追踪弹组合)，来源与政策见 [D2 规则](d2-ruleset.md#firebolt-的扫描延迟追踪与来源冲突)。
+
 ### 2026-10-14：指定投射物目的地保留扫描时的实体生命
 
 新增可选 `projectile.destination.reference`，读取有类型 EntityAnchor 结果并冻结维度、UUID 和生命代次；target 仍需与引用一致。扫描后的 detached 延迟和领域检查点保留原引用，发射时不会查询并替换成新生命。缺失观察或不同目标在生成前停止，原生投射物在后续追踪 / 抵达以及主动接回输入边界分别检查同一生命。移动和保持同生命的保存重载 / keep-all 玩家替换继续有效，死亡重生不能接回旧投射物，也不能继承旧目标的到达收益。

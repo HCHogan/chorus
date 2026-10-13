@@ -1,0 +1,176 @@
+{
+  "note": "Synthetic shell/bolt physics, origin offset and arrival sphere. The externally required firebolt_outgoing profile explicitly composes shared outgoing stages and a synthetic 0.1 world conversion. Target-tier damage composition remains uncalibrated; this flat reference profile is not a current D2 damage table. Scan ordering, captured-life/no-replacement policy, cast-time Touch/Ashes/damage snapshots and no faction recheck after scan require original-game calibration.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "second"
+    },
+    "bolt_speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "bolt_gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "bolt_drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "bolt_lifetime": {
+      "type": "chorus:constant",
+      "value": 3,
+      "unit": "second"
+    },
+    "bolt_turn_rate": {
+      "type": "chorus:constant",
+      "value": 720,
+      "unit": "degree_per_second"
+    },
+    "arrival_radius": {
+      "type": "chorus:constant",
+      "value": 0.2,
+      "unit": "meter"
+    },
+    "scan_clearance": {
+      "type": "chorus:constant",
+      "value": 0.1,
+      "unit": "meter"
+    },
+    "scan_lift": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:firebolt_outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": [
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "precision",
+              "operation": "multiply",
+              "factor": "chorus:precision",
+              "group": {
+                "name": "precision",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "ability_stat",
+              "operation": "multiply",
+              "group": {
+                "name": "ability_stat",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "melee",
+              "operation": "multiply",
+              "group": {
+                "name": "melee",
+                "reduction": "sum",
+                "children": [
+                  {
+                    "name": "one_two_or_frozen",
+                    "reduction": "max"
+                  }
+                ],
+                "families": {
+                  "chorus_d2:ophidia_knife": {
+                    "kind": "max"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "perk",
+              "operation": "multiply",
+              "group": {
+                "name": "perk",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "frozen_damage_type",
+              "operation": "multiply",
+              "group": {
+                "name": "frozen_damage_type",
+                "reduction": "product"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "outgoing_debuff",
+              "operation": "resist",
+              "group": {
+                "name": "outgoing_debuff",
+                "reduction": "resist"
+              }
+            }
+          },
+          {
+            "type": "chorus:curve",
+            "id": "synthetic_world_units",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0,
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 1000000,
+              "boundary": "error"
+            },
+            "output_unit": "damage"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -4912,7 +4912,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -4994,6 +4994,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
           "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
         }
       ],
       "gaps": [
@@ -5028,7 +5033,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -5125,6 +5130,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/PhoenixDiveGameTest.java",
           "symbol": "immediateRestorationAndHeatedLandingRetainClassCreditThroughSharedScorch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
         }
       ],
       "gaps": [
@@ -13899,7 +13909,7 @@
           "text_sha256": "2eb99cc587d2a5371d25b2c398b2c0d73a89b82c82c2236e92356f0625b4b545"
         }
       ],
-      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。",
+      "scope": "服务端长按消费实际转换后手雷的已声明费用；共享自身/9米盟友Cure与Restoration、逐接收者Solace和Benevolence；被动空中击杀近战回能、15秒重置/30秒剩余上限、20+50 AE查询及真实Icarus/Phoenix组合。 已验证消费实际Firebolt定义的费用与普通Cure分支。",
       "acceptance": [
         "短按使用基础技能；消费只支付上一实际定义的账户，Wisp分支不扣基础治疗手雷或运行中间动作；所有治疗保留本次消费归属。",
         "普通Cure x2、治疗手雷Cure x3、Touch治疗手雷另给Restoration x1、Wisp为Cure x3与Restoration x2；自身及9米盟友独立授权/冷却，Restoration 4秒与受益者Solace 6秒。",
@@ -14048,6 +14058,11 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
           "symbol": "actualHeldHeatRisesInputConsumesRealHealingGrenadeWithoutThrowing"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "heldHeatRisesConsumesThisRealGrenadeAndNeverExecutesItsThrow"
         }
       ]
     },
@@ -14097,7 +14112,7 @@
         "弹道速度/重力/阻力、追踪范围/角速度/锥角、尺寸/偏移、生命投影、首扫/间隔均为必填校准；当前测试参数不是原作实测。",
         "首个合格扫描消费一个共享球并奖励该批全部盟友是Chorus政策；原作多人是否独立保留、重复领取、拾取后寿命与精确接收资格未确认。",
         "命中和拾取均按脚部球形距离/含端点/无视线，施放者仅在命中范围内获得Cure；失去阵营参照等待后续扫描或到期；这些几何/失联/强度取样/卸装政策待原作校准。",
-        "Touch of Flame通过来源标签提供资格，仅覆盖治疗手雷分支；完整Aspect装配及Firebolt/Solar/Fusion强化未实现，不能把测试标签当作完整Aspect。",
+        "Touch of Flame通过来源标签提供资格，已覆盖治疗手雷和Firebolt参考分支；完整Aspect装配及Solar/Fusion强化未实现，不能把测试标签当作完整Aspect。",
         "共享Cure两次等量脉冲/冷却、Restoration速率和生命投影仍有原有校准缺口；正式技能/子职业目录、球体图形/HUD/素材、物理世界跨重启、全部金装/模组组合仍未完成；定义在验收资源。"
       ],
       "evidence": [
@@ -14222,6 +14237,188 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HealingGrenadeGameTest.java",
           "symbol": "actualHeldHeatRisesInputConsumesRealHealingGrenadeWithoutThrowing"
+        }
+      ]
+    },
+    {
+      "id": "solar/firebolt",
+      "name": "Firebolt Grenade",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B29",
+          "text_sha256": "c597dc93deafc9d15619902408f8189a38d490f4e34e0f0e5648e6e4b42ba2d4"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D29",
+          "text_sha256": "fa0cea1e5931277e677d4188323aa186f4cbd4e7d58a3bb6c98fd713b61e45e0"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N29",
+          "text_sha256": "a106699b0d621fc387d51280c49966ad04878be125e2495f549ccf83cd5f5a73"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "B30",
+          "text_sha256": "e803c47d469a91699e567b5967037d889ea78c30eb711995a0f0507a4873c4b2"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D30",
+          "text_sha256": "e8899649b7136b3e7d6d2cf846db5a7c72d6b34c884183fe964bbba4440412d2"
+        }
+      ],
+      "scope": "真实付费投掷/实体或地形命中、视线内4个8.5米或Touch的5个12米目标；一秒延迟后向保存的同一生命发射物理追踪弹，抵达伤害与共享Scorch/点燃、83.8秒与1 CES，组合真实Heat Rises消费。",
+      "acceptance": [
+        "初始弹体只触发一次扫描；二次追踪弹抵达才造成337战斗人员/65玩家基准伤害乘显式投影，并在已接受非致命伤害后授权20/30层共享Scorch。",
+        "Touch、Ashes与进攻伤害快照在接受时保存；实际目标类别在抵达读取，共享手雷属性伤害与卸装保留已验收；灼烧/点燃保留原手雷和技能信用。",
+        "按距离/身份稳定选择，保存目标生命且不补位；延迟期间缺失、死亡或换生命跳过，已发射后生命替换也终止；领域检查点保留扫描结果，后出现的更近敌人不改变选择。",
+        "真实飞行遵守后来出现的掩体；旧飞行、被拒绝状态和未知生成/实际伤害/授权不重放、不退费或虚构后续收益；共享灼烧可以由连续合法付费施放达到点燃。",
+        "实际服务器长按Heat Rises消费本定义的手雷费用，给予普通分支Cure x2和Heat Rises，不执行Firebolt投掷；已知生成拒绝保留费用且不产生扫描。"
+      ],
+      "gaps": [
+        "8.5米基础半径与Clarity/Aspect总述的8→12米仍冲突；当前选择Firebolt逐行8.5/12，而非按50%算12.75。",
+        "重轨迹和二次追踪弹的速度/重力/阻力/寿命、转向、抵达球及扫描偏移为必填校准。测试20米每秒、20重力、720度每秒、.2米抵达、法线.1米加竖直.5米偏移均非原作实测。",
+        "firebolt_outgoing为必须提供的外部伤害Profile；测试共享普通进攻阶段后仅乘.1，Boss/Miniboss/Champion的官方15%调整与337基准的组合尚未证明，未声称已校准完整目标倍率表。",
+        "以偏移点为扫描/二次发射中心、BODY锚点、最近优先、施放时Touch/Ashes/进攻快照、扫描时生命/阵营固定、延迟只复核生命、穿过其他实体但受地形阻挡均是明确Chorus政策；原作排序、抵达/命中区域、换阵营及取样时机仍待校准。",
+        "Touch只完成治疗手雷与Firebolt参考分支，Solar/Fusion强化、完整Aspect/子职业装配、全部金装/神器/模组组合、正式目录、弹体素材/HUD及物理世界跨重启未完成；定义仍在验收资源。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firebolt.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firebolt_energy.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/firebolt_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/firebolt-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "calibratedPaidShellWaitsForPhysicalImpactAndUsesSharedCooldownAndChunkGain"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "impactSelectsFourVisibleEnemiesAndTheOneSecondDelayNeverRescansOrReplacesThem"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "touchAndAshesAreFrozenOnCastAndFiveChosenLivesSurviveDomainRecovery"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "missingDeadAndReplacedScanTargetsAreSkippedWithoutFillingVacantSlots"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "secondaryArrivalUsesTargetClassDamageAndSharedScorchWithOriginalGrenadeCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "immuneLethalAndDeniedHitsDoNotGrantScorchWhileAcceptedZeroLossStillUsesAuthorization"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "shellExpiryAndSecondaryBlockLossOrExpiryCannotInventDamage"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "separatePaidCastsAccumulateTheSharedScorchAndIgniteWithoutAnEngineCycleGuard"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "unknownSecondaryLaunchDamageOrScorchNeverReplaysThePaidWorldOperation"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "sharedGrenadeStatDamageIsCapturedBeforeTheScanAndSurvivesArmorSourceChanges"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/FireboltTest.java",
+          "symbol": "knownShellSpawnRejectionKeepsPaymentAndCannotScheduleAnySeekers"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "close"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "paidImpactScansFourVisibleEnemiesBeforeDelayedPhysicalBolts"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "castTouchAndAshesPersistAfterRemovalAndReachTheFifthTargetAtTwelveMeters"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "primaryEntityCollisionOnlyScansAndTheSecondaryFlightAppliesDamageOnce"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "selectedMovingLifeRemainsTheTargetAndNewCloserEnemiesCannotReplaceIt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "replacedDeadAndRemovedTargetsDoNotLaunchOrFillVacantSlots"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "replacementAfterLaunchCannotReceiveTheOldSeekersDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "coverRaisedAfterTheScanStopsThePhysicalSecondaryBolt"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "deniedScorchDoesNotUndoConfirmedBoltDamageOrGrenadePayment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "unknownActualBoltDamageStopsBeforeScorchAndNeverReplays"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "heldHeatRisesConsumesThisRealGrenadeAndNeverExecutesItsThrow"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
+          "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
         }
       ]
     }
