@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：共享 Solar 数值来源不再随技能选择消失
+
+追查响指组合时发现装配缺口：Firebolt / Fusion / Solar Grenade 的部分核心宿主没有绑定 `solar_scaling`，会产生层数和零伤害的 Scorch 命令；原生宿主又可能借用默认选择的 Phoenix Dive 所带来源，取消选择后同样失效。新增四项核心回归在修复前全部失败（`/tmp/chorus-solar-assembly-red.log`），明确证明了取消选择、恢复与混合来源下的零基础伤害。
+
+Phoenix Dive 参考定义移除选择期 `effects.solar`，只保留自己的回充。共享 Solar 技能宿主在持有者层显式安装常驻数值来源；手雷 / 职业 / 近战选择变更不解绑它，领域检查点保留它。重复等价来源仍按 payload 家族 MAX，不重复加伤害。Snap 沿用公共装配，不再单独补绑。核心回归验证实际生命损失、领域恢复、重复来源、混合手雷首来源信用与取消选择后落地；四项新原生场景在生产者取消选择前后完成物理碰撞 / 落地，再确认真实 Scorch 扣血、死亡回执与原技能击杀分类。本次没有更改 Java 执行器、存储类型或原作数值。
+
+定向 `/tmp/chorus-solar-assembly-targeted2.log` 通过 74 项相关核心测试、4 项新增 Fabric 场景和 NeoForge 测试编译。完整 `/tmp/chorus-solar-assembly-full-gate.log` BUILD SUCCESSFUL（3 分 45 秒）：2233 项 JUnit 无失败 / 错误 / 跳过、Fabric 1300 项、NeoForge 1315 项世界测试及双端发布 jar 全通过，共享场景 1299 项。`build/reports/solar-assembly/audit.json` 核验 680 项存储形状完全不变、发布主类 1207 / 1200 个字节匹配且无测试泄漏、Gradle CRLF 保持；Phoenix 研究来源及其时间 / 冲突记录未修改。10 项 Compendium 工具测试、固定来源与报告检查通过。
+
+审阅总量保持 133（131 partial、2 not_applicable、0 verified），补强已有条目的证据，不新增虚假覆盖。正式玩家自动初始化、原作数值 / 所有组合、HUD 与物理实体跨进程恢复仍未完成。本批没有图形客户端验收。明确宿主接入方式见 [Solar 系统来源](engine-data-packs.md#持有者系统来源与技能选择分离)。
+
 ### 2026-10-14：Incinerator Snap 五火花与 Sunbracers 完整参考链
 
 新增纯方向叉积 / 绕轴旋转，保留捕获方向、类型和维度；缺失或退化输入不猜朝向。Snap 用数据组合一次付费、五个相对瞄准方向、真实独立火花、实体 / 地形 / 累计射程 / 近距终止爆炸与共享 Scorch / Ignition。接受时固定 Ashes 和进攻快照，爆炸逐目标检查当前类别、视线 / 阵营与生命；确认正损失且非致命才请求 Scorch。选择期回充为 119.8 秒 / CES .9。常驻 `solar_scaling` 在本组合宿主中显式绑定，确保实际衍生伤害；不随近战选择移除。共享归因支持实际直接 / 灼烧击杀到 Sunbracers Ready，再到付费 Solar Grenade 消费与连续投掷。

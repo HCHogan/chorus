@@ -42,7 +42,7 @@ class FireboltTest {
         Harness(EffectState.Mode mode, CompiledEffects program, String ability) {
             p = program; session = new EffectSession(p, EffectCheckpointTest.clock(), 1, EffectState.empty().withMode(mode), this::world);
             put("player", -20); put("ally", .5); for (int i=1; i<=6; i++) put("enemy"+i, i);
-            choose(ability); bind("test:heat_inputs"); bind(D+"ability_stat_damage");
+            choose(ability); bind("test:heat_inputs"); bind(D+"ability_stat_damage"); bind(D+"solar_scaling");
         }
         void put(String id, double x) { positions.put(id, point(x)); lives.putIfAbsent(id, "first/"+id); hp.putIfAbsent(id, 1000.); }
         boolean alive(String id) { return positions.containsKey(id) && hp.getOrDefault(id, 0.) > 0; }

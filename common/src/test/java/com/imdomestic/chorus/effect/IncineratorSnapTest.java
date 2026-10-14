@@ -21,7 +21,7 @@ class IncineratorSnapTest {
     }
     static class Harness extends FireboltTest.Harness {
         Harness()throws Exception{this(EffectState.Mode.PVE);}
-        Harness(EffectState.Mode mode)throws Exception{super(mode,program(true),D+"solar_grenade");positions.keySet().removeIf(k->k.startsWith("enemy")||k.equals("ally"));put("enemy",0);select();bind(D+"solar_scaling");}
+        Harness(EffectState.Mode mode)throws Exception{super(mode,program(true),D+"solar_grenade");positions.keySet().removeIf(k->k.startsWith("enemy")||k.equals("ally"));put("enemy",0);select();}
         void select(){var before=state().abilities().get("player");var slots=new HashMap<>(before.slots());slots.put(D+"melee",ABILITY);send(new AbilityChange("player",before,new AbilityLoadout(slots)).signal());}
         AbilityUse.Request meleeRequest(){return new AbilityUse.Request("player",D+"melee","snap/"+ ++casts,new EffectEvent("player","player",new BuffInstance.Origin("player","input","",""),Set.of(),Map.of()));}
         void snap(){var r=meleeRequest();assertEquals(AbilityUse.Outcome.ACCEPTED,((AbilityUse.Receipt)p.useAbility(state(),r).result()).outcome());send(r.signal());}

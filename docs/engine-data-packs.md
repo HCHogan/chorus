@@ -3384,6 +3384,22 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 
 ## Solar 对共享增伤阶段的接线
 
+### 持有者系统来源与技能选择分离
+
+加载 `solar.json` 只声明规则目录，不会自动绑定 `chorus_d2:solar_scaling`。宿主须在该持有者第一次产生 Solar 状态之前，以稳定身份安装一份常驻 SOURCE；它把逐目标 `solar_payload` 注入 `solar_outgoing`，随后才经过共享增伤阶段。这个基础来源不属于 Phoenix Dive、手雷、近战或武器的选择期效果，不能随任意一个槽清除。
+
+```java
+var sourceId = "solar-system/" + owner;
+runtime.bind(new EffectSource(sourceId, "chorus_d2:solar_scaling", owner,
+        new BuffInstance.Origin(owner, sourceId, "", ""), Set.of()));
+```
+
+这是宿主装配片段，不是新的自动玩家初始化协议。正常领域检查点保留这份来源，恢复后不重复创建；真实角色生命周期及正式玩家目录仍须由宿主协调。重复等价来源的 payload 贡献按同族 MAX，不相加。完整状态伤害快照会捕获当时有效的贡献；漏装后产生的零基数不能靠稍后补绑来追溯修正。
+
+Phoenix Dive 定义已移除原来选择期 `effects.solar`，仅保留自己的回充来源。参考宿主在持有者层装配共享数值，Firebolt / Fusion / Solar Grenade / Snap 也不再依赖恰好选中了 Phoenix Dive。`SolarProducerAssemblyTest` 验证取消选择、领域恢复、重复系统来源以及混合手雷的首来源归因；同名世界测试在四个实际生产者取消选择后，用原生 Scorch 的正生命损失和确认死亡回执验收。只检查状态层数或出现一条伤害命令不足以证明管线接通。
+
+### 共享进攻阶段
+
 参考 `solar_test_calibration` 的 `chorus_d2:solar_outgoing` 现在依赖 `empowering_damage`，显式共享 weapon_stat / empowering / weapon_surge / perks，保留独立 payload、测试 bonus 和世界单位换算；所有显式组合该校准片段的目录必须同时提供公共 Profile。Incandescent 的 ProgramModule imports 已声明此依赖。单独的 `solar.json` 仍要求宿主提供完整的 Solar 数值校准。
 
 四个 Solar damage_snapshot 出口都为实际受击者传入 radiant_champion；它来自已有 observed 观察，不从来源标签推测。共享修改不会更改初始来源的 weapon / grenade / melee / super 分支及 kill_tags，也不把独立 Incandescent 直接爆炸自动归入相同乘区。`solar_damage_perks` 是现有 Rampage 到公共 Profile 的验收适配，不是新建一套宽泛的“全部武器增伤”规则。参见 [规则依据及未完成范围](d2-ruleset.md#武器来源-solar-的共享增伤阶段)。
@@ -4074,6 +4090,6 @@ Solar 参考定义新增普通 `solar_grenade_throw_speed` Profile，speed 参�
 
 每次爆炸重新查询当前 BODY、视线和敌我关系，逐受害者捕获生命并用 damage_entity_snapshot 写入。`incinerator_snap_outgoing` 包含共享进攻阶段，`incinerator_snap_falloff` 根据距爆炸中心的米数返回倍率，通过 radial_delta 晚绑定。确认 APPLIED、非致命且 effective_with_absorption > 0 后才申请状态；拒绝状态不撤销先前伤害。来源同时声明 melee_ability、ability_damage、melee_damage、solar_damage，使初始来源的技能与击杀信用进入共享 Scorch / Ignition。
 
-共享 `solar_scaling` 必须作为持有者常驻系统来源绑定；仅把它放入 Program 不会自动生效。它不随近战选择移除，因此卸下 Snap 后已发火花与衍生状态继续使用共享数值阶段。该宿主装配依赖在本组合夹具中显式执行；不代表所有旧技能夹具或正式玩家装配都已补齐。单元验收同时检查直接近战加成只提高直接爆炸、衍生灼烧 / 点燃继续沿共享 Solar 分类结算，不能把保留近战击杀信用当作重复应用直接增伤的理由。
+共享 `solar_scaling` 必须作为持有者常驻系统来源绑定；仅把它放入 Program 不会自动生效。它不随近战选择移除，因此卸下 Snap 后已发火花与衍生状态继续使用共享数值阶段。该依赖已在共享 Solar 技能宿主中统一执行，包含 Phoenix Dive、Firebolt、Fusion、Solar Grenade 与本技能；正式玩家初始化仍未自动装配。单元验收同时检查直接近战加成只提高直接爆炸、衍生灼烧 / 点燃继续沿共享 Solar 分类结算，不能把保留近战击杀信用当作重复应用直接增伤的理由。
 
 `incinerator_snap_test_calibration.json` 单独提供速度、重力、阻力、寿命、射程、扇角、近距半径与启动距离、爆炸半径、接触偏移、Guardian 伤害及两个外部 Profile。测试中的平坦衰减、27 点 Guardian 基数与所有几何均为显式输入。五次实际爆炸到共享点燃、实际 Scorch 击杀到 Sunbracers Ready，再到付费 Solar Grenade 的组合有原生世界验收；完整原作校准、生产目录 / 职业限制与物理实体跨进程恢复仍未完成。来源及具体数值见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。

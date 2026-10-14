@@ -4919,7 +4919,8 @@
         "PvE 每 tick 2.7 + 0.175 × 层数，非 Boss 额外 20%，至少 60 层额外 2.5%",
         "PvP 2.3 秒后每 0.04 秒减一层；PvE 难度参数及 PvP 原始伤害曲线要求外部校准",
         "100 层清空并点燃、死亡 / 消失及叠层耗尽停止周期；未知世界回执不重放",
-        "共享阶段在实际Solar伤害中复用原增伤资格；技能信用/错误元素/另一武器perk不串用，卸装与充能消耗不改写已捕获攻击（取样为明确内容政策）"
+        "共享阶段在实际Solar伤害中复用原增伤资格；技能信用/错误元素/另一武器perk不串用，卸装与充能消耗不改写已捕获攻击（取样为明确内容政策）",
+        "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。"
       ],
       "evidence": [
         {
@@ -5044,6 +5045,31 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
           "symbol": "fiveActualProximityExplosionsAccumulateScorchAndProduceSharedIgnition"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarProducerAssemblyTest.java",
+          "symbol": "eachGrenadeDealsActualScorchAfterItsSelectionIsRemovedBeforeImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "fireboltWithoutAClassSelectionKillsThroughScorchAfterItsGrenadeIsDeselected"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "fusionWithoutAClassSelectionKeepsScorchDamageAfterDeselectionBeforeItsFuse"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "solarGrenadeScorchKillsBeforeFieldStartupEvenWhenBothSlotsAreEmpty"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "phoenixDeselectedBeforeLandingStillProducesAConfirmedClassScorchKill"
         }
       ],
       "gaps": [
@@ -13841,7 +13867,8 @@
         "非计时落地、玩家拒绝包不结算、历史接触点9米盟友Cure与显式半径敌人伤害；共享授权/冷却及实际HP。",
         "热力升腾施放时快照给3/4.5秒Restoration x2；落地100基础伤害、40/60 Scorch及首来源职业/技能信用贯穿DoT和点燃。",
         "同一生命匹配、死亡/移除取消、旧生命事实隔离、卸装/领域检查点保留pending、合法连续新施放与未知世界结果不重放。",
-        "两模式职业79.6秒与.8接收系数，未选账户暂停；实际盟友Cure触发Benevolence，核心核验三个当前账户额外基础回充。"
+        "两模式职业79.6秒与.8接收系数，未选账户暂停；实际盟友Cure触发Benevolence，核心核验三个当前账户额外基础回充。",
+        "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。"
       ],
       "gaps": [
         "原表Solar爆炸6.5米与Class Abilities/Clarity的5米冲突；要求显式半径，世界验收仅选择5米分支。",
@@ -13970,6 +13997,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/HeatRisesGameTest.java",
           "symbol": "actualConsumedHeatEnablesSecondDashChargeAndHeatedPhoenixPhysicalLanding"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarProducerAssemblyTest.java",
+          "symbol": "phoenixLandingAfterClassDeselectionStillCapturesPositiveClassScorch"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "phoenixDeselectedBeforeLandingStillProducesAConfirmedClassScorchKill"
         }
       ]
     },
@@ -14371,7 +14408,8 @@
         "Touch、Ashes与进攻伤害快照在接受时保存；实际目标类别在抵达读取，共享手雷属性伤害与卸装保留已验收；灼烧/点燃保留原手雷和技能信用。",
         "按距离/身份稳定选择，保存目标生命且不补位；延迟期间缺失、死亡或换生命跳过，已发射后生命替换也终止；领域检查点保留扫描结果，后出现的更近敌人不改变选择。",
         "真实飞行遵守后来出现的掩体；旧飞行、被拒绝状态和未知生成/实际伤害/授权不重放、不退费或虚构后续收益；共享灼烧可以由连续合法付费施放达到点燃。",
-        "实际服务器长按Heat Rises消费本定义的手雷费用，给予普通分支Cure x2和Heat Rises，不执行Firebolt投掷；已知生成拒绝保留费用且不产生扫描。"
+        "实际服务器长按Heat Rises消费本定义的手雷费用，给予普通分支Cure x2和Heat Rises，不执行Firebolt投掷；已知生成拒绝保留费用且不产生扫描。",
+        "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。"
       ],
       "gaps": [
         "8.5米基础半径与Clarity/Aspect总述的8→12米仍冲突；当前选择Firebolt逐行8.5/12，而非按50%算12.75。",
@@ -14506,6 +14544,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FireboltGameTest.java",
           "symbol": "repeatedPaidThrowsReachTheSharedIgnitionWithoutSuppressingLegitimateEffects"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarProducerAssemblyTest.java",
+          "symbol": "eachGrenadeDealsActualScorchAfterItsSelectionIsRemovedBeforeImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "fireboltWithoutAClassSelectionKillsThroughScorchAfterItsGrenadeIsDeselected"
         }
       ]
     },
@@ -14548,7 +14596,8 @@
         "Touch、Ashes及共享进攻阶段在接受时保存，附着于原生命并保存接触偏移；每次爆炸重新查询当前视线内敌人，逐目标写入复核生命，不对附着者另加重复伤害。",
         "地形固定原位置；实体移动/尚在的尸体继续平移接触点，确认移除/摧毁固定最后观察位置，卸载/转移终止。未观察到的缺失/替换停止而不附着新生命；新生命仍可作为当前附近爆炸受害者。",
         "领域检查点保留两段延迟及独立附着句柄，卸装保留已接受动作；已知拒绝Scorch不撤销伤害或取消第二爆炸，未知世界写入保留先前提交且不重放/退费。",
-        "真实偏轴飞行会向敌人转向并碰撞附着；掩体在两爆之间改变会影响第二次查询。两次合法Ashes投掷接入共享点燃；单次Touch不重复施加灼烧。实际长按Heat Rises消费Fusion费用且不投掷。"
+        "真实偏轴飞行会向敌人转向并碰撞附着；掩体在两爆之间改变会影响第二次查询。两次合法Ashes投掷接入共享点燃；单次Touch不重复施加灼烧。实际长按Heat Rises消费Fusion费用且不投掷。",
+        "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。"
       ],
       "gaps": [
         "官方2025-07-31已核对的官方全文说明Touch强化Solar/Fusion伤害调低10%，与Compendium中738/851的基准关系未核实；保留原表数值，不重复乘0.9。目标等级/活动/力量及构造物伤害表未校准。",
@@ -14702,6 +14751,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FusionGrenadeGameTest.java",
           "symbol": "twoPaidPhysicalAshesGrenadesReachIgnitionWithoutCountingTheSecondExplosionAsScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarProducerAssemblyTest.java",
+          "symbol": "eachGrenadeDealsActualScorchAfterItsSelectionIsRemovedBeforeImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "fusionWithoutAClassSelectionKeepsScorchDamageAfterDeselectionBeforeItsFuse"
         }
       ]
     },
@@ -14754,7 +14813,8 @@
         "每次施放独立场实例及own_timer，当前BODY/视线/敌我查询与写入边界生命核对；Touch/Ashes与进攻快照在接受时固定，卸装不取消。",
         "显式合成4.25/6.25秒寿命下验证13次基础脉冲；PvP .75秒1层、随后每.533秒7.5/10；PvE自然到期17/30，手动移除不触发。",
         "目标共享可校准场伤害门槛，两个场分别发射；熔岩球独立物理飞行，125/50无范围衰减，场结束后已发射续体仍保留参数。领域恢复保存场与随机状态。",
-        "已知状态拒绝保留先前伤害；未知写入/生成/授权停止且不重放。实际长按Heat Rises消费同手雷而不创建投射物或场。"
+        "已知状态拒绝保留先前伤害；未知写入/生成/授权停止且不重放。实际长按Heat Rises消费同手雷而不创建投射物或场。",
+        "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。"
       ],
       "gaps": [
         "原表1秒启动、13跳/.267秒与4秒寿命冲突；.75秒PvP首灼烧与末句1秒说明冲突。4.25/6.25秒仅合成验收校准，PvE到期确定性17/30不复现原表明确的不稳定性。",
@@ -14894,6 +14954,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
           "symbol": "capturedFastballAndTouchLifetimePersistAfterUnequippingBothSources"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/SolarProducerAssemblyTest.java",
+          "symbol": "eachGrenadeDealsActualScorchAfterItsSelectionIsRemovedBeforeImpact"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarProducerAssemblyGameTest.java",
+          "symbol": "solarGrenadeScorchKillsBeforeFieldStartupEvenWhenBothSlotsAreEmpty"
         }
       ]
     },
@@ -15080,7 +15150,7 @@
         "原表Guardian27?/135?、射程和爆炸半径未知；测试27只是显式假设，20m/s、8米、5度相邻扇角、1米近距/.5米启动、2米爆炸、平坦衰减和.1生命投影均需校准。",
         "球形引信不是官方secondary arming shape的精确复刻；弹速/重力/寿命/偏移、追踪/辅助瞄准、Song of Flame变体、活动/等级/力量倍率尚未校准或装配。",
         "BODY/视线/阵营/来源失联、快照时点、正损失与非致命施加门槛、共享点燃锁定和衍生击杀资格为当前明确内容政策，全部原作组合仍需验证。",
-        "solar_scaling常驻依赖只在本组合宿主显式装配，正式子职业/装备限制、生产目录、HUD/素材及物理实体跨进程恢复仍未完成；定义在验收资源。"
+        "solar_scaling常驻依赖已由共享Solar技能宿主显式装配，正式子职业/装备限制、生产目录、HUD/素材及物理实体跨进程恢复仍未完成；定义在验收资源。"
       ],
       "evidence": [
         {

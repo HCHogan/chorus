@@ -44,7 +44,7 @@ public class PhoenixDiveGameTest {
                 t.owner.setGameMode(GameType.SURVIVAL); t.owner.setHealth(20); t.owner.setDeltaMovement(0, 0, 0);
                 GroundContactGameTest.floor(t); GroundContactGameTest.placePlayer(t); board.addPlayerToTeam(t.owner.getScoreboardName(), team);
                 AscensionGameTest.choose(t, D + "class", ABILITY);
-                for (String bundle : List.of("test:phoenix_inputs", D + "ember_of_benevolence")) bind(bundle);
+                for (String bundle : List.of("test:phoenix_inputs", D + "ember_of_benevolence", D + "solar_scaling")) bind(bundle);
                 t.beforeWorld = r -> { if (r.command() instanceof HealingCommand c) heals.add(c); if (r.command() instanceof Impulse.Command c) impulses.add(c); };
             } catch (Exception | Error e) { close(); throw e; }
         }

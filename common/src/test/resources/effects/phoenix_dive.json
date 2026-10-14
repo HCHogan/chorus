@@ -79,9 +79,6 @@
       "effects": {
         "recharge": {
           "bundle": "chorus_d2:phoenix_dive_recharge"
-        },
-        "solar": {
-          "bundle": "chorus_d2:solar_scaling"
         }
       },
       "parameters": {

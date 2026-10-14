@@ -21,7 +21,7 @@ public class IncineratorSnapGameTest {
         GamblersDodgeGameTest.merge(data,ThreadedSpikeGameTest.json("incinerator_snap_test_calibration").getAsJsonObject("program"));AscensionGameTest.version(data);
     }
     static class Scenario extends SolarGrenadeGameTest.Scenario {
-        Scenario(GameTestHelper h)throws Exception{super(h,IncineratorSnapGameTest::prepare);AscensionGameTest.choose(t,D+"melee",ABILITY);bind(D+"solar_scaling");}
+        Scenario(GameTestHelper h)throws Exception{super(h,IncineratorSnapGameTest::prepare);AscensionGameTest.choose(t,D+"melee",ABILITY);}
         List<EffectProjectile> snap(){int before=t.projectiles.size();h.assertValueEqual(t.runtime.useAbility(t.owner,D+"melee").outcome(),AbilityUse.Outcome.ACCEPTED,"one paid Snap");near(h,AscensionGameTest.energy(t,D+"solar_melee_uses"),0,"one melee charge");var sparks=List.copyOf(t.projectiles.subList(before,t.projectiles.size()));h.assertValueEqual(sparks.size(),5,"five physical sparks");return sparks;}
         LivingEntity target(double distance){var e=enemy(distance);e.setPos(e.getX(),t.owner.getEyeY()-e.getBbHeight()*.5,e.getZ());return e;}
         void aim(){t.owner.setYRot(-90);t.owner.setXRot(0);}
