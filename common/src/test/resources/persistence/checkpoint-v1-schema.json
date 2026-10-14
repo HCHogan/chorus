@@ -1,4 +1,11 @@
 {
+  "chorus:effect/resource/resource_authority/lease": ["domain:java.lang.String", "generation:long"],
+  "chorus:effect/resource/resource_requests/read": ["account:com.imdomestic.chorus.effect.resource.ResourceState$Key"],
+  "chorus:effect/resource/resource_requests/grant": ["account:com.imdomestic.chorus.effect.resource.ResourceState$Key", "requested:double", "scaled:double", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],
+  "chorus:effect/resource/resource_requests/refund": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.resource.RetainedCosts$Handle", "fraction:double", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],
+  "chorus:effect/resource/resource_requests/read_result": ["request:com.imdomestic.chorus.effect.resource.ResourceRequests$Read", "account:com.imdomestic.chorus.effect.resource.ResourceState", "lease:com.imdomestic.chorus.effect.resource.ResourceAuthority$Lease"],
+  "chorus:effect/resource/resource_requests/granted": ["request:com.imdomestic.chorus.effect.resource.ResourceRequests$Grant", "grant:com.imdomestic.chorus.effect.resource.ResourceResult", "lease:com.imdomestic.chorus.effect.resource.ResourceAuthority$Lease"],
+  "chorus:effect/resource/resource_requests/refunded": ["request:com.imdomestic.chorus.effect.resource.ResourceRequests$Refund", "refund:java.util.Optional<com.imdomestic.chorus.effect.resource.Resources$RefundResult>", "recipient:java.util.Optional<com.imdomestic.chorus.effect.resource.ResourceAuthority$Lease>"],
   "chorus:effect/resource/resource_projection/change": ["holder:java.lang.String", "timeMicros:long", "before:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.resource.ResourceState>", "after:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.resource.ResourceState>"],
   "chorus:effect/ability/ability_change/commit": ["change:com.imdomestic.chorus.effect.ability.AbilityChange"],
   "chorus:effect/data/direction_actions/cross": ["left:java.lang.String", "right:java.lang.String"],

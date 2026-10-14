@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-14：运行中世界请求的资源入账与退款
+
+EffectSession 新增绑定当前世界回调的 WorldOperation，允许可信宿主把 pending 调用方与已结算接收会话纳入同一次批量发布。提交保留原帧、事实、请求中的未来时间和操作身份；返回后仍由 Completed 恢复执行。结果与领域写入共同提交，重复提交、过期能力、不同回调或返回另一份结果拒绝。入账后世界回调抛错时保留已写入状态和 pending 操作，不自动退款、重放或允许检查点保存；后续纯规则失败保留已收到的实际回执。
+
+新增显式 ResourceRequests.Read / Grant / Refund 及与原请求绑定的结果，通过 ResourceSessionAuthority.execute 解析当前账户归属。查询不生成游戏事实；回能保留 actual credited / overflow 与来源，退款同时扣减原签发账本并给当前接收者入账。调用方、签发方和接收方可以是三个会话；同一回调重复 execute 返回同一结果而不重复写入。其他参与会话必须健康且已结算，当前没有跨会话嵌套执行规则。七种命令 / 结果 / lease 存储身份新增至 693，原 686 项形状保持。
+
+新增 13 项核心测试，覆盖实际运行中的远端查询 / 入账、同领域操作、三会话退款、原签发时钟与到期 / 溢出、重复和错误请求、部分提交防护、入账后未知结果、依赖规则失败、未来时间继续推进、能力失效、精确编码及极小回能的事件语义。`/tmp/chorus-resource-requests-core2.log` 首批定向回归通过。
+
+完整回归 `/tmp/chorus-resource-requests-full-gate.log` BUILD SUCCESSFUL（4 分 26 秒）：首批 2285 项 JUnit、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点通过。随后补充的极小回能测试先复现余额未变却发出 resource_changed 的差异（`/tmp/chorus-resource-requests-rounding-red.log`）；事实工厂改为沿用本地 grant 的实际余额变化判定。该工厂尚未接入原生路径，最终重新运行全部核心测试和双端发布包，`/tmp/chorus-resource-requests-final-core.log` 通过（39 秒），2286 项 JUnit 无失败 / 错误 / 跳过。
+
+`build/reports/resource-requests/audit.json` 记录上述两次验证范围，核验原 686 项存储形状保持、新增七项至 693、发布主类 1257 / 1250 个逐字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源。10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+本批验证的是 Java 世界命令和实际 EffectSession 协调。普通 DSL 资源表达式 / initialize / spend / resize / 技能支付仍走原路径；返回的 ResourceRequests.facts 尚须宿主按操作身份投递到实际接收领域。自动路由、领域事件队列、原生传送及联合世界保存仍未完成，也没有新增图形客户端或原生跨进程迁移验收。Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）；接口见[执行中的资源请求](engine-data-packs.md#执行中的资源请求与回执)。
+
 ### 2026-10-14：实际会话的原子资源交接
 
 新增 EffectSession 的同线程批量领域发布：先预检全部会话，再以无回调的写入共同发布。时间线、时钟、定时器、事件 / 帧编号和去重回执保留；不通过依次 observe 执行规则，也不通过 restore 清除回执。过期快照、重复参与者、其他线程、运行中以及失败 / 待回执会话在任何写入前拒绝。未来规则按原截止时刻执行，并观察已经共同更新的状态。

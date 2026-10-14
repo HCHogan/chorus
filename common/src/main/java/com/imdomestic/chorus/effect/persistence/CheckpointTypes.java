@@ -8,6 +8,13 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/resource/resource_authority/lease", com.imdomestic.chorus.effect.resource.ResourceAuthority.Lease.class);
+        types.put("chorus:effect/resource/resource_requests/read", com.imdomestic.chorus.effect.resource.ResourceRequests.Read.class);
+        types.put("chorus:effect/resource/resource_requests/grant", com.imdomestic.chorus.effect.resource.ResourceRequests.Grant.class);
+        types.put("chorus:effect/resource/resource_requests/refund", com.imdomestic.chorus.effect.resource.ResourceRequests.Refund.class);
+        types.put("chorus:effect/resource/resource_requests/read_result", com.imdomestic.chorus.effect.resource.ResourceRequests.ReadResult.class);
+        types.put("chorus:effect/resource/resource_requests/granted", com.imdomestic.chorus.effect.resource.ResourceRequests.Granted.class);
+        types.put("chorus:effect/resource/resource_requests/refunded", com.imdomestic.chorus.effect.resource.ResourceRequests.Refunded.class);
         types.put("chorus:effect/resource/resource_projection/change", com.imdomestic.chorus.effect.resource.ResourceProjection.Change.class);
         types.put("chorus:effect/data/entity_anchor_actions/read", com.imdomestic.chorus.effect.data.EntityAnchorActions.Read.class);
         types.put("chorus:effect/data/entity_anchor_actions/write", com.imdomestic.chorus.effect.data.EntityAnchorActions.Write.class);

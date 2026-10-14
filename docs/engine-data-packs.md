@@ -956,6 +956,18 @@ host.commit(handoff);
 
 `host.grant(...)` 和 `host.refund(...)` 在返回结果前完成实际会话入账；后者同时发布签发会话的额度认领。它们仍要求所有会话处于已结算边界，不能从正在执行的世界回调重入。原生宿主后续需要将进行中的资源请求交由可暂停 / 恢复的路由协议处理，并按实际返回结果发布游戏事实；当前方法不自动拦截 DSL 动作，也不自动计算数值 Profile 或广播事件。
 
+### 执行中的资源请求与回执
+
+`ResourceRequests.Read / Grant / Refund` 是普通 `RuleEngine.WorldCommand`，可由 Java 动作返回 Await。Read 按 holder + resource 查询当前账户与 lease；Grant 携带已解析的 requested / scaled 和原始 origin；Refund 另外携带原签发领域与 RetainedCosts.Handle。`ResourceSessionAuthority.execute(callerDomain, worldRequest)` 只能在该 caller 的当前世界回调中使用，返回与请求绑定的 ReadResult / Granted / Refunded。它不会按当前技能、当前维度或装备猜测原付款来源。
+
+execute 允许当前调用会话暂停在对应的 pending operation，其他参与会话仍必须健康且已结算。它先发布已提交的账户进度，解析当前接收者，再共同提交调用会话的结果、签发会话的退款账本和接收会话的余额。三者可以位于不同领域，也可以重合。同一回调内重复 execute 返回已经提交的同一结果；错误 caller、相同操作编号但不同命令、回调结束后再次调用均拒绝。暂停中的调用方不能借此创建另一个嵌套外部输入。
+
+EffectSession 为每次实际世界回调创建不透明 WorldOperation。可信协调器通过 `prepareOperationDomain` 把已经确定的结果与领域写入加入同一个 `commitDomains` 批次；原 pending 操作、帧、事实、请求中的未来时间和身份编号保持。协调器返回后，会话仍通过原有 Completed 回执协议继续执行。回调可以附带普通 WorldReceipt 的观测事实，但其 value 必须与已提交结果一致；不能用另一份结果恢复规则。入账后回调抛错或返回不同结果时，保留全部已提交状态，待回执操作阻止重启该边界与检查点保存，不自动回滚、退款或重放。后续纯规则失败同样保留已经收到的实际回执。
+
+Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保留实际 claimed / remaining；过期或关闭的句柄返回空退款。目标时钟不替代签发时钟。`ResourceRequests.facts(receipt)` 只生成对应事实数据，Read 和不可用退款不生成事实。原生宿主仍须以 caller + operation 身份去重，将事实送入 receipt 指定的入账领域，并在合适边界运行反应；此函数不自动投递事件。Grant 的数值缩放也仍由调用方先解析。
+
+新增命令、结果与 lease 使用显式存储身份，可被已有检查点数据编码；WorldOperation 能力和未完成操作不能据此保存或恢复。当前没有改变普通 DSL 的 initialize / grant / spend / resize、资源表达式或技能支付语义，也没有新增自动请求路由和接收领域事件队列。原生接入必须一并处理这些路径及联合保存，不能仅在传送时移动余额后直接启用。
+
 当前 Minecraft 宿主归档仍为 format 3，并未包含这个协调目录；实际传送仍只有角色根配置与基础技能选择自动同步。下一步需要在原生传送边界交接、路由旧领域的资源读写与延迟退款、处理账户回执及共同保存 / 故障恢复，再启用这项协议。Buff、弹药、技能进度和物理实体迁移也没有由资源分区转移自动完成。
 
 ## 整数弹药与弹匣转移

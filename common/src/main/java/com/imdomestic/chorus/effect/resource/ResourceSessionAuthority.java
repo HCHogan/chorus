@@ -4,6 +4,7 @@ import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.rule.TimelineEngine;
+import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -12,7 +13,8 @@ public final class ResourceSessionAuthority {
     public record Binding(CompiledEffects program, EffectSession session) {
         public Binding { Objects.requireNonNull(program); Objects.requireNonNull(session); }
     }
-    private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines) {}
+    private record Caller(String domain, EffectSession.WorldOperation operation) {}
+    private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {}
     /** Prepared handoff is tied to this host and every participating timeline; callers cannot construct its writes. */
     public static final class Handoff {
         private final ResourceSessionAuthority host;
@@ -53,12 +55,17 @@ public final class ResourceSessionAuthority {
         return value;
     }
     private Snapshot capture(boolean publish) {
+        return capture(publish, Optional.empty());
+    }
+    private Snapshot capture(boolean publish, Optional<Caller> caller) {
         var states = new TreeMap<String, EffectState>();
         var timelines = new TreeMap<String, TimelineEngine.State<EffectState>>();
         for (var entry : bindings.entrySet()) {
-            var binding = entry.getValue(); var checkpoint = binding.session().checkpoint();
-            if (!binding.program().program().equals(checkpoint.program())) throw new IllegalArgumentException("Live resource catalogue differs from its session");
-            var timeline = binding.session().state();
+            var binding = entry.getValue();
+            var current = caller.filter(value -> value.domain().equals(entry.getKey()));
+            var catalogue = current.isPresent() ? binding.session().catalogue() : binding.session().checkpoint().program();
+            if (!binding.program().program().equals(catalogue)) throw new IllegalArgumentException("Live resource catalogue differs from its session");
+            var timeline = current.isPresent() ? binding.session().operationState(current.orElseThrow().operation()) : binding.session().state();
             timelines.put(entry.getKey(), timeline); states.put(entry.getKey(), timeline.engine().domain());
         }
         var next = directory;
@@ -67,25 +74,33 @@ public final class ResourceSessionAuthority {
             if (!partition.program().equals(binding(domain).program().program())) throw new IllegalArgumentException("Resource owner catalogue differs from its live session");
             if (publish) next = ResourceAuthority.publish(next, partition, states.get(domain));
         }
-        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines));
-        unchanged(timelines); directory = next; return result;
+        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller);
+        unchanged(timelines, caller); directory = next; return result;
     }
-    private void unchanged(Map<String, TimelineEngine.State<EffectState>> timelines) {
+    private void unchanged(Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {
         timelines.forEach((domain, expected) -> {
             var session = binding(domain).session();
-            if (session.running() || session.state() != expected) throw new IllegalStateException("Live resource domain changed during publication");
+            var current = caller.filter(value -> value.domain().equals(domain));
+            var actual = current.isPresent() ? session.operationState(current.orElseThrow().operation()) : session.state();
+            if (current.isEmpty() && session.running() || actual != expected) throw new IllegalStateException("Live resource domain changed during publication");
         });
     }
     private void current(Snapshot expected) {
         if (directory != expected.worlds().directory()) throw new IllegalStateException("Resource authority changed since preparation");
-        unchanged(expected.timelines());
+        unchanged(expected.timelines(), expected.caller());
     }
     private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after) {
+        return prepare(before, after, Optional.empty());
+    }
+    private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after, Optional<RuleEngine.ActionResult> result) {
         current(before);
         var updates = new ArrayList<EffectSession.DomainUpdate>();
         for (var entry : bindings.entrySet()) {
             var domain = entry.getKey(); var next = after.domain(domain);
-            if (next != before.worlds().domain(domain))
+            var caller = before.caller().filter(value -> value.domain().equals(domain));
+            if (caller.isPresent())
+                updates.add(entry.getValue().session().prepareOperationDomain(caller.orElseThrow().operation(), before.timelines().get(domain), next, result.orElseThrow()));
+            else if (next != before.worlds().domain(domain))
                 updates.add(entry.getValue().session().prepareDomain(before.timelines().get(domain), next));
         }
         current(before); return List.copyOf(updates);
@@ -134,6 +149,35 @@ public final class ResourceSessionAuthority {
         return boundary(() -> {
             var before = capture(true); var result = ResourceAuthority.refund(before.worlds(), issuer, handle, fraction);
             commit(before, result.worlds(), prepare(before, result.worlds())); return result;
+        });
+    }
+    /** Execute exactly the caller's active resource request. A repeated call inside that callback returns its committed result. */
+    public ResourceRequests.Receipt execute(String caller, RuleEngine.WorldRequest request) {
+        return boundary(() -> {
+            var operation = binding(caller).session().operation(request);
+            if (!(request.command() instanceof ResourceRequests.Request command)) throw new IllegalArgumentException("Not a resource request");
+            if (operation.committed().isPresent()) {
+                if (!(operation.committed().orElseThrow() instanceof ResourceRequests.Receipt receipt) || !receipt.request().equals(command))
+                    throw new IllegalStateException("Active resource request has a conflicting committed result");
+                return receipt;
+            }
+            var before = capture(true, Optional.of(new Caller(caller, operation)));
+            ResourceAuthority.Worlds after; ResourceRequests.Receipt receipt;
+            switch (command) {
+                case ResourceRequests.Read read -> {
+                    var owner = before.worlds().directory().owner(read.account()); after = before.worlds();
+                    receipt = new ResourceRequests.ReadResult(read, owner.account(read.account().resource()), owner.lease());
+                }
+                case ResourceRequests.Grant grant -> {
+                    var result = ResourceAuthority.grant(before.worlds(), grant.account(), grant.requested(), grant.scaled()); after = result.worlds();
+                    receipt = new ResourceRequests.Granted(grant, result.result(), result.recipient());
+                }
+                case ResourceRequests.Refund refund -> {
+                    var result = ResourceAuthority.refund(before.worlds(), refund.issuer(), refund.handle(), refund.fraction()); after = result.worlds();
+                    receipt = new ResourceRequests.Refunded(refund, result.result(), result.recipient());
+                }
+            }
+            commit(before, after, prepare(before, after, Optional.of(receipt))); return receipt;
         });
     }
 }
