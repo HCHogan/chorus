@@ -19,6 +19,7 @@ public final class EffectSession {
     private final Thread ownerThread = Thread.currentThread();
     private TimelineEngine.State<EffectState> state;
     private boolean running;
+    private WorldOperation activeOperation;
 
     public EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world) {
         this(engine, engine.initial(initial), world, Optional.empty(), new OperationLedger());
@@ -61,6 +62,9 @@ public final class EffectSession {
     }
     public TimelineEngine.State<EffectState> state() { return state; }
     public boolean running() { return running; }
+    public EffectProgram catalogue() {
+        thread(); return program.orElseThrow(() -> new IllegalStateException("Operation requires a pinned data-defined catalogue"));
+    }
     private void thread() {
         if (Thread.currentThread() != ownerThread) throw new IllegalStateException("Effect session belongs to its owner thread");
     }
@@ -73,9 +77,47 @@ public final class EffectSession {
     public static final class DomainUpdate {
         private final EffectSession session;
         private final TimelineEngine.State<EffectState> before, after;
+        private final Optional<OperationCommit> operation;
         private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after) {
-            this.session = session; this.before = before; this.after = after;
+            this(session, before, after, Optional.empty());
         }
+        private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after, Optional<OperationCommit> operation) {
+            this.session = session; this.before = before; this.after = after; this.operation = operation;
+        }
+    }
+    /** Only the currently executing world callback can obtain this capability; it cannot survive a callback or authorize another request. */
+    public static final class WorldOperation {
+        private final EffectSession session;
+        private final WorldRequest request;
+        private Optional<ActionResult> committed = Optional.empty();
+        private WorldOperation(EffectSession session, WorldRequest request) { this.session = session; this.request = request; }
+        public WorldRequest request() { return request; }
+        public Optional<ActionResult> committed() { return committed; }
+    }
+    private record OperationCommit(WorldOperation operation, Optional<ActionResult> result) {}
+    private void currentOperation(WorldOperation operation, TimelineEngine.State<EffectState> expected) {
+        thread();
+        if (operation.session != this || activeOperation != operation || !running || state != expected
+                || !state.engine().pending().equals(Optional.of(operation.request.id())) || state.engine().failure().isPresent() || state.abandoned().isPresent())
+            throw new IllegalStateException("Publication requires this session's active world operation");
+    }
+    public WorldOperation operation(WorldRequest request) {
+        thread();
+        if (activeOperation == null || !activeOperation.request.equals(request)) throw new IllegalStateException("Request is not the active world operation");
+        currentOperation(activeOperation, state); return activeOperation;
+    }
+    public TimelineEngine.State<EffectState> operationState(WorldOperation operation) {
+        currentOperation(operation, state); return state;
+    }
+    /** Prepare a single world result and its committed domain. Completion still resumes through the normal receipt protocol. */
+    public DomainUpdate prepareOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected, EffectState domain, ActionResult result) {
+        currentOperation(operation, expected);
+        if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
+        Objects.requireNonNull(result);
+        if (result instanceof WorldReceipt) throw new IllegalArgumentException("Commit the action result, not a world receipt envelope");
+        var next = engine.replacePendingDomain(expected, operation.request.id(), domain);
+        currentOperation(operation, expected);
+        return new DomainUpdate(this, expected, next, Optional.of(new OperationCommit(operation, Optional.of(result))));
     }
     /** The trusted host validates domain semantics. Preparation may inspect clock policy but executes no rules. */
     public DomainUpdate prepareDomain(TimelineEngine.State<EffectState> expected, EffectState domain) {
@@ -90,9 +132,17 @@ public final class EffectSession {
         var sessions = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<EffectSession, Boolean>());
         for (var update : batch) {
             if (!sessions.add(update.session)) throw new IllegalArgumentException("Duplicate session in domain publication");
-            update.session.current(update.before);
+            if (update.operation.isEmpty()) update.session.current(update.before);
+            else {
+                var operation = update.operation.orElseThrow().operation();
+                update.session.currentOperation(operation, update.before);
+                if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
+            }
         }
         for (var update : batch) update.session.state = update.after;
+        for (var update : batch) if (update.operation.isPresent()) {
+            var commit = update.operation.orElseThrow(); commit.operation().committed = commit.result();
+        }
     }
     public void start(long time, Signal signal) { start(new Start(time, signal)); }
     public void observe(long time, List<Signal> facts) { start(new Start(time, facts)); }
@@ -109,11 +159,22 @@ public final class EffectSession {
                 if (!transition.actions().isEmpty()) {
                     if (transition.actions().size() != 1) throw new IllegalStateException("Unsupported multi-command transition");
                     var request = transition.actions().getFirst();
-                    var receipt = ledger.execute(request, _ -> world.apply(request));
+                    var receipt = ledger.execute(request, _ -> executeWorld(request));
                     transition = engine.transition(state, new Completed(request.id(), receipt));
                 } else if (transition.needsPump()) transition = engine.transition(state, Pump.INSTANCE);
                 else return;
             }
         } finally { running = false; }
+    }
+    private ActionResult executeWorld(WorldRequest request) {
+        if (activeOperation != null) throw new IllegalStateException("Reentrant world operation");
+        var operation = new WorldOperation(this, request); activeOperation = operation;
+        try {
+            var receipt = Objects.requireNonNull(world.apply(request));
+            var value = receipt instanceof WorldReceipt envelope ? envelope.value() : receipt;
+            if (operation.committed.isPresent() && !operation.committed.orElseThrow().equals(value))
+                throw new IllegalStateException("World callback returned a different result after committing its operation");
+            return receipt;
+        } finally { activeOperation = null; }
     }
 }

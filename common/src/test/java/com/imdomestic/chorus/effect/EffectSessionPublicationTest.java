@@ -89,4 +89,34 @@ class EffectSessionPublicationTest {
         assertEquals(0, calls.get()); sessions.forEach(value -> value.observe(10, List.of())); assertEquals(2, calls.get());
         sessions.forEach(value -> value.observe(20, List.of())); assertEquals(2, calls.get());
     }
+    @Test void pendingCallerAndSettledRecipientAreBothPreflightedBeforeAnOperationCommits() {
+        var recipient = session(); var caller = new AtomicReference<EffectSession>();
+        var session = new EffectSession(engine(), EffectState.empty(), request -> {
+            var source = caller.get(); var token = source.operation(request); var before = source.state();
+            var first = source.prepareOperationDomain(token, before, before.engine().domain().withMode(EffectState.Mode.PVP), Empty.INSTANCE);
+            var second = pvp(recipient); recipient.observe(0, List.of());
+            assertThrows(IllegalStateException.class, () -> EffectSession.commitDomains(List.of(first, second)));
+            assertSame(before, source.state()); assertTrue(token.committed().isEmpty()); assertEquals(EffectState.Mode.PVE, recipient.state().engine().domain().mode());
+            EffectSession.commitDomains(List.of(first, pvp(recipient)));
+            assertEquals(before.engine().pending(), source.state().engine().pending()); assertEquals(before.engine().frames(), source.state().engine().frames());
+            assertEquals(before.engine().nextEvent(), source.state().engine().nextEvent()); assertEquals(Optional.of(Empty.INSTANCE), token.committed());
+            return Empty.INSTANCE;
+        });
+        caller.set(session); session.start(0, new Signal("call", Empty.INSTANCE));
+        assertTrue(session.state().idle()); assertEquals(EffectState.Mode.PVP, session.state().engine().domain().mode());
+        assertEquals(EffectState.Mode.PVP, recipient.state().engine().domain().mode());
+    }
+    @Test void worldOperationCapabilityCannotEscapeItsCallbackOrChangeTheClock() {
+        var caller = new AtomicReference<EffectSession>(); var previous = new AtomicReference<EffectSession.WorldOperation>();
+        var session = new EffectSession(engine(), EffectState.empty(), request -> {
+            var source = caller.get(); var token = source.operation(request); var before = source.state();
+            if (previous.get() != null) assertThrows(IllegalStateException.class, () -> source.operationState(previous.get()));
+            var later = before.engine().domain().withBuffs(new BuffStore(1, 1, Map.of()));
+            assertThrows(IllegalArgumentException.class, () -> source.prepareOperationDomain(token, before, later, Empty.INSTANCE));
+            assertSame(before, source.state()); assertTrue(token.committed().isEmpty()); previous.set(token); return Empty.INSTANCE;
+        });
+        caller.set(session); session.start(0, new Signal("call", Empty.INSTANCE));
+        assertThrows(IllegalStateException.class, () -> session.operationState(previous.get()));
+        session.start(0, new Signal("call", Empty.INSTANCE)); assertTrue(session.state().idle());
+    }
 }

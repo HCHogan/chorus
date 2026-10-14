@@ -102,6 +102,19 @@ public final class TimelineEngine<S> {
         return new State<>(next, state.requested(), state.receipts(), state.abandoned());
     }
 
+    /** World-confirmed host publication while this exact operation is suspended; frames and requested time stay pending. */
+    public State<S> replacePendingDomain(State<S> state, OperationId operation, S domain) {
+        Objects.requireNonNull(domain);
+        var before = state.engine();
+        if (!before.pending().equals(Optional.of(operation)) || before.failure().isPresent() || state.abandoned().isPresent())
+            throw new IllegalStateException("Domain publication requires the current pending operation");
+        if (clock.time(domain) != before.timeMicros() || clock.time(before.domain()) != before.timeMicros())
+            throw new IllegalArgumentException("Pending publication cannot change the logical clock");
+        var next = new RuleEngine.State<>(before.version(), domain, before.timeMicros(), before.nextEvent(), before.nextFrame(),
+                before.facts(), before.frames(), before.pending(), before.receipts(), before.failure());
+        return new State<>(next, state.requested(), state.receipts(), state.abandoned());
+    }
+
     public Transition<S> transition(State<S> state, Input input) {
         Objects.requireNonNull(input);
         if (input instanceof Start start) {
