@@ -305,6 +305,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void replaceSources(com.imdomestic.chorus.effect.SourceBatch batch) {
         thread(); prepare(); program.validateSources(batch); batch.validateCurrent(view()); start(batch.signal());
     }
+    /** Trusted owner enrollment; standing rules persist independently of ability and equipment selections. */
+    public void actor(com.imdomestic.chorus.effect.actor.ActorChange change) {
+        thread(); prepare(); change.apply(view(), program); start(change.signal());
+    }
     /** Trusted selection boundary. Player unlocks and subclass compatibility belong to the host. */
     public void abilities(com.imdomestic.chorus.effect.ability.AbilityChange change) {
         thread(); prepare(); change.apply(view(), program); start(change.signal());

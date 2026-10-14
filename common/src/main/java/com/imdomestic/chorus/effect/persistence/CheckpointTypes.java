@@ -84,7 +84,10 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_state_v2", LegacyEffectStateV2.class);
         types.put("chorus:effect/effect_state_v3", LegacyEffectStateV3.class);
         types.put("chorus:effect/effect_state_v4", LegacyEffectStateV4.class);
-        types.put("chorus:effect/effect_state_v5", com.imdomestic.chorus.effect.EffectState.class);
+        types.put("chorus:effect/effect_state_v5", LegacyEffectStateV5.class);
+        types.put("chorus:effect/effect_state_v6", com.imdomestic.chorus.effect.EffectState.class);
+        types.put("chorus:effect/actor/actor_binding", com.imdomestic.chorus.effect.actor.ActorBinding.class);
+        types.put("chorus:effect/actor/actor_change", com.imdomestic.chorus.effect.actor.ActorChange.class);
         types.put("chorus:effect/effect_state/lifetime", com.imdomestic.chorus.effect.EffectState.Lifetime.class);
         types.put("chorus:effect/effect_state/mode", com.imdomestic.chorus.effect.EffectState.Mode.class);
         types.put("chorus:effect/effect_state/timer", com.imdomestic.chorus.effect.EffectState.Timer.class);
@@ -715,6 +718,7 @@ final class CheckpointTypes {
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargingV2.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.Charging.class, LegacyWeaponChargingV2::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargePlanV2.class, com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan.class, LegacyWeaponChargePlanV2::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponChargePhaseV1.class, com.imdomestic.chorus.effect.weapon.WeaponCharge.Phase.class, LegacyWeaponChargePhaseV1::current),
+                new RecordTreeCodec.Migration<>(LegacyEffectStateV5.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV5::current),
                 new RecordTreeCodec.Migration<>(LegacyEffectStateV4.class, com.imdomestic.chorus.effect.EffectState.class, LegacyEffectStateV4::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponDefinitionV3.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV3::current),
                 new RecordTreeCodec.Migration<>(LegacyWeaponFireOutcomeV1.class, com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.class, LegacyWeaponFireOutcomeV1::current),

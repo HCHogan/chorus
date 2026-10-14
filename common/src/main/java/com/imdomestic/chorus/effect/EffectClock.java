@@ -109,6 +109,6 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
         attachments.values().removeIf(entry -> entry.handle().expiresAt() <= until);
         var retainedCosts = new TreeMap<>(state.retainedCosts());
         retainedCosts.values().removeIf(cost -> cost.handle().dueAt() <= until);
-        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts, damageTallies, state.handling(), state.aiming(), attachments, state.charging()), RuleEngine.Empty.INSTANCE, signals);
+        return new RuleEngine.Local<>(new EffectState(buffs.store(), resources, timers, state.sources(), state.mode(), state.equipment(), state.abilities(), state.ammunition(), state.reloads(), state.shots(), state.random(), state.shotGroups(), state.damageGroups(), retainedCosts, damageTallies, state.handling(), state.aiming(), attachments, state.charging(), state.actors()), RuleEngine.Empty.INSTANCE, signals);
     }
 }

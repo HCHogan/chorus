@@ -41,7 +41,7 @@ class WeaponHandlingStorageTest {
         var reencoded = EffectCheckpointCodec.encode(saved);
         assertTrue(reencoded.toString().contains("chorus:effect/weapon/weapon_definition_v4"));
         assertFalse(reencoded.toString().contains("\"chorus:effect/weapon/weapon_definition\""));
-        assertEquals("chorus:effect/effect_state_v5", reencoded.getAsJsonObject("state").get("$").getAsString());
+        assertEquals("chorus:effect/effect_state_v6", reencoded.getAsJsonObject("state").get("$").getAsString());
         assertEquals(saved, EffectCheckpointCodec.decode(reencoded));
         session.observe(199_999, List.of()); assertTrue(world.isEmpty());
         session.observe(200_000, List.of());

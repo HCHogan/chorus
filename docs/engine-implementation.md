@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-14：持有者常驻配置与受管根来源
+
+新增 `ActorBinding / ActorChange / ActorSources`，以一个已有 SOURCE Bundle 及其 includes 组合持有者的常驻规则。配置与唯一 `actor/` 根来源在时间轴中共同提交；普通来源 API 不能删除或替换该来源。重复配置不重复附加或重启定时器，替换时旧 detached / 新 attached 都观察完整的新配置。未知世界结果保留已经提交的配置和实际效果，停止后续工作，不重放附加。技能选择、装备与资源账户保持独立。
+
+EffectState v6 保存 actors，所有状态复制和时钟推进保留配置，恢复严格核对来源投影而不重新执行初始化。v5 保留原存储身份和字段，通过显式迁移得到空 actors；不从历史普通来源猜测注册关系。存储形状新增三项至 683，原 680 项不变。共享 Solar 技能参考宿主改用此入口管理 `solar_scaling`，包括 Firebolt / Fusion / Solar Grenade / Phoenix Dive / Snap 组合；已接受效果仍保留实际灼烧伤害及初始技能信用。
+
+新增 9 项核心测试与 3 项共享原生场景，覆盖组合参数、原子替换、重复提交、两持有者隔离、错误 / 过期请求、受管来源保护、时钟与检查点、解绑工作和未知实际治疗。定向 `/tmp/chorus-actor-targeted4.log` 通过 24 项核心回归、3 项 Fabric 场景和 NeoForge 测试编译。早期失败的测试服保存现场整体保留为 `fabric/build/run/gameTest/world-retained-actor-20261014T022601Z`，没有放松生产保存恢复策略。
+
+最终 `/tmp/chorus-actor-full-gate3.log` BUILD SUCCESSFUL（3 分 27 秒）：2242 项 JUnit 无失败 / 错误 / 跳过、Fabric 1303 项、NeoForge 1318 项世界测试及两端发布 jar 全部通过，共享场景 1302 项。`build/reports/actor-binding/audit.json` 核验原 680 项存储形状不变、三项新增、发布主类 1211 / 1204 个字节匹配且无测试泄漏、Gradle CRLF 保持。10 项 Compendium 工具测试、固定来源 / 报告检查、Snap 原表三格与快照及来源哈希核验通过；本次仅更新研究记录中的宿主依赖描述，不改写原作数值或未决项。
+
+首轮完整回归暴露 Ascension 的 10 米目标使用默认 8 格场地；后续又暴露 Winter's Shroud 的 9 米边界场景存在相同前置缺口。这三项测试改用覆盖全部目标的现有结构，等待实体索引可用，并在施放前确认边界两侧的实体已加载且处于模拟范围；原有半径、阵营、时序和实际伤害断言保留。测试场地修复独立提交，没有扩大生产查询的加载权限。
+
+审阅总量保持 133（131 partial、2 not_applicable、0 verified）。宿主 API 与领域恢复已实现；正式玩家自动注册、职业 / 解锁校验、角色死亡 / 离线 / 跨维度政策、完整根包内容目录及物理实体跨进程恢复仍未完成。本批没有新增图形客户端验收，HUD 与生产内容装配不能据此视为完成。接口见[持有者常驻配置](engine-data-packs.md#持有者常驻配置)。
+
 ### 2026-10-14：共享 Solar 数值来源不再随技能选择消失
 
 追查响指组合时发现装配缺口：Firebolt / Fusion / Solar Grenade 的部分核心宿主没有绑定 `solar_scaling`，会产生层数和零伤害的 Scorch 命令；原生宿主又可能借用默认选择的 Phoenix Dive 所带来源，取消选择后同样失效。新增四项核心回归在修复前全部失败（`/tmp/chorus-solar-assembly-red.log`），明确证明了取消选择、恢复与混合来源下的零基础伤害。

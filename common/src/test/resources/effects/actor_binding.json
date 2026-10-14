@@ -1,0 +1,27 @@
+{
+  "version": "test-1",
+  "profiles": [{"id":"test:actor_damage","version":"test-1","input_unit":"damage","steps":[
+    {"type":"chorus:apply","id":"power","operation":"multiply","group":{"name":"power","reduction":"sum"}}
+  ]}],
+  "buffs":[{"definition":{"id":"test:actor_lingering","version":"test-1","duration":1}}],
+  "bundles":[
+    {"id":"test:actor","includes":["test:actor_scaling","test:actor_lifecycle"]},
+    {"id":"test:actor_quiet","includes":["test:actor_scaling"]},
+    {"id":"test:actor_scaling","parameters":{"power":"delta"},"modifiers":[
+      {"id":"power","profile":"test:actor_damage","stage":"power","group":"power","op":"multiply","stacking_key":"test:actor_power","confidence":"assumed","reference":"Synthetic actor assembly parameter","value":{"type":"chorus:source_parameter","name":"power"}}
+    ]},
+    {"id":"test:actor_lifecycle","rules":[
+      {"id":"attach","on":"chorus:source_attached","if":{"type":"chorus:own_source"},"do":[
+        {"type":"chorus:grant_buff","buff":"test:actor_lingering"},
+        {"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}},
+        {"type":"chorus:schedule","name":"actor_tick","event":"test:actor_tick","delay":{"type":"chorus:constant","value":0.1,"unit":"second"}}
+      ]},
+      {"id":"detach","on":"chorus:source_detached","if":{"type":"chorus:own_source"},"do":[
+        {"type":"chorus:heal","amount":{"type":"chorus:constant","value":2,"unit":"damage"}}
+      ]},
+      {"id":"tick","on":"test:actor_tick","if":{"type":"chorus:own_timer","name":"actor_tick"},"do":[
+        {"type":"chorus:heal","amount":{"type":"chorus:constant","value":3,"unit":"damage"}}
+      ]}
+    ]}
+  ]
+}

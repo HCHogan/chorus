@@ -239,6 +239,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 List.of(new RuleEngine.Instruction<>((state, context) -> DamageGroups.close(state, (DamageGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(ShotGroups.DUE, ShotGroups.DUE, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> ShotGroups.expire(state, (ShotGroups.Handle) context.event().signal().payload()), ""))));
+        definitions.add(new RuleEngine.EventRule<>(com.imdomestic.chorus.effect.actor.ActorChange.EVENT, com.imdomestic.chorus.effect.actor.ActorChange.EVENT, (_, _) -> true,
+                List.of(new RuleEngine.Instruction<>((state, context) -> ((com.imdomestic.chorus.effect.actor.ActorChange) context.event().signal().payload()).apply(state, this), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceChange.EVENT, SourceChange.EVENT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> {
                     var change = (SourceChange) context.event().signal().payload();
@@ -584,6 +586,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public void validateSources(SourceBatch batch) { batch.edits().forEach(edit -> { unmanagedSource(edit.instance()); edit.after().ifPresent(this::validateSource); }); }
     public void validateSourceChange(SourceChange change) { unmanagedSource(change.instance()); change.replacement().ifPresent(this::validateSource); }
     private static void unmanagedSource(String instance) {
+        if (instance.startsWith(com.imdomestic.chorus.effect.actor.ActorSources.PREFIX)) throw new IllegalArgumentException("Actor sources must change through ActorChange");
         if (instance.startsWith("equipment/")) throw new IllegalArgumentException("Equipment sources must change through EquipmentChange");
         if (instance.startsWith(com.imdomestic.chorus.effect.ability.AbilitySources.PREFIX)) throw new IllegalArgumentException("Ability sources must change through AbilityChange");
     }
@@ -1180,6 +1183,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (event.signal().type().equals(DamageGroups.DUE) || event.signal().type().equals(ShotGroups.DUE) || event.signal().type().equals(WeaponFire.REQUEST) || event.signal().type().equals(WeaponReload.REQUEST) || event.signal().type().equals(WeaponReload.DUE) || event.signal().type().equals(WeaponReload.NEXT))
             return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(AbilityChange.EVENT) || event.signal().type().equals(AbilityUse.EVENT) || event.signal().type().equals(SourceChange.EVENT)) return List.of(new RuleEngine.RuleBinding(event.signal().type(), event.signal().type(), RuleEngine.Empty.INSTANCE));
+        if (event.signal().type().equals(com.imdomestic.chorus.effect.actor.ActorChange.EVENT)) return List.of(new RuleEngine.RuleBinding(com.imdomestic.chorus.effect.actor.ActorChange.EVENT, com.imdomestic.chorus.effect.actor.ActorChange.EVENT, RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(SourceBatch.EVENT)) return List.of(new RuleEngine.RuleBinding(SourceBatch.EVENT, SourceBatch.EVENT, RuleEngine.Empty.INSTANCE));
         if (event.signal().type().equals(EquipmentChange.EVENT)) return List.of(new RuleEngine.RuleBinding(EquipmentChange.EVENT, EquipmentChange.EVENT, RuleEngine.Empty.INSTANCE));
         var result = new ArrayList<RuleEngine.RuleBinding>();
@@ -1235,6 +1239,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         state.sources().values().forEach(this::validateSource);
         state.abilities().values().forEach(loadout -> loadout.slots().forEach(this::validateSelection));
         abilitySources.validate(state);
+        com.imdomestic.chorus.effect.actor.ActorSources.validate(state);
         state.equipment().forEach((holder, loadout) -> equipment.sources(holder, loadout).forEach((id, source) -> {
             if (!source.equals(state.sources().get(id))) throw new IllegalArgumentException("Equipment source projection is inconsistent: " + id);
         }));

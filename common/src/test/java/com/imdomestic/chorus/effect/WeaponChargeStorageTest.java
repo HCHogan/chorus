@@ -63,8 +63,8 @@ class WeaponChargeStorageTest {
     }
     @Test void oldV4StateKeepsItsExistingAttachmentAndNeverInventsACharge()throws Exception{
         var h=new TimedPayloadTest.Harness(false);h.fire();h.hit(5,false);h.until(100_000);var state=h.state();assertFalse(state.attachments().isEmpty());
-        var wire=EffectCheckpointCodec.DATA.encode(state).getAsJsonObject();wire.addProperty("$","chorus:effect/effect_state_v4");wire.getAsJsonObject("v").remove("charging");
-        var migrated=EffectCheckpointCodec.DATA.decode(wire,EffectState.class);assertEquals(state,migrated);assertTrue(migrated.charging().isEmpty());assertEquals("chorus:effect/effect_state_v5",EffectCheckpointCodec.DATA.encode(migrated).getAsJsonObject().get("$").getAsString());
+        var wire=EffectCheckpointCodec.DATA.encode(state).getAsJsonObject();wire.addProperty("$","chorus:effect/effect_state_v4");wire.getAsJsonObject("v").remove("charging");wire.getAsJsonObject("v").remove("actors");
+        var migrated=EffectCheckpointCodec.DATA.decode(wire,EffectState.class);assertEquals(state,migrated);assertTrue(migrated.charging().isEmpty());assertEquals("chorus:effect/effect_state_v6",EffectCheckpointCodec.DATA.encode(migrated).getAsJsonObject().get("$").getAsString());
         wire.getAsJsonObject("v").add("charging",EffectCheckpointCodec.DATA.encode(java.util.Map.of()));assertThrows(IllegalArgumentException.class,()->EffectCheckpointCodec.DATA.decode(wire,EffectState.class));
     }
     @Test void oldWeaponDefinitionAndFireEnumKeepTheirExactAcceptedNames()throws Exception{

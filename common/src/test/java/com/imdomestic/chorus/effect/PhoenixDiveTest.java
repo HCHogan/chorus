@@ -36,7 +36,7 @@ class PhoenixDiveTest {
             this(program(calibrated), mode);
         }
         Harness(CompiledEffects program, EffectState.Mode mode) {
-            super(program, mode); choose("class", "phoenix_dive"); bind("player", "test:phoenix_inputs"); bind("player", D + "solar_scaling");
+            super(program, mode); choose("class", "phoenix_dive"); bind("player", "test:phoenix_inputs"); send(new com.imdomestic.chorus.effect.actor.ActorChange("player",Optional.empty(),Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding(D+"solar_scaling"))).signal());
         }
         @Override double energy() { return state().resources().get(new ResourceState.Key("player", ENERGY)).value(); }
         @Override RuleEngine.ActionResult world(RuleEngine.WorldRequest r) {

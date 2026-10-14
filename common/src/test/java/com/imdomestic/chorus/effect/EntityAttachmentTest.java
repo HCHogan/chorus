@@ -115,9 +115,9 @@ class EntityAttachmentTest {
         var clock = EffectCheckpointTest.clock(); assertEquals(h.expiresAt(), clock.nextDeadline(state));
         state = clock.advance(state, h.expiresAt()).state(); assertTrue(state.attachments().isEmpty());
         assertEquals(EntityAttachments.Outcome.EXPIRED, local(state, h).outcome());
-        var encoded = EffectCheckpointCodec.DATA.encode(state).getAsJsonObject(); encoded.addProperty("$", "chorus:effect/effect_state_v3"); encoded.getAsJsonObject("v").remove("attachments"); encoded.getAsJsonObject("v").remove("charging");
+        var encoded = EffectCheckpointCodec.DATA.encode(state).getAsJsonObject(); encoded.addProperty("$", "chorus:effect/effect_state_v3"); encoded.getAsJsonObject("v").remove("attachments"); encoded.getAsJsonObject("v").remove("charging"); encoded.getAsJsonObject("v").remove("actors");
         var migrated = EffectCheckpointCodec.DATA.decode(encoded, EffectState.class); assertEquals(state, migrated);
-        assertEquals("chorus:effect/effect_state_v5", EffectCheckpointCodec.DATA.encode(migrated).getAsJsonObject().get("$").getAsString());
+        assertEquals("chorus:effect/effect_state_v6", EffectCheckpointCodec.DATA.encode(migrated).getAsJsonObject().get("$").getAsString());
     }
     @Test void detachedFuseRetainsTheRecordedOffsetAcrossSourceRemovalAndCheckpoint() throws Exception {
         var p = load("entity_attachment"); var queries = new ArrayList<TargetQuery>(); var cues = new ArrayList<String>();

@@ -113,6 +113,7 @@
       "com.imdomestic.chorus.ProjectileFuseGameTest",
       "com.imdomestic.chorus.IncineratorSnapGameTest",
       "com.imdomestic.chorus.SolarProducerAssemblyGameTest",
+      "com.imdomestic.chorus.ActorBindingGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",
       "com.imdomestic.chorus.StrandDefenseGameTest",

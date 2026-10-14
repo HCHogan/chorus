@@ -64,6 +64,26 @@ chorus engine stop
 - `chorus:source_attached / source_detached` 事实携带 source_instance / bundle 引用及完整不可变来源快照。静态规则用 `chorus:own_source` 匹配本来源，包含原标签和归属，避免相同 bundle 或同键新词条处理旧词条的清理。被删除来源以旧快照执行自己的 detached 规则；其他活动来源仍可观察该事实。Java 负载为 `SourceChange.Fact`，通过 `EffectEvent.Carrier` 读取事件，不应强转为裸 `EffectEvent`。Buff 结束仍使用已有的 ended 快照协议。
 - `stop` 显式丢弃该维度运行时的暂态状态。已有运行时时，start 会拒绝覆盖；不会借重新启动偷偷清空来源、Buff、定时器或失败记录。
 
+## 持有者常驻配置
+
+`ActorBinding` 管理一个持有者独立于装备与技能槽的常驻 SOURCE 根包。规则内容仍使用普通 Bundle 和 `includes`；没有第二套角色规则语法。参数按展开后根包的声明检查，根包的标签 / 固定参数保存在绑定中。给定根包可组合基础伤害、资源修饰、被动规则及其附加 / 移除反应。
+
+```java
+var before = Optional.ofNullable(runtime.state().engine().domain().actors().get(owner));
+var after = new ActorBinding("chorus_d2:solar_scaling");
+runtime.actor(new ActorChange(owner, before, Optional.of(after)));
+```
+
+带参数的配置使用 `new ActorBinding(bundle, tags, Map.of("power", new Measure(1, Unit.DELTA)))`。这是可信服务端宿主入口；正式角色、职业、解锁校验和上线自动加入由内容宿主决定，不允许直接把任意客户端提交当作授权。它不自动选择技能、转移装备、重置资源、授予武器信用，也不自动给所有世界实体安装 D2 规则。
+
+`EffectState.actors` 保存配置；`actor/<holder.length()>:<holder>` 是唯一受管来源身份，origin.owner 为持有者、origin.source 为该身份，weapon / ability 为空。普通 `bind / unbind / SourceBatch` 不得修改 `actor/` 命名空间。启动和恢复核对配置与完整来源投影，缺失、孤立或错配来源均拒绝，不静默补绑并重放附加动作。
+
+`ActorChange` 必须携带完整 before / after；旧配置不符、未知包、BUFF 包或参数错误在写入前拒绝。同一配置重复提交为空操作，不重复附加、不重启定时器。替换先完整发布新配置和来源，再依次发出旧来源 detached、新来源 attached，旧清理规则保留自己的不可变快照。正常事件入口先结算此前时间；后续恢复 / 属性 / 行动门槛读取新配置。
+
+解除配置用 `after = Optional.empty()`。它结束这个根来源及受其约束的工作，已经授予的 Buff 与 detached 动作沿用各自生命周期；技能选择、装备和账户不会被顺便清空。死亡、离线和维度变更也不会隐式解除配置，具体持有者生命周期政策仍由宿主提供。保存 / 恢复保留绑定且不重复执行 attached。
+
+存储新增 EffectState v6、ActorBinding 和 ActorChange 三项身份；原 v5 字段保持完整，通过显式迁移得到空 actors，不从旧的普通来源猜测角色注册。其余旧状态版本继续沿各自迁移路径恢复。普通状态复制和时钟推进都保留 actors。参考 Solar 技能宿主已通过此入口管理 `solar_scaling`；它不再是可误删的散装管理来源。
+
 ## 非致死生命支付
 
 `chorus:spend_health` 是独立的世界动作，供内容明确消耗生命，不能通过普通 `damage` 或负数治疗替代：
@@ -3389,12 +3409,12 @@ Profile把副本总数限于0–3，当前source只有在目标共享Armor Charg
 加载 `solar.json` 只声明规则目录，不会自动绑定 `chorus_d2:solar_scaling`。宿主须在该持有者第一次产生 Solar 状态之前，以稳定身份安装一份常驻 SOURCE；它把逐目标 `solar_payload` 注入 `solar_outgoing`，随后才经过共享增伤阶段。这个基础来源不属于 Phoenix Dive、手雷、近战或武器的选择期效果，不能随任意一个槽清除。
 
 ```java
-var sourceId = "solar-system/" + owner;
-runtime.bind(new EffectSource(sourceId, "chorus_d2:solar_scaling", owner,
-        new BuffInstance.Origin(owner, sourceId, "", ""), Set.of()));
+var before = Optional.ofNullable(runtime.state().engine().domain().actors().get(owner));
+runtime.actor(new ActorChange(owner, before,
+        Optional.of(new ActorBinding("chorus_d2:solar_scaling"))));
 ```
 
-这是宿主装配片段，不是新的自动玩家初始化协议。正常领域检查点保留这份来源，恢复后不重复创建；真实角色生命周期及正式玩家目录仍须由宿主协调。重复等价来源的 payload 贡献按同族 MAX，不相加。完整状态伤害快照会捕获当时有效的贡献；漏装后产生的零基数不能靠稍后补绑来追溯修正。
+此片段使用[持有者常驻配置](#持有者常驻配置)，自动玩家初始化仍由宿主提供。正常领域检查点保留配置和受管来源，恢复后不重复创建；真实角色生命周期及正式玩家目录仍须由宿主协调。重复等价来源的 payload 贡献按同族 MAX，不相加。完整状态伤害快照会捕获当时有效的贡献；漏装后产生的零基数不能靠稍后补绑来追溯修正。
 
 Phoenix Dive 定义已移除原来选择期 `effects.solar`，仅保留自己的回充来源。参考宿主在持有者层装配共享数值，Firebolt / Fusion / Solar Grenade / Snap 也不再依赖恰好选中了 Phoenix Dive。`SolarProducerAssemblyTest` 验证取消选择、领域恢复、重复系统来源以及混合手雷的首来源归因；同名世界测试在四个实际生产者取消选择后，用原生 Scorch 的正生命损失和确认死亡回执验收。只检查状态层数或出现一条伤害命令不足以证明管线接通。
 
@@ -4090,6 +4110,6 @@ Solar 参考定义新增普通 `solar_grenade_throw_speed` Profile，speed 参�
 
 每次爆炸重新查询当前 BODY、视线和敌我关系，逐受害者捕获生命并用 damage_entity_snapshot 写入。`incinerator_snap_outgoing` 包含共享进攻阶段，`incinerator_snap_falloff` 根据距爆炸中心的米数返回倍率，通过 radial_delta 晚绑定。确认 APPLIED、非致命且 effective_with_absorption > 0 后才申请状态；拒绝状态不撤销先前伤害。来源同时声明 melee_ability、ability_damage、melee_damage、solar_damage，使初始来源的技能与击杀信用进入共享 Scorch / Ignition。
 
-共享 `solar_scaling` 必须作为持有者常驻系统来源绑定；仅把它放入 Program 不会自动生效。它不随近战选择移除，因此卸下 Snap 后已发火花与衍生状态继续使用共享数值阶段。该依赖已在共享 Solar 技能宿主中统一执行，包含 Phoenix Dive、Firebolt、Fusion、Solar Grenade 与本技能；正式玩家初始化仍未自动装配。单元验收同时检查直接近战加成只提高直接爆炸、衍生灼烧 / 点燃继续沿共享 Solar 分类结算，不能把保留近战击杀信用当作重复应用直接增伤的理由。
+共享 `solar_scaling` 必须作为持有者常驻系统规则装配；参考宿主通过 ActorBinding 管理，单纯放入 Program 不会自动生效。它不随近战选择移除，因此卸下 Snap 后已发火花与衍生状态继续使用共享数值阶段。该依赖已在共享 Solar 技能宿主中统一执行，包含 Phoenix Dive、Firebolt、Fusion、Solar Grenade 与本技能；正式玩家初始化仍未自动装配。单元验收同时检查直接近战加成只提高直接爆炸、衍生灼烧 / 点燃继续沿共享 Solar 分类结算，不能把保留近战击杀信用当作重复应用直接增伤的理由。
 
 `incinerator_snap_test_calibration.json` 单独提供速度、重力、阻力、寿命、射程、扇角、近距半径与启动距离、爆炸半径、接触偏移、Guardian 伤害及两个外部 Profile。测试中的平坦衰减、27 点 Guardian 基数与所有几何均为显式输入。五次实际爆炸到共享点燃、实际 Scorch 击杀到 Sunbracers Ready，再到付费 Solar Grenade 的组合有原生世界验收；完整原作校准、生产目录 / 职业限制与物理实体跨进程恢复仍未完成。来源及具体数值见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。
