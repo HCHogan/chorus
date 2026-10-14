@@ -92,6 +92,16 @@ public final class TimelineEngine<S> {
         return new State<>(restored, Optional.empty(), Map.of(), Optional.empty());
     }
 
+    /** Trusted host projection at the same settled clock; no rule, receipt or identity is replayed or discarded. */
+    public State<S> replaceDomain(State<S> state, S domain) {
+        var before = checkpoint(state);
+        var replacement = restore(new Checkpoint<>(before.version(), domain, before.timeMicros(), before.nextEvent(), before.nextFrame())).engine();
+        var next = new RuleEngine.State<>(replacement.version(), replacement.domain(), replacement.timeMicros(),
+                replacement.nextEvent(), replacement.nextFrame(), replacement.facts(), replacement.frames(),
+                replacement.pending(), state.engine().receipts(), replacement.failure());
+        return new State<>(next, state.requested(), state.receipts(), state.abandoned());
+    }
+
     public Transition<S> transition(State<S> state, Input input) {
         Objects.requireNonNull(input);
         if (input instanceof Start start) {

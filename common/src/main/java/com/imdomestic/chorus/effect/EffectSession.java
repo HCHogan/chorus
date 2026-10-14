@@ -16,6 +16,7 @@ public final class EffectSession {
     private final Function<WorldRequest, ActionResult> world;
     private final OperationLedger ledger;
     private final Optional<EffectProgram> program;
+    private final Thread ownerThread = Thread.currentThread();
     private TimelineEngine.State<EffectState> state;
     private boolean running;
 
@@ -42,9 +43,13 @@ public final class EffectSession {
         }
     }
     public Checkpoint checkpoint() {
+        thread();
         if (running) throw new IllegalStateException("Cannot checkpoint during a world boundary");
-        return new Checkpoint(program.orElseThrow(() -> new IllegalStateException("Checkpoint requires a pinned data-defined catalogue")),
-                engine.checkpoint(state));
+        var before = state;
+        var saved = new Checkpoint(program.orElseThrow(() -> new IllegalStateException("Checkpoint requires a pinned data-defined catalogue")),
+                engine.checkpoint(before));
+        current(before);
+        return saved;
     }
     /** Reconnect to the corresponding world state; this method does not replay or reconcile world writes. */
     public static EffectSession restore(CompiledEffects program, EffectClock clock, int budget, Checkpoint checkpoint,
@@ -56,10 +61,44 @@ public final class EffectSession {
     }
     public TimelineEngine.State<EffectState> state() { return state; }
     public boolean running() { return running; }
+    private void thread() {
+        if (Thread.currentThread() != ownerThread) throw new IllegalStateException("Effect session belongs to its owner thread");
+    }
+    private void current(TimelineEngine.State<EffectState> expected) {
+        thread();
+        if (running || state != expected || !state.idle() || state.engine().failure().isPresent() || state.abandoned().isPresent())
+            throw new IllegalStateException("Domain publication requires the original healthy settled session");
+    }
+    /** Opaque, single-use publication prepared against the exact live timeline, not merely equal account values. */
+    public static final class DomainUpdate {
+        private final EffectSession session;
+        private final TimelineEngine.State<EffectState> before, after;
+        private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after) {
+            this.session = session; this.before = before; this.after = after;
+        }
+    }
+    /** The trusted host validates domain semantics. Preparation may inspect clock policy but executes no rules. */
+    public DomainUpdate prepareDomain(TimelineEngine.State<EffectState> expected, EffectState domain) {
+        current(expected);
+        var next = engine.replaceDomain(expected, Objects.requireNonNull(domain));
+        current(expected); // A custom clock policy must not have reentered this session while validating.
+        return new DomainUpdate(this, expected, next);
+    }
+    /** Validate every participant first, then publish with no callbacks between writes. All sessions share this thread. */
+    public static void commitDomains(List<DomainUpdate> updates) {
+        var batch = List.copyOf(updates);
+        var sessions = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<EffectSession, Boolean>());
+        for (var update : batch) {
+            if (!sessions.add(update.session)) throw new IllegalArgumentException("Duplicate session in domain publication");
+            update.session.current(update.before);
+        }
+        for (var update : batch) update.session.state = update.after;
+    }
     public void start(long time, Signal signal) { start(new Start(time, signal)); }
     public void observe(long time, List<Signal> facts) { start(new Start(time, facts)); }
     public void observe(long time, List<Signal> facts, Payload committed) { start(new Start(time, facts, committed)); }
     private void start(Start start) {
+        thread();
         if (running || !state.idle() || state.engine().failure().isPresent()) throw new IllegalStateException("Cannot interleave or resume a failed world boundary");
         ledger.nextBoundary(); running = true;
         try {
