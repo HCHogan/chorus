@@ -187,6 +187,11 @@ public final class ResourceSessionAuthority {
                     var result = ResourceAuthority.refund(before.worlds(), refund.issuer(), refund.handle(), refund.fraction()); after = result.worlds();
                     receipt = new ResourceRequests.Refunded(refund, result.result(), result.recipient());
                 }
+                case ResourceMutations.Request mutation -> {
+                    var frame = before.timelines().get(caller).engine().frames().getFirst();
+                    var result = ResourceMutations.apply(before.worlds(), caller, request.id(), mutation, frame.retainedResults());
+                    after = result.worlds(); receipt = result.receipt();
+                }
             }
             var emitted = ResourceRequests.facts(caller, request.id(), receipt);
             var facts = emitted.isEmpty() ? Map.<String, List<RuleEngine.Signal>>of()

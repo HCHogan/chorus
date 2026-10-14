@@ -3,11 +3,44 @@ package com.imdomestic.chorus.effect.resource;
 import com.imdomestic.chorus.effect.EffectEvent;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.stat.*;
+import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
 /** Common event measurements for continuous and explicit account changes. */
 public final class ResourceFacts {
     private ResourceFacts() {}
+    public static List<RuleEngine.Signal> completed(LinkedRecharge.Result result, BuffInstance.Origin origin) {
+        if (!result.completed()) return List.of();
+        var facts = new ArrayList<RuleEngine.Signal>();
+        facts.add(new RuleEngine.Signal("chorus:resource_changed", change(result.progressBefore(), result.progressAfter(), origin, "recharge_completed")));
+        var grant = granted(result.charges(), origin, "linked_recharge");
+        facts.add(new RuleEngine.Signal("chorus:resource_granted", grant));
+        if (result.charges().credited() > 0) facts.add(new RuleEngine.Signal("chorus:resource_changed", grant));
+        return List.copyOf(facts);
+    }
+    public static EffectEvent cyclic(CyclicRecharge.Result result, double requested, boolean yieldObserved, BuffInstance.Origin origin) {
+        var base = change(result.progressBefore(), result.progressAfter(), origin, "cyclic_recharge");
+        var numbers = new HashMap<>(base.numbers());
+        numbers.put("requested", new Measure(requested, Unit.CHARGE)); numbers.put("scaled", new Measure(result.energy(), Unit.CHARGE));
+        numbers.put("credited", new Measure(result.credited(), Unit.CHARGE)); numbers.put("overflow", new Measure(result.overflow(), Unit.CHARGE));
+        numbers.put("cycles", new Measure(result.cycles(), Unit.COUNT));
+        if (yieldObserved) numbers.put("yield", new Measure(result.yield(), Unit.CHARGE));
+        numbers.put("uses_credited", new Measure(result.uses().credited(), Unit.CHARGE)); numbers.put("uses_after", new Measure(result.uses().after().value(), Unit.CHARGE));
+        var refs = new HashMap<>(base.references()); refs.put("uses_resource", result.uses().after().key().resource());
+        var flags = new HashMap<>(base.flags()); flags.put("yield_observed", yieldObserved);
+        return new EffectEvent(base.actor(), base.victim(), origin, base.tags(), numbers, flags, refs);
+    }
+    public static List<RuleEngine.Signal> cyclicSignals(CyclicRecharge.Result result, double requested, boolean yieldObserved, BuffInstance.Origin origin) {
+        var facts = new ArrayList<RuleEngine.Signal>(); var fact = cyclic(result, requested, yieldObserved, origin);
+        facts.add(new RuleEngine.Signal("chorus:resource_granted", fact));
+        if (result.progressBefore().value() != result.progressAfter().value()) facts.add(new RuleEngine.Signal("chorus:resource_changed", fact));
+        if (result.cycles() > 0) {
+            facts.add(new RuleEngine.Signal("chorus:recharge_completed", fact));
+            var uses = granted(result.uses(), origin, "cyclic_recharge"); facts.add(new RuleEngine.Signal("chorus:resource_granted", uses));
+            if (result.uses().credited() > 0) facts.add(new RuleEngine.Signal("chorus:resource_changed", uses));
+        }
+        return List.copyOf(facts);
+    }
     public static EffectEvent change(ResourceState before, ResourceState after, BuffInstance.Origin origin, String reason) {
         return new EffectEvent(origin.owner(), after.key().holder(), origin, Set.of("chorus:resource_" + reason),
                 Map.of("before", new Measure(before.value(), Unit.CHARGE), "after", new Measure(after.value(), Unit.CHARGE),

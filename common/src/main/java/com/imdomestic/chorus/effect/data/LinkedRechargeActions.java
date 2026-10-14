@@ -46,13 +46,7 @@ public final class LinkedRechargeActions {
                 result = LinkedRecharge.complete(meter, uses, requested.value());
             }
             if (!result.completed()) return new RuleEngine.Local<>(e.state(), result, List.of());
-            var signals = new ArrayList<RuleEngine.Signal>();
-            signals.add(new RuleEngine.Signal("chorus:resource_changed",
-                    ResourceFacts.change(result.progressBefore(), result.progressAfter(), e.origin(), "recharge_completed")));
-            var granted = ResourceFacts.granted(result.charges(), e.origin(), "linked_recharge");
-            signals.add(new RuleEngine.Signal("chorus:resource_granted", granted));
-            if (result.charges().credited() > 0) signals.add(new RuleEngine.Signal("chorus:resource_changed", granted));
-            return new RuleEngine.Local<>(e.state().withResource(result.progressAfter()).withResource(result.charges().after()), result, signals);
+            return new RuleEngine.Local<>(e.state().withResource(result.progressAfter()).withResource(result.charges().after()), result, ResourceFacts.completed(result, e.origin()));
         }
     }
 }

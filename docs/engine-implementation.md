@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：归属领域的完整账户变更原语
+
+新增 ResourceMutations 的初始化、扣费、整次充能、容量调整、双账户 Linked / CyclicRecharge 与当前执行帧退款命令，复用 ResourceSessionAuthority.execute 的能力、原子提交及事实 inbox。空分区迁移后按目标定义 / 时钟初始化，重复初始化不补能量；扣费带调用领域和操作身份，不足额 / 免费结果不制造扣费事实。固定容量拒绝调整，双账户变更在所有验证通过后共同发布。Spent / PaymentRefunded 保留 CostResult，退款使用当前帧真实最新账本，不能从下一事件重用付款字符串；封存和溢出不会返还认领额度。原本地周期回充与远端原语共用事实构造。
+
+新增 11 项资源请求核心测试，覆盖实际运行会话的迁移后初始化 / 重复请求、付款身份、不足额 / 免费、整次份数与容量溢出、当前帧多次退款 / 下一事件拒绝、封存后延迟退款、退款溢出后再次腾出容量、双账户回充与大包能量、无效账户 / 定义不部分写入、未知结果不重放，以及全部十四种新命令 / 结果编码。首批 9 项及相关资源 / 检查点回归已通过 `/tmp/chorus-resource-mutations-core.log`。
+
+复查完成回调发现：实际世界退款后，complete 返回 Empty 会丢失新增认领记录，再次退款使余额从预期 0.4 变为 0.7；`/tmp/chorus-resource-mutations-retention-red.log` 已复现。RuleEngine 现先将实际 RetainedResult 放入帧上下文，再调用 complete；CostResult 的纯 merge 验证付款身份并保留较高认领额度，旧局部结果不能撤销退款或封存。另增 4 项通用解释器测试，验证裸回执 / WorldReceipt、完成期可见性、丢弃或回退结果，以及冲突付款不发布后续本地状态。15 项新增测试及相关回归通过 `/tmp/chorus-resource-mutations-retention-green.log`。
+
+最终完整回归 `/tmp/chorus-resource-mutations-final-gate.log` BUILD SUCCESSFUL（3 分 41 秒）：2313 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项，双端发布包与两次正常停服检查点通过。`build/reports/resource-mutations/audit.json` 核验原 693 项存储形状保持、新增十四项至 707、发布主类 1276 / 1269 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源。10 项 Compendium 工具测试、来源 / 报告检查通过；审阅仍为 133 条（131 partial、2 not_applicable、0 verified）。
+
+当前完成显式 Java 请求原语；普通 DSL 条件 / 公式 / 资源操作与技能支付的统一账户视图及自动路由仍待实现，原生传送、协调 tick 和联合世界保存尚未启用。没有新增原作数值、Compendium 完整效果覆盖或图形客户端验收。接口见[归属领域的资源变更](engine-data-packs.md#按账户归属执行的资源变更)。
+
 ### 2026-10-14：资源接收事实的原子排队与反馈执行
 
 ResourceSessionAuthority.execute 把 ResourceRequests 对应事实与余额 / 退款账本一起提交到实际接收会话。重复请求返回既有结果，不重复分配事件或入账。各次入账的 before / after / credited、原始来源和接收时刻保留；同会话沿用当前帧的 root / parent，跨会话使用独立事件身份，并携带 caller / operation / recipient lease 引用。排队过程不进入任何接收规则。

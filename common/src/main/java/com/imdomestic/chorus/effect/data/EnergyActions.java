@@ -164,16 +164,7 @@ public final class EnergyActions {
                 var recharge = CyclicRecharge.grant(observed.rechargeObserved(), observed.observed(), scaling.scaled(), yield.map(r -> r.output().value()).orElse(0.0));
                 var receipt = new CyclicResult(scaling, recharge, yield);
                 var after = e.state().withResource(recharge.progressAfter()).withResource(recharge.uses().after());
-                var fact = cyclicFact(receipt, e.origin());
-                var signals = new ArrayList<RuleEngine.Signal>();
-                signals.add(new RuleEngine.Signal("chorus:resource_granted", fact));
-                if (recharge.progressBefore().value() != recharge.progressAfter().value()) signals.add(new RuleEngine.Signal("chorus:resource_changed", fact));
-                if (recharge.cycles() > 0) {
-                    signals.add(new RuleEngine.Signal("chorus:recharge_completed", fact));
-                    var uses = ResourceFacts.granted(recharge.uses(), e.origin(), "cyclic_recharge");
-                    signals.add(new RuleEngine.Signal("chorus:resource_granted", uses));
-                    if (recharge.uses().credited() > 0) signals.add(new RuleEngine.Signal("chorus:resource_changed", uses));
-                }
+                var signals = ResourceFacts.cyclicSignals(recharge, receipt.normalized().requested(), receipt.yieldCalculation().isPresent(), e.origin());
                 return new RuleEngine.Local<>(after, new AbilityResult(holder, slot, ability, AbilityOutcome.GRANTED, Optional.of(receipt)), signals);
             }
             var result = (RuleEngine.Local<EffectState>) new Grant(observed.rechargeObserved().key().resource(), target, amount, basis, referenceFactors, tags, numbers).execute(e);
@@ -241,20 +232,4 @@ public final class EnergyActions {
         Numbers.nonnegative(scaled, "scaled recharge energy");
         return new Scaling(normalized, recipient, calculation, scaled);
     }
-    private static EffectEvent cyclicFact(CyclicResult result, BuffInstance.Origin origin) {
-        var r = result.recharge(); var base = ResourceFacts.change(r.progressBefore(), r.progressAfter(), origin, "cyclic_recharge");
-        var numbers = new HashMap<>(base.numbers());
-        numbers.put("requested", new Measure(result.normalized().requested(), Unit.CHARGE));
-        numbers.put("scaled", new Measure(result.scaled(), Unit.CHARGE));
-        numbers.put("credited", new Measure(r.credited(), Unit.CHARGE));
-        numbers.put("overflow", new Measure(r.overflow(), Unit.CHARGE));
-        numbers.put("cycles", new Measure(r.cycles(), Unit.COUNT));
-        if (result.yieldCalculation().isPresent()) numbers.put("yield", new Measure(result.observedYield(), Unit.CHARGE));
-        numbers.put("uses_credited", new Measure(r.uses().credited(), Unit.CHARGE));
-        numbers.put("uses_after", new Measure(r.uses().after().value(), Unit.CHARGE));
-        var refs = new HashMap<>(base.references()); refs.put("uses_resource", r.uses().after().key().resource());
-        var flags = new HashMap<>(base.flags()); flags.put("yield_observed", result.yieldCalculation().isPresent());
-        return new EffectEvent(base.actor(), base.victim(), origin, base.tags(), numbers, flags, refs);
-    }
-
 }

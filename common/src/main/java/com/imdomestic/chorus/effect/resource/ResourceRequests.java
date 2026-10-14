@@ -5,10 +5,10 @@ import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.Numbers;
 import java.util.*;
 
-/** Stable-address world requests. The host supplies resolved scaling and delivers returned facts to the recipient domain. */
+/** Stable-address world requests. The coordinator commits balances, actual receipts and recipient facts together. */
 public final class ResourceRequests {
     private ResourceRequests() {}
-    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund {}
+    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request {}
     public record Read(ResourceState.Key account) implements Request {
         public Read { Objects.requireNonNull(account); }
     }
@@ -24,7 +24,7 @@ public final class ResourceRequests {
             Numbers.fraction(fraction, "refund fraction");
         }
     }
-    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded {
+    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt {
         Request request();
         Optional<ResourceAuthority.Lease> recipient();
     }
@@ -61,6 +61,7 @@ public final class ResourceRequests {
     }
     /** Data only: invoking this does not execute recipient reactions or authorize another credit. */
     public static List<RuleEngine.Signal> facts(Receipt receipt) {
+        if (receipt instanceof ResourceMutations.Receipt mutation) return ResourceMutations.facts(mutation);
         if (receipt instanceof Granted granted) {
             var fact = ResourceFacts.granted(granted.grant(), granted.request().origin());
             return granted.grant().after().value() != granted.grant().before().value()

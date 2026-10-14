@@ -968,6 +968,26 @@ Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保�
 
 新增命令、结果与 lease 使用显式存储身份，可被已有检查点数据编码；WorldOperation 能力和未完成操作不能据此保存或恢复。当前没有改变普通 DSL 的 initialize / grant / spend / resize、资源表达式或技能支付语义，尚未自动选择请求路由。原生接入必须一并处理这些路径及联合保存，不能仅在传送时移动余额后直接启用。
 
+### 按账户归属执行的资源变更
+
+`ResourceMutations` 扩展同一个 ResourceRequests.Request / Receipt 协议，仍由 `host.execute(callerDomain, worldRequest)` 执行。它不把账户临时复制进调用领域。所有数值输入是已解析的不可变数据；初始化、定义约束、当前余额与容量在实际账户归属领域核对，账户时间使用接收领域当前逻辑时间。
+
+| 请求 | 实际行为与回执 |
+| --- | --- |
+| Initialize(account, origin) | 从归属分区的固定程序取得定义，只初始化不存在的账户；Initialized 保留 definition / before / account / created。空分区迁移后仍从新归属初始化，已有余额和动态容量不会重置。 |
+| Spend(account, amount, origin) | Spent 返回原账户、实际 SpendResult 和付款身份；不足额不扣款，零费用可成功，两者不生成扣费事实。付款身份包含 caller domain 与 frame / pc / invocation，跨调用领域不碰撞。 |
+| FullCharges(account, count, origin) | 整数份数直接入账，不应用回能缩放；FullGranted 保留 actual credited / overflow，并使用 full_charge 原因。 |
+| Resize(account, capacity, origin) | 固定容量定义拒绝调整；可变账户保留能量单位并丢弃超出新上限的部分。Resized 保留 discarded；无变化不生成事实，纯扩容不生成余额变化事实。 |
+| CompleteRecharge(progress, uses, amount?, origin) | 两账户必须属于同一持有者，progress 定义固定为一单位。完整周期同时重置进度并给予显式份数；省略 amount 时补满 uses。不完整周期没有写入收益或事实。 |
+| GrantCyclic(progress, uses, requested, scaled, cycleYield, origin) | 用已解析的单次能量包与周期产量，一次计算全部完整周期、余量和溢出；不逐次循环。进度与可用份数共同提交。这里是账户原语，不自动执行 GrantAbility 的选择、满额资格或数值 Profile。 |
+| RefundPayment(payment, fraction, origin) | 只接受当前调用帧 retainedResults 中的实际 CostResult，读取该付款的最新认领额度。PaymentRefunded 同时保留认领前记录与实际 RefundResult；仅知道付款字符串、前一个事件的付款或另一帧的付款不能授权退款。 |
+
+Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回执中的 RetainedResult，再调用动作的 complete；其上下文已经能读取该实际额度。完成处理器返回 Empty 不会丢掉付款记录。CostResult 合并时核对付款身份、账户和实付量，保留较大的已认领额度；返回旧付款快照也不能重新开放已经退款或封存的额度。局部绑定离开作用域不重置额度，退款溢出也消耗认领额度。已有 RetainCost 可把剩余额度转入签发领域的 RetainedCosts，封存后的原帧直接退款只能得到零额度；跨帧或延迟退款继续用带签发领域的 ResourceRequests.Refund。
+
+上述命令沿用同一 WorldOperation 的重复请求去重、原子余额 / 事实投递与未知结果保护。双账户操作在任何状态发布前完成全部定义和结果验证；第二账户不存在或不合法时，不能只消耗 progress。LinkedRecharge / CyclicRecharge 的事实构造与现有本地 DSL 共用 ResourceFacts，保持原事实次序与数值字段。新增十四个存储身份，原有字段形状保持；这不代表执行中帧或 inbox 已能独立保存。
+
+普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下一阶段需要向这些纯计算显式提供同一账户视图，再根据已解析输入选择请求；当前没有引入隐藏的全局可变余额查询，也没有启用不完整的自动路由。
+
 ### 接收会话的事实投递与反馈链
 
 execute 在同一批量提交中为接收会话分配事实身份并追加到时间线，不进入接收方规则。请求重入命中 WorldOperation 的既有结果时，不再次入账或排队。多个请求按提交顺序保留各自的 before / after / credited，事件时刻采用入账领域当时的逻辑时间。同会话请求沿用当前帧的 root / parent；跨会话使用接收领域自己的事件身份，并在事实 references 中保留 resource_caller_domain、resource_operation（frame / pc / invocation）、resource_recipient_domain 和 resource_lease_generation。原始 actor / source / weapon / ability / tags 保留。

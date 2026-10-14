@@ -8,6 +8,20 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/resource/resource_mutations/initialize", com.imdomestic.chorus.effect.resource.ResourceMutations.Initialize.class);
+        types.put("chorus:effect/resource/resource_mutations/spend", com.imdomestic.chorus.effect.resource.ResourceMutations.Spend.class);
+        types.put("chorus:effect/resource/resource_mutations/full_charges", com.imdomestic.chorus.effect.resource.ResourceMutations.FullCharges.class);
+        types.put("chorus:effect/resource/resource_mutations/resize", com.imdomestic.chorus.effect.resource.ResourceMutations.Resize.class);
+        types.put("chorus:effect/resource/resource_mutations/complete_recharge", com.imdomestic.chorus.effect.resource.ResourceMutations.CompleteRecharge.class);
+        types.put("chorus:effect/resource/resource_mutations/grant_cyclic", com.imdomestic.chorus.effect.resource.ResourceMutations.GrantCyclic.class);
+        types.put("chorus:effect/resource/resource_mutations/refund_payment", com.imdomestic.chorus.effect.resource.ResourceMutations.RefundPayment.class);
+        types.put("chorus:effect/resource/resource_mutations/initialized", com.imdomestic.chorus.effect.resource.ResourceMutations.Initialized.class);
+        types.put("chorus:effect/resource/resource_mutations/spent", com.imdomestic.chorus.effect.resource.ResourceMutations.Spent.class);
+        types.put("chorus:effect/resource/resource_mutations/full_granted", com.imdomestic.chorus.effect.resource.ResourceMutations.FullGranted.class);
+        types.put("chorus:effect/resource/resource_mutations/resized", com.imdomestic.chorus.effect.resource.ResourceMutations.Resized.class);
+        types.put("chorus:effect/resource/resource_mutations/recharged", com.imdomestic.chorus.effect.resource.ResourceMutations.Recharged.class);
+        types.put("chorus:effect/resource/resource_mutations/cyclic_granted", com.imdomestic.chorus.effect.resource.ResourceMutations.CyclicGranted.class);
+        types.put("chorus:effect/resource/resource_mutations/payment_refunded", com.imdomestic.chorus.effect.resource.ResourceMutations.PaymentRefunded.class);
         types.put("chorus:effect/resource/resource_authority/lease", com.imdomestic.chorus.effect.resource.ResourceAuthority.Lease.class);
         types.put("chorus:effect/resource/resource_requests/read", com.imdomestic.chorus.effect.resource.ResourceRequests.Read.class);
         types.put("chorus:effect/resource/resource_requests/grant", com.imdomestic.chorus.effect.resource.ResourceRequests.Grant.class);
