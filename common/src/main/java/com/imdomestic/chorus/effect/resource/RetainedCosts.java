@@ -41,14 +41,23 @@ public final class RetainedCosts {
         return entry == null || state.buffs().timeMicros() >= handle.dueAt() ? Optional.empty() : Optional.of(entry);
     }
     public static RuleEngine.Local<EffectState> refund(EffectState state, Handle handle, double fraction) {
+        var authorization = authorize(state, handle, fraction);
+        if (authorization.claim().isEmpty()) return new RuleEngine.Local<>(state, new Refunded(Optional.empty()), List.of());
+        var claim = authorization.claim().orElseThrow(); var account = state.resources().get(claim.before().account());
+        if (account == null) throw new IllegalArgumentException("Missing paid resource account: " + claim.before().account());
+        var result = Resources.applyRefund(account, claim);
+        return new RuleEngine.Local<>(authorization.state().withResource(result.grant().after()), new Refunded(Optional.of(result)), List.of());
+    }
+    /** The issuer's ledger consumes the claim; the supervisor can credit its stable account in another domain. */
+    public record Authorization(EffectState state, Optional<Resources.RefundClaim> claim) {
+        public Authorization { Objects.requireNonNull(state); Objects.requireNonNull(claim); }
+    }
+    public static Authorization authorize(EffectState state, Handle handle, double fraction) {
         Numbers.fraction(fraction, "refund fraction");
         var entry = live(state, handle);
-        if (entry.isEmpty()) return new RuleEngine.Local<>(state, new Refunded(Optional.empty()), List.of());
-        var cost = entry.orElseThrow().receipt(); var account = state.resources().get(cost.account());
-        if (account == null) throw new IllegalArgumentException("Missing paid resource account: " + cost.account());
-        var result = Resources.refund(account, cost, fraction);
-        var next = state.withResource(result.grant().after()).withRetainedCost(new Entry(handle, result.receipt()));
-        return new RuleEngine.Local<>(next, new Refunded(Optional.of(result)), List.of());
+        if (entry.isEmpty()) return new Authorization(state, Optional.empty());
+        var claim = Resources.claimRefund(entry.orElseThrow().receipt(), fraction);
+        return new Authorization(state.withRetainedCost(new Entry(handle, claim.after())), Optional.of(claim));
     }
     public static RuleEngine.Local<EffectState> close(EffectState state, Handle handle) {
         boolean removed = live(state, handle).isPresent();

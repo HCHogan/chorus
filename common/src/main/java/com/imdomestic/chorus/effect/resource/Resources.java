@@ -63,6 +63,16 @@ public final class Resources {
     }
     public record SpendResult(ResourceState after, boolean succeeded, CostReceipt receipt) implements CostResult {}
     public record RefundResult(ResourceResult grant, CostReceipt receipt) implements CostResult {}
+    /** A bounded entitlement, independent of the account's current location and available capacity. */
+    public record RefundClaim(CostReceipt before, CostReceipt after, double requested, double allowed) {
+        public RefundClaim {
+            Objects.requireNonNull(before); Objects.requireNonNull(after);
+            Numbers.nonnegative(requested, "requested refund"); Numbers.nonnegative(allowed, "allowed refund");
+            if (!before.operation().equals(after.operation()) || !before.account().equals(after.account()) || before.paid() != after.paid()
+                    || allowed > requested || allowed > remaining(before) || after.refundClaimed() != Math.min(before.paid(), add(before.refundClaimed(), allowed)))
+                throw new IllegalArgumentException("Invalid refund entitlement");
+        }
+    }
 
     public static CostReceipt latestClaim(CostReceipt referenced, Iterable<? extends com.imdomestic.chorus.rule.RuleEngine.ActionResult> results) {
         var latest = referenced;
@@ -88,12 +98,17 @@ public final class Resources {
 
     /** Caller stores the returned receipt; operation replay is handled by the rule executor. */
     public static RefundResult refund(ResourceState state, CostReceipt cost, double fraction) {
+        return applyRefund(state, claimRefund(cost, fraction));
+    }
+    public static RefundClaim claimRefund(CostReceipt cost, double fraction) {
         Numbers.fraction(fraction, "refund fraction");
-        if (!state.key().equals(cost.account())) throw new IllegalArgumentException("Refund belongs to a different account");
         double requested = multiply(cost.paid(), fraction);
         double allowed = Math.min(requested, subtract(cost.paid(), cost.refundClaimed()));
-        return new RefundResult(grant(state, requested, allowed), new CostReceipt(cost.operation(), cost.account(),
-                cost.paid(), Math.min(cost.paid(), add(cost.refundClaimed(), allowed))));
+        return new RefundClaim(cost, new CostReceipt(cost.operation(), cost.account(), cost.paid(), Math.min(cost.paid(), add(cost.refundClaimed(), allowed))), requested, allowed);
+    }
+    public static RefundResult applyRefund(ResourceState state, RefundClaim claim) {
+        if (!state.key().equals(claim.before().account())) throw new IllegalArgumentException("Refund belongs to a different account");
+        return new RefundResult(grant(state, claim.requested(), claim.allowed()), claim.after());
     }
 
     /** Changes are the chronological breakpoints supplied by expiration / attribute / cost processing. */
