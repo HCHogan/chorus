@@ -38,7 +38,7 @@ public final class LinkedRechargeActions {
             var definition = e.resourceDefinition(progress);
             if (definition.capacity() != 1 || definition.resizable())
                 throw new IllegalArgumentException("Linked recharge progress definition must be fixed at one unit");
-            var meter = e.resource(progress, target); var uses = e.resource(resource, target);
+            var meter = e.localResource(progress, target); var uses = e.localResource(resource, target);
             // Qualify the pair before evaluating a contextual yield. An unfinished cycle has no yield query.
             var result = LinkedRecharge.complete(meter, uses);
             if (result.completed() && amount.isPresent()) {

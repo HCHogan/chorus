@@ -54,8 +54,7 @@ public interface Condition {
         }
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {
-            return e.program().orElseThrow(() -> new IllegalStateException("Selected ability requires a compiled program"))
-                    .selectedAbility(e.state(), e.target(target), slot).filter(ability -> ability.tags().contains(tag)).isPresent();
+            return e.selectedAbility(e.target(target), slot).filter(ability -> ability.tags().contains(tag)).isPresent();
         }
     }
     /** Compare the selected base ability's receiving account, without resolving cast replacements or payment aliases. */
@@ -65,8 +64,7 @@ public interface Condition {
         }
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {
-            return e.program().orElseThrow(() -> new IllegalStateException("Selected ability requires a compiled program"))
-                    .selectedAbility(e.state(), e.target(target), slot).flatMap(AbilityDefinition::energyResource).filter(resource::equals).isPresent();
+            return e.selectedAbility(e.target(target), slot).flatMap(AbilityDefinition::energyResource).filter(resource::equals).isPresent();
         }
     }
     /** Resource-rate/gain events name the queried account in a reference; snapshots bind that identity separately. */

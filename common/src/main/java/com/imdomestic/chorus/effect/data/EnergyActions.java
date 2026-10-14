@@ -82,7 +82,7 @@ public final class EnergyActions {
     }
     static AbilityObservation observeAbility(Evaluation e, String slot, Evaluation.Target target) {
         String holder = e.target(target);
-        var ability = e.program().orElseThrow().selectedAbility(e.state(), holder, slot);
+        var ability = e.selectedAbility(holder, slot);
         var account = ability.flatMap(a -> a.cost()).map(cost -> e.resource(cost.resource(), target));
         var recharge = ability.flatMap(a -> a.energyResource()).map(resource -> e.resource(resource, target));
         return new AbilityObservation(holder, slot, ability.map(a -> a.id()), account, recharge);
@@ -153,13 +153,14 @@ public final class EnergyActions {
             // Direct resource grants remain explicit content operations; legacy single-account grants keep their receipts.
             if (observed.separateRecharge() && observed.observed().value() == observed.observed().capacity())
                 return new RuleEngine.Local<>(e.state(), new AbilityResult(holder, slot, ability, AbilityOutcome.ALREADY_FULL, Optional.empty()), List.of());
-            var definition = e.program().orElseThrow().selectedAbility(e.state(), holder, slot).orElseThrow();
+            e.requireLocalResource(observed.observed().key()); e.requireLocalResource(observed.rechargeObserved().key());
+            var definition = e.selectedAbility(holder, slot).orElseThrow();
             if (definition.rechargeYieldProfile().isPresent()) {
                 var scaling = scale(e, observed.rechargeObserved().key().resource(), target, amount, basis, referenceFactors, tags, numbers);
                 Optional<CalculationProfile.Result> yield = Optional.empty();
                 var query = ResourceFacts.change(observed.rechargeObserved(), observed.rechargeObserved(), e.origin(), "grant");
                 if (CyclicRecharge.completes(observed.rechargeObserved(), scaling.scaled()))
-                    yield = Optional.of(e.program().orElseThrow().calculate(e.state(), holder, query, definition.rechargeYieldProfile().orElseThrow(), new Measure(1, Unit.CHARGE), List.of()));
+                    yield = Optional.of(e.program().orElseThrow().calculate(e.state(), holder, query, definition.rechargeYieldProfile().orElseThrow(), new Measure(1, Unit.CHARGE), List.of(), e.resourceView()));
                 yield.ifPresent(r -> Validation.same(r.output().unit(), Unit.CHARGE));
                 var recharge = CyclicRecharge.grant(observed.rechargeObserved(), observed.observed(), scaling.scaled(), yield.map(r -> r.output().value()).orElse(0.0));
                 var receipt = new CyclicResult(scaling, recharge, yield);
@@ -190,7 +191,7 @@ public final class EnergyActions {
             return GAIN;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var account = e.resource(resource, target);
+            var account = e.localResource(resource, target);
             var scaling = scale(e, resource, target, amount, basis, referenceFactors, tags, numbers);
             var normalized = scaling.normalized(); var recipient = scaling.recipient(); var calculation = scaling.calculation();
             var grant = Resources.grant(account, normalized.requested(), scaling.scaled());
@@ -220,12 +221,12 @@ public final class EnergyActions {
             var refs = new HashMap<>(context.references()); refs.put("resource", resource);
             var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
             var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, id,
-                    new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of()));
+                    new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of(), e.resourceView()));
             scalarCalculation.ifPresent(result -> Validation.same(result.output().unit(), Unit.MULTIPLIER));
             var scalar = new RecipientScaling(definition.gainScalar(), scalarCalculation.map(result -> result.output().value()).orElse(definition.gainScalar()), scalarCalculation);
             recipient = Optional.of(scalar);
             var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
-                    new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of());
+                    new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of(), e.resourceView());
             Validation.same(result.output().unit(), Unit.CHARGE);
             calculation = Optional.of(result); scaled = result.output().value();
         }

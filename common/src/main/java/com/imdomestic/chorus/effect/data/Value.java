@@ -143,7 +143,7 @@ public interface Value {
         }
         @Override public Measure evaluate(Evaluation e) {
             return e.program().orElseThrow(()->new IllegalStateException("Attribute requires a compiled program"))
-                    .attribute(e.state(),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload())).output();
+                    .attribute(e.state(),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload()),e.resourceView()).output();
         }
     }
     /** A subject-local numeric profile query; units come from the profile rather than an assumed attribute kind. */
@@ -157,7 +157,7 @@ public interface Value {
         }
         @Override public Measure evaluate(Evaluation e) {
             return e.program().orElseThrow(() -> new IllegalStateException("Profile value requires a compiled program"))
-                    .profileValue(e.state(), e.target(target), profile, input.evaluate(e), NumericQuery.Path.from(e.context().event().signal().payload())).output();
+                    .profileValue(e.state(), e.target(target), profile, input.evaluate(e), NumericQuery.Path.from(e.context().event().signal().payload()), e.resourceView()).output();
         }
     }
     record ByStacks(List<Double> values, Unit quantity) implements Value {

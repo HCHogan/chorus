@@ -79,7 +79,7 @@ public final class ResourceCapacityActions {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             if (!e.resourceDefinition(resource).resizable()) throw new IllegalArgumentException("Resource is not resizable: " + resource);
-            var account = e.resource(resource, target); var value = capacity.evaluate(e);
+            var account = e.localResource(resource, target); var value = capacity.evaluate(e);
             Validation.same(value.unit(), Unit.CHARGE); positive(value.value());
             var result = Resources.resize(account, value.value());
             if (!result.changed()) return new RuleEngine.Local<>(e.state(), result, List.of());

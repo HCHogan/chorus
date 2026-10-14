@@ -8,8 +8,15 @@ import java.util.Map;
 
 public record Evaluation(EffectState state, RuleEngine.Context context, Map<String, BuffDefinition> buffs,
         Map<String, ResultShape> results, Map<String, ResourceDefinition> resources, Map<String, RuleEngine.ActionResult> retainedResults,
-        java.util.Optional<CompiledEffects> program) {
-    public Evaluation { retainedResults = Map.copyOf(retainedResults); java.util.Objects.requireNonNull(program); }
+        java.util.Optional<CompiledEffects> program, java.util.Optional<ResourceReadView> resourceView) {
+    public Evaluation {
+        retainedResults = Map.copyOf(retainedResults); java.util.Objects.requireNonNull(program); java.util.Objects.requireNonNull(resourceView);
+        resourceView.ifPresent(view -> view.require(program.orElseThrow(() -> new IllegalArgumentException("Resource views require a compiled catalogue")).program(), state));
+    }
+    public Evaluation(EffectState state, RuleEngine.Context context, Map<String, BuffDefinition> buffs, Map<String, ResultShape> results,
+            Map<String, ResourceDefinition> resources, Map<String, RuleEngine.ActionResult> retainedResults, java.util.Optional<CompiledEffects> program) {
+        this(state, context, buffs, results, resources, retainedResults, program, java.util.Optional.empty());
+    }
     public Evaluation(EffectState state, RuleEngine.Context context, Map<String, BuffDefinition> buffs, Map<String, ResultShape> results,
             Map<String, ResourceDefinition> resources, Map<String, RuleEngine.ActionResult> retainedResults) {
         this(state, context, buffs, results, resources, retainedResults, java.util.Optional.empty());
@@ -102,9 +109,21 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         var definition = resources.get(id); if (definition == null) throw new IllegalArgumentException("Unknown resource: " + id); return definition;
     }
     public ResourceState resource(String id, Target target) {
-        var account = state.resources().get(new ResourceState.Key(target(target), id));
+        var key = new ResourceState.Key(target(target), id);
+        var account = resourceView.map(view -> view.account(key)).orElseGet(() -> state.resources().get(key));
         if (account == null) throw new IllegalArgumentException("Missing resource account: " + id);
         resourceDefinition(id).validate(account); return account;
+    }
+    public void requireLocalResource(ResourceState.Key key) { resourceView.ifPresent(view -> view.requireLocal(key)); }
+    public ResourceState localResource(ResourceState.Key key) {
+        requireLocalResource(key); var account = state.resources().get(key);
+        if (account == null) throw new IllegalArgumentException("Missing local resource account: " + key);
+        resourceDefinition(key.resource()).validate(account); return account;
+    }
+    public ResourceState localResource(String id, Target target) { return localResource(new ResourceState.Key(target(target), id)); }
+    public java.util.Optional<com.imdomestic.chorus.effect.ability.AbilityDefinition> selectedAbility(String holder, String slot) {
+        var ownerState = resourceView.map(view -> view.owner(holder).state()).orElse(state);
+        return program.orElseThrow(() -> new IllegalArgumentException("Selected ability requires a compiled program")).selectedAbility(ownerState, holder, slot);
     }
     public com.imdomestic.chorus.effect.ammo.AmmoState ammo(Target weapon) {
         var state = this.state.ammunition().get(target(weapon));
@@ -114,7 +133,7 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account) {
         return account.capacityProfile().isEmpty() ? com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account)
                 : program.orElseThrow(() -> new IllegalArgumentException("Dynamic ammunition requires a compiled program"))
-                        .ammoCapacity(state, account, NumericQuery.Path.from(context.event().signal().payload()));
+                        .ammoCapacity(state, account, NumericQuery.Path.from(context.event().signal().payload()), resourceView.map(view -> view.withLocalState(state)));
     }
     public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(Target weapon) { return ammoView(state, ammo(weapon)); }
     /** Lexical visibility applies to the reference; refund accounting includes all executed branches. */

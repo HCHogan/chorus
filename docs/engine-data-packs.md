@@ -986,7 +986,21 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 上述命令沿用同一 WorldOperation 的重复请求去重、原子余额 / 事实投递与未知结果保护。双账户操作在任何状态发布前完成全部定义和结果验证；第二账户不存在或不合法时，不能只消耗 progress。LinkedRecharge / CyclicRecharge 的事实构造与现有本地 DSL 共用 ResourceFacts，保持原事实次序与数值字段。新增十四个存储身份，原有字段形状保持；这不代表执行中帧或 inbox 已能独立保存。
 
-普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下一阶段需要向这些纯计算显式提供同一账户视图，再根据已解析输入选择请求；当前没有引入隐藏的全局可变余额查询，也没有启用不完整的自动路由。
+普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下一节提供显式只读账户视图；规则条件 / 动作的自动查询边界、施放期替换与支付，以及根据解析结果选择请求仍需接入。当前没有引入隐藏的全局可变余额查询，也没有启用不完整的自动路由。
+
+### 资源查询的不可变视图
+
+`ResourceReadView` 引用一次 ResourceAuthority.Worlds 快照、查询领域与固定程序，不持有会话、可变目录或实时查询回调。`host.readView(domain)` 在健康、没有执行中帧的协调边界取得视图；世界回调内必须使用 `host.readView(caller, worldRequest)`，核对 caller 的当前 WorldOperation。错误会话、不同请求或已结束回调不能使用该能力。读取不发出资源事实，也不推进任何领域时间。视图只反映已提交状态；接收方若还有 inbox，读取不会替它执行反应，也不能把该快照当作已经结算的检查点。
+
+`program.resourceEvaluation(view, context, resultShapes)` 把视图显式交给普通 Value / Condition。Value.Resource 的 value / capacity / missing 读取受管持有者的实际归属账户，保留该账户原来的时间；不把账户复制或重标记到查询领域。未受管的本地账户仍使用查询领域本地状态。查询中的基础技能选择、SelectedAbilityTag / Resource 条件、AbilityEnergy 与 ObserveAbility 读取账户归属领域的基础技能配置，再一次观察可用账户和独立回充账户；不沿用旧领域留下的选择，也不把施放期替换当成基础选择。
+
+可通过 calculate / calculatePipeline / profileValue / attribute / ammoCapacity 的 resourceView 参数传递同一快照。嵌套 Profile、属性、弹匣容量以及本地回能的倍率 / 周期产量查询继续携带它，保留原数值依赖路径。它只改变资源和基础选择的读取；Buff、装备、来源、活动模式等仍取显式传入的查询领域状态，不自动跨领域合并。需要在接收者上下文计算时，调用者显式选用 `view.owner(holder)`，不能把余额所在领域的转移视为其他状态也已迁移。
+
+旧视图始终是旧观察：后续回能、改选或再次迁移不修改它，重新查询才得到新视图。Evaluation 要求视图与传入的领域状态是同一个不可变快照，并核对完整程序；不能仅因版本名相同就混用定义。读取受管账户时若定义不兼容或账户缺失，拒绝查询，不回退到旧领域的余额或零值。
+
+普通本地资源写入使用 localResource / requireLocalResource。带视图的 initialize、grant、spend、refund、full charge、resize、能量回充及双账户转换遇到远端分区时，要求改走按地址执行的请求；只读观察不授权在旧领域重建账户。本地账户的纯转换仍可读取视图中的外部资源条件。动作的提案需要查询新建弹匣等非资源数据时，`withLocalState` 只允许同一时刻、完整资源表完全不变的本地提案；它返回新视图，其他领域保持原快照，不发布任何会话状态。
+
+当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。普通编译规则目前不会自动获取视图或把本地动作转为世界请求；自动路由、施放期技能替换 / 支付及原生协调输入 / tick / 保存还未启用。
 
 ### 接收会话的事实投递与反馈链
 

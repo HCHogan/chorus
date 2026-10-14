@@ -120,6 +120,17 @@ public final class ResourceSessionAuthority {
     }
     /** Capture committed balances, including sessions with queued facts. This is not a settled checkpoint. */
     public ResourceAuthority.Worlds snapshot() { return boundary(() -> capture(true).worlds()); }
+    /** Immutable query input, not a checkpoint or permission to write an account observed in another domain. */
+    public ResourceReadView readView(String caller) {
+        return boundary(() -> new ResourceReadView(capture(true).worlds(), caller, binding(caller).program().program()));
+    }
+    /** The active world callback can query its own pending snapshot without entering another session. */
+    public ResourceReadView readView(String caller, RuleEngine.WorldRequest request) {
+        return boundary(() -> {
+            var operation = binding(caller).session().operation(request);
+            return new ResourceReadView(capture(true, Optional.of(new Caller(caller, operation))).worlds(), caller, binding(caller).program().program());
+        });
+    }
     private void settled() { bindings.values().forEach(binding -> binding.session().checkpoint()); }
     public ResourceAuthority.Partition claim(String holder, String domain) {
         return boundary(() -> {

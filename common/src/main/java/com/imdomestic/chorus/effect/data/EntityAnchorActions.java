@@ -93,7 +93,7 @@ public final class EntityAnchorActions {
             var wrapped = e.context().command(EntityAnchor.GuardedDamage.class);
             var c = e.context();
             var unwrapped = new RuleEngine.Context(c.event(), c.ruleInstance(), c.scope(), c.bindings(), c.operation(), c.retainedResults(), Optional.of(wrapped.damage()));
-            return damage.complete(new Evaluation(e.state(), unwrapped, e.buffs(), e.results(), e.resources(), e.retainedResults(), e.program()), receipt);
+            return damage.complete(new Evaluation(e.state(), unwrapped, e.buffs(), e.results(), e.resources(), e.retainedResults(), e.program(), e.resourceView()), receipt);
         }
     }
 }

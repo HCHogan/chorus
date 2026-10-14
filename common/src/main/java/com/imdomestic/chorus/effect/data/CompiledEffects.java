@@ -807,7 +807,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new Validation(buffs, results, bundle.scope() == EffectProgram.Scope.BUFF, profiles, resources, shields, bundle.parameters(), bundles);
     }
     Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
-        return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this));
+        return evaluation(state, context, results, Optional.empty());
+    }
+    private Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results, Optional<ResourceReadView> resourceView) {
+        return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this), resourceView);
+    }
+    /** Explicit frozen supervisor scope; evaluating it never refreshes or writes another session. */
+    public Evaluation resourceEvaluation(ResourceReadView view, RuleEngine.Context context, Map<String, ResultShape> results) {
+        return evaluation(view.state(), context, results, Optional.of(view));
     }
     private RuleEngine.EventRule<EffectState> compile(EffectProgram.Bundle bundle, EffectProgram.Rule rule, List<RuleEngine.EventRule<EffectState>> continuations) {
         rule.procKey().ifPresent(CompiledEffects::namespaced);
@@ -1337,6 +1344,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return ammoCapacity(state,account,new NumericQuery.Path(dependencies,java.util.Set.of()));
     }
     public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoCapacity(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account, NumericQuery.Path dependencies) {
+        return ammoCapacity(state, account, dependencies, Optional.empty());
+    }
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoCapacity(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account, NumericQuery.Path dependencies, Optional<ResourceReadView> resourceView) {
+        resourceView.ifPresent(view -> view.require(program, state));
         if (account.capacityProfile().isEmpty()) return com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account);
         if (!account.equals(state.ammunition().get(account.weapon()))) throw new IllegalArgumentException("Capacity query requires the current account");
         var path = dependencies.ammo(account.weapon());
@@ -1345,23 +1356,29 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 java.util.Set.of("chorus:ammo_capacity_query"), Map.of("unmodified_capacity", new Measure(account.capacity(), Unit.ROUND), "magazine", new Measure(account.magazine(), Unit.ROUND)),
                 Map.of("infinite_reserves", account.reserve().isEmpty()), Map.of("weapon", account.weapon()));
         var result = calculateEvent(state, spec.holder(), queryEvent(state, new NumericQuery(query, path)),
-                spec.profile(), new Measure(account.capacity(), Unit.ROUND), List.of());
+                spec.profile(), new Measure(account.capacity(), Unit.ROUND), List.of(), resourceView);
         return new com.imdomestic.chorus.effect.ammo.AmmoCapacity.View(account, com.imdomestic.chorus.effect.ammo.AmmoState.rounds(result.output().value()), Optional.of(result));
     }
     /** Attributes have their own subject and no inherited damage/kill tags, measurements, or observations. */
     public CalculationProfile.Result attribute(EffectState state,String holder,String profile,Measure input,NumericQuery.Path dependencies) {
+        return attribute(state, holder, profile, input, dependencies, Optional.empty());
+    }
+    public CalculationProfile.Result attribute(EffectState state,String holder,String profile,Measure input,NumericQuery.Path dependencies,Optional<ResourceReadView> resourceView) {
         new Validation(buffs,Map.of(),false,profiles).attributeProfile(profile);Validation.same(input.unit(),Unit.STAT_POINT);
         var path=dependencies.attribute(holder,profile);
         var query=new EffectEvent(holder,holder,new BuffInstance.Origin(holder,profile,"",""),java.util.Set.of(),Map.of());
-        return calculateEvent(state,holder,queryEvent(state,new NumericQuery(query,path)),profile,input,List.of());
+        return calculateEvent(state,holder,queryEvent(state,new NumericQuery(query,path)),profile,input,List.of(),resourceView);
     }
     /** Read only the subject's sources in an isolated context; never inherit a caller's attack or proc facts. */
     public CalculationProfile.Result profileValue(EffectState state, String holder, String profile, Measure input, NumericQuery.Path dependencies) {
+        return profileValue(state, holder, profile, input, dependencies, Optional.empty());
+    }
+    public CalculationProfile.Result profileValue(EffectState state, String holder, String profile, Measure input, NumericQuery.Path dependencies, Optional<ResourceReadView> resourceView) {
         var definition = new Validation(buffs, Map.of(), false, profiles).numericProfile(profile);
         Validation.same(input.unit(), definition.inputUnit());
         var path = dependencies.profile(holder, profile);
         var query = new EffectEvent(holder, holder, new BuffInstance.Origin(holder, profile, "", ""), java.util.Set.of(), Map.of());
-        return calculateEvent(state, holder, queryEvent(state, new NumericQuery(query, path)), profile, input, List.of());
+        return calculateEvent(state, holder, queryEvent(state, new NumericQuery(query, path)), profile, input, List.of(), resourceView);
     }
     private void settled(EffectState state) {
         validateState(state);
@@ -1399,20 +1416,32 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** Query a settled domain snapshot. Legacy explicit frozen inputs remain the caller's responsibility. */
     public CalculationProfile.Result calculate(EffectState state, String holder, EffectEvent query, String profileId, Measure base,
             List<NumericContribution> frozen) {
-        return calculateEvent(state, holder, queryEvent(state, query), profileId, base, frozen);
+        return calculate(state, holder, query, profileId, base, frozen, Optional.empty());
+    }
+    public CalculationProfile.Result calculate(EffectState state, String holder, EffectEvent query, String profileId, Measure base,
+            List<NumericContribution> frozen, Optional<ResourceReadView> resourceView) {
+        return calculateEvent(state, holder, queryEvent(state, query), profileId, base, frozen, resourceView);
     }
     /** All profiles query the same immutable state and explicit context; only the numerical input advances. */
     public CalculationPipeline.Result calculatePipeline(EffectState state, String holder, EffectEvent query, List<String> profileIds, Measure base) {
+        return calculatePipeline(state, holder, query, profileIds, base, Optional.empty());
+    }
+    public CalculationPipeline.Result calculatePipeline(EffectState state, String holder, EffectEvent query, List<String> profileIds, Measure base, Optional<ResourceReadView> resourceView) {
         var pipeline = CalculationPipeline.resolve(profileIds, profiles);
         settled(state); var event = queryEvent(state, query);
-        return pipeline.calculate(base, (profile, input) -> calculateEvent(state, holder, event, profile.id(), input, List.of()));
+        return pipeline.calculate(base, (profile, input) -> calculateEvent(state, holder, event, profile.id(), input, List.of(), resourceView));
     }
     private CalculationProfile.Result calculateEvent(EffectState state, String holder, RuleEngine.Event event, String profileId, Measure base,
             List<NumericContribution> frozen) {
+        return calculateEvent(state, holder, event, profileId, base, frozen, Optional.empty());
+    }
+    private CalculationProfile.Result calculateEvent(EffectState state, String holder, RuleEngine.Event event, String profileId, Measure base,
+            List<NumericContribution> frozen, Optional<ResourceReadView> resourceView) {
+        resourceView.ifPresent(view -> view.require(program, state));
         settled(state);
         var profile = profiles.get(profileId); if (profile == null) throw new IllegalArgumentException("Unknown profile: " + profileId);
         var contributions = new ArrayList<>(frozen);
-        visitModifiers(state, holder, event, profileId, site -> {
+        visitModifiers(state, holder, event, profileId, resourceView, site -> {
             if (site.modifier().condition().test(site.evaluation())) contributions.add(site.numeric(site.modifier().value().evaluate(site.evaluation())));
         });
         return profile.calculate(base, contributions);
@@ -1424,18 +1453,21 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         }
     }
     private void visitModifiers(EffectState state, String holder, RuleEngine.Event event, String profile, java.util.function.Consumer<ModifierSite> visitor) {
+        visitModifiers(state, holder, event, profile, Optional.empty(), visitor);
+    }
+    private void visitModifiers(EffectState state, String holder, RuleEngine.Event event, String profile, Optional<ResourceReadView> resourceView, java.util.function.Consumer<ModifierSite> visitor) {
         var query = EffectTimers.event(event.signal().payload()).orElseThrow(() -> new IllegalArgumentException("Missing modifier query"));
         Optional<DamageGroups.Handle> handle = event.signal().payload() instanceof DamageGroups.Query q ? q.group()
                 : event.signal().payload() instanceof ShieldQuery q ? q.group() : Optional.empty();
         var group = handle.map(h -> DamageGroups.require(state, h));
         java.util.function.Predicate<String> participant = id -> id.equals(holder) || (!query.victim().isBlank() && id.equals(query.victim()));
         for (var source : state.sources().values()) if (participant.test(source.holder())) {
-            visitBundle(state, event, source, sourceId(source), source.instance(), bundle(source.bundle()), profile, null, holder, query.victim(), visitor);
+            visitBundle(state, event, source, sourceId(source), source.instance(), bundle(source.bundle()), profile, null, holder, query.victim(), resourceView, visitor);
         }
         for (var instance : state.buffs().instances().values()) {
             if (group.filter(g -> g.grants().containsKey(instance.key())).isPresent()) continue;
             if (!participant.test(instance.key().holder()) || instance.activeCount(state.buffs().timeMicros()) == 0 || !instance.affects(query.source().weapon(), query.source().ability())) continue;
-            visitBuffModifiers(state, event, profile, instance, false, holder, query.victim(), visitor);
+            visitBuffModifiers(state, event, profile, instance, false, holder, query.victim(), resourceView, visitor);
         }
         if (group.isPresent()) for (var instance : group.orElseThrow().grants().values()) {
             if (!participant.test(instance.key().holder()) || !instance.affects(query.source().weapon(), query.source().ability())) continue;
@@ -1443,18 +1475,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var policy = consumptions.get(instance.definition().id());
             if (policy == null || policy.sharing() != BuffConsumption.Sharing.GROUP) throw new IllegalArgumentException("Incompatible retained consumption policy");
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false, true), Map.of());
-            if (policy.condition().test(evaluation(state, context, Map.of()))) visitBuffModifiers(state, event, profile, instance, true, holder, query.victim(), visitor);
+            if (policy.condition().test(evaluation(state, context, Map.of(), resourceView))) visitBuffModifiers(state, event, profile, instance, true, holder, query.victim(), resourceView, visitor);
         }
     }
-    private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, String holder, String victim, java.util.function.Consumer<ModifierSite> visitor) {
+    private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, String holder, String victim, Optional<ResourceReadView> resourceView, java.util.function.Consumer<ModifierSite> visitor) {
         String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) return;
         String id = "buff/" + instance.generation();
         visitBundle(state, event, new BuffRules.Scope(instance, false, retained), id, instance.origin().source().isEmpty() ? id : instance.origin().source(),
-                bundle(bundleId), profile, instance, holder, victim, visitor);
+                bundle(bundleId), profile, instance, holder, victim, resourceView, visitor);
     }
     private void visitBundle(EffectState state, RuleEngine.Event event, RuleEngine.Payload scope, String instanceId, String sourceId,
-            EffectProgram.Bundle bundle, String profile, BuffInstance buff, String holder, String victim, java.util.function.Consumer<ModifierSite> visitor) {
-        var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of());
+            EffectProgram.Bundle bundle, String profile, BuffInstance buff, String holder, String victim, Optional<ResourceReadView> resourceView, java.util.function.Consumer<ModifierSite> visitor) {
+        var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of(), resourceView);
         for (var modifier : bundle.modifiers()) {
             if (!sharedStages.accepts(profile, modifier.profile(), modifier.stage())) continue;
             String provider = modifier.provider() == EffectProgram.ModifierProvider.VICTIM ? victim : holder;

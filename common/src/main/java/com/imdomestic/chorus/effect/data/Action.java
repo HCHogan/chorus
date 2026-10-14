@@ -402,7 +402,7 @@ public interface Action {
             v.resource(resource); Validation.same(requested.unit(v), Unit.CHARGE); scaled.ifPresent(value -> Validation.same(value.unit(v), Unit.CHARGE)); return ResultShape.RESOURCE;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var account = e.resource(resource, target);
+            var account = e.localResource(resource, target);
             var requestedAmount = requested.evaluate(e); Validation.same(requestedAmount.unit(), Unit.CHARGE);
             var scaledAmount = scaled.map(value -> value.evaluate(e)).orElse(requestedAmount); Validation.same(scaledAmount.unit(), Unit.CHARGE);
             var result = Resources.grant(account, requestedAmount.value(), scaledAmount.value());
@@ -420,6 +420,7 @@ public interface Action {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var definition = e.resourceDefinition(resource); var key = new ResourceState.Key(e.target(target), resource);
+            e.requireLocalResource(key);
             var existing = e.state().resources().get(key);
             if (existing != null) { definition.validate(existing); return new RuleEngine.Local<>(e.state(), new Initialized(existing, false), List.of()); }
             var account = definition.initialize(key.holder(), e.state().buffs().timeMicros());
@@ -435,7 +436,7 @@ public interface Action {
             return ResultShape.RESOURCE_SPEND;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var account = e.resource(resource, target); var value = amount.evaluate(e); Validation.same(value.unit(), Unit.CHARGE);
+            var account = e.localResource(resource, target); var value = amount.evaluate(e); Validation.same(value.unit(), Unit.CHARGE);
             String operation = "event/" + e.context().event().id() + "/rule/" + e.context().ruleInstance() + "/payment/" + payment + "/action/" + e.context().operation().frame() + "/"
                     + e.context().operation().pc() + "/" + e.context().operation().invocation();
             var result = Resources.spend(account, operation, value.value());
@@ -451,9 +452,7 @@ public interface Action {
             return ResultShape.RESOURCE_REFUND;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var receipt = e.cost(cost); var key = receipt.account(); var account = e.state().resources().get(key);
-            if (account == null) throw new IllegalArgumentException("Missing paid resource account: " + key);
-            e.resourceDefinition(key.resource()).validate(account);
+            var receipt = e.cost(cost); var account = e.localResource(receipt.account());
             var value = fraction.evaluate(e); Validation.same(value.unit(), Unit.MULTIPLIER);
             var result = Resources.refund(account, receipt, value.value());
             var event = ResourceFacts.refunded(result, e.origin()); var facts = new java.util.ArrayList<RuleEngine.Signal>();
@@ -482,7 +481,8 @@ public interface Action {
             return ResultShape.RETAINED_REFUND;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var handle = retainedCost(e, cost); var account = e.state().resources().get(handle.receipt().account());
+            var handle = retainedCost(e, cost); e.requireLocalResource(handle.receipt().account());
+            var account = e.state().resources().get(handle.receipt().account());
             if (account != null) e.resourceDefinition(account.key().resource()).validate(account);
             var value = fraction.evaluate(e); Validation.same(value.unit(), Unit.MULTIPLIER);
             var transition = RetainedCosts.refund(e.state(), handle, value.value());
@@ -513,7 +513,7 @@ public interface Action {
             return (int) value;
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
-            var account = e.resource(resource, target); var value = charges.evaluate(e); Validation.same(value.unit(), Unit.COUNT);
+            var account = e.localResource(resource, target); var value = charges.evaluate(e); Validation.same(value.unit(), Unit.COUNT);
             var result = Resources.grantFullCharges(account, fullCharges(value.value()));
             var payload = new ResourceGranted(result, e.origin(), "full_charge"); var facts = new java.util.ArrayList<RuleEngine.Signal>();
             facts.add(new RuleEngine.Signal("chorus:resource_granted", payload));
