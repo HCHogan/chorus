@@ -110,7 +110,7 @@ set / clear 需要 gamemaster 权限，目标是一个在线玩家；status 为�
 
 检查点另保存 actor_owners，记录该维度仍负责与玩家文件核对的配置。确认原生跨维度移除时，旧维度释放核对责任并保留历史根规则；目标维度接管，返回旧维度时同步当前配置。这样在其他维度合法改配后返回不会被误判为存档错配。恢复前核对已在线玩家的实际配置；仍由该维度负责的离线玩家在恢复后首次出现时也先核对，错配会停止运行时，不用重新 attached 掩盖错配。世界保存冻结期间还检查实际玩家配置未变化。正常停服 / 再启动通过实际玩家文件与登录流程验收，领域恢复不会重复初始化。
 
-该入口只管理常驻根配置；职业默认值、解锁 / 子职业组合、初始技能选择、技能与资源的玩家持久化、完整 Buff / 投射物跨维度迁移、UI 和生产内容目录仍需后续接入。跨维度进入另一个运行时会同步配置，不代表上述状态已经整体迁移。
+该入口只管理常驻根配置；基础技能选择的玩家存储见[下文](#玩家基础技能选择的保存与恢复)。职业默认值、解锁 / 子职业组合、初始技能装配、完整技能进度与资源账户交接、完整 Buff / 投射物跨维度迁移、UI 和生产内容目录仍需后续接入。跨维度进入另一个运行时会同步配置，不代表上述状态已经整体迁移。
 
 ## 非致死生命支付
 
@@ -1973,7 +1973,27 @@ chorus ability use example:grenade
 chorus ability clear example:grenade
 ```
 
-choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。技能选择和能量仍只属于当前维度运行时，不保存到玩家 NBT，不自动跨维度 / 离线迁移；重装运行时不等于已完成角色技能恢复。手雷按键与输入网络见下节；完整子职业与技能原型、parent 继承、持续施放取消、目标 / 方向快照、独立技能状态持久化及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
+choose / clear 需要管理员权限；status / use 只操作发起玩家。运行时须先安装包含定义的程序。命令通过下节 PlayerAbilities 保存基础选择，并同时更新领域投影；status 显示活动选择、保存的配置 / revision 及 inactive 原因。手雷按键与输入网络见下节；完整子职业与技能原型、parent 继承、持续施放取消、完整技能进度与资源跨维度迁移及原作参数装配继续待做。合成 abilities.json 不增加 Compendium 内容覆盖条目。
+
+### 玩家基础技能选择的保存与恢复
+
+`PlayerAbilities` 在原生玩家 NBT 的 `chorus:abilities` 中保存完整 AbilityLoadout 和 revision。它保存基础选择，施放时的条件替换不会改写玩家文件。可信内容宿主在校验职业、解锁及配装资格后调用：
+
+```java
+var selection = PlayerAbilities.get(player);
+var loadout = new AbilityLoadout(Map.of("chorus_d2:grenade", "chorus_d2:firebolt"));
+selection.configure(player, loadout, selection.revision());
+```
+
+`AbilityCodecs.LOADOUT` 的公开结构为 `{"slots":{"chorus_d2:grenade":"chorus_d2:firebolt"}}`；未知字段、非规范 ID、未知定义或不兼容槽位拒绝。一次请求携带完整选择，预检所有槽位；失效 revision 不产生部分提交。玩家内存配置、领域选择、必要账户与选择期来源先共同发布，再执行资源 / 来源反应。未知世界结果保留已提交的选择和实际写入，停止运行时，不重放附加。相同选择不消耗 revision、不重启定时器；显式空选择保留 revision，自动同步不能撤销它。实际落盘沿原版玩家保存和世界保存协议。
+
+prepare / 规则输入自动同步已有玩家配置；未配置的玩家不会覆盖外部宿主通过 runtime.abilities 设置的选择。命令第一次编辑外部选择时接管完整选择；此后应使用 PlayerAbilities 修改，低层 API 继续供 NPC 或独立宿主使用。真实 ServerPlayer 替换保留选择，独立于装备掉落；同一维度已有的账户不会因改选、清空、重复同步或重生被重置。改选同时取消对应槽的未释放输入，即使同一 tick 切走再切回，也不能沿用旧 gesture。
+
+缺失内容时整份选择保存为 inactive，不猜测替代技能，也不只激活一部分槽位；定义重新出现后可再次投影。存在但无法解码的 NBT 明确失败，不当作空选择。宿主归档 format 3 的 ability_owners 记录本维度核对玩家文件的责任：恢复前核对在线玩家，恢复后首次出现的离线玩家在时钟推进 / 施放前核对；错配停止运行时，不能用重绑覆盖存档状态。世界保存冻结期间也核对实际配置。
+
+资源余额、容量、计时器及已接受工作仍由世界检查点保存。正常停服 / 重启加载玩家文件与相同世界检查点时，选择、余额和定时器继续，不重复初始化或补满。仅把玩家 NBT 放进全新的空运行时会按目录首次创建账户，不能冒充完整恢复。当前选择可以随原生跨维度移动同步：旧维度释放玩家文件核对责任并保留历史选择，返回时使用当前配置；这不转移资源余额、Buff、退款句柄或物理实体，各维度仍有各自账户。完整角色状态需要后续资源交接协议。
+
+原生验收覆盖实际玩家 NBT、真实重生、在线 / 延后登录核对、定时器与已支付余额、未知世界结果及跨维度改选。独立进程验收使用实际付费技能和原生玩家登录。职业默认目录、首次角色装配、玩家技能选择网络 / UI、完整资源迁移仍未提供。
 
 ### 按下、长按与松开
 
@@ -2978,7 +2998,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 当前写入独立的 format 2 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects、equipment_owners 和 actor_owners UUID 集合。旧 format 1 按原字段严格解码并迁移为空 actor_owners，不推测原有 ActorBinding 是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。会话 effects 继续使用 `EffectCheckpointCodec`，没有改变其原有 format 1。
+`CheckpointArchive` 当前写入独立的 format 3 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。会话 effects 继续使用 `EffectCheckpointCodec`，没有改变其原有 format 1。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 

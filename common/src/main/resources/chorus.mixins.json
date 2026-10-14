@@ -32,6 +32,8 @@
     "PlayerEquipmentMixin",
     "ServerPlayerEquipmentMixin",
     "PlayerActorMixin",
+    "PlayerAbilitiesMixin",
+    "ServerPlayerAbilitiesMixin",
     "ServerPlayerActorMixin",
     "EffectProgramReloadMixin",
     "MobRangedAttackMixin",

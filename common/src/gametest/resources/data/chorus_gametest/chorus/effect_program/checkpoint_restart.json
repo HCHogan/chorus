@@ -2,6 +2,11 @@
   "version": "checkpoint-fixture-1",
   "imports": ["chorus_gametest:checkpoint_equipment"],
   "resources": [{"id": "test:restart_energy", "capacity": 1, "initial": 1}],
+  "abilities": [{"id":"test:restart_ability","slot":"test:grenade",
+    "cost":{"resource":"test:restart_energy","amount":{"type":"chorus:constant","value":1,"unit":"charge_fraction"}},
+    "effects":{"passive":{"bundle":"test:restart_skill"}},
+    "on_use":[{"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}]
+  }],
   "bundles": [{"id":"test:restart_actor","rules":[
     {"id":"actor_initialize","on":"chorus:source_attached","if":{"type":"chorus:own_source"},"do":[
       {"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}

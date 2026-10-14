@@ -115,6 +115,7 @@
       "com.imdomestic.chorus.SolarProducerAssemblyGameTest",
       "com.imdomestic.chorus.ActorBindingGameTest",
       "com.imdomestic.chorus.PlayerActorGameTest",
+      "com.imdomestic.chorus.PlayerAbilitiesGameTest",
       "com.imdomestic.chorus.ProjectileCatchGameTest",
       "com.imdomestic.chorus.DamageTallyGameTest",
       "com.imdomestic.chorus.StrandDefenseGameTest",

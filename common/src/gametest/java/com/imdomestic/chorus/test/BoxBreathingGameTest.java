@@ -93,7 +93,7 @@ public class BoxBreathingGameTest {
     @GameCase(environment="chorus_gametest:box_breathing_restore",maxTicks=50)
     public void WaitingPerkResumesOnItsOriginalDeadlineAndReleaseStillClearsIt(GameTestHelper h)throws Exception {
         var t=openBox(h,false,_ -> {});at(t,29,()->{
-            settled(t);h.assertTrue(!active(t),"restore precondition");var saved=t.runtime.checkpoint();var stored=new MinecraftEffectRuntime.Checkpoint(saved.dimension(),saved.gameTime(),EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(saved.effects())),saved.equipmentOwners(), saved.actorOwners());var program=t.runtime.program();t.runtime.close();
+            settled(t);h.assertTrue(!active(t),"restore precondition");var saved=t.runtime.checkpoint();var stored=new MinecraftEffectRuntime.Checkpoint(saved.dimension(),saved.gameTime(),EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(saved.effects())),saved.equipmentOwners(), saved.actorOwners(), saved.abilityOwners());var program=t.runtime.program();t.runtime.close();
             var resumed=MinecraftEffectRuntime.restore(h.getLevel(),program,stored,new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),t.world,MinecraftEffectRuntime::nativeSource);
             try {
                 h.assertTrue(!active(resumed.state().engine().domain()),"restore activated early");h.assertTrue(t.projectiles.isEmpty(),"restore replayed launch");

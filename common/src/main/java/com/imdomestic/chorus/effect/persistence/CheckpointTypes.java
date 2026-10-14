@@ -99,6 +99,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/source_batch/receipt", com.imdomestic.chorus.effect.SourceBatch.Receipt.class);
         types.put("chorus:effect/source_change", com.imdomestic.chorus.effect.SourceChange.class);
         types.put("chorus:effect/source_change/fact", com.imdomestic.chorus.effect.SourceChange.Fact.class);
+        types.put("chorus:effect/ability/ability_change/commit", com.imdomestic.chorus.effect.ability.AbilityChange.Commit.class);
         types.put("chorus:effect/ability/ability_change", com.imdomestic.chorus.effect.ability.AbilityChange.class);
         types.put("chorus:effect/ability/ability_definition", LegacyAbilityDefinitionV1.class);
         types.put("chorus:effect/ability/ability_definition_v2", com.imdomestic.chorus.effect.ability.AbilityDefinition.class);

@@ -2,12 +2,11 @@ package com.imdomestic.chorus.test;
 
 import com.google.gson.JsonParser;
 import com.imdomestic.chorus.effect.*;
-import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.equipment.Loadout;
 import com.imdomestic.chorus.effect.resource.ResourceState;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
-import com.imdomestic.chorus.rule.RuleEngine;
 import java.nio.file.*;
 import java.util.*;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,9 +18,6 @@ import net.minecraft.world.level.storage.LevelResource;
 /** Opt-in two-process test. Normal gates check startup invalidation without leaving a runtime installed. */
 public class CheckpointRestartGameTest {
     private static final Identifier PROGRAM = Identifier.parse("chorus_gametest:checkpoint_restart");
-    private static RuleEngine.Signal cast(String holder) {
-        return new RuleEngine.Signal("test:restart_cast", new EffectEvent(holder, holder, new BuffInstance.Origin(holder, "skill", "", ""), Set.of(), Map.of()));
-    }
     @GameCase(environment = "chorus_gametest:checkpoint_restart", maxTicks = 400)
     public void checkpointRestartUsesNativeFilesAndAutomaticLifecycle(GameTestHelper h) throws Exception {
         var server = h.getLevel().getServer(); var status = MinecraftCheckpointLifecycle.status(server).orElseThrow();
@@ -42,8 +38,8 @@ public class CheckpointRestartGameTest {
             equipment.swap(player, "test:arms", 0, equipment.revision());
             PlayerActor.get(player).configure(player, Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding("test:restart_actor")), 0);
             player.setHealth(27);
-            runtime.bind(new EffectSource("skill", "test:restart_skill", holder, new BuffInstance.Origin(holder, "skill", "", ""), Set.of()));
-            runtime.start(cast(holder)); h.assertValueEqual(player.getHealth(), 29f, "initialize once and pay for one cast");
+            PlayerAbilities.get(player).configure(player, new AbilityLoadout(Map.of("test:grenade", "test:restart_ability")), 0);
+            h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.ACCEPTED, "native selected ability paid for cast"); h.assertValueEqual(player.getHealth(), 29f, "initialize once and pay for one cast");
             h.assertValueEqual(player.getMaxHealth(), 30f, "equipped temporary capacity");
             Files.writeString(metadata, holder);
             if (phase.equals("save_failure")) {
@@ -80,11 +76,16 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(PlayerActor.get(player).snapshot().binding(), Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding("test:restart_actor")), "actual player actor file");
             h.assertValueEqual(runtime.state().engine().domain().actors().get(holder.toString()), PlayerActor.get(player).snapshot().binding().orElseThrow(), "saved actor/domain projection");
             h.assertTrue(runtime.checkpoint().actorOwners().contains(holder), "restored player actor ownership");
+            var selection = new AbilityLoadout(Map.of("test:grenade", "test:restart_ability"));
+            h.assertValueEqual(PlayerAbilities.get(player).snapshot().loadout(), selection, "actual player ability file");
+            h.assertValueEqual(runtime.state().engine().domain().abilities().get(holder.toString()), selection, "restored base selection");
+            h.assertTrue(runtime.checkpoint().abilityOwners().contains(holder), "restored player ability ownership");
             h.assertValueEqual(player.getMaxHealth(), 30f, "rules restored before real login/NBT clamped capacity");
             h.assertValueEqual(player.getHealth(), 29f, "real player NBT health and no initialization replay");
             h.assertValueEqual(PlayerEquipment.get(player).item("test:arms").get(ChorusComponents.EQUIPMENT.get()).instance(), "restart-armor", "actual player equipment file");
             h.assertValueEqual(runtime.state().engine().domain().resources().get(new ResourceState.Key(holder.toString(), "test:restart_energy")).value(), 0d, "paid resource stayed spent across process restart");
-            runtime.start(cast(holder.toString())); h.assertValueEqual(player.getHealth(), 29f, "restart did not grant a free cast");
+            h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "restart did not grant a free cast");
+            h.assertValueEqual(player.getHealth(), 29f, "rejected restart cast changed real health");
             h.assertTrue(runtime.failure().isEmpty(), "restored runtime failed on real login or cast");
         } else throw new IllegalArgumentException("Unexpected restart phase: " + phase);
         h.succeed();

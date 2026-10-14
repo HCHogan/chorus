@@ -25,9 +25,11 @@ public final class AbilityCommands {
     }
     private static String choose(ServerPlayer player, MinecraftEffectRuntime runtime, String slot, String definition) {
         String holder = player.getUUID().toString();
-        var before = runtime.state().engine().domain().abilities().getOrDefault(holder, AbilityLoadout.EMPTY); var slots = new TreeMap<>(before.slots());
+        var selection = PlayerAbilities.get(player);
+        var before = selection.configured() ? selection.snapshot().loadout() : runtime.state().engine().domain().abilities().getOrDefault(holder, AbilityLoadout.EMPTY);
+        var slots = new TreeMap<>(before.slots());
         if (definition.isEmpty()) slots.remove(slot); else slots.put(slot, definition);
-        runtime.abilities(new AbilityChange(holder, before, new AbilityLoadout(slots))); return "Chorus abilities: " + slots;
+        selection.configure(player, new AbilityLoadout(slots), selection.revision()); return "Chorus abilities: " + slots;
     }
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("finisher").executes(c -> execute(c.getSource(), (p, r) ->
@@ -35,7 +37,7 @@ public final class AbilityCommands {
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("ability")
                 .then(Commands.literal("catch").executes(c -> execute(c.getSource(), (p, r) ->
                         r.catchProjectile(p).map(id -> "Chorus caught: " + id).orElse("No catchable projectile"))))
-                .then(Commands.literal("status").executes(c -> execute(c.getSource(), (p, r) -> "Chorus abilities: " + r.state().engine().domain().abilities().getOrDefault(p.getUUID().toString(), AbilityLoadout.EMPTY).slots())))
+                .then(Commands.literal("status").executes(c -> execute(c.getSource(), (p, r) -> "Chorus abilities: " + r.state().engine().domain().abilities().getOrDefault(p.getUUID().toString(), AbilityLoadout.EMPTY).slots() + " saved=" + PlayerAbilities.get(p).snapshot() + " inactive=" + PlayerAbilities.get(p).inactiveReason().orElse("none"))))
                 .then(Commands.literal("choose").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("slot", IdentifierArgument.id()).then(Commands.argument("definition", IdentifierArgument.id())
                                 .executes(c -> execute(c.getSource(), (p, r) -> choose(p, r, c.getArgument("slot", Identifier.class).toString(), c.getArgument("definition", Identifier.class).toString()))))))

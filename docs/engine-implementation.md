@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-14：玩家基础技能选择与实际账户恢复
+
+新增 PlayerAbilities，保存基础 AbilityLoadout / revision 并接入原生玩家 NBT、真实玩家替换、prepare / 输入自动同步；管理命令 choose / clear 使用同一入口。完整选择先预检，玩家内存配置与领域选择、必要账户和常驻来源在反应前共同提交。相同选择不重复初始化；过期 / 非法多槽请求不部分提交，临时技能替换不改写基础选择。改选即时取消旧的未释放输入；未知实际写入保留已提交状态并停止，不自动退款或重放。原有资源账户不因改选、清空或同维度重生而补满。
+
+宿主归档 format 3 新增 ability_owners，旧 format 1 / 2 按原形状严格解码并迁移为空集合；原来的 actor_owners 规则保留。恢复核对在线或稍后加入玩家的选择，冻结世界保存检查实际玩家配置。真实跨维度移除释放旧维度对玩家文件的核对责任，返回时同步当前选择；此处仍保留各维度自己的账户，不冒充资源 / 退款 / Buff 交接。纯效果检查点仍为 format 1 / EffectState v6，新增 AbilityChange.Commit 至 685 项，原 684 项存储形状保持。
+
+新增三项核心回归和八项共享原生场景。`/tmp/chorus-player-abilities-core.log` 通过选择事务 / 公开编码、归档迁移与存储形状回归；`/tmp/chorus-player-abilities-targeted5.log` 通过八项 Fabric 场景与 NeoForge 测试编译。测试覆盖实际玩家文件、真实重生、已消费账户、初始化与定时器不重放、旧长按失效、内容缺失、恢复后登录错配、冻结保存与未知结果。早期测试选择器遗漏命名空间及合成资源重名已修正，相应未完成停服的测试世界整体保留，没有放松保存恢复保护。
+
+独立进程验收 `build/checkpoint-restart/20261014T035348Z-6d38a3e6/report.json` 通过两加载器共八次进程。夹具实际选择技能并付费施放，原生玩家登录后验证选择、常驻来源、已付余额和实际生命值，下一次施放因余额不足被拒绝；保存失败后仍拒绝恢复并保留现场。
+
+完整组合回归 `/tmp/chorus-player-abilities-full-gate.log` BUILD SUCCESSFUL（4 分 2 秒）：2247 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项，共享场景 1319 项，双端发布包与正常停服检查点均通过。`build/reports/player-abilities/audit.json` 核验原 684 项存储形状保持、发布主类 1227 / 1220 个逐字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+职业默认目录、完整进度 / 解锁、跨维度资源交接、物理效果实体恢复和技能 UI 尚未完成；本批没有图形客户端验收。接口与实际生命周期见[玩家基础技能选择](engine-data-packs.md#玩家基础技能选择的保存与恢复)。
+
 ### 2026-10-14：共享 Solar 宿主接入玩家持久化配置
 
 原生 Phoenix Dive 公共宿主改用 PlayerActor 配置 `solar_scaling`，其 Firebolt / Fusion / Solar Grenade / Snap 等组合沿用同一入口；纯领域测试继续使用 ActorBinding。常驻规则独立于技能选择，玩家配置通过原生玩家文件保存并自动同步。首次角色默认根包、初始技能与解锁仍由内容模块装配。

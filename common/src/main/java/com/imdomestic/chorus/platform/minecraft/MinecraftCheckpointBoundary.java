@@ -68,7 +68,7 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
             var entries = new ArrayList<CheckpointArchive.Entry>();
             for (var entry : new TreeMap<>(runtimes).entrySet()) {
                 var saved = boundary.inspect(entry.getValue());
-                entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners()));
+                entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners(), saved.abilityOwners()));
             }
             boundary.archive = new CheckpointArchive(entries); boundary.requireUnchanged(); return boundary;
         } catch (RuntimeException | Error failure) { boundary.close(); throw failure; }
@@ -96,7 +96,8 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                 var saved = inspect(runtime);
                 MinecraftEffectRuntime.validateCheckpointEquipment(levels.get(entry.dimension()), runtime.program(), saved);
                 MinecraftEffectRuntime.validateCheckpointActors(levels.get(entry.dimension()), runtime.program(), saved);
-                if (!saved.effects().equals(entry.effects()) || !saved.equipmentOwners().equals(entry.equipmentOwners()) || !saved.actorOwners().equals(entry.actorOwners()))
+                MinecraftEffectRuntime.validateCheckpointAbilities(levels.get(entry.dimension()), runtime.program(), saved);
+                if (!saved.effects().equals(entry.effects()) || !saved.equipmentOwners().equals(entry.equipmentOwners()) || !saved.actorOwners().equals(entry.actorOwners()) || !saved.abilityOwners().equals(entry.abilityOwners()))
                     throw new IllegalStateException("Rule state changed during checkpoint boundary");
             }
         } catch (RuntimeException failure) { throw reject(failure.toString()); }

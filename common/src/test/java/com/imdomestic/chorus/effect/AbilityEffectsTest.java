@@ -32,6 +32,23 @@ class AbilityEffectsTest {
         double energy() { return state().resources().get(new ResourceState.Key("player", "test:energy")).value(); }
         double damage() { return program.outgoing(state(), attack(), 10).orElseThrow().output().value(); }
     }
+    @Test void playerSelectionCodecRejectsUnknownFieldsAndCommitHasStableStorageIdentity() {
+        var value=selection("a");var ops=com.mojang.serialization.JsonOps.INSTANCE;
+        var encoded=AbilityCodecs.LOADOUT.encodeStart(ops,value).getOrThrow();assertEquals(value,AbilityCodecs.LOADOUT.parse(ops,encoded).getOrThrow());
+        var unknown=encoded.getAsJsonObject().deepCopy();unknown.addProperty("energy",100);assertTrue(AbilityCodecs.LOADOUT.parse(ops,unknown).error().isPresent());
+        var invalid=encoded.getAsJsonObject().deepCopy();invalid.getAsJsonObject("slots").addProperty("not a slot","test:a");assertTrue(AbilityCodecs.LOADOUT.parse(ops,invalid).error().isPresent());
+        var commit=new AbilityChange.Commit(new AbilityChange("player",AbilityLoadout.EMPTY,value));var codec=com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.DATA;
+        assertEquals(commit,codec.decode(codec.encode(commit),AbilityChange.Commit.class));
+    }
+    @Test void playerCommitPublishesSelectionAndAccountsBeforeResourceAndSourceReactions() throws Exception {
+        var h=new Harness();var change=new AbilityChange("player",AbilityLoadout.EMPTY,selection("a"));var transition=change.apply(h.state(),h.program);
+        h.session.observe(0,transition.emitted(),new AbilityChange.Commit(change));
+        assertEquals(List.of(1.0),h.heals);assertEquals(selection("a"),h.observed.getFirst().abilities().get("player"));assertEquals(0,h.energy());
+        h.session.observe(50_000,List.of());double balance=h.energy();
+        var replacement=new AbilityChange("player",selection("a"),selection("b"));h.session.observe(h.now(),replacement.apply(h.state(),h.program).emitted(),new AbilityChange.Commit(replacement));
+        assertEquals(balance,h.energy());assertEquals(List.of(1.0,1.0,3.0),h.heals);
+        assertEquals(selection("b"),h.observed.get(1).abilities().get("player"));
+    }
     @Test void selectionInstallsCompleteLoadoutAccountsAndSourcesBeforeAttachAndDoesNotRepeatInitialization() throws Exception {
         var h = new Harness(); h.select("a"); var state = h.state();
         assertEquals(List.of(1.0), h.heals); assertEquals(selection("a"), h.observed.getFirst().abilities().get("player"));

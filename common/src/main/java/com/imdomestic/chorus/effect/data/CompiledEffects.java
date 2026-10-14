@@ -361,9 +361,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (definition == null || !definition.slot().equals(slot)) throw new IllegalArgumentException("Unknown ability or incompatible slot: " + slot + " -> " + id);
         return definition;
     }
+    public void validateAbilities(AbilityLoadout loadout) { loadout.slots().forEach(this::validateSelection); }
     public RuleEngine.Local<EffectState> changeAbilities(EffectState state, AbilityChange change) {
         if (!state.abilities().getOrDefault(change.holder(), AbilityLoadout.EMPTY).equals(change.before())) throw new IllegalStateException("Stale ability selection");
-        change.before().slots().forEach(this::validateSelection); change.after().slots().forEach(this::validateSelection);
+        validateAbilities(change.before()); validateAbilities(change.after());
         abilitySources.validate(state);
         var batch = SourceBatch.between(abilitySources.sources(change.holder(), change.before()), abilitySources.sources(change.holder(), change.after()));
         batch.validateCurrent(state);
@@ -642,6 +643,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private EffectState reconcile(EffectState state, RuleEngine.Payload committed) {
         return committed instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit commit ? commit.apply(reconcile(state, commit.previous()))
                         : committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
+                        : committed instanceof AbilityChange.Commit commit ? changeAbilities(state, commit.change()).state()
                         : committed instanceof com.imdomestic.chorus.effect.actor.ActorChange.Commit commit ? commit.change().apply(state, this).state()
                         : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)

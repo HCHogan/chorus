@@ -1,4 +1,5 @@
 {
+  "chorus:effect/ability/ability_change/commit": ["change:com.imdomestic.chorus.effect.ability.AbilityChange"],
   "chorus:effect/data/direction_actions/cross": ["left:java.lang.String", "right:java.lang.String"],
   "chorus:effect/data/direction_actions/rotate": ["direction:java.lang.String", "axis:java.lang.String", "angle:com.imdomestic.chorus.effect.data.Value"],
   "chorus:effect/data/projectile_spec_v2": ["position:java.lang.String", "direction:java.lang.String", "speed:com.imdomestic.chorus.effect.data.Value", "gravity:com.imdomestic.chorus.effect.data.Value", "drag:com.imdomestic.chorus.effect.data.Value", "lifetime:com.imdomestic.chorus.effect.data.Value", "collision:com.imdomestic.chorus.effect.data.ProjectileSpec$Collisions", "tracking:java.util.Optional<com.imdomestic.chorus.effect.data.ProjectileSpec$Tracking>", "destination:java.util.Optional<com.imdomestic.chorus.effect.data.ProjectileSpec$Destination>", "emitter:com.imdomestic.chorus.effect.data.Evaluation$Target", "range:java.util.Optional<com.imdomestic.chorus.effect.data.Value>", "proximity:java.util.Optional<com.imdomestic.chorus.effect.data.ProjectileSpec$Proximity>"],

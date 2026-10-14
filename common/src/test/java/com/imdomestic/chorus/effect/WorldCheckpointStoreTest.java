@@ -32,8 +32,8 @@ class WorldCheckpointStoreTest {
     @Test void actorOwnershipRoundTripsAndLegacyArchiveDoesNotInventPlayerManagement() throws Exception {
         var old=archive(7);var row=old.dimensions().getFirst();var id=UUID.fromString("12345678-1234-5678-9012-123456789012");
         var current=new CheckpointArchive(List.of(new CheckpointArchive.Entry(row.program(),row.dimension(),row.gameTime(),row.effects(),row.equipmentOwners(),Set.of(id))));
-        assertEquals(current,CheckpointArchive.decode(current.encode()));assertEquals(2,current.encode().get("format").getAsInt());
-        var legacy=old.encode();legacy.addProperty("format",1);legacy.getAsJsonArray("dimensions").forEach(value->value.getAsJsonObject().remove("actor_owners"));
+        assertEquals(current,CheckpointArchive.decode(current.encode()));assertEquals(3,current.encode().get("format").getAsInt());
+        var legacy=old.encode();legacy.addProperty("format",1);legacy.getAsJsonArray("dimensions").forEach(value->{value.getAsJsonObject().remove("actor_owners");value.getAsJsonObject().remove("ability_owners");});
         assertEquals(old,CheckpointArchive.decode(legacy));assertTrue(CheckpointArchive.decode(legacy).dimensions().getFirst().actorOwners().isEmpty());
         var missing=current.encode();missing.getAsJsonArray("dimensions").get(0).getAsJsonObject().remove("actor_owners");
         assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(missing));
@@ -46,7 +46,7 @@ class WorldCheckpointStoreTest {
         var original = archive(7).encode(); var missing = original.deepCopy(); missing.remove("format");
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(missing));
         var extra = original.deepCopy(); extra.addProperty("extra", true); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(extra));
-        var unsupported = original.deepCopy(); unsupported.addProperty("format", 3); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(unsupported));
+        var unsupported = original.deepCopy(); unsupported.addProperty("format", 4); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(unsupported));
         var repeated = original.deepCopy(); repeated.getAsJsonArray("dimensions").add(repeated.getAsJsonArray("dimensions").get(0).deepCopy());
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(repeated));
         var owners = original.deepCopy(); var list = owners.getAsJsonArray("dimensions").get(0).getAsJsonObject().getAsJsonArray("equipment_owners"); list.add(list.get(0));
@@ -59,6 +59,18 @@ class WorldCheckpointStoreTest {
         assertThrows(IllegalArgumentException.class, () -> new CheckpointArchive.Entry("test:program", "minecraft:overworld", -1, effects(), Set.of()));
         var invalidUuid = original.deepCopy(); invalidUuid.getAsJsonArray("dimensions").get(0).getAsJsonObject().getAsJsonArray("equipment_owners").set(0, new JsonPrimitive("1-1-1-1-1"));
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(invalidUuid));
+    }
+    @Test void abilityOwnershipRoundTripsAndBothEarlierArchivesMigrateWithoutGuessing() throws Exception {
+        var row=archive(7).dimensions().getFirst();var id=UUID.fromString("12345678-1234-5678-9012-123456789012");
+        var current=new CheckpointArchive(List.of(new CheckpointArchive.Entry(row.program(),row.dimension(),row.gameTime(),row.effects(),row.equipmentOwners(),Set.of(id),Set.of(id))));
+        assertEquals(current,CheckpointArchive.decode(current.encode()));
+        var legacy=current.encode();legacy.addProperty("format",2);legacy.getAsJsonArray("dimensions").forEach(value->value.getAsJsonObject().remove("ability_owners"));
+        var migrated=CheckpointArchive.decode(legacy).dimensions().getFirst();assertEquals(Set.of(id),migrated.actorOwners());assertTrue(migrated.abilityOwners().isEmpty());
+        legacy.addProperty("format",1);legacy.getAsJsonArray("dimensions").forEach(value->value.getAsJsonObject().remove("actor_owners"));
+        assertTrue(CheckpointArchive.decode(legacy).dimensions().getFirst().abilityOwners().isEmpty());
+        var missing=current.encode();missing.getAsJsonArray("dimensions").get(0).getAsJsonObject().remove("ability_owners");assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(missing));
+        var duplicate=current.encode();var owners=duplicate.getAsJsonArray("dimensions").get(0).getAsJsonObject().getAsJsonArray("ability_owners");owners.add(owners.get(0));assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(duplicate));
+        var extra=current.encode();extra.addProperty("format",2);assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(extra));
     }
     @Test void beginningInvalidatesAnOldCheckpointBeforeItCanBeUsed() throws Exception {
         var session = store().begin(); assertTrue(session.recovered().isEmpty());

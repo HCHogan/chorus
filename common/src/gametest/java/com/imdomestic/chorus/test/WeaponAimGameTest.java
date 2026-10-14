@@ -95,7 +95,7 @@ public class WeaponAimGameTest {
         }});});
     }
     static void restoreAim(ProjectileGameTest.Harness t,boolean exiting){
-        var h=t.h;var saved=t.runtime.checkpoint();var stored=new MinecraftEffectRuntime.Checkpoint(saved.dimension(),saved.gameTime(),EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(saved.effects())),saved.equipmentOwners(), saved.actorOwners());
+        var h=t.h;var saved=t.runtime.checkpoint();var stored=new MinecraftEffectRuntime.Checkpoint(saved.dimension(),saved.gameTime(),EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(saved.effects())),saved.equipmentOwners(), saved.actorOwners(), saved.abilityOwners());
         var accepted=aim(t);int count=t.cues.size();long revision=PlayerEquipment.get(t.owner).revision();var program=t.runtime.program();t.runtime.close();
         var resumed=MinecraftEffectRuntime.restore(h.getLevel(),program,stored,new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),t.world,MinecraftEffectRuntime::nativeSource);
         try {
