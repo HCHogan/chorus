@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-14：资源接收事实的原子排队与反馈执行
+
+ResourceSessionAuthority.execute 把 ResourceRequests 对应事实与余额 / 退款账本一起提交到实际接收会话。重复请求返回既有结果，不重复分配事件或入账。各次入账的 before / after / credited、原始来源和接收时刻保留；同会话沿用当前帧的 root / parent，跨会话使用独立事件身份，并携带 caller / operation / recipient lease 引用。排队过程不进入任何接收规则。
+
+EffectSession 新增 inbox 批量投影和 drain，普通输入或时间推进前先在原时刻处理已提交事实；非法输入不会先消费队列。普通领域替换不能擦除 inbox，编号耗尽在提交前拒绝；开始新 inbox 边界时退役旧回执，保留单调事件 / 帧编号。host.drain(maxBoundaries) 在领域间轮转，批次耗尽返回 pending 并保留剩余事件，反馈链可继续运行，不增加循环深度或反应次数上限。其他领域的待处理事实也不会因某个接收方世界结果未知而被丢弃或自动重放。
+
+新增 12 项核心测试，覆盖队列 / 余额共同提交、事件顺序与信用、不同领域时钟、输入前结算、移交前清空、同领域因果链、42 次跨会话接收后继续保留反馈事件、第三领域公平调度、读取 / 无效退款不排队、原付款信息、回执退役、事件编号耗尽及调用 / 接收方未知结果。`/tmp/chorus-resource-facts-core2.log` 定向回归通过。带 inbox、执行中或失败状态的会话仍拒绝导出已结算检查点，原存储结构没有扩展为可保存任意未完成边界。
+
+完整回归 `/tmp/chorus-resource-facts-full-gate.log` BUILD SUCCESSFUL（4 分 22 秒）：2298 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包与两次正常停服检查点通过。`build/reports/resource-facts/audit.json` 核验原 693 项存储形状完全不变、发布主类 1258 / 1251 个逐字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+本批完成显式 Java 资源请求的接收事实执行，未改变普通 DSL 的资源查询 / initialize / spend / resize / 技能支付路径，原生传送、协调 tick 与联合世界保存尚未启用。没有新增原作数值、原生迁移或图形客户端验收；Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[接收事实与反馈链](engine-data-packs.md#接收会话的事实投递与反馈链)。
+
 ### 2026-10-14：运行中世界请求的资源入账与退款
 
 EffectSession 新增绑定当前世界回调的 WorldOperation，允许可信宿主把 pending 调用方与已结算接收会话纳入同一次批量发布。提交保留原帧、事实、请求中的未来时间和操作身份；返回后仍由 Completed 恢复执行。结果与领域写入共同提交，重复提交、过期能力、不同回调或返回另一份结果拒绝。入账后世界回调抛错时保留已写入状态和 pending 操作，不自动退款、重放或允许检查点保存；后续纯规则失败保留已收到的实际回执。

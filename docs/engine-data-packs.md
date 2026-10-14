@@ -950,23 +950,33 @@ var handoff = host.prepareTransfer(holder, "minecraft:the_nether");
 host.commit(handoff);
 ```
 
-宿主先用各自正常输入推进会话到所需时间，再调用 snapshot / prepareTransfer；协调器不会推进时间或执行未完成规则。snapshot 将所有受管持有者的本地进度一起发布，检测旧维度重新创建的重复账户。prepareTransfer 只预检和生成不透明计划；commit 再核对目录身份及所有参与会话的完整时间线身份。即使中间只处理了同一时刻的空事件、余额完全相同，旧计划也会失效。另一个协调器的计划不能提交。
+宿主先用各自正常输入推进会话到所需时间，再调用 snapshot / prepareTransfer；协调器不会推进时间或执行未完成规则。snapshot 将所有受管持有者的已提交账户进度一起发布，检测旧维度重新创建的重复账户；它允许存在尚未处理的接收事实，不等于可保存的检查点。prepareTransfer 要求这些事实先完成，再预检和生成不透明计划；commit 再核对目录身份及所有参与会话的完整时间线身份。即使中间只处理了同一时刻的空事件、余额完全相同，旧计划也会失效。另一个协调器的计划不能提交。
 
 底层 `EffectSession.prepareDomain(expectedTimeline, domain)` 预检同一已结算时刻的新状态；`commitDomains(updates)` 先核对所有参与会话，再执行不含回调的引用赋值。重复会话、过期快照、其他线程、运行中或失败 / 待回执的会话在任何写入之前拒绝。这个内部接口面向已经验证状态语义的可信宿主，不替代正常技能、装备或世界动作。它保留时钟、计时器、事件 / 帧编号与去重回执，不通过 observe 制造额外边界，也不采用 restore 清除当前回执。后续正常事件才会运行规则，并能同时看到双方已经更新的状态。
 
-`host.grant(...)` 和 `host.refund(...)` 在返回结果前完成实际会话入账；后者同时发布签发会话的额度认领。它们仍要求所有会话处于已结算边界，不能从正在执行的世界回调重入。原生宿主后续需要将进行中的资源请求交由可暂停 / 恢复的路由协议处理，并按实际返回结果发布游戏事实；当前方法不自动拦截 DSL 动作，也不自动计算数值 Profile 或广播事件。
+`host.grant(...)` 和 `host.refund(...)` 在返回结果前完成实际会话入账；后者同时发布签发会话的额度认领。它们要求所有会话没有正在执行或待回执的帧，已有接收事实保持排队，不能从正在执行的世界回调重入。这两个直接宿主方法没有 origin 参数，不自动生成游戏事实；进行中的请求使用下一节 execute。它们不自动拦截 DSL 动作或计算数值 Profile。
 
 ### 执行中的资源请求与回执
 
 `ResourceRequests.Read / Grant / Refund` 是普通 `RuleEngine.WorldCommand`，可由 Java 动作返回 Await。Read 按 holder + resource 查询当前账户与 lease；Grant 携带已解析的 requested / scaled 和原始 origin；Refund 另外携带原签发领域与 RetainedCosts.Handle。`ResourceSessionAuthority.execute(callerDomain, worldRequest)` 只能在该 caller 的当前世界回调中使用，返回与请求绑定的 ReadResult / Granted / Refunded。它不会按当前技能、当前维度或装备猜测原付款来源。
 
-execute 允许当前调用会话暂停在对应的 pending operation，其他参与会话仍必须健康且已结算。它先发布已提交的账户进度，解析当前接收者，再共同提交调用会话的结果、签发会话的退款账本和接收会话的余额。三者可以位于不同领域，也可以重合。同一回调内重复 execute 返回已经提交的同一结果；错误 caller、相同操作编号但不同命令、回调结束后再次调用均拒绝。暂停中的调用方不能借此创建另一个嵌套外部输入。
+execute 允许当前调用会话暂停在对应的 pending operation，其他参与会话必须健康、没有正在执行或待回执的帧，可以保留已排队的接收事实。它先发布已提交的账户进度，解析当前接收者，再共同提交调用会话的结果、签发会话的退款账本、接收会话的余额和对应事实。三者可以位于不同领域，也可以重合。同一回调内重复 execute 返回已经提交的同一结果；错误 caller、相同操作编号但不同命令、回调结束后再次调用均拒绝。暂停中的调用方不能借此创建另一个嵌套外部输入。
 
 EffectSession 为每次实际世界回调创建不透明 WorldOperation。可信协调器通过 `prepareOperationDomain` 把已经确定的结果与领域写入加入同一个 `commitDomains` 批次；原 pending 操作、帧、事实、请求中的未来时间和身份编号保持。协调器返回后，会话仍通过原有 Completed 回执协议继续执行。回调可以附带普通 WorldReceipt 的观测事实，但其 value 必须与已提交结果一致；不能用另一份结果恢复规则。入账后回调抛错或返回不同结果时，保留全部已提交状态，待回执操作阻止重启该边界与检查点保存，不自动回滚、退款或重放。后续纯规则失败同样保留已经收到的实际回执。
 
-Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保留实际 claimed / remaining；过期或关闭的句柄返回空退款。目标时钟不替代签发时钟。`ResourceRequests.facts(receipt)` 只生成对应事实数据，Read 和不可用退款不生成事实。原生宿主仍须以 caller + operation 身份去重，将事实送入 receipt 指定的入账领域，并在合适边界运行反应；此函数不自动投递事件。Grant 的数值缩放也仍由调用方先解析。
+Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保留实际 claimed / remaining；过期或关闭的句柄返回空退款。目标时钟不替代签发时钟。`ResourceRequests.facts(receipt)` 只生成对应事实数据，Read 和不可用退款不生成事实。execute 已将事实与入账一起提交到 receipt 指定的接收会话，不应再次手动 observe 同一份事实。这个静态工厂本身仍只返回数据。Grant 的数值缩放仍由调用方先解析。
 
-新增命令、结果与 lease 使用显式存储身份，可被已有检查点数据编码；WorldOperation 能力和未完成操作不能据此保存或恢复。当前没有改变普通 DSL 的 initialize / grant / spend / resize、资源表达式或技能支付语义，也没有新增自动请求路由和接收领域事件队列。原生接入必须一并处理这些路径及联合保存，不能仅在传送时移动余额后直接启用。
+新增命令、结果与 lease 使用显式存储身份，可被已有检查点数据编码；WorldOperation 能力和未完成操作不能据此保存或恢复。当前没有改变普通 DSL 的 initialize / grant / spend / resize、资源表达式或技能支付语义，尚未自动选择请求路由。原生接入必须一并处理这些路径及联合保存，不能仅在传送时移动余额后直接启用。
+
+### 接收会话的事实投递与反馈链
+
+execute 在同一批量提交中为接收会话分配事实身份并追加到时间线，不进入接收方规则。请求重入命中 WorldOperation 的既有结果时，不再次入账或排队。多个请求按提交顺序保留各自的 before / after / credited，事件时刻采用入账领域当时的逻辑时间。同会话请求沿用当前帧的 root / parent；跨会话使用接收领域自己的事件身份，并在事实 references 中保留 resource_caller_domain、resource_operation（frame / pc / invocation）、resource_recipient_domain 和 resource_lease_generation。原始 actor / source / weapon / ability / tags 保留。
+
+EffectSession 的 inbox 标记只表示尚未开始处理的已提交事实。`prepareInboxDomain` 同时预检领域更新、已有队列与新事件编号；批量提交前的任一错误或编号耗尽不会部分写入。普通 prepareDomain 不能覆盖未处理队列。`drain()` 在原时刻运行这些事实，正常 start / observe 也会先处理 inbox，再执行新的外部输入或推进时间；非法时间和保留事件在处理队列之前拒绝。开始新 inbox 边界时清理上一边界的去重回执，继续使用原事件 / 帧序号，避免长期反馈链无限积累旧回执。
+
+跨会话宿主使用 `host.drain(maxBoundaries)` 协作调度，返回 Drained(boundaries, pending)。调度按领域名称轮转，分批耗尽后保留全部剩余事实；pending 为 true 时下一次继续，没有反应次数或循环深度上限。同会话产生的新事实由原正常规则边界继续处理；跨会话反应可以再发请求，把新事实排入另一个会话，而不在世界回调中递归进入它。一次边界的内部执行仍遵循原解释器协议，maxBoundaries 不是中断一个执行中的规则帧。
+
+snapshot 可以读取带队列的已提交余额，但登记 / 归属移交和检查点仍要求先结算队列。若调用方在入账后丢失回执，或接收方执行了结果未知的世界动作，保留已提交余额及其他领域的待处理事实，停止自动 drain / 重放。带未处理事实或失败 / 待回执状态的会话不能导出已结算检查点；当前没有把 inbox 改为可独立持久化的邮件存储。原生宿主接入后必须在正常输入 / tick / 保存边界安排完整的协调结算，不能只保存 Directory。
 
 当前 Minecraft 宿主归档仍为 format 3，并未包含这个协调目录；实际传送仍只有角色根配置与基础技能选择自动同步。下一步需要在原生传送边界交接、路由旧领域的资源读写与延迟退款、处理账户回执及共同保存 / 故障恢复，再启用这项协议。Buff、弹药、技能进度和物理实体迁移也没有由资源分区转移自动完成。
 

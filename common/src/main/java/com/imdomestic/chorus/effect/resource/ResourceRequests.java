@@ -75,4 +75,17 @@ public final class ResourceRequests {
         }
         return List.of();
     }
+    /** Cross-domain identities are explicit references; local event/frame numbers are not globally unique. */
+    public static List<RuleEngine.Signal> facts(String caller, RuleEngine.OperationId operation, Receipt receipt) {
+        new ResourceAuthority.Lease(caller, 1); Objects.requireNonNull(operation);
+        if (operation.frame() < 1 || operation.pc() < 0 || operation.invocation() < 0) throw new IllegalArgumentException("Invalid resource operation identity");
+        return facts(receipt).stream().map(signal -> {
+            var event = (com.imdomestic.chorus.effect.EffectEvent) signal.payload(); var lease = receipt.recipient().orElseThrow();
+            var references = new HashMap<>(event.references());
+            references.put("resource_caller_domain", caller);
+            references.put("resource_operation", operation.frame() + "/" + operation.pc() + "/" + operation.invocation());
+            references.put("resource_recipient_domain", lease.domain()); references.put("resource_lease_generation", Long.toString(lease.generation()));
+            return new RuleEngine.Signal(signal.type(), new com.imdomestic.chorus.effect.EffectEvent(event.actor(), event.victim(), event.source(), event.tags(), event.numbers(), event.flags(), references));
+        }).toList();
+    }
 }

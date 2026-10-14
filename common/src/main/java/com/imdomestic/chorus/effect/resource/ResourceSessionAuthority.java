@@ -32,6 +32,8 @@ public final class ResourceSessionAuthority {
     private final Map<String, Binding> bindings;
     private ResourceAuthority.Directory directory;
     private boolean working;
+    private boolean draining;
+    private String lastDrained = "";
 
     /** Restored directories must already match every live session; construction never silently republishes a mismatch. */
     public ResourceSessionAuthority(ResourceAuthority.Directory directory, Map<String, Binding> bindings) {
@@ -63,9 +65,10 @@ public final class ResourceSessionAuthority {
         for (var entry : bindings.entrySet()) {
             var binding = entry.getValue();
             var current = caller.filter(value -> value.domain().equals(entry.getKey()));
-            var catalogue = current.isPresent() ? binding.session().catalogue() : binding.session().checkpoint().program();
+            var catalogue = current.isPresent() || publish ? binding.session().catalogue() : binding.session().checkpoint().program();
             if (!binding.program().program().equals(catalogue)) throw new IllegalArgumentException("Live resource catalogue differs from its session");
-            var timeline = current.isPresent() ? binding.session().operationState(current.orElseThrow().operation()) : binding.session().state();
+            var timeline = current.isPresent() ? binding.session().operationState(current.orElseThrow().operation())
+                    : publish ? binding.session().coordinationState() : binding.session().state();
             timelines.put(entry.getKey(), timeline); states.put(entry.getKey(), timeline.engine().domain());
         }
         var next = directory;
@@ -93,15 +96,20 @@ public final class ResourceSessionAuthority {
         return prepare(before, after, Optional.empty());
     }
     private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after, Optional<RuleEngine.ActionResult> result) {
+        return prepare(before, after, result, Map.of());
+    }
+    private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after, Optional<RuleEngine.ActionResult> result,
+            Map<String, List<RuleEngine.Signal>> facts) {
         current(before);
         var updates = new ArrayList<EffectSession.DomainUpdate>();
         for (var entry : bindings.entrySet()) {
             var domain = entry.getKey(); var next = after.domain(domain);
+            var emitted = facts.getOrDefault(domain, List.of());
             var caller = before.caller().filter(value -> value.domain().equals(domain));
             if (caller.isPresent())
-                updates.add(entry.getValue().session().prepareOperationDomain(caller.orElseThrow().operation(), before.timelines().get(domain), next, result.orElseThrow()));
-            else if (next != before.worlds().domain(domain))
-                updates.add(entry.getValue().session().prepareDomain(before.timelines().get(domain), next));
+                updates.add(entry.getValue().session().prepareOperationDomain(caller.orElseThrow().operation(), before.timelines().get(domain), next, result.orElseThrow(), emitted));
+            else if (next != before.worlds().domain(domain) || !emitted.isEmpty())
+                updates.add(entry.getValue().session().prepareInboxDomain(before.timelines().get(domain), next, emitted));
         }
         current(before); return List.copyOf(updates);
     }
@@ -110,10 +118,12 @@ public final class ResourceSessionAuthority {
         EffectSession.commitDomains(updates);
         directory = after.directory(); // Reference assignment only; no rule or host callback can observe half a publication.
     }
-    /** Publish already-settled local progress; this method neither advances time nor executes a rule. */
+    /** Capture committed balances, including sessions with queued facts. This is not a settled checkpoint. */
     public ResourceAuthority.Worlds snapshot() { return boundary(() -> capture(true).worlds()); }
+    private void settled() { bindings.values().forEach(binding -> binding.session().checkpoint()); }
     public ResourceAuthority.Partition claim(String holder, String domain) {
         return boundary(() -> {
+            settled();
             var before = capture(true);
             var next = ResourceAuthority.claim(directory, holder, domain, binding(domain).program(), before.worlds().domain(domain));
             var checked = new ResourceAuthority.Worlds(next, before.worlds().domains());
@@ -122,6 +132,7 @@ public final class ResourceSessionAuthority {
     }
     public Handoff prepareTransfer(String holder, String destination) {
         return boundary(() -> {
+            settled();
             var before = capture(true); var owner = directory.owner(holder); var program = binding(destination).program();
             var transfer = ResourceAuthority.transfer(directory, owner, before.worlds().domain(owner.lease().domain()),
                     destination, program, before.worlds().domain(destination));
@@ -177,7 +188,31 @@ public final class ResourceSessionAuthority {
                     receipt = new ResourceRequests.Refunded(refund, result.result(), result.recipient());
                 }
             }
-            commit(before, after, prepare(before, after, Optional.of(receipt))); return receipt;
+            var emitted = ResourceRequests.facts(caller, request.id(), receipt);
+            var facts = emitted.isEmpty() ? Map.<String, List<RuleEngine.Signal>>of()
+                    : Map.of(receipt.recipient().orElseThrow().domain(), emitted);
+            commit(before, after, prepare(before, after, Optional.of(receipt), facts)); return receipt;
         });
+    }
+    public record Drained(int boundaries, boolean pending) {}
+    /** Cooperative round-robin scheduling: a finite batch yields with every remaining fact intact, including feedback chains. */
+    public Drained drain(int maxBoundaries) {
+        if (Thread.currentThread() != ownerThread || working || draining) throw new IllegalStateException("Resource fact drain requires its nonreentrant owner thread");
+        if (maxBoundaries < 1) throw new IllegalArgumentException("Positive resource fact drain batch required");
+        draining = true;
+        try {
+            int count = 0;
+            while (count < maxBoundaries) {
+                var candidates = boundary(() -> {
+                    capture(true);
+                    return bindings.entrySet().stream().filter(entry -> entry.getValue().session().inboxPending()).map(Map.Entry::getKey).toList();
+                });
+                if (candidates.isEmpty()) return new Drained(count, false);
+                String domain = candidates.stream().filter(value -> value.compareTo(lastDrained) > 0).findFirst().orElse(candidates.getFirst());
+                binding(domain).session().drain(); lastDrained = domain; count++;
+            }
+            boolean pending = boundary(() -> { capture(true); return bindings.values().stream().anyMatch(binding -> binding.session().inboxPending()); });
+            return new Drained(count, pending);
+        } finally { draining = false; }
     }
 }
