@@ -936,6 +936,26 @@ transfer 只生成计划，不修改输入。源分区必须已经结算并发�
 
 `ResourceAuthorityCodec` 的独立 format 1 保存 Directory，generation / revision / 时间使用十进制字符串，程序与账户复用已注册的存储编码。重复 holder / 账户 / generation、未知字段、非法数字、分区键或时钟错配拒绝。它不单独证明所属领域的余额和退款账本已经落盘；恢复后仍须以 Worlds 核对所有领域。
 
+### 把协调结果发布到运行会话
+
+`ResourceSessionAuthority` 将纯协调器绑定到实际 `EffectSession`，让归属目录与双方会话在同一线程中共同更新。每个 domain 只能绑定一个独立会话，编译程序必须与会话固定的完整程序相同。构造时严格核对传入 Directory 与全部会话；恢复时不能通过重新发布余额来掩盖存档错配。
+
+```java
+var host = new ResourceSessionAuthority(ResourceAuthority.Directory.EMPTY, Map.of(
+        "minecraft:overworld", new ResourceSessionAuthority.Binding(program, overworldSession),
+        "minecraft:the_nether", new ResourceSessionAuthority.Binding(program, netherSession)));
+// 首次登记；恢复时改用保存的 Directory，已经登记的持有者不再 claim。
+host.claim(holder, "minecraft:overworld");
+var handoff = host.prepareTransfer(holder, "minecraft:the_nether");
+host.commit(handoff);
+```
+
+宿主先用各自正常输入推进会话到所需时间，再调用 snapshot / prepareTransfer；协调器不会推进时间或执行未完成规则。snapshot 将所有受管持有者的本地进度一起发布，检测旧维度重新创建的重复账户。prepareTransfer 只预检和生成不透明计划；commit 再核对目录身份及所有参与会话的完整时间线身份。即使中间只处理了同一时刻的空事件、余额完全相同，旧计划也会失效。另一个协调器的计划不能提交。
+
+底层 `EffectSession.prepareDomain(expectedTimeline, domain)` 预检同一已结算时刻的新状态；`commitDomains(updates)` 先核对所有参与会话，再执行不含回调的引用赋值。重复会话、过期快照、其他线程、运行中或失败 / 待回执的会话在任何写入之前拒绝。这个内部接口面向已经验证状态语义的可信宿主，不替代正常技能、装备或世界动作。它保留时钟、计时器、事件 / 帧编号与去重回执，不通过 observe 制造额外边界，也不采用 restore 清除当前回执。后续正常事件才会运行规则，并能同时看到双方已经更新的状态。
+
+`host.grant(...)` 和 `host.refund(...)` 在返回结果前完成实际会话入账；后者同时发布签发会话的额度认领。它们仍要求所有会话处于已结算边界，不能从正在执行的世界回调重入。原生宿主后续需要将进行中的资源请求交由可暂停 / 恢复的路由协议处理，并按实际返回结果发布游戏事实；当前方法不自动拦截 DSL 动作，也不自动计算数值 Profile 或广播事件。
+
 当前 Minecraft 宿主归档仍为 format 3，并未包含这个协调目录；实际传送仍只有角色根配置与基础技能选择自动同步。下一步需要在原生传送边界交接、路由旧领域的资源读写与延迟退款、处理账户回执及共同保存 / 故障恢复，再启用这项协议。Buff、弹药、技能进度和物理实体迁移也没有由资源分区转移自动完成。
 
 ## 整数弹药与弹匣转移
