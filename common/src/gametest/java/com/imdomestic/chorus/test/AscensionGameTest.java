@@ -56,25 +56,34 @@ public class AscensionGameTest {
     static void cast(ProjectileGameTest.Harness t) { t.h.assertValueEqual(t.runtime.useAbility(t.owner, SLOT).outcome(), AbilityUse.Outcome.ACCEPTED, "Ascension rejected"); ShieldThrowGameTest.settled(t); }
     static LivingEntity target(ProjectileGameTest.Harness t, double distance) { var e = t.cow(2.5, 40, 3.5); e.setPos(t.owner.position().add(distance, 0, 0)); return e; }
     static int count(ProjectileGameTest.Harness t, String buff, LivingEntity e) { return AmplifiedGameTest.count(t.runtime, D + buff, e.getUUID().toString()); }
-    @GameCase public void paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(GameTestHelper h) throws Exception {
-        try (var t = open(h, "marksman_dodge")) {
-            var scoreboard = h.getLevel().getScoreboard(); var team = scoreboard.addPlayerTeam("ascent-" + UUID.randomUUID());
-            try {
-                var enemy = target(t, 10); var outside = target(t, 10.001); var ally = target(t, 2);
-                scoreboard.addPlayerToTeam(t.owner.getScoreboardName(), team); scoreboard.addPlayerToTeam(ally.getScoreboardName(), team);
-                stat(t, "class", 200); var before = t.owner.position(); double speed = t.owner.getAttributeValue(Attributes.MOVEMENT_SPEED); cast(t);
-                near(h, t.owner.getY(), before.y + 3, "calibrated upward displacement"); near(h, t.owner.getX(), before.x, "look direction changed upward axis");
-                near(h, energy(t, D + "marksman_dodge_energy"), 0, "selected dodge charge not consumed");
-                var direct = t.hits.stream().filter(c -> c.tags().contains(D + "ascension_damage")).toList(); h.assertValueEqual(direct.size(), 1, "direct radius/relations");
-                h.assertValueEqual(direct.getFirst().target(), enemy.getUUID().toString(), "captured cast origin lost inclusive boundary");
-                near(h, t.receipts.get(t.hits.indexOf(direct.getFirst())).healthLoss(), 18.1 * 1.65, "Class-scaled direct damage");
-                h.assertTrue(t.hits.stream().noneMatch(c -> c.target().equals(ally.getUUID().toString())), "ally took direct or Jolt damage");
-                h.assertTrue(direct.stream().noneMatch(c -> c.target().equals(outside.getUUID().toString())), "outside enemy took direct damage");
-                h.assertValueEqual(count(t, "amplified", t.owner), 1, "self Amplified"); h.assertValueEqual(count(t, "amplified", ally), 1, "ally Amplified"); h.assertValueEqual(count(t, "jolt", enemy), 1, "enemy Jolt");
-                near(h, t.owner.getAttributeValue(Attributes.MOVEMENT_SPEED), speed * 1.2, "existing Amplified movement projection");
-                h.assertTrue(t.hits.stream().allMatch(c -> c.source().ability().equals(ABILITY)), "Jolt lost originating ability credit");
-            } finally { scoreboard.removePlayerTeam(team); }
-        } h.succeed();
+    @GameCase(structure="chorus_gametest:firebolt", maxTicks=50)
+    public void paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(GameTestHelper h) {
+        AcrobatDodgeGameTest.ready(h, () -> {
+            try (var t = open(h, "marksman_dodge")) {
+                var scoreboard = h.getLevel().getScoreboard(); var team = scoreboard.addPlayerTeam("ascent-" + UUID.randomUUID());
+                try {
+                    var enemy = target(t, 10); var outside = target(t, 10.001); var ally = target(t, 2);
+                    // Both sides of the boundary must be in the loaded entity index before casting.
+                    // The eight-block default structure does not cover this ten-meter scenario.
+                    for (var entity : List.of(t.owner, enemy, outside, ally)) {
+                        h.assertTrue(h.getLevel().isPositionEntityTicking(entity.blockPosition()), "Ascension geometry must be simulated");
+                        h.assertTrue(h.getLevel().getEntity(entity.getUUID()) == entity, "Ascension target must be indexed before casting");
+                    }
+                    scoreboard.addPlayerToTeam(t.owner.getScoreboardName(), team); scoreboard.addPlayerToTeam(ally.getScoreboardName(), team);
+                    stat(t, "class", 200); var before = t.owner.position(); double speed = t.owner.getAttributeValue(Attributes.MOVEMENT_SPEED); cast(t);
+                    near(h, t.owner.getY(), before.y + 3, "calibrated upward displacement"); near(h, t.owner.getX(), before.x, "look direction changed upward axis");
+                    near(h, energy(t, D + "marksman_dodge_energy"), 0, "selected dodge charge not consumed");
+                    var direct = t.hits.stream().filter(c -> c.tags().contains(D + "ascension_damage")).toList(); h.assertValueEqual(direct.size(), 1, "direct radius/relations");
+                    h.assertValueEqual(direct.getFirst().target(), enemy.getUUID().toString(), "captured cast origin lost inclusive boundary");
+                    near(h, t.receipts.get(t.hits.indexOf(direct.getFirst())).healthLoss(), 18.1 * 1.65, "Class-scaled direct damage");
+                    h.assertTrue(t.hits.stream().noneMatch(c -> c.target().equals(ally.getUUID().toString())), "ally took direct or Jolt damage");
+                    h.assertTrue(direct.stream().noneMatch(c -> c.target().equals(outside.getUUID().toString())), "outside enemy took direct damage");
+                    h.assertValueEqual(count(t, "amplified", t.owner), 1, "self Amplified"); h.assertValueEqual(count(t, "amplified", ally), 1, "ally Amplified"); h.assertValueEqual(count(t, "jolt", enemy), 1, "enemy Jolt");
+                    near(h, t.owner.getAttributeValue(Attributes.MOVEMENT_SPEED), speed * 1.2, "existing Amplified movement projection");
+                    h.assertTrue(t.hits.stream().allMatch(c -> c.source().ability().equals(ABILITY)), "Jolt lost originating ability credit");
+                } finally { scoreboard.removePlayerTeam(team); }
+            } h.succeed();
+        });
     }
     @GameCase public void solidCeilingClipsAscentWhileStatusDenialOnlyRejectsThatTargetsJolt(GameTestHelper h) throws Exception {
         try (var t = open(h, "marksman_dodge")) {

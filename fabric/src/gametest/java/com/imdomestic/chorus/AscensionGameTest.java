@@ -4,8 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class AscensionGameTest extends com.imdomestic.chorus.test.AscensionGameTest {
-    @GameTest(structure="chorus_gametest:empty") @Override
-    public void paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(GameTestHelper h) throws Exception { super.paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(h); }
+    @GameTest(structure="chorus_gametest:firebolt", maxTicks=50) @Override
+    public void paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(GameTestHelper h) { super.paidVerticalCastUsesCapturedTenMeterOriginAndSeparatesAlliesFromEnemies(h); }
     @GameTest(structure="chorus_gametest:empty") @Override
     public void solidCeilingClipsAscentWhileStatusDenialOnlyRejectsThatTargetsJolt(GameTestHelper h) throws Exception { super.solidCeilingClipsAscentWhileStatusDenialOnlyRejectsThatTargetsJolt(h); }
     @GameTest(structure="chorus_gametest:empty") @Override

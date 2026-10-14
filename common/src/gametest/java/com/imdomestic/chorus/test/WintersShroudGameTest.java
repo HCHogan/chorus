@@ -50,26 +50,40 @@ public class WintersShroudGameTest {
         var source = new EffectSource("blade", D + "slow_application", owner(t), new BuffInstance.Origin(owner(t), "blade", "", "test:other_slow"), Set.of(), values); t.runtime.bind(source);
         t.runtime.start(new RuleEngine.Signal(D + "apply_slow", new EffectEvent(owner(t), target.getUUID().toString(), source.origin(), Set.of(), Map.of("stacks", new Measure(stacks, Unit.COUNT)), Map.of(), Map.of("source_instance", source.instance(), "bundle", source.bundle()))));
     }
-    @GameCase public void acceptedDodgeUsesNineMeterEnemyBoundaryAndDuranceAndSingleAspectPulse(GameTestHelper h) throws Exception {
-        try (var t = open(h, "stasis")) {
-            t.runtime.bind(aspect("copy", owner(t), "stasis")); t.runtime.bind(AmplifiedGameTest.source("durance", D + "durance", owner(t)));
-            var edge = target(t, 9); var outside = target(t, 9.001); var ally = target(t, 2); var scoreboard = h.getLevel().getScoreboard(); var team = scoreboard.addPlayerTeam("winter-" + UUID.randomUUID());
-            try {
-                scoreboard.addPlayerToTeam(t.owner.getScoreboardName(), team); scoreboard.addPlayerToTeam(ally.getScoreboardName(), team); double speed = edge.getAttributeValue(Attributes.MOVEMENT_SPEED); long now = state(t).buffs().timeMicros(); dodge(t);
-                h.assertValueEqual(count(t, "slow", edge), 60, "duplicate pulse or missing inclusive boundary"); h.assertValueEqual(count(t, "slow", outside), 0, "outside boundary"); h.assertValueEqual(count(t, "slow", ally), 0, "allied target");
-                near(h, edge.getAttributeValue(Attributes.MOVEMENT_SPEED), speed * .5, "shared native Slow projection"); h.assertValueEqual(buff(t, "slow", edge).deadline() - now, 12_000_000L, "explicit Stasis/Durance timing");
-                near(h, energy(t, D + "marksman_dodge_energy"), 0, "one paid charge"); h.assertValueEqual(count(t, "winters_shroud_regeneration", t.owner), 1, "successful Slow regeneration");
-            } finally { scoreboard.removePlayerTeam(team); }
-        } h.succeed();
+    @GameCase(structure="chorus_gametest:firebolt", maxTicks=50)
+    public void acceptedDodgeUsesNineMeterEnemyBoundaryAndDuranceAndSingleAspectPulse(GameTestHelper h) {
+        AcrobatDodgeGameTest.ready(h, () -> {
+            try (var t = open(h, "stasis")) {
+                t.runtime.bind(aspect("copy", owner(t), "stasis")); t.runtime.bind(AmplifiedGameTest.source("durance", D + "durance", owner(t)));
+                var edge = target(t, 9); var outside = target(t, 9.001); var ally = target(t, 2); var scoreboard = h.getLevel().getScoreboard(); var team = scoreboard.addPlayerTeam("winter-" + UUID.randomUUID());
+                try {
+                    indexed(t, edge, outside, ally);
+                    scoreboard.addPlayerToTeam(t.owner.getScoreboardName(), team); scoreboard.addPlayerToTeam(ally.getScoreboardName(), team); double speed = edge.getAttributeValue(Attributes.MOVEMENT_SPEED); long now = state(t).buffs().timeMicros(); dodge(t);
+                    h.assertValueEqual(count(t, "slow", edge), 60, "duplicate pulse or missing inclusive boundary"); h.assertValueEqual(count(t, "slow", outside), 0, "outside boundary"); h.assertValueEqual(count(t, "slow", ally), 0, "allied target");
+                    near(h, edge.getAttributeValue(Attributes.MOVEMENT_SPEED), speed * .5, "shared native Slow projection"); h.assertValueEqual(buff(t, "slow", edge).deadline() - now, 12_000_000L, "explicit Stasis/Durance timing");
+                    near(h, energy(t, D + "marksman_dodge_energy"), 0, "one paid charge"); h.assertValueEqual(count(t, "winters_shroud_regeneration", t.owner), 1, "successful Slow regeneration");
+                } finally { scoreboard.removePlayerTeam(team); }
+            } h.succeed();
+        });
     }
-    @GameCase public void ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses(GameTestHelper h) throws Exception {
-        try (var t = open(h, "prismatic")) {
-            var edge = target(t, 9); var enemy = target(t, 3); enemy.addTag(D + "elite"); var before = t.owner.position(); long now = state(t).buffs().timeMicros();
-            cast(t); near(h, t.owner.getY(), before.y + 3, "Ascension vertical movement"); h.assertValueEqual(count(t, "slow", edge), 60, "pulse should sample the accepted cast position before ascent");
-            h.assertValueEqual(buff(t, "slow", enemy).deadline() - now, 8_000_000L, "Prismatic duration"); h.assertValueEqual(buff(t, "slow", enemy).origin().ability(), ABILITY, "Slow lost Ascension credit");
-            h.assertValueEqual(count(t, "jolt", enemy), 1, "shared Jolt absent"); h.assertValueEqual(count(t, "amplified", t.owner), 1, "Amplified absent"); near(h, energy(t, D + "marksman_dodge_energy"), 0, "cost was not one dodge charge");
-            slow(t, enemy, 40); h.assertValueEqual(count(t, "slow", enemy), 0, "shared hundred-stack conversion retained Slow"); h.assertValueEqual(count(t, "freeze", enemy), 1, "shared Freeze absent");
-        } h.succeed();
+    @GameCase(structure="chorus_gametest:firebolt", maxTicks=50)
+    public void ascensionTriggersPrismaticPulseBeforeMotionAndReusesAllSharedStatuses(GameTestHelper h) {
+        AcrobatDodgeGameTest.ready(h, () -> {
+            try (var t = open(h, "prismatic")) {
+                var edge = target(t, 9); var enemy = target(t, 3); enemy.addTag(D + "elite"); var before = t.owner.position(); long now = state(t).buffs().timeMicros();
+                indexed(t, edge, enemy);
+                cast(t); near(h, t.owner.getY(), before.y + 3, "Ascension vertical movement"); h.assertValueEqual(count(t, "slow", edge), 60, "pulse should sample the accepted cast position before ascent");
+                h.assertValueEqual(buff(t, "slow", enemy).deadline() - now, 8_000_000L, "Prismatic duration"); h.assertValueEqual(buff(t, "slow", enemy).origin().ability(), ABILITY, "Slow lost Ascension credit");
+                h.assertValueEqual(count(t, "jolt", enemy), 1, "shared Jolt absent"); h.assertValueEqual(count(t, "amplified", t.owner), 1, "Amplified absent"); near(h, energy(t, D + "marksman_dodge_energy"), 0, "cost was not one dodge charge");
+                slow(t, enemy, 40); h.assertValueEqual(count(t, "slow", enemy), 0, "shared hundred-stack conversion retained Slow"); h.assertValueEqual(count(t, "freeze", enemy), 1, "shared Freeze absent");
+            } h.succeed();
+        });
+    }
+    private static void indexed(ProjectileGameTest.Harness t, LivingEntity... targets) {
+        for (var target : targets) {
+            t.h.assertTrue(t.h.getLevel().isPositionEntityTicking(target.blockPosition()), "Winter's Shroud boundary must be simulated");
+            t.h.assertTrue(t.h.getLevel().getEntity(target.getUUID()) == target, "Winter's Shroud target must be indexed before casting");
+        }
     }
     @GameCase(environment="chorus_gametest:winters_shroud_regeneration", maxTicks=92)
     public void realTicksIntegrateAdditionalBaseRateThenExpireWhileDetachedAspectDoesNotEraseGrantedBenefits(GameTestHelper h) throws Exception {
