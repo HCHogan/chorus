@@ -60,6 +60,11 @@ public final class Resources {
     public interface CostResult extends com.imdomestic.chorus.rule.RuleEngine.RetainedResult {
         CostReceipt receipt();
         @Override default String retentionKey() { return receipt().operation(); }
+        @Override default CostResult merge(com.imdomestic.chorus.rule.RuleEngine.RetainedResult previous) {
+            if (!(previous instanceof CostResult cost)) throw new IllegalArgumentException("Conflicting payment result: " + retentionKey());
+            var current = receipt(); var latest = latestClaim(current, List.of(cost));
+            return latest == current ? this : cost;
+        }
     }
     public record SpendResult(ResourceState after, boolean succeeded, CostReceipt receipt) implements CostResult {}
     public record RefundResult(ResourceResult grant, CostReceipt receipt) implements CostResult {}

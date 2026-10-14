@@ -17,8 +17,12 @@ import java.util.Optional;
 public final class RuleEngine<S> {
     public interface Payload {}
     public interface ActionResult {}
-    /** Latest frame-local receipt per identity, retained even when lexical bindings leave scope. */
-    public interface RetainedResult extends ActionResult { String retentionKey(); }
+    /** Frame-local evidence survives lexical scope and completion-result transformations. */
+    public interface RetainedResult extends ActionResult {
+        String retentionKey();
+        /** Families with monotonic evidence can preserve a stronger previous receipt. */
+        default RetainedResult merge(RetainedResult previous) { return this; }
+    }
     public interface WorldCommand {}
     public enum Empty implements Payload, ActionResult { INSTANCE }
 
@@ -187,6 +191,10 @@ public final class RuleEngine<S> {
         Frame await(WorldCommand command) {
             return new Frame(id, event, rule, definition, scope, pc, started, bindings, iterations, invocations, retainedResults, Optional.of(command));
         }
+        Frame retain(ActionResult actual) {
+            var retained = retainResult(retainedResults, actual);
+            return retained == retainedResults ? this : new Frame(id, event, rule, definition, scope, pc, started, bindings, iterations, invocations, retained, pendingCommand);
+        }
     }
     public record Failure(long root, String rule, int pc, String message, int abandonedFacts, int abandonedFrames) {}
     public record State<S>(String version, S domain, long timeMicros, long nextEvent, long nextFrame,
@@ -280,6 +288,9 @@ public final class RuleEngine<S> {
                     cursor.domain = Objects.requireNonNull(reconciler.apply(cursor.domain, receipt.committed()));
                     actual = receipt.value(); observed = receipt.observed();
                 }
+                // World-confirmed evidence is available to completion itself and cannot be erased by returning Empty.
+                frame = frame.retain(actual);
+                cursor.frames.removeFirst(); cursor.frames.addFirst(frame);
                 var result = instruction.action().complete(cursor.domain, context(frame), actual);
                 var signals = new ArrayList<>(observed); signals.addAll(result.emitted());
                 cursor.commit(frame, instruction, new Local<>(result.state(), result.result(), signals));
@@ -352,6 +363,16 @@ public final class RuleEngine<S> {
     private static Context context(Frame frame) {
         return new Context(frame.event(), frame.rule(), frame.scope(), frame.bindings(), operation(frame), frame.retainedResults(), frame.pendingCommand());
     }
+    private static Map<String, ActionResult> retainResult(Map<String, ActionResult> before, ActionResult actual) {
+        if (!(actual instanceof RetainedResult receipt)) return before;
+        String key = receipt.retentionKey(); var previous = before.get(key);
+        if (previous != null) {
+            if (!(previous instanceof RetainedResult retained)) throw new IllegalArgumentException("Conflicting retained result identity: " + key);
+            receipt = Objects.requireNonNull(receipt.merge(retained));
+            if (!key.equals(receipt.retentionKey())) throw new IllegalArgumentException("Retained result merge changed its identity");
+        }
+        var updated = new HashMap<>(before); updated.put(key, receipt); return Map.copyOf(updated);
+    }
 
     /** Mutable scratch space is local to a single pure transition and never escapes. */
     private final class Cursor {
@@ -386,11 +407,10 @@ public final class RuleEngine<S> {
         }
 
         void commit(Frame frame, Instruction<S> instruction, Local<S> result) {
+            var retained = retainResult(frame.retainedResults(), result.result());
             domain = result.state();
             var bindings = new HashMap<>(frame.bindings());
             if (!instruction.bind().isEmpty()) bindings.put(instruction.bind(), result.result());
-            var retained = new HashMap<>(frame.retainedResults());
-            if (result.result() instanceof RetainedResult receipt) retained.put(receipt.retentionKey(), receipt);
             var invocations = new HashMap<>(frame.invocations());
             invocations.put(frame.pc(), Math.incrementExact(invocations.getOrDefault(frame.pc(), 0)));
             frames.removeFirst();
