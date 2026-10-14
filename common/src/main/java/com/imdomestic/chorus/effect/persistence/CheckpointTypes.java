@@ -8,6 +8,7 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/resource/resource_projection/change", com.imdomestic.chorus.effect.resource.ResourceProjection.Change.class);
         types.put("chorus:effect/data/entity_anchor_actions/read", com.imdomestic.chorus.effect.data.EntityAnchorActions.Read.class);
         types.put("chorus:effect/data/entity_anchor_actions/write", com.imdomestic.chorus.effect.data.EntityAnchorActions.Write.class);
         types.put("chorus:effect/data/entity_anchor_actions/same_life", com.imdomestic.chorus.effect.data.EntityAnchorActions.SameLife.class);

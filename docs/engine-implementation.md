@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：跨运行时资源账户的纯协调协议
+
+新增 `ResourceAuthority`，用唯一归属、递增 generation 和分区 revision 管理持有者的全部资源池；`Worlds` 同时核对目录与各领域余额。移交保留容量、余额及小数，按接收领域时钟重新标记，不因维度时间差额补能量。源删除、目标接收和归属更新作为一个纯状态步骤返回，旧计划在往返后仍失效。稳定账户地址支持延迟回能；退款从原签发领域的 live 账本认领额度，再计入当前归属领域，保留原付款身份和期限。原有单领域退款复用拆分后的授权 / 入账步骤。
+
+`ResourceProjection.Change` 接入现有 committed 投影和检查点编码，新增一种存储形状至 686，原 685 项保持不变。独立 `ResourceAuthorityCodec` format 1 保存协调目录，严格核对字段、程序和精确整数；它尚未纳入原生宿主归档 format 3。新增 13 项核心测试，覆盖完整分区移交、时钟与多持有者发布、重复归属、旧计划、退款期限 / 溢出、编码及整数耗尽。投影测试采用真实的空 observe 作为对照，保留运行时正常边界计数，不把计数递增误认为额外游戏事件。
+
+完整回归 `/tmp/chorus-resource-authority-full-gate.log` BUILD SUCCESSFUL（4 分 12 秒）：2260 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点全部通过。`build/reports/resource-authority/audit.json` 核验旧存储形状保持、发布主类 1240 / 1233 个逐字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源；10 项 Compendium 工具测试及来源 / 报告检查通过。
+
+本批完成的是核心协调器，原生传送尚未启用资源迁移。下一步仍须在技能自动装配前交接，接入所有资源读写 / 旧领域延迟退款及联合保存与故障恢复；Buff、弹药与物理效果实体的迁移亦未由本协议自动完成。没有新增原生迁移、独立进程或图形客户端验收。Compendium 仍为 133 条审阅（131 partial、2 not_applicable、0 verified），未新增原作数值覆盖。接口见[跨运行时资源账户协调器](engine-data-packs.md#跨运行时资源账户协调器)。
+
 ### 2026-10-14：D2 原生技能宿主接入保存的基础选择
 
 Ascension 公共选择宿主改用 PlayerAbilities，其 Phoenix Dive、Heat Rises、Firebolt / Fusion / Solar Grenade、Snap 等原生组合沿用同一入口。选择编辑保留其他槽位，基础选择与临时替换分离；同维度已有能量不因改选或重生补满。七条已有 Compendium 记录补充玩家选择 / 账户恢复证据，仍保持 133 条审阅（131 partial、2 not_applicable、0 verified），没有新增完整覆盖声明。

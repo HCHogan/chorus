@@ -297,6 +297,9 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
     public EffectState withResource(ResourceState value) {
         var copy = new HashMap<>(resources); copy.put(value.key(), value); return new EffectState(buffs, copy, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies, handling, aiming, attachments, charging, actors);
     }
+    public EffectState withResources(Map<ResourceState.Key, ResourceState> values) {
+        return new EffectState(buffs, values, timers, sources, mode, equipment, abilities, ammunition, reloads, shots, random, shotGroups, damageGroups, retainedCosts, damageTallies, handling, aiming, attachments, charging, actors);
+    }
     public EffectState schedule(Timer timer) {
         var copy = new TreeMap<>(timers);
         if (copy.putIfAbsent(timer.id(), timer) != null) throw new IllegalArgumentException("Duplicate timer identity: " + timer.id());

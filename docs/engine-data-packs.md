@@ -904,6 +904,40 @@ Java 结果保留 holder / slot / ability、account 与 rechargeAccount，两个
 
 完整合成示例 [retained_cost.json](../common/src/test/resources/effects/retained_cost.json) 使用真实技能支付、物理命中和独立延迟回调共享额度，再按实际 credited 治疗。普通 paid 数字或 payment 字符串不具备此权利。当前只支持同一运行时内通过词法捕获传递；向 Buff 引用组件保存、独立后续事件按施放查找、跨维度迁移和跨重启恢复仍未实现。固定充能比例的收益继续使用 grant_resource，不能因为发生在返回阶段便自动改为按实际成本退款。
 
+## 跨运行时资源账户协调器
+
+`ResourceAuthority` 是纯 Java 协调边界，负责在多个规则领域之间管理一个持有者的全部资源池。它尚未接入原生传送和世界保存；以下示例用于实现宿主，不是现成的服务器传送命令。
+
+```java
+var directory = ResourceAuthority.claim(ResourceAuthority.Directory.EMPTY,
+        holder, "minecraft:overworld", program, overworldState);
+var worlds = new ResourceAuthority.Worlds(directory, Map.of(
+        "minecraft:overworld", overworldState, "minecraft:the_nether", netherState));
+var owner = worlds.directory().owner(holder);
+var plan = ResourceAuthority.transfer(worlds.directory(), owner,
+        worlds.domain(owner.lease().domain()), "minecraft:the_nether", program,
+        worlds.domain("minecraft:the_nether"));
+worlds = ResourceAuthority.commit(worlds, plan, program);
+```
+
+Directory 保存每个 holder 的唯一 Partition：所属 domain / lease generation、revision、逻辑时间、完整 EffectProgram 和全部 ResourceState。空分区也保留归属，不能在传送后把它误认作从未注册。账户地址继续使用 holder + resource，不随维度变化。Worlds 同时核对目录与各领域投影，任何受管持有者在另一个领域拥有余额都会被拒绝；无法仅凭余额大小猜测哪一份是权威状态。
+
+本地状态步骤完成后使用 `ResourceAuthority.publish(worlds, domain, before, after)` 发布。它核对完整旧领域状态，并一起更新该领域所有受管持有者的时间和余额；同一时钟步有多个玩家时不能只发布其中一人。不能回退时钟或悄悄删除已登记账户。新的资源池可以由已有初始化规则创建后发布，相同状态不增加分区 revision。
+
+transfer 只生成计划，不修改输入。源分区必须已经结算并发布；源 / 目标使用完全相同的程序，不能只比较 version 字符串。目标已有任何同 holder 余额时拒绝，不覆盖、不相加、不补满。commit 校验当前目录与计划 generation，原子返回新目录及源 / 目标两个领域状态，其他领域和持有者保持原状。即使往返后余额、时钟与目的地都相同，也不能重放旧计划。
+
+移交保留所有资源的绝对余额、容量和小数，包括可变容量及 linked 的进度 / 可用次数池；仅把账户 timeMicros 改为目标当前逻辑时间。源领域移除该分区，后续时钟不会再为它回充。目标只从接收时刻开始按自己的规则积分；两个领域时钟的差值不是额外离线恢复。移交不产生 resource_initialized / granted / spent / refunded 等游戏事实，不冒充消费、回能或施放。
+
+`ResourceProjection.Change` 是内部的完整分区写集，核对 before、账户键、时钟和目录声明。它可通过已存在的 `EffectSession.observe(..., committed)` 归约，也进入纯检查点编码。宿主必须先通过协调器提交整个计划，再在一个无外部回调的边界发布目录及双方会话，不能只取一侧写集执行或脱离 generation 核对重放。
+
+延迟奖励通过 `ResourceAuthority.grant(worlds, stableAccountKey, requested, scaled)` 解析当前归属，返回实际 credited / overflow 和接收 lease。scaled 仍应由宿主在正确的接收者上下文中计算，这个接口不自动运行 D2 的 CES / 属性 Profile。游戏事实及原始来源由宿主根据返回结果投递到实际接收领域。
+
+`ResourceAuthority.refund(worlds, issuerDomain, retainedHandle, fraction)` 同时修改签发领域的退款账本与当前接收领域的余额。issuerDomain 是原句柄的签发位置，不能改成玩家当前所在位置；两个领域的本地句柄 ID 不应被当作全局唯一 ID。额度沿用原始付款 / 稳定账户，所有句柄副本共用签发账本；溢出也消耗已认领额度，重复退款不会越过原付款金额。过期 / 已关闭的句柄不入账。过期检查采用签发领域的时间，目标时钟更大或更小都不改变期限。`RetainedCosts.authorize` 与 `Resources.claimRefund / applyRefund` 将这两个纯步骤分开，原有单领域 refund 复用它们，保持原返回值和事实语义。
+
+`ResourceAuthorityCodec` 的独立 format 1 保存 Directory，generation / revision / 时间使用十进制字符串，程序与账户复用已注册的存储编码。重复 holder / 账户 / generation、未知字段、非法数字、分区键或时钟错配拒绝。它不单独证明所属领域的余额和退款账本已经落盘；恢复后仍须以 Worlds 核对所有领域。
+
+当前 Minecraft 宿主归档仍为 format 3，并未包含这个协调目录；实际传送仍只有角色根配置与基础技能选择自动同步。下一步需要在原生传送边界交接、路由旧领域的资源读写与延迟退款、处理账户回执及共同保存 / 故障恢复，再启用这项协议。Buff、弹药、技能进度和物理实体迁移也没有由资源分区转移自动完成。
+
 ## 整数弹药与弹匣转移
 
 弹药是以当前运行时内唯一的稳定武器实例 ID 为键的账户，和技能能量的连续 `charge_fraction` 分开。以下步骤放在携带 weapon 身份的 source 规则中；所有动作的 `weapon` 默认 `this_weapon`，也接受其他已验证的 Target。测试使用合成容量，不是某把 D2 武器的数值：
