@@ -115,15 +115,60 @@ public final class TimelineEngine<S> {
         return new State<>(next, state.requested(), state.receipts(), state.abandoned());
     }
 
+    private void queuedBoundary(State<S> state) {
+        var value = state.engine();
+        if (!state.requested().isEmpty() || !state.abandoned().isEmpty() || !value.frames().isEmpty()
+                || value.pending().isPresent() || value.failure().isPresent())
+            throw new IllegalStateException("Queued facts require a healthy boundary without an executing frame");
+    }
+    private State<S> withFacts(State<S> state, List<Event> facts, long nextEvent, boolean retireReceipts) {
+        var value = state.engine();
+        var next = new RuleEngine.State<>(value.version(), value.domain(), value.timeMicros(), nextEvent, value.nextFrame(),
+                facts, value.frames(), value.pending(), retireReceipts ? Map.of() : value.receipts(), value.failure());
+        return new State<>(next, state.requested(), retireReceipts ? Map.of() : state.receipts(), state.abandoned());
+    }
+    /** Validate a same-time host write without consuming already queued facts or their allocated identities. */
+    public State<S> replaceQueuedDomain(State<S> state, S domain) {
+        queuedBoundary(state);
+        var empty = withFacts(state, List.of(), state.engine().nextEvent(), false);
+        var replaced = replaceDomain(empty, domain);
+        return withFacts(replaced, state.engine().facts(), state.engine().nextEvent(), false);
+    }
+    /** Allocate committed facts without executing them. A same-session world operation retains its causal parent. */
+    public State<S> enqueue(State<S> state, List<Signal> signals, Optional<Event> parent) {
+        signals = List.copyOf(signals);
+        if (signals.stream().anyMatch(TimelineEngine::reserved)) throw new IllegalArgumentException("Reserved timeline event");
+        if (state.engine().failure().isPresent() || state.abandoned().isPresent()) throw new IllegalStateException("Cannot enqueue facts in a failed timeline");
+        if (signals.isEmpty()) return state;
+        if (parent.isPresent() && (state.engine().frames().isEmpty() || !state.engine().frames().getFirst().event().equals(parent.orElseThrow())))
+            throw new IllegalArgumentException("Queued fact parent is not the active frame");
+        long next = state.engine().nextEvent(); var facts = new ArrayList<>(state.engine().facts());
+        long root = parent.map(Event::root).orElse(next);
+        for (var signal : signals) {
+            long id = next; next = Math.incrementExact(next);
+            Optional<Long> cause = parent.isPresent() ? parent.map(Event::id) : id == root ? Optional.empty() : Optional.of(root);
+            facts.add(new Event(id, root, cause, state.engine().timeMicros(), signal));
+        }
+        return withFacts(state, facts, next, false);
+    }
+    /** Start processing an inbox as a fresh settlement boundary, retaining its facts and sequence counters. */
+    public State<S> beginQueued(State<S> state) {
+        queuedBoundary(state);
+        replaceQueuedDomain(state, state.engine().domain());
+        return withFacts(state, state.engine().facts(), state.engine().nextEvent(), true);
+    }
+    public void validateStart(State<S> state, Start start) {
+        if (state.engine().failure().isPresent()) throw new IllegalStateException("Failed timeline requires explicit recovery");
+        if (start.timeMicros() < clock.time(state.engine().domain()) || start.timeMicros() == NEVER) throw new IllegalArgumentException("Invalid event time");
+        if (reserved(start.signal()) || start.following().stream().anyMatch(TimelineEngine::reserved)) throw new IllegalArgumentException("Reserved timeline event");
+    }
+
     public Transition<S> transition(State<S> state, Input input) {
         Objects.requireNonNull(input);
         if (input instanceof Start start) {
             if (state.engine().failure().isPresent()) throw new IllegalStateException("Failed timeline requires explicit recovery");
             if (!state.idle()) throw new IllegalStateException("Cannot interleave a requested timeline event");
-            if (start.timeMicros() < clock.time(state.engine().domain()) || start.timeMicros() == NEVER) throw new IllegalArgumentException("Invalid event time");
-            if (reserved(start.signal()) || start.following().stream().anyMatch(TimelineEngine::reserved)) {
-                throw new IllegalArgumentException("Reserved timeline event");
-            }
+            validateStart(state, start);
             return dispatch(new State<>(state.engine(), Optional.of(start), Map.of(), Optional.empty()));
         }
         if (input instanceof Completed completed) {

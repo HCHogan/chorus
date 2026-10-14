@@ -19,6 +19,7 @@ public final class EffectSession {
     private final Thread ownerThread = Thread.currentThread();
     private TimelineEngine.State<EffectState> state;
     private boolean running;
+    private boolean inbox;
     private WorldOperation activeOperation;
 
     public EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world) {
@@ -62,6 +63,7 @@ public final class EffectSession {
     }
     public TimelineEngine.State<EffectState> state() { return state; }
     public boolean running() { return running; }
+    public boolean inboxPending() { thread(); return inbox; }
     public EffectProgram catalogue() {
         thread(); return program.orElseThrow(() -> new IllegalStateException("Operation requires a pinned data-defined catalogue"));
     }
@@ -73,16 +75,30 @@ public final class EffectSession {
         if (running || state != expected || !state.idle() || state.engine().failure().isPresent() || state.abandoned().isPresent())
             throw new IllegalStateException("Domain publication requires the original healthy settled session");
     }
+    private void queuedCurrent(TimelineEngine.State<EffectState> expected) {
+        thread();
+        if (running || state != expected || !state.idle() && !inbox || state.engine().failure().isPresent()
+                || state.abandoned().isPresent() || state.requested().isPresent() || state.engine().pending().isPresent() || !state.engine().frames().isEmpty())
+            throw new IllegalStateException("Inbox publication requires the original healthy nonrunning session");
+    }
+    /** Committed state may contain queued recipient facts; a checkpoint still requires those facts to settle first. */
+    public TimelineEngine.State<EffectState> coordinationState() {
+        var before = state; queuedCurrent(before);
+        engine.replaceQueuedDomain(before, before.engine().domain()); queuedCurrent(before); return before;
+    }
     /** Opaque, single-use publication prepared against the exact live timeline, not merely equal account values. */
     public static final class DomainUpdate {
         private final EffectSession session;
         private final TimelineEngine.State<EffectState> before, after;
         private final Optional<OperationCommit> operation;
+        private final boolean acceptsInbox, nextInbox;
         private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after) {
-            this(session, before, after, Optional.empty());
+            this(session, before, after, Optional.empty(), false, false);
         }
-        private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after, Optional<OperationCommit> operation) {
+        private DomainUpdate(EffectSession session, TimelineEngine.State<EffectState> before, TimelineEngine.State<EffectState> after,
+                Optional<OperationCommit> operation, boolean acceptsInbox, boolean nextInbox) {
             this.session = session; this.before = before; this.after = after; this.operation = operation;
+            this.acceptsInbox = acceptsInbox; this.nextInbox = nextInbox;
         }
     }
     /** Only the currently executing world callback can obtain this capability; it cannot survive a callback or authorize another request. */
@@ -111,13 +127,17 @@ public final class EffectSession {
     }
     /** Prepare a single world result and its committed domain. Completion still resumes through the normal receipt protocol. */
     public DomainUpdate prepareOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected, EffectState domain, ActionResult result) {
+        return prepareOperationDomain(operation, expected, domain, result, List.of());
+    }
+    public DomainUpdate prepareOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected, EffectState domain, ActionResult result, List<Signal> facts) {
         currentOperation(operation, expected);
         if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
         Objects.requireNonNull(result);
         if (result instanceof WorldReceipt) throw new IllegalArgumentException("Commit the action result, not a world receipt envelope");
         var next = engine.replacePendingDomain(expected, operation.request.id(), domain);
+        next = engine.enqueue(next, facts, Optional.of(expected.engine().frames().getFirst().event()));
         currentOperation(operation, expected);
-        return new DomainUpdate(this, expected, next, Optional.of(new OperationCommit(operation, Optional.of(result))));
+        return new DomainUpdate(this, expected, next, Optional.of(new OperationCommit(operation, Optional.of(result))), false, false);
     }
     /** The trusted host validates domain semantics. Preparation may inspect clock policy but executes no rules. */
     public DomainUpdate prepareDomain(TimelineEngine.State<EffectState> expected, EffectState domain) {
@@ -126,20 +146,30 @@ public final class EffectSession {
         current(expected); // A custom clock policy must not have reentered this session while validating.
         return new DomainUpdate(this, expected, next);
     }
+    /** Publish balances and recipient facts together, without entering any rule or discarding an older inbox. */
+    public DomainUpdate prepareInboxDomain(TimelineEngine.State<EffectState> expected, EffectState domain, List<Signal> facts) {
+        queuedCurrent(expected);
+        var next = engine.enqueue(engine.replaceQueuedDomain(expected, Objects.requireNonNull(domain)), facts, Optional.empty());
+        queuedCurrent(expected);
+        return new DomainUpdate(this, expected, next, Optional.empty(), true, !next.engine().facts().isEmpty());
+    }
     /** Validate every participant first, then publish with no callbacks between writes. All sessions share this thread. */
     public static void commitDomains(List<DomainUpdate> updates) {
         var batch = List.copyOf(updates);
         var sessions = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<EffectSession, Boolean>());
         for (var update : batch) {
             if (!sessions.add(update.session)) throw new IllegalArgumentException("Duplicate session in domain publication");
-            if (update.operation.isEmpty()) update.session.current(update.before);
+            if (update.operation.isEmpty()) {
+                if (update.acceptsInbox) update.session.queuedCurrent(update.before);
+                else update.session.current(update.before);
+            }
             else {
                 var operation = update.operation.orElseThrow().operation();
                 update.session.currentOperation(operation, update.before);
                 if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
             }
         }
-        for (var update : batch) update.session.state = update.after;
+        for (var update : batch) { update.session.state = update.after; update.session.inbox = update.nextInbox; }
         for (var update : batch) if (update.operation.isPresent()) {
             var commit = update.operation.orElseThrow(); commit.operation().committed = commit.result();
         }
@@ -149,11 +179,26 @@ public final class EffectSession {
     public void observe(long time, List<Signal> facts, Payload committed) { start(new Start(time, facts, committed)); }
     private void start(Start start) {
         thread();
+        if (running || !state.idle() && !inbox || state.engine().failure().isPresent()) throw new IllegalStateException("Cannot interleave or resume a failed world boundary");
+        engine.validateStart(state, start);
+        if (inbox) drain();
         if (running || !state.idle() || state.engine().failure().isPresent()) throw new IllegalStateException("Cannot interleave or resume a failed world boundary");
         ledger.nextBoundary(); running = true;
         try {
-            var transition = engine.transition(state, start);
-            while (true) {
+            drive(engine.transition(state, start));
+        } finally { running = false; }
+    }
+    /** Settle committed inbox facts at their original clock before an external input or time advance. */
+    public void drain() {
+        thread();
+        if (!inbox) { current(state); return; }
+        var before = coordinationState(); var queued = engine.beginQueued(before); queuedCurrent(before);
+        ledger.nextBoundary(); inbox = false; running = true;
+        try { drive(new TimelineEngine.Transition<>(queued, List.of())); }
+        finally { running = false; }
+    }
+    private void drive(TimelineEngine.Transition<EffectState> transition) {
+        while (true) {
                 state = transition.state(); // Save committed pure state before entering any world operation.
                 if (state.engine().failure().isPresent()) throw new IllegalStateException("Rule execution failed: " + state.engine().failure().orElseThrow());
                 if (!transition.actions().isEmpty()) {
@@ -163,8 +208,7 @@ public final class EffectSession {
                     transition = engine.transition(state, new Completed(request.id(), receipt));
                 } else if (transition.needsPump()) transition = engine.transition(state, Pump.INSTANCE);
                 else return;
-            }
-        } finally { running = false; }
+        }
     }
     private ActionResult executeWorld(WorldRequest request) {
         if (activeOperation != null) throw new IllegalStateException("Reentrant world operation");
