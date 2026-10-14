@@ -48,8 +48,10 @@ public class AscensionGameTest {
     static String owner(ProjectileGameTest.Harness t) { return t.owner.getUUID().toString(); }
     static EffectState state(ProjectileGameTest.Harness t) { return t.runtime.state().engine().domain(); }
     static void choose(ProjectileGameTest.Harness t, String slot, String ability) {
-        var old = state(t).abilities().getOrDefault(owner(t), AbilityLoadout.EMPTY); var slots = new HashMap<>(old.slots()); if (ability == null) slots.remove(slot); else slots.put(slot, ability);
-        t.runtime.abilities(new AbilityChange(owner(t), old, new AbilityLoadout(slots)));
+        var selection = com.imdomestic.chorus.platform.minecraft.PlayerAbilities.get(t.owner);
+        var old = selection.configured() ? selection.snapshot().loadout() : state(t).abilities().getOrDefault(owner(t), AbilityLoadout.EMPTY);
+        var slots = new HashMap<>(old.slots()); if (ability == null) slots.remove(slot); else slots.put(slot, ability);
+        selection.configure(t.owner, new AbilityLoadout(slots), selection.revision());
     }
     static double energy(ProjectileGameTest.Harness t, String resource) { return state(t).resources().get(new ResourceState.Key(owner(t), resource)).value(); }
     static void stat(ProjectileGameTest.Harness t, String name, double points) { t.runtime.bind(new EffectSource("stat/" + name, name.equals("melee") ? "test:ascension_melee_stat" : "test:ascension_stat", owner(t), new BuffInstance.Origin(owner(t), "stat/" + name, "", ""), Set.of(), Map.of("points", new Measure(points, Unit.STAT_POINT)))); }

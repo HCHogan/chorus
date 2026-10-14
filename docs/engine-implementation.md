@@ -6,6 +6,12 @@
 
 ## 当前证据
 
+### 2026-10-14：D2 原生技能宿主接入保存的基础选择
+
+Ascension 公共选择宿主改用 PlayerAbilities，其 Phoenix Dive、Heat Rises、Firebolt / Fusion / Solar Grenade、Snap 等原生组合沿用同一入口。选择编辑保留其他槽位，基础选择与临时替换分离；同维度已有能量不因改选或重生补满。七条已有 Compendium 记录补充玩家选择 / 账户恢复证据，仍保持 133 条审阅（131 partial、2 not_applicable、0 verified），没有新增完整覆盖声明。
+
+与核心实现共同通过 `/tmp/chorus-player-abilities-full-gate.log` 的 2247 项 JUnit、Fabric 1320 项、NeoForge 1335 项及双端发布包；原生玩家文件重启与失败保存拒绝恢复见 `build/checkpoint-restart/20261014T035348Z-6d38a3e6/report.json`。固定研究来源与原作数值未变，仅更新宿主依赖描述；来源 / 报告检查通过。此项不证明跨维度资源交接、完整职业 / 解锁、物理效果实体重启或技能 UI 已完成。
+
 ### 2026-10-14：玩家基础技能选择与实际账户恢复
 
 新增 PlayerAbilities，保存基础 AbilityLoadout / revision 并接入原生玩家 NBT、真实玩家替换、prepare / 输入自动同步；管理命令 choose / clear 使用同一入口。完整选择先预检，玩家内存配置与领域选择、必要账户和常驻来源在反应前共同提交。相同选择不重复初始化；过期 / 非法多槽请求不部分提交，临时技能替换不改写基础选择。改选即时取消旧的未释放输入；未知实际写入保留已提交状态并停止，不自动退款或重放。原有资源账户不因改选、清空或同维度重生而补满。
