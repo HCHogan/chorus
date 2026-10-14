@@ -6,6 +6,12 @@
 
 ## 当前证据
 
+### 2026-10-14：共享 Solar 宿主接入玩家持久化配置
+
+原生 Phoenix Dive 公共宿主改用 PlayerActor 配置 `solar_scaling`，其 Firebolt / Fusion / Solar Grenade / Snap 等组合沿用同一入口；纯领域测试继续使用 ActorBinding。常驻规则独立于技能选择，玩家配置通过原生玩家文件保存并自动同步。首次角色默认根包、初始技能与解锁仍由内容模块装配。
+
+本批与上游玩家配置实现共同通过 `/tmp/chorus-player-actor-full-gate4.log`：2244 项 JUnit、Fabric 1312 项、NeoForge 1327 项及双端发布包。根配置的实际玩家文件重启见 `build/checkpoint-restart/20261014T033139Z-8bdce85e/report.json`；它不证明 Solar 物理效果实体跨进程恢复。六条已有 Compendium 记录补充配置生命周期证据，审阅总量保持 133（131 partial、2 not_applicable、0 verified）。研究记录只更新宿主依赖，原表数值、哈希与未决校准不变；10 项工具测试和来源 / 报告检查通过。完整原作数值、生产内容目录及 HUD 仍未完成。
+
 ### 2026-10-14：玩家常驻配置、原生存储与恢复核对
 
 新增 `PlayerActor` 保存可选 ActorBinding 和 revision，接入实际玩家 NBT、ServerPlayer 替换及 prepare / 输入时的自动同步。配置由可信模块或 gamemaster 的 `chorus actor set / clear` 设置，普通玩家只读自身 status。严格 JSON、参数 / SOURCE 校验和过期 revision 在写入前拒绝；同配置为空操作。玩家内存配置与领域投影在来源反应前共同提交，未知已执行治疗保留两边的配置且不自动重放。未受玩家容器管理的外部 ActorBinding 继续由原宿主负责。

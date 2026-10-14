@@ -4921,7 +4921,8 @@
         "100 层清空并点燃、死亡 / 消失及叠层耗尽停止周期；未知世界回执不重放",
         "共享阶段在实际Solar伤害中复用原增伤资格；技能信用/错误元素/另一武器perk不串用，卸装与充能消耗不改写已捕获攻击（取样为明确内容政策）",
         "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "evidence": [
         {
@@ -5076,6 +5077,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ],
       "gaps": [
@@ -13875,7 +13881,8 @@
         "同一生命匹配、死亡/移除取消、旧生命事实隔离、卸装/领域检查点保留pending、合法连续新施放与未知世界结果不重放。",
         "两模式职业79.6秒与.8接收系数，未选账户暂停；实际盟友Cure触发Benevolence，核心核验三个当前账户额外基础回充。",
         "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "gaps": [
         "原表Solar爆炸6.5米与Class Abilities/Clarity的5米冲突；要求显式半径，世界验收仅选择5米分支。",
@@ -14019,6 +14026,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ]
     },
@@ -14422,7 +14434,8 @@
         "真实飞行遵守后来出现的掩体；旧飞行、被拒绝状态和未知生成/实际伤害/授权不重放、不退费或虚构后续收益；共享灼烧可以由连续合法付费施放达到点燃。",
         "实际服务器长按Heat Rises消费本定义的手雷费用，给予普通分支Cure x2和Heat Rises，不执行Firebolt投掷；已知生成拒绝保留费用且不产生扫描。",
         "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "gaps": [
         "8.5米基础半径与Clarity/Aspect总述的8→12米仍冲突；当前选择Firebolt逐行8.5/12，而非按50%算12.75。",
@@ -14572,6 +14585,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ]
     },
@@ -14616,7 +14634,8 @@
         "领域检查点保留两段延迟及独立附着句柄，卸装保留已接受动作；已知拒绝Scorch不撤销伤害或取消第二爆炸，未知世界写入保留先前提交且不重放/退费。",
         "真实偏轴飞行会向敌人转向并碰撞附着；掩体在两爆之间改变会影响第二次查询。两次合法Ashes投掷接入共享点燃；单次Touch不重复施加灼烧。实际长按Heat Rises消费Fusion费用且不投掷。",
         "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "gaps": [
         "官方2025-07-31已核对的官方全文说明Touch强化Solar/Fusion伤害调低10%，与Compendium中738/851的基准关系未核实；保留原表数值，不重复乘0.9。目标等级/活动/力量及构造物伤害表未校准。",
@@ -14785,6 +14804,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ]
     },
@@ -14839,7 +14863,8 @@
         "目标共享可校准场伤害门槛，两个场分别发射；熔岩球独立物理飞行，125/50无范围衰减，场结束后已发射续体仍保留参数。领域恢复保存场与随机状态。",
         "已知状态拒绝保留先前伤害；未知写入/生成/授权停止且不重放。实际长按Heat Rises消费同手雷而不创建投射物或场。",
         "共享solar_scaling以持有者系统来源装配，不依赖Phoenix Dive或其他技能选择；取消选择后的真实Scorch扣血/死亡、领域恢复和首来源信用已有独立回归。正式玩家自动初始化仍未完成。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "gaps": [
         "原表1秒启动、13跳/.267秒与4秒寿命冲突；.75秒PvP首灼烧与末句1秒说明冲突。4.25/6.25秒仅合成验收校准，PvE到期确定性17/30不复现原表明确的不稳定性。",
@@ -14994,6 +15019,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ]
     },
@@ -15175,7 +15205,8 @@
         "PvE每枚90与20/30层，Guardian以必填假设27验收10/15层；确认正实际损失且非致命才施加共享Scorch，五次爆炸可到达点燃阈值并保留近战技能/击杀信用。",
         "常驻solar_scaling系统来源保证真实衍生伤害；直接近战增伤不再次放大灼烧/点燃。实际直接和Scorch击杀创建Sunbracers Ready，再以实际Solar付款消费并连续恢复/投掷。",
         "未知生成/伤害保留已提交费用和世界写入，不重放或补发状态/击杀奖励；领域检查点保留已接受发射数据和新方向动作。",
-        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。"
+        "共享Solar宿主改用ActorBinding管理常驻来源；配置与来源严格对应、跨领域恢复不重复初始化，普通来源API不能误删。自动角色加入/职业约束仍由内容宿主补齐。",
+        "原生共享 Solar 宿主使用 PlayerActor 保存并自动同步常驻根配置；玩家配置的 NBT、实际登录重启及不重复附加已验收。此证据不覆盖 Solar 物理实体重启、职业默认目录或全部内容状态迁移。"
       ],
       "gaps": [
         "原表Guardian27?/135?、射程和爆炸半径未知；测试27只是显式假设，20m/s、8米、5度相邻扇角、1米近距/.5米启动、2米爆炸、平坦衰减和.1生命投影均需校准。",
@@ -15290,6 +15321,11 @@
           "kind": "unit_test",
           "path": "common/src/test/java/com/imdomestic/chorus/effect/ActorBindingTest.java",
           "symbol": "clockAndCheckpointPreserveEnrollmentWithoutReplayingAttachment"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/PlayerActorGameTest.java",
+          "symbol": "checkpointValidatesPhysicalConfigurationAndRestoresTimersWithoutAttachReplay"
         }
       ]
     }

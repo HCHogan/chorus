@@ -75,7 +75,7 @@
   "implementation": {
     "definition": "common/src/test/resources/effects/incinerator_snap.json",
     "calibration": "common/src/test/resources/effects/incinerator_snap_test_calibration.json",
-    "host_dependency": "Enroll solar_scaling with the managed ActorBinding owner root, independent of melee and other ability selections; configuration and source projection restore together.",
+    "host_dependency": "Use the managed ActorBinding owner root for solar_scaling. Native shared Solar hosts persist and synchronize it through PlayerActor independently of ability selection; first-time class defaults and complete content assembly remain pending.",
     "scope": [
       "Single paid melee use launches five independent physical sparks using captured look / yaw axes.",
       "Entity, block, range and proximity detonation query actual recipients; confirmed positive nonlethal damage requests shared Scorch.",

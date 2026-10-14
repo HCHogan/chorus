@@ -9,6 +9,7 @@ import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.motion.Impulse;
 import com.imdomestic.chorus.platform.minecraft.MinecraftEffectRuntime;
+import com.imdomestic.chorus.platform.minecraft.PlayerActor;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -45,7 +46,8 @@ public class PhoenixDiveGameTest {
                 GroundContactGameTest.floor(t); GroundContactGameTest.placePlayer(t); board.addPlayerToTeam(t.owner.getScoreboardName(), team);
                 AscensionGameTest.choose(t, D + "class", ABILITY);
                 for (String bundle : List.of("test:phoenix_inputs", D + "ember_of_benevolence")) bind(bundle);
-                t.runtime.actor(new com.imdomestic.chorus.effect.actor.ActorChange(owner(),Optional.empty(),Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding(D+"solar_scaling"))));
+                var actor = PlayerActor.get(t.owner);
+                actor.configure(t.owner, Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding(D + "solar_scaling")), actor.revision());
                 t.beforeWorld = r -> { if (r.command() instanceof HealingCommand c) heals.add(c); if (r.command() instanceof Impulse.Command c) impulses.add(c); };
             } catch (Exception | Error e) { close(); throw e; }
         }
