@@ -652,6 +652,10 @@ public final class EffectCodecs {
                         TARGET.optionalFieldOf("target", Evaluation.Target.SELF).forGetter(Action.CaptureInputDirection::target)).apply(i, Action.CaptureInputDirection::new)))
                 .register("chorus:direction_between", MotionActions.Between.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("from").forGetter(MotionActions.Between::from), Codec.STRING.fieldOf("to").forGetter(MotionActions.Between::to)).apply(i, MotionActions.Between::new)))
+                .register("chorus:cross_direction", DirectionActions.Cross.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("left").forGetter(DirectionActions.Cross::left), Codec.STRING.fieldOf("right").forGetter(DirectionActions.Cross::right)).apply(i, DirectionActions.Cross::new)))
+                .register("chorus:rotate_direction", DirectionActions.Rotate.class, RecordCodecBuilder.mapCodec(i -> i.group(
+                        Codec.STRING.fieldOf("direction").forGetter(DirectionActions.Rotate::direction), Codec.STRING.fieldOf("axis").forGetter(DirectionActions.Rotate::axis), values.fieldOf("angle").forGetter(DirectionActions.Rotate::angle)).apply(i, DirectionActions.Rotate::new)))
                 .register("chorus:world_direction", DisplacementActions.Direction.class, RecordCodecBuilder.mapCodec(i -> i.group(
                         Codec.STRING.fieldOf("position").forGetter(DisplacementActions.Direction::position), values.fieldOf("x").forGetter(DisplacementActions.Direction::x),
                         values.fieldOf("y").forGetter(DisplacementActions.Direction::y), values.fieldOf("z").forGetter(DisplacementActions.Direction::z)

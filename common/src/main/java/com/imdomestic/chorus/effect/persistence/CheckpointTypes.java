@@ -386,6 +386,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/data/numeric_query/path", com.imdomestic.chorus.effect.data.NumericQuery.Path.class);
         types.put("chorus:effect/data/pickup_spec", com.imdomestic.chorus.effect.data.PickupSpec.class);
         types.put("chorus:effect/data/pickup_spec/attraction", com.imdomestic.chorus.effect.data.PickupSpec.Attraction.class);
+        types.put("chorus:effect/data/direction_actions/cross", com.imdomestic.chorus.effect.data.DirectionActions.Cross.class);
+        types.put("chorus:effect/data/direction_actions/rotate", com.imdomestic.chorus.effect.data.DirectionActions.Rotate.class);
         types.put("chorus:effect/data/projectile_spec", LegacyProjectileSpecV1.class);
         types.put("chorus:effect/data/projectile_spec/proximity", com.imdomestic.chorus.effect.data.ProjectileSpec.Proximity.class);
         types.put("chorus:effect/projectile/projectile_proximity", com.imdomestic.chorus.effect.projectile.ProjectileProximity.class);
