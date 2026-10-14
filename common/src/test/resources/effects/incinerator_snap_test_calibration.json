@@ -1,0 +1,233 @@
+{
+  "note": "Synthetic physical fan and spherical fuse, flat blast falloff, 0.1 damage projection; Guardian 27 is an explicit test hypothesis, source says 27?. Not current Destiny measurements.",
+  "parameters": {
+    "speed": {
+      "type": "chorus:constant",
+      "value": 20,
+      "unit": "meter_per_second"
+    },
+    "gravity": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter_per_second_squared"
+    },
+    "drag": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "multiplier"
+    },
+    "lifetime": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "second"
+    },
+    "range": {
+      "type": "chorus:constant",
+      "value": 8,
+      "unit": "meter"
+    },
+    "fan_step": {
+      "type": "chorus:constant",
+      "value": 5,
+      "unit": "degree"
+    },
+    "proximity_radius": {
+      "type": "chorus:constant",
+      "value": 1,
+      "unit": "meter"
+    },
+    "arm_distance": {
+      "type": "chorus:constant",
+      "value": 0.5,
+      "unit": "meter"
+    },
+    "blast_radius": {
+      "type": "chorus:constant",
+      "value": 2,
+      "unit": "meter"
+    },
+    "clearance": {
+      "type": "chorus:constant",
+      "value": 0.03,
+      "unit": "meter"
+    },
+    "lift": {
+      "type": "chorus:constant",
+      "value": 0,
+      "unit": "meter"
+    },
+    "guardian_damage": {
+      "type": "chorus:constant",
+      "value": 27,
+      "unit": "damage"
+    }
+  },
+  "program": {
+    "version": "compendium-2026-10-05",
+    "profiles": [
+      {
+        "id": "chorus_d2:incinerator_snap_outgoing",
+        "version": "compendium-2026-10-05",
+        "input_unit": "damage",
+        "steps": [
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "precision",
+              "operation": "multiply",
+              "factor": "chorus:precision",
+              "group": {
+                "name": "precision",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "ability_stat",
+              "operation": "multiply",
+              "group": {
+                "name": "ability_stat",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "melee",
+              "operation": "multiply",
+              "group": {
+                "name": "melee",
+                "reduction": "sum",
+                "children": [
+                  {
+                    "name": "one_two_or_frozen",
+                    "reduction": "max"
+                  }
+                ],
+                "families": {
+                  "chorus_d2:ophidia_knife": {
+                    "kind": "max"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "perk",
+              "operation": "multiply",
+              "group": {
+                "name": "perk",
+                "reduction": "max"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "frozen_damage_type",
+              "operation": "multiply",
+              "group": {
+                "name": "frozen_damage_type",
+                "reduction": "product"
+              }
+            }
+          },
+          {
+            "type": "chorus:shared_apply",
+            "profile": "chorus_d2:outgoing",
+            "apply": {
+              "id": "outgoing_debuff",
+              "operation": "resist",
+              "group": {
+                "name": "outgoing_debuff",
+                "reduction": "resist"
+              }
+            }
+          },
+          {
+            "type": "chorus:apply",
+            "id": "radial",
+            "operation": "multiply",
+            "group": {
+              "name": "radial",
+              "reduction": "max"
+            },
+            "factor": "chorus_d2:radial_falloff"
+          },
+          {
+            "type": "chorus:curve",
+            "id": "synthetic_world_units",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                0,
+                0.1
+              ],
+              "minimum": 0,
+              "maximum": 1000000,
+              "boundary": "error"
+            },
+            "output_unit": "damage"
+          }
+        ]
+      },
+      {
+        "id": "chorus_d2:incinerator_snap_falloff",
+        "version": "compendium-2026-10-05",
+        "input_unit": "meter",
+        "steps": [
+          {
+            "type": "chorus:curve",
+            "id": "synthetic",
+            "output_unit": "multiplier",
+            "curve": {
+              "type": "chorus:polynomial",
+              "coefficients": [
+                1
+              ],
+              "minimum": 0,
+              "maximum": 2,
+              "boundary": "error"
+            }
+          }
+        ]
+      }
+    ],
+    "bundles": [
+      {
+        "id": "test:snap_melee_boost",
+        "modifiers": [
+          {
+            "id": "double",
+            "profile": "chorus_d2:outgoing",
+            "stage": "melee",
+            "op": "multiply",
+            "group": "melee",
+            "stacking_key": "test:snap_melee_boost",
+            "value": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "delta"
+            },
+            "if": {
+              "type": "chorus:event_tag",
+              "tag": "chorus:melee_damage"
+            },
+            "reference": "Synthetic direct melee contribution; derived Solar verbs must not inherit this stage.",
+            "confidence": "assumed"
+          }
+        ]
+      }
+    ]
+  }
+}

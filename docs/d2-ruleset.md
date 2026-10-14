@@ -2160,12 +2160,18 @@ Touch 现在有 Healing / Firebolt / Fusion / Solar 四种参考分支，资格�
 
 被动延长在 `solar_grenade_lifetime` 的 exotic 阶段加 2 秒，再进入独立相位校准；测试因此得到 6.25/8.25 秒，原表对应的是 6/8 秒。投速通过技能参数的 profile 在接受时取样，必填源参数 `fastball_speed_delta` 在测试中为 .25，使 20 m/s 变为 25 m/s；强度随手雷变化，未视为精确原作弹道。两项修饰要求 Solar Grenade 技能事件标签，武器生成的 Solar 效果不能借用；重复金装来源按家族取高，不重复加 2 秒或投速。此接口也不代表已经完成所有手雷的 Fastball 模组接入。
 
-最后一个带资格标签的金装来源卸下会清理 Ready / 活动回能 / 回执状态；已接受的场、投射物和伤害仍保存原参数。Heat Rises 消费所选 Solar 的实际费用并激活同一窗口，没有投掷动作；该组合、活动期再准备、近战衍生灼烧 / 点燃的具体资格、死亡与换装政策都需原作验证。原生验收以现有 Lightweight Knife 的真实击杀证明 powered-melee 接口，这不是合法 Warlock 配装验收。Incinerator Snap / Celestial Fire 等生产者、完整职业 / 装备限制、生产目录、所有金装 / 碎片 / 神器组合、HUD / 素材和物理世界跨进程重启仍未完成，Sunbracers 维持 partial。
+最后一个带资格标签的金装来源卸下会清理 Ready / 活动回能 / 回执状态；已接受的场、投射物和伤害仍保存原参数。Heat Rises 消费所选 Solar 的实际费用并激活同一窗口，没有投掷动作；该组合、活动期再准备、近战衍生灼烧 / 点燃的具体资格、死亡与换装政策都需原作验证。先前 Lightweight Knife 验收证明通用 powered-melee 接口；现已补充 Incinerator Snap 的真实直接击杀与衍生 Scorch 击杀，再消费 Ready 并连续付费投掷 Solar Grenade。此组合覆盖 Warlock 技能生产者，但完整职业 / 装备限制、Celestial Fire 等其他近战、正式生产目录、所有金装 / 碎片 / 神器组合、HUD / 素材和物理世界跨进程重启仍未完成，Sunbracers 维持 partial。
 
-### Incinerator Snap 的来源与投射物前置能力
+### Incinerator Snap 的来源与物理火花组合
 
 已保存 [原 Solar 表](https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409) B131 / D131 / N131，对应固定快照 B76 / D76 / N76；文本、HTML 和压缩文件哈希见[来源记录](../data/d2-research/2026-10-14/incinerator-snap-source.json)。原表给出扇形 5 枚火花、PvE 每枚最多 90 伤害、20 / Ashes 30 层 Scorch，PvP 10 / 15 层，基础冷却 119.8 秒和 CES 0.9。PvP 每枚 `27?`、总计 `135?` 的问号保持不变；爆炸距离和半径同样未提供。
 
 [Bungie 的 S21 技能预览](https://www.bungie.net/7/en/News/Article/s21_abilities_tuning) 确认修复过近距离引爆与 secondary arming shape 的问题，并给出当时 PvP 总伤害 150→135 的调整。它证明需要近距引爆行为，不能证明当前精确数值、球形半径或启动距离。Chorus 新增的球形引信和累计路程启动是通用宿主接口，示例 1.5 米半径、2 米启动等值均不是原作校准结论。
 
-本批只完成距离终止 / 近距引信的通用依赖。五枚扇形发射、爆炸与共享 Scorch、近战归因到 Sunbracers 的实际组合仍待实现；角度、弹速、重力、追踪、引信与爆炸几何需显式配置和校准。没有因此新增已实现 Snap 条目或提升 Compendium 验收状态。
+`incinerator_snap.json` 已组合一次近战付款、五枚独立物理火花、实体 / 地形 / 射程 / 近距四种终止爆炸，以及共享 Scorch / Ignition 和 Sunbracers。选择期使用 119.8 秒 / CES .9；两类进攻快照和 Ashes 资格在接受时保存，爆炸时按实际受害者类别选择，来源卸下不改写已发火花。当前快照存储的浮点基础速率经过十进制微秒上取整，119.8 秒边界可能多 1 微秒；这不是改变来源基准。
+
+火花从捕获的眼睛位置发出，以 look、水平 yaw 和世界向上轴建立扇面，五个角度为 −2s、−s、0、s、2s。垂直向上 / 下瞄准仍有五个不同方向，后来相机转向不影响飞行。爆炸独立查询当前 BODY / 视线 / 敌我关系，写入前核对受害者生命；物理碰撞不额外赠送一份直接伤害。只有确认 APPLIED、正有效损失且非致命的爆炸才请求 Scorch；遵守共享 Scorch 的内容锁定期，未知世界写入不补发状态或击杀奖励。
+
+宿主须把共享 `solar_scaling` 作为持有者的常驻系统来源装配，不能仅加载其定义或随近战选择解绑。新组合验收检查实际 DoT 扣血、直接 / 灼烧击杀到 Sunbracers，以及五次爆炸累计触发共享点燃；另验证近战直接增伤不会再次放大衍生 Scorch / Ignition。初始近战技能与击杀信用保留，后续 Char 等合法反馈仍由既有共享规则执行，没有全局次数上限。
+
+独立测试校准明确采用 20 m/s、零重力、drag 1、寿命 1 秒、累计射程 8 米、相邻扇角 5 度、近距半径 1 米 / 启动距离 .5 米、爆炸半径 2 米、法线偏移 .03 米 / 竖直偏移 0、平坦范围倍率及 .1 生命投影。Guardian 27 仅为要求显式提供的假设值，来源问号不消失；这些几何、速度、时序、衰减、来源快照和免疫 / 状态政策均未宣称原作校准。当前未装配追踪 / 辅助瞄准与 Song of Flame 变体，完整活动 / 等级倍率、正式职业装配、HUD 和物理实体跨重启仍有缺口。新增 Compendium 条目维持 partial。

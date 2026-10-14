@@ -4912,7 +4912,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收 Solar Grenade已有实际投掷/持续场的小数Scorch与长按消费参考组合，具体边界见solar/solar_grenade。",
+      "scope": "共享目标叠层、独立 tick / 衰减、初始来源快照、模式校准与死亡清理；真实 tick 和非致命策略验收，保留原作未知项；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收 Solar Grenade已有实际投掷/持续场的小数Scorch与长按消费参考组合，具体边界见solar/solar_grenade。 Incinerator Snap五火花已有共享状态组合与近战信用；常驻solar_scaling下验证实际伤害及直接增伤隔离。",
       "acceptance": [
         "不同来源共同叠层，初始来源决定伤害及击杀信用，后续施加不重置伤害 tick",
         "首 tick 0.5 秒、后续 0.56 秒；第二 tick 0.93 秒含义仍为显式待校准时序政策",
@@ -5034,6 +5034,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SolarGrenadeGameTest.java",
           "symbol": "physicalImpactUsesFractionalAshesAndSeparateImpactFalloff"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "directMeleeBonusDoesNotScaleTheDerivedScorchOrIgnitionDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "fiveActualProximityExplosionsAccumulateScorchAndProduceSharedIgnition"
         }
       ],
       "gaps": [
@@ -5043,7 +5053,7 @@
         "施加者必须检查目标的 scorch_lockout；测试施加入口不是生产武器 / 技能装配",
         "Incandescent 的等级倍率排除与通用非 Boss 20% 的关系未确认，需显式 scorch_nonboss_factor 校准",
         "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖",
-        "Solar Grenade 的小数状态依赖已接；实际持续场 / 熔岩球尚未实现，原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
+        "Solar Grenade 的小数状态与实际持续场 / 熔岩球已有参考组合；原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
       ]
     },
     {
@@ -5069,7 +5079,7 @@
           "text_sha256": "7758ca84dd90fb9fd5a98634a1617e5d3a409724db5a65bb58ea14a7e093b8ef"
         }
       ],
-      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收",
+      "scope": "共享 Scorch 的 100 层引爆、8 米范围、初始来源归属及每目标 1.6 秒重新施加禁用；真实击杀和允许的连续点燃；显式延迟校准与 Char / Ashes 多轮反馈；武器来源Solar通过共享阶段接入Radiant、元素Weapon Surge和合资格Rampage，保留初始快照与逐目标勇士分类；Weapons属性增伤已接共享阶段，实际Font/护甲和Incandescent来源按首代快照与逐目标分类组合 增加职业技能首来源快照，凤凰俯冲已接共享Scorch；核心回归包括class的DoT/点燃信用。 Firebolt已接真实二次追踪弹、共享灼烧及连续付费施放点燃，保留原手雷归属。 Fusion已接真实附着爆炸，Touch第二爆不重复加灼烧，两次Ashes付费投掷可点燃。；共享小数实际量已贯通：99.5 不提前点燃，补 .5 才点燃，7.5 层累计、来源信用、实际 DoT、尾数衰减及领域存档已验收 Incinerator Snap五火花已有共享状态组合与近战信用；常驻solar_scaling下验证实际伤害及直接增伤隔离。",
       "acceptance": [
         "触发后移除全部 Scorch，原目标 1.6 秒内不能重新施加",
         "8 米内 PvE 676，无衰减；PvP Guardian 120 / construct 250，逐目标距离参与外部衰减曲线",
@@ -5196,6 +5206,16 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/FractionalBuffGameTest.java",
           "symbol": "subunitScorchIsPresentDamagesAndDecaysWithoutInventingAWholeStack"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "directMeleeBonusDoesNotScaleTheDerivedScorchOrIgnitionDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "fiveActualProximityExplosionsAccumulateScorchAndProduceSharedIgnition"
         }
       ],
       "gaps": [
@@ -5205,7 +5225,7 @@
         "无生产子职业 / perk 自动装配及活动状态存档，Incandescent 已有 partial 实际武器接线",
         "阈值至爆炸延迟需要显式 Profile；0 / 1 / 2 秒验收均为合成参数。当前固定阈值位置与禁用起算点待原作校准",
         "Radiant/Weapon Surge/合资格Rampage已接；Weapons属性增伤已有部分接线（见mechanics/weapons-stat）；New Gear Bonus、活动乘区及完整技能/异域来源缩放仍未装配，不能将共享阶段等同全部D2增伤覆盖",
-        "Solar Grenade 的小数状态依赖已接；实际持续场 / 熔岩球尚未实现，原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
+        "Solar Grenade 的小数状态与实际持续场 / 熔岩球已有参考组合；原表启动 / 周期 / 到期时间冲突和完整原作数值仍待校准"
       ]
     },
     {
@@ -14895,10 +14915,10 @@
           "text_sha256": "a575ee7dc1c46afa646cdedf83ba52225b4d7df2b6b0bcb8fba779f4100b5694"
         }
       ],
-      "scope": "实际近战投射物击杀回执到5秒Ready、付费手雷使用到4秒额外基础回能；仅所选Solar Grenade接收，延长2秒与校准Fastball，组合Touch/Heat Rises/Benevolence及卸装生命周期。",
+      "scope": "实际近战投射物击杀回执到5秒Ready、付费手雷使用到4秒额外基础回能；仅所选Solar Grenade接收，延长2秒与校准Fastball，组合Touch/Heat Rises/Benevolence及卸装生命周期。 已接Incinerator Snap真实直接/灼烧击杀与后续连续付费投掷。",
       "acceptance": [
         "Ready不立即发能量；费用不足不消费。实际接受的手雷使用消费Ready并开启200倍额外基础回能，逐次支付，不设置无限余额或固定投掷次数。",
-        "实际Lightweight Knife物理击杀验证powered-melee来源资格；普通手雷击杀不触发，未确认的死亡回执不发奖励。测试混合职业生产者不代表合法Warlock配装。",
+        "实际Lightweight Knife证明通用powered-melee接口；另用Warlock的Incinerator Snap直接/Scorch实际击杀触发Ready并消费。普通手雷击杀不触发，未确认的死亡回执不发奖励。正式职业配装限制尚未实现。",
         "基础4/Touch6秒加2秒；独立Fastball源参数在接受时通过profile取样。重复来源不翻倍，武器Solar效果不借用技能修饰，已接受的场在卸装后保留。",
         "共享手雷账户在切换时分段积分；Sunbracers与Benevolence加在属性缩放前的基础速率上，Benevolence的-10属性照常生效；一次性回能不乘爆发倍率。",
         "Ready/活动状态与回执保存领域检查点；60秒死亡ID去重、不同有效击杀可再准备；最后一个金装来源卸下清理活动状态，已提交未知发射不回滚付款或重放。",
@@ -14908,7 +14928,7 @@
         "当前表199.5秒基准与Clarity约132%/秒不一致；官方2024投掷数和2025属性调整不能直接给出当前完整公式。保留原表20000%额外基础率，不宣称已经校准原作每档回能。",
         "Fastball每种手雷强度未知；.25投速delta、继承4.25/6.25并加2秒的场时序、动画/投掷频率均为显式校准。五次付费测试包含初始与截止点投掷，不等于原作投掷次数验收。",
         "活动期重新准备、重复Ready刷新、近战衍生灼烧/点燃资格、Heat Rises消费、换装/切换/死亡政策尚待原作验证；官方旧物品Solar melee和社区Powered Melee文字差异保留。",
-        "真实Warlock技能生产者、子职业/装备限制、生产目录、所有金装/碎片/神器组合、HUD/素材和物理世界跨进程重启未完成。"
+        "Incinerator Snap已有参考生产者，其他Warlock近战、完整子职业/装备限制、生产目录、所有金装/碎片/神器组合、HUD/素材和物理世界跨进程重启未完成。"
       ],
       "evidence": [
         {
@@ -15007,6 +15027,163 @@
           "kind": "world_test",
           "path": "common/src/gametest/java/com/imdomestic/chorus/test/SunbracersGameTest.java",
           "symbol": "unknownNativePoweredKillKeepsItsWorldDeathButCannotInventReadyOrReplay"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "directAndScorchKillsArmSunbracersAndActualGrenadePaymentConsumesReady"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "actualScorchKillArmsSunbracersAndPaidSolarGrenadeConsumesReady"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "actualWarlockMeleeKillFundsRepeatedPaidSolarGrenadesThroughSunbracers"
+        }
+      ]
+    },
+    {
+      "id": "solar/incinerator_snap",
+      "name": "Incinerator Snap",
+      "kind": "effect",
+      "archived": false,
+      "status": "partial",
+      "sources": [
+        {
+          "sheet": "Solar",
+          "cell": "B76",
+          "text_sha256": "d17bf8b657f89b864c3e57cf7e2de9d56ed809405d82708b157c02a00d0133c9"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "D76",
+          "text_sha256": "29ae7924171f8fdd08a0d597735a30c541e3f10eaf9c30c9091dbd71e79336f1"
+        },
+        {
+          "sheet": "Solar",
+          "cell": "N76",
+          "text_sha256": "9cdef33ab0f5136fbe30b1c1db3f0841dc30d0430f8e49ee1118a259185e20b4"
+        }
+      ],
+      "scope": "真实一次付费五枚扇形火花、累计射程与近距引爆、逐目标爆炸及共享灼烧/点燃；直接/灼烧击杀到Sunbracers与连续付费Solar Grenade，119.8秒/CES .9回充。",
+      "acceptance": [
+        "接受时保存look/horizontal、伤害快照、Ashes与几何参数；上/下/水平瞄准均产生五个独立方向，后来转向或卸装不改写已发火花。",
+        "ENTITY/BLOCK/RANGE/PROXIMITY在实际位置执行范围爆炸；EXPIRED/UNLOADED不爆炸。每次重查当前BODY/视线/阵营，按实际受害者玩家类别选择伤害与Scorch，写入边界复核生命。",
+        "PvE每枚90与20/30层，Guardian以必填假设27验收10/15层；确认正实际损失且非致命才施加共享Scorch，五次爆炸可到达点燃阈值并保留近战技能/击杀信用。",
+        "常驻solar_scaling系统来源保证真实衍生伤害；直接近战增伤不再次放大灼烧/点燃。实际直接和Scorch击杀创建Sunbracers Ready，再以实际Solar付款消费并连续恢复/投掷。",
+        "未知生成/伤害保留已提交费用和世界写入，不重放或补发状态/击杀奖励；领域检查点保留已接受发射数据和新方向动作。"
+      ],
+      "gaps": [
+        "原表Guardian27?/135?、射程和爆炸半径未知；测试27只是显式假设，20m/s、8米、5度相邻扇角、1米近距/.5米启动、2米爆炸、平坦衰减和.1生命投影均需校准。",
+        "球形引信不是官方secondary arming shape的精确复刻；弹速/重力/寿命/偏移、追踪/辅助瞄准、Song of Flame变体、活动/等级/力量倍率尚未校准或装配。",
+        "BODY/视线/阵营/来源失联、快照时点、正损失与非致命施加门槛、共享点燃锁定和衍生击杀资格为当前明确内容政策，全部原作组合仍需验证。",
+        "solar_scaling常驻依赖只在本组合宿主显式装配，正式子职业/装备限制、生产目录、HUD/素材及物理实体跨进程恢复仍未完成；定义在验收资源。"
+      ],
+      "evidence": [
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/incinerator_snap.json"
+        },
+        {
+          "kind": "definition",
+          "path": "common/src/test/resources/effects/incinerator_snap_test_calibration.json"
+        },
+        {
+          "kind": "research",
+          "path": "data/d2-research/2026-10-14/incinerator-snap-source.json"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "requiredCalibrationPrecedesOnePaymentAndFiveIndependentFlights"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "explosionsUseActualRecipientKindAndSourceSpecificAshesStacks"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "allFourDetonationReasonsWorkWhileExpiryAndUnavailableDoNotExplode"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "fiveBlastsReachSharedIgnitionThresholdAndPreserveMeleeCredit"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "immuneZeroLossDeniedAndLethalBlastsCannotInventScorch"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "directAndScorchKillsArmSunbracersAndActualGrenadePaymentConsumesReady"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "acceptedSparksRetainParametersAndSnapshotsAfterMeleeSelectionIsRemoved"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "unknownLaunchKeepsTheCostAndCannotReplayOrLaunchTheRemainingFan"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "unknownNativeDamageCannotGrantStatusOrSunbracersFromAnUnconfirmedReceipt"
+        },
+        {
+          "kind": "unit_test",
+          "path": "common/src/test/java/com/imdomestic/chorus/effect/IncineratorSnapTest.java",
+          "symbol": "directMeleeBonusDoesNotScaleTheDerivedScorchOrIgnitionDamage"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "physicalFanKeepsFiveDirectionsWhileLookingUpDownOrHorizontally"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "fiveActualProximityExplosionsAccumulateScorchAndProduceSharedIgnition"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "actualScorchKillArmsSunbracersAndPaidSolarGrenadeConsumesReady"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "actualWarlockMeleeKillFundsRepeatedPaidSolarGrenadesThroughSunbracers"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "acceptedSparkRetainsAshesAndSourceAfterRemovingTheMeleeSelection"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "rangeAndPhysicalWallBothTriggerExplosionAtTheirObservedPoint"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "nativeImmunityAndStatusDenialDoNotCreateScorchOrSunbracers"
+        },
+        {
+          "kind": "world_test",
+          "path": "common/src/gametest/java/com/imdomestic/chorus/test/IncineratorSnapGameTest.java",
+          "symbol": "unknownNativeKillConsumesSparkWithoutInventingConfirmedKillRewards"
         }
       ]
     }

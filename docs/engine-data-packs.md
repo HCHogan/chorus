@@ -2170,6 +2170,15 @@ Minecraft 宿主确认目标存在且处于当前维度，拒绝死亡、旁观�
 
 此例展示结构，不是完整 Thunderclap 或其他技能定义。capture_direction 的可选 mode 默认为 look，读取服务器实体的完整 look vector；horizontal 则直接按服务器 yaw 捕获水平朝向，y=0，即使实体正向上 / 下看也有确定方向。两种模式均保存带维度的归一化方向，回执必须匹配原请求的目标和 mode。horizontal 表示朝向，不是客户端移动按键方向。capture_position 的 anchor 可选 feet（默认）/ body / eyes。方向与位置结果可由 after 捕获，原实体转身、移动、移除或来源解绑不改写这些值。缺少实体返回 missing，不补零向量；圆锥使用缺失方向时返回 missing_direction，方向和查询中心不在同维度时返回 wrong_dimension。延迟捕获可随领域检查点保存；不代表实体运动或物理世界的跨重启恢复。
 
+`cross_direction` 与 `rotate_direction` 是对这些快照的纯动作，必须通过 `action` / `as` 绑定结果：
+
+```json
+{"action":{"type":"chorus:cross_direction","left":"up","right":"heading"},"as":"right"}
+{"action":{"type":"chorus:rotate_direction","direction":"aim","axis":"fan_axis","angle":{"type":"chorus:constant","value":5,"unit":"degree"}},"as":"spark_direction"}
+```
+
+以上是两个独立步骤片段，输入必须此前绑定为 DIRECTION。叉积按 left × right 返回单位方向；旋转按右手定则，保留沿轴分量并归一化结果。缺失 / 错维度输入与平行叉积返回 missing；错误结果类型或角度单位在加载时拒绝。它们不查询实体，不把相机后来转向写回快照。可用 `right = up × heading`、`fan_axis = aim × right` 建立垂直瞄准时仍有效的扇面；完整例子见 `incinerator_snap.json`。两种动作各有新增存储身份，原有存储形状保持。
+
 直接以实体为 center 的查询可以给 center_anchor；target_anchor 决定每个候选实体的取样点，均为 feet / body（碰撞箱中心高度）/ eyes。已捕获位置是精确坐标，不再叠加 center_anchor；这类查询若指定非默认 center_anchor 会在编译时报错。区域判断、距离和可选视线均使用同一对取样点，**不是整个碰撞箱与区域的相交测试**。球形旧请求仍保留脚底语义；非球形回执另保存相对坐标并验证它位于区域内，结果读取不再访问世界。
 
 line_of_sight 默认 false，不会替已有 Jolt / Rift 等内容偷偷加遮挡规则。true 时从中心取样点向目标取样点发射方块碰撞射线：使用 COLLIDER 形状，半砖只挡实际占据的部分，玻璃会挡；流体和其他实体不挡。这是当前 Minecraft 宿主的明确规则，尚未校准为各命运 2 效果对每种障碍物的行为。只访问已有的已加载 LevelChunk；任一端点或路径经过未知地形时不可见，不触发区块加载。
@@ -4055,4 +4064,16 @@ Solar 参考定义新增普通 `solar_grenade_throw_speed` Profile，speed 参�
 
 终止回执新增 `range` 与 `proximity` 标志。前者没有目标，后者的目标集合只含触发者；两者都是 terminal，不增加 entity_contacts / target_contacts，不提供碰撞箱几何，也不自动施加爆炸伤害。内容应在回执位置另做范围查询、伤害和状态施加。终止及计数在调用动作体前提交，未知动作结果不会复活投射物。
 
-存储分别新增 ProjectileSpec、Parameters、End 的 v2 身份及两项 proximity 类型；旧身份保留原字段 / 枚举形状并显式迁移，旧投射物不会自动获得射程或引信。延迟发射的声明与新参数可随核心检查点恢复；原生飞行实体的跨进程重启仍是独立未完成项。来源与 Incinerator Snap 的剩余内容见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与投射物前置能力)。
+存储分别新增 ProjectileSpec、Parameters、End 的 v2 身份及两项 proximity 类型；旧身份保留原字段 / 枚举形状并显式迁移，旧投射物不会自动获得射程或引信。延迟发射的声明与新参数可随核心检查点恢复；原生飞行实体的跨进程重启仍是独立未完成项。来源与 Incinerator Snap 的剩余内容见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。
+
+## Incinerator Snap 的扇形物理火花与近战信用
+
+`incinerator_snap.json` 是参考数据定义，复用普通能力、方向动作、投射物、范围查询与共享 Solar 状态。一次接受消费共享 `solar_melee_uses`，选择期来源提供 `solar_melee_progress` 的 119.8 秒 / CES .9 恢复。缺少必填校准在付款前拒绝；成功接受后五次发射各有独立世界操作身份，未知发射停止剩余动作且不退回已经支付的费用。
+
+接受时捕获 eyes、look、horizontal、两种目标的进攻快照和 Ashes 参数；从所在维度构造 up，以 up × horizontal 得到 right，再以 look × right 得到 fan_axis。五次 rotate_direction 使用 −2、−1、0、1、2 倍 fan_step，随后发射独立实体；不在每枚命中时重新读取施放者朝向。范围与引信参数也在发射时冻结。ENTITY / BLOCK / RANGE / PROXIMITY 在回执位置执行普通爆炸体，EXPIRED / UNLOADED 不爆炸；近距触发者不是唯一伤害接收者。
+
+每次爆炸重新查询当前 BODY、视线和敌我关系，逐受害者捕获生命并用 damage_entity_snapshot 写入。`incinerator_snap_outgoing` 包含共享进攻阶段，`incinerator_snap_falloff` 根据距爆炸中心的米数返回倍率，通过 radial_delta 晚绑定。确认 APPLIED、非致命且 effective_with_absorption > 0 后才申请状态；拒绝状态不撤销先前伤害。来源同时声明 melee_ability、ability_damage、melee_damage、solar_damage，使初始来源的技能与击杀信用进入共享 Scorch / Ignition。
+
+共享 `solar_scaling` 必须作为持有者常驻系统来源绑定；仅把它放入 Program 不会自动生效。它不随近战选择移除，因此卸下 Snap 后已发火花与衍生状态继续使用共享数值阶段。该宿主装配依赖在本组合夹具中显式执行；不代表所有旧技能夹具或正式玩家装配都已补齐。单元验收同时检查直接近战加成只提高直接爆炸、衍生灼烧 / 点燃继续沿共享 Solar 分类结算，不能把保留近战击杀信用当作重复应用直接增伤的理由。
+
+`incinerator_snap_test_calibration.json` 单独提供速度、重力、阻力、寿命、射程、扇角、近距半径与启动距离、爆炸半径、接触偏移、Guardian 伤害及两个外部 Profile。测试中的平坦衰减、27 点 Guardian 基数与所有几何均为显式输入。五次实际爆炸到共享点燃、实际 Scorch 击杀到 Sunbracers Ready，再到付费 Solar Grenade 的组合有原生世界验收；完整原作校准、生产目录 / 职业限制与物理实体跨进程恢复仍未完成。来源及具体数值见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。

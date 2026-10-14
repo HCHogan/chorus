@@ -1,0 +1,2935 @@
+{
+  "version": "compendium-2026-10-05",
+  "abilities": [
+    {
+      "slot": "chorus_d2:melee",
+      "cost": {
+        "resource": "chorus_d2:solar_melee_uses",
+        "amount": {
+          "type": "chorus:constant",
+          "value": 1,
+          "unit": "charge_fraction"
+        }
+      },
+      "recharge_resource": "chorus_d2:solar_melee_progress",
+      "recharge_yield_profile": "chorus_d2:solar_melee_cycle_yield",
+      "id": "chorus_d2:incinerator_snap",
+      "tags": [
+        "chorus:melee_ability",
+        "chorus:ability_damage",
+        "chorus:melee_damage",
+        "chorus:solar_damage",
+        "chorus_d2:solar_melee",
+        "chorus_d2:solar",
+        "chorus_d2:incinerator_snap"
+      ],
+      "effects": {
+        "energy": {
+          "bundle": "chorus_d2:solar_melee_cycle",
+          "parameters": {
+            "base_rate": {
+              "value": 0.008347245409015025,
+              "unit": "charge_fraction_per_second"
+            },
+            "chunk_scalar": {
+              "value": 0.9,
+              "unit": "multiplier"
+            },
+            "intrinsic_extra": {
+              "value": 0,
+              "unit": "charge_fraction"
+            }
+          }
+        },
+        "radial": {
+          "bundle": "chorus_d2:incinerator_snap_radial"
+        }
+      },
+      "parameters": {
+        "speed": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.speed",
+            "unit": "meter_per_second"
+          }
+        },
+        "gravity": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.gravity",
+            "unit": "meter_per_second_squared"
+          }
+        },
+        "drag": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.drag",
+            "unit": "multiplier"
+          }
+        },
+        "lifetime": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lifetime",
+            "unit": "second"
+          }
+        },
+        "range": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.range",
+            "unit": "meter"
+          }
+        },
+        "fan_step": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.fan_step",
+            "unit": "degree"
+          }
+        },
+        "proximity_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.proximity_radius",
+            "unit": "meter"
+          }
+        },
+        "arm_distance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.arm_distance",
+            "unit": "meter"
+          }
+        },
+        "blast_radius": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.blast_radius",
+            "unit": "meter"
+          }
+        },
+        "clearance": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.clearance",
+            "unit": "meter"
+          }
+        },
+        "lift": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.lift",
+            "unit": "meter"
+          }
+        },
+        "guardian_damage": {
+          "value": {
+            "type": "chorus:event_number",
+            "name": "calibration.guardian_damage",
+            "unit": "damage"
+          }
+        },
+        "impact_scorch_combatant": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:ashes_equipped",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "op": "gt",
+              "right": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 30,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 20,
+              "unit": "count"
+            }
+          }
+        },
+        "impact_scorch_guardian": {
+          "value": {
+            "type": "chorus:choose",
+            "if": {
+              "type": "chorus:compare",
+              "left": {
+                "type": "chorus:profile_value",
+                "profile": "chorus_d2:ashes_equipped",
+                "target": "self",
+                "input": {
+                  "type": "chorus:constant",
+                  "value": 0,
+                  "unit": "count"
+                }
+              },
+              "op": "gt",
+              "right": {
+                "type": "chorus:constant",
+                "value": 0,
+                "unit": "count"
+              }
+            },
+            "then": {
+              "type": "chorus:constant",
+              "value": 15,
+              "unit": "count"
+            },
+            "else": {
+              "type": "chorus:constant",
+              "value": 10,
+              "unit": "count"
+            }
+          }
+        }
+      },
+      "on_use": [
+        {
+          "action": {
+            "type": "chorus:capture_position",
+            "target": "self",
+            "anchor": "eyes"
+          },
+          "as": "muzzle"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction"
+          },
+          "as": "aim"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:constant",
+              "value": 90,
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:incinerator_snap_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:incinerator_snap_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:melee_kill"
+            ]
+          },
+          "as": "combatant_impact"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_damage",
+            "amount": {
+              "type": "chorus:event_number",
+              "name": "param.guardian_damage",
+              "unit": "damage"
+            },
+            "damage_type": "chorus_d2:ability_projectile",
+            "scaling_profile": "chorus_d2:incinerator_snap_outgoing",
+            "tags": [
+              "chorus:ability_damage",
+              "chorus:melee_damage",
+              "chorus:solar_damage",
+              "chorus_d2:solar",
+              "chorus_d2:incinerator_snap_damage"
+            ],
+            "kill_tags": [
+              "chorus:ability_kill",
+              "chorus:melee_kill"
+            ]
+          },
+          "as": "guardian_impact"
+        },
+        {
+          "action": {
+            "type": "chorus:capture_direction",
+            "mode": "horizontal"
+          },
+          "as": "heading"
+        },
+        {
+          "action": {
+            "type": "chorus:world_direction",
+            "position": "muzzle",
+            "x": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "multiplier"
+            },
+            "y": {
+              "type": "chorus:constant",
+              "value": 1,
+              "unit": "multiplier"
+            },
+            "z": {
+              "type": "chorus:constant",
+              "value": 0,
+              "unit": "multiplier"
+            }
+          },
+          "as": "up"
+        },
+        {
+          "action": {
+            "type": "chorus:cross_direction",
+            "left": "up",
+            "right": "heading"
+          },
+          "as": "right"
+        },
+        {
+          "action": {
+            "type": "chorus:cross_direction",
+            "left": "aim",
+            "right": "right"
+          },
+          "as": "fan_axis"
+        },
+        {
+          "action": {
+            "type": "chorus:rotate_direction",
+            "direction": "aim",
+            "axis": "fan_axis",
+            "angle": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:event_number",
+                "name": "param.fan_step",
+                "unit": "degree"
+              },
+              "factor": -2,
+              "from": "degree",
+              "to": "degree"
+            }
+          },
+          "as": "spark_0"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "spark_0",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:event_number",
+              "name": "param.range",
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.proximity_radius",
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:event_number",
+                "name": "param.arm_distance",
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:event_number",
+                      "name": "param.blast_radius",
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:incinerator_snap_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "action": {
+            "type": "chorus:rotate_direction",
+            "direction": "aim",
+            "axis": "fan_axis",
+            "angle": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:event_number",
+                "name": "param.fan_step",
+                "unit": "degree"
+              },
+              "factor": -1,
+              "from": "degree",
+              "to": "degree"
+            }
+          },
+          "as": "spark_1"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "spark_1",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:event_number",
+              "name": "param.range",
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.proximity_radius",
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:event_number",
+                "name": "param.arm_distance",
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:event_number",
+                      "name": "param.blast_radius",
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:incinerator_snap_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "action": {
+            "type": "chorus:rotate_direction",
+            "direction": "aim",
+            "axis": "fan_axis",
+            "angle": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:event_number",
+                "name": "param.fan_step",
+                "unit": "degree"
+              },
+              "factor": 0,
+              "from": "degree",
+              "to": "degree"
+            }
+          },
+          "as": "spark_2"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "spark_2",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:event_number",
+              "name": "param.range",
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.proximity_radius",
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:event_number",
+                "name": "param.arm_distance",
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:event_number",
+                      "name": "param.blast_radius",
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:incinerator_snap_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "action": {
+            "type": "chorus:rotate_direction",
+            "direction": "aim",
+            "axis": "fan_axis",
+            "angle": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:event_number",
+                "name": "param.fan_step",
+                "unit": "degree"
+              },
+              "factor": 1,
+              "from": "degree",
+              "to": "degree"
+            }
+          },
+          "as": "spark_3"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "spark_3",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:event_number",
+              "name": "param.range",
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.proximity_radius",
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:event_number",
+                "name": "param.arm_distance",
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:event_number",
+                      "name": "param.blast_radius",
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:incinerator_snap_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "action": {
+            "type": "chorus:rotate_direction",
+            "direction": "aim",
+            "axis": "fan_axis",
+            "angle": {
+              "type": "chorus:scale",
+              "of": {
+                "type": "chorus:event_number",
+                "name": "param.fan_step",
+                "unit": "degree"
+              },
+              "factor": 2,
+              "from": "degree",
+              "to": "degree"
+            }
+          },
+          "as": "spark_4"
+        },
+        {
+          "projectile": {
+            "position": "muzzle",
+            "direction": "spark_4",
+            "speed": {
+              "type": "chorus:event_number",
+              "name": "param.speed",
+              "unit": "meter_per_second"
+            },
+            "gravity": {
+              "type": "chorus:event_number",
+              "name": "param.gravity",
+              "unit": "meter_per_second_squared"
+            },
+            "drag": {
+              "type": "chorus:event_number",
+              "name": "param.drag",
+              "unit": "multiplier"
+            },
+            "lifetime": {
+              "type": "chorus:event_number",
+              "name": "param.lifetime",
+              "unit": "second"
+            },
+            "range": {
+              "type": "chorus:event_number",
+              "name": "param.range",
+              "unit": "meter"
+            },
+            "proximity": {
+              "radius": {
+                "type": "chorus:event_number",
+                "name": "param.proximity_radius",
+                "unit": "meter"
+              },
+              "arm_distance": {
+                "type": "chorus:event_number",
+                "name": "param.arm_distance",
+                "unit": "meter"
+              },
+              "target_anchor": "body",
+              "relation": "not_allied",
+              "line_of_sight": true
+            }
+          },
+          "as": "impact",
+          "do": [
+            {
+              "if": {
+                "type": "chorus:any",
+                "of": [
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "entity"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "block"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "range"
+                  },
+                  {
+                    "type": "chorus:result_flag",
+                    "binding": "impact",
+                    "field": "proximity"
+                  }
+                ]
+              },
+              "then": [
+                {
+                  "action": {
+                    "type": "chorus:offset_position",
+                    "position": "impact",
+                    "x": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_x"
+                        }
+                      ]
+                    },
+                    "y": {
+                      "type": "chorus:arithmetic",
+                      "op": "add",
+                      "of": [
+                        {
+                          "type": "chorus:arithmetic",
+                          "op": "mul",
+                          "of": [
+                            {
+                              "type": "chorus:event_number",
+                              "name": "param.clearance",
+                              "unit": "meter"
+                            },
+                            {
+                              "type": "chorus:result",
+                              "binding": "impact",
+                              "field": "normal_y"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.lift",
+                          "unit": "meter"
+                        }
+                      ]
+                    },
+                    "z": {
+                      "type": "chorus:arithmetic",
+                      "op": "mul",
+                      "of": [
+                        {
+                          "type": "chorus:event_number",
+                          "name": "param.clearance",
+                          "unit": "meter"
+                        },
+                        {
+                          "type": "chorus:result",
+                          "binding": "impact",
+                          "field": "normal_z"
+                        }
+                      ]
+                    }
+                  },
+                  "as": "anchor"
+                },
+                {
+                  "action": {
+                    "type": "chorus:select_targets",
+                    "center": {
+                      "position": "anchor"
+                    },
+                    "radius": {
+                      "type": "chorus:event_number",
+                      "name": "param.blast_radius",
+                      "unit": "meter"
+                    },
+                    "target_anchor": "body",
+                    "relation": "not_allied",
+                    "relative_to": "source_owner",
+                    "exclude": [
+                      "source_owner"
+                    ],
+                    "order": "identity",
+                    "line_of_sight": true
+                  },
+                  "as": "targets"
+                },
+                {
+                  "if": {
+                    "type": "chorus:result_flag",
+                    "binding": "targets",
+                    "field": "available"
+                  },
+                  "then": [
+                    {
+                      "for_each": "targets",
+                      "as": "victim",
+                      "do": [
+                        {
+                          "action": {
+                            "type": "chorus:capture_entity_anchor",
+                            "target": {
+                              "binding": "victim"
+                            },
+                            "anchor": "body"
+                          },
+                          "as": "life"
+                        },
+                        {
+                          "action": {
+                            "type": "chorus:inspect_entity",
+                            "target": {
+                              "binding": "victim"
+                            }
+                          },
+                          "as": "view"
+                        },
+                        {
+                          "if": {
+                            "type": "chorus:all",
+                            "of": [
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "life",
+                                "field": "alive"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "available"
+                              },
+                              {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "alive"
+                              }
+                            ]
+                          },
+                          "then": [
+                            {
+                              "action": {
+                                "type": "chorus:calculate",
+                                "profile": "chorus_d2:incinerator_snap_falloff",
+                                "target": "source_owner",
+                                "victim": {
+                                  "binding": "victim"
+                                },
+                                "input": {
+                                  "type": "chorus:result",
+                                  "binding": "victim",
+                                  "field": "distance"
+                                }
+                              },
+                              "as": "falloff"
+                            },
+                            {
+                              "if": {
+                                "type": "chorus:result_flag",
+                                "binding": "view",
+                                "field": "player"
+                              },
+                              "then": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "guardian_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_guardian",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_guardian",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "else": [
+                                {
+                                  "action": {
+                                    "type": "chorus:damage_entity_snapshot",
+                                    "reference": "life",
+                                    "snapshot": "combatant_impact",
+                                    "target": {
+                                      "binding": "victim"
+                                    },
+                                    "impact": {
+                                      "radial_delta": {
+                                        "type": "chorus:scale",
+                                        "of": {
+                                          "type": "chorus:arithmetic",
+                                          "op": "add",
+                                          "of": [
+                                            {
+                                              "type": "chorus:result",
+                                              "binding": "falloff",
+                                              "field": "value"
+                                            },
+                                            {
+                                              "type": "chorus:constant",
+                                              "value": -1,
+                                              "unit": "multiplier"
+                                            }
+                                          ]
+                                        },
+                                        "factor": 1,
+                                        "from": "multiplier",
+                                        "to": "delta"
+                                      },
+                                      "blast_distance": {
+                                        "type": "chorus:result",
+                                        "binding": "victim",
+                                        "field": "distance"
+                                      }
+                                    }
+                                  },
+                                  "as": "hit"
+                                },
+                                {
+                                  "if": {
+                                    "type": "chorus:all",
+                                    "of": [
+                                      {
+                                        "type": "chorus:result_flag",
+                                        "binding": "hit",
+                                        "field": "applied"
+                                      },
+                                      {
+                                        "type": "chorus:not",
+                                        "of": {
+                                          "type": "chorus:result_flag",
+                                          "binding": "hit",
+                                          "field": "lethal"
+                                        }
+                                      },
+                                      {
+                                        "type": "chorus:compare",
+                                        "left": {
+                                          "type": "chorus:result",
+                                          "binding": "hit",
+                                          "field": "effective_with_absorption"
+                                        },
+                                        "op": "gt",
+                                        "right": {
+                                          "type": "chorus:constant",
+                                          "value": 0,
+                                          "unit": "damage"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "then": [
+                                    {
+                                      "if": {
+                                        "type": "chorus:all",
+                                        "of": [
+                                          {
+                                            "type": "chorus:not",
+                                            "of": {
+                                              "type": "chorus:has_buff",
+                                              "buff": "chorus_d2:scorch_lockout",
+                                              "target": {
+                                                "binding": "victim"
+                                              },
+                                              "match": "any"
+                                            }
+                                          },
+                                          {
+                                            "type": "chorus:compare",
+                                            "left": {
+                                              "type": "chorus:event_number",
+                                              "name": "param.impact_scorch_combatant",
+                                              "unit": "count"
+                                            },
+                                            "op": "gt",
+                                            "right": {
+                                              "type": "chorus:constant",
+                                              "value": 0,
+                                              "unit": "count"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "then": [
+                                        {
+                                          "type": "chorus:apply_status",
+                                          "buff": "chorus_d2:scorch",
+                                          "target": {
+                                            "binding": "victim"
+                                          },
+                                          "stacks": {
+                                            "type": "chorus:event_number",
+                                            "name": "param.impact_scorch_combatant",
+                                            "unit": "count"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "chorus_d2:incinerator_snap_radial",
+      "scope": "source",
+      "modifiers": [
+        {
+          "id": "radial",
+          "profile": "chorus_d2:incinerator_snap_outgoing",
+          "stage": "radial",
+          "op": "multiply",
+          "group": "radial",
+          "stacking_key": "chorus_d2:incinerator_snap_radial",
+          "value": {
+            "type": "chorus:impact_number",
+            "name": "radial_delta",
+            "unit": "delta"
+          },
+          "if": {
+            "type": "chorus:source_is",
+            "source": "owner"
+          },
+          "reference": "Explicit Incinerator Snap radial calibration; source radius and falloff are unknown.",
+          "confidence": "assumed"
+        }
+      ]
+    }
+  ]
+}

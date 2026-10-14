@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "researched_with_generic_flight_prerequisites_only",
+  "status": "partial_reference_implementation_with_explicit_calibration",
   "reviewed_at": "2026-10-13T20:08:50.779602+00:00",
   "compendium": {
     "url": "https://docs.google.com/spreadsheets/d/1WaxvbLx7UoSZaBqdFr1u32F2uWVLo-CJunJB4nlGUE4/htmlview/sheet?headers=true&gid=1186062409",
@@ -70,6 +70,23 @@
     "Guardian 27? per spark and 135? total explicitly retain the source question marks.",
     "Range, blast radius, fan angle, speed, gravity, tracking and proximity arming geometry remain uncalibrated.",
     "Generic spherical proximity and distance arming are Chorus capabilities, not claims about the original secondary arming shape.",
-    "The five-spark ability, Scorch and Sunbracers composition are not implemented by the generic projectile prerequisite."
-  ]
+    "Five physical sparks, explosions, shared Scorch / Ignition and Sunbracers now have reference composition; production loadout assembly, all interactions, original-game calibration and physical entity restart remain incomplete."
+  ],
+  "implementation": {
+    "definition": "common/src/test/resources/effects/incinerator_snap.json",
+    "calibration": "common/src/test/resources/effects/incinerator_snap_test_calibration.json",
+    "host_dependency": "Bind solar_scaling as a standing owner/system source, independent of melee selection.",
+    "scope": [
+      "Single paid melee use launches five independent physical sparks using captured look / yaw axes.",
+      "Entity, block, range and proximity detonation query actual recipients; confirmed positive nonlethal damage requests shared Scorch.",
+      "Scorch / Ignition preserve original melee ability credit; direct and Scorch kills can arm Sunbracers, followed by paid Solar Grenade uses.",
+      "Direct melee bonus does not apply again to derived Scorch / Ignition damage."
+    ],
+    "limits": [
+      "Test resources are reference definitions, excluded from release jars.",
+      "Guardian damage 27, geometry, speed, falloff, timing and world-unit projection are explicit test inputs.",
+      "Tracking / aim assistance and Song of Flame variant are not assembled.",
+      "Physical flight entities are not restored across process restart."
+    ]
+  }
 }

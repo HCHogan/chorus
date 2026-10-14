@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-14：Incinerator Snap 五火花与 Sunbracers 完整参考链
+
+新增纯方向叉积 / 绕轴旋转，保留捕获方向、类型和维度；缺失或退化输入不猜朝向。Snap 用数据组合一次付费、五个相对瞄准方向、真实独立火花、实体 / 地形 / 累计射程 / 近距终止爆炸与共享 Scorch / Ignition。接受时固定 Ashes 和进攻快照，爆炸逐目标检查当前类别、视线 / 阵营与生命；确认正损失且非致命才请求 Scorch。选择期回充为 119.8 秒 / CES .9。常驻 `solar_scaling` 在本组合宿主中显式绑定，确保实际衍生伤害；不随近战选择移除。共享归因支持实际直接 / 灼烧击杀到 Sunbracers Ready，再到付费 Solar Grenade 消费与连续投掷。
+
+新增 5 项方向核心回归、10 项 Snap 核心回归及 8 项共享原生场景，覆盖垂直 / 水平扇面、一次付款五次发射、实际目标类别、Ashes、四种爆炸原因、五次爆炸达点燃阈值、直接增伤不重复作用于衍生伤害、实际 Scorch 击杀、卸装后已发火花、免疫 / 状态拒绝与未知已提交写入。定向 `/tmp/chorus-incinerator-snap-targeted3.log` 通过方向 / Snap / 存储共 16 项核心测试、8 项 Fabric 场景及 NeoForge 测试编译。组合回归明确区分共享点燃的额外伤害与五份直接爆炸，并补齐本宿主的共享 Solar 数值来源。
+
+完整 `/tmp/chorus-incinerator-snap-full-gate.log` BUILD SUCCESSFUL（3 分 49 秒）：2229 项 JUnit 无失败 / 错误 / 跳过、Fabric 1296 项、NeoForge 1311 项世界测试及双端发布 jar 全部通过，共享场景 1295 项。`build/reports/incinerator-snap/audit.json` 核验原 678 项存储形状不变、新增两种方向动作至 680，发布主类 1207 / 1200 个字节匹配、无测试泄漏，Gradle CRLF 保持。10 项 Compendium 工具测试、原表三格 / 固定快照及归档哈希、133 条审阅报告一致性通过。本批未新跑图形客户端。
+
+Snap 新增 partial，合计 133 条审阅（131 partial、2 not_applicable、0 verified）。Guardian 27?、扇角 / 射程 / 引信 / 爆炸几何、弹道和范围倍率仍是显式校准；没有声称原作完整数值已经复现。追踪 / 辅助瞄准、Song of Flame 变体、正式职业与装备装配、生产目录、全部组合、HUD / 素材和物理实体跨进程恢复仍未完成。参考定义继续位于验收资源。接口见 [Snap 组合](engine-data-packs.md#incinerator-snap-的扇形物理火花与近战信用)，来源见 [D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。
+
 ### 2026-10-14：投射物累计射程与近距引信
 
 为 Incinerator Snap 的真实火花生产者补齐通用前置能力。ProjectileSpec 支持发射时冻结的可选 range 和 proximity；宿主按实际曲线路径累计距离，在有限段中求目标球形触发区的首次进入点。近距引信有显式 radius / arm_distance、live anchor、阵营与视线；排除归属者、发射者和不可用候选，等距用 UUID 稳定排序。它与追踪、目的地、反弹 / 穿透共用同一真实飞行流程，没有按技能名称分支。
@@ -18,7 +28,7 @@
 
 最终 `/tmp/chorus-projectile-fuse-full-gate2.log` BUILD SUCCESSFUL（3 分 41 秒）：2214 项 JUnit 无失败 / 错误 / 跳过、Fabric 1288 项、NeoForge 1303 项世界测试及两端发布 jar 全部通过，共享场景 1287 项。`build/reports/projectile-fuse/audit.json` 核验原 673 项存储形状不变、新增 5 项至 678，发布主类 1204 / 1197 个字节匹配且无测试资源泄漏，Gradle CRLF 保持。10 项 Compendium 工具测试、原表三格 / 固定快照哈希与 132 条审阅报告一致性通过。本批未新跑图形客户端；服务端实际物理、核心检查点与双端原生适配是此次验收范围。
 
-原表三格与固定快照一致，HTML / gzip / 文本哈希、官方历史 arming-shape 依据及未知数值已归档。当前没有完整五枚扇形 Snap、Scorch / Sunbracers 生产链或原作几何校准；Compendium 仍为 132 条审阅（130 partial、2 not_applicable、0 verified）。物理实体跨进程重启、正式装配 / HUD 仍有独立缺口。接口见[投射物引信](engine-data-packs.md#投射物累计射程与近距引信)，来源见[D2 规则](d2-ruleset.md#incinerator-snap-的来源与投射物前置能力)。
+原表三格与固定快照一致，HTML / gzip / 文本哈希、官方历史 arming-shape 依据及未知数值已归档。当前没有完整五枚扇形 Snap、Scorch / Sunbracers 生产链或原作几何校准；Compendium 仍为 132 条审阅（130 partial、2 not_applicable、0 verified）。物理实体跨进程重启、正式装配 / HUD 仍有独立缺口。接口见[投射物引信](engine-data-packs.md#投射物累计射程与近距引信)，来源见[D2 规则](d2-ruleset.md#incinerator-snap-的来源与物理火花组合)。
 
 ### 2026-10-14：Sunbracers 的击杀准备态与太阳手雷组合
 
