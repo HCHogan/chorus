@@ -13,6 +13,16 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class ActorBindingTest {
+    @Test void publicConfigurationCodecKeepsTypedParametersAndRejectsUnknownFields() {
+        var value=binding("test:actor",1);var encoded=ActorCodecs.BINDING.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,value).getOrThrow();
+        assertEquals(value,ActorCodecs.BINDING.parse(com.mojang.serialization.JsonOps.INSTANCE,encoded).getOrThrow());
+        var extra=encoded.getAsJsonObject().deepCopy();extra.addProperty("abilities","test:injected");
+        assertTrue(ActorCodecs.BINDING.parse(com.mojang.serialization.JsonOps.INSTANCE,extra).error().isPresent());
+        var unit=encoded.getAsJsonObject().deepCopy();unit.getAsJsonObject("parameters").getAsJsonObject("power").addProperty("extra",1);
+        assertTrue(ActorCodecs.BINDING.parse(com.mojang.serialization.JsonOps.INSTANCE,unit).error().isPresent());
+        var change=new ActorChange("player",Optional.empty(),Optional.of(value));var commit=new ActorChange.Commit(change);
+        assertEquals(commit,EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(commit),ActorChange.Commit.class));
+    }
     static ActorBinding binding(String bundle,double power) {return new ActorBinding(bundle,Set.of("test:actor_tag"),Map.of("power",new Measure(power,Unit.DELTA)));}
     static class Harness {
         final CompiledEffects p;EffectSession session;final List<Double> heals=new ArrayList<>(),observedPower=new ArrayList<>();boolean fail;

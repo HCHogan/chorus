@@ -39,7 +39,9 @@ public class CheckpointRestartGameTest {
             var item = new ItemStack(Items.DIAMOND_CHESTPLATE);
             item.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear("restart-armor", "test:arms", Map.of()));
             player.getInventory().setItem(0, item); var equipment = PlayerEquipment.get(player);
-            equipment.swap(player, "test:arms", 0, equipment.revision()); player.setHealth(27);
+            equipment.swap(player, "test:arms", 0, equipment.revision());
+            PlayerActor.get(player).configure(player, Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding("test:restart_actor")), 0);
+            player.setHealth(27);
             runtime.bind(new EffectSource("skill", "test:restart_skill", holder, new BuffInstance.Origin(holder, "skill", "", ""), Set.of()));
             runtime.start(cast(holder)); h.assertValueEqual(player.getHealth(), 29f, "initialize once and pay for one cast");
             h.assertValueEqual(player.getMaxHealth(), 30f, "equipped temporary capacity");
@@ -74,6 +76,10 @@ public class CheckpointRestartGameTest {
             });
             var player = spawn.spawnPlayer(connection, cookie);
             player.connection.handleAcceptPlayerLoad(new net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket());
+            runtime.prepare();
+            h.assertValueEqual(PlayerActor.get(player).snapshot().binding(), Optional.of(new com.imdomestic.chorus.effect.actor.ActorBinding("test:restart_actor")), "actual player actor file");
+            h.assertValueEqual(runtime.state().engine().domain().actors().get(holder.toString()), PlayerActor.get(player).snapshot().binding().orElseThrow(), "saved actor/domain projection");
+            h.assertTrue(runtime.checkpoint().actorOwners().contains(holder), "restored player actor ownership");
             h.assertValueEqual(player.getMaxHealth(), 30f, "rules restored before real login/NBT clamped capacity");
             h.assertValueEqual(player.getHealth(), 29f, "real player NBT health and no initialization replay");
             h.assertValueEqual(PlayerEquipment.get(player).item("test:arms").get(ChorusComponents.EQUIPMENT.get()).instance(), "restart-armor", "actual player equipment file");

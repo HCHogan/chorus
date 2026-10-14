@@ -143,7 +143,7 @@ public class WeaponHandlingGameTest {
     static void restorePhase(ProjectileGameTest.Harness t, int ticks, String expected) {
         var h = t.h; var saved = t.runtime.checkpoint();
         var stored = new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime(),
-                com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.decode(com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.encode(saved.effects())), saved.equipmentOwners());
+                com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.decode(com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec.encode(saved.effects())), saved.equipmentOwners(), saved.actorOwners());
         var accepted = plan(t); int cues = t.cues.size(); long revision = PlayerEquipment.get(t.owner).revision();
         var program = t.runtime.program(); t.runtime.close();
         var resumed = MinecraftEffectRuntime.restore(h.getLevel(), program, stored,

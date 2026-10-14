@@ -26,6 +26,7 @@ public final class EffectCommands {
     private static final DynamicCommandExceptionType ERROR = new DynamicCommandExceptionType(value -> Component.literal(String.valueOf(value)));
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         EquipmentCommands.register(dispatcher);
+        ActorCommands.register(dispatcher);
         AbilityCommands.register(dispatcher);
         WeaponCommands.register(dispatcher);
         dispatcher.register(Commands.literal("chorus").then(Commands.literal("engine")

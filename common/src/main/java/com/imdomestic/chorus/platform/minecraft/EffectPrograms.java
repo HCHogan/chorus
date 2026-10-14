@@ -54,7 +54,7 @@ public final class EffectPrograms {
         var runtime = MinecraftEffectRuntime.installed(level).orElseThrow(() -> new IllegalStateException("No Chorus runtime in this dimension"));
         if (!id.equals(catalogueId(level, runtime))) throw new IllegalArgumentException("Runtime is not the named default catalogue host");
         var saved = runtime.checkpoint();
-        return new com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry(id.toString(), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners());
+        return new com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry(id.toString(), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners());
     }
     static Identifier catalogueId(ServerLevel level, MinecraftEffectRuntime runtime) {
         var id = DEFAULT_HOSTS.get(runtime);
@@ -64,7 +64,7 @@ public final class EffectPrograms {
         return id;
     }
     public static MinecraftEffectRuntime restore(ServerLevel level, com.imdomestic.chorus.effect.persistence.CheckpointArchive.Entry saved) {
-        return restore(level, Identifier.parse(saved.program()), new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners()));
+        return restore(level, Identifier.parse(saved.program()), new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners()));
     }
     private static MinecraftWorldActions world(ServerLevel level) {
         return new MinecraftWorldActions(level, value -> living(level, value), command -> {

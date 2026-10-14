@@ -29,11 +29,24 @@ class WorldCheckpointStoreTest {
         assertEquals(left, CheckpointArchive.decode(JsonParser.parseString(left.encode().toString())));
         assertEquals(new CheckpointArchive(List.of()), CheckpointArchive.decode(new CheckpointArchive(List.of()).encode()));
     }
+    @Test void actorOwnershipRoundTripsAndLegacyArchiveDoesNotInventPlayerManagement() throws Exception {
+        var old=archive(7);var row=old.dimensions().getFirst();var id=UUID.fromString("12345678-1234-5678-9012-123456789012");
+        var current=new CheckpointArchive(List.of(new CheckpointArchive.Entry(row.program(),row.dimension(),row.gameTime(),row.effects(),row.equipmentOwners(),Set.of(id))));
+        assertEquals(current,CheckpointArchive.decode(current.encode()));assertEquals(2,current.encode().get("format").getAsInt());
+        var legacy=old.encode();legacy.addProperty("format",1);legacy.getAsJsonArray("dimensions").forEach(value->value.getAsJsonObject().remove("actor_owners"));
+        assertEquals(old,CheckpointArchive.decode(legacy));assertTrue(CheckpointArchive.decode(legacy).dimensions().getFirst().actorOwners().isEmpty());
+        var missing=current.encode();missing.getAsJsonArray("dimensions").get(0).getAsJsonObject().remove("actor_owners");
+        assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(missing));
+        var duplicate=current.encode();var owners=duplicate.getAsJsonArray("dimensions").get(0).getAsJsonObject().getAsJsonArray("actor_owners");owners.add(owners.get(0));
+        assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(duplicate));
+        var extra=legacy.deepCopy();extra.getAsJsonArray("dimensions").get(0).getAsJsonObject().add("actor_owners",new com.google.gson.JsonArray());
+        assertThrows(IllegalArgumentException.class,()->CheckpointArchive.decode(extra));
+    }
     @Test void malformedArchiveCannotHideMissingFieldsDuplicateDimensionsOwnersOrWrongTypes() throws Exception {
         var original = archive(7).encode(); var missing = original.deepCopy(); missing.remove("format");
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(missing));
         var extra = original.deepCopy(); extra.addProperty("extra", true); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(extra));
-        var unsupported = original.deepCopy(); unsupported.addProperty("format", 2); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(unsupported));
+        var unsupported = original.deepCopy(); unsupported.addProperty("format", 3); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(unsupported));
         var repeated = original.deepCopy(); repeated.getAsJsonArray("dimensions").add(repeated.getAsJsonArray("dimensions").get(0).deepCopy());
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(repeated));
         var owners = original.deepCopy(); var list = owners.getAsJsonArray("dimensions").get(0).getAsJsonObject().getAsJsonArray("equipment_owners"); list.add(list.get(0));

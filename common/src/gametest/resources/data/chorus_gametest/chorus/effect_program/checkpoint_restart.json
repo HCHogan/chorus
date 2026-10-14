@@ -2,7 +2,11 @@
   "version": "checkpoint-fixture-1",
   "imports": ["chorus_gametest:checkpoint_equipment"],
   "resources": [{"id": "test:restart_energy", "capacity": 1, "initial": 1}],
-  "bundles": [{"id": "test:restart_skill", "rules": [
+  "bundles": [{"id":"test:restart_actor","rules":[
+    {"id":"actor_initialize","on":"chorus:source_attached","if":{"type":"chorus:own_source"},"do":[
+      {"type":"chorus:heal","amount":{"type":"chorus:constant","value":1,"unit":"damage"}}
+    ]}
+  ]},{"id": "test:restart_skill", "rules": [
     {"id": "initialize", "on": "chorus:source_attached", "if": {"type": "chorus:own_source"}, "do": [
       {"type": "chorus:initialize_resource", "resource": "test:restart_energy"},
       {"type": "chorus:heal", "amount": {"type": "chorus:constant", "value": 1, "unit": "damage"}}

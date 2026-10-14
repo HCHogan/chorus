@@ -13,6 +13,7 @@ import com.imdomestic.chorus.effect.target.PositionQuery;
 import com.imdomestic.chorus.effect.target.WorldPosition;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.ability.*;
+import com.imdomestic.chorus.effect.actor.*;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.effect.combat.DamageBasis;
 import com.imdomestic.chorus.effect.combat.DamageFacts;
@@ -79,6 +80,9 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private boolean transferringEquipment, refreshingEquipment;
     private final Map<java.util.UUID, ServerPlayer> equipmentOwners = new java.util.LinkedHashMap<>();
     private final Set<java.util.UUID> equipmentOwnerIds = new java.util.LinkedHashSet<>();
+    private final Set<java.util.UUID> actorOwnerIds = new java.util.LinkedHashSet<>();
+    private final Set<java.util.UUID> pendingActorValidation = new java.util.LinkedHashSet<>();
+    private boolean refreshingActors, transferringActor;
     private record InputKey(java.util.UUID holder, String slot) {}
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
@@ -94,6 +98,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     void recordNativeLifecycle(RuleEngine.Signal fact) {
         if (closed || MinecraftCheckpointLifecycle.deferStop(level.getServer())) return;
         ownerThread();
+        if (fact.payload() instanceof com.imdomestic.chorus.effect.target.EntityLifecycle.Removed removed
+                && removed.kind() == com.imdomestic.chorus.effect.target.EntityLifecycle.Kind.TRANSFERRED) {
+            // The new dimension owns the current player file. Keep this dimension's historical
+            // standing rules, but do not compare them with a legitimately changed returning profile.
+            var holder = java.util.UUID.fromString(removed.reference().target());
+            actorOwnerIds.remove(holder); pendingActorValidation.remove(holder);
+        }
         if (failure.isPresent()) { countUnprocessed(1); return; }
         nativeLifecycleFacts.add(fact);
     }
@@ -149,10 +160,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         return attach(runtime);
     }
     /** Host metadata must match the corresponding world save; a clock match alone is not a world transaction. */
-    public record Checkpoint(String dimension, long gameTime, EffectSession.Checkpoint effects, Set<java.util.UUID> equipmentOwners) {
+    public record Checkpoint(String dimension, long gameTime, EffectSession.Checkpoint effects, Set<java.util.UUID> equipmentOwners, Set<java.util.UUID> actorOwners) {
+        public Checkpoint(String dimension, long gameTime, EffectSession.Checkpoint effects, Set<java.util.UUID> equipmentOwners) {
+            this(dimension, gameTime, effects, equipmentOwners, Set.of());
+        }
         public Checkpoint {
             net.minecraft.resources.Identifier.parse(dimension); Objects.requireNonNull(effects);
             equipmentOwners = Set.copyOf(equipmentOwners);
+            actorOwners = Set.copyOf(actorOwners);
             if (gameTime < 0) throw new IllegalArgumentException("Invalid saved world clock");
         }
     }
@@ -165,11 +180,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     Checkpoint settledCheckpoint() {
         checkpointBoundary();
         if (!nativeLifecycleFacts.isEmpty()) throw new IllegalStateException("Checkpoint has unprocessed native lifecycle facts");
-        return new Checkpoint(level.dimension().identifier().toString(), level.getGameTime(), session.checkpoint(), equipmentOwnerIds);
+        return new Checkpoint(level.dimension().identifier().toString(), level.getGameTime(), session.checkpoint(), equipmentOwnerIds, actorOwnerIds);
     }
     private void checkpointBoundary() {
         thread();
-        if (failure.isPresent() || session.running() || refreshingEquipment || describingDamage != 0 || operationFacts != null || combatView != null
+        if (failure.isPresent() || session.running() || refreshingEquipment || refreshingActors || transferringActor || describingDamage != 0 || operationFacts != null || combatView != null
                 || !activeDamage.isEmpty() || !reservations.isEmpty() || !completedDamage.isEmpty() || !shieldWrites.isEmpty() || !combatFacts.isEmpty())
             throw new IllegalStateException("Checkpoint requires a settled Minecraft world boundary");
     }
@@ -181,8 +196,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             throw new IllegalArgumentException("Checkpoint belongs to a different dimension or world save clock");
         if (!program.program().equals(checkpoint.effects().program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
         validateCheckpointEquipment(level, program, checkpoint);
+        validateCheckpointActors(level, program, checkpoint);
         var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()));
         runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
+        runtime.actorOwnerIds.addAll(checkpoint.actorOwners());
+        runtime.pendingActorValidation.addAll(checkpoint.actorOwners());
+        level.players().forEach(player -> runtime.pendingActorValidation.remove(player.getUUID()));
         // The very first clock advance can finish a saved phase before refreshEquipment runs.
         // Reconnect the already-validated live containers without emitting equipment/source facts.
         for (var player : level.players()) if (checkpoint.equipmentOwners().contains(player.getUUID()))
@@ -196,6 +215,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             var saved = checkpoint.effects().timeline().domain().equipment().getOrDefault(player.getUUID().toString(), com.imdomestic.chorus.effect.equipment.Loadout.EMPTY);
             if (!saved.equals(PlayerEquipment.get(player).projection(program.equipment())))
                 throw new IllegalArgumentException("Checkpoint equipment differs from the current player container: " + player.getUUID());
+        }
+    }
+    static void validateCheckpointActors(ServerLevel level, CompiledEffects program, Checkpoint checkpoint) {
+        for (var player : level.players()) {
+            if (!checkpoint.actorOwners().contains(player.getUUID()) && !PlayerActor.get(player).configured()) continue;
+            var saved = Optional.ofNullable(checkpoint.effects().timeline().domain().actors().get(player.getUUID().toString()));
+            if (!saved.equals(PlayerActor.get(player).projection(program, player.getUUID().toString())))
+                throw new IllegalArgumentException("Checkpoint actor differs from the current player configuration: " + player.getUUID());
         }
     }
     private static MinecraftEffectRuntime attach(MinecraftEffectRuntime runtime) {
@@ -309,6 +336,50 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public void actor(com.imdomestic.chorus.effect.actor.ActorChange change) {
         thread(); prepare(); change.apply(view(), program); start(change.signal());
     }
+    void prepareActorChange() {
+        thread(); prepare();
+        if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Actor configuration requires a healthy idle runtime");
+    }
+    /** Publish persistent player metadata and the domain projection before running any attached/detached action. */
+    void commitPlayerActor(ServerPlayer player, ActorChange change, Runnable save) {
+        prepareActorChange(); Objects.requireNonNull(save);
+        if (player.level() != level || !change.holder().equals(player.getUUID().toString())) throw new IllegalArgumentException("Actor belongs to another player or dimension");
+        var transition = change.apply(view(), program);
+        transferringActor = true;
+        try { save.run(); actorOwnerIds.add(player.getUUID()); }
+        catch (RuntimeException error) { failed(error, List.of()); throw error; }
+        finally { transferringActor = false; }
+        try {
+            session.observe(nowMicros(), transition.emitted(), new ActorChange.Commit(change));
+            refreshPlayers(); refreshProjections();
+        } catch (RuntimeException error) { failed(error, List.of()); throw error; }
+    }
+    private void validatePendingActors() {
+        for (var player : level.players()) if (pendingActorValidation.contains(player.getUUID()) && !player.isRemoved()) {
+            var saved = Optional.ofNullable(view().actors().get(player.getUUID().toString()));
+            if (!saved.equals(PlayerActor.get(player).projection(program, player.getUUID().toString())))
+                throw new IllegalStateException("Restored actor differs from joining player configuration: " + player.getUUID());
+            pendingActorValidation.remove(player.getUUID());
+        }
+    }
+    private void refreshActors() {
+        if (refreshingActors || session.running() || failure.isPresent()) return;
+        refreshingActors = true;
+        try {
+            validatePendingActors();
+            for (var player : List.copyOf(level.players())) {
+                if (player.isRemoved() || player.level() != level || !PlayerActor.get(player).configured() && !actorOwnerIds.contains(player.getUUID())) continue;
+                String holder = player.getUUID().toString();
+                var next = PlayerActor.get(player).projection(program, holder);
+                var before = Optional.ofNullable(view().actors().get(holder));
+                actorOwnerIds.add(player.getUUID());
+                if (!before.equals(next)) actor(new ActorChange(holder, before, next));
+            }
+            // Absent/dead owners retain their last configuration, so accepted effects keep standing rules.
+            // Their Buffs and owned work still follow explicitly declared content lifecycles.
+        } finally { refreshingActors = false; }
+    }
+    private void refreshPlayers() { refreshActors(); refreshEquipment(); }
     /** Trusted selection boundary. Player unlocks and subclass compatibility belong to the host. */
     public void abilities(com.imdomestic.chorus.effect.ability.AbilityChange change) {
         thread(); prepare(); change.apply(view(), program); start(change.signal());
@@ -414,7 +485,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.ability.AbilityUse.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.ability.AbilityUse.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return receipt;
+            refreshPlayers(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Self-owned input: the server derives the weapon, ammunition and duration from its real container. */
@@ -431,7 +502,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponReload.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponReload.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return receipt;
+            refreshPlayers(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Timed selection uses the real container and consumes the supplied revision on acceptance. */
@@ -450,7 +521,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         equipment.acceptHandling(player, expectedRevision);
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponHandling.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return true;
+            refreshPlayers(); refreshProjections(); return true;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     private com.imdomestic.chorus.effect.weapon.WeaponHandling.Applied applyHandling(com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command) {
@@ -476,7 +547,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponAim.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return receipt;
+            refreshPlayers(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Query the ongoing gate against the actual current aim, without accepting a new edge. */
@@ -498,7 +569,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (ended.state().equals(before)) return;
         try {
             session.observe(nowMicros(), ended.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponAim.Commit(before, ended.state()));
-            refreshEquipment(); refreshProjections();
+            refreshPlayers(); refreshProjections();
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     private com.imdomestic.chorus.effect.weapon.WeaponAim.Verified verifyAim(com.imdomestic.chorus.effect.weapon.WeaponAim.Verify query) {
@@ -546,7 +617,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         else if (receipt.plan().isPresent()) revokeChargeInput(holder, Optional.of(token));
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return receipt;
+            refreshPlayers(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     public void cancelCharge(String holder, String reason) {
@@ -560,7 +631,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         thread(); revokeChargeInput(holder, token); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Charge cancellation requires a healthy idle runtime");
         if (token.isPresent() && (view().charging().get(holder) == null || !view().charging().get(holder).token().equals(token.orElseThrow()))) return;
-        try { commitChargeCancellation(holder, reason); refreshEquipment(); refreshProjections(); }
+        try { commitChargeCancellation(holder, reason); refreshPlayers(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     /** Connection teardown also retires trusted command gestures, without replaying failed runtime work. */
@@ -624,7 +695,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (receipt.outcome() != com.imdomestic.chorus.effect.weapon.WeaponFire.Outcome.ACCEPTED) return receipt;
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponFire.Commit(before, resolved.state()));
-            refreshEquipment(); refreshProjections(); return receipt;
+            refreshPlayers(); refreshProjections(); return receipt;
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     private com.imdomestic.chorus.effect.weapon.InstantReload.Checked verifyInstantReload(com.imdomestic.chorus.effect.weapon.InstantReload.Check query) {
@@ -661,7 +732,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         finally { transferringEquipment = false; }
         try {
             session.observe(nowMicros(), transition.emitted(), new com.imdomestic.chorus.effect.equipment.EquipmentChange.Commit(change));
-            refreshEquipment(); refreshProjections();
+            refreshPlayers(); refreshProjections();
         } catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     public void trackEquipment(ServerPlayer player) {
@@ -702,7 +773,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public Optional<Failure> failure() { return failure; }
     private void ownerThread() {
-        if (closed || transferringEquipment || !level.getServer().isSameThread()) throw new IllegalStateException("Runtime is closed, transferring items, or accessed off its server thread");
+        if (closed || transferringEquipment || transferringActor || !level.getServer().isSameThread()) throw new IllegalStateException("Runtime is closed, transferring player state, or accessed off its server thread");
     }
     private void thread() {
         ownerThread();
@@ -720,16 +791,17 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                     && !Objects.equals(change.before().slots().get(key.slot()), change.after().slots().get(key.slot())));
         }
         try {
+            validatePendingActors(); refreshActors();
             settleNativeLifecycle();
             session.start(nowMicros(), signal);
-            refreshEquipment(); refreshProjections(); reconcileAbilityInputs();
+            refreshPlayers(); refreshProjections(); reconcileAbilityInputs();
         }
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshEquipment(); refreshProjections(); reconcileAbilityInputs(); }
+        try { validatePendingActors(); settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshPlayers(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); }
     }
     /** Settle older native observations before advancing to a later fuse deadline. */
@@ -894,7 +966,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         signals.addAll(takeNativeLifecycleFacts());
         var shieldCommit = new ShieldDamage.Commit(shieldWrites); var writes = takeWrites();
         if (signals.isEmpty() && !writes.changed()) return;
-        try { session.observe(nowMicros(), signals, com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, signals)); refreshEquipment(); refreshProjections(); }
+        try { session.observe(nowMicros(), signals, com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, signals)); refreshPlayers(); refreshProjections(); }
         catch (RuntimeException error) { failed(error, observations, shieldCommit, writes, signals); }
     }
     @Override public void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure) {
@@ -948,7 +1020,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed) return;
         thread();
         if (session.running()) throw new IllegalStateException("Cannot detach a running runtime");
-        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); abilityInputs.clear(); chargeInputs.clear(); nativeLifecycleFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
+        closed = true; equipmentOwners.clear(); equipmentOwnerIds.clear(); actorOwnerIds.clear(); pendingActorValidation.clear(); abilityInputs.clear(); chargeInputs.clear(); nativeLifecycleFacts.clear(); LIVE.remove(level, this); DamageCapture.remove(level, this);
         abandonProjectiles();
         var constructs = new ArrayList<EffectConstruct>();
         var pickups = new ArrayList<EffectObject>();

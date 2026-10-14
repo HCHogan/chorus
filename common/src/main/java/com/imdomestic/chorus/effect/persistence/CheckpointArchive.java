@@ -6,9 +6,12 @@ import java.util.*;
 
 /** All dimension snapshots belonging to one host save attempt. The host still proves world writes succeeded. */
 public record CheckpointArchive(List<Entry> dimensions) {
-    public record Entry(String program, String dimension, long gameTime, EffectSession.Checkpoint effects, Set<UUID> equipmentOwners) {
+    public record Entry(String program, String dimension, long gameTime, EffectSession.Checkpoint effects, Set<UUID> equipmentOwners, Set<UUID> actorOwners) {
+        public Entry(String program, String dimension, long gameTime, EffectSession.Checkpoint effects, Set<UUID> equipmentOwners) {
+            this(program, dimension, gameTime, effects, equipmentOwners, Set.of());
+        }
         public Entry {
-            identifier(program); identifier(dimension); Objects.requireNonNull(effects); equipmentOwners = Set.copyOf(equipmentOwners);
+            identifier(program); identifier(dimension); Objects.requireNonNull(effects); equipmentOwners = Set.copyOf(equipmentOwners); actorOwners = Set.copyOf(actorOwners);
             if (gameTime < 0) throw new IllegalArgumentException("Invalid saved world clock");
         }
     }
@@ -20,24 +23,32 @@ public record CheckpointArchive(List<Entry> dimensions) {
         if (!value.matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) throw new IllegalArgumentException("Expected canonical namespaced identifier: " + value);
     }
     public JsonObject encode() {
-        var output = new JsonObject(); output.addProperty("format", 1); var entries = new JsonArray();
+        var output = new JsonObject(); output.addProperty("format", 2); var entries = new JsonArray();
         for (var entry : dimensions) {
             var row = new JsonObject(); row.addProperty("program", entry.program()); row.addProperty("dimension", entry.dimension());
             row.addProperty("game_time", Long.toString(entry.gameTime())); row.add("effects", EffectCheckpointCodec.encode(entry.effects()));
             var owners = new JsonArray(); entry.equipmentOwners().stream().map(UUID::toString).sorted().forEach(owners::add); row.add("equipment_owners", owners);
+            var actors = new JsonArray(); entry.actorOwners().stream().map(UUID::toString).sorted().forEach(actors::add); row.add("actor_owners", actors);
             entries.add(row);
         }
         output.add("dimensions", entries); return output;
     }
     public static CheckpointArchive decode(JsonElement input) {
-        var object = input.getAsJsonObject(); fields(object, Set.of("format", "dimensions")); format(object);
+        var object = input.getAsJsonObject(); fields(object, Set.of("format", "dimensions"));
+        if (!(object.get("format") instanceof JsonPrimitive format) || !format.isNumber()
+                || !Set.of(new java.math.BigDecimal(1), new java.math.BigDecimal(2)).contains(format.getAsBigDecimal().stripTrailingZeros()))
+            throw new IllegalArgumentException("Unsupported checkpoint archive format");
+        boolean legacy = format.getAsInt() == 1;
         var entries = new ArrayList<Entry>();
         for (var value : object.getAsJsonArray("dimensions")) {
-            var row = value.getAsJsonObject(); fields(row, Set.of("program", "dimension", "game_time", "effects", "equipment_owners"));
+            var row = value.getAsJsonObject(); fields(row, legacy ? Set.of("program", "dimension", "game_time", "effects", "equipment_owners")
+                    : Set.of("program", "dimension", "game_time", "effects", "equipment_owners", "actor_owners"));
             var owners = new HashSet<UUID>();
             for (var owner : row.getAsJsonArray("equipment_owners")) if (!owners.add(uuid(owner))) throw new IllegalArgumentException("Duplicate saved equipment owner");
+            var actors = new HashSet<UUID>();
+            if (!legacy) for (var owner : row.getAsJsonArray("actor_owners")) if (!actors.add(uuid(owner))) throw new IllegalArgumentException("Duplicate saved actor owner");
             entries.add(new Entry(string(row.get("program")), string(row.get("dimension")), Long.parseLong(string(row.get("game_time"))),
-                    EffectCheckpointCodec.decode(row.get("effects")), owners));
+                    EffectCheckpointCodec.decode(row.get("effects")), owners, actors));
         }
         return new CheckpointArchive(entries);
     }

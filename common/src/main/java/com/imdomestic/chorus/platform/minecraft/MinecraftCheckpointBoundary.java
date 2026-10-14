@@ -68,7 +68,7 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
             var entries = new ArrayList<CheckpointArchive.Entry>();
             for (var entry : new TreeMap<>(runtimes).entrySet()) {
                 var saved = boundary.inspect(entry.getValue());
-                entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners()));
+                entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners()));
             }
             boundary.archive = new CheckpointArchive(entries); boundary.requireUnchanged(); return boundary;
         } catch (RuntimeException | Error failure) { boundary.close(); throw failure; }
@@ -95,7 +95,8 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                     throw new IllegalStateException("Checkpoint catalogue identity changed");
                 var saved = inspect(runtime);
                 MinecraftEffectRuntime.validateCheckpointEquipment(levels.get(entry.dimension()), runtime.program(), saved);
-                if (!saved.effects().equals(entry.effects()) || !saved.equipmentOwners().equals(entry.equipmentOwners()))
+                MinecraftEffectRuntime.validateCheckpointActors(levels.get(entry.dimension()), runtime.program(), saved);
+                if (!saved.effects().equals(entry.effects()) || !saved.equipmentOwners().equals(entry.equipmentOwners()) || !saved.actorOwners().equals(entry.actorOwners()))
                     throw new IllegalStateException("Rule state changed during checkpoint boundary");
             }
         } catch (RuntimeException failure) { throw reject(failure.toString()); }

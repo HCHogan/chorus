@@ -135,8 +135,8 @@ public class RuntimeRestoreGameTest {
             h.assertTrue(MinecraftEffectRuntime.installed(h.getLevel()).orElseThrow() == runtime, "duplicate replaced live runtime");
             h.assertValueEqual(runtime.checkpoint(), saved, "duplicate changed live state");
         }
-        var wrongDimension = new MinecraftEffectRuntime.Checkpoint("minecraft:the_nether", saved.gameTime(), saved.effects(), saved.equipmentOwners());
-        var wrongTime = new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime() + 1, saved.effects(), saved.equipmentOwners());
+        var wrongDimension = new MinecraftEffectRuntime.Checkpoint("minecraft:the_nether", saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners());
+        var wrongTime = new MinecraftEffectRuntime.Checkpoint(saved.dimension(), saved.gameTime() + 1, saved.effects(), saved.equipmentOwners(), saved.actorOwners());
         refused(h, () -> EffectPrograms.restore(h.getLevel(), PROGRAM, wrongDimension));
         refused(h, () -> EffectPrograms.restore(h.getLevel(), PROGRAM, wrongTime));
         var data = EffectCodecs.PROGRAM.encodeStart(JsonOps.INSTANCE, saved.effects().program()).getOrThrow().getAsJsonObject();

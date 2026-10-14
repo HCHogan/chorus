@@ -37,6 +37,9 @@ def committed(folder):
     require({row["dimension"] for row in entries} == {"minecraft:overworld", "minecraft:the_nether"},
             f"Missing dimension archive: {folder}")
     player = (folder / "chorus-restart-fixture-player.txt").read_text(encoding="utf-8")
+    require(saved["archive"]["format"] == 2, f"Actor-aware archive format missing: {folder}")
+    overworld = next(row for row in entries if row["dimension"] == "minecraft:overworld")
+    require(player in overworld["actor_owners"], f"Player actor ownership missing: {folder}")
     require((folder / "players/data" / f"{player}.dat").is_file(), f"No native player file: {folder}")
     return saved
 
@@ -82,6 +85,8 @@ def main():
         require(first["run"] != second["run"] and first["save"] != second["save"], "Restart reused old run/save identity")
         require(first["archive"]["dimensions"][0]["equipment_owners"] == second["archive"]["dimensions"][0]["equipment_owners"],
                 "Real player's equipment ownership changed across restart")
+        require(first["archive"]["dimensions"][0]["actor_owners"] == second["archive"]["dimensions"][0]["actor_owners"],
+                "Real player's actor ownership changed across restart")
 
         bad = stamp + "-failure"
         folder = world(loader, bad)

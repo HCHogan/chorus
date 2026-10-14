@@ -88,6 +88,7 @@ final class CheckpointTypes {
         types.put("chorus:effect/effect_state_v6", com.imdomestic.chorus.effect.EffectState.class);
         types.put("chorus:effect/actor/actor_binding", com.imdomestic.chorus.effect.actor.ActorBinding.class);
         types.put("chorus:effect/actor/actor_change", com.imdomestic.chorus.effect.actor.ActorChange.class);
+        types.put("chorus:effect/actor/actor_change/commit", com.imdomestic.chorus.effect.actor.ActorChange.Commit.class);
         types.put("chorus:effect/effect_state/lifetime", com.imdomestic.chorus.effect.EffectState.Lifetime.class);
         types.put("chorus:effect/effect_state/mode", com.imdomestic.chorus.effect.EffectState.Mode.class);
         types.put("chorus:effect/effect_state/timer", com.imdomestic.chorus.effect.EffectState.Timer.class);

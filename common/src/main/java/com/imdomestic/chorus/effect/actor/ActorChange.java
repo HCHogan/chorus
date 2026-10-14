@@ -8,6 +8,10 @@ import java.util.*;
 /** Trusted host enrollment or replacement; does not select abilities or initialize equipment. */
 public record ActorChange(String holder, Optional<ActorBinding> before, Optional<ActorBinding> after) implements RuleEngine.Payload {
     public static final String EVENT = "chorus:internal/actor_change";
+    /** The host saved the player's configuration after preflight; publish it before its reactions. */
+    public record Commit(ActorChange change) implements RuleEngine.Payload {
+        public Commit { Objects.requireNonNull(change); }
+    }
     public ActorChange { ActorSources.instance(holder); Objects.requireNonNull(before); Objects.requireNonNull(after); }
     public RuleEngine.Signal signal() { return new RuleEngine.Signal(EVENT, this); }
     public RuleEngine.Local<EffectState> apply(EffectState state, CompiledEffects program) {

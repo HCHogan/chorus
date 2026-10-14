@@ -74,7 +74,7 @@ var after = new ActorBinding("chorus_d2:solar_scaling");
 runtime.actor(new ActorChange(owner, before, Optional.of(after)));
 ```
 
-带参数的配置使用 `new ActorBinding(bundle, tags, Map.of("power", new Measure(1, Unit.DELTA)))`。这是可信服务端宿主入口；正式角色、职业、解锁校验和上线自动加入由内容宿主决定，不允许直接把任意客户端提交当作授权。它不自动选择技能、转移装备、重置资源、授予武器信用，也不自动给所有世界实体安装 D2 规则。
+带参数的配置使用 `new ActorBinding(bundle, tags, Map.of("power", new Measure(1, Unit.DELTA)))`。这是可信服务端宿主入口；正式角色、职业、解锁校验和默认配置由内容宿主决定。已有玩家配置的自动同步见下节。它不自动选择技能、转移装备、重置资源、授予武器信用，也不自动给所有世界实体安装 D2 规则。
 
 `EffectState.actors` 保存配置；`actor/<holder.length()>:<holder>` 是唯一受管来源身份，origin.owner 为持有者、origin.source 为该身份，weapon / ability 为空。普通 `bind / unbind / SourceBatch` 不得修改 `actor/` 命名空间。启动和恢复核对配置与完整来源投影，缺失、孤立或错配来源均拒绝，不静默补绑并重放附加动作。
 
@@ -83,6 +83,34 @@ runtime.actor(new ActorChange(owner, before, Optional.of(after)));
 解除配置用 `after = Optional.empty()`。它结束这个根来源及受其约束的工作，已经授予的 Buff 与 detached 动作沿用各自生命周期；技能选择、装备和账户不会被顺便清空。死亡、离线和维度变更也不会隐式解除配置，具体持有者生命周期政策仍由宿主提供。保存 / 恢复保留绑定且不重复执行 attached。
 
 存储新增 EffectState v6、ActorBinding 和 ActorChange 三项身份；原 v5 字段保持完整，通过显式迁移得到空 actors，不从旧的普通来源猜测角色注册。其余旧状态版本继续沿各自迁移路径恢复。普通状态复制和时钟推进都保留 actors。参考 Solar 技能宿主已通过此入口管理 `solar_scaling`；它不再是可误删的散装管理来源。
+
+## 玩家常驻配置的保存与自动同步
+
+`PlayerActor` 保存一个玩家的可选 ActorBinding 和 revision，原生玩家 NBT 键为 `chorus:actor`。配置修改先进入玩家内存状态，实际落盘由原版玩家保存路径及世界保存协议完成。可信服务端内容模块在选择角色根包后调用：
+
+```java
+var configuration = PlayerActor.get(player);
+configuration.configure(player, Optional.of(new ActorBinding("chorus_d2:solar_scaling")),
+        configuration.revision());
+```
+
+程序须已加载这个 SOURCE 包及其依赖。内置管理入口为：
+
+```mcfunction
+chorus actor set @s {"bundle":"chorus_d2:solar_scaling"}
+chorus actor status
+chorus actor clear @s
+```
+
+set / clear 需要 gamemaster 权限，目标是一个在线玩家；status 为只读的自身状态。JSON 接受 bundle、tags 和带单位的 parameters，其他字段拒绝。Java 宿主必须传入当前 revision；过期请求、错误单位、缺失参数和未知包均在写入前拒绝。重复相同配置不增加 revision、不重放附加；清空配置也有持久化 revision，后续同步不会把它重新填回。配置和领域投影先一起提交，旧 detached / 新 attached 再执行；未知世界结果保留两边已提交的配置，运行时进入失败状态并拒绝重试。
+
+进入已安装运行时的玩家、运行时首次遇到已保存的配置以及当前维度中的配置变化，会在 prepare / 规则输入时自动同步。配置属于玩家，原版替换 ServerPlayer 时转移到新对象，独立于装备掉落政策；原对象清空所有权。每个维度保留这个 UUID 最近确认的根配置，死亡或暂时离线不会删掉共享数值来源，因此已接受的 Solar 效果仍能使用常驻规则。具体 Buff 和定时工作的结束由内容规则决定；同一维度返回相同配置不会再次 attached。新建一个空运行时会对已配置玩家激活一次，不能把它当作检查点恢复。
+
+玩家入口以 PlayerActor 保存的数据为准，修改 / 清空应调用 configure；底层 runtime.actor 继续供 NPC 或其他可信宿主使用。未配置且未接管的玩家不会覆盖外部宿主直接安装的 ActorBinding。找不到定义或参数不匹配时，保存数据保留为 inactive 并记录原因；换到含有有效定义的运行时后可再次激活。存在但无法解码的 NBT 明确失败，不能把损坏数据视为空配置。
+
+检查点另保存 actor_owners，记录该维度仍负责与玩家文件核对的配置。确认原生跨维度移除时，旧维度释放核对责任并保留历史根规则；目标维度接管，返回旧维度时同步当前配置。这样在其他维度合法改配后返回不会被误判为存档错配。恢复前核对已在线玩家的实际配置；仍由该维度负责的离线玩家在恢复后首次出现时也先核对，错配会停止运行时，不用重新 attached 掩盖错配。世界保存冻结期间还检查实际玩家配置未变化。正常停服 / 再启动通过实际玩家文件与登录流程验收，领域恢复不会重复初始化。
+
+该入口只管理常驻根配置；职业默认值、解锁 / 子职业组合、初始技能选择、技能与资源的玩家持久化、完整 Buff / 投射物跨维度迁移、UI 和生产内容目录仍需后续接入。跨维度进入另一个运行时会同步配置，不代表上述状态已经整体迁移。
 
 ## 非致死生命支付
 
@@ -2950,7 +2978,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 提供独立的 format 1 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects 和 equipment_owners UUID 集合。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。会话 effects 继续使用 `EffectCheckpointCodec`，没有改变其原有 format 1。
+`CheckpointArchive` 当前写入独立的 format 2 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects、equipment_owners 和 actor_owners UUID 集合。旧 format 1 按原字段严格解码并迁移为空 actor_owners，不推测原有 ActorBinding 是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。会话 effects 继续使用 `EffectCheckpointCodec`，没有改变其原有 format 1。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 

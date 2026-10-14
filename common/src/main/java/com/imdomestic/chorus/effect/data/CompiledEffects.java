@@ -642,6 +642,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private EffectState reconcile(EffectState state, RuleEngine.Payload committed) {
         return committed instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit commit ? commit.apply(reconcile(state, commit.previous()))
                         : committed instanceof EquipmentChange.Commit commit ? changeEquipment(state, commit.change()).state()
+                        : committed instanceof com.imdomestic.chorus.effect.actor.ActorChange.Commit commit ? commit.change().apply(state, this).state()
                         : committed instanceof WeaponFire.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponReload.Commit commit ? commit.apply(state)
                         : committed instanceof WeaponHandling.Commit commit ? commit.apply(state)

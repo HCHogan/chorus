@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-14：玩家常驻配置、原生存储与恢复核对
+
+新增 `PlayerActor` 保存可选 ActorBinding 和 revision，接入实际玩家 NBT、ServerPlayer 替换及 prepare / 输入时的自动同步。配置由可信模块或 gamemaster 的 `chorus actor set / clear` 设置，普通玩家只读自身 status。严格 JSON、参数 / SOURCE 校验和过期 revision 在写入前拒绝；同配置为空操作。玩家内存配置与领域投影在来源反应前共同提交，未知已执行治疗保留两边的配置且不自动重放。未受玩家容器管理的外部 ActorBinding 继续由原宿主负责。
+
+每个维度保留 UUID 最近确认的常驻根规则，暂时离线 / 重生不重复初始化；显式清空配置能停止源拥有的工作，独立 Buff 生命周期保持原定义。已确认的原生跨维度移除释放旧维度对当前玩家文件的核对责任，历史根规则继续保留；目标维度接管，返回时同步在其他维度合法修改的配置。找不到内容时保存配置留在玩家数据中并公开 inactive 原因，损坏 NBT 不降级为空配置。职业默认值、初始技能与授权仍由内容宿主选择，当前没有新增客户端任意配置请求。
+
+宿主归档升级为 format 2，保存 actor_owners；原 format 1 严格按旧字段读取，迁移为空集合。纯效果检查点仍为 format 1 / EffectState v6，旧 683 项存储形状不变，仅新增 ActorChange.Commit 至 684。恢复先核对在线玩家，之前离线的受管玩家首次出现时也先核对；错配不能借重新附加覆盖旧状态。冻结世界保存额外检查玩家配置与领域状态的一致性。
+
+新增两项核心回归及九项共享原生场景，覆盖命令权限 / 版本、物理与领域的提交顺序、实际玩家 NBT、真实死亡 / 重生、内容缺失、检查点 / 定时器恢复、未知结果、恢复后登录错配、冻结保存及跨维度改配后返回。跨维度回归在修复前因旧维度仍持有核对责任而失败（`/tmp/chorus-player-actor-dimension-red.log`），修复后九项 Fabric 场景与 NeoForge 测试编译通过（`/tmp/chorus-player-actor-dimension-green.log`）。早期重新登录夹具只 discard 旧实体，未从服务器玩家列表移除，停服保护因重复 UUID 拒绝保存；已改用真正的 PlayerList.remove 并断言只有一个在线身份，失败世界整体保留为 `fabric/build/run/gameTest/world-retained-player-actor-20261014T031730Z`。没有放松生产保存保护。
+
+独立进程验收 `build/checkpoint-restart/20261014T033139Z-8bdce85e/report.json` 通过两加载器共八次进程：实际玩家文件 / 登录配置、正常停服恢复不重复附加，以及保存失败后拒绝恢复并保留现场。最终组合回归 `/tmp/chorus-player-actor-full-gate4.log` BUILD SUCCESSFUL（4 分 4 秒）：2244 项 JUnit 无失败 / 错误 / 跳过，Fabric 1312 项、NeoForge 1327 项，共享场景 1311 项，双端发布包及正常停服检查点全部通过。`build/reports/player-actor/audit.json` 核验旧存储形状、发布主类 1220 / 1213 个字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源；10 项 Compendium 工具测试及报告检查通过。
+
+本批没有新增图形客户端验收。完整技能 / 资源的玩家保存与跨维度迁移、物理效果实体重启、职业默认目录、解锁 / 子职业选择和 HUD 仍未完成。接口与实际命令见[玩家常驻配置](engine-data-packs.md#玩家常驻配置的保存与自动同步)。
+
 ### 2026-10-14：持有者常驻配置与受管根来源
 
 新增 `ActorBinding / ActorChange / ActorSources`，以一个已有 SOURCE Bundle 及其 includes 组合持有者的常驻规则。配置与唯一 `actor/` 根来源在时间轴中共同提交；普通来源 API 不能删除或替换该来源。重复配置不重复附加或重启定时器，替换时旧 detached / 新 attached 都观察完整的新配置。未知世界结果保留已经提交的配置和实际效果，停止后续工作，不重放附加。技能选择、装备与资源账户保持独立。
