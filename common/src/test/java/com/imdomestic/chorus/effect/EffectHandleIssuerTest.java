@@ -9,6 +9,8 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec;
 import com.imdomestic.chorus.effect.projectile.*;
 import com.imdomestic.chorus.effect.resource.EffectHandleRequests;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
+import com.imdomestic.chorus.effect.resource.ResourceReadView;
 import com.imdomestic.chorus.effect.target.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -160,7 +162,8 @@ class EffectHandleIssuerTest {
         var legacy = damageGroup(); var qualified = legacy.issuedBy(A);
         var state = DamageGroups.begin(ConsumptionReservationsTest.armed(program, 3), qualified).state();
         var oldCommand = program.prepareDamage(state, ConsumptionReservationsTest.attack().withGroup(legacy));
-        var newCommand = program.prepareDamage(state, ConsumptionReservationsTest.attack().withGroup(qualified));
+        var view = new ResourceReadView(new ResourceAuthority.Worlds(ResourceAuthority.Directory.EMPTY, Map.of(A, state)), A, program.program());
+        var newCommand = program.prepareDamage(state, ConsumptionReservationsTest.attack().withGroup(qualified), Optional.of(view));
         assertEquals(1, oldCommand.consumptions().size());
         assertTrue(oldCommand.consumptions().getFirst().shared().isPresent());
         assertEquals(3, ConsumptionReservationsTest.count(ConsumptionReservations.view(state, oldCommand, "incoming-old",

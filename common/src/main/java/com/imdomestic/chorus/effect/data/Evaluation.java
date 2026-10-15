@@ -125,17 +125,29 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
         var ownerState = resourceView.map(view -> view.owner(holder).state()).orElse(state);
         return program.orElseThrow(() -> new IllegalArgumentException("Selected ability requires a compiled program")).selectedAbility(ownerState, holder, slot);
     }
+    public EffectState participantState(String holder) { return resourceView.map(view -> view.participantState(holder)).orElse(state); }
+    public java.util.Optional<ResourceReadView> participantView(String holder) { return resourceView.map(view -> view.participantView(holder)); }
+    private java.util.Optional<ResourceReadView> ammunitionView(Target weapon) {
+        if (weapon == Target.THIS_WEAPON) return participantView(origin().owner());
+        if (weapon == Target.EVENT_WEAPON) return participantView(event().source().owner());
+        return resourceView;
+    }
     public com.imdomestic.chorus.effect.ammo.AmmoState ammo(Target weapon) {
-        var state = this.state.ammunition().get(target(weapon));
-        if (state == null) throw new IllegalArgumentException("Missing ammunition account");
-        return state;
+        var account = ammunitionView(weapon).map(ResourceReadView::state).orElse(state).ammunition().get(target(weapon));
+        if (account == null) throw new IllegalArgumentException("Missing ammunition account");
+        return account;
     }
     public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(EffectState state, com.imdomestic.chorus.effect.ammo.AmmoState account) {
         return account.capacityProfile().isEmpty() ? com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account)
                 : program.orElseThrow(() -> new IllegalArgumentException("Dynamic ammunition requires a compiled program"))
                         .ammoCapacity(state, account, NumericQuery.Path.from(context.event().signal().payload()), resourceView.map(view -> view.withLocalState(state)));
     }
-    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(Target weapon) { return ammoView(state, ammo(weapon)); }
+    public com.imdomestic.chorus.effect.ammo.AmmoCapacity.View ammoView(Target weapon) {
+        var account = ammo(weapon); var view = ammunitionView(weapon);
+        return account.capacityProfile().isEmpty() ? com.imdomestic.chorus.effect.ammo.AmmoCapacity.View.fixed(account)
+                : program.orElseThrow(() -> new IllegalArgumentException("Dynamic ammunition requires a compiled program"))
+                        .ammoCapacity(view.map(ResourceReadView::state).orElse(state), account, NumericQuery.Path.from(context.event().signal().payload()), view);
+    }
     /** Lexical visibility applies to the reference; refund accounting includes all executed branches. */
     public Resources.CostReceipt cost(String binding) {
         var shape = results.get(binding); var result = context.bindings().get(binding);
@@ -147,12 +159,12 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public BuffInstance ownBuff() {
         if (!(context.scope() instanceof BuffRules.Scope scope)) throw new IllegalArgumentException("This value requires a buff source");
-        return scope.current(state.buffs()).orElseThrow(() -> new IllegalArgumentException("Buff source is no longer active"));
+        return scope.current(participantState(scope.snapshot().key().holder()).buffs()).orElseThrow(() -> new IllegalArgumentException("Buff source is no longer active"));
     }
     public BuffInstance readBuff(String id, Target target) {
         var key = key(id, target);
         if (context.scope() instanceof BuffRules.Scope scope && (scope.ended() || scope.retained()) && scope.snapshot().key().equals(key)) return scope.snapshot();
-        return state.buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Missing buff instance: " + key));
+        return participantState(key.holder()).buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Missing buff instance: " + key));
     }
     public boolean enhanced() {
         return origin().tags().contains("chorus:enhanced");

@@ -90,11 +90,12 @@ public interface Value {
         public EquippedReserveSpace { java.util.Objects.requireNonNull(holder); tags = AmmoActions.itemTags(tags); }
         @Override public Unit unit(Validation v) { v.target(holder); return Unit.ROUND; }
         @Override public Measure evaluate(Evaluation e) {
+            var state = e.participantState(e.target(holder));
             var weapons = e.program().orElseThrow(() -> new IllegalArgumentException("Equipped reserves require a compiled program"))
-                    .equippedWeapons(e.state(), e.target(holder), tags);
+                    .equippedWeapons(state, e.target(holder), tags);
             long space = 0;
             for (var weapon : weapons.targets()) {
-                var reserve = e.state().ammunition().get(weapon.entity()).reserve();
+                var reserve = state.ammunition().get(weapon.entity()).reserve();
                 if (reserve.isPresent()) space = Math.addExact(space, (long) reserve.orElseThrow().capacity() - reserve.orElseThrow().rounds());
             }
             return new Measure(space, Unit.ROUND);
@@ -125,7 +126,7 @@ public interface Value {
     }
     record BuffCount(String buff, Evaluation.Target target) implements Value {
         @Override public Unit unit(Validation v) { v.target(target); v.buff(buff); return Unit.COUNT; }
-        @Override public Measure evaluate(Evaluation e) { return new Measure(e.state().buffs().active(e.key(buff, target)).map(instance -> instance.quantity()).orElse(0.), Unit.COUNT); }
+        @Override public Measure evaluate(Evaluation e) { return new Measure(e.participantState(e.target(target)).buffs().active(e.key(buff, target)).map(instance -> instance.quantity()).orElse(0.), Unit.COUNT); }
     }
     record Component(String buff, Evaluation.Target target, String component) implements Value {
         @Override public Unit unit(Validation v) { v.target(target); return v.buff(buff).components().number(component).unit(); }
@@ -143,7 +144,7 @@ public interface Value {
         }
         @Override public Measure evaluate(Evaluation e) {
             return e.program().orElseThrow(()->new IllegalStateException("Attribute requires a compiled program"))
-                    .attribute(e.state(),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload()),e.resourceView()).output();
+                    .attribute(e.participantState(e.target(target)),e.target(target),profile,input.evaluate(e),NumericQuery.Path.from(e.context().event().signal().payload()),e.participantView(e.target(target))).output();
         }
     }
     /** A subject-local numeric profile query; units come from the profile rather than an assumed attribute kind. */
@@ -157,7 +158,7 @@ public interface Value {
         }
         @Override public Measure evaluate(Evaluation e) {
             return e.program().orElseThrow(() -> new IllegalStateException("Profile value requires a compiled program"))
-                    .profileValue(e.state(), e.target(target), profile, input.evaluate(e), NumericQuery.Path.from(e.context().event().signal().payload()), e.resourceView()).output();
+                    .profileValue(e.participantState(e.target(target)), e.target(target), profile, input.evaluate(e), NumericQuery.Path.from(e.context().event().signal().payload()), e.participantView(e.target(target))).output();
         }
     }
     record ByStacks(List<Double> values, Unit quantity) implements Value {

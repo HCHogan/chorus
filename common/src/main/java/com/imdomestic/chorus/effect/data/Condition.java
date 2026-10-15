@@ -84,14 +84,14 @@ public interface Condition {
         public WeaponAiming { java.util.Objects.requireNonNull(target); }
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {
-            var aim = e.state().aiming().get(e.target(target));
+            var aim = e.participantState(e.target(target)).aiming().get(e.target(target));
             return aim != null && aim.held() && (!ready || aim.phase() == com.imdomestic.chorus.effect.weapon.WeaponAim.Phase.AIMED);
         }
     }
     record WeaponDrawn() implements Condition {
         @Override public void validate(Validation v) {}
         @Override public boolean test(Evaluation e) {
-            var origin = e.origin(); var loadout = e.state().equipment().get(origin.owner());
+            var origin = e.origin(); var loadout = e.participantState(origin.owner()).equipment().get(origin.owner());
             return loadout != null && !origin.weapon().isBlank() && loadout.drawn().map(slot -> loadout.slots().get(slot).instance().equals(origin.weapon())).orElse(false);
         }
     }
@@ -176,7 +176,7 @@ public interface Condition {
             if (!v.buff(buff).components().sets().contains(component)) throw new IllegalArgumentException("Undeclared set component: " + component);
         }
         @Override public boolean test(Evaluation e) {
-            return e.state().buffs().active(e.key(buff, target)).map(b -> b.components().sets().get(component).contains(entry)).orElse(false);
+            return e.participantState(e.target(target)).buffs().active(e.key(buff, target)).map(b -> b.components().sets().get(component).contains(entry)).orElse(false);
         }
     }
     /** Resolve the event identity now, retaining only that string when snapshotting a live victim query. */
@@ -283,11 +283,11 @@ public interface Condition {
         public HasBuff(String buff, Evaluation.Target target, int minimum) { this(buff, target, minimum, BuffMatch.BOUND); }
         @Override public void validate(Validation v) { v.target(target); v.buff(buff); if (match == BuffMatch.INSTANCE) v.requireBuffSource(); if (minimum < 0) throw new IllegalArgumentException("Invalid minimum stacks"); }
         @Override public boolean test(Evaluation e) {
-            if (match != BuffMatch.ANY) return e.state().buffs().active(e.key(buff, target))
+            String holder = e.target(target); var state = e.participantState(holder);
+            if (match != BuffMatch.ANY) return state.buffs().active(e.key(buff, target))
                     .filter(value -> value.quantity() >= minimum && (match != BuffMatch.INSTANCE || value.generation() == e.ownBuff().generation())).isPresent();
-            String holder = e.target(target);
-            return e.state().buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder) && value.definition().id().equals(buff)
-                    && value.activeQuantity(e.state().buffs().timeMicros()) > 0 && value.activeQuantity(e.state().buffs().timeMicros()) >= minimum);
+            return state.buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder) && value.definition().id().equals(buff)
+                    && value.activeQuantity(state.buffs().timeMicros()) > 0 && value.activeQuantity(state.buffs().timeMicros()) >= minimum);
         }
     }
     /** Query currently bound sources on a holder, independently of this action's retained origin. */
@@ -295,22 +295,22 @@ public interface Condition {
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {
             String holder = e.target(target);
-            return e.state().sources().values().stream().anyMatch(source -> source.holder().equals(holder)
+            return e.participantState(holder).sources().values().stream().anyMatch(source -> source.holder().equals(holder)
                     && (source.tags().contains(tag) || source.origin().tags().contains(tag)));
         }
     }
     record HasBuffTag(String tag, Evaluation.Target target) implements Condition {
         @Override public void validate(Validation v) { v.target(target); }
         @Override public boolean test(Evaluation e) {
-            String holder = e.target(target);
-            return e.state().buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder)
-                    && value.activeCount(e.state().buffs().timeMicros()) > 0 && value.definition().tags().contains(tag));
+            String holder = e.target(target); var state = e.participantState(holder);
+            return state.buffs().instances().values().stream().anyMatch(value -> value.key().holder().equals(holder)
+                    && value.activeCount(state.buffs().timeMicros()) > 0 && value.definition().tags().contains(tag));
         }
     }
     record HasShield(java.util.Optional<String> tag, Evaluation.Target target) implements Condition {
         public HasShield { java.util.Objects.requireNonNull(tag); }
         @Override public void validate(Validation v) { v.target(target); }
-        @Override public boolean test(Evaluation e) { return e.program().orElseThrow(() -> new IllegalStateException("Shield query requires a compiled program")).hasShield(e.state(), e.target(target), tag); }
+        @Override public boolean test(Evaluation e) { return e.program().orElseThrow(() -> new IllegalStateException("Shield query requires a compiled program")).hasShield(e.participantState(e.target(target)), e.target(target), tag); }
     }
     enum Comparison { EQ, NE, LT, LE, GT, GE }
     record Compare(Value left, Comparison operation, Value right) implements Condition {
