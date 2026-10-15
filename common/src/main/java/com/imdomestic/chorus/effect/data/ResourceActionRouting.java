@@ -34,8 +34,8 @@ final class ResourceActionRouting {
         if (action instanceof GroupActions.Begin begin) {
             var op = e.context().operation(); long now = e.state().buffs().timeMicros();
             String issuer = e.resourceView().orElseThrow().domain();
-            var handle = new DamageGroups.Handle("damage-group/" + op.frame() + "/" + op.pc() + "/" + op.invocation(),
-                    begin.origin().resolve(e).owner(), now, Math.addExact(now, Action.micros(begin.lifetime(), e))).issuedBy(issuer);
+            var handle = DamageGroups.Handle.issued("damage-group/" + op.frame() + "/" + op.pc() + "/" + op.invocation(),
+                    begin.origin().resolve(e).owner(), now, Math.addExact(now, Action.micros(begin.lifetime(), e)), issuer);
             return write(new EffectHandleRequests.GroupBegin(issuer, handle), r -> ((EffectHandleRequests.GroupStarted) r).handle());
         }
         if (action instanceof GroupActions.End end) {

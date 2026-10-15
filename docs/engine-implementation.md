@@ -8,6 +8,16 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：活动伤害组随角色与 Buff 延续迁移
+
+EffectContinuations.Pending 允许在协调目标中携带 DamageGroups.Handle。首次迁移的旧无 issuer 句柄必须由显式 sourceDomain 补齐，已限定句柄在连续迁移和嵌套 after 捕获时保持原签发身份。CharacterTransfer / BuffTransfer 只移动其自有续体，不移动 damage group 账本、保留资格或原域 expiry timer；后续成员伤害沿既有跨域战斗边界消费，end_damage_group 回原 issuer 关闭。非协调目标仍前置拒绝，ShotGroups / EntityAttachments 的直接活动句柄继续等待各自完整路由。
+
+新协调 begin 显式创建 ISSUED_V1 引用格式，attack_group 事实包含签发域与完整组身份，避免不同世界的同名组被 once_set / event_reference 误去重。旧 handle v1 / v2（包括已限定 issuer 的 v2）迁移为 LEGACY，issuedBy 和多次迁移保持原引用字符串。不同引用格式不能作为同一本账的别名，防止同一组产生两套去重身份。旧 cause、事实及组件集合不改写；旧格式已经缺失的跨域区分不能从历史字符串恢复，但升级不会通过换串使同组再次计数。
+
+迁移能力已独立提交为 46b0273a。引用格式修复另新增 handle_v3 和 reference_format 两项存储身份；旧 744 项 DATA 形状逐项保持，合计 746，宿主 archive format 5 不变。伤害组迁移并不补齐 DamageSnapshot 的异钟历史捕获协议：高时钟域的快照移至低时钟域仍按现行检查拒绝，不通过重写 capturedAt 伪造时间顺序。弹丸组 / 实体附着完整跨域操作、历史快照时钟与发射时来源生命连续性仍待完成；没有新增原作数值校准或 Compendium 完整条目声明。
+
+最终 `/tmp/chorus-group-transfer-full-gate2.log` BUILD SUCCESSFUL（4 分 22 秒）：2679 项 JUnit 无失败 / 错误 / 跳过，Fabric 1401、NeoForge 1416 项世界回归通过（共享场景 1400），双端发布包和两次正常停服检查点通过。新增 8 项 DamageGroupTransferTest、1 项延续迁移边界测试、7 项引用测试和 3 项句柄兼容测试；两项原生迁移场景核对真实玩家传送、伤害次数、共享一次消费及联合 archive 恢复，旧已限定 v2 检查点恢复后同组再次命中仍只计一次。`build/reports/group-transfer/audit.json` 核验旧 DATA 形状、1416 / 1409 个发布主类字节一致、无测试内容泄漏及 Gradle CRLF。本批没有新增独立进程重启验收。10 项 Compendium 工具测试、22 张表 / 6666 个保留单元格来源及报告检查通过，仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。
+
 ### 2026-10-15：独立参与者查询与原生跨域战斗联合提交
 
 `combatParticipants(placement, programs)` 显式区分角色 / 来源、Buff、资源账户和 damage group issuer；未登记持有者只回退到最初物理调用域，嵌套 Profile / 属性不会把回退域改成某个中间查询域。来源与 Buff 按各自时钟查询，保留资格使用 issuer、完整 group / Buff 身份和 generation，避免不同领域或不同 Buff 的代次碰撞。普通资源视图和普通动作仍保留本地非资源作用域。

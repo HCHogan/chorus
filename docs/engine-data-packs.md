@@ -1014,7 +1014,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle` 已能随 Buff 或来源自有工作迁移：协调模式在创建时记录 issuer，旧未限定句柄在明确的交接边界补齐；后续操作回原签发账本，见[伤害统计的签发域路由](#伤害统计的签发域路由)。`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 也已有可选 issuer 及旧布局迁移。本轮 damage group 成员结算已接入联合战斗边界，但 `Pending.relocated` 仍拒绝携带这三类直接活动句柄，弹丸和附着的完整跨域操作也未完成。成员执行与 continuation 携带迁移是分别核验的能力，不能通过目标同名账本或静默删除绑定绕过拒绝；拒绝不计作完整支持。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。
+直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle`、`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带这两类活动句柄，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟的命中协议是独立限制，不因 group 可迁移而解除。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
 
 ### 角色状态的联合交接
 
@@ -2046,11 +2046,11 @@ Buff 的 `consume_on_damage.sharing` 默认为 `damage`，逐条伤害消费；�
 
 共享按 Buff key 记录：旧攻击组保留旧 generation，新施加的同 key Buff 不叠入该组，也不被后续成员继续消费。多层 Buff 仅在首个合格回执扣声明的 stacks；该组的后续成员仍使用消费前的层数。取消 / 失败不取得资格，effective_damage 策略下零损失也不取得；此时独立攻击仍可先消费 live Buff。未知回执保留 pending，之前已确认的消费和资格不回滚，不自动重放。
 
-`damage_snapshot` 也接受 group，但 capture_damage 不保存组；同一数值快照可用于多个独立攻击。group 与 batch 可分别绑定，前者决定共享资格，后者决定内容的按批计数。每段仍有独立 damage_id、伤害 / 死亡事实和 proc 策略；事实的 references.attack_group 仅为权威归属标识，不自动授予派生动作成员身份，正常效果链照常执行。
+`damage_snapshot` 也接受 group，但 capture_damage 不保存组；同一数值快照可用于多个独立攻击。group 与 batch 可分别绑定，前者决定共享资格，后者决定内容的按批计数。每段仍有独立 damage_id、伤害 / 死亡事实和 proc 策略；事实的 references.attack_group 仅为权威归属标识，不自动授予派生动作成员身份，正常效果链照常执行。新协调 begin 创建 `ReferenceFormat.ISSUED_V1` 组，以完整 issuer、owner、id、startedAt / dueAt 生成隔离身份。旧 v1 / v2 句柄一律保存 `LEGACY` 格式，即使原本已限定 issuer、或之后由迁移补齐 issuer，reference 也永久保持旧字符串。历史 cause、reference 和去重集合不回写，避免旧存档的 once_set 因同组换串而重复计数；完整兼容边界见[签发账本协议](#伤害组的签发账本与显式参与者查询)。
 
 组的 origin 默认为 bound，也可选 event；成员的伤害 owner 必须一致。lifetime 为正的 second，区间半开；end_damage_group 可提前关闭，截止时自动清理。关闭后再发出成员伤害会明确失败，因此内容应让有效期覆盖所有预期分量。句柄可随显式 after / projectile 绑定传递，已确认的资格独立于原 Buff 后续到期 / 收枪；完整攻击行为由内容决定，不能据此推断所有 D2 技能都应共用资格。
 
-[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。共享宿主的跨域成员结算见[签发账本与参与者查询](#伤害组的签发账本与显式参与者查询)。一个组可跨多个动作和时刻，组身份不把其全部世界写入变成可回滚事务；活动句柄携带迁移与物理效果实体恢复仍有独立限制。
+[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。共享宿主的跨域成员结算、来源 / Buff 自有 continuation 携带组句柄迁移见[签发账本与参与者查询](#伤害组的签发账本与显式参与者查询)，验收状态见[实现记录](engine-implementation.md)。一个组可跨多个动作和时刻，组身份不把其全部世界写入变成可回滚事务；物理效果实体恢复及 DamageSnapshot 跨不同逻辑时钟仍有独立限制。
 
 ## 选择派生动作的来源
 
@@ -2870,13 +2870,23 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 旧未限定句柄在明确迁移边界由 sourceDomain 补齐。没有迁移的旧本地句柄可在明确调用域访问原账本；目标必须启用协调路由，本地 DSL 拒绝使用任何 issuer-qualified 句柄。账本 `matches` 比较全部原身份字段，并拒绝双方已限定但 issuer 不同；它不改变 Java record 的严格 equality。记录新回执保留账本 canonical handle，旧别名不能清除已知 issuer。历史 Summary 仍是不可变数值快照。
 
-四种 live Handle 分别增加新的 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。tally 路由本身不代表其他句柄也已完整支持跨域。DamageGroups 的成员结算见下节；直接携带 group / shot / attachment 句柄的 continuation 迁移仍会拒绝，ShotGroups 与 EntityAttachments 的完整跨域操作仍待实现。
+四种 live Handle 的 issuer 协议分别增加 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。DamageGroups 后续为事实身份格式增加独立 handle_v3，旧 v1 / v2 布局仍完整保留，详见下节。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。DamageGroups 的成员结算与句柄携带迁移另见下节；tally 路由不授予其他句柄跨域权限。直接携带 ShotGroups / EntityAttachments 句柄的 continuation 迁移仍会拒绝，这两类完整跨域操作尚未实现。
 
 ### 伤害组的签发账本与显式参与者查询
 
-协调模式的 `begin_damage_group` 通过 `EffectHandleRequests.GroupBegin` 在调用域创建带 issuer 的组；`end_damage_group` 通过 `GroupClose` 回签发域关闭并取消原到期计时器。账本变更与调用域的确定回执共同发布，重复活动请求返回已提交回执。关闭不依赖角色当前资源 lease，也不查找目标域的同名组。新增 GroupBegin / GroupClose / GroupStarted / GroupClosed 四种存储身份；原 740 项形状保持，总数为 744。
+协调模式的 `begin_damage_group` 通过 `EffectHandleRequests.GroupBegin` 在调用域创建带 issuer、使用 `ReferenceFormat.ISSUED_V1` 的组；`end_damage_group` 通过 `GroupClose` 回签发域关闭并取消原到期计时器。账本变更与调用域的确定回执共同发布，重复活动请求返回已提交回执。关闭不依赖角色当前资源 lease，也不查找目标域的同名组。GroupBegin / GroupClose / GroupStarted / GroupClosed 各有独立存储身份。
 
-普通本地 DSL 拒绝带 issuer 的组；普通协调视图的 `prepareDamage` 也在世界调用前拒绝外域组。显式战斗视图才允许按 issuer 使用原账本和原域时钟，不能借目标域同名组继续攻击。本轮共享原生宿主已接入此视图与联合消费，完整验收仍以实现记录为准。`Pending.relocated` 继续拒绝直接捕获的 damage group；执行外域组成员与携带活动句柄迁移 continuation 是两个分别核验的入口。
+普通本地 DSL 拒绝带 issuer 的组；普通协调视图的 `prepareDamage` 也在世界调用前拒绝外域组。显式战斗视图才允许按 issuer 使用原账本和原域时钟，不能借目标域同名组继续攻击。协调器的伤害准备和共享原生宿主已接入此视图与联合消费；普通动作的本地写入作用域保持原样，完整验收见[实现记录](engine-implementation.md)。
+
+`Pending.relocated` 现允许来源或 Buff 自有 continuation 直接携带 `DamageGroups.Handle`，但目标须启用协调路由。旧空 issuer 只能由明确的 sourceDomain 补齐；缺少 sourceDomain 或目标使用本地模式时，在迁移准备阶段拒绝。A→B→C 保留 A 的 issuer 和原始 startedAt / dueAt，组账本、到期计时器及 grants 始终留在 A，不搬移、不复制、不重建；continuation 自身仍按剩余时长迁移。成员伤害在目标实际世界执行，一次性 Buff 按当前 Buff facet 消费，A 保存已确认的共享资格，后续成员继续读取它；`end_damage_group` 回 A 关闭。联合 archive 同时保存原账本与迁移后的 continuation，恢复不重复 begin、首次消费或已确认伤害。
+
+Handle 显式保存 `ReferenceFormat`。`ISSUED_V1` 的 `reference()` 将完整 issuer、owner、id、startedAt / dueAt 编入事实 `references.attack_group`，不同域的同名组及同域不同生命周期不会合并。多个字段采用无歧义编码，内容应把结果当作不透明身份。新协调 begin 显式选择此格式；仅调用 `issuedBy` 不升级事实身份。
+
+旧 v1 / v2 句柄全部迁移为 `LEGACY`，包括已经携带 issuer 的旧 v2。它们继续返回原 `group/<owner长度>:<owner>/<id>` 字符串；`issuedBy`、迁移补齐 issuer 及多次领域交接均永久保留该字符串，新产生的事实也使用原值。`matches` 要求格式相同，禁止 LEGACY 与 ISSUED_V1 互为账本别名。历史 cause、reference 与内容中的 once_set / 去重集合均不回写，因此恢复不会因同组换串而再次计数。旧组原本存在的跨域标识碰撞无法在不改变历史含义的前提下补救；新内容需要完整跨域事实身份时，应通过协调 begin 建立新组。
+
+当前句柄写入 `handle_v3`，格式枚举使用 `reference_format`，共增加两个 DATA 条目；旧 744 项存储形状完全保留，总数为 746。旧 handle / handle_v2 按精确布局解码并迁移为 LEGACY，重新保存写入明确格式，不猜测旧组曾否发出事实。联合宿主 archive 继续使用 format 5，旧 cause、reference 和去重集合原样保存；验收结果见[实现记录](engine-implementation.md)。
+
+此能力不包含 ShotGroups / EntityAttachments 活动句柄迁移，它们仍在预检阶段拒绝；也不解决 DamageSnapshot 跨不同逻辑时钟的命中协议。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 仍遵守自己的捕获时刻与兼容性限制。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
 
 `ResourceReadView.combatParticipants(placement, programs)` 接受独立的 `ParticipantPlacement.Directory` 和各域完整程序。它不从资源目录推导参与者位置，也不自行建立原生实体授权。宿主必须在捕获至结算期间固定这些输入；原生路径还须核验实际实体对象、生命与物理域。普通资源视图仍保留本地非资源语义，不自动开启战斗模式。
 

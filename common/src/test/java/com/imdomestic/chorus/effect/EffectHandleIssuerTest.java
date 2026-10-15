@@ -23,6 +23,7 @@ class EffectHandleIssuerTest {
     static final Map<String, String> LEGACY_IDS = Map.of(
             "chorus:effect/combat/damage_tallies/handle_v2", "chorus:effect/combat/damage_tallies/handle",
             "chorus:effect/combat/damage_groups/handle_v2", "chorus:effect/combat/damage_groups/handle",
+            "chorus:effect/combat/damage_groups/handle_v3", "chorus:effect/combat/damage_groups/handle",
             "chorus:effect/projectile/shot_groups/handle_v2", "chorus:effect/projectile/shot_groups/handle",
             "chorus:effect/target/entity_attachments/handle_v2", "chorus:effect/target/entity_attachments/handle");
 
@@ -268,12 +269,13 @@ class EffectHandleIssuerTest {
     @Test void versionedHandlesAndNestedLedgerEvidenceRoundTripAndMigrateExactOldShapes() {
         var codec = EffectCheckpointCodec.DATA;
         assertHandleWire(tally().issuedBy(A), tally(), DamageTallies.Handle.class, "chorus:effect/combat/damage_tallies/handle_v2");
-        assertHandleWire(damageGroup().issuedBy(A), damageGroup(), DamageGroups.Handle.class, "chorus:effect/combat/damage_groups/handle_v2");
+        assertHandleWire(damageGroup().issuedBy(A), damageGroup(), DamageGroups.Handle.class, "chorus:effect/combat/damage_groups/handle_v3");
         assertHandleWire(shot().issuedBy(A), shot(), ShotGroups.Handle.class, "chorus:effect/projectile/shot_groups/handle_v2");
         assertHandleWire(attachment().issuedBy(A), attachment(), EntityAttachments.Handle.class, "chorus:effect/target/entity_attachments/handle_v2");
 
         var current = ledgers(true); var legacy = ledgers(false);
         assertEquals(current, codec.decode(codec.encode(current), EffectState.class));
+        assertEquals(current, codec.decode(damageGroupsV2(codec.encode(current)), EffectState.class));
         assertEquals(legacy, codec.decode(legacyHandles(codec.encode(current)), EffectState.class));
         var member = new ShotGroups.Member(shot().issuedBy(A), 1);
         assertEquals(member, codec.decode(codec.encode(member), ShotGroups.Member.class));
@@ -282,6 +284,74 @@ class EffectHandleIssuerTest {
         assertEquals(query, codec.decode(codec.encode(query), EntityAttachments.Query.class));
         assertEquals(EntityAttachmentTest.query(legacy, attachment()),
                 codec.decode(legacyHandles(codec.encode(query)), EntityAttachments.Query.class));
+    }
+
+    @Test void oldDamageGroupWireShapesKeepTheirExactFieldsAndLegacyReferences() {
+        var codec = EffectCheckpointCodec.DATA;
+        var oldFields = List.of("id:java.lang.String", "owner:java.lang.String", "startedAt:long", "dueAt:long");
+        assertEquals(oldFields, codec.schema().get("chorus:effect/combat/damage_groups/handle"));
+        var qualifiedFields = new ArrayList<>(oldFields); qualifiedFields.add("issuer:java.util.Optional<java.lang.String>");
+        assertEquals(qualifiedFields, codec.schema().get("chorus:effect/combat/damage_groups/handle_v2"));
+        var currentFields = new ArrayList<>(qualifiedFields); currentFields.add("referenceFormat:com.imdomestic.chorus.effect.combat.DamageGroups$ReferenceFormat");
+        assertEquals(currentFields, codec.schema().get("chorus:effect/combat/damage_groups/handle_v3"));
+        assertEquals(List.of("LEGACY", "ISSUED_V1"), codec.schema().get("chorus:effect/combat/damage_groups/reference_format"));
+        for (var original : List.of(damageGroup(), damageGroup().issuedBy(A))) {
+            var v3 = codec.encode(original);
+            for (var wire : List.of(legacyHandles(v3), damageGroupsV2(v3))) {
+                var object = wire.getAsJsonObject(); var v1 = object.get("$").getAsString().endsWith("/handle");
+                assertEquals(v1 ? Set.of("id", "owner", "startedAt", "dueAt") : Set.of("id", "owner", "startedAt", "dueAt", "issuer"), object.getAsJsonObject("v").keySet());
+                var restored = codec.decode(wire, DamageGroups.Handle.class);
+                assertEquals(v1 ? damageGroup() : original, restored);
+                assertEquals(DamageGroups.ReferenceFormat.LEGACY, restored.referenceFormat());
+                assertEquals("group/6:player/damage-group", restored.reference());
+                var moved = restored.issuedBy(A).issuedBy(B);
+                assertEquals(Optional.of(A), moved.issuer()); assertEquals(restored.reference(), moved.reference());
+                var savedAgain = codec.encode(moved);
+                assertEquals("chorus:effect/combat/damage_groups/handle_v3", savedAgain.getAsJsonObject().get("$").getAsString());
+                assertEquals(moved, codec.decode(savedAgain, DamageGroups.Handle.class));
+                assertEquals(restored.reference(), codec.decode(savedAgain, DamageGroups.Handle.class).reference());
+                var extra = object.deepCopy(); extra.getAsJsonObject("v").add("referenceFormat", codec.encode(DamageGroups.ReferenceFormat.ISSUED_V1));
+                assertThrows(IllegalArgumentException.class, () -> codec.decode(extra, DamageGroups.Handle.class));
+                for (String field : List.copyOf(object.getAsJsonObject("v").keySet())) {
+                    var missing = object.deepCopy(); missing.getAsJsonObject("v").remove(field);
+                    assertThrows(IllegalArgumentException.class, () -> codec.decode(missing, DamageGroups.Handle.class), field);
+                }
+            }
+        }
+    }
+
+    @Test void newDamageGroupReferencesRoundTripWithoutAliasingMigratedLegacyIdentity() {
+        var codec = EffectCheckpointCodec.DATA; var old = damageGroup().issuedBy(A);
+        var fresh = DamageGroups.Handle.issued(old.id(), old.owner(), old.startedAt(), old.dueAt(), A);
+        assertEquals(DamageGroups.ReferenceFormat.ISSUED_V1, fresh.referenceFormat());
+        assertNotEquals(old.reference(), fresh.reference()); assertFalse(old.matches(fresh)); assertFalse(fresh.matches(old));
+        assertEquals(fresh, codec.decode(codec.encode(fresh), DamageGroups.Handle.class));
+        assertEquals(old, codec.decode(damageGroupsV2(codec.encode(fresh)), DamageGroups.Handle.class));
+        assertEquals(damageGroup(), codec.decode(legacyHandles(codec.encode(fresh)), DamageGroups.Handle.class));
+        var unknownFormat = codec.encode(fresh).getAsJsonObject();
+        unknownFormat.getAsJsonObject("v").getAsJsonObject("referenceFormat").addProperty("v", "FUTURE");
+        assertThrows(IllegalArgumentException.class, () -> codec.decode(unknownFormat, DamageGroups.Handle.class));
+        var absentFormat = codec.encode(fresh).getAsJsonObject(); absentFormat.getAsJsonObject("v").remove("referenceFormat");
+        assertThrows(IllegalArgumentException.class, () -> codec.decode(absentFormat, DamageGroups.Handle.class));
+    }
+
+    @Test void nestedVersionTwoGroupsUpgradeLedgerTimerCommandsAndProtocolEvidenceTogether() {
+        var codec = EffectCheckpointCodec.DATA; var old = damageGroup().issuedBy(A);
+        var fresh = DamageGroups.Handle.issued(old.id(), old.owner(), old.startedAt(), old.dueAt(), A);
+        var currentState = DamageGroups.begin(EffectState.empty(), fresh).state();
+        var legacyState = DamageGroups.begin(EffectState.empty(), old).state();
+        assertEquals(legacyState, codec.decode(damageGroupsV2(codec.encode(currentState)), EffectState.class));
+        var currentBegin = new EffectHandleRequests.GroupBegin(A, fresh); var oldBegin = new EffectHandleRequests.GroupBegin(A, old);
+        var currentClose = new EffectHandleRequests.GroupClose(A, fresh); var oldClose = new EffectHandleRequests.GroupClose(A, old);
+        var current = List.of(damage().withGroup(fresh), currentBegin, currentClose,
+                new EffectHandleRequests.GroupStarted(currentBegin, fresh), new EffectHandleRequests.GroupClosed(currentClose));
+        var legacy = List.of(damage().withGroup(old), oldBegin, oldClose,
+                new EffectHandleRequests.GroupStarted(oldBegin, old), new EffectHandleRequests.GroupClosed(oldClose));
+        for (int i = 0; i < current.size(); i++) {
+            var restored = codec.decode(damageGroupsV2(codec.encode(current.get(i))), current.get(i).getClass());
+            assertEquals(legacy.get(i), restored); assertEquals(restored, codec.decode(codec.encode(restored), restored.getClass()));
+        }
+        assertEquals(currentState, codec.decode(codec.encode(currentState), EffectState.class));
     }
 
     @Test void tallyProtocolValuesKeepTheirQualifiedHandlesAcrossCodecRoundTrips() {
@@ -330,7 +400,22 @@ class EffectHandleIssuerTest {
         var object = value.getAsJsonObject(); var type = object.get("$");
         if (type != null && LEGACY_IDS.containsKey(type.getAsString())) {
             object.addProperty("$", LEGACY_IDS.get(type.getAsString())); object.getAsJsonObject("v").remove("issuer");
+            object.getAsJsonObject("v").remove("referenceFormat");
         }
         object.entrySet().forEach(entry -> eraseQualification(entry.getValue()));
+    }
+
+    /** Exact previous five-field group shape, preserving issuer even inside timers and protocol values. */
+    static JsonElement damageGroupsV2(JsonElement encoded) {
+        var copy = encoded.deepCopy(); eraseReferenceFormat(copy); return copy;
+    }
+    static void eraseReferenceFormat(JsonElement value) {
+        if (value.isJsonArray()) { value.getAsJsonArray().forEach(EffectHandleIssuerTest::eraseReferenceFormat); return; }
+        if (!value.isJsonObject()) return;
+        var object = value.getAsJsonObject(); var type = object.get("$");
+        if (type != null && type.getAsString().equals("chorus:effect/combat/damage_groups/handle_v3")) {
+            object.addProperty("$", "chorus:effect/combat/damage_groups/handle_v2"); object.getAsJsonObject("v").remove("referenceFormat");
+        }
+        object.entrySet().forEach(entry -> eraseReferenceFormat(entry.getValue()));
     }
 }

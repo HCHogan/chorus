@@ -217,7 +217,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/combat/damage_command", com.imdomestic.chorus.effect.combat.DamageCommand.class);
         types.put("chorus:effect/combat/damage_groups/group", com.imdomestic.chorus.effect.combat.DamageGroups.Group.class);
         types.put("chorus:effect/combat/damage_groups/handle", LegacyDamageGroupHandleV1.class);
-        types.put("chorus:effect/combat/damage_groups/handle_v2", com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class);
+        types.put("chorus:effect/combat/damage_groups/handle_v2", LegacyDamageGroupHandleV2.class);
+        types.put("chorus:effect/combat/damage_groups/handle_v3", com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class);
+        types.put("chorus:effect/combat/damage_groups/reference_format", com.imdomestic.chorus.effect.combat.DamageGroups.ReferenceFormat.class);
         types.put("chorus:effect/combat/damage_groups/query", com.imdomestic.chorus.effect.combat.DamageGroups.Query.class);
         types.put("chorus:effect/combat/damage_receipt", com.imdomestic.chorus.effect.combat.DamageReceipt.class);
         types.put("chorus:effect/combat/damage_receipt/outcome", com.imdomestic.chorus.effect.combat.DamageReceipt.Outcome.class);
@@ -768,6 +770,7 @@ final class CheckpointTypes {
                 new RecordTreeCodec.Migration<>(LegacyRetainedCostHandleV1.class, com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class, LegacyRetainedCostHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyDamageTallyHandleV1.class, com.imdomestic.chorus.effect.combat.DamageTallies.Handle.class, LegacyDamageTallyHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyDamageGroupHandleV1.class, com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class, LegacyDamageGroupHandleV1::current),
+                new RecordTreeCodec.Migration<>(LegacyDamageGroupHandleV2.class, com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class, LegacyDamageGroupHandleV2::current),
                 new RecordTreeCodec.Migration<>(LegacyShotGroupHandleV1.class, com.imdomestic.chorus.effect.projectile.ShotGroups.Handle.class, LegacyShotGroupHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyEntityAttachmentHandleV1.class, com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class, LegacyEntityAttachmentHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityDefinitionV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.class, LegacyAbilityDefinitionV1::current),
