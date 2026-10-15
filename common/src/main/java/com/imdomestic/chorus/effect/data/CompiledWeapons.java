@@ -82,7 +82,7 @@ final class CompiledWeapons {
             if (value instanceof Value.Constant c) WeaponReload.micros(new Measure(c.value(), input));
         }
     }
-    RuleEngine.Local<EffectState> equip(EffectState state, EquipmentChange change, CompiledEffects program) {
+    RuleEngine.Local<EffectState> equip(EffectState state, EquipmentChange change, WeaponQueries program) {
         // A weapon instance cannot borrow another holder's ammunition account while still equipped there.
         for (var other : state.equipment().entrySet()) if (!other.getKey().equals(change.holder()))
             for (var gear : change.after().slots().values()) if (other.getValue().slots().values().stream().anyMatch(g -> g.instance().equals(gear.instance())))
@@ -164,7 +164,7 @@ final class CompiledWeapons {
     private static RuleEngine.Local<EffectState> instantRejected(EffectState state, InstantReload.Outcome outcome) {
         return new RuleEngine.Local<>(state, new InstantReload.Result(outcome, List.of()), List.of());
     }
-    RuleEngine.Local<EffectState> begin(EffectState state, WeaponReload.Request request, CompiledEffects program) {
+    RuleEngine.Local<EffectState> begin(EffectState state, WeaponReload.Request request, WeaponQueries program) {
         var gear = WeaponReload.drawn(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY));
         if (gear.isEmpty()) return reject(state, WeaponReload.Outcome.EMPTY_HANDS);
         var weapon = gear.orElseThrow(); var definition = definitions.get(weapon.definition());
@@ -189,7 +189,7 @@ final class CompiledWeapons {
         return new EffectEvent(holder, weapon.instance(), origin, tags, Map.of("reload_step", new Measure(step, Unit.COUNT)),
                 Map.of("incremental", reload.insert().isPresent()), Map.of("weapon", weapon.instance(), "item", weapon.definition(), "reload", token));
     }
-    private WeaponReload.Plan plan(EffectState state, String holder, String token, Loadout.Gear weapon, int step, CompiledEffects program) {
+    private WeaponReload.Plan plan(EffectState state, String holder, String token, Loadout.Gear weapon, int step, WeaponQueries program) {
         var reload = definitions.get(weapon.definition()).reload();
         var timing = step == 0 ? new WeaponDefinition.Timing(reload.value(), reload.profiles()) : reload.insert().orElseThrow().repeat();
         var query=reloadQuery(holder,token,weapon,step);var origin=query.source();
@@ -207,7 +207,7 @@ final class CompiledWeapons {
         long now = state.buffs().timeMicros(); long due = Math.addExact(now, WeaponReload.micros(duration));
         return new WeaponReload.Plan(holder, token, weapon, origin, now, due, input, duration, calculation, portion, step, WeaponReload.Phase.WAITING);
     }
-    RuleEngine.Local<EffectState> next(EffectState state, WeaponReload.Plan previous, CompiledEffects program) {
+    RuleEngine.Local<EffectState> next(EffectState state, WeaponReload.Plan previous, WeaponQueries program) {
         if (!previous.equals(state.reloads().get(previous.holder()))) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         if (previous.phase() != WeaponReload.Phase.BETWEEN_INSERTS || previous.dueAt() != state.buffs().timeMicros())
             throw new IllegalArgumentException("Reload continuation is not at the committed insertion boundary");
@@ -224,7 +224,7 @@ final class CompiledWeapons {
                 List.of(fact("chorus:reload_continued", plan, "manual", Map.of())));
     }
 
-    RuleEngine.Local<EffectState> finish(EffectState state, WeaponReload.Plan plan, WeaponReload.Verified verification, CompiledEffects program) {
+    RuleEngine.Local<EffectState> finish(EffectState state, WeaponReload.Plan plan, WeaponReload.Verified verification, WeaponQueries program) {
         if (!verification.query().plan().equals(plan)) throw new IllegalArgumentException("Reload verification belongs to another request");
         if (!plan.equals(state.reloads().get(plan.holder()))) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         if (plan.phase() != WeaponReload.Phase.WAITING || state.buffs().timeMicros() != plan.dueAt()) throw new IllegalArgumentException("Reload completion is not at its accepted deadline");
@@ -275,10 +275,10 @@ final class CompiledWeapons {
         }
         return com.imdomestic.chorus.effect.target.Targets.Identities.of(selected);
     }
-    RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, CompiledEffects program) {
+    RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, WeaponQueries program) {
         return fire(state,request,program,Optional.empty());
     }
-    RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, CompiledEffects program, Optional<WeaponCharge.Plan> charge) {
+    RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, WeaponQueries program, Optional<WeaponCharge.Plan> charge) {
         var gear = WeaponReload.drawn(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY));
         if (gear.isEmpty()) return rejectFire(state, WeaponFire.Outcome.EMPTY_HANDS);
         var weapon = gear.orElseThrow(); var definition = definitions.get(weapon.definition());

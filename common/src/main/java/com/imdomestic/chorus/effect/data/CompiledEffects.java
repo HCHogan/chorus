@@ -253,43 +253,43 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     return change.apply(state);
                 }, ""))));
         definitions.add(new RuleEngine.EventRule<>(EquipmentChange.EVENT, EquipmentChange.EVENT, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> changeEquipment(state, (EquipmentChange) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponAction("equip", (state, context, queries) -> weapons.equip(state, (EquipmentChange) context.event().signal().payload(), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.REQUEST, WeaponReload.REQUEST, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> reload(state, (WeaponReload.Request) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponInput("reload/start", (state, context, queries) -> weapons.begin(state, (WeaponReload.Request) context.event().signal().payload(), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponCharge.REQUEST, WeaponCharge.REQUEST, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> charge(state, (WeaponCharge.Request) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponInput("charge/start", (state, context, queries) -> CompiledCharging.input(state, (WeaponCharge.Request) context.event().signal().payload(), weapons, queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponCharge.DUE, WeaponCharge.DUE, (state, context) -> CompiledCharging.current(state, (WeaponCharge.Plan) context.event().signal().payload()),
                 List.of(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Await<EffectState>(CompiledCharging.prepare(state, (WeaponCharge.Plan) context.event().signal().payload())), "charge_host"),
-                        new RuleEngine.Instruction<>((state, context) -> CompiledCharging.finish(state, (WeaponCharge.Plan) context.event().signal().payload(), (WeaponCharge.Verified) context.bindings().get("charge_host"), weapons, this), ""))));
+                        new RuleEngine.Instruction<>(weaponAction("charge/finish", (state, context, queries) -> CompiledCharging.finish(state, (WeaponCharge.Plan) context.event().signal().payload(), (WeaponCharge.Verified) context.bindings().get("charge_host"), weapons, queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponAim.REQUEST, WeaponAim.REQUEST, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> aim(state, (WeaponAim.Request) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponInput("aim/start", (state, context, queries) -> CompiledAiming.begin(state, (WeaponAim.Request) context.event().signal().payload(), weapons, queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponAim.DUE, WeaponAim.DUE, (state, context) -> CompiledAiming.current(state, (WeaponAim.Plan) context.event().signal().payload()),
                 List.of(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Await<EffectState>(CompiledAiming.prepare(state, (WeaponAim.Plan) context.event().signal().payload())), "aim_host"),
-                        new RuleEngine.Instruction<>((state, context) -> CompiledAiming.finish(state, (WeaponAim.Plan) context.event().signal().payload(), (WeaponAim.Verified) context.bindings().get("aim_host"), this), ""))));
+                        new RuleEngine.Instruction<>(weaponAction("aim/finish", (state, context, queries) -> CompiledAiming.finish(state, (WeaponAim.Plan) context.event().signal().payload(), (WeaponAim.Verified) context.bindings().get("aim_host"), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponHandling.REQUEST, WeaponHandling.REQUEST, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> switchWeapon(state, (WeaponHandling.Request) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponInput("handling/start", (state, context, queries) -> CompiledHandling.begin(state, (WeaponHandling.Request) context.event().signal().payload(), weapons, queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponHandling.NEXT, WeaponHandling.NEXT, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> CompiledHandling.next(state, (WeaponHandling.Plan) context.event().signal().payload(), weapons, this), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponAction("handling/next", (state, context, queries) -> CompiledHandling.next(state, (WeaponHandling.Plan) context.event().signal().payload(), weapons, queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponHandling.DUE, WeaponHandling.DUE, (state, context) ->
                 CompiledHandling.current(state, (WeaponHandling.Plan) context.event().signal().payload()),
-                List.of(new RuleEngine.Instruction<>((state, context) -> new RuleEngine.Await<EffectState>(CompiledHandling.prepare(state,
-                        (WeaponHandling.Plan) context.event().signal().payload(), this)), "handling_host"),
-                        new RuleEngine.Instruction<>((state, context) -> CompiledHandling.finish(state, (WeaponHandling.Plan) context.event().signal().payload(),
-                                (WeaponHandling.Applied) context.bindings().get("handling_host"), this), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponAction("handling/prepare", (state, context, queries) -> new RuleEngine.Await<EffectState>(CompiledHandling.prepare(state,
+                        (WeaponHandling.Plan) context.event().signal().payload(), queries))), "handling_host"),
+                        new RuleEngine.Instruction<>(weaponAction("handling/finish", (state, context, queries) -> CompiledHandling.finish(state, (WeaponHandling.Plan) context.event().signal().payload(),
+                                (WeaponHandling.Applied) context.bindings().get("handling_host"), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.NEXT, WeaponReload.NEXT, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> weapons.next(state, (WeaponReload.Plan) context.event().signal().payload(), this), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponAction("reload/next", (state, context, queries) -> weapons.next(state, (WeaponReload.Plan) context.event().signal().payload(), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponReload.DUE, WeaponReload.DUE, (state, context) -> {
                     var plan = (WeaponReload.Plan) context.event().signal().payload(); return plan.phase() == WeaponReload.Phase.WAITING && plan.equals(state.reloads().get(plan.holder()));
                 }, List.of(new RuleEngine.Instruction<>((_, context) -> new RuleEngine.Await<EffectState>(new WeaponReload.Verify((WeaponReload.Plan) context.event().signal().payload())), "reload_host"),
-                        new RuleEngine.Instruction<>((state, context) -> weapons.finish(state, (WeaponReload.Plan) context.event().signal().payload(),
-                                (WeaponReload.Verified) context.bindings().get("reload_host"), this), ""))));
+                        new RuleEngine.Instruction<>(weaponAction("reload/finish", (state, context, queries) -> weapons.finish(state, (WeaponReload.Plan) context.event().signal().payload(),
+                                (WeaponReload.Verified) context.bindings().get("reload_host"), queries)), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceBatch.EVENT, SourceBatch.EVENT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> {
                     var batch = (SourceBatch) context.event().signal().payload();
                     validateSources(batch); return batch.apply(state);
                 }, ""))));
         definitions.add(new RuleEngine.EventRule<>(WeaponFire.REQUEST, WeaponFire.REQUEST, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> fire(state, (WeaponFire.Request) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(weaponInput("fire/start", (state, context, queries) -> weapons.fire(state, (WeaponFire.Request) context.event().signal().payload(), queries)), ""))));
         var fireRules = new LinkedHashMap<String, RuleEngine.EventRule<EffectState>>();
         for (var weapon : program.weapons()) weapon.fire().ifPresent(fire -> {
             var scope = new EffectProgram.Bundle(weapon.item(), EffectProgram.Scope.SOURCE, List.of(), List.of());
@@ -445,7 +445,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public ActionGate.Decision checkAction(ResourceReadView view,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input){
         return checkAction(view.state(), action, phase, input, Optional.of(view));
     }
-    private ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input,Optional<ResourceReadView> view){
+    ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input,Optional<ResourceReadView> view){
         requireWorldQueryView(state, view);
         settled(state);Objects.requireNonNull(action);Objects.requireNonNull(phase);
         if(input.actor().isBlank()&&(action!=ActionGate.Kind.PROJECTILE_TRACKING||input.victim().isBlank()))
@@ -630,7 +630,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return new NativeAttributeBinding.Calculated(binding,calculate(state,holder,query,binding.profile(),binding.input(),List.of(),view));
         }).toList();
     }
-    public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
+    public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return changeEquipment(state, change, Optional.empty()); }
+    public RuleEngine.Local<EffectState> changeEquipment(ResourceReadView view, EquipmentChange change) { return changeEquipment(view.state(), change, Optional.of(view)); }
+    RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change, Optional<ResourceReadView> view) {
+        return weapons.equip(state, change, new WeaponQueries(this, state, view));
+    }
     public com.imdomestic.chorus.effect.target.Targets.Identities equippedWeapons(EffectState state, String holder, java.util.Set<String> tags) {
         return weapons.equipped(state, holder, tags);
     }
@@ -647,14 +651,46 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public RuleEngine.Local<EffectState> completeInstantReload(EffectState state, InstantReload.Checked checked, Optional<ResourceReadView> view) {
         settled(state); view.ifPresent(v -> v.require(program, state)); return weapons.instant(state, checked, this, view);
     }
-    public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
-    public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
-    public RuleEngine.Local<EffectState> charge(EffectState state, WeaponCharge.Request request) { settled(state); return CompiledCharging.input(state, request, weapons, this); }
-    public RuleEngine.Local<EffectState> cancelCharge(EffectState state, String holder, String reason) { settled(state); return CompiledCharging.cancel(state, holder, reason); }
-    public boolean usesHandling(EffectState state, String holder, Optional<String> slot) { settled(state); return CompiledHandling.configured(state, holder, slot, weapons, this); }
-    public RuleEngine.Local<EffectState> aim(EffectState state, WeaponAim.Request request) { settled(state); return CompiledAiming.begin(state, request, weapons, this); }
-    public RuleEngine.Local<EffectState> cancelAim(EffectState state, String holder, String reason) { settled(state); return CompiledAiming.cancel(state, holder, reason); }
-    public RuleEngine.Local<EffectState> switchWeapon(EffectState state, WeaponHandling.Request request) { settled(state); return CompiledHandling.begin(state, request, weapons, this); }
+    public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { return reload(state, request, Optional.empty()); }
+    public RuleEngine.Local<EffectState> reload(ResourceReadView view, WeaponReload.Request request) { return reload(view.state(), request, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return weapons.begin(state, request, queries);
+    }
+    public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { return fire(state, request, Optional.empty()); }
+    public RuleEngine.Local<EffectState> fire(ResourceReadView view, WeaponFire.Request request) { return fire(view.state(), request, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return weapons.fire(state, request, queries);
+    }
+    public RuleEngine.Local<EffectState> charge(EffectState state, WeaponCharge.Request request) { return charge(state, request, Optional.empty()); }
+    public RuleEngine.Local<EffectState> charge(ResourceReadView view, WeaponCharge.Request request) { return charge(view.state(), request, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> charge(EffectState state, WeaponCharge.Request request, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledCharging.input(state, request, weapons, queries);
+    }
+    public RuleEngine.Local<EffectState> cancelCharge(EffectState state, String holder, String reason) { return cancelCharge(state, holder, reason, Optional.empty()); }
+    public RuleEngine.Local<EffectState> cancelCharge(ResourceReadView view, String holder, String reason) { return cancelCharge(view.state(), holder, reason, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> cancelCharge(EffectState state, String holder, String reason, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledCharging.cancel(state, holder, reason);
+    }
+    public boolean usesHandling(EffectState state, String holder, Optional<String> slot) { return usesHandling(state, holder, slot, Optional.empty()); }
+    public boolean usesHandling(ResourceReadView view, String holder, Optional<String> slot) { return usesHandling(view.state(), holder, slot, Optional.of(view)); }
+    private boolean usesHandling(EffectState state, String holder, Optional<String> slot, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledHandling.configured(state, holder, slot, weapons, queries);
+    }
+    public RuleEngine.Local<EffectState> aim(EffectState state, WeaponAim.Request request) { return aim(state, request, Optional.empty()); }
+    public RuleEngine.Local<EffectState> aim(ResourceReadView view, WeaponAim.Request request) { return aim(view.state(), request, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> aim(EffectState state, WeaponAim.Request request, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledAiming.begin(state, request, weapons, queries);
+    }
+    public RuleEngine.Local<EffectState> cancelAim(EffectState state, String holder, String reason) { return cancelAim(state, holder, reason, Optional.empty()); }
+    public RuleEngine.Local<EffectState> cancelAim(ResourceReadView view, String holder, String reason) { return cancelAim(view.state(), holder, reason, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> cancelAim(EffectState state, String holder, String reason, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledAiming.cancel(state, holder, reason);
+    }
+    public RuleEngine.Local<EffectState> switchWeapon(EffectState state, WeaponHandling.Request request) { return switchWeapon(state, request, Optional.empty()); }
+    public RuleEngine.Local<EffectState> switchWeapon(ResourceReadView view, WeaponHandling.Request request) { return switchWeapon(view.state(), request, Optional.of(view)); }
+    private RuleEngine.Local<EffectState> switchWeapon(EffectState state, WeaponHandling.Request request, Optional<ResourceReadView> view) {
+        var queries = new WeaponQueries(this, state, view); settled(state); return CompiledHandling.begin(state, request, weapons, queries);
+    }
     public void validateSource(EffectSource source) {
         if (bundle(source.bundle()).scope() != EffectProgram.Scope.SOURCE) throw new IllegalArgumentException("Equipped source references a buff-only bundle");
         EffectParameters.validate(bundle(source.bundle()).parameters(), source.parameters());
@@ -967,7 +1003,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results) {
         return evaluation(state, context, results, Optional.empty());
     }
-    private Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results, Optional<ResourceReadView> resourceView) {
+    Evaluation evaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results, Optional<ResourceReadView> resourceView) {
         return new Evaluation(state, EffectContinuations.context(context), buffs, results, resources, context.retainedResults(), Optional.of(this), resourceView);
     }
     /** Explicit frozen supervisor scope; evaluating it never refreshes or writes another session. */
@@ -1042,6 +1078,19 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     || !receipt.request().site().equals(site)) throw new IllegalArgumentException("Resource result differs from compiled site");
             return new RuleEngine.Local<>(state, receipt.value(), List.of());
         }
+    }
+    @FunctionalInterface
+    private interface WeaponAction {
+        RuleEngine.Outcome<EffectState> execute(EffectState state, RuleEngine.Context context, WeaponQueries queries);
+    }
+    private RuleEngine.Action<EffectState> weaponInput(String site, WeaponAction action) {
+        return weaponAction(site, (state, context, queries) -> {
+            settled(state); return action.execute(state, context, queries);
+        });
+    }
+    private RuleEngine.Action<EffectState> weaponAction(String site, WeaponAction action) {
+        return evaluated("chorus:internal/weapon/" + site, Map.of(), Map.of(),
+                (e, context) -> action.execute(e.state(), context, new WeaponQueries(this, e.state(), e.resourceView())));
     }
     /** The raw context retains compiler-private bindings; Evaluation exposes only lexical DSL names. */
     private interface EvaluatedAction {
@@ -1672,7 +1721,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var query = new EffectEvent(holder, holder, new BuffInstance.Origin(holder, profile, "", ""), java.util.Set.of(), Map.of());
         return calculateEvent(state, holder, queryEvent(state, new NumericQuery(query, path)), profile, input, List.of(), resourceView);
     }
-    private void requireWorldQueryView(EffectState state, Optional<ResourceReadView> view) {
+    void requireWorldQueryView(EffectState state, Optional<ResourceReadView> view) {
         if (resourceRouting && view.isEmpty()) throw new IllegalStateException("Coordinated world queries require an explicit resource view");
         view.ifPresent(v -> v.require(program, state));
     }

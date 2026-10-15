@@ -5,6 +5,10 @@ import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.HealingCommand;
 import com.imdomestic.chorus.effect.data.*;
+import com.imdomestic.chorus.effect.equipment.*;
+import com.imdomestic.chorus.effect.resource.*;
+import com.imdomestic.chorus.effect.persistence.CheckpointArchive;
+import com.imdomestic.chorus.effect.weapon.WeaponFire;
 import com.imdomestic.chorus.platform.minecraft.MinecraftHealingExecutor;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
@@ -24,6 +28,74 @@ public class EffectCheckpointGameTest {
         boolean rejected = false;
         try { action.run(); } catch (IllegalStateException expected) { rejected = true; }
         helper.assertTrue(rejected, "Unsettled session was accepted");
+    }
+    /** Explicit coordinated sessions and the real healing adapter; this does not install a native coordinated runtime. */
+    private static final class RoutedWeapon {
+        static final String A = "test:weapon", B = "test:resources";
+        final GameTestHelper helper; final net.minecraft.world.entity.LivingEntity target; final String holder;
+        final CompiledEffects program; final Map<String, EffectSession> sessions = new TreeMap<>();
+        ResourceSessionAuthority host; int heals; boolean loseReceipt;
+        RoutedWeapon(GameTestHelper helper) {
+            this.helper = helper; target = helper.spawnWithNoFreeWill(EntityTypes.COW, 2, 2, 2); target.setHealth(2); holder = target.getUUID().toString();
+            var data = com.google.gson.JsonParser.parseString("""
+                {"version":"coordinated-weapon-world","resources":[{"id":"test:energy","capacity":1,"initial":0.25}],
+                 "equipment":{"slots":[{"id":"test:weapon","accepts":["test:weapon"],"weapon":true}],"items":[{"id":"test:gun","tags":["test:weapon"]}]},
+                 "weapons":[{"item":"test:gun","ammunition":{"capacity":4,"magazine":4,"reserves":"unlimited"},
+                  "reload":{"value":{"type":"chorus:constant","value":0.25,"unit":"second"}},
+                  "fire":{"cost":{"type":"chorus:scale","of":{"type":"chorus:resource","resource":"test:energy"},"factor":4,"from":"charge_fraction","to":"round"},
+                    "interval":{"type":"chorus:scale","of":{"type":"chorus:resource","resource":"test:energy"},"factor":1,"from":"charge_fraction","to":"second"},
+                    "on_fire":[{"type":"chorus:heal","amount":{"type":"chorus:scale","of":{"type":"chorus:resource","resource":"test:energy"},"factor":4,"from":"charge_fraction","to":"damage"}}]}}]}
+                """);
+            program = EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).getOrThrow().withResourceRouting();
+            sessions.put(A, new EffectSession(program, clock(), 1, EffectState.empty(), r -> world(A, r)));
+            sessions.put(B, new EffectSession(program, clock(), 1, EffectState.empty().withResource(new ResourceState(key(), .25, 1, 0)), r -> world(B, r)));
+            var bindings = new TreeMap<String, ResourceSessionAuthority.Binding>(); sessions.forEach((id, s) -> bindings.put(id, new ResourceSessionAuthority.Binding(program, s)));
+            host = new ResourceSessionAuthority(ResourceAuthority.Directory.EMPTY, bindings); host.claim(holder, B);
+            var gear = new Loadout(Map.of("test:weapon", new Loadout.Gear("gun", "test:gun", Map.of())), Optional.of("test:weapon"));
+            sessions.get(A).start(0, new EquipmentChange(holder, Loadout.EMPTY, gear).signal());
+        }
+        ResourceState.Key key() { return new ResourceState.Key(holder, "test:energy"); }
+        EffectState state() { return sessions.get(A).state().engine().domain(); }
+        void fire(long time, String token) { sessions.get(A).start(time, new WeaponFire.Request(holder, token).signal()); }
+        RuleEngine.ActionResult world(String domain, RuleEngine.WorldRequest request) {
+            if (request.command() instanceof ResourceRequests.Request) return host.execute(domain, request);
+            var command = (HealingCommand) request.command(); helper.assertValueEqual(command.target(), holder, "original weapon owner");
+            var result = MinecraftHealingExecutor.execute(request.id().toString(), target, command); heals++;
+            if (loseReceipt) throw new IllegalStateException("Injected unknown physical healing result after weapon payment");
+            return result;
+        }
+        void restore() {
+            var saved = host.checkpoint();
+            var entries = saved.domains().entrySet().stream().map(e -> new CheckpointArchive.Entry("test:weapon", e.getKey(), 0, e.getValue(), Set.of())).toList();
+            var decoded = CheckpointArchive.decode(CheckpointArchive.coordinated(entries, saved).encode()).resourceCheckpoint().orElseThrow();
+            var policies = new TreeMap<String, ResourceSessionAuthority.RestoreBinding>();
+            for (String domain : sessions.keySet()) policies.put(domain, new ResourceSessionAuthority.RestoreBinding(program, clock(), 1, r -> world(domain, r)));
+            var restored = ResourceSessionAuthority.restore(decoded, policies); host = restored.authority(); restored.bindings().forEach((id, b) -> sessions.put(id, b.session()));
+        }
+    }
+    @GameCase public void coordinatedWeaponRestoresItsPaymentAndUsesRemoteResourcesForLaterPhysicalHealing(GameTestHelper helper) {
+        var f = new RoutedWeapon(helper);
+        try {
+            f.fire(0, "first"); near(helper, f.target.getHealth(), 3, "first actual heal");
+            helper.assertValueEqual(f.state().ammunition().get("gun").magazine(), 3, "first payment");
+            f.restore(); near(helper, f.target.getHealth(), 3, "restore does not replay native healing");
+            f.host.grant(f.key(), .25, .25); f.fire(250_000, "second");
+            near(helper, f.target.getHealth(), 5, "new remote balance determines actual heal");
+            helper.assertValueEqual(f.state().ammunition().get("gun").magazine(), 1, "second payment uses current remote balance");
+            helper.assertValueEqual(f.heals, 2, "exact native write count");
+            helper.assertTrue(f.state().resources().isEmpty(), "remote balance copied into weapon domain");
+            f.host.checkpoint(); helper.succeed();
+        } finally { f.target.discard(); }
+    }
+    @GameCase public void coordinatedWeaponLostNativeReceiptRetainsAmmoPaymentAndNeverRepeatsHealing(GameTestHelper helper) {
+        var f = new RoutedWeapon(helper);
+        try {
+            f.loseReceipt = true; refused(helper, () -> f.fire(0, "first"));
+            near(helper, f.target.getHealth(), 3, "actual heal committed before lost receipt");
+            helper.assertValueEqual(f.state().ammunition().get("gun").magazine(), 3, "payment retained");
+            refused(helper, f.host::checkpoint); refused(helper, () -> f.fire(250_000, "retry"));
+            helper.assertValueEqual(f.heals, 1, "native healing not replayed"); helper.succeed();
+        } finally { f.target.discard(); }
     }
     @GameCase public void restoredPausedPeriodicHealingUsesOriginalRemainderAndDoesNotRepeatCompletedHealing(GameTestHelper helper) throws Exception {
         var target = helper.spawnWithNoFreeWill(EntityTypes.COW, 2, 2, 2); target.setHealth(2);

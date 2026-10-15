@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：武器输入及完整阶段流程的协调资源读取
+
+梳理原生输入接线时发现，普通 DSL 已使用协调视图，但武器请求和内部到期处理仍调用本地数值查询。现为装备、开火、换弹、瞄准、切枪和蓄力的完整流程加入临时 WeaponQueries，统一传递同一资源视图到门禁、条件、成本、容量、时长与嵌套 Profile / Pipeline；纯候选状态通过 withLocalState 派生，不能改变资源余额或时间。各类请求与后续阶段复用 ActionRoutes，物理切枪准备 / 回执核对和原事实顺序保留。显式宿主 API 提供 ResourceReadView 重载，协调模式的旧本地入口在提前返回前拒绝。
+
+新增 13 项 WeaponResourceRoutingTest，覆盖远端容量 / 开火成本 / 条件 / 固定间隔、装填完成时当前容量、装填反应改变下一次时长与份额、收枪反应改变举枪时间、瞄准完成门禁 / 退出时长、重复蓄力与联合恢复、部分蓄力释放时当前费用、完成拒绝、未知发射 / 物理切枪 / 第二次装填验证、显式宿主查询与事件执行一致、全部时长嵌套 Profile、错误程序及无视图提前返回。各类 ActionRoutes 回执逐一编码往返。首轮补齐查询辅助类的装备类型 import，并将无视图拒绝断言改为原有 IllegalStateException；没有放宽生产校验。`/tmp/chorus-weapon-resource-regression1.log` 的已有武器回归与 `/tmp/chorus-weapon-resource-core3.log` 的 54 项新增 / 资源路由 / 时钟 / 联合检查点回归通过。
+
+两项新增共享世界场景用显式协调会话及真实 MinecraftHealingExecutor，验证武器扣弹、远端余额改变后的实际治疗、联合恢复不重放，以及治疗已写入但回执未知时付款保留且不能重试。它们不安装默认协调原生运行时，也不代表玩家命令 / 物理武器跨维度迁移已经接通。没有新增存储类型、格式、图形客户端验收或原作数值校准；Compendium 仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[武器阶段资源视图](engine-data-packs.md#武器输入与阶段处理的资源视图)。
+
+提交前复查补回了武器请求入口原有的完整状态校验，避免空手等提前返回绕过旧约束。第二次完整回归暴露既有 ReactionBindingGameTest 夹具会把无关原生伤害赋予测试武器信用；新增独立红测 `/tmp/chorus-reaction-source-red.log` 确认普通伤害使玩家生命从 10 变成 22。夹具现仅对自己创建的 DamageSource 赋予测试信用，其他伤害使用正常原生归因；原命中 / 治疗与恰好一次断言保留。`/tmp/chorus-reaction-source-green.log` 的五项定向世界场景通过，修正单独提交为 `4984f403`。
+
+最终完整回归 `/tmp/chorus-weapon-resource-full-gate3.log` BUILD SUCCESSFUL（4 分 32 秒）：2433 项 JUnit 无失败 / 错误 / 跳过、Fabric 1323 项、NeoForge 1338 项、双端发布包及两次正常停服检查点通过。`build/reports/weapon-resource/audit.json` 核验原 720 项存储形状保持、发布主类 1315 / 1308 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
 ### 2026-10-15：资源目录与领域的联合检查点
 
 ResourceSessionAuthority.checkpoint 在同一非重入宿主边界捕获所有已结算会话，核对前后完整时间线身份后才发布目录。Checkpoint 将目录与各领域完整 EffectSession.Checkpoint 一起固定，校验归属领域存在、完整规则目录一致、账户表 / 时钟匹配及无外域副本；包含无受管账户的领域并保留各自编译模式。捕获不推进时间或排空 inbox，活动回调、待处理事实和未知结果继续拒绝保存。restore 要求精确的领域集合 / 程序 / 模式与显式时钟、预算、世界执行器，创建新会话后共同绑定协调器，不重放旧动作。

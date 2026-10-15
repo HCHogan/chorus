@@ -12,7 +12,7 @@ import java.util.*;
 /** Aim input is accepted once per edge; each edge samples its own duration. */
 final class CompiledAiming {
     private CompiledAiming() {}
-    static RuleEngine.Local<EffectState> begin(EffectState state,WeaponAim.Request request,CompiledWeapons weapons,CompiledEffects program) {
+    static RuleEngine.Local<EffectState> begin(EffectState state,WeaponAim.Request request,CompiledWeapons weapons,WeaponQueries program) {
         var previous=state.aiming().get(request.holder());
         if(previous==null&&!request.pressed()||previous!=null&&previous.held()==request.pressed())return reject(state,WeaponAim.Outcome.UNCHANGED);
         var loadout=state.equipment().getOrDefault(request.holder(),Loadout.EMPTY);var gear=WeaponReload.drawn(loadout);
@@ -45,7 +45,7 @@ final class CompiledAiming {
         if(!current(state,plan)||plan.phase()==WeaponAim.Phase.AIMED||state.buffs().timeMicros()!=plan.dueAt())throw new IllegalStateException("Aim is not at its accepted boundary");
         return new WeaponAim.Verify(plan);
     }
-    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponAim.Plan plan,WeaponAim.Verified result,CompiledEffects program) {
+    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponAim.Plan plan,WeaponAim.Verified result,WeaponQueries program) {
         if(!current(state,plan))return new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
         if(!prepare(state,plan).equals(result.query()))throw new IllegalArgumentException("Aim receipt belongs to another transition");
         if(!result.allowed())return cancel(state,plan.holder(),"host_rejected");

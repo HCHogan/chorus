@@ -10,13 +10,13 @@ import java.util.*;
 /** Pure selection phases. Only their explicit world command changes the physical drawn slot. */
 final class CompiledHandling {
     private CompiledHandling() {}
-    static boolean configured(EffectState state, String holder, Optional<String> slot, CompiledWeapons weapons, CompiledEffects program) {
+    static boolean configured(EffectState state, String holder, Optional<String> slot, CompiledWeapons weapons, WeaponQueries program) {
         var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
         var desired = new Loadout(loadout.slots(), slot, loadout.grants()); program.equipment().validate(desired);
         return state.handling().containsKey(holder) || List.of(loadout, desired).stream().map(WeaponReload::drawn)
                 .flatMap(Optional::stream).map(g -> weapons.definition(g.definition())).filter(Objects::nonNull).anyMatch(w -> w.handling().isPresent());
     }
-    static RuleEngine.Local<EffectState> begin(EffectState state, WeaponHandling.Request request, CompiledWeapons weapons, CompiledEffects program) {
+    static RuleEngine.Local<EffectState> begin(EffectState state, WeaponHandling.Request request, CompiledWeapons weapons, WeaponQueries program) {
         var loadout = state.equipment().getOrDefault(request.holder(), Loadout.EMPTY);
         program.equipment().validate(new Loadout(loadout.slots(), request.slot(), loadout.grants()));
         var previous = state.handling().get(request.holder());
@@ -41,7 +41,7 @@ final class CompiledHandling {
         return new RuleEngine.Local<>(state, new WeaponHandling.Receipt(outcome, Optional.empty()), List.of());
     }
     private static WeaponHandling.Plan plan(EffectState state, String holder, String token, Optional<String> targetSlot,
-            Optional<Loadout.Gear> target, WeaponHandling.Phase phase, CompiledWeapons weapons, CompiledEffects program) {
+            Optional<Loadout.Gear> target, WeaponHandling.Phase phase, CompiledWeapons weapons, WeaponQueries program) {
         var loadout = state.equipment().getOrDefault(holder, Loadout.EMPTY);
         String slot = (phase == WeaponHandling.Phase.STOW ? loadout.drawn() : targetSlot).orElseThrow();
         var gear = loadout.slots().get(slot);
@@ -73,14 +73,14 @@ final class CompiledHandling {
         return new RuleEngine.Local<>(updated, RuleEngine.Empty.INSTANCE, facts);
     }
     static boolean current(EffectState state, WeaponHandling.Plan plan) { return plan.equals(state.handling().get(plan.holder())); }
-    static WeaponHandling.Apply prepare(EffectState state, WeaponHandling.Plan plan, CompiledEffects program) {
+    static WeaponHandling.Apply prepare(EffectState state, WeaponHandling.Plan plan, WeaponQueries program) {
         if (!current(state, plan) || plan.completed() || plan.dueAt() != state.buffs().timeMicros()) throw new IllegalStateException("Handling is not at its accepted boundary");
         var change = plan.change(state.equipment().getOrDefault(plan.holder(), Loadout.EMPTY));
         // Validate the complete pure equipment transition before requesting a physical mutation.
         program.changeEquipment(clear(state, plan), change);
         return new WeaponHandling.Apply(plan, change);
     }
-    static RuleEngine.Local<EffectState> finish(EffectState state, WeaponHandling.Plan plan, WeaponHandling.Applied result, CompiledEffects program) {
+    static RuleEngine.Local<EffectState> finish(EffectState state, WeaponHandling.Plan plan, WeaponHandling.Applied result, WeaponQueries program) {
         if (!current(state, plan)) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         var expected = prepare(state, plan, program);
         if (!expected.equals(result.query())) throw new IllegalArgumentException("Handling receipt belongs to another phase");
@@ -94,7 +94,7 @@ final class CompiledHandling {
         } else facts.add(fact("chorus:weapon_switch_finished", plan, "completed"));
         return new RuleEngine.Local<>(updated, result, facts);
     }
-    static RuleEngine.Local<EffectState> next(EffectState state, WeaponHandling.Plan previous, CompiledWeapons weapons, CompiledEffects program) {
+    static RuleEngine.Local<EffectState> next(EffectState state, WeaponHandling.Plan previous, CompiledWeapons weapons, WeaponQueries program) {
         if (!current(state, previous)) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
         if (!previous.completed() || previous.dueAt() != state.buffs().timeMicros()) throw new IllegalStateException("Not a committed stow boundary");
         if (previous.target().isEmpty()) return new RuleEngine.Local<>(clear(state, previous), RuleEngine.Empty.INSTANCE,

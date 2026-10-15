@@ -12,10 +12,10 @@ import java.util.*;
 /** A press fixes timing and trigger. Firing consumes the plan and commits payment before running the shot body. */
 final class CompiledCharging {
     private CompiledCharging() {}
-    static RuleEngine.Local<EffectState> input(EffectState state,WeaponCharge.Request request,CompiledWeapons weapons,CompiledEffects program){
+    static RuleEngine.Local<EffectState> input(EffectState state,WeaponCharge.Request request,CompiledWeapons weapons,WeaponQueries program){
         return input(state,request,weapons,program,0);
     }
-    private static RuleEngine.Local<EffectState> input(EffectState state,WeaponCharge.Request request,CompiledWeapons weapons,CompiledEffects program,long cycle){
+    private static RuleEngine.Local<EffectState> input(EffectState state,WeaponCharge.Request request,CompiledWeapons weapons,WeaponQueries program,long cycle){
         var previous=state.charging().get(request.holder());
         if(request.edge()!=WeaponCharge.Edge.PRESS){
             if(previous==null)return reject(state,WeaponCharge.Outcome.NO_PRESS);
@@ -45,11 +45,11 @@ final class CompiledCharging {
         var plan=new WeaponCharge.Plan(request.holder(),request.token(),loadout.drawn().orElseThrow(),weapon,origin,WeaponCharge.Phase.CHARGING,now,Math.addExact(now,full.micros()),minimum,full,request.holderReference(),charging.trigger(),charging.repeat(),cycle,Optional.empty());
         return new RuleEngine.Local<>(state.withCharge(plan).schedule(plan.timer()),new WeaponCharge.Receipt(WeaponCharge.Outcome.ACCEPTED,Optional.of(plan),Optional.empty(),Optional.empty()),List.of(fact("chorus:weapon_charge_started",plan,cycle==0?"input":"repeat",now,true)));
     }
-    private static Evaluation evaluation(EffectState state,EffectEvent query,CompiledEffects program){
+    private static Evaluation evaluation(EffectState state,EffectEvent query,WeaponQueries program){
         var event=new RuleEngine.Event(0,0,Optional.empty(),state.buffs().timeMicros(),new RuleEngine.Signal("chorus:internal/charge_query",query));
         return program.evaluation(state,new RuleEngine.Context(event,query.source().source(),new WeaponFire.Scope(query),Map.of()),Map.of());
     }
-    private static WeaponCharge.Timing timing(EffectState state,EffectEvent query,WeaponDefinition.Timing timing,String name,CompiledEffects program){
+    private static WeaponCharge.Timing timing(EffectState state,EffectEvent query,WeaponDefinition.Timing timing,String name,WeaponQueries program){
         var refs=new HashMap<>(query.references());refs.put("charge_timing",name);query=new EffectEvent(query.actor(),query.victim(),query.source(),query.tags(),query.numbers(),query.flags(),refs);
         var input=timing.value().evaluate(evaluation(state,query,program));
         var calculation=timing.profiles().isEmpty()?Optional.<CalculationPipeline.Result>empty():Optional.of(program.calculatePipeline(state,query.actor(),query,timing.profiles(),input));
@@ -64,7 +64,7 @@ final class CompiledCharging {
         if(!current(state,plan)||plan.phase()==WeaponCharge.Phase.READY||state.buffs().timeMicros()!=plan.dueAt())throw new IllegalStateException("Charge is not at its accepted phase boundary");
         return new WeaponCharge.Verify(plan);
     }
-    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponCharge.Plan plan,WeaponCharge.Verified result,CompiledWeapons weapons,CompiledEffects program){
+    static RuleEngine.Local<EffectState> finish(EffectState state,WeaponCharge.Plan plan,WeaponCharge.Verified result,CompiledWeapons weapons,WeaponQueries program){
         if(!current(state,plan))return new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
         if(!prepare(state,plan).equals(result.query()))throw new IllegalArgumentException("Charge verification belongs to another plan");
         if(!result.allowed())return cancel(state,plan.holder(),"host_rejected");
@@ -79,7 +79,7 @@ final class CompiledCharging {
         var ready=plan.ready();var updated=state.cancel(plan.timerId()).withCharge(ready);var facts=List.of(fact("chorus:weapon_charge_ready",ready,"completed",state.buffs().timeMicros(),true));
         return plan.trigger()==WeaponCharge.Trigger.FULL?fire(state,plan,"full",weapons,program,facts):new RuleEngine.Local<>(updated,result,facts);
     }
-    private static RuleEngine.Local<EffectState> fire(EffectState state,WeaponCharge.Plan plan,String reason,CompiledWeapons weapons,CompiledEffects program,List<RuleEngine.Signal> before){
+    private static RuleEngine.Local<EffectState> fire(EffectState state,WeaponCharge.Plan plan,String reason,CompiledWeapons weapons,WeaponQueries program,List<RuleEngine.Signal> before){
         var fired=weapons.fire(state,new WeaponFire.Request(plan.holder(),plan.fireToken()),program,Optional.of(plan));
         var receipt=(WeaponFire.Receipt)fired.result();var facts=new ArrayList<>(before);
         var reported=plan.trigger()==WeaponCharge.Trigger.FULL?plan.ready():plan;
