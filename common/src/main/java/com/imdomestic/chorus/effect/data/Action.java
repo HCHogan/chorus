@@ -182,7 +182,7 @@ public interface Action {
             var value = amount.evaluate(e); Validation.same(value.unit(), Unit.DAMAGE);
             var attack = new DamageCommand(e.self(), origin.resolve(e), value.value(), damageType, tags, killTags, nonLethal, Optional.of(scalingProfile), Optional.empty(), ImpactData.EMPTY, shieldScalingProfile)
                     .withProc(proc.resolve(e.context().event().signal().payload()));
-            var snapshot = e.program().orElseThrow(() -> new IllegalStateException("Snapshot action needs its compiled program")).captureDamage(e.state(), attack);
+            var snapshot = e.program().orElseThrow(() -> new IllegalStateException("Snapshot action needs its compiled program")).captureDamage(e.state(), attack, e.resourceView());
             return new RuleEngine.Local<>(e.state(), snapshot, List.of());
         }
     }
@@ -206,7 +206,7 @@ public interface Action {
         return new ImpactData(values);
     }
     private static DamageCommand prepareDamage(Evaluation e, DamageCommand command) {
-        return e.program().map(p -> p.prepareDamage(e.state(), command)).orElse(command);
+        return e.program().map(p -> p.prepareDamage(e.state(), command, e.resourceView())).orElse(command);
     }
     static RuleEngine.Local<EffectState> finishDamage(EffectState state, DamageCommand command, DamageReceipt receipt, java.util.Map<String, String> attribution) {
         if (receipt.observedBuffs().isEmpty() && !receipt.consumptionSettled())
@@ -338,7 +338,7 @@ public interface Action {
             var key = e.key(buff, target); var instance = e.state().buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Cannot restore a missing shield buff"));
             var program = e.program().orElseThrow(() -> new IllegalStateException("Shield restoration requires a compiled program"));
             var requested = amount.evaluate(e); Validation.same(requested.unit(), Unit.DAMAGE);
-            var restored = ShieldRestoration.restore(e.state().buffs(), key, program.shield(buff).capacity(), requested.value(), program.shieldMaximum(e.state(), instance));
+            var restored = ShieldRestoration.restore(e.state().buffs(), key, program.shield(buff).capacity(), requested.value(), program.shieldMaximum(e.state(), instance, e.resourceView()));
             return new RuleEngine.Local<>(e.state().withBuffs(restored.store()), restored.receipt(), ShieldRestoration.facts(restored.receipt(), e.origin()));
         }
     }

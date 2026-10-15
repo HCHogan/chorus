@@ -185,6 +185,25 @@ public final class ResourceSessionAuthority {
             }
             var before = capture(true, Optional.of(new Caller(caller, operation)));
             var frame = before.timelines().get(caller).engine().frames().getFirst();
+            if (command instanceof ActionRoutes.Request route) {
+                var compiled = binding(caller).program();
+                var outcome = compiled.evaluateActionRoute(new ResourceReadView(before.worlds(), caller, compiled.program()),
+                        before.timelines().get(caller).engine(), request);
+                ResourceAuthority.Worlds next; ActionRoutes.Receipt actual; List<RuleEngine.Signal> emitted;
+                switch (outcome) {
+                    case RuleEngine.Local<EffectState> local -> {
+                        next = ResourceAuthority.publish(before.worlds(), caller, before.worlds().domain(caller), local.state());
+                        actual = ActionRoutes.completed(route, local.result()); emitted = local.emitted();
+                    }
+                    case RuleEngine.Await<EffectState> await -> {
+                        if (!(route instanceof ActionRoutes.Begin begin)) throw new IllegalArgumentException("Action completion cannot prepare another command");
+                        next = before.worlds(); actual = new ActionRoutes.Ready(begin, await.command()); emitted = List.of();
+                    }
+                }
+                // These are original action facts in the caller domain, including non-resource typed payloads.
+                commit(before, next, prepare(before, next, Optional.of(actual), emitted.isEmpty() ? Map.of() : Map.of(caller, emitted)));
+                return actual;
+            }
             ResourceAuthority.Worlds after; ResourceRequests.Receipt receipt;
             if (command instanceof ResourceRoutes.Request route) {
                 var compiled = binding(caller).program();
@@ -250,6 +269,7 @@ public final class ResourceSessionAuthority {
                 yield new Applied(ResourceAuthority.publish(worlds, view.domain(), view.state(), transition.state()), receipt);
             }
             case ResourceRoutes.Request ignored -> throw new IllegalArgumentException("Nested resource route");
+            case ActionRoutes.Request ignored -> throw new IllegalArgumentException("Nested coordinated action");
         };
     }
     private void requireAbilityDomain(String domain) {

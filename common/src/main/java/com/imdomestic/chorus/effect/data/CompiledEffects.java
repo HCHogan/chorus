@@ -624,7 +624,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         settled(state); return weapons.instant(state, holder, selection, completion, reason, cause, operation);
     }
     public RuleEngine.Local<EffectState> completeInstantReload(EffectState state, InstantReload.Checked checked) {
-        settled(state); return weapons.instant(state, checked, this);
+        return completeInstantReload(state, checked, Optional.empty());
+    }
+    public RuleEngine.Local<EffectState> completeInstantReload(EffectState state, InstantReload.Checked checked, Optional<ResourceReadView> view) {
+        settled(state); view.ifPresent(v -> v.require(program, state)); return weapons.instant(state, checked, this, view);
     }
     public RuleEngine.Local<EffectState> reload(EffectState state, WeaponReload.Request request) { settled(state); return weapons.begin(state, request, this); }
     public RuleEngine.Local<EffectState> fire(EffectState state, WeaponFire.Request request) { settled(state); return weapons.fire(state, request, this); }
@@ -812,11 +815,15 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Maximum is evaluated in the receiving layer's scope, not the restoring rule's scope. It does not resize existing capacity. */
     public double shieldMaximum(EffectState state, BuffInstance instance) {
+        return shieldMaximum(state, instance, Optional.empty());
+    }
+    public double shieldMaximum(EffectState state, BuffInstance instance, Optional<ResourceReadView> view) {
+        view.ifPresent(v -> v.require(program, state));
         validateState(state); var declaration = shield(instance.definition().id());
         if (declaration.maximum().isEmpty()) return instance.definition().components().number(declaration.capacity()).value();
         var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(), new RuleEngine.Signal("chorus:internal/shield_restore_query", RuleEngine.Empty.INSTANCE));
         var context = new RuleEngine.Context(event, "shield/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
-        var maximum = declaration.maximum().orElseThrow().evaluate(evaluation(state, context, Map.of()));
+        var maximum = declaration.maximum().orElseThrow().evaluate(evaluation(state, context, Map.of(), view));
         Validation.same(maximum.unit(), Unit.DAMAGE); Numbers.nonnegative(maximum.value(), "shield maximum"); return maximum.value();
     }
     /** Each active layer owns one rate expression. Recovery never reads or invents native health. */
@@ -939,6 +946,77 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             return new RuleEngine.Local<>(state, receipt.value(), List.of());
         }
     }
+    /** The raw context retains compiler-private bindings; Evaluation exposes only lexical DSL names. */
+    private interface EvaluatedAction {
+        RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context context);
+        default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context context, RuleEngine.ActionResult actual) {
+            return new RuleEngine.Local<>(evaluation.state(), actual, List.of());
+        }
+    }
+    private RuleEngine.Action<EffectState> evaluated(String site, Map<String, ResultShape> results, Map<String, String> slots, EvaluatedAction action) {
+        if (resourceRouting) return new CoordinatedAction(site, results, slots, action);
+        return new RuleEngine.Action<>() {
+            @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                return action.execute(scopedEvaluation(state, context, results, slots), context);
+            }
+            @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult actual) {
+                return action.complete(scopedEvaluation(state, context, results, slots), context, actual);
+            }
+        };
+    }
+    private final class CoordinatedAction implements RuleEngine.Action<EffectState> {
+        private final String site;
+        private final Map<String, ResultShape> results;
+        private final Map<String, String> slots;
+        private final EvaluatedAction action;
+        private CoordinatedAction(String site, Map<String, ResultShape> results, Map<String, String> slots, EvaluatedAction action) {
+            this.site = site; this.results = Map.copyOf(results); this.slots = Map.copyOf(slots); this.action = action;
+        }
+        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+            return new RuleEngine.Await<>(new ActionRoutes.Begin(site));
+        }
+        @Override public RuleEngine.Outcome<EffectState> resume(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult actual) {
+            var command = context.command(RuleEngine.WorldCommand.class);
+            if (command instanceof ActionRoutes.Request request) {
+                if (!(actual instanceof ActionRoutes.Receipt receipt) || !request.equals(receipt.request()) || !site.equals(request.site()))
+                    throw new IllegalArgumentException("Coordinated action result differs from its phase");
+                if (receipt instanceof ActionRoutes.Ready ready) return new RuleEngine.Await<>(ready.command());
+                return new RuleEngine.Local<>(state, ((ActionRoutes.Completed) receipt).value(), List.of());
+            }
+            return new RuleEngine.Await<>(new ActionRoutes.Finish(site, context.operation(), command, actual));
+        }
+    }
+    /** Evaluate only the pinned active instruction; completion must prove both preparation and the actual world result. */
+    public RuleEngine.Outcome<EffectState> evaluateActionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        view.require(program, state.domain());
+        if (!resourceRouting || !(request.command() instanceof ActionRoutes.Request route) || !state.pending().equals(Optional.of(request.id())) || state.frames().isEmpty())
+            throw new IllegalArgumentException("Not an active coordinated action");
+        var frame = state.frames().getFirst();
+        if (request.id().frame() != frame.id() || request.id().pc() != frame.pc()
+                || request.id().invocation() != frame.invocations().getOrDefault(frame.pc(), 0)
+                || !frame.pendingCommand().equals(Optional.of(request.command()))) throw new IllegalArgumentException("Coordinated action frame differs");
+        var definition = definitions.stream().filter(d -> d.definition().equals(frame.definition())).findFirst().orElseThrow();
+        if (frame.pc() >= definition.actions().size() || !(definition.actions().get(frame.pc()).action() instanceof CoordinatedAction action)
+                || !action.site.equals(route.site())) throw new IllegalArgumentException("Coordinated action site differs from caller instruction");
+        RuleEngine.OperationId semanticOperation; Optional<RuleEngine.WorldCommand> pending;
+        if (route instanceof ActionRoutes.Finish finish) {
+            semanticOperation = finish.operation(); pending = Optional.of(finish.command());
+            var preparation = new RuleEngine.OperationId(semanticOperation.frame(), semanticOperation.pc(), semanticOperation.invocation() - 1);
+            var prepared = unwrapped(state.receipts().get(preparation));
+            if (!semanticOperation.nextInvocation().equals(request.id()) || !Objects.equals(unwrapped(state.receipts().get(semanticOperation)), finish.actual())
+                    || !(prepared instanceof ActionRoutes.Ready ready) || !ready.request().site().equals(route.site()) || !ready.command().equals(finish.command()))
+                throw new IllegalArgumentException("Coordinated completion lacks its actual prepared command and receipt");
+        } else {
+            // Preparing an Await must already use the identity under which its world command will execute.
+            semanticOperation = request.id().nextInvocation(); pending = Optional.empty();
+        }
+        var context = new RuleEngine.Context(frame.event(), frame.rule(), frame.scope(), frame.bindings(), semanticOperation, frame.retainedResults(), pending);
+        var e = scopedEvaluation(view.state(), context, action.results, action.slots, Optional.of(view));
+        return route instanceof ActionRoutes.Finish finish ? action.action.complete(e, context, finish.actual()) : action.action.execute(e, context);
+    }
+    private static RuleEngine.ActionResult unwrapped(RuleEngine.ActionResult receipt) {
+        return receipt instanceof RuleEngine.WorldReceipt envelope ? envelope.value() : receipt;
+    }
     private RuleEngine.Instruction<EffectState> decisionGuard(String binding, int skip) {
         return new RuleEngine.Instruction<>((state, _) -> new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of()), "",
                 (_, context) -> context.result(binding, ResourceRoutes.Decision.class).passes(), skip);
@@ -966,14 +1044,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if(previous.containsKey(ray.bind()))throw new IllegalArgumentException("Shadowed ray path binding");
         String prepared=path+"prepared",observed=path+"observed",contact=path+"contact";
         var output=new ArrayList<RuleEngine.Instruction<EffectState>>();
-        output.add(new RuleEngine.Instruction<>((state,context)->{
-            var e=scopedEvaluation(state,context,previous,previousSlots);var query=ray.spec().resolve(e,ray.shot().map(m->m.resolve(e)));
+        output.add(new RuleEngine.Instruction<>(evaluated(ownerRule+"/ray/"+path,previous,previousSlots,(e,context)->{
+            var state=e.state();var query=ray.spec().resolve(e,ray.shot().map(m->m.resolve(e)));
             int count=ShotActions.integer(pierces.evaluate(e).value());
             Hitscan.PreparedObservation preparedResult=bounces.isPresent()
                     ? new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Prepared(new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Query(query,count,ShotActions.integer(bounces.orElseThrow().evaluate(e).value()),ShotActions.integer(hitsPerTarget.evaluate(e).value()),hitOrigin))
                     : new Hitscan.PreparedPath(new Hitscan.PiercingQuery(query,count));
             return new RuleEngine.Local<>(query.member().map(m->ShotGroups.reserve(state,m)).orElse(state),preparedResult,List.of());
-        },prepared));
+        }),prepared));
         output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
             @Override public RuleEngine.Outcome<EffectState> step(EffectState state,RuleEngine.Context context){return new RuleEngine.Await<>(((Hitscan.PreparedObservation)context.bindings().get(prepared)).command());}
             @Override public RuleEngine.Local<EffectState> complete(EffectState state,RuleEngine.Context context,RuleEngine.ActionResult result){
@@ -1024,14 +1102,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         String site = ownerRule + "/action/" + path + index;
                         output.add(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceActionRouting.prepare(instruction.action(), e), previous, previousSlots), slot));
                     } else {
-                        output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
-                            @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
-                                return instruction.action().execute(scopedEvaluation(state, context, previous, previousSlots));
+                        output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/action/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                            @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
+                                return instruction.action().execute(e);
                             }
-                            @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult receipt) {
-                                return instruction.action().complete(scopedEvaluation(state, context, previous, previousSlots), receipt);
+                            @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.Context context, RuleEngine.ActionResult receipt) {
+                                return instruction.action().complete(e, receipt);
                             }
-                        }, slot));
+                        }), slot));
                     }
                 }
                 case EffectProgram.Branch branch -> {
@@ -1066,8 +1144,8 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     body.addAll(compileSteps(bundle, after.body(), capturedResults, capturedSlots, path + index + "/after/", ownerRule, continuations));
                     continuations.add(new RuleEngine.EventRule<>(definition, EffectContinuations.EVENT,
                             (state, context) -> ((EffectContinuations.Pending) context.scope()).active(state), body));
-                    output.add(new RuleEngine.Instruction<>((state, context) -> {
-                        var e = scopedEvaluation(state, context, previous, previousSlots);
+                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/schedule/" + path + index, previous, previousSlots, (e, context) -> {
+                        var state = e.state();
                         long delay = Action.micros(after.delay(), e);
                         var owner = after.lifetime() == EffectContinuations.Lifetime.SOURCE ? Optional.of(EffectTimers.Owner.of(e.context().scope())) : Optional.<EffectTimers.Owner>empty();
                         if (owner.isPresent() && !owner.orElseThrow().active(state.sources(), state.buffs())) throw new IllegalArgumentException("Cannot schedule a source-bound continuation for an inactive source");
@@ -1082,7 +1160,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                                 new RuleEngine.Signal(EffectContinuations.EVENT, pending), lifetime,
                                 paused ? java.util.OptionalLong.of(delay) : java.util.OptionalLong.empty());
                         return new RuleEngine.Local<>(state.schedule(timer), RuleEngine.Empty.INSTANCE, List.of());
-                    }, ""));
+                    }), ""));
                 }
                 case EffectProgram.PiercingHitscan ray -> output.addAll(compileRayPath(bundle,ray.ray(),ray.pierces(),Optional.empty(),new Value.Constant(1,Unit.COUNT),false,previous,previousSlots,path+index+"/piercing/",ownerRule,continuations));
                 case EffectProgram.RicochetHitscan ray -> output.addAll(compileRayPath(bundle,ray.ray(),ray.pierces(),Optional.of(ray.bounces()),ray.hitsPerTarget(),ray.hitOriginAfterBounce(),previous,previousSlots,path+index+"/ricochet/",ownerRule,continuations));
@@ -1090,11 +1168,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     ray.spec().validate(validation(bundle, previous)); ray.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(ray.bind());
                     if (previous.containsKey(ray.bind())) throw new IllegalArgumentException("Shadowed hitscan binding");
                     String preparedSlot = path + index + "/ray/prepared", impactSlot = path + index + "/ray/" + ray.bind();
-                    output.add(new RuleEngine.Instruction<>((state, context) -> {
-                        var e = scopedEvaluation(state, context, previous, previousSlots);
+                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/ray/" + path + index, previous, previousSlots, (e, context) -> {
+                        var state = e.state();
                         var query = ray.spec().resolve(e, ray.shot().map(m -> m.resolve(e)));
                         return new RuleEngine.Local<>(query.member().map(m -> ShotGroups.reserve(state,m)).orElse(state), new Hitscan.Prepared(query), List.of());
-                    }, preparedSlot));
+                    }), preparedSlot));
                     output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
                         @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
                             return new RuleEngine.Await<>(((Hitscan.Prepared)context.bindings().get(preparedSlot)).query());
@@ -1136,37 +1214,37 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                             (state, context) -> projectile.shot().isEmpty() || ShotGroups.accepts(state,
                                     (ProjectileFlight.Impact) ((EffectContinuations.Pending) context.scope()).bindings().get(impactSlot)), body));
                     String preparedSlot = path + index + "/prepared";
-                    java.util.function.BiFunction<EffectState, RuleEngine.Context, ProjectileFlight.Launch> prepare = (state, context) -> {
-                        var e = scopedEvaluation(state, context, previous, previousSlots); var spec = projectile.spec();
+                    Function<Evaluation, ProjectileFlight.Launch> prepare = e -> {
+                        var spec = projectile.spec();
                         var captured = new LinkedHashMap<String, RuleEngine.ActionResult>();
                         capturedSlots.forEach((name, slot) -> captured.put(slot, e.context().bindings().get(name)));
-                        var op = context.operation(); String id = "projectile/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
+                        var op = e.context().operation(); String id = "projectile/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
                         var pending = new EffectContinuations.Pending(id, definition, program.version(), e.context().scope(), e.context().event(), captured, Optional.empty());
                         return new ProjectileFlight.Launch(previous.get(spec.position()).position(e.context().bindings().get(spec.position())),
                                 previous.get(spec.direction()).direction(e.context().bindings().get(spec.direction())), spec.resolve(e), e.origin().owner(), pending, impactSlot,
                                 projectile.shot().map(m -> m.resolve(e)), e.target(spec.emitter()));
                     };
-                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>((state, context) -> {
-                        var launch = prepare.apply(state, context);
-                        return new RuleEngine.Local<>(ShotGroups.reserve(state, launch.member().orElseThrow()), new ShotActions.Prepared(launch), List.of());
-                    }, preparedSlot));
+                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/projectile/prepare/" + path + index, previous, previousSlots, (e, context) -> {
+                        var launch = prepare.apply(e);
+                        return new RuleEngine.Local<>(ShotGroups.reserve(e.state(), launch.member().orElseThrow()), new ShotActions.Prepared(launch), List.of());
+                    }), preparedSlot));
                     String launchSlot = projectile.launchBind().map(name -> {
                         localId(name);
                         if (name.equals(projectile.bind()) || results.putIfAbsent(name, ResultShape.PROJECTILE_LAUNCH) != null)
                             throw new IllegalArgumentException("Duplicate or shadowed projectile launch binding: " + name);
                         String slot = path + name; slots.put(name, slot); return slot;
                     }).orElse("");
-                    output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
-                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/projectile/launch/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
                             return new RuleEngine.Await<>(projectile.shot().isPresent()
-                                    ? ((ShotActions.Prepared) context.bindings().get(preparedSlot)).launch() : prepare.apply(state, context));
+                                    ? ((ShotActions.Prepared) context.bindings().get(preparedSlot)).launch() : prepare.apply(e));
                         }
-                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                        @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.Context context, RuleEngine.ActionResult result) {
                             var receipt = (ProjectileFlight.Receipt) result;
                             if (!receipt.launch().equals(context.command(ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
-                            return projectile.shot().isPresent() ? ShotGroups.launched(state, receipt) : new RuleEngine.Local<>(state, receipt, List.of());
+                            return projectile.shot().isPresent() ? ShotGroups.launched(e.state(), receipt) : new RuleEngine.Local<>(e.state(), receipt, List.of());
                         }
-                    }, launchSlot));
+                    }), launchSlot));
                 }
                 case EffectProgram.Pickup pickup -> {
                     pickup.spec().validate(validation(bundle, previous)); localId(pickup.bind());
@@ -1202,9 +1280,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         if (name.equals(pickup.bind()) || results.putIfAbsent(name, ResultShape.PICKUP_SPAWN) != null) throw new IllegalArgumentException("Duplicate or shadowed pickup spawn binding: " + name);
                         String slot = path + name; slots.put(name, slot); return slot;
                     }).orElse("");
-                    output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
-                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
-                            var e = scopedEvaluation(state, context, previous, previousSlots); var spec = pickup.spec();
+                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/pickup/spawn/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
+                            var spec = pickup.spec();
                             var captured = new LinkedHashMap<String, RuleEngine.ActionResult>();
                             capturedSlots.forEach((name, slot) -> captured.put(slot, e.context().bindings().get(name)));
                             var op = context.operation(); String id = "pickup/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
@@ -1212,12 +1290,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                             return new RuleEngine.Await<>(new com.imdomestic.chorus.effect.object.WorldPickup.Spawn(
                                     previous.get(spec.position()).position(e.context().bindings().get(spec.position())), spec.kind(), e.target(spec.recipient()), e.origin(), spec.resolve(e), pending, contactSlot));
                         }
-                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                        @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.Context context, RuleEngine.ActionResult result) {
                             var receipt = (com.imdomestic.chorus.effect.object.WorldPickup.Receipt) result;
                             if (!receipt.spawn().equals(context.command(com.imdomestic.chorus.effect.object.WorldPickup.Spawn.class))) throw new IllegalArgumentException("Pickup receipt does not match spawn");
-                            return new RuleEngine.Local<>(state, receipt, List.of());
+                            return new RuleEngine.Local<>(e.state(), receipt, List.of());
                         }
-                    }, spawnSlot));
+                    }), spawnSlot));
                 }
                 case EffectProgram.ForEach loop -> {
                     localId(loop.bind());
@@ -1263,6 +1341,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
 
     /** Read-only claim eligibility: captured lexical scope and cause, current state and time. The host claims once after this check. */
     public boolean canCollectPickup(EffectState state, com.imdomestic.chorus.effect.object.WorldPickup.Spawn pickup) {
+        if (resourceRouting) throw new IllegalStateException("Coordinated pickup eligibility requires a resource view");
+        return canCollectPickup(state, pickup, Optional.empty());
+    }
+    public boolean canCollectPickup(ResourceReadView view, com.imdomestic.chorus.effect.object.WorldPickup.Spawn pickup) {
+        view.require(program, view.state()); return canCollectPickup(view.state(), pickup, Optional.of(view));
+    }
+    private boolean canCollectPickup(EffectState state, com.imdomestic.chorus.effect.object.WorldPickup.Spawn pickup, Optional<ResourceReadView> view) {
         validateState(state);
         var pending = pickup.continuation();
         var check = pickupChecks.get(pending.definition());
@@ -1271,7 +1356,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(),
                 new RuleEngine.Signal(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, pending));
         var context = new RuleEngine.Context(event, pending.id(), pending, pending.bindings());
-        return check.condition().map(condition -> condition.test(scopedEvaluation(state, context, check.results(), check.slots()))).orElse(true);
+        return check.condition().map(condition -> condition.test(scopedEvaluation(state, context, check.results(), check.slots(), view))).orElse(true);
     }
 
     @Override public List<RuleEngine.RuleBinding> resolve(EffectState state, RuleEngine.Event event) {
@@ -1408,6 +1493,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
 
     /** Read-only eligibility capture. Receipt completion consumes only these existing generations. */
     public DamageCommand prepareDamage(EffectState state, DamageCommand command) {
+        return prepareDamage(state, command, Optional.empty());
+    }
+    public DamageCommand prepareDamage(EffectState state, DamageCommand command, Optional<ResourceReadView> view) {
+        view.ifPresent(v -> v.require(program, state));
         settled(state);
         var group = DamageGroups.forCommand(state, command);
         var candidates = new ArrayList<BuffConsumption.Candidate>();
@@ -1419,7 +1508,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     || instance.pausedAt().isPresent() || instance.activeCount(state.buffs().timeMicros()) == 0
                     || !instance.affects(command.source().weapon(), command.source().ability())) continue;
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
-            if (policy.condition().test(evaluation(state, context, Map.of()))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks(), group.isPresent() && policy.sharing() == BuffConsumption.Sharing.GROUP ? Optional.of(instance) : Optional.empty()));
+            if (policy.condition().test(evaluation(state, context, Map.of(), view))) candidates.add(new BuffConsumption.Candidate(instance.key(), instance.generation(), policy.when(), policy.stacks(), group.isPresent() && policy.sharing() == BuffConsumption.Sharing.GROUP ? Optional.of(instance) : Optional.empty()));
         }
         return prepareReactions(state, command).withConsumptions(candidates);
     }
@@ -1492,6 +1581,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Capture an attack before its target is known. No final group is flattened and no world/entity object is retained. */
     public DamageSnapshot captureDamage(EffectState state, DamageCommand attack) {
+        return captureDamage(state, attack, Optional.empty());
+    }
+    public DamageSnapshot captureDamage(EffectState state, DamageCommand attack, Optional<ResourceReadView> view) {
+        view.ifPresent(v -> v.require(program, state));
         settled(state);
         if (attack.snapshot().isPresent()) throw new IllegalArgumentException("Cannot capture an already captured attack");
         if (attack.group().isPresent()) throw new IllegalArgumentException("Assign an attack group at impact, not to a reusable snapshot");
@@ -1502,14 +1595,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var query = damageQuery(attack, attack.amount());
         // Deliberately erase victim: even an instant hit uses the same partial binding path.
         var event = queryEvent(state, new EffectEvent(query.actor(), "", query.source(), query.tags(), query.numbers(), query.flags(), query.references()));
-        var captured = captureContributions(state, attack.source().owner(), event, profileId);
+        var captured = captureContributions(state, attack.source().owner(), event, profileId, view);
         var shieldScaling = attack.shieldScalingProfile().map(id -> new DamageSnapshot.ShieldScaling(
-                new Validation(buffs, Map.of(), false, profiles).multiplierProfile(id), captureContributions(state, attack.source().owner(), event, id)));
+                new Validation(buffs, Map.of(), false, profiles).multiplierProfile(id), captureContributions(state, attack.source().owner(), event, id, view)));
         return new DamageSnapshot(state.buffs().timeMicros(), state.mode(), prepareReactions(state, attack), profiles.get(profileId), buffs, resources, captured, shieldScaling);
     }
-    private List<DamageSnapshot.Contribution> captureContributions(EffectState state, String holder, RuleEngine.Event event, String profileId) {
+    private List<DamageSnapshot.Contribution> captureContributions(EffectState state, String holder, RuleEngine.Event event, String profileId, Optional<ResourceReadView> view) {
         var captured = new ArrayList<DamageSnapshot.Contribution>();
-        visitModifiers(state, holder, event, profileId, site -> {
+        visitModifiers(state, holder, event, profileId, view, site -> {
             if (site.modifier().evaluate() != EffectProgram.Evaluate.ON_USE) return;
             var condition = site.modifier().condition().snapshot(site.evaluation());
             if (condition instanceof Condition.Constant c && !c.value()) return;

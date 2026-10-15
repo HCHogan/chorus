@@ -34,7 +34,7 @@ public final class ReloadActions {
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var checked = (InstantReload.Checked) receipt;
             if (!checked.query().equals(e.context().command(InstantReload.Check.class))) throw new IllegalArgumentException("Reload verification differs from the issued request");
-            return e.program().orElseThrow().completeInstantReload(e.state(), checked);
+            return e.program().orElseThrow().completeInstantReload(e.state(), checked, e.resourceView());
         }
     }
 }

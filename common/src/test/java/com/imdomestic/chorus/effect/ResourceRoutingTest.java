@@ -52,6 +52,11 @@ class ResourceRoutingTest {
             var bindings=new TreeMap<String,ResourceSessionAuthority.Binding>();sessions.forEach((id,s)->bindings.put(id,new ResourceSessionAuthority.Binding(program,s)));host=new ResourceSessionAuthority(directory,bindings);
         }
         RuleEngine.ActionResult execute(String domain,RuleEngine.WorldRequest request) {
+            if (request.command() instanceof ActionRoutes.Request) {
+                var receipt=host.execute(domain,request);assertSame(receipt,host.execute(domain,request));
+                assertEquals(receipt,EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(receipt),ResourceRequests.Receipt.class));
+                return receipt;
+            }
             if (!(request.command() instanceof ResourceRoutes.Request)) return external.apply(request);
             var view=host.readView(domain,request);var frame=sessions.get(domain).state().engine().frames().getFirst();
             var forged=new RuleEngine.WorldRequest(request.id(),new ResourceRoutes.Request("test:forged"));

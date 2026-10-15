@@ -118,7 +118,8 @@ final class CompiledWeapons {
         if (instantWeapons(loadout, selection).isEmpty()) return Optional.empty();
         return Optional.of(new InstantReload.Check(holder, loadout, selection, completion, reason, cause, operation));
     }
-    RuleEngine.Local<EffectState> instant(EffectState state, InstantReload.Checked checked, CompiledEffects program) {
+    RuleEngine.Local<EffectState> instant(EffectState state, InstantReload.Checked checked, CompiledEffects program,
+            Optional<com.imdomestic.chorus.effect.resource.ResourceReadView> resourceView) {
         var request = checked.query();
         if (!checked.allowed()) return instantRejected(state, InstantReload.Outcome.REJECTED);
         if (!request.equipment().equals(state.equipment().getOrDefault(request.holder(), Loadout.EMPTY)))
@@ -128,7 +129,9 @@ final class CompiledWeapons {
         var transfers = new ArrayList<InstantReload.Transfer>();
         // Resolve every capacity against the same pre-commit state; no weapon sees a partly reloaded loadout.
         for (var gear : candidates) {
-            var view = program.ammoCapacity(state, gear.instance());
+            var account = state.ammunition().get(gear.instance());
+            if (account == null) throw new IllegalArgumentException("Missing ammunition account: " + gear.instance());
+            var view = program.ammoCapacity(state, account, NumericQuery.Path.empty(), resourceView);
             var mutation = Ammunition.refill(view.account(), view.read(AmmoState.Field.MISSING), view.capacity());
             var tags = new HashSet<>(items.get(gear.definition()).tags()); tags.add("chorus:instant_reload");
             var origin = new BuffInstance.Origin(request.holder(), request.cause().source(), gear.instance(), request.cause().ability(), tags);

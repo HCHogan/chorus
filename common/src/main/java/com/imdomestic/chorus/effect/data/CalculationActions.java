@@ -46,7 +46,7 @@ public final class CalculationActions {
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var query = query(e, origin, tags, numbers, victim); String holder = e.target(target);
             var result = e.program().orElseThrow(() -> new IllegalStateException("Calculation requires a compiled program"))
-                    .calculatePipeline(e.state(), holder, query, profiles, input.evaluate(e));
+                    .calculatePipeline(e.state(), holder, query, profiles, input.evaluate(e), e.resourceView());
             return new RuleEngine.Local<>(e.state(), new PipelineResult(holder, query, result), List.of());
         }
     }
@@ -82,7 +82,7 @@ public final class CalculationActions {
             var query = query(e, origin, tags, numbers, victim);
             String holder = e.target(target);
             var calculated = e.program().orElseThrow(() -> new IllegalStateException("Calculation requires a compiled program"))
-                    .calculate(e.state(), holder, query, profile, input.evaluate(e), List.of());
+                    .calculate(e.state(), holder, query, profile, input.evaluate(e), List.of(), e.resourceView());
             return new RuleEngine.Local<>(e.state(), new Result(holder, query, calculated), List.of());
         }
     }

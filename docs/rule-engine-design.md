@@ -629,7 +629,9 @@ ResourceMutations 已补充归属领域的初始化、扣费、整次回充、�
 
 ResourceReadView 已提供显式不可变查询输入：资源值、当前基础技能选择及嵌套数值 Profile 可以读取同一协调快照中的归属账户，账户不复制到查询领域，也不因读取补算时间。查询状态与完整程序必须匹配，外部余额变化不会偷偷刷新旧视图。本地资源写入拒绝修改视图中的远端分区，非资源本地提案只可在余额 / 时刻均不变时派生查询视图。它不改变 Buff / 装备等其他领域状态的归属，不存入检查点。接口见[不可变资源查询视图](engine-data-packs.md#资源查询的不可变视图)。
 
-`CompiledEffects.withResourceRouting()` 已把普通规则入口 / 分支条件、资源初始化 / 回能 / 扣费 / 退款 / 容量 / 双账户回充以及资源观察接到协调器。请求只携带固定编译位置，宿主核对实际 pending 帧后在同一快照上解析和提交；词法结果保持原 DSL 类型，实际扣费回执仍在完成处理前保留。接收方回能与周期产量 Profile 显式读取归属领域，输入表达式保留调用作用域。此模式须由宿主明确选择，默认编译保持本地行为；检查点 format 2 保存模式，恢复拒绝与编译器不匹配。普通本地检查点继续使用 format 1。技能选择与施放支付已接下述协调协议；其他动作中的任意资源表达式与原生宿主联动仍待补齐，不能据此启用传送。接口见[普通规则资源路由](engine-data-packs.md#普通规则的资源请求路由)。
+`CompiledEffects.withResourceRouting()` 已把普通规则入口 / 分支条件、资源初始化 / 回能 / 扣费 / 退款 / 容量 / 双账户回充以及资源观察接到协调器。请求只携带固定编译位置，宿主核对实际 pending 帧后在同一快照上解析和提交；词法结果保持原 DSL 类型，实际扣费回执仍在完成处理前保留。接收方回能与周期产量 Profile 显式读取归属领域，输入表达式保留调用作用域。此模式须由宿主明确选择，默认编译保持本地行为；检查点 format 2 保存模式，恢复拒绝与编译器不匹配。普通本地检查点继续使用 format 1。技能选择与施放支付已接下述协调协议；原生宿主联动仍待补齐，不能据此启用传送。接口见[普通规则资源路由](engine-data-packs.md#普通规则的资源请求路由)。
+
+其余普通动作通过 ActionRoutes 在资源视图中准备和完成。Local 提案与事实共同发布到调用领域；需要世界结果时，同一指令依次等待准备、实际世界操作和完成请求。Finish 必须与原 Ready 命令、实际回执及相邻操作身份匹配，完成时保留原命令参数。伤害 / 治疗、Buff、嵌套数值与伤害快照、护盾上限、弹药及即时换弹查询都传递视图；after / 射线 / 投射物 / 拾取生成的结构参数也已接入。世界宿主的领取资格另用 canCollectPickup(view, spawn)，不凭空领取物品。阶段使用数据命令，不保存资源世界图；未知阶段保留已有提交并停止重放，签发账本与其已认领额度继续保持。世界侧实时查询、协调时钟、原生输入 / 传送及联合保存尚未接通。接口见[普通动作资源视图](engine-data-packs.md#普通动作与结构参数的资源视图)。
 
 协调模式的 AbilityChange / AbilityUse 现在请求当前归属会话接受选择和施放。选择先核对该领域的旧配置，再共同发布常驻来源和缺少的账户；不在旧领域重建或补满资源。施放使用接收者当前基础选择、替换、门禁和参数 / 费用 Profile，查询共享一个不可变资源视图，付款带调用领域与实际操作身份。余额、资源事实与 typed ability_started / ability_used 共同提交；技能体在接收领域执行，保持 cast_cost 和后续退款签发领域。接收会话必须使用协调编译；旧的仅传本地状态接口在此模式下拒绝绕过归属。玩家 NBT、物理迁移与联合保存仍由后续原生接线负责。接口见[技能归属与支付](engine-data-packs.md#技能选择与施放的归属领域)。
 
@@ -1426,7 +1428,7 @@ Outcome resume(RuleState state, Frame frame, OpId op, ActionResult receipt); // 
 - 内部状态操作在纯核心里直接推进并绑定有类型的结果；世界操作交给执行器，返回实际回执后调用 resume。DamageResult、StatusResult、HealResult、ResourceResult、CostReceipt 不混用。chorus:result 的引用在加载时检查前向引用和结果类型，运行时从 bindings 解析。
 - 显式只读观测同样走世界命令 / 回执，不能在纯 Value 求值时偷读实体。当前 inspect_entity 返回不可变 HP / 最大 HP / Absorption、alive / player 与 available / missing；缺失结果不提供这些实体字段。先确认 available，再读取类型和数值；同一回执在世界变化或 after 延迟后仍保持原值，实时读取必须再执行观测。player 仅为 MC 类别，不隐式切换 PvE / PvP，也不代替 D2 等级 / 勇士数据。实体观测、位置、目标引用和伤害结果类型互不替代。
 - ActionCompleted 是恢复当前执行帧的内部输入，在当前结算边界内处理；不作为普通 hit / kill 反应排到队尾。顶层状态保存待恢复帧，收到回执后由内部 resume 继续推进，保持后文的动作顺序与事实队列约定。
-- 当前 `RuleEngine.Action.resume(state, context, receipt)` 返回 `Local` 或 `Await`，默认调用已有 `complete`，单阶段动作无需修改。恢复后再次 Await 保持同一 pc、循环栈、词法绑定和保留回执，使用下一 invocation 发出新请求；不重跑 step 或指令 guard。只有最终 Local 才绑定动作结果并进入下一指令。阶段信息由不可变命令 / 结果表示，不能存在可变 Action 字段或 Java 调用栈中。协调资源取数、实际世界命令和完成查询可以据此依次执行；普通 DSL 的全量接线仍是后续工作。
+- 当前 `RuleEngine.Action.resume(state, context, receipt)` 返回 `Local` 或 `Await`，默认调用已有 `complete`，单阶段动作无需修改。恢复后再次 Await 保持同一 pc、循环栈、词法绑定和保留回执，使用下一 invocation 发出新请求；不重跑 step 或指令 guard。只有最终 Local 才绑定动作结果并进入下一指令。阶段信息由不可变命令 / 结果表示，不能存在可变 Action 字段或 Java 调用栈中。协调编译已据此依次执行普通动作的资源取数、实际世界命令和完成查询；默认原生宿主仍保持本地模式。
 - Frame 是数据，不是闭包：相当于把 continuation 去函数化（defunctionalize），能打印、能比较、能在测试里重放。
 - 等待帧保存实际发出的不可变 pendingCommand。resume 使用原命令确认回执和构造事实，不能在 Reconciler 提交护盾等变化后重新求值旧参数；新状态仍供下一动作使用。当前实现通过 Context.command 读取本阶段的命令，再次 Await 后替换为下一阶段的命令，动作推进后清除，延迟新帧不继承已完成命令。
 - OpId = `(frame_id, pc, invocation)`；FrameId 由状态中的稳定序号分配，同时关联本次 event id 与 rule instance，规则因新事件再次触发创建新的 Frame；同一 Frame 内逐目标循环及同一动作的后续世界阶段都递增该 PC 的 invocation，并跨等待保留。`OperationId.nextInvocation()` 可纯计算下一阶段身份；编号溢出明确失败，不绕回。不能使用 root + rule + pc，否则同一因果链第二次合法触发会被误去重，也不能按局部阶段号在下次循环重用身份。
