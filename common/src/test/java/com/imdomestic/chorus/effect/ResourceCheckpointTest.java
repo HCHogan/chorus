@@ -159,7 +159,7 @@ class ResourceCheckpointTest {
     @Test void archiveAttachesExactlyTheCapturedDimensionsIncludingUnmanagedDomains() {
         var saved = migrated(); var entries = new ArrayList<>(entries(saved)); var expected = archive(saved);
         Collections.reverse(entries); assertEquals(expected, CheckpointArchive.coordinated(entries, saved));
-        assertEquals(4, expected.encode().get("format").getAsInt()); assertEquals(expected, CheckpointArchive.decode(expected.encode()));
+        assertEquals(5, expected.encode().get("format").getAsInt()); assertEquals(expected, CheckpointArchive.decode(expected.encode()));
         assertEquals(saved, CheckpointArchive.decode(expected.encode()).resourceCheckpoint().orElseThrow());
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.coordinated(entries.subList(0, 1), saved));
         var duplicate = new ArrayList<>(entries); duplicate.add(entries.getFirst());
@@ -179,7 +179,7 @@ class ResourceCheckpointTest {
         dropped.addProperty("format", 3); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(dropped));
         var disguised = encoded.deepCopy(); disguised.addProperty("format", 3);
         assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(disguised));
-        for (var version : List.of(new JsonPrimitive("4"), new JsonPrimitive(4.5), new JsonPrimitive(5))) {
+        for (var version : List.of(new JsonPrimitive("5"), new JsonPrimitive(5.5), new JsonPrimitive(6))) {
             var invalid = encoded.deepCopy(); invalid.add("format", version); assertThrows(IllegalArgumentException.class, () -> CheckpointArchive.decode(invalid));
         }
         var empty = new ResourceSessionAuthority.Checkpoint(ResourceAuthority.Directory.EMPTY, Map.of());

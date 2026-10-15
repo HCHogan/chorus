@@ -72,9 +72,10 @@ class CharacterTransferTest {
         void at(String domain,long time){sessions.get(domain).observe(time,List.of());}
         ResourceSessionAuthority.CharacterHandoff move(String from,String to){var plan=host.prepareCharacterTransfer(H,from,to,Set.of("a","b"));host.commit(plan);return plan;}
         void restore(){var saved=host.checkpoint();var domains=new TreeMap<String,EffectSession.Checkpoint>();saved.domains().forEach((id,v)->domains.put(id,EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(v))));
-            var result=ResourceSessionAuthority.restore(new ResourceSessionAuthority.Checkpoint(ResourceAuthorityCodec.decode(ResourceAuthorityCodec.encode(saved.directory())),domains),Map.of(
+            var result=ResourceSessionAuthority.restore(new ResourceSessionAuthority.Checkpoint(ResourceAuthorityCodec.decode(ResourceAuthorityCodec.encode(saved.directory())),domains,
+                    ParticipantPlacementCodec.decode(ParticipantPlacementCodec.encode(saved.placement()))),Map.of(
                     A,new ResourceSessionAuthority.RestoreBinding(p,EffectCheckpointTest.clock(),1,r->world(A,r)),B,new ResourceSessionAuthority.RestoreBinding(p,EffectCheckpointTest.clock(),1,r->world(B,r))));
-            host=result.authority();sessions.clear();result.bindings().forEach((id,v)->sessions.put(id,v.session()));assertEquals(saved,host.checkpoint());}
+            host=result.authority();sessions.clear();result.bindings().forEach((id,v)->sessions.put(id,v.session()));assertEquals(saved.placement(),host.participants(),"restore lost explicit participant placement");assertEquals(saved,host.checkpoint());}
     }
     @Test void selectedAbilitiesActorRootsResourcesBuffsAndOwnedWorkMoveWithoutAttachmentReplay(){
         var f=new Fixture();var selection=new AbilityLoadout(Map.of("test:grenade","test:ability"));

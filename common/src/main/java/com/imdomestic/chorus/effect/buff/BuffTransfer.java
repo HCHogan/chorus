@@ -26,6 +26,15 @@ public final class BuffTransfer {
             if(this.source!=source||this.target!=target)throw new IllegalStateException("Buff transfer snapshots changed before publication");
         }
     }
+    /** A registered partition already at the destination still participates in a joint character handoff. */
+    public static Plan resident(String holder, CompiledEffects program, EffectState state) {
+        if(holder==null||holder.isBlank())throw new IllegalArgumentException("Missing resident buff holder");
+        for(var buff:state.buffs().instances().values())if(buff.key().holder().equals(holder)) {
+            if(!buff.definition().equals(program.buff(buff.definition().id())))throw new IllegalArgumentException("Resident buff definition differs from its catalogue");
+            if(buff.activeCount(state.buffs().timeMicros())!=buff.count())throw new IllegalStateException("Resident buffs require settled expiry");
+        }
+        return new Plan(state,state,state,state,Map.of(),Map.of());
+    }
     /** No gained/ended/timer facts are replayed. Historical observations and lexical results stay at their observation time. */
     public static Plan prepare(String holder,CompiledEffects sourceProgram,EffectState source,CompiledEffects targetProgram,EffectState target) {
         return prepare(holder,sourceProgram,source,targetProgram,target,Optional.empty());

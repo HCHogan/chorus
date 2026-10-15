@@ -18,9 +18,13 @@ public final class ResourceSessionAuthority {
         public Binding { Objects.requireNonNull(program); Objects.requireNonNull(session); }
     }
     /** One settled boundary, including domains with no managed accounts. Contains no live host or callback. */
-    public record Checkpoint(ResourceAuthority.Directory directory, Map<String, EffectSession.Checkpoint> domains) {
+    public record Checkpoint(ResourceAuthority.Directory directory, Map<String, EffectSession.Checkpoint> domains,
+            ParticipantPlacement.Directory placement) {
+        public Checkpoint(ResourceAuthority.Directory directory, Map<String, EffectSession.Checkpoint> domains) {
+            this(directory, domains, ParticipantPlacement.Directory.EMPTY);
+        }
         public Checkpoint {
-            Objects.requireNonNull(directory); domains = Collections.unmodifiableMap(new TreeMap<>(domains));
+            Objects.requireNonNull(directory); Objects.requireNonNull(placement); domains = Collections.unmodifiableMap(new TreeMap<>(domains));
             var states = new TreeMap<String, EffectState>();
             domains.forEach((domain, saved) -> {
                 new ResourceAuthority.Lease(domain, 1); Objects.requireNonNull(saved);
@@ -34,6 +38,7 @@ public final class ResourceSessionAuthority {
                     throw new IllegalArgumentException("Resource checkpoint owner catalogue differs from its domain");
             }
             new ResourceAuthority.Worlds(directory, states);
+            ParticipantPlacement.validate(placement, states);
         }
     }
     /** Explicit host policies for a fresh session. Physical world restoration remains the caller's responsibility. */
@@ -62,7 +67,7 @@ public final class ResourceSessionAuthority {
             var session = EffectSession.restore(policy.program(), policy.clock(), policy.budget(), checkpoint.domains().get(entry.getKey()), policy.world());
             restored.put(entry.getKey(), new Binding(policy.program(), session));
         }
-        return new Restored(new ResourceSessionAuthority(checkpoint.directory(), restored), restored);
+        return new Restored(new ResourceSessionAuthority(checkpoint.directory(), checkpoint.placement(), restored), restored);
     }
     private sealed interface Caller permits WorldCaller, ClockCaller {
         String domain();
@@ -75,7 +80,7 @@ public final class ResourceSessionAuthority {
         public TimelineEngine.State<EffectState> state(EffectSession session) { return session.clockState(operation); }
     }
     private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines,
-            Optional<Caller> caller, Map<String, Binding> bindings) {}
+            Optional<Caller> caller, Map<String, Binding> bindings, ParticipantPlacement.Directory placement) {}
     /** Prepared handoff is tied to this host and every participating timeline; callers cannot construct its writes. */
     public static final class Handoff {
         private final ResourceSessionAuthority host;
@@ -97,29 +102,39 @@ public final class ResourceSessionAuthority {
         private final List<EffectSession.DomainUpdate> updates;
         private final BuffTransfer.Plan buffs;
         private final String holder;
+        private final ParticipantPlacement.Directory placement;
         private BuffHandoff(ResourceSessionAuthority host,Snapshot before,ResourceAuthority.Worlds after,
-                List<EffectSession.DomainUpdate> updates,BuffTransfer.Plan buffs,String holder) {
-            this.host=host;this.before=before;this.after=after;this.updates=updates;this.buffs=buffs;this.holder=holder;
+                List<EffectSession.DomainUpdate> updates,BuffTransfer.Plan buffs,String holder,ParticipantPlacement.Directory placement) {
+            this.host=host;this.before=before;this.after=after;this.updates=updates;this.buffs=buffs;this.holder=holder;this.placement=placement;
         }
         public BuffTransfer.Plan buffs() { return buffs; }
     }
     public static final class CharacterHandoff {
         private final BuffHandoff publication;
         private final CharacterTransfer.Plan character;
-        private CharacterHandoff(BuffHandoff publication,CharacterTransfer.Plan character){this.publication=publication;this.character=character;}
+        private final Map<String,BuffTransfer.Plan> buffTransfers;
+        private CharacterHandoff(BuffHandoff publication,CharacterTransfer.Plan character,Map<String,BuffTransfer.Plan> buffTransfers){
+            this.publication=publication;this.character=character;this.buffTransfers=Map.copyOf(buffTransfers);
+        }
         public BuffTransfer.Plan buffs(){return publication.buffs();}
         public CharacterTransfer.Plan character(){return character;}
+        public Map<String,BuffTransfer.Plan> buffTransfers(){return buffTransfers;}
     }
     private final Thread ownerThread = Thread.currentThread();
     private Map<String, Binding> bindings;
     private ResourceAuthority.Directory directory;
+    private ParticipantPlacement.Directory placement;
     private boolean working;
     private boolean draining;
     private String lastDrained = "";
 
     /** Restored directories must already match every live session; construction never silently republishes a mismatch. */
     public ResourceSessionAuthority(ResourceAuthority.Directory directory, Map<String, Binding> bindings) {
+        this(directory, ParticipantPlacement.Directory.EMPTY, bindings);
+    }
+    public ResourceSessionAuthority(ResourceAuthority.Directory directory, ParticipantPlacement.Directory placement, Map<String, Binding> bindings) {
         this.directory = Objects.requireNonNull(directory);
+        this.placement = Objects.requireNonNull(placement);
         this.bindings = Collections.unmodifiableMap(new TreeMap<>(bindings));
         var sessions = Collections.newSetFromMap(new IdentityHashMap<EffectSession, Boolean>());
         for (var entry : this.bindings.entrySet()) {
@@ -165,6 +180,7 @@ public final class ResourceSessionAuthority {
                 next = ResourceAuthority.publish(next, partition, states.get(partition.lease().domain()));
             }
             new ResourceAuthority.Worlds(next, states); // Includes managed-account replica and owner-clock checks.
+            ParticipantPlacement.validate(placement, states);
             unchanged(nextBindings, timelines, Optional.empty());
             added.values().stream().filter(binding -> binding.program().resourceRouting()).forEach(binding -> binding.session().requireClockUnbound());
             // Everything that can query user policies has finished; clock binding and publication invoke no callbacks.
@@ -206,7 +222,8 @@ public final class ResourceSessionAuthority {
             if (!partition.program().equals(binding(domain).program().program())) throw new IllegalArgumentException("Resource owner catalogue differs from its live session");
             if (publish) next = ResourceAuthority.publish(next, partition, states.get(domain));
         }
-        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller, bindings);
+        ParticipantPlacement.validate(placement, states);
+        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller, bindings, placement);
         unchanged(timelines, caller); directory = next; return result;
     }
     private void unchanged(Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {
@@ -221,7 +238,8 @@ public final class ResourceSessionAuthority {
         });
     }
     private void current(Snapshot expected) {
-        if (bindings != expected.bindings() || directory != expected.worlds().directory()) throw new IllegalStateException("Resource authority changed since preparation");
+        if (bindings != expected.bindings() || directory != expected.worlds().directory() || placement != expected.placement())
+            throw new IllegalStateException("Resource or participant authority changed since preparation");
         unchanged(expected.timelines(), expected.caller());
     }
     private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after) {
@@ -246,12 +264,19 @@ public final class ResourceSessionAuthority {
         current(before); return List.copyOf(updates);
     }
     private void commit(Snapshot before, ResourceAuthority.Worlds after, List<EffectSession.DomainUpdate> updates) {
+        commit(before, after, updates, before.placement());
+    }
+    private void commit(Snapshot before, ResourceAuthority.Worlds after, List<EffectSession.DomainUpdate> updates, ParticipantPlacement.Directory nextPlacement) {
         current(before);
+        ParticipantPlacement.validate(nextPlacement, after.domains());
         EffectSession.commitDomains(updates);
         directory = after.directory(); // Reference assignment only; no rule or host callback can observe half a publication.
+        placement = nextPlacement;
     }
     /** Capture committed balances, including sessions with queued facts. This is not a settled checkpoint. */
     public ResourceAuthority.Worlds snapshot() { return boundary(() -> capture(true).worlds()); }
+    /** Independent character and Buff locations; observing a resource lease never creates these entries. */
+    public ParticipantPlacement.Directory participants() { return boundary(() -> capture(true).placement()); }
     /** Does not drain inboxes or advance time. Every participant must already be settled and healthy. */
     public Checkpoint checkpoint() {
         return boundary(() -> {
@@ -271,7 +296,7 @@ public final class ResourceSessionAuthority {
                     throw new IllegalArgumentException("Resource checkpoint owner catalogue differs from its live binding");
                 next = ResourceAuthority.publish(next, partition, owner.timeline().domain());
             }
-            var result = new Checkpoint(next, saved);
+            var result = new Checkpoint(next, saved, placement);
             unchanged(timelines, Optional.empty()); directory = next; return result;
         });
     }
@@ -302,10 +327,18 @@ public final class ResourceSessionAuthority {
     }
     /** Admit a batch of observed holders without moving existing leases or running recipient inboxes. */
     public Map<String, ResourceAuthority.Partition> enroll(Map<String, String> holders) {
+        return enroll(holders, Map.of(), Map.of());
+    }
+    /** Explicit facet adoption and resource enrollment share one publication; neither directory infers the other. */
+    public Map<String, ResourceAuthority.Partition> enroll(Map<String, String> holders,
+            Map<String, String> characters, Map<String, String> buffs) {
         var requested = Collections.unmodifiableMap(new TreeMap<>(holders));
+        var requestedCharacters = Map.copyOf(characters); var requestedBuffs = Map.copyOf(buffs);
         return boundary(() -> {
             requested.values().forEach(this::binding);
+            requestedCharacters.values().forEach(this::binding); requestedBuffs.values().forEach(this::binding);
             var before = capture(true); var next = before.worlds().directory();
+            var nextPlacement = ParticipantPlacement.adopt(before.placement(), requestedCharacters, requestedBuffs, before.worlds().domains());
             for (var entry : requested.entrySet()) {
                 var program = binding(entry.getValue()).program();
                 var existing = next.holders().get(entry.getKey());
@@ -315,11 +348,14 @@ public final class ResourceSessionAuthority {
                     throw new IllegalArgumentException("Resource enrollment requires the existing pinned catalogue");
             }
             var checked = new ResourceAuthority.Worlds(next, before.worlds().domains());
-            current(before); directory = checked.directory();
+            current(before); directory = checked.directory(); placement = nextPlacement;
             var enrolled = new TreeMap<String, ResourceAuthority.Partition>();
             requested.keySet().forEach(holder -> enrolled.put(holder, directory.owner(holder)));
             return Collections.unmodifiableMap(enrolled);
         });
+    }
+    public void enrollParticipants(Map<String, String> characters, Map<String, String> buffs) {
+        enroll(Map.of(), characters, buffs);
     }
     public Handoff prepareTransfer(String holder, String destination) {
         return boundary(() -> {
@@ -343,34 +379,58 @@ public final class ResourceSessionAuthority {
     public BuffHandoff prepareTransferWithBuffs(String holder,String source,String destination) {
         return boundary(() -> prepareBuffHandoff(holder,source,destination));
     }
-    private BuffHandoff prepareBuffHandoff(String holder,String source,String destination) {
-            settled();if(source.equals(destination))throw new IllegalArgumentException("Buff transfer needs another domain");
-            var from=binding(source).program();var to=binding(destination).program();
-            var before=capture(true);var worlds=before.worlds();var owner=worlds.directory().owner(holder);
-            if(!owner.lease().domain().equals(destination)) {
-                var transfer=ResourceAuthority.transfer(worlds.directory(),owner,worlds.domain(owner.lease().domain()),destination,to,worlds.domain(destination));
-                worlds=ResourceAuthority.commit(worlds,transfer,to);
-            }
-            var buffs=BuffTransfer.prepare(holder,from,worlds.domain(source),to,worlds.domain(destination),Optional.of(source));
-            var domains=new TreeMap<>(worlds.domains());domains.put(source,buffs.departure());domains.put(destination,buffs.arrival());
-            var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
-            return new BuffHandoff(this,before,after,prepare(before,after),buffs,holder);
+    private record BuffMovement(ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement, BuffTransfer.Plan plan) {}
+    private ResourceAuthority.Worlds resourceDestination(ResourceAuthority.Worlds worlds,String holder,String destination) {
+        var owner=worlds.directory().owner(holder);var program=binding(destination).program();
+        if(owner.lease().domain().equals(destination))return worlds;
+        var transfer=ResourceAuthority.transfer(worlds.directory(),owner,worlds.domain(owner.lease().domain()),destination,program,worlds.domain(destination));
+        return ResourceAuthority.commit(worlds,transfer,program);
     }
-    /** Includes the host's carried item identities; does not execute native transport or move world-bound effects. */
+    private BuffMovement moveBuff(ResourceAuthority.Worlds worlds,ParticipantPlacement.Directory locations,String holder,String destination) {
+        var lease=locations.owner(ParticipantPlacement.Facet.BUFFS,holder);String source=lease.domain();
+        if(source.equals(destination))return new BuffMovement(worlds,locations,BuffTransfer.resident(holder,binding(source).program(),worlds.domain(source)));
+        var plan=BuffTransfer.prepare(holder,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
+        var domains=new TreeMap<>(worlds.domains());domains.put(source,plan.departure());domains.put(destination,plan.arrival());
+        var moved=ParticipantPlacement.transfer(locations,ParticipantPlacement.Facet.BUFFS,holder,lease,destination);
+        return new BuffMovement(new ResourceAuthority.Worlds(worlds.directory(),domains),moved,plan);
+    }
+    private BuffHandoff prepareBuffHandoff(String holder,String source,String destination) {
+        settled();if(source.equals(destination))throw new IllegalArgumentException("Buff transfer needs another domain");
+        binding(source);binding(destination);
+        var before=capture(true);
+        var locations=ParticipantPlacement.adopt(before.placement(),Map.of(),Map.of(holder,source),before.worlds().domains());
+        var move=moveBuff(resourceDestination(before.worlds(),holder,destination),locations,holder,destination);
+        ParticipantPlacement.validate(move.placement(),move.worlds().domains());
+        return new BuffHandoff(this,before,move.worlds(),prepare(before,move.worlds()),move.plan(),holder,move.placement());
+    }
+    /** Includes carried item Buff holders as well as character state; world-bound effects keep their issuing domain. */
     public CharacterHandoff prepareCharacterTransfer(String holder,String source,String destination,Set<String> carriedGear) {
+        var carried=Set.copyOf(carriedGear);
         return boundary(()->{
-            var buffs=prepareBuffHandoff(holder,source,destination);var worlds=buffs.after;
-            var character=CharacterTransfer.prepare(holder,carriedGear,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
+            settled();if(source.equals(destination))throw new IllegalArgumentException("Character transfer needs another domain");
+            binding(source);binding(destination);var before=capture(true);
+            var holders=new TreeSet<>(carried);holders.add(holder);
+            var adopting=new TreeMap<String,String>();
+            for(var buffHolder:holders)if(!before.placement().buffs().containsKey(buffHolder))adopting.put(buffHolder,source);
+            var locations=ParticipantPlacement.adopt(before.placement(),Map.of(holder,source),adopting,before.worlds().domains());
+            var worlds=resourceDestination(before.worlds(),holder,destination);
+            var moves=new TreeMap<String,BuffTransfer.Plan>();
+            for(var buffHolder:holders){
+                var moved=moveBuff(worlds,locations,buffHolder,destination);worlds=moved.worlds();locations=moved.placement();moves.put(buffHolder,moved.plan());
+            }
+            var character=CharacterTransfer.prepare(holder,carried,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
             var domains=new TreeMap<>(worlds.domains());domains.put(source,character.departure());domains.put(destination,character.arrival());
             var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
-            return new CharacterHandoff(new BuffHandoff(this,buffs.before,after,prepare(buffs.before,after),buffs.buffs,holder),character);
+            locations=ParticipantPlacement.transfer(locations,ParticipantPlacement.Facet.CHARACTER,holder,locations.owner(ParticipantPlacement.Facet.CHARACTER,holder),destination);
+            ParticipantPlacement.validate(locations,after.domains());
+            return new CharacterHandoff(new BuffHandoff(this,before,after,prepare(before,after),moves.get(holder),holder,locations),character,moves);
         });
     }
     public ResourceAuthority.Lease commit(CharacterHandoff handoff){return commit(Objects.requireNonNull(handoff).publication);}
     public ResourceAuthority.Lease commit(BuffHandoff handoff) {
         return boundary(() -> {
             Objects.requireNonNull(handoff);if(handoff.host!=this)throw new IllegalArgumentException("Buff handoff belongs to another host");
-            commit(handoff.before,handoff.after,handoff.updates);return directory.owner(handoff.holder).lease();
+            commit(handoff.before,handoff.after,handoff.updates,handoff.placement);return directory.owner(handoff.holder).lease();
         });
     }
     /** Return the committed credit. The native host remains responsible for scaling and result-fact delivery. */
