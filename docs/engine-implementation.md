@@ -8,6 +8,20 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：射击组跨域接续与实际伤害记账
+
+同一协调宿主内，来源 / Buff 自有 continuation 可携带 ShotGroups.Handle 跨域迁移。七种 ShotRequests 原语将预留、射线 / 路径观察、发射、接触开闭及到期送回原 issuer，账本与 expiry timer 保留原域；完整路径回执与历史来源不改写。原生射线 / 弹体的活动检查使用签发域，已进入原生战斗时读取冻结 shadow。shot_progress / shot_resolved 按原 issuer 和当前 CHARACTER / BUFF facet 投递，同域去重，资源 lease 不影响路由。
+
+当前 damage_snapshot.pellet 指令固定操作、接触、目标、规范化组及原命令；原生路径另传递确切 WorldRequest，绑定实际 damageId 与物理域。ShotDamageAccounting 凭实际回执更新 issuer，联合发布只允许对应证据证明的账本差异；纯宿主与未进入 hurt 的 FAILED 回执由 Finish 补结算。正常原生 Finish 不重复进度，外层回调未知仍保留真实伤害、统计、待处理事实及打开的接触，停止整个宿主并拒绝保存 / 重放。临时权限和 settlement 不进 DATA，故障诊断另存完整多域观察；旧 CombatCommit 形状与严格校验保留。新增八项请求 / 回执 DATA，原 751 项形状不变，总数 759。
+
+7 项 ShotRequestsTest、7 项 ShotGroupRoutingTest、7 项 ShotDamageAccountingTest 和 4 项 ShotDamageBoundaryTest，加上一项 continuation 迁移回归，覆盖 A→B→C 的来源 / Buff 接续、caller 时钟超过 issuer 截止但原组仍有效、贯穿 / 反弹多接触及重复目标、精确到期、活动请求幂等、两次联合归档恢复、旧别名规范化、同值伪造 WorldRequest 拒绝、矛盾回执与额外账本改写拒绝。路径确认或关闭已经提交后回调失败，原路径、pending 和实际账本变化保留；纯世界伤害没有实际观察时不凭命令猜测命中。故障宿主的进度保留在 inbox，不继续执行消费者。
+
+三项 ShotGroupTransferGameTest 使用真实玩家传送、原版 ACK、目标世界射线和实体弹体。A 首击后到 B 继续第二射线，再经过 0.6 秒间隔发射最后弹体；A 账本统计三颗实际命中，B 没有副本，迁移后才获得的 perk 收到两次进度、只计一枪，最终触发一次实际治疗。Buff 自有版本在第二射线后联合编码 / 恢复，最后成员继续执行且之前两次伤害不重放；恢复时没有存活弹体。第三项在 B 已扣血后令外层世界回调抛错，验证 A 的 hit / effective 与 open contact、完整故障证据、B 单次待处理进度、原 pending 与检查点拒绝，再经过 20 tick 仍无重放、第三弹体或结算收益。
+
+最终 `/tmp/chorus-shot-routing-full-gate2.log` BUILD SUCCESSFUL（3 分 44 秒）：2737 项 JUnit 无失败 / 错误 / 跳过，Fabric 1406、NeoForge 1421 项世界回归通过，双端发布包与两次正常停服检查点通过。`build/reports/shot-routing/audit.json` 核验原 751 项 DATA 形状保持、1442 / 1435 个发布主类字节一致、无测试资源泄漏及加载器 Gradle CRLF。10 项 Compendium 工具测试、22 张表 / 6666 个保留单元格来源及报告检查通过，审阅仍为 133 项（131 partial、2 not_applicable、0 verified）。核心实现、协议文档与纯测试已独立提交为 182f217b，世界场景及本记录另行提交。 首轮新纯测试夹具补齐必填 damage Profile、统一规则版本并按实际时间线消费到期 timer；旧路由测试补收 ShotRequests 回执。首轮 NeoForge 有一项在射击开始前等待远端实体 ticking 超时；夹具现先调用原版 waitForEntities 加载屏障，再执行原有 ticking 断言，80 tick 上限不变。原日志未区分加载 / ticking 子条件，不据此断言某一子条件已被直接观测为失败。
+
+本批不提供物理飞行实体重启重建，也没有新增独立进程重启或图形客户端验收。原生 observeEntities / finished 内部故障后的 actual fallback 已做代码审查，本批实际注入的是外层 world 回调丢失，二者不混称。EntityAttachments 跨域、物理效果实体恢复和历史发射来源生命连续性仍待完成；Compendium 的逐项完整验收状态保持不变。接口见[射击组的签发域与跨域接续](engine-data-packs.md#射击组的签发域与跨域接续)。
+
 ### 2026-10-15：射击组的事实身份与旧存档去重连续性
 
 协调模式的 begin_shot 在本地账本创建时固定 issuer 和 ISSUED_V1 引用格式。shot 引用包含签发域、组 id、完整 origin（含排序 tags）、弹丸数及原始起止时刻，字符串字段使用长度前缀。成员伤害、进度和完成事实统一使用该引用，防止不同世界的同名组被 once_set 合并。创建沿现有普通 ActionRoutes 原子发布组、到期计时器及回执；没有另加一套创建路径。普通非协调 begin 保留本地旧约定。

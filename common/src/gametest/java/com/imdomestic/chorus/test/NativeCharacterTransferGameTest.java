@@ -55,6 +55,7 @@ public class NativeCharacterTransferGameTest {
         final GameTestHelper h;final ServerLevel local,remote;final ServerPlayer player;final String holder;
         final Vec3 home;final CompiledEffects program;MinecraftResourceRuntime host;
         MinecraftEffectRuntime departure,arrival;final List<String> cues=new ArrayList<>();int heals,damageCalls;
+        java.util.function.BiConsumer<ServerLevel,RuleEngine.WorldRequest> afterWorld=(_,_) -> {};
         final AbilityLoadout selected=new AbilityLoadout(Map.of("test:grenade","test:ability"));
         final ActorBinding actor=new ActorBinding("test:actor");
         Fixture(GameTestHelper h){this(h,false,program());}
@@ -89,7 +90,7 @@ public class NativeCharacterTransferGameTest {
             if(request.command() instanceof com.imdomestic.chorus.effect.combat.DamageCommand)damageCalls++;
             var actions=new MinecraftWorldActions(level,id->level.getEntity(UUID.fromString(id)) instanceof LivingEntity e?e:null,
                     _->level.damageSources().generic(),(_,_) -> true,cue->cues.add(cue.cue()));
-            var result=actions.apply(request);if(result instanceof HealingReceipt)heals++;return result;
+            var result=actions.apply(request);if(result instanceof HealingReceipt)heals++;afterWorld.accept(level,request);return result;
         }
         EffectState state(ServerLevel level){return host.runtime(level).state().engine().domain();}
         ResourceState.Key key(){return new ResourceState.Key(holder,"test:energy");}
