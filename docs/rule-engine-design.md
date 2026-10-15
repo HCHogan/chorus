@@ -625,7 +625,7 @@ ResourceSessionAuthority 已把该协议接到实际 EffectSession：先核对�
 
 ResourceMutations 已补充归属领域的初始化、扣费、整次回充、容量调整、双账户周期转换与当前帧退款。初始化检查当前分区，不会在旧领域重建账户或补满已消耗余额；双账户状态与对应事实共同提交。付款身份带调用领域与实际操作编号，直接退款只能使用当前帧已有的最新 CostResult；封存与溢出不恢复已认领额度。所有数值输入仍由纯计算先解析；条件 / 公式和基础选择可显式使用下述只读视图，普通 DSL 可通过下文的协调编译模式自动查询和选择请求。接口与边界见[资源变更请求](engine-data-packs.md#按账户归属执行的资源变更)。
 
-实际世界回执中的 RetainedResult 在动作 complete 前进入帧账本，不依赖完成处理器是否把它作为词法结果返回。该类型可定义纯 merge；CostResult 核对同一付款的账户 / 实付量，并单调保留已认领额度。完成处理器返回 Empty、旧付款快照或离开局部绑定作用域都不能撤销已发生的退款。冲突回执仍保留在实际操作记录中，停止后续规则；不会通过重放世界请求修复。
+实际世界回执中的 RetainedResult 在动作 resume（默认委托 complete）前进入帧账本，不依赖完成处理器是否把它作为词法结果返回。该类型可定义纯 merge；CostResult 核对同一付款的账户 / 实付量，并单调保留已认领额度。恢复处理器继续 Await、返回 Empty、旧付款快照或离开局部绑定作用域都不能撤销已发生的退款。冲突回执仍保留在实际操作记录中，停止后续规则；不会通过重放世界请求修复。
 
 ResourceReadView 已提供显式不可变查询输入：资源值、当前基础技能选择及嵌套数值 Profile 可以读取同一协调快照中的归属账户，账户不复制到查询领域，也不因读取补算时间。查询状态与完整程序必须匹配，外部余额变化不会偷偷刷新旧视图。本地资源写入拒绝修改视图中的远端分区，非资源本地提案只可在余额 / 时刻均不变时派生查询视图。它不改变 Buff / 装备等其他领域状态的归属，不存入检查点。接口见[不可变资源查询视图](engine-data-packs.md#资源查询的不可变视图)。
 
@@ -1426,12 +1426,13 @@ Outcome resume(RuleState state, Frame frame, OpId op, ActionResult receipt); // 
 - 内部状态操作在纯核心里直接推进并绑定有类型的结果；世界操作交给执行器，返回实际回执后调用 resume。DamageResult、StatusResult、HealResult、ResourceResult、CostReceipt 不混用。chorus:result 的引用在加载时检查前向引用和结果类型，运行时从 bindings 解析。
 - 显式只读观测同样走世界命令 / 回执，不能在纯 Value 求值时偷读实体。当前 inspect_entity 返回不可变 HP / 最大 HP / Absorption、alive / player 与 available / missing；缺失结果不提供这些实体字段。先确认 available，再读取类型和数值；同一回执在世界变化或 after 延迟后仍保持原值，实时读取必须再执行观测。player 仅为 MC 类别，不隐式切换 PvE / PvP，也不代替 D2 等级 / 勇士数据。实体观测、位置、目标引用和伤害结果类型互不替代。
 - ActionCompleted 是恢复当前执行帧的内部输入，在当前结算边界内处理；不作为普通 hit / kill 反应排到队尾。顶层状态保存待恢复帧，收到回执后由内部 resume 继续推进，保持后文的动作顺序与事实队列约定。
+- 当前 `RuleEngine.Action.resume(state, context, receipt)` 返回 `Local` 或 `Await`，默认调用已有 `complete`，单阶段动作无需修改。恢复后再次 Await 保持同一 pc、循环栈、词法绑定和保留回执，使用下一 invocation 发出新请求；不重跑 step 或指令 guard。只有最终 Local 才绑定动作结果并进入下一指令。阶段信息由不可变命令 / 结果表示，不能存在可变 Action 字段或 Java 调用栈中。协调资源取数、实际世界命令和完成查询可以据此依次执行；普通 DSL 的全量接线仍是后续工作。
 - Frame 是数据，不是闭包：相当于把 continuation 去函数化（defunctionalize），能打印、能比较、能在测试里重放。
-- 等待帧保存实际发出的不可变 pendingCommand。resume 使用原命令确认回执和构造事实，不能在 Reconciler 提交护盾等变化后重新求值旧参数；新状态仍供下一动作使用。当前实现通过 Context.command 读取该命令，动作推进后清除，延迟新帧不继承已完成命令。
-- OpId = `(frame_id, pc, invocation)`；FrameId 由状态中的稳定序号分配，同时关联本次 event id 与 rule instance，规则因新事件再次触发创建新的 Frame；同一 Frame 内逐目标循环则递增该 PC 的 invocation，并跨等待保留。不能使用 root + rule + pc，否则同一因果链第二次合法触发会被误去重。一个动作展开多个世界命令时，再附加稳定的子操作序号。
+- 等待帧保存实际发出的不可变 pendingCommand。resume 使用原命令确认回执和构造事实，不能在 Reconciler 提交护盾等变化后重新求值旧参数；新状态仍供下一动作使用。当前实现通过 Context.command 读取本阶段的命令，再次 Await 后替换为下一阶段的命令，动作推进后清除，延迟新帧不继承已完成命令。
+- OpId = `(frame_id, pc, invocation)`；FrameId 由状态中的稳定序号分配，同时关联本次 event id 与 rule instance，规则因新事件再次触发创建新的 Frame；同一 Frame 内逐目标循环及同一动作的后续世界阶段都递增该 PC 的 invocation，并跨等待保留。`OperationId.nextInvocation()` 可纯计算下一阶段身份；编号溢出明确失败，不绕回。不能使用 root + rule + pc，否则同一因果链第二次合法触发会被误去重，也不能按局部阶段号在下次循环重用身份。
 - 执行器保存操作回执，重复收到同一 OpId 返回原回执，不重做副作用；resume 也按同一操作确认一次。不自动重试结果未知的操作。规则中途失败时停止其剩余动作，已提交的伤害不回滚、不重复。
 - 已实现的 `EffectSession` 在同一线程 / 边界内驱动 Pump、世界动作与回执；`OperationLedger` 缓存当前边界的命令结果，退休边界用单调 Frame 水位拒绝旧命令。世界操作抛异常时保留 pending 帧与未知结果标记，不自动重试；当前账本只在内存中，跨重启恢复未实现。重入的外部 Start 仍明确拒绝，原版伤害回调通过 `MinecraftEffectRuntime` 排队接入。
-- 同一原版伤害边界可能包含多次嵌套命中。最外层 hurt 完成后按提交顺序一次投递，共享批次 root；ServerPlayer → Player → LivingEntity 的父类委托只采集一次，真正重入的命中独立记录损失。世界动作期间观察到的子事实随 `WorldReceipt(value, observed)` 返回，恢复动作只读取 value，幂等比较包含整个封套。受管主命中仅由动作完成逻辑发布；原版子事实先于它入队，两者都等当前规则序列完成后才分发。
+- 同一原版伤害边界可能包含多次嵌套命中。最外层 hurt 完成后按提交顺序一次投递，共享批次 root；ServerPlayer → Player → LivingEntity 的父类委托只采集一次，真正重入的命中独立记录损失。世界动作期间观察到的子事实随 `WorldReceipt(value, observed)` 返回，恢复动作只读取 value，幂等比较包含整个封套。恢复后再次 Await 时，本阶段子事实已按原 root / parent / 时刻入队，后续阶段不重新投递；只有当前帧完成才进入普通反应分发，AfterReactions 仍后置。受管主命中仅由动作完成逻辑发布；原版子事实先于它入队，两者都等当前规则序列完成后才分发。
 - `Start` 与 `WorldReceipt` 的 committed 字段可携带已确认领域写集，纯 Reconciler 先校验并应用，随后才运行观察批次的规则或恢复当前动作。当前实现为护盾容量写集，因此同帧下一动作能立即读到扣盾结果，而破盾收益仍须等待事实反应；回执幂等比较同时覆盖写集、子事实与结果。默认解释器拒绝未知写集，已提交写入不会因后续动作错误回滚。
 - 维度运行时目前通过 Java API 或管理命令显式安装，完整程序可来自可重载数据包目录；装备 / 技能自动装配仍待接入。原版来源默认记录攻击者、直接来源与 damage type，不推断武器 / 技能实例或武器击杀资格。原版边界异常保留此前完成的子命中证据，规则 / 世界动作异常保留已提交状态，停止该运行时的后续推导，不停止后续原版伤害。未知结果不自动重试；显式恢复、活动迁移与持久化仍待实现。
 - DamagePlan 由纯计算产生，携带状态版本、待提交的 Chorus 护盾写集、已完成阶段和交给原版的剩余伤害，不写原版生命或预判死亡。执行器在不插入其他战斗命令的边界内验证并执行，收集实际回执，resume 才发布相应新状态与事实；失败或被外部取消时不能发布计划扣血量。适配层重入产生的回调先排队，不能重复计算同一次伤害。

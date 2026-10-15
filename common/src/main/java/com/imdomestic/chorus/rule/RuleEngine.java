@@ -42,7 +42,10 @@ public final class RuleEngine<S> {
         }
     }
     public record Event(long id, long root, Optional<Long> parent, long timeMicros, Signal signal) {}
-    public record OperationId(long frame, int pc, int invocation) {}
+    public record OperationId(long frame, int pc, int invocation) {
+        /** Identity of the next world phase of this instruction; overflow never reuses an old operation. */
+        public OperationId nextInvocation() { return new OperationId(frame, pc, Math.incrementExact(invocation)); }
+    }
     public record WorldRequest(OperationId id, WorldCommand command) {}
 
     public sealed interface Input permits Start, Completed, Pump {}
@@ -106,6 +109,14 @@ public final class RuleEngine<S> {
         Outcome<S> step(S state, Context context);
         default Local<S> complete(S state, Context context, ActionResult receipt) {
             return new Local<>(state, receipt, List.of());
+        }
+        /**
+         * Resume with the actual receipt and the command that produced it. Await keeps this instruction active
+         * and issues a fresh operation; only Local binds the result and advances the program counter.
+         * Existing single-phase actions continue through complete without changing their contract.
+         */
+        default Outcome<S> resume(S state, Context context, ActionResult receipt) {
+            return complete(state, context, receipt);
         }
     }
     @FunctionalInterface public interface Condition<S> { boolean test(S state, Context context); }
@@ -190,6 +201,11 @@ public final class RuleEngine<S> {
         }
         Frame await(WorldCommand command) {
             return new Frame(id, event, rule, definition, scope, pc, started, bindings, iterations, invocations, retainedResults, Optional.of(command));
+        }
+        Frame nextInvocation() {
+            var next = new HashMap<>(invocations);
+            next.put(pc, operation(this).nextInvocation().invocation());
+            return new Frame(id, event, rule, definition, scope, pc, started, bindings, iterations, next, retainedResults);
         }
         Frame retain(ActionResult actual) {
             var retained = retainResult(retainedResults, actual);
@@ -291,9 +307,19 @@ public final class RuleEngine<S> {
                 // World-confirmed evidence is available to completion itself and cannot be erased by returning Empty.
                 frame = frame.retain(actual);
                 cursor.frames.removeFirst(); cursor.frames.addFirst(frame);
-                var result = instruction.action().complete(cursor.domain, context(frame), actual);
-                var signals = new ArrayList<>(observed); signals.addAll(result.emitted());
-                cursor.commit(frame, instruction, new Local<>(result.state(), result.result(), signals));
+                var outcome = instruction.action().resume(cursor.domain, context(frame), actual);
+                switch (outcome) {
+                    case Local<S> result -> {
+                        var signals = new ArrayList<>(observed); signals.addAll(result.emitted());
+                        cursor.commit(frame, instruction, new Local<>(result.state(), result.result(), signals));
+                    }
+                    case Await<S> await -> {
+                        // The original step and guard are not re-entered; retain all evidence and lexical scope.
+                        var request = cursor.suspend(frame.nextInvocation(), await.command());
+                        cursor.emit(frame, observed);
+                        return new Transition<>(cursor.snapshot(), List.of(request));
+                    }
+                }
             } catch (RuntimeException exception) {
                 cursor.fail(exception);
                 return new Transition<>(cursor.snapshot(), List.of());
@@ -345,10 +371,8 @@ public final class RuleEngine<S> {
                 switch (outcome) {
                     case Local<S> local -> cursor.commit(frame, instruction, local);
                     case Await<S> await -> {
-                        var op = operation(frame);
-                        cursor.pending = Optional.of(op);
-                        cursor.frames.removeFirst(); cursor.frames.addFirst(frame.await(await.command()));
-                        return new Transition<>(cursor.snapshot(), List.of(new WorldRequest(op, await.command())));
+                        var request = cursor.suspend(frame, await.command());
+                        return new Transition<>(cursor.snapshot(), List.of(request));
                     }
                 }
             } catch (RuntimeException exception) {
@@ -394,6 +418,17 @@ public final class RuleEngine<S> {
         long eventId() { long id = nextEvent; nextEvent = Math.incrementExact(nextEvent); return id; }
         long frameId() { long id = nextFrame; nextFrame = Math.incrementExact(nextFrame); return id; }
 
+        WorldRequest suspend(Frame frame, WorldCommand command) {
+            var op = operation(frame);
+            pending = Optional.of(op);
+            frames.removeFirst(); frames.addFirst(frame.await(command));
+            return new WorldRequest(op, command);
+        }
+
+        void emit(Frame frame, List<Signal> signals) {
+            for (var signal : signals) facts.addLast(new Event(eventId(), frame.event().root(), Optional.of(frame.event().id()), time, signal));
+        }
+
         Event takeEvent() {
             // Keep FIFO within both classes. A deferred event's ordinary descendants settle
             // before the next deferred event; no requeue spins, new IDs or clock advancement.
@@ -416,9 +451,7 @@ public final class RuleEngine<S> {
             frames.removeFirst();
             frames.addFirst(new Frame(frame.id(), frame.event(), frame.rule(), frame.definition(), frame.scope(), frame.pc() + 1, true,
                     bindings, frame.iterations(), invocations, retained));
-            for (var signal : result.emitted()) {
-                facts.addLast(new Event(eventId(), frame.event().root(), Optional.of(frame.event().id()), time, signal));
-            }
+            emit(frame, result.emitted());
         }
 
         void enter(Frame frame, EventRule<S> rule, ForEach<S> loop) {

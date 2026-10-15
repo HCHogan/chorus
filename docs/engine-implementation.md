@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：同一动作的多阶段世界回执
+
+RuleEngine.Action 新增可返回 Local / Await 的 resume，默认委托原 complete，既有单阶段动作保持原接口。收到实际回执后可以保持当前指令并发出下一世界请求；不重跑 step / guard，不提前绑定结果或推进 pc。各阶段递增同一 pc 的 invocation，循环后续迭代继续使用新编号；OperationId.nextInvocation 可纯计算下一身份，溢出明确失败。Frame 和已有存储形状未扩展，阶段仍通过不可变命令 / 结果表示，不保存闭包或实时资源视图。
+
+每阶段先协调原生领域写集并保留实际 RetainedResult，再恢复动作。继续 Await 不丢失付款 / 退款认领或词法作用域；原生子事实按原 root / parent / 时刻排队，当前动作最终完成后才进入反应分发，AfterReactions 次序保持。重复旧阶段回执不重新执行新阶段；第二阶段世界结果未知或返回不同的已提交结果时，EffectSession 保留第一阶段回执、全部已发布领域状态和当前 pending，不重放或生成可恢复检查点。
+
+新增 10 项通用解释器 / 时间轴场景及 4 项实际会话场景，覆盖多阶段身份与一次绑定、原生写集和事实顺序、退款 / 封存保留、冲突与完成异常、循环作用域、编号耗尽、连续 80 次暂停后仍可继续、到期结算前阻止外部输入和时间推进，以及实际宿主的能力失效、第二阶段故障与成功后检查点。`/tmp/chorus-action-resume-core1.log`、`/tmp/chorus-action-resume-core2.log` 定向回归通过，后者包含已有资源 / 技能协调路由。
+
+完整回归 `/tmp/chorus-action-resume-full-gate.log` BUILD SUCCESSFUL（3 分 58 秒）：2364 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包与两次正常停服检查点通过。`build/reports/action-resumption/audit.json` 核验 715 项存储形状完全保持、发布主类 1294 / 1287 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+本批提供资源取数 → 世界操作 → 完成查询所需的通用暂停机制，尚未把剩余普通 DSL 动作或结构参数接到资源视图。原生传送、协调 tick、联合保存、全内容装配和原作数值校准继续待完成；Compendium 审阅仍为 133 条（131 partial、2 not_applicable、0 verified）。没有新增图形客户端验收。
+
 ### 2026-10-15：归属领域的技能选择、施放接受与付款
 
 协调编译模式将原 AbilityChange / AbilityUse 输入转换为 AbilityResources.Select / Use。选择在实际归属领域核对旧配置并共同发布来源 / 必要账户；重复选择不补能量，非法多槽变更不部分初始化。施放解析当前选择、替换、门禁、条件、参数和费用，所有相关数值查询携带同一资源视图；跨槽与继承付款政策保留。付款、资源事实和 typed Started / Used 一起提交到归属会话，后续 on_use 由该领域宿主执行。实际付款身份带 caller / operation；技能体保存的退款仍归实际签发会话，改选或资源再次迁移不改变额度。
