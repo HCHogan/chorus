@@ -5,6 +5,7 @@ import com.imdomestic.chorus.effect.buff.BuffDefinition;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.effect.combat.ImpactData;
 import com.imdomestic.chorus.effect.resource.ResourceDefinition;
+import com.imdomestic.chorus.effect.resource.ResourceReadView;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
 import java.util.*;
@@ -51,19 +52,27 @@ public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageComma
                 || !attack.reactions().equals(command.reactions()) || !attack.proc().equals(command.proc())) throw new IllegalArgumentException("Damage command differs from its captured attack");
     }
     public List<NumericContribution> resolve(EffectState state, RuleEngine.Event event) {
-        return resolve(state, event, contributions, Optional.empty());
+        return resolve(state, event, contributions, Optional.empty(), Optional.empty());
     }
     public List<NumericContribution> resolve(EffectState state, RuleEngine.Event event, CompiledEffects current) {
-        return resolve(state, event, contributions, Optional.of(current));
+        return resolve(state, event, contributions, Optional.of(current), Optional.empty());
+    }
+    public List<NumericContribution> resolve(ResourceReadView view, RuleEngine.Event event, CompiledEffects current) {
+        return resolve(view.state(), event, contributions, Optional.of(current), Optional.of(view));
     }
     public List<NumericContribution> resolveShield(EffectState state, RuleEngine.Event event, CompiledEffects current) {
-        return resolve(state, event, shieldScaling.orElseThrow().contributions(), Optional.of(current));
+        return resolve(state, event, shieldScaling.orElseThrow().contributions(), Optional.of(current), Optional.empty());
     }
-    private List<NumericContribution> resolve(EffectState state, RuleEngine.Event event, List<Contribution> captured, Optional<CompiledEffects> current) {
+    public List<NumericContribution> resolveShield(ResourceReadView view, RuleEngine.Event event, CompiledEffects current) {
+        return resolve(view.state(), event, shieldScaling.orElseThrow().contributions(), Optional.of(current), Optional.of(view));
+    }
+    private List<NumericContribution> resolve(EffectState state, RuleEngine.Event event, List<Contribution> captured, Optional<CompiledEffects> current, Optional<ResourceReadView> view) {
+        if (current.filter(CompiledEffects::resourceRouting).isPresent() && view.isEmpty()) throw new IllegalStateException("Coordinated snapshot resolution requires an explicit resource view");
+        view.ifPresent(v -> v.require(current.orElseThrow().program(), state));
         if (state.mode() != mode || state.buffs().timeMicros() < capturedAt) throw new IllegalArgumentException("Snapshot impact changed activity mode or precedes capture");
         var result = new ArrayList<NumericContribution>();
         for (var contribution : captured) {
-            var e = new Evaluation(state, new RuleEngine.Context(event, contribution.instance(), contribution.scope(), Map.of()), buffs, Map.of(), resources, Map.of(), current);
+            var e = new Evaluation(state, new RuleEngine.Context(event, contribution.instance(), contribution.scope(), Map.of()), buffs, Map.of(), resources, Map.of(), current, view);
             if (contribution.condition().test(e)) result.add(contribution.numeric(contribution.value().evaluate(e)));
         }
         return List.copyOf(result);

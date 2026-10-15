@@ -442,7 +442,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input){
         return checkAction(state, action, phase, input, Optional.empty());
     }
+    public ActionGate.Decision checkAction(ResourceReadView view,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input){
+        return checkAction(view.state(), action, phase, input, Optional.of(view));
+    }
     private ActionGate.Decision checkAction(EffectState state,ActionGate.Kind action,ActionGate.Phase phase,EffectEvent input,Optional<ResourceReadView> view){
+        requireWorldQueryView(state, view);
         settled(state);Objects.requireNonNull(action);Objects.requireNonNull(phase);
         if(input.actor().isBlank()&&(action!=ActionGate.Kind.PROJECTILE_TRACKING||input.victim().isBlank()))
             throw new IllegalArgumentException("Action gate needs an actor or an explicit tracking target");
@@ -469,6 +473,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     private record LimitSite(HorizontalSpeedLimit.Declaration declaration,String bundle,RuleEngine.Payload scope,String instance) {}
     public HorizontalSpeedLimit.Decision horizontalSpeedLimit(EffectState state,EffectEvent input){
+        return horizontalSpeedLimit(state, input, Optional.empty());
+    }
+    public HorizontalSpeedLimit.Decision horizontalSpeedLimit(ResourceReadView view,EffectEvent input){
+        return horizontalSpeedLimit(view.state(), input, Optional.of(view));
+    }
+    private HorizontalSpeedLimit.Decision horizontalSpeedLimit(EffectState state,EffectEvent input,Optional<ResourceReadView> view){
+        requireWorldQueryView(state, view);
         settled(state);if(input.actor().isBlank())throw new IllegalArgumentException("Speed limit needs an actor");
         var tags=new HashSet<>(input.tags());tags.add("chorus:horizontal_speed_query");
         var query=new EffectEvent(input.actor(),input.victim(),input.source(),tags,input.numbers(),input.flags(),input.references(),input.impact(),input.reactions(),input.proc(),input.observedBuffs(),input.observedEntities());
@@ -481,7 +492,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         sites.sort(java.util.Comparator.comparing(LimitSite::instance).thenComparing(s->s.declaration().id()));
         var event=queryEvent(state,query);var contributions=new ArrayList<HorizontalSpeedLimit.Contribution>();
         for(var site:sites){
-            var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of());
+            var e=evaluation(state,new RuleEngine.Context(event,site.instance(),site.scope(),Map.of()),Map.of(),view);
             if(site.declaration().condition().test(e)){
                 var speed=site.declaration().speed().evaluate(e);Validation.same(speed.unit(),Unit.METER_PER_SECOND);
                 contributions.add(new HorizontalSpeedLimit.Contribution(site.declaration().id(),site.bundle(),site.instance(),e.origin(),speed.value()));
@@ -605,11 +616,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public CompiledEquipment equipment() { return equipment; }
     /** Isolated, side-effect-free contribution queries. Native base values and other mods are not re-fed into these profiles. */
     public List<NativeAttributeBinding.Calculated> nativeAttributes(EffectState state,String holder){
+        return nativeAttributes(state, holder, Optional.empty());
+    }
+    public List<NativeAttributeBinding.Calculated> nativeAttributes(ResourceReadView view,String holder){
+        return nativeAttributes(view.state(), holder, Optional.of(view));
+    }
+    private List<NativeAttributeBinding.Calculated> nativeAttributes(EffectState state,String holder,Optional<ResourceReadView> view){
+        requireWorldQueryView(state, view);
         settled(state);
         return program.nativeAttributes().stream().sorted(java.util.Comparator.comparing(NativeAttributeBinding::id)).map(binding->{
             var query=new EffectEvent(holder,holder,new BuffInstance.Origin(holder,binding.id(),"",""),java.util.Set.of("chorus:native_attribute_query"),Map.of(),Map.of(),
                     Map.of("attribute",binding.attribute(),"binding",binding.id()));
-            return new NativeAttributeBinding.Calculated(binding,calculate(state,holder,query,binding.profile(),binding.input(),List.of()));
+            return new NativeAttributeBinding.Calculated(binding,calculate(state,holder,query,binding.profile(),binding.input(),List.of(),view));
         }).toList();
     }
     public RuleEngine.Local<EffectState> changeEquipment(EffectState state, EquipmentChange change) { return weapons.equip(state, change, this); }
@@ -650,19 +668,27 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Attack-owner modifiers and explicitly declared victim providers share the selected attack profile's groups. */
     public Optional<CalculationProfile.Result> outgoing(EffectState state, DamageCommand command, double input) {
+        return outgoing(state, command, input, Optional.empty());
+    }
+    public Optional<CalculationProfile.Result> outgoing(ResourceReadView view, DamageCommand command, double input) {
+        return outgoing(view.state(), command, input, Optional.of(view));
+    }
+    private Optional<CalculationProfile.Result> outgoing(EffectState state, DamageCommand command, double input, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
         command.reactions().ifPresent(snapshot -> snapshot.requireCompatible(program));
-        if (command.snapshot().isEmpty()) return damageCalculation(state, command, command.source().owner(), command.scalingProfile(), input);
+        if (command.snapshot().isEmpty()) return damageCalculation(state, command, command.source().owner(), command.scalingProfile(), input, view);
         settled(state); Numbers.nonnegative(input, "damage profile input");
         var snapshot = command.snapshot().orElseThrow(); snapshot.validate(command);
         var event = queryEvent(state, new DamageGroups.Query(damageQuery(command, input), command.group()));
-        var result = calculateCaptured(state, command.source().owner(), event, snapshot.profile(), new Measure(input, Unit.DAMAGE), snapshot.resolve(state, event, this));
+        var captured = view.map(v -> snapshot.resolve(v, event, this)).orElseGet(() -> snapshot.resolve(state, event, this));
+        var result = calculateCaptured(state, command.source().owner(), event, snapshot.profile(), new Measure(input, Unit.DAMAGE), captured, view);
         Numbers.nonnegative(result.output().value(), "damage profile output");
         return Optional.of(result);
     }
     private CalculationProfile.Result calculateCaptured(EffectState state, String holder, RuleEngine.Event event,
-            CalculationProfile profile, Measure base, List<NumericContribution> captured) {
+            CalculationProfile profile, Measure base, List<NumericContribution> captured, Optional<ResourceReadView> view) {
         var contributions = new ArrayList<>(captured);
-        visitModifiers(state, holder, event, profile.id(), site -> {
+        visitModifiers(state, holder, event, profile.id(), view, site -> {
             if (site.modifier().evaluate() != EffectProgram.Evaluate.ON_HIT) return;
             var current = profiles.get(profile.id());
             if (current == null || !current.inputUnit().equals(profile.inputUnit()) || !current.steps().equals(profile.steps())) {
@@ -674,20 +700,34 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Global target-side profile runs after native attack gates and before per-layer shield multipliers. */
     public Optional<CalculationProfile.Result> defense(EffectState state, DamageCommand command, double input) {
-        return damageCalculation(state, command, command.target(), program.defenseProfile(), input);
+        return defense(state, command, input, Optional.empty());
+    }
+    public Optional<CalculationProfile.Result> defense(ResourceReadView view, DamageCommand command, double input) {
+        return defense(view.state(), command, input, Optional.of(view));
+    }
+    private Optional<CalculationProfile.Result> defense(EffectState state, DamageCommand command, double input, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
+        return damageCalculation(state, command, command.target(), program.defenseProfile(), input, view);
     }
     /** Only the positive budget reaching health is eligible; flat stages cannot resurrect absorbed damage. */
     public Optional<CalculationProfile.Result> health(EffectState state, DamageCommand command, double input) {
+        return health(state, command, input, Optional.empty());
+    }
+    public Optional<CalculationProfile.Result> health(ResourceReadView view, DamageCommand command, double input) {
+        return health(view.state(), command, input, Optional.of(view));
+    }
+    private Optional<CalculationProfile.Result> health(EffectState state, DamageCommand command, double input, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
         Numbers.nonnegative(input, "health profile input");
-        return input == 0 ? Optional.empty() : damageCalculation(state, command, command.target(), program.healthProfile(), input);
+        return input == 0 ? Optional.empty() : damageCalculation(state, command, command.target(), program.healthProfile(), input, view);
     }
     private Optional<CalculationProfile.Result> damageCalculation(EffectState state, DamageCommand command,
-            String holder, Optional<String> profile, double input) {
+            String holder, Optional<String> profile, double input, Optional<ResourceReadView> view) {
         Numbers.nonnegative(input, "damage profile input");
         return profile.map(id -> {
             new Validation(buffs, Map.of(), false, profiles).damageProfile(id);
             var query = damageQuery(command, input);
-            var result = calculateEvent(state, holder, queryEvent(state, new DamageGroups.Query(query, command.group())), id, new Measure(input, Unit.DAMAGE), List.of());
+            var result = calculateEvent(state, holder, queryEvent(state, new DamageGroups.Query(query, command.group())), id, new Measure(input, Unit.DAMAGE), List.of(), view);
             Numbers.nonnegative(result.output().value(), "damage profile output");
             return result;
         });
@@ -766,6 +806,21 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Native reservations affect the attacker's modifiers, never the target's available shield layers. */
     public ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis, EffectState attackState) {
+        return shields(state, command, input, basis, attackState, Optional.empty());
+    }
+    public ShieldDamage.Planned shields(ResourceReadView view, DamageCommand command, double input) {
+        return shields(view, command, input, DamageBasis.EMPTY);
+    }
+    public ShieldDamage.Planned shields(ResourceReadView view, DamageCommand command, double input, DamageBasis basis) {
+        return shields(view, command, input, basis, view.state());
+    }
+    /** Both projections share one resource capture; only non-resource attacker reservations may differ. */
+    public ShieldDamage.Planned shields(ResourceReadView view, DamageCommand command, double input, DamageBasis basis, EffectState attackState) {
+        return shields(view.state(), command, input, basis, attackState, Optional.of(view));
+    }
+    private ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis, EffectState attackState, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
+        var attackView = view.map(v -> v.withLocalState(attackState));
         settled(state); Numbers.nonnegative(input, "shield input");
         Objects.requireNonNull(basis);
         if (basis.outgoing().isPresent() && !command.scalingProfile().equals(Optional.of(basis.outgoing().orElseThrow().trace().profile()))) {
@@ -784,9 +839,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(),
                     new RuleEngine.Signal("chorus:internal/shield_query", new ShieldQuery(damageQuery(command, remaining), instance, command.group())));
             var context = new RuleEngine.Context(event, "shield/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
-            var multiplier = shield.takenMultiplier().evaluate(evaluation(state, context, Map.of()));
+            var multiplier = shield.takenMultiplier().evaluate(evaluation(state, context, Map.of(), view));
             Validation.same(multiplier.unit(), Unit.MULTIPLIER); Numbers.nonnegative(multiplier.value(), "shield multiplier");
-            var attackScaling = shieldAttackScaling(attackState, command, event);
+            var attackScaling = shieldAttackScaling(attackState, command, event, attackView);
             Optional<DamageBasis.Suppression> suppression = Optional.empty();
             if (!shield.excludedAttackFactors().isEmpty()) {
                 if (command.scalingProfile().isPresent() && basis.outgoing().isEmpty()) throw new IllegalArgumentException("Shield factor suppression requires the hit's resolved outgoing profile");
@@ -799,14 +854,15 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         }
         return ShieldDamage.plan(input, bound);
     }
-    private Optional<CalculationProfile.Result> shieldAttackScaling(EffectState state, DamageCommand command, RuleEngine.Event event) {
+    private Optional<CalculationProfile.Result> shieldAttackScaling(EffectState state, DamageCommand command, RuleEngine.Event event, Optional<ResourceReadView> view) {
         return command.shieldScalingProfile().map(id -> {
             CalculationProfile.Result result;
             if (command.snapshot().isPresent()) {
                 var snapshot = command.snapshot().orElseThrow(); snapshot.validate(command);
+                var captured = view.map(v -> snapshot.resolveShield(v, event, this)).orElseGet(() -> snapshot.resolveShield(state, event, this));
                 result = calculateCaptured(state, command.source().owner(), event, snapshot.shieldScaling().orElseThrow().profile(),
-                        new Measure(1, Unit.MULTIPLIER), snapshot.resolveShield(state, event, this));
-            } else result = calculateEvent(state, command.source().owner(), event, id, new Measure(1, Unit.MULTIPLIER), List.of());
+                        new Measure(1, Unit.MULTIPLIER), captured, view);
+            } else result = calculateEvent(state, command.source().owner(), event, id, new Measure(1, Unit.MULTIPLIER), List.of(), view);
             Validation.same(result.output().unit(), Unit.MULTIPLIER); Numbers.nonnegative(result.output().value(), "shield attack multiplier"); return result;
         });
     }
@@ -1574,6 +1630,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var path = dependencies.profile(holder, profile);
         var query = new EffectEvent(holder, holder, new BuffInstance.Origin(holder, profile, "", ""), java.util.Set.of(), Map.of());
         return calculateEvent(state, holder, queryEvent(state, new NumericQuery(query, path)), profile, input, List.of(), resourceView);
+    }
+    private void requireWorldQueryView(EffectState state, Optional<ResourceReadView> view) {
+        if (resourceRouting && view.isEmpty()) throw new IllegalStateException("Coordinated world queries require an explicit resource view");
+        view.ifPresent(v -> v.require(program, state));
     }
     private void settled(EffectState state) {
         validateState(state);

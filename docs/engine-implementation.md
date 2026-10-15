@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：世界侧伤害与动作查询的资源视图
+
+CompiledEffects 为 outgoing / defense / health / shields、动作门禁、水平速度上限和原生属性贡献提供 ResourceReadView 入口。协调模式拒绝旧的仅本地状态入口；空结果和零伤害也核对视图。嵌套 Profile、目标提供者、实时 on_hit 条件 / 值以及护盾 taken_multiplier 共用本次不可变资源捕获；来源 / Buff 提供者仍在原查询领域，不合并资源归属领域的其他增益。
+
+DamageSnapshot.resolve / resolveShield 传递当前视图到尚未绑定的目标表达式，保留施放时冻结的来源值及旧 Profile 版本。护盾查询的目标层使用本地当前状态，攻击侧消费提案通过 withLocalState 派生，禁止改变余额或时刻；计算仍只返回候选写集。未新增存储字段 / 类型，720 项存储形状及既有检查点格式保持。
+
+新增 12 项 WorldResourceQueryTest，覆盖双持有者迁移后的进攻 / 防御 / 生命查询、旧视图保持、资源领域提供者隔离、混合快照与恢复、命中目标条件、缺少账户、实时与冻结护盾倍率、护盾提案及攻击侧预留、错误余额 / 时刻 / 程序、各阶段 actor / victim 门禁、嵌套速度 / 原生属性、旧入口拒绝、实际协调动作回调与 typed 伤害结果、依赖循环、模式与新旧 Profile 布局。夹具修正使用合法 Buff 时长、既有 health_loss 字段与来源门禁，没有放宽生产校验；`/tmp/chorus-world-resource-core5.log` 的 95 项新增及相关回归通过。
+
+完整回归 `/tmp/chorus-world-resource-full-gate.log` BUILD SUCCESSFUL（4 分 14 秒）：2391 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点通过。`build/reports/world-resource-queries/audit.json` 核验 720 项存储形状完全保持、发布主类 1306 / 1299 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+默认原生宿主尚未切换到协调模式；连续资源 / 治疗 / 护盾恢复的协调时钟、物理回调与原生输入 / 传送、联合保存继续待接入。本批没有新增图形客户端或原作数值验收，Compendium 仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[世界侧资源查询](engine-data-packs.md#世界侧查询的资源视图)。
+
 ### 2026-10-15：普通动作与结构参数的协调资源读取
 
 协调编译为其余普通 Action 增加 ActionRoutes：Begin 在实际编译位置与词法作用域中求值；Local 提案和原事实共同发布，Await 则返回 Ready，让同一指令执行原世界命令，再通过 Finish 完成。Finish 核对准备回执、原命令、真实世界结果及相邻操作身份；准备时已使用未来实际世界操作的编号。完成阶段可读新资源视图，但沿用已经执行的原命令参数。阶段不存闭包、领域快照或可变查询视图；未知阶段不重放先前操作。Result 保持 DSL 原类型，Cost 保留真实付款封存 / 认领信息。

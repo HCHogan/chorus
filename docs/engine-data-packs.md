@@ -1038,7 +1038,19 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 拾取物 collect_if 属于世界宿主领取前的资格查询。协调模式必须调用 `canCollectPickup(view, spawn)`，旧的纯本地状态重载明确拒绝；生成时的半径 / 寿命保持固定，领取条件按本次视图查询。这个重载不领取物品，也不代替宿主复核物理接触与实际领取。
 
-新增 Begin / Finish / Ready / Result / Cost 五种存储形状，原 715 项保持，总计 720；已结算检查点模式仍为本地 format 1 / 协调 format 2。此处没有把任意执行中帧变成可恢复存档。默认原生宿主尚未切到协调模式，世界侧实时伤害 / 目标查询、被动资源与其他连续状态的协调时钟、玩家输入与传送、联合保存仍需宿主接线；本节测试使用显式协调会话和受控世界回执，不代表这些原生路径已经验收。
+新增 Begin / Finish / Ready / Result / Cost 五种存储形状，原 715 项保持，总计 720；已结算检查点模式仍为本地 format 1 / 协调 format 2。此处没有把任意执行中帧变成可恢复存档。世界侧纯查询已有下节的显式视图入口；默认原生宿主尚未切到协调模式，物理回调、被动资源与其他连续状态的协调时钟、玩家输入与传送、联合保存仍需宿主接线。本节测试使用显式协调会话和受控世界回执，不代表这些原生路径已经验收。
+
+### 世界侧查询的资源视图
+
+命中计算必须显式传递本次协调快照。`CompiledEffects.outgoing(view, command, input)`、`defense`、`health`、`shields`，以及 `checkAction(view, kind, phase, input)`、`horizontalSpeedLimit(view, input)`、`nativeAttributes(view, holder)` 均接受 ResourceReadView。查询核对完整程序与精确状态；协调编译模式拒绝上述仅传 EffectState 的旧入口，即使没有修饰项、没有护盾或伤害为零也不绕过检查。本地编译的旧入口保持原有行为。
+
+资源表达式、条件与嵌套 Profile 读取同一份不可变视图；读取不转移来源、装备、Buff 或修饰项提供者。它们仍取自查询领域，资源所在领域的其他增益不会自动并入。动作门禁分别按声明的 actor / victim 读取对应持有者资源；速度上限和原生属性贡献继续保持各自的独立查询上下文。原生属性接口只计算贡献，不修改 Minecraft 属性；动作门禁也不替宿主执行或撤销操作。
+
+DamageSnapshot 的 `resolve(view, event, current)` / `resolveShield` 将视图传入仍未绑定的目标条件与表达式。施放时已经冻结的来源值保留，命中时的目标资源及显式 on_hit 项按本次视图读取；保存恢复不把冻结值重算为当前余额。旧快照保留原 Profile 版本，当前视图核对当前完整程序；有实时项时仍要求其 Profile 布局与快照兼容。模式、捕获时刻及数值依赖循环检查继续生效。
+
+`shields(view, command, input, basis, attackState)` 支持世界侧已保留的攻击者消费提案。目标可用层和 taken_multiplier 从 view.state 读取；攻击修饰从 attackState 读取。内部只通过 `view.withLocalState(attackState)` 派生攻击视图，因此两者共享同一批外部资源快照；余额或时刻不同的 attackState 被拒绝，不能分别捕获两份新旧混合的资源值。护盾结果仍为候选写集，由真实世界结果决定是否提交；已确认的本地护盾写集可以在相同余额 / 时刻下派生后续嵌套命中视图。
+
+世界回调使用 `host.readView(caller, request)` 取得视图，不能在执行中改用无请求的重载。宿主应在一次结算中保持同一资源捕获；后续非资源临时状态通过 withLocalState 派生。读取不推进其他领域、不结算 inbox、不发资源事实。此阶段提供纯查询与协调回调验收，未把默认 MinecraftEffectRuntime / 移动或属性投影切到协调模式；连续资源 / 治疗 / 护盾恢复时钟、原生输入 / 传送和目录与世界的联合保存仍待接线。未新增存储形状或检查点格式。
 
 ### 技能选择与施放的归属领域
 
