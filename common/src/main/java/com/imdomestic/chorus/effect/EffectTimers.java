@@ -18,7 +18,7 @@ public final class EffectTimers {
         public static Owner of(RuleEngine.Payload scope) {
             if (scope instanceof EffectSource source) return new Owner(Optional.of(source), Optional.empty());
             if (scope instanceof BuffRules.Scope buff) return new Owner(Optional.empty(),
-                    Optional.of(new EffectState.Lifetime(buff.snapshot().key(), buff.snapshot().generation())));
+                    Optional.of(buff.identity()));
             throw new IllegalArgumentException("Timer requires a bound source");
         }
         public boolean active(Map<String, EffectSource> sources, BuffStore buffs) {
@@ -28,6 +28,12 @@ public final class EffectTimers {
             localName(name);
             return source.map(value -> "source/" + value.instance().length() + ":" + value.instance())
                     .orElseGet(() -> "buff/" + buff.orElseThrow().generation()) + "/timer/" + name;
+        }
+        /** A deferred body retains its original timer fact even when its live buff binding has moved. */
+        public boolean matches(RuleEngine.Payload scope) {
+            if (equals(of(scope))) return true;
+            return scope instanceof BuffRules.Scope value && value.binding().isPresent()
+                    && equals(new Owner(Optional.empty(), Optional.of(new EffectState.Lifetime(value.snapshot().key(), value.snapshot().generation()))));
         }
     }
     public record Scheduled(String name, Owner owner, EffectEvent event) implements RuleEngine.Payload {

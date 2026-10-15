@@ -40,6 +40,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/resource/resource_requests/read", com.imdomestic.chorus.effect.resource.ResourceRequests.Read.class);
         types.put("chorus:effect/resource/resource_requests/grant", com.imdomestic.chorus.effect.resource.ResourceRequests.Grant.class);
         types.put("chorus:effect/resource/resource_requests/refund", com.imdomestic.chorus.effect.resource.ResourceRequests.Refund.class);
+        types.put("chorus:effect/resource/resource_requests/close", com.imdomestic.chorus.effect.resource.ResourceRequests.Close.class);
+        types.put("chorus:effect/resource/resource_requests/closed", com.imdomestic.chorus.effect.resource.ResourceRequests.Closed.class);
         types.put("chorus:effect/resource/resource_requests/read_result", com.imdomestic.chorus.effect.resource.ResourceRequests.ReadResult.class);
         types.put("chorus:effect/resource/resource_requests/granted", com.imdomestic.chorus.effect.resource.ResourceRequests.Granted.class);
         types.put("chorus:effect/resource/resource_requests/refunded", com.imdomestic.chorus.effect.resource.ResourceRequests.Refunded.class);
@@ -109,7 +111,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/bundle_invocation", com.imdomestic.chorus.effect.BundleInvocation.class);
         types.put("chorus:effect/effect_clock/resource_changed", com.imdomestic.chorus.effect.EffectClock.ResourceChanged.class);
         types.put("chorus:effect/effect_continuations/lifetime", com.imdomestic.chorus.effect.EffectContinuations.Lifetime.class);
-        types.put("chorus:effect/effect_continuations/pending", com.imdomestic.chorus.effect.EffectContinuations.Pending.class);
+        types.put("chorus:effect/effect_continuations/pending", LegacyContinuationV1.class);
+        types.put("chorus:effect/effect_continuations/pending_v2", com.imdomestic.chorus.effect.EffectContinuations.Pending.class);
         types.put("chorus:effect/data/condition/selected_ability_tag", com.imdomestic.chorus.effect.data.Condition.SelectedAbilityTag.class);
         types.put("chorus:effect/data/condition/selected_ability_resource", com.imdomestic.chorus.effect.data.Condition.SelectedAbilityResource.class);
         types.put("chorus:effect/data/condition/selected_ability_event_resource", com.imdomestic.chorus.effect.data.Condition.SelectedAbilityEventResource.class);
@@ -189,7 +192,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/buff/buff_observation/entry", LegacyBuffObservationEntryV1.class);
         types.put("chorus:effect/buff/buff_observation/entry_v2", com.imdomestic.chorus.effect.buff.BuffObservation.Entry.class);
         types.put("chorus:effect/buff/buff_removal/receipt", com.imdomestic.chorus.effect.buff.BuffRemoval.Receipt.class);
-        types.put("chorus:effect/buff/buff_rules/scope", com.imdomestic.chorus.effect.buff.BuffRules.Scope.class);
+        types.put("chorus:effect/buff/buff_rules/scope", LegacyBuffScopeV1.class);
+        types.put("chorus:effect/buff/buff_rules/scope_v2", com.imdomestic.chorus.effect.buff.BuffRules.Scope.class);
         types.put("chorus:effect/buff/buff_schema", LegacyBuffSchemaV1.class);
         types.put("chorus:effect/buff/buff_schema_v2", com.imdomestic.chorus.effect.buff.BuffSchema.class);
         types.put("chorus:effect/buff/buff_store", com.imdomestic.chorus.effect.buff.BuffStore.class);
@@ -576,7 +580,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/resource/resources/spend_result", com.imdomestic.chorus.effect.resource.Resources.SpendResult.class);
         types.put("chorus:effect/resource/retained_costs/closed", com.imdomestic.chorus.effect.resource.RetainedCosts.Closed.class);
         types.put("chorus:effect/resource/retained_costs/entry", com.imdomestic.chorus.effect.resource.RetainedCosts.Entry.class);
-        types.put("chorus:effect/resource/retained_costs/handle", com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class);
+        types.put("chorus:effect/resource/retained_costs/handle", LegacyRetainedCostHandleV1.class);
+        types.put("chorus:effect/resource/retained_costs/handle_v2", com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class);
         types.put("chorus:effect/resource/retained_costs/refunded", com.imdomestic.chorus.effect.resource.RetainedCosts.Refunded.class);
         types.put("chorus:effect/target/direction_query", com.imdomestic.chorus.effect.target.DirectionQuery.class);
         types.put("chorus:effect/target/direction_query/mode", com.imdomestic.chorus.effect.target.DirectionQuery.Mode.class);
@@ -734,6 +739,9 @@ final class CheckpointTypes {
                 LegacyWeaponDefinitionV1.class, com.imdomestic.chorus.effect.weapon.WeaponDefinition.class, LegacyWeaponDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyBuffSchemaV1.class, com.imdomestic.chorus.effect.buff.BuffSchema.class, LegacyBuffSchemaV1::current),
                 new RecordTreeCodec.Migration<>(LegacyBuffComponentsV1.class, com.imdomestic.chorus.effect.buff.BuffComponents.class, LegacyBuffComponentsV1::current),
+                new RecordTreeCodec.Migration<>(LegacyBuffScopeV1.class, com.imdomestic.chorus.effect.buff.BuffRules.Scope.class, LegacyBuffScopeV1::current),
+                new RecordTreeCodec.Migration<>(LegacyContinuationV1.class, com.imdomestic.chorus.effect.EffectContinuations.Pending.class, LegacyContinuationV1::current),
+                new RecordTreeCodec.Migration<>(LegacyRetainedCostHandleV1.class, com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class, LegacyRetainedCostHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityDefinitionV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.class, LegacyAbilityDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityCostFromV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.CostFrom.class, LegacyAbilityCostFromV1::current),
                 new RecordTreeCodec.Migration<>(LegacyBuffDefinitionV1.class, com.imdomestic.chorus.effect.buff.BuffDefinition.class, LegacyBuffDefinitionV1::current),

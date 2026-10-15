@@ -902,7 +902,7 @@ Java 结果保留 holder / slot / ability、account 与 rechargeAccount，两个
 - 有效期使用半开区间，到期先于同刻回调清除账本。`close_retained_cost` 提前关闭，返回 removed；关闭或到期后所有旧句柄返回 available=false、四个数值为 0，不发布资源事实、不重建额度，也不会因正常的迟到回调停止运行时。同 id 却内容冲突的句柄仍明确拒绝。
 - 凭据期限独立于来源、技能选择和投射物存活；即使未命中、来源取消而没有回调，逻辑时钟也会清理。关闭不会取消飞行或延迟任务，只撤销后续退款资格。账本和余额先于依赖它的世界动作提交，世界结果未知时不回滚或重放。
 
-完整合成示例 [retained_cost.json](../common/src/test/resources/effects/retained_cost.json) 使用真实技能支付、物理命中和独立延迟回调共享额度，再按实际 credited 治疗。普通 paid 数字或 payment 字符串不具备此权利。当前只支持同一运行时内通过词法捕获传递；向 Buff 引用组件保存、独立后续事件按施放查找、跨维度迁移和跨重启恢复仍未实现。固定充能比例的收益继续使用 grant_resource，不能因为发生在返回阶段便自动改为按实际成本退款。
+完整合成示例 [retained_cost.json](../common/src/test/resources/effects/retained_cost.json) 使用真实技能支付、物理命中和独立延迟回调共享额度，再按实际 credited 治疗。普通 paid 数字或 payment 字符串不具备此权利。句柄可经词法捕获及检查点保留；协调模式写入签发领域，Buff 自有延迟工作可按下述显式交接协议迁移。向 Buff 引用组件保存、独立后续事件按施放查找、完整原生玩家 / 物理对象的自动迁移仍未实现。固定充能比例的收益继续使用 grant_resource，不能因为发生在返回阶段便自动改为按实际成本退款。
 
 ## 跨运行时资源账户协调器
 
@@ -970,6 +970,26 @@ host.commit(handoff);
 
 `host.grant(...)` 和 `host.refund(...)` 在返回结果前完成实际会话入账；后者同时发布签发会话的额度认领。它们要求所有会话没有正在执行或待回执的帧，已有接收事实保持排队，不能从正在执行的世界回调重入。这两个直接宿主方法没有 origin 参数，不自动生成游戏事实；进行中的请求使用下一节 execute。它们不自动拦截 DSL 动作或计算数值 Profile。
 
+### 资源与 Buff 自有工作的共同交接
+
+```java
+var handoff = host.prepareTransferWithBuffs(holder, sourceDomain, destinationDomain);
+// 宿主在自己的完整迁移协议中提交；准备与提交之间的任何会话变化都会使计划失效。
+host.commit(handoff);
+```
+
+该入口一次发布资源归属、源 / 目标 Buff 和 Buff 自有计时器。sourceDomain 是 Buff 所在领域，允许资源当前属于第三个领域；资源已经属于目标时保留其 lease。所有参与会话须结算，Buff 源 / 目标及资源所属领域须使用相同的完整目录；目标已有同一个 Buff key、目录不兼容或计划过期，整批拒绝。不会先移动能量再留下旧 Buff，也不触发 gained / ended / 初始化反应。它是完整玩家迁移的组成部分，不执行原生传送，不移动装备、角色、技能选择、弹药、武器阶段、附着或物理实体。
+
+底层 `BuffTransfer.prepare(holder, sourceProgram, sourceState, targetProgram, targetState[, sourceDomain])` 生成不可变 Plan。departure / arrival 是两边候选状态，identities / timerIds 提供旧新身份映射；requireCurrent 核对原始状态对象，最终由宿主联合发布，不能只提交一侧。目标按自己的 nextGeneration 重新分配 Buff 代次，保持 key、来源、层 ID、分数层数、组件、tier、原始 / 最长持续时间。每层有限期限按源时钟的剩余时间接到目标时钟；暂停层按 pausedAt 计算，目标仍暂停，永久层保持永久。已到期而未结算、数值溢出及有限期限变成永久哨兵均拒绝。
+
+只有 lifetime 绑定这些 Buff 的计时器迁移；周期次数 / 间隔和暂停余量保持。命名计时器改用新 Buff 身份，after 工作分配目标内无冲突的 ID。来源自有工作、detached 延迟及其他持有者保持在源领域。纯交接不执行任何计时器，恢复也不重放已发生的动作。
+
+延迟动作的历史事件、原 Buff 观察和词法结果保留。`BuffRules.Scope.binding` 单独指向迁移后的有效实例，实时 Buff 查询使用它；own_buff / own_timer 仍能识别原触发事实。`Pending.relocatedAt` 记录目标领域的因果时间边界，用于未来延迟的有效性检查，不把历史 cause 的时间改写为目标时钟。固定位置、实体生命引用及攻击快照也不因 Buff 迁移改写。
+
+协调模式下 `retain_cost` 生成带 issuer 的句柄；refund_retained_cost 和 close_retained_cost 都路由到签发账本，退款余额仍进入账户当前归属。关闭不产生资源游戏事实，重复或过期关闭不会恢复额度；未知世界回执保留已经退款的余额、原账本认领量和 pending，不执行剩余关闭，也不重试治疗。签发领域的时钟继续决定退款到期。
+
+旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
+
 ### 后续登记新的资源领域
 
 维度或其他规则领域可以晚于协调器创建。宿主在原协调器上调用 `host.enlist(Map.of(domain, new Binding(program, session)))`，也可以一次登记多个领域；无需重建协调器或重新绑定旧会话的连续时钟。空 additions 是无副作用操作。已有 domain 不可覆盖，即使传入同一会话也拒绝；同一会话不能在这一协调器内有两个领域名，新增协调会话必须尚未绑定时钟捕获。
@@ -992,13 +1012,13 @@ Minecraft 的自动调用只接受本维度实际索引的 ServerPlayer 对象�
 
 ### 执行中的资源请求与回执
 
-`ResourceRequests.Read / Grant / Refund` 是普通 `RuleEngine.WorldCommand`，可由 Java 动作返回 Await。Read 按 holder + resource 查询当前账户与 lease；Grant 携带已解析的 requested / scaled 和原始 origin；Refund 另外携带原签发领域与 RetainedCosts.Handle。`ResourceSessionAuthority.execute(callerDomain, worldRequest)` 只能在该 caller 的当前世界回调中使用，返回与请求绑定的 ReadResult / Granted / Refunded。它不会按当前技能、当前维度或装备猜测原付款来源。
+`ResourceRequests.Read / Grant / Refund / Close` 是普通 `RuleEngine.WorldCommand`，可由 Java 动作返回 Await。Read 按 holder + resource 查询当前账户与 lease；Grant 携带已解析的 requested / scaled 和原始 origin；Refund 另外携带原签发领域与 RetainedCosts.Handle。`ResourceSessionAuthority.execute(callerDomain, worldRequest)` 只能在该 caller 的当前世界回调中使用，返回与请求绑定的 ReadResult / Granted / Refunded / Closed。它不会按当前技能、当前维度或装备猜测原付款来源。
 
 execute 允许当前调用会话暂停在对应的 pending operation，其他参与会话必须健康、没有正在执行或待回执的帧，可以保留已排队的接收事实。它先发布已提交的账户进度，解析当前接收者，再共同提交调用会话的结果、签发会话的退款账本、接收会话的余额和对应事实。三者可以位于不同领域，也可以重合。同一回调内重复 execute 返回已经提交的同一结果；错误 caller、相同操作编号但不同命令、回调结束后再次调用均拒绝。暂停中的调用方不能借此创建另一个嵌套外部输入。
 
 EffectSession 为每次实际世界回调创建不透明 WorldOperation。可信协调器通过 `prepareOperationDomain` 把已经确定的结果与领域写入加入同一个 `commitDomains` 批次；原 pending 操作、帧、事实、请求中的未来时间和身份编号保持。协调器返回后，会话仍通过原有 Completed 回执协议继续执行。回调可以附带普通 WorldReceipt 的观测事实，但其 value 必须与已提交结果一致；不能用另一份结果恢复规则。入账后回调抛错或返回不同结果时，保留全部已提交状态，待回执操作阻止重启该边界与检查点保存，不自动回滚、退款或重放。后续纯规则失败同样保留已经收到的实际回执。
 
-Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保留实际 claimed / remaining；过期或关闭的句柄返回空退款。目标时钟不替代签发时钟。`ResourceRequests.facts(receipt)` 只生成对应事实数据，Read 和不可用退款不生成事实。execute 已将事实与入账一起提交到 receipt 指定的接收会话，不应再次手动 observe 同一份事实。这个静态工厂本身仍只返回数据。Grant 的数值缩放仍由调用方先解析。
+Receipt 包含实际接收 lease、余额和 credited / overflow，退款还保留实际 claimed / remaining；过期或关闭的句柄返回空退款。目标时钟不替代签发时钟。`ResourceRequests.facts(receipt)` 只生成对应事实数据，Read、Close 和不可用退款不生成事实。execute 已将事实与入账一起提交到 receipt 指定的接收会话，不应再次手动 observe 同一份事实。这个静态工厂本身仍只返回数据。Grant 的数值缩放仍由调用方先解析。
 
 新增命令、结果与 lease 使用显式存储身份，可被已有检查点数据编码；WorldOperation 能力和未完成操作不能据此保存或恢复。当前没有改变普通 DSL 的 initialize / grant / spend / resize、资源表达式或技能支付语义，尚未自动选择请求路由。原生接入必须一并处理这些路径及联合保存，不能仅在传送时移动余额后直接启用。
 

@@ -10,14 +10,28 @@ import java.util.function.Function;
 
 /** Bound buff sources for the rule interpreter, including the removed source of an ended event. */
 public final class BuffRules<S> implements RuleEngine.RuleResolver<S> {
-    public record Scope(BuffInstance snapshot, boolean ended, boolean retained) implements RuleEngine.Payload {
+    public record Scope(BuffInstance snapshot, boolean ended, boolean retained,
+            Optional<com.imdomestic.chorus.effect.EffectState.Lifetime> binding) implements RuleEngine.Payload {
+        public Scope {
+            java.util.Objects.requireNonNull(snapshot); java.util.Objects.requireNonNull(binding);
+            if (binding.isPresent() && (ended || retained || !binding.orElseThrow().key().equals(snapshot.key())))
+                throw new IllegalArgumentException("Relocated buff binding must refer to the same live key");
+        }
+        public Scope(BuffInstance snapshot, boolean ended, boolean retained) { this(snapshot, ended, retained, Optional.empty()); }
         public Scope(BuffInstance snapshot, boolean ended) { this(snapshot, ended, false); }
+        /** The captured observation stays historical; only its live continuation binding follows a relocation. */
+        public com.imdomestic.chorus.effect.EffectState.Lifetime identity() {
+            return binding.orElseGet(() -> new com.imdomestic.chorus.effect.EffectState.Lifetime(snapshot.key(), snapshot.generation()));
+        }
+        public Scope relocated(com.imdomestic.chorus.effect.EffectState.Lifetime identity) {
+            return new Scope(snapshot, ended, retained, Optional.of(identity));
+        }
         /** Retained scopes are modifier-only attack eligibility, never restored live buff listeners. */
         public Optional<BuffInstance> current(BuffStore store) {
             if (ended || retained) return Optional.of(snapshot);
-            return store.active(snapshot.key()).filter(instance -> instance.generation() == snapshot.generation());
+            return store.active(identity().key()).filter(instance -> instance.generation() == identity().generation());
         }
-        public boolean owns(Buffs.Change event) { return snapshot.generation() == event.instance().generation(); }
+        public boolean owns(Buffs.Change event) { return snapshot.key().equals(event.instance().key()) && snapshot.generation() == event.instance().generation(); }
     }
     private final Map<BuffDefinition, List<RuleEngine.EventRule<S>>> bundles;
     private final List<RuleEngine.EventRule<S>> definitions;

@@ -8,7 +8,7 @@ import java.util.*;
 /** Stable-address world requests. The coordinator commits balances, actual receipts and recipient facts together. */
 public final class ResourceRequests {
     private ResourceRequests() {}
-    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request, ResourceRoutes.Request, AbilityResources.Use, AbilityResources.Select, ActionRoutes.Request {}
+    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, Close, ResourceMutations.Request, ResourceRoutes.Request, AbilityResources.Use, AbilityResources.Select, ActionRoutes.Request {}
     public record Read(ResourceState.Key account) implements Request {
         public Read { Objects.requireNonNull(account); }
     }
@@ -21,10 +21,18 @@ public final class ResourceRequests {
     public record Refund(String issuer, RetainedCosts.Handle handle, double fraction, BuffInstance.Origin origin) implements Request {
         public Refund {
             new ResourceAuthority.Lease(issuer, 1); Objects.requireNonNull(handle); Objects.requireNonNull(origin);
+            handle.requireIssuer(issuer);
             Numbers.fraction(fraction, "refund fraction");
         }
     }
-    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt, ResourceRoutes.Receipt, AbilityResources.Used, AbilityResources.Selected, ActionRoutes.Receipt {
+    public record Close(String issuer,RetainedCosts.Handle handle) implements Request {
+        public Close { new ResourceAuthority.Lease(issuer,1);Objects.requireNonNull(handle);handle.requireIssuer(issuer); }
+    }
+    public record Closed(Close request,RetainedCosts.Closed closed) implements Receipt {
+        public Closed { Objects.requireNonNull(request);Objects.requireNonNull(closed); }
+        @Override public Optional<ResourceAuthority.Lease> recipient() { return Optional.empty(); }
+    }
+    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, Closed, ResourceMutations.Receipt, ResourceRoutes.Receipt, AbilityResources.Used, AbilityResources.Selected, ActionRoutes.Receipt {
         Request request();
         Optional<ResourceAuthority.Lease> recipient();
     }

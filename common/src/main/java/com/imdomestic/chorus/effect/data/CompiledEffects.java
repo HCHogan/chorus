@@ -1497,7 +1497,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         validateState(state);
         var pending = pickup.continuation();
         var check = pickupChecks.get(pending.definition());
-        if (!program.version().equals(pending.version()) || check == null || pending.cause().timeMicros() > state.buffs().timeMicros())
+        if (!program.version().equals(pending.version()) || check == null || pending.causalTime() > state.buffs().timeMicros())
             throw new IllegalArgumentException("Unknown or incompatible pickup continuation");
         var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(),
                 new RuleEngine.Signal(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT, pending));
@@ -1510,15 +1510,15 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (event.signal().type().equals(com.imdomestic.chorus.effect.object.PickupCollection.EVENT)) {
             var batch = (com.imdomestic.chorus.effect.object.PickupCollection.Batch) event.signal().payload();
             var pending = batch.scope();
-            if (!program.version().equals(pending.version()) || !pickupChecks.containsKey(pending.definition()) || pending.cause().timeMicros() > event.timeMicros())
+            if (!program.version().equals(pending.version()) || !pickupChecks.containsKey(pending.definition()) || pending.causalTime() > event.timeMicros())
                 throw new IllegalArgumentException("Unknown or incompatible remote pickup continuation");
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition() + "/remote_collect", pending));
         }
         if (event.signal().type().equals(EffectContinuations.EVENT) || event.signal().type().equals(com.imdomestic.chorus.effect.projectile.ProjectileFlight.EVENT)
                 || event.signal().type().equals(com.imdomestic.chorus.effect.object.WorldPickup.CONTACT)) {
             if (!(event.signal().payload() instanceof EffectContinuations.Pending pending) || !program.version().equals(pending.version())
-                    || !continuationIds.contains(pending.definition()) || pending.cause().timeMicros() > event.timeMicros()
-                    || event.signal().type().equals(EffectContinuations.EVENT) && pending.cause().timeMicros() == event.timeMicros()) {
+                    || !continuationIds.contains(pending.definition()) || pending.causalTime() > event.timeMicros()
+                    || event.signal().type().equals(EffectContinuations.EVENT) && pending.causalTime() == event.timeMicros()) {
                 throw new IllegalArgumentException("Unknown or incompatible delayed continuation");
             }
             return List.of(new RuleEngine.RuleBinding(pending.id(), pending.definition(), pending));

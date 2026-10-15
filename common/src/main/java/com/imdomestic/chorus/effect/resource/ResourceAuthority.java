@@ -177,6 +177,7 @@ public final class ResourceAuthority {
     }
     /** Reserve the old domain's one live claim and credit the current owner in one pure supervisor transition. */
     public static Refunded refund(Worlds worlds, String issuer, RetainedCosts.Handle handle, double fraction) {
+        handle.requireIssuer(issuer);
         var authorization = RetainedCosts.authorize(worlds.domain(issuer), handle, fraction);
         if (authorization.claim().isEmpty()) return new Refunded(worlds, Optional.empty(), Optional.empty());
         var claim = authorization.claim().orElseThrow(); var partition = worlds.directory().owner(claim.before().account());

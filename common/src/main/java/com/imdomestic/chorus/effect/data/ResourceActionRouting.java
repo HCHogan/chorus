@@ -12,7 +12,7 @@ final class ResourceActionRouting {
     static boolean supports(Action action) {
         return action instanceof Action.InitializeResource || action instanceof Action.GrantResource
                 || action instanceof Action.SpendResource || action instanceof Action.RefundCost
-                || action instanceof Action.RefundRetainedCost || action instanceof Action.GrantFullCharge
+                || action instanceof Action.RefundRetainedCost || action instanceof Action.CloseRetainedCost || action instanceof Action.GrantFullCharge
                 || action instanceof ResourceCapacityActions.Resize || action instanceof ResourceCapacityActions.ResizeAbility
                 || action instanceof LinkedRechargeActions.Complete || action instanceof EnergyActions.Grant
                 || action instanceof EnergyActions.GrantAbility || action instanceof EnergyActions.ObserveAbility
@@ -43,8 +43,12 @@ final class ResourceActionRouting {
             return write(new ResourceMutations.RefundPayment(e.cost(a.cost()).operation(), number(a.fraction(), e, Unit.MULTIPLIER), e.origin()), r -> ((ResourceMutations.PaymentRefunded) r).refund());
         if (action instanceof Action.RefundRetainedCost a) {
             e.results().get(a.cost()).requireRetainedCost(); var handle = (RetainedCosts.Handle) e.context().bindings().get(a.cost());
-            return write(new ResourceRequests.Refund(e.resourceView().orElseThrow().domain(), handle, number(a.fraction(), e, Unit.MULTIPLIER), e.origin()),
+            return write(new ResourceRequests.Refund(handle.issuer().orElse(e.resourceView().orElseThrow().domain()), handle, number(a.fraction(), e, Unit.MULTIPLIER), e.origin()),
                     r -> new RetainedCosts.Refunded(((ResourceRequests.Refunded) r).refund()));
+        }
+        if(action instanceof Action.CloseRetainedCost a) {
+            e.results().get(a.cost()).requireRetainedCost();var handle=(RetainedCosts.Handle)e.context().bindings().get(a.cost());
+            return write(new ResourceRequests.Close(handle.issuer().orElse(e.resourceView().orElseThrow().domain()),handle),r->((ResourceRequests.Closed)r).closed());
         }
         if (action instanceof Action.GrantFullCharge a) {
             var account = e.resource(a.resource(), a.target()); double count = number(a.charges(), e, Unit.COUNT);

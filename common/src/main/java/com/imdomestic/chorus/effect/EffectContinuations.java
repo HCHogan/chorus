@@ -25,10 +25,14 @@ public final class EffectContinuations {
         throw new IllegalStateException("Rule has no bound effect source");
     }
     public record Pending(String id, String definition, String version, RuleEngine.Payload scope, RuleEngine.Event cause,
-            Map<String, RuleEngine.ActionResult> bindings, Optional<EffectTimers.Owner> owner) implements RuleEngine.Payload {
+            Map<String, RuleEngine.ActionResult> bindings, Optional<EffectTimers.Owner> owner, OptionalLong relocatedAt) implements RuleEngine.Payload {
         public Pending {
             Objects.requireNonNull(id); Objects.requireNonNull(definition); Objects.requireNonNull(version);
             Objects.requireNonNull(scope); Objects.requireNonNull(cause); bindings = Map.copyOf(bindings); Objects.requireNonNull(owner);
+            Objects.requireNonNull(relocatedAt);
+            if (relocatedAt.isPresent() && (relocatedAt.getAsLong() < 0 || relocatedAt.getAsLong() == Long.MAX_VALUE
+                    || owner.flatMap(EffectTimers.Owner::buff).isEmpty() || !(scope instanceof BuffRules.Scope buff) || buff.binding().isEmpty()))
+                throw new IllegalArgumentException("Relocated continuation needs a live buff binding and finite local clock");
             if (id.isBlank() || definition.isBlank() || version.isBlank() || !(scope instanceof EffectSource || scope instanceof BuffRules.Scope || scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope || scope instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope)) {
                 throw new IllegalArgumentException("Invalid continuation identity or source");
             }
@@ -40,6 +44,12 @@ public final class EffectContinuations {
                 throw new IllegalArgumentException("Retained accounting receipts cannot cross continuation frames");
             }
         }
+        public Pending(String id,String definition,String version,RuleEngine.Payload scope,RuleEngine.Event cause,
+                Map<String,RuleEngine.ActionResult> bindings,Optional<EffectTimers.Owner> owner) {
+            this(id,definition,version,scope,cause,bindings,owner,OptionalLong.empty());
+        }
+        /** Local causal boundary; the historical event may belong to a different domain's clock. */
+        public long causalTime() { return relocatedAt.orElse(cause.timeMicros()); }
         public boolean active(EffectState state) { return owner.map(value -> value.active(state.sources(), state.buffs())).orElse(true); }
     }
     public static RuleEngine.Context context(RuleEngine.Context context) {

@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-15：资源、Buff 和自有延迟工作的联合迁移
+
+新增纯 BuffTransfer 及 ResourceSessionAuthority.prepareTransferWithBuffs / commit：同一发布边界移动资源归属、Buff 与 lifetime 绑定的计时器。Buff 来源、资源当前归属、目标可以是三个领域；目标已持有资源时保留 lease。目标重新分配代次，逐层按剩余时间处理有限 / 永久 / 暂停期限，保留分数层、组件、来源与周期余量；目标同 key 冲突、程序不同、未结算到期、溢出及过期计划拒绝整批发布。来源自有及 detached 工作继续留在原领域。
+
+Scope.binding 保存迁移后的有效身份，原 snapshot / cause / 捕获结果保持历史语义；Pending.relocatedAt 记录新领域因果边界，允许旧事件时间大于目标时钟而不改写历史。嵌套 after、own_buff 和 own_timer 随新绑定继续执行。保留成本 Handle 新增 issuer，协调退款和关闭均访问原账本；旧无 issuer 句柄在交接边界补齐，账本不复制，旧别名不能清除已知签发归属。Scope / Pending / Handle 各有精确旧形状迁移及新 v2 存储身份，新增 Close / Closed 请求和回执。
+
+九项 BuffTransferTest 与九项 ResourceBuffTransferTest 覆盖代次 / 计时器冲突、每层与分数层、暂停恢复、不同逻辑时钟、多次往返、历史观察 / 嵌套工作、联合检查点恢复、三领域账户归属、旧句柄、到期签发账本以及未知世界结果。两项共享 BuffTransferGameTest 使用真实玩家传送、目的维度实体解析和实际治疗，验证显式核心交接后的剩余延迟、联合编码恢复前后恰好一次，以及未知回执保留物理生命、退款和原账本认领量。这不是完整自动原生玩家状态迁移。
+
+首次世界定向运行暴露测试初始资源时钟与领域时钟不一致，修正夹具后 `/tmp/chorus-buff-transfer-world2.log` 的两场景通过。第一轮完整回归通过后，新增本地模式目标的拒绝测试在 `/tmp/chorus-buff-transfer-mode-red.log` 确认旧预检会放行无法访问签发账本的目标；现在携带保留退款句柄的迁移要求目标启用协调路由，失败保持原联合检查点。
+
+最终完整回归 `/tmp/chorus-buff-transfer-full-gate2.log` BUILD SUCCESSFUL（4 分 24 秒）：2472 项 JUnit 无失败 / 错误 / 跳过、Fabric 1354 项、NeoForge 1369 项、双端发布包与两次正常停服检查点通过；共享场景 1353 项。`build/reports/buff-transfer/audit.json` 核验全部 720 项旧存储形状保持、五项新增形状（合计 725）、发布主类 1329 / 1322 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源。10 项 Compendium 工具测试、来源及生成报告检查通过。本批新恢复证据来自联合核心编码与真实传送 / 治疗场景，不声明新的独立进程或自动原生整体迁移验收。
+
+无新增原作数值校准，Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）；正式内容装配、完整玩家与物理状态交接仍待完成。接口见[资源与 Buff 共同交接](engine-data-packs.md#资源与-buff-自有工作的共同交接)。
+
 ### 2026-10-15：协调玩家资源的自动登记
 
 ResourceSessionAuthority 新增 enroll(holders)，整批采纳指定领域中的当前余额或空分区。既有归属只核对完整目录兼容，不换 lease、不移回当前观察领域、不重置容量或余额；新增候选全部通过跨领域副本检查后才发布。登记允许保留接收 inbox，不推进时间或执行事实；失败不部分登记。六项核心测试覆盖批量采纳、远端 / 空分区重复观察、旧 Handoff 的保留与失效、非法副本 / 目录 / 领域、待处理事实及恢复后的持续回充。核心变更已独立提交 32ca4f39。

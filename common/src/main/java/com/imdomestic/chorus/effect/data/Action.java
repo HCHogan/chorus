@@ -467,7 +467,7 @@ public interface Action {
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var operation = e.context().operation();
             String id = "retained-cost/" + operation.frame() + "/" + operation.pc() + "/" + operation.invocation();
-            return RetainedCosts.retain(e.state(), id, e.cost(cost), Math.addExact(e.state().buffs().timeMicros(), micros(duration, e)));
+            return RetainedCosts.retain(e.state(), id, e.cost(cost), Math.addExact(e.state().buffs().timeMicros(), micros(duration, e)),e.resourceView().map(com.imdomestic.chorus.effect.resource.ResourceReadView::domain));
         }
     }
     private static RetainedCosts.Handle retainedCost(Evaluation e, String name) {

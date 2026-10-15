@@ -344,7 +344,7 @@ public interface Condition {
         @Override public void validate(Validation v) { EffectTimers.localName(name); }
         @Override public boolean test(Evaluation e) {
             return e.context().event().signal().payload() instanceof EffectTimers.Scheduled scheduled && scheduled.name().equals(name)
-                    && scheduled.owner().equals(EffectTimers.Owner.of(e.context().scope()));
+                    && scheduled.owner().matches(e.context().scope());
         }
     }
 }

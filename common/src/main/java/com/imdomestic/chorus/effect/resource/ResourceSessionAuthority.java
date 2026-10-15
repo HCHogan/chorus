@@ -3,6 +3,7 @@ package com.imdomestic.chorus.effect.resource;
 import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.EffectClock;
+import com.imdomestic.chorus.effect.buff.BuffTransfer;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -86,6 +87,20 @@ public final class ResourceSessionAuthority {
             this.host = host; this.before = before; this.after = after; this.updates = updates; this.transfer = transfer;
         }
         public ResourceAuthority.Transfer transfer() { return transfer; }
+    }
+    /** One publication for resource accounts and the holder's buffs. Other player state is not moved by this component. */
+    public static final class BuffHandoff {
+        private final ResourceSessionAuthority host;
+        private final Snapshot before;
+        private final ResourceAuthority.Worlds after;
+        private final List<EffectSession.DomainUpdate> updates;
+        private final BuffTransfer.Plan buffs;
+        private final String holder;
+        private BuffHandoff(ResourceSessionAuthority host,Snapshot before,ResourceAuthority.Worlds after,
+                List<EffectSession.DomainUpdate> updates,BuffTransfer.Plan buffs,String holder) {
+            this.host=host;this.before=before;this.after=after;this.updates=updates;this.buffs=buffs;this.holder=holder;
+        }
+        public BuffTransfer.Plan buffs() { return buffs; }
     }
     private final Thread ownerThread = Thread.currentThread();
     private Map<String, Binding> bindings;
@@ -316,6 +331,28 @@ public final class ResourceSessionAuthority {
             return handoff.transfer.after().lease();
         });
     }
+    /** The physical/buff source may differ from the current resource owner; even an empty resource partition follows. */
+    public BuffHandoff prepareTransferWithBuffs(String holder,String source,String destination) {
+        return boundary(() -> {
+            settled();if(source.equals(destination))throw new IllegalArgumentException("Buff transfer needs another domain");
+            var from=binding(source).program();var to=binding(destination).program();
+            var before=capture(true);var worlds=before.worlds();var owner=worlds.directory().owner(holder);
+            if(!owner.lease().domain().equals(destination)) {
+                var transfer=ResourceAuthority.transfer(worlds.directory(),owner,worlds.domain(owner.lease().domain()),destination,to,worlds.domain(destination));
+                worlds=ResourceAuthority.commit(worlds,transfer,to);
+            }
+            var buffs=BuffTransfer.prepare(holder,from,worlds.domain(source),to,worlds.domain(destination),Optional.of(source));
+            var domains=new TreeMap<>(worlds.domains());domains.put(source,buffs.departure());domains.put(destination,buffs.arrival());
+            var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
+            return new BuffHandoff(this,before,after,prepare(before,after),buffs,holder);
+        });
+    }
+    public ResourceAuthority.Lease commit(BuffHandoff handoff) {
+        return boundary(() -> {
+            Objects.requireNonNull(handoff);if(handoff.host!=this)throw new IllegalArgumentException("Buff handoff belongs to another host");
+            commit(handoff.before,handoff.after,handoff.updates);return directory.owner(handoff.holder).lease();
+        });
+    }
     /** Return the committed credit. The native host remains responsible for scaling and result-fact delivery. */
     public ResourceAuthority.Granted grant(ResourceState.Key address, double requested, double scaled) {
         return boundary(() -> {
@@ -396,6 +433,11 @@ public final class ResourceSessionAuthority {
             case ResourceRequests.Refund refund -> {
                 var result = ResourceAuthority.refund(worlds, refund.issuer(), refund.handle(), refund.fraction());
                 yield new Applied(result.worlds(), new ResourceRequests.Refunded(refund, result.result(), result.recipient()));
+            }
+            case ResourceRequests.Close close -> {
+                var result=RetainedCosts.close(worlds.domain(close.issuer()),close.handle());
+                var domains=new TreeMap<>(worlds.domains());domains.put(close.issuer(),result.state());
+                yield new Applied(new ResourceAuthority.Worlds(worlds.directory(),domains),new ResourceRequests.Closed(close,(RetainedCosts.Closed)result.result()));
             }
             case ResourceMutations.Request mutation -> {
                 var result = ResourceMutations.apply(worlds, caller, operation, mutation, retained);
