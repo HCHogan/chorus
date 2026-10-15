@@ -6,6 +6,14 @@
 
 ## 当前证据
 
+### 2026-10-15：伤害统计的跨域签发账本
+
+四类活动句柄增加可选 issuer，保留旧构造器与严格 record equality，纯账本入口通过完整旧身份加兼容 issuer 接受旧别名。DamageTallies 的四个 DSL 动作在协调模式通过 ResourceRoutes / EffectHandleRequests 读取和修改签发域，原域状态与调用域确定回执共同提交。新 begin 立即限定 issuer；来源 / Buff 自有 continuation 迁移只为旧未限定句柄补齐地址，A→B→C 保留最初签发域、原期限和共享 damage_id 去重。目标同名账本不参与查找，普通本地 DSL 拒绝限定句柄。
+
+EffectHandleIssuerTest 新增 12 项，验证四类新旧别名、账本 canonical 身份、分组预留消费、弹丸完成和附件修订，以及 v2 / 精确旧布局嵌套迁移与六种 tally 请求回执。ResourceTallyRoutingTest 新增 7 项，验证三域同名隔离、连续迁移、原域时钟到期、重复 operation / damage receipt、联合归档恢复、提交后未知结果保留和本地拒绝。ContinuationTransferBoundaryTest 更新为 7 项，来源 / Buff 的统计工作改为成功回原账本关闭，保留另外三类活动句柄拒绝并补旧句柄地址与非协调目标预检。26 项定向在 `/tmp/chorus-tally-routing-world3.log` 通过。
+
+原 730 项存储形状逐项不变，四个旧 handle ID 映射精确旧布局，新增四个 handle_v2 和六个 tally 请求 / 回执，总计 740 项。DamageGroups、ShotGroups、EntityAttachments 只有身份 / 兼容基础，其伤害、弹丸及世界观察入口的跨域路由仍未完成；直接捕获这些句柄继续拒绝迁移，不计作完整支持。接口见[伤害统计的签发域路由](engine-data-packs.md#伤害统计的签发域路由)。
+
 ### 2026-10-15：原生玩家传送的自动交接与输入连续性
 
 ServerPlayer.teleport 已接共享 MinecraftResourceRuntime 的角色迁移。实际原版背包、光标与独立装备槽枚举携带实例；目标索引成功后、post-teleport 回调前发布资源 / Buff / 角色核心状态，再更新装备 / 技能 / 角色核对责任和当前生命绑定。不会重新 attached、初始化、支付或重置剩余阶段。非协调宿主路径、已发射实体及未路由活动句柄继续保留各自明确边界。

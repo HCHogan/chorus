@@ -1,6 +1,7 @@
 package com.imdomestic.chorus.effect.combat;
 
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.Numbers;
 import java.util.*;
@@ -8,10 +9,20 @@ import java.util.*;
 /** Content-selected confirmed damage receipts shared across detached callbacks, with explicit expiry. */
 public final class DamageTallies {
     private DamageTallies() {}
-    public record Handle(String id, long startedAt, long dueAt) implements RuleEngine.ActionResult {
+    public record Handle(String id, long startedAt, long dueAt, Optional<String> issuer) implements RuleEngine.ActionResult {
         public Handle {
-            Objects.requireNonNull(id);
+            Objects.requireNonNull(id); Objects.requireNonNull(issuer); issuer.ifPresent(value -> new ResourceAuthority.Lease(value, 1));
             if (id.isBlank() || startedAt < 0 || dueAt <= startedAt || dueAt == Long.MAX_VALUE) throw new IllegalArgumentException("Invalid damage tally identity or lifetime");
+        }
+        public Handle(String id, long startedAt, long dueAt) { this(id, startedAt, dueAt, Optional.empty()); }
+        public Handle issuedBy(String domain) { return issuer.isPresent() ? this : new Handle(id, startedAt, dueAt, Optional.of(domain)); }
+        public void requireIssuer(String domain) {
+            if (issuer.isPresent() && !issuer.orElseThrow().equals(domain)) throw new IllegalArgumentException("Damage tally belongs to another issuing domain");
+        }
+        /** Legacy aliases are compatible; choosing the issuing domain remains the coordinator's responsibility. */
+        public boolean matches(Handle other) {
+            return other != null && id.equals(other.id) && startedAt == other.startedAt && dueAt == other.dueAt
+                    && (issuer.isEmpty() || other.issuer.isEmpty() || issuer.equals(other.issuer));
         }
     }
     /** Keep only accounting facts; traces and queued reactions do not affect receipt identity. */
@@ -49,7 +60,7 @@ public final class DamageTallies {
     }
     private static Optional<Entry> live(EffectState state, Handle handle) {
         var entry = state.damageTallies().get(handle.id());
-        if (entry != null && !entry.handle().equals(handle)) throw new IllegalArgumentException("Conflicting damage tally handle");
+        if (entry != null && !entry.handle().matches(handle)) throw new IllegalArgumentException("Conflicting damage tally handle");
         return entry == null || state.buffs().timeMicros() >= handle.dueAt() ? Optional.empty() : Optional.of(entry);
     }
     public static Result read(EffectState state, Handle handle) { return new Result(live(state, handle).map(DamageTallies::summarize), false); }
@@ -59,7 +70,7 @@ public final class DamageTallies {
         var value = entry.orElseThrow(); var observation = Observation.of(receipt); var previous = value.receipts().get(receipt.damageId());
         if (previous != null && !previous.equals(observation)) throw new IllegalArgumentException("Conflicting facts for one damage receipt");
         var receipts = new TreeMap<>(value.receipts()); receipts.putIfAbsent(receipt.damageId(), observation);
-        var next = new Entry(handle, receipts); var result = new Result(Optional.of(summarize(next)), previous == null);
+        var next = new Entry(value.handle(), receipts); var result = new Result(Optional.of(summarize(next)), previous == null);
         return new RuleEngine.Local<>(state.withDamageTally(next), result, List.of());
     }
     public static RuleEngine.Local<EffectState> close(EffectState state, Handle handle) {

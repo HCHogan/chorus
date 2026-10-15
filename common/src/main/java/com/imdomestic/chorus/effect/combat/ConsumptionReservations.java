@@ -15,7 +15,8 @@ public final class ConsumptionReservations {
         for (var claim : open) {
             if (claim.id().equals(ownId)) continue;
             // Explicit members may use the same pending entitlement. Independent attacks see its cost.
-            boolean sameGroup = attack.group().isPresent() && attack.group().equals(claim.command().group());
+            boolean sameGroup = attack.group().isPresent() && claim.command().group().isPresent()
+                    && attack.group().orElseThrow().matches(claim.command().group().orElseThrow());
             for (var candidate : claim.command().consumptions()) {
                 if (!candidate.key().holder().equals(attack.source().owner())) continue;
                 if (candidate.shared().isPresent() && sameGroup) continue;

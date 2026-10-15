@@ -637,7 +637,7 @@ ResourceSessionAuthority 已把该协议接到实际 EffectSession：先核对�
 
 原生交接先结算来源状态和过期输入许可，捕获真实携带集合与配置，再禁止宿主重入；目标实体索引确认后、post-teleport 回调前发布核心状态、物理核对责任和临时输入。被捕获的重入错误也使候选失效。物理结果未知时保留实际写入并停止整个宿主，不回滚或保存成功检查点。瞄准 / 蓄力 / 技能的跨维度确认包含连续 transferRevision，延续同一连接和生命的原手势、原租期；回到原维度也不能使旧报文重新有效。历史 charge 引用与当前 live binding 分开。详见[原生玩家传送协议](engine-data-packs.md#原生玩家传送与长按输入交接)。
 
-领域内 live handle 不能因角色移动自动变成目标领域的权限。当前 DamageTallies / DamageGroups / ShotGroups / EntityAttachments 的直接捕获句柄没有签发域路由，两种工作迁移均在准备阶段明确拒绝；只读历史结果继续保留。后续须提供签发域身份、原域时钟 / 修订核对和跨域操作回执，而不是复制账本或用目标的同名记录顶替。已有保留退款句柄继续使用 issuer 路由。此边界不限制合法的同域反馈循环，也不以全局深度上限替代生命周期规则。
+领域内 live handle 不能因角色移动自动变成目标领域的权限。DamageTallies / DamageGroups / ShotGroups / EntityAttachments 的句柄现在具有可选 issuer，旧字段布局经精确迁移保留；完整 Java equality 仍严格，账本入口另以 matches 接受未限定的旧别名。协调模式下伤害统计在创建时签发，record / read / close 经协调器访问原域账本，并与调用域回执共同发布；迁移只补齐旧句柄的签发域，不搬移账本、不重算期限，也不在目标搜索同名记录。DamageGroups / ShotGroups / EntityAttachments 的完整跨域操作尚未接通，其直接捕获句柄继续在迁移准备阶段拒绝。只读历史结果和既有退款路由保留。此边界不限制合法反馈循环，也不以全局深度上限替代生命周期规则。见[伤害统计的签发域路由](engine-data-packs.md#伤害统计的签发域路由)。
 
 执行中的 Read / Grant / Refund / Close 另走显式 ResourceRequests 世界命令。execute 只接受调用会话当前 pending 请求，通过不透明 WorldOperation 将结果与账户 / 退款账本共同提交；其余会话不得有执行中或待回执的帧，可以保留已排队事实。重复调用返回同一实际结果，回调结束后能力失效，后续仍通过 Completed 恢复原帧及原请求时间。入账后的未知结果保留双方状态并阻止自动重放和保存。下文的协调编译模式已让普通 DSL 资源动作使用此入口，同宿主原生玩家传送已接入联合角色交接；接口见[执行中的资源请求](engine-data-packs.md#执行中的资源请求与回执)。
 

@@ -1000,7 +1000,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle`、`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 目前只有领域内身份，相关账本仍在原领域。因此 Buff 或来源自有工作携带这些活动句柄时，统一在 `Pending.relocated` 拒绝准备；不能把同名句柄交给目标领域，也不能静默删除绑定。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。后续须为这些活动句柄增加签发领域身份及原领域操作协议，才能支持其跨领域继续执行；当前拒绝不计作这种效果已完整支持。
+直接捕获的 `DamageTallies.Handle` 已能随 Buff 或来源自有工作迁移：协调模式在创建时记录 issuer，旧未限定句柄在明确的交接边界补齐；后续操作回原签发账本，见[伤害统计的签发域路由](#伤害统计的签发域路由)。`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 也已有可选 issuer 及旧布局迁移，但其伤害、弹丸和世界观察入口尚未全部接入跨域协议，`Pending.relocated` 仍拒绝携带这三类直接活动句柄。不能把同名句柄交给目标领域，也不能静默删除绑定；拒绝不计作完整支持。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。
 
 ### 角色状态的联合交接
 
@@ -2838,7 +2838,18 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 统计不授予退款权限，不自动返还资源或触发效果。固定充能收益使用 grant_resource；实际成本返还仍需成本回执 / retain_cost。世界结果未知时，未取得回执的动作不会被推测记入统计；已关闭统计、已授予资源及已发生的世界动作保持提交，不重放。
 
-可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计；另有 [threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 按 Compendium 组装九目标、原表档位和 Woven Mail，必填校准参数与内容边界见 [规则集](d2-ruleset.md#threaded-spike-技能模板)。句柄尚不支持从任意事件 / Buff 按字符串查找、跨运行时迁移或重启持久化。
+可执行的 [tally_return.json](../common/src/test/resources/effects/tally_return.json) 让去程实体在三次实际接触后终止，仅在 terminal 分支新建回程。各次伤害先分别入账；回程抵达或接回时关闭汇总，用累计 hits 计算两种回能，用累计 kills 治疗。此例的三个目标、追踪参数、每击 10% / 20% 回能和每杀治疗 3 均为合成值。它证明跨阶段统计；另有 [threaded_spike.json](../common/src/test/resources/effects/threaded_spike.json) 按 Compendium 组装九目标、原表档位和 Woven Mail，必填校准参数与内容边界见 [规则集](d2-ruleset.md#threaded-spike-技能模板)。句柄不支持从任意事件 / Buff 按字符串查找。协调宿主内迁移及联合检查点编码支持如下；物理飞行实体的跨进程恢复仍需独立协议。
+
+
+### 伤害统计的签发域路由
+
+协调编译模式将 begin / record / read / close 四个动作编译成 `ResourceRoutes.Request`，从真实挂起指令与不可变绑定准备 `EffectHandleRequests` 原语。`begin_damage_tally` 用当前调用域、操作身份和该域时钟创建带 issuer 的句柄。读取也经过协调器，不在调用域预读同名账本；目标不存在签发域时明确失败，不扫描其他域。原语只修改 issuer 的统计，协调器共同发布该状态和调用域的确定回执。统计没有资源 recipient 或资源变化事实，也不凭持有者当前 lease 决定归属。
+
+角色 A→B→C 时，来源 / Buff 自有 continuation 可以携带句柄，issuer 始终为 A。原记录的 startedAt / dueAt 保持，过期由 A 的逻辑时钟判断；continuation 自身延迟仍按迁移协议保留剩余时间。B 中的伤害实际在 B 执行，收到 DamageReceipt 后才记录到 A；后续在 C 读取、关闭及收益执行仍遵守各动作自己的归属，不把整个动作体搬回 A。相同回执重复记录沿用 damage_id 去重；同一活动 WorldOperation 重复调用返回已提交回执。提交后宿主回调异常保留账本变化和 pending，禁止成功检查点或自动重放。
+
+旧未限定句柄在明确迁移边界由 sourceDomain 补齐。没有迁移的旧本地句柄可在明确调用域访问原账本；目标必须启用协调路由，本地 DSL 拒绝使用任何 issuer-qualified 句柄。账本 `matches` 比较全部原身份字段，并拒绝双方已限定但 issuer 不同；它不改变 Java record 的严格 equality。记录新回执保留账本 canonical handle，旧别名不能清除已知 issuer。历史 Summary 仍是不可变数值快照。
+
+四种 live Handle 分别增加新的 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。这项协议不代表 DamageGroups、ShotGroups、EntityAttachments 已能跨域继续，后三者的内部伤害与世界观察入口仍待接线。
 
 
 ## 共享 Strand 防御示例

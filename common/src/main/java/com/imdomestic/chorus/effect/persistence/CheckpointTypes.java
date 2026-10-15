@@ -72,7 +72,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/target/entity_attachments/phase", com.imdomestic.chorus.effect.target.EntityAttachments.Phase.class);
         types.put("chorus:effect/target/entity_attachments/outcome", com.imdomestic.chorus.effect.target.EntityAttachments.Outcome.class);
         types.put("chorus:effect/target/entity_attachments/policy", com.imdomestic.chorus.effect.target.EntityAttachments.Policy.class);
-        types.put("chorus:effect/target/entity_attachments/handle", com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class);
+        types.put("chorus:effect/target/entity_attachments/handle", LegacyEntityAttachmentHandleV1.class);
+        types.put("chorus:effect/target/entity_attachments/handle_v2", com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class);
         types.put("chorus:effect/target/entity_attachments/entry", com.imdomestic.chorus.effect.target.EntityAttachments.Entry.class);
         types.put("chorus:effect/target/entity_attachments/query", com.imdomestic.chorus.effect.target.EntityAttachments.Query.class);
         types.put("chorus:effect/target/entity_attachments/observed", com.imdomestic.chorus.effect.target.EntityAttachments.Observed.class);
@@ -211,12 +212,14 @@ final class CheckpointTypes {
         types.put("chorus:effect/combat/damage_batch", com.imdomestic.chorus.effect.combat.DamageBatch.class);
         types.put("chorus:effect/combat/damage_command", com.imdomestic.chorus.effect.combat.DamageCommand.class);
         types.put("chorus:effect/combat/damage_groups/group", com.imdomestic.chorus.effect.combat.DamageGroups.Group.class);
-        types.put("chorus:effect/combat/damage_groups/handle", com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class);
+        types.put("chorus:effect/combat/damage_groups/handle", LegacyDamageGroupHandleV1.class);
+        types.put("chorus:effect/combat/damage_groups/handle_v2", com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class);
         types.put("chorus:effect/combat/damage_groups/query", com.imdomestic.chorus.effect.combat.DamageGroups.Query.class);
         types.put("chorus:effect/combat/damage_receipt", com.imdomestic.chorus.effect.combat.DamageReceipt.class);
         types.put("chorus:effect/combat/damage_receipt/outcome", com.imdomestic.chorus.effect.combat.DamageReceipt.Outcome.class);
         types.put("chorus:effect/combat/damage_tallies/entry", com.imdomestic.chorus.effect.combat.DamageTallies.Entry.class);
-        types.put("chorus:effect/combat/damage_tallies/handle", com.imdomestic.chorus.effect.combat.DamageTallies.Handle.class);
+        types.put("chorus:effect/combat/damage_tallies/handle", LegacyDamageTallyHandleV1.class);
+        types.put("chorus:effect/combat/damage_tallies/handle_v2", com.imdomestic.chorus.effect.combat.DamageTallies.Handle.class);
         types.put("chorus:effect/combat/damage_tallies/observation", com.imdomestic.chorus.effect.combat.DamageTallies.Observation.class);
         types.put("chorus:effect/combat/damage_tallies/result", com.imdomestic.chorus.effect.combat.DamageTallies.Result.class);
         types.put("chorus:effect/combat/damage_tallies/summary", com.imdomestic.chorus.effect.combat.DamageTallies.Summary.class);
@@ -557,7 +560,8 @@ final class CheckpointTypes {
         types.put("chorus:effect/projectile/projectile_flight/receipt", com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt.class);
         types.put("chorus:effect/projectile/projectile_tracking/policy", com.imdomestic.chorus.effect.projectile.ProjectileTracking.Policy.class);
         types.put("chorus:effect/projectile/shot_groups/group", com.imdomestic.chorus.effect.projectile.ShotGroups.Group.class);
-        types.put("chorus:effect/projectile/shot_groups/handle", com.imdomestic.chorus.effect.projectile.ShotGroups.Handle.class);
+        types.put("chorus:effect/projectile/shot_groups/handle", LegacyShotGroupHandleV1.class);
+        types.put("chorus:effect/projectile/shot_groups/handle_v2", com.imdomestic.chorus.effect.projectile.ShotGroups.Handle.class);
         types.put("chorus:effect/projectile/shot_groups/member", com.imdomestic.chorus.effect.projectile.ShotGroups.Member.class);
         types.put("chorus:effect/projectile/shot_groups/pellet", com.imdomestic.chorus.effect.projectile.ShotGroups.Pellet.class);
         types.put("chorus:effect/projectile/shot_groups/phase", com.imdomestic.chorus.effect.projectile.ShotGroups.Phase.class);
@@ -583,6 +587,12 @@ final class CheckpointTypes {
         types.put("chorus:effect/resource/retained_costs/handle", LegacyRetainedCostHandleV1.class);
         types.put("chorus:effect/resource/retained_costs/handle_v2", com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class);
         types.put("chorus:effect/resource/retained_costs/refunded", com.imdomestic.chorus.effect.resource.RetainedCosts.Refunded.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_begin", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyBegin.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_record", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyRecord.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_read", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyRead.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_close", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyClose.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_started", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyStarted.class);
+        types.put("chorus:effect/resource/effect_handle_requests/tally_result", com.imdomestic.chorus.effect.resource.EffectHandleRequests.TallyResult.class);
         types.put("chorus:effect/target/direction_query", com.imdomestic.chorus.effect.target.DirectionQuery.class);
         types.put("chorus:effect/target/direction_query/mode", com.imdomestic.chorus.effect.target.DirectionQuery.Mode.class);
         types.put("chorus:effect/target/direction_query/result", com.imdomestic.chorus.effect.target.DirectionQuery.Result.class);
@@ -752,6 +762,10 @@ final class CheckpointTypes {
                 new RecordTreeCodec.Migration<>(LegacyBuffScopeV1.class, com.imdomestic.chorus.effect.buff.BuffRules.Scope.class, LegacyBuffScopeV1::current),
                 new RecordTreeCodec.Migration<>(LegacyContinuationV1.class, com.imdomestic.chorus.effect.EffectContinuations.Pending.class, LegacyContinuationV1::current),
                 new RecordTreeCodec.Migration<>(LegacyRetainedCostHandleV1.class, com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class, LegacyRetainedCostHandleV1::current),
+                new RecordTreeCodec.Migration<>(LegacyDamageTallyHandleV1.class, com.imdomestic.chorus.effect.combat.DamageTallies.Handle.class, LegacyDamageTallyHandleV1::current),
+                new RecordTreeCodec.Migration<>(LegacyDamageGroupHandleV1.class, com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class, LegacyDamageGroupHandleV1::current),
+                new RecordTreeCodec.Migration<>(LegacyShotGroupHandleV1.class, com.imdomestic.chorus.effect.projectile.ShotGroups.Handle.class, LegacyShotGroupHandleV1::current),
+                new RecordTreeCodec.Migration<>(LegacyEntityAttachmentHandleV1.class, com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class, LegacyEntityAttachmentHandleV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityDefinitionV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.class, LegacyAbilityDefinitionV1::current),
                 new RecordTreeCodec.Migration<>(LegacyAbilityCostFromV1.class, com.imdomestic.chorus.effect.ability.AbilityDefinition.CostFrom.class, LegacyAbilityCostFromV1::current),
                 new RecordTreeCodec.Migration<>(LegacyBuffDefinitionV1.class, com.imdomestic.chorus.effect.buff.BuffDefinition.class, LegacyBuffDefinitionV1::current),

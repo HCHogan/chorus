@@ -1,6 +1,8 @@
 package com.imdomestic.chorus.effect.data;
 
 import com.imdomestic.chorus.effect.resource.*;
+import com.imdomestic.chorus.effect.combat.DamageReceipt;
+import com.imdomestic.chorus.effect.combat.DamageTallies;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
 import java.util.*;
@@ -16,7 +18,9 @@ final class ResourceActionRouting {
                 || action instanceof ResourceCapacityActions.Resize || action instanceof ResourceCapacityActions.ResizeAbility
                 || action instanceof LinkedRechargeActions.Complete || action instanceof EnergyActions.Grant
                 || action instanceof EnergyActions.GrantAbility || action instanceof EnergyActions.ObserveAbility
-                || action instanceof Action.CaptureValue;
+                || action instanceof Action.CaptureValue
+                || action instanceof TallyActions.Begin || action instanceof TallyActions.Record
+                || action instanceof TallyActions.Read || action instanceof TallyActions.Close;
     }
     private static double number(Value value, Evaluation e, Unit unit) {
         var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value();
@@ -25,6 +29,28 @@ final class ResourceActionRouting {
         return ResourceRoutes.Plan.write(request, result);
     }
     static ResourceRoutes.Plan prepare(Action action, Evaluation e) {
+        if (action instanceof TallyActions.Begin begin) {
+            var op = e.context().operation(); long now = e.state().buffs().timeMicros();
+            String issuer = e.resourceView().orElseThrow().domain();
+            var handle = new DamageTallies.Handle("damage-tally/" + op.frame() + "/" + op.pc() + "/" + op.invocation(),
+                    now, Math.addExact(now, Action.micros(begin.duration(), e))).issuedBy(issuer);
+            return write(new EffectHandleRequests.TallyBegin(issuer, handle), r -> ((EffectHandleRequests.TallyStarted) r).handle());
+        }
+        if (action instanceof TallyActions.Record record) {
+            var handle = (DamageTallies.Handle) e.context().bindings().get(record.tally());
+            return write(new EffectHandleRequests.TallyRecord(handle.issuer().orElse(e.resourceView().orElseThrow().domain()), handle,
+                    (DamageReceipt) e.context().bindings().get(record.damage())), r -> ((EffectHandleRequests.TallyResult) r).result());
+        }
+        if (action instanceof TallyActions.Read read) {
+            var handle = (DamageTallies.Handle) e.context().bindings().get(read.tally());
+            return write(new EffectHandleRequests.TallyRead(handle.issuer().orElse(e.resourceView().orElseThrow().domain()), handle),
+                    r -> ((EffectHandleRequests.TallyResult) r).result());
+        }
+        if (action instanceof TallyActions.Close close) {
+            var handle = (DamageTallies.Handle) e.context().bindings().get(close.tally());
+            return write(new EffectHandleRequests.TallyClose(handle.issuer().orElse(e.resourceView().orElseThrow().domain()), handle),
+                    r -> ((EffectHandleRequests.TallyResult) r).result());
+        }
         if (action instanceof Action.InitializeResource a) {
             var key = new ResourceState.Key(e.target(a.target()), a.resource()); e.resourceDefinition(a.resource());
             e.resourceView().orElseThrow().owner(key.holder());

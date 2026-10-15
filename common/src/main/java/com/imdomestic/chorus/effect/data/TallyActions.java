@@ -8,7 +8,11 @@ import java.util.List;
 
 public final class TallyActions {
     private TallyActions() {}
-    private static DamageTallies.Handle handle(Evaluation e, String name) { return (DamageTallies.Handle) e.context().bindings().get(name); }
+    private static DamageTallies.Handle handle(Evaluation e, String name) {
+        var handle = (DamageTallies.Handle) e.context().bindings().get(name);
+        if (handle.issuer().isPresent()) throw new IllegalArgumentException("Issuer-qualified tally requires coordinated routing");
+        return handle;
+    }
     public record Begin(Value duration) implements Action {
         @Override public ResultShape validate(Validation v) { Action.validateDuration(duration, v); return ResultShape.DAMAGE_TALLY; }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {

@@ -1,6 +1,7 @@
 package com.imdomestic.chorus.effect.target;
 
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
@@ -19,13 +20,26 @@ public final class EntityAttachments {
         }
     }
     public record Handle(String id, long startedAt, long expiresAt, EntityAnchor.Observation initial,
-            WorldPosition contact, Policy policy) implements RuleEngine.ActionResult {
+            WorldPosition contact, Policy policy, Optional<String> issuer) implements RuleEngine.ActionResult {
         public Handle {
-            Objects.requireNonNull(initial); Objects.requireNonNull(contact); Objects.requireNonNull(policy);
+            Objects.requireNonNull(initial); Objects.requireNonNull(contact); Objects.requireNonNull(policy); Objects.requireNonNull(issuer); issuer.ifPresent(value -> new ResourceAuthority.Lease(value, 1));
             if (id == null || id.isBlank() || startedAt < 0 || expiresAt <= startedAt)
                 throw new IllegalArgumentException("Invalid attachment identity or lifetime");
             if (!initial.position().dimension().equals(contact.dimension())) throw new IllegalArgumentException("Attachment contact belongs to another world");
             contact.rebase(initial.position(), initial.position());
+        }
+        public Handle(String id, long startedAt, long expiresAt, EntityAnchor.Observation initial, WorldPosition contact, Policy policy) {
+            this(id, startedAt, expiresAt, initial, contact, policy, Optional.empty());
+        }
+        public Handle issuedBy(String domain) { return issuer.isPresent() ? this : new Handle(id, startedAt, expiresAt, initial, contact, policy, Optional.of(domain)); }
+        public void requireIssuer(String domain) {
+            if (issuer.isPresent() && !issuer.orElseThrow().equals(domain)) throw new IllegalArgumentException("Attachment belongs to another issuing domain");
+        }
+        /** Legacy aliases are compatible; choosing the issuing domain remains the coordinator's responsibility. */
+        public boolean matches(Handle other) {
+            return other != null && id.equals(other.id) && startedAt == other.startedAt && expiresAt == other.expiresAt
+                    && initial.equals(other.initial) && contact.equals(other.contact) && policy.equals(other.policy)
+                    && (issuer.isEmpty() || other.issuer.isEmpty() || issuer.equals(other.issuer));
         }
         public EntityAnchor.Query query() { return new EntityAnchor.Query(initial.reference().target(), initial.anchor(), Optional.of(initial.reference())); }
         public WorldPosition position(EntityAnchor.Observation observation) {
@@ -126,7 +140,7 @@ public final class EntityAttachments {
     }
     private static Optional<Entry> find(EffectState state, Handle handle) {
         var entry = Optional.ofNullable(state.attachments().get(handle.id()));
-        if (entry.filter(e -> !e.handle().equals(handle)).isPresent()) throw new IllegalArgumentException("Attachment handle identity differs");
+        if (entry.filter(e -> !e.handle().matches(handle)).isPresent()) throw new IllegalArgumentException("Attachment handle identity differs");
         return entry;
     }
     public static RuleEngine.Local<EffectState> close(EffectState state, Handle handle) {

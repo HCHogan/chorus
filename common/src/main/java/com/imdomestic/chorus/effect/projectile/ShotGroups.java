@@ -3,6 +3,7 @@ package com.imdomestic.chorus.effect.projectile;
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
 import com.imdomestic.chorus.effect.combat.*;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.Measure;
 import com.imdomestic.chorus.stat.Unit;
@@ -12,12 +13,23 @@ import java.util.*;
 public final class ShotGroups {
     public static final String DUE = "chorus:internal/shot_due", RESOLVED = "chorus:shot_resolved", PROGRESS = "chorus:shot_progress";
     private ShotGroups() {}
-    public record Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt)
+    public record Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt, Optional<String> issuer)
             implements RuleEngine.ActionResult, RuleEngine.Payload {
         public Handle {
-            Objects.requireNonNull(id); Objects.requireNonNull(origin);
+            Objects.requireNonNull(id); Objects.requireNonNull(origin); Objects.requireNonNull(issuer); issuer.ifPresent(value -> new ResourceAuthority.Lease(value, 1));
             if (id.isBlank() || pellets < 1 || startedAt < 0 || dueAt <= startedAt || dueAt == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Invalid shot identity, count or lifetime");
+        }
+        public Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt) { this(id, origin, pellets, startedAt, dueAt, Optional.empty()); }
+        public Handle issuedBy(String domain) { return issuer.isPresent() ? this : new Handle(id, origin, pellets, startedAt, dueAt, Optional.of(domain)); }
+        public void requireIssuer(String domain) {
+            if (issuer.isPresent() && !issuer.orElseThrow().equals(domain)) throw new IllegalArgumentException("Shot belongs to another issuing domain");
+        }
+        /** Legacy aliases are compatible; choosing the issuing domain remains the coordinator's responsibility. */
+        public boolean matches(Handle other) {
+            return other != null && id.equals(other.id) && origin.equals(other.origin) && pellets == other.pellets
+                    && startedAt == other.startedAt && dueAt == other.dueAt
+                    && (issuer.isEmpty() || other.issuer.isEmpty() || issuer.equals(other.issuer));
         }
         public String timerId() { return id + "/expiry"; }
     }
@@ -67,7 +79,7 @@ public final class ShotGroups {
     private static Optional<Group> group(EffectState state, Member member) {
         var group = state.shotGroups().get(member.shot().id());
         if (group == null) return Optional.empty();
-        if (!group.handle().equals(member.shot())) throw new IllegalArgumentException("Shot handle mismatch");
+        if (!group.handle().matches(member.shot())) throw new IllegalArgumentException("Shot handle mismatch");
         return Optional.of(group);
     }
     public static boolean active(EffectState state, Member member) {
@@ -149,7 +161,7 @@ public final class ShotGroups {
     public static RuleEngine.Local<EffectState> expire(EffectState state, Handle handle) {
         var group = state.shotGroups().get(handle.id());
         if (group == null) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
-        if (!group.handle().equals(handle) || state.buffs().timeMicros() != handle.dueAt()) throw new IllegalArgumentException("Wrong shot deadline");
+        if (!group.handle().matches(handle) || state.buffs().timeMicros() != handle.dueAt()) throw new IllegalArgumentException("Wrong shot deadline");
         return settle(state, group, RuleEngine.Empty.INSTANCE, true);
     }
     private static RuleEngine.Local<EffectState> settle(EffectState state, Group group, RuleEngine.ActionResult result, boolean expired) {

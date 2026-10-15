@@ -463,6 +463,10 @@ public final class ResourceSessionAuthority {
                 var result = ResourceMutations.apply(worlds, caller, operation, mutation, retained);
                 yield new Applied(result.worlds(), result.receipt());
             }
+            case EffectHandleRequests.Request handle -> {
+                var result = EffectHandleRequests.apply(worlds, handle);
+                yield new Applied(result.worlds(), result.receipt());
+            }
             case AbilityResources.Use use -> {
                 var owner = worlds.directory().owner(use.ability().holder());
                 requireAbilityDomain(owner.lease().domain());

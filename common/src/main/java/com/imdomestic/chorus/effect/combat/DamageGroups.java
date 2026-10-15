@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.combat;
 
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.buff.BuffInstance;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
@@ -9,11 +10,21 @@ import java.util.*;
 public final class DamageGroups {
     public static final String DUE = "chorus:internal/damage_group_due";
     private DamageGroups() {}
-    public record Handle(String id, String owner, long startedAt, long dueAt) implements RuleEngine.ActionResult, RuleEngine.Payload {
+    public record Handle(String id, String owner, long startedAt, long dueAt, Optional<String> issuer) implements RuleEngine.ActionResult, RuleEngine.Payload {
         public Handle {
-            Objects.requireNonNull(id); Objects.requireNonNull(owner);
+            Objects.requireNonNull(id); Objects.requireNonNull(owner); Objects.requireNonNull(issuer); issuer.ifPresent(value -> new ResourceAuthority.Lease(value, 1));
             if (id.isBlank() || owner.isBlank() || startedAt < 0 || dueAt <= startedAt || dueAt == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Invalid damage group identity or lifetime");
+        }
+        public Handle(String id, String owner, long startedAt, long dueAt) { this(id, owner, startedAt, dueAt, Optional.empty()); }
+        public Handle issuedBy(String domain) { return issuer.isPresent() ? this : new Handle(id, owner, startedAt, dueAt, Optional.of(domain)); }
+        public void requireIssuer(String domain) {
+            if (issuer.isPresent() && !issuer.orElseThrow().equals(domain)) throw new IllegalArgumentException("Damage group belongs to another issuing domain");
+        }
+        /** Legacy aliases are compatible; choosing the issuing domain remains the coordinator's responsibility. */
+        public boolean matches(Handle other) {
+            return other != null && id.equals(other.id) && owner.equals(other.owner) && startedAt == other.startedAt && dueAt == other.dueAt
+                    && (issuer.isEmpty() || other.issuer.isEmpty() || issuer.equals(other.issuer));
         }
         public String timerId() { return id + "/expiry"; }
         public String reference() { return "group/" + owner.length() + ":" + owner + "/" + id; }
@@ -34,7 +45,7 @@ public final class DamageGroups {
     }
     public static Group require(EffectState state, Handle handle) {
         var group = state.damageGroups().get(handle.id());
-        if (group == null || !group.handle().equals(handle) || state.buffs().timeMicros() >= handle.dueAt())
+        if (group == null || !group.handle().matches(handle) || state.buffs().timeMicros() >= handle.dueAt())
             throw new IllegalArgumentException("Missing, closed or expired damage group");
         return group;
     }
@@ -48,7 +59,7 @@ public final class DamageGroups {
     }
     public static RuleEngine.Local<EffectState> close(EffectState state, Handle handle) {
         var group = state.damageGroups().get(handle.id());
-        if (group != null && !group.handle().equals(handle)) throw new IllegalArgumentException("Damage group identity differs");
+        if (group != null && !group.handle().matches(handle)) throw new IllegalArgumentException("Damage group identity differs");
         return new RuleEngine.Local<>(state.withoutDamageGroup(handle.id()).cancel(handle.timerId()), RuleEngine.Empty.INSTANCE, List.of());
     }
 }

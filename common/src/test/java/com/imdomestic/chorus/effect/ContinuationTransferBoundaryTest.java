@@ -38,9 +38,8 @@ class ContinuationTransferBoundaryTest {
         return pending.relocated("moved",pending.scope(),pending.owner().orElseThrow(),50,Optional.of(A),resourceRouting);
     }
 
-    @Test void allCurrentlyUnroutedLiveHandleKindsRejectBeforeChangingTheCapturedBindings() {
-        var handles=List.<RuleEngine.ActionResult>of(new DamageTallies.Handle("shared",0,1_000_000),
-                new DamageGroups.Handle("shared",H,0,1_000_000),
+    @Test void remainingUnroutedLiveHandleKindsRejectBeforeChangingTheCapturedBindings() {
+        var handles=List.<RuleEngine.ActionResult>of(new DamageGroups.Handle("shared",H,0,1_000_000),
                 new ShotGroups.Handle("shared",source(H).origin(),2,0,1_000_000),attachment());
         for(var handle:handles) {
             var original=pending(Map.of("live",handle));
@@ -50,6 +49,18 @@ class ContinuationTransferBoundaryTest {
             assertEquals(Map.of("live",handle),original.bindings());
             assertTrue(original.relocatedAt().isEmpty());
         }
+    }
+
+    @Test void legacyTalliesAcquireTheirFirstIssuerAndRequireACoordinatedDestination() {
+        var handle=new DamageTallies.Handle("shared",0,1_000_000);var original=pending(Map.of("tally",handle));
+        var moved=relocate(original,true);var qualified=handle.issuedBy(A);
+        assertEquals(qualified,moved.bindings().get("tally"));assertEquals(Map.of("tally",handle),original.bindings());
+        assertEquals(original.cause(),moved.cause());assertEquals(50,moved.causalTime());
+        var again=moved.relocated("twice",moved.scope(),moved.owner().orElseThrow(),70,Optional.of(B),true);
+        assertEquals(qualified,again.bindings().get("tally"));
+        assertThrows(IllegalArgumentException.class,()->relocate(original,false));
+        assertThrows(IllegalArgumentException.class,()->relocate(moved,false));
+        assertThrows(IllegalArgumentException.class,()->original.relocated("missing",original.scope(),original.owner().orElseThrow(),50,Optional.empty(),true));
     }
 
     @Test void historicalSnapshotsAndLogicalBatchIdsRemainCapturableWhileRefundsKeepTheirIssuer() {
@@ -110,7 +121,9 @@ class ContinuationTransferBoundaryTest {
                 EffectSession.commitDomains(List.of(sessions.get(domain).prepareDomain(sessions.get(domain).state(),recorded)));
             }
             // Identical operation coordinates and clocks are legal in independent sessions.
-            assertEquals(handle(A),handle(B));
+            assertEquals(handle(A).id(),handle(B).id());assertEquals(handle(A).startedAt(),handle(B).startedAt());
+            assertEquals(handle(A).dueAt(),handle(B).dueAt());
+            assertEquals(Optional.of(A),handle(A).issuer());assertEquals(Optional.of(B),handle(B).issuer());
             sessions.get(A).observe(50_000,List.of());
         }
         RuleEngine.ActionResult execute(String domain,RuleEngine.WorldRequest request) {
@@ -120,6 +133,24 @@ class ContinuationTransferBoundaryTest {
         }
         EffectState state(String domain){return sessions.get(domain).state().engine().domain();}
         DamageTallies.Handle handle(String domain){return state(domain).damageTallies().values().iterator().next().handle();}
+        DamageTallies.Handle captured(String domain) {
+            return state(domain).timers().values().stream().map(EffectState.Timer::signal).map(RuleEngine.Signal::payload)
+                    .filter(EffectContinuations.Pending.class::isInstance).map(EffectContinuations.Pending.class::cast)
+                    .filter(p->switch(p.scope()) {
+                        case EffectSource source->source.holder().equals(H);
+                        case BuffRules.Scope buff->buff.snapshot().key().holder().equals(H);
+                        default->false;
+                    }).flatMap(p->p.bindings().values().stream())
+                    .filter(DamageTallies.Handle.class::isInstance).map(DamageTallies.Handle.class::cast).findFirst().orElseThrow();
+        }
+        void completeMoved() {
+            assertEquals(B,host.snapshot().directory().owner(H).lease().domain());
+            assertEquals(Optional.of(A),captured(B).issuer());
+            assertEquals(3,DamageTallies.read(state(A),handle(A)).numbers().healthLoss());
+            sessions.get(B).observe(50_000,List.of());assertFalse(host.drain(20).pending());
+            assertTrue(state(A).damageTallies().isEmpty());assertEquals(List.of(B),cues);
+            assertEquals(9,DamageTallies.read(state(B),handle(B)).numbers().healthLoss());
+        }
         void unchanged(ResourceSessionAuthority.Checkpoint before) {
             assertEquals(before,host.checkpoint());
             assertEquals(A,host.snapshot().directory().owner(H).lease().domain());
@@ -129,27 +160,35 @@ class ContinuationTransferBoundaryTest {
         }
     }
 
-    @Test void sourceOwnedTallyWithSameIdAtDestinationRejectsPureAndJointCharacterPreparation() {
+    @Test void sourceOwnedTallyWithSameIdAtDestinationClosesTheOriginalLedgerAfterCharacterTransfer() {
         var f=new Fixture(false,false);var before=f.host.checkpoint();
-        assertThrows(IllegalArgumentException.class,()->CharacterTransfer.prepare(H,Set.of(),f.program,f.state(A),f.program,f.state(B),Optional.of(A)));
+        CharacterTransfer.prepare(H,Set.of(),f.program,f.state(A),f.program,f.state(B),Optional.of(A));
         f.unchanged(before);
-        // The joint path has already projected resource and buff moves when the source-owned work rejects.
-        assertThrows(IllegalArgumentException.class,()->f.host.prepareCharacterTransfer(H,A,B,Set.of()));
-        f.unchanged(before);
-        f.sessions.get(A).observe(100_000,List.of());
-        assertTrue(f.state(A).damageTallies().isEmpty());assertEquals(List.of(A),f.cues);
-        assertEquals(9,DamageTallies.read(f.state(B),f.handle(B)).numbers().healthLoss());
+        var prepared=f.host.prepareCharacterTransfer(H,A,B,Set.of());f.unchanged(before);
+        f.host.commit(prepared);f.completeMoved();
     }
 
-    @Test void buffOwnedTallyUsesTheSamePreflightWithoutPublishingResourcesOrBuffs() {
-        var f=new Fixture(true,false);var before=f.host.checkpoint();
-        assertThrows(IllegalArgumentException.class,()->BuffTransfer.prepare(H,f.program,f.state(A),f.program,f.state(B),Optional.of(A)));
-        assertThrows(IllegalArgumentException.class,()->f.host.prepareTransferWithBuffs(H,A,B));
-        assertThrows(IllegalArgumentException.class,()->f.host.prepareCharacterTransfer(H,A,B,Set.of()));
-        f.unchanged(before);
-        f.sessions.get(A).observe(100_000,List.of());
-        assertTrue(f.state(A).damageTallies().isEmpty());assertEquals(List.of(A),f.cues);
-        assertEquals(9,DamageTallies.read(f.state(B),f.handle(B)).numbers().healthLoss());
+    @Test void buffOwnedTallyRoutesBackAfterBothBuffAndWholeCharacterHandoffs() {
+        for(boolean character:List.of(false,true)) {
+            var f=new Fixture(true,false);var before=f.host.checkpoint();
+            BuffTransfer.prepare(H,f.program,f.state(A),f.program,f.state(B),Optional.of(A));f.unchanged(before);
+            if(character) {
+                var prepared=f.host.prepareCharacterTransfer(H,A,B,Set.of());f.unchanged(before);f.host.commit(prepared);
+            } else {
+                var prepared=f.host.prepareTransferWithBuffs(H,A,B);f.unchanged(before);f.host.commit(prepared);
+            }
+            assertTrue(f.state(A).buffs().instances().isEmpty());
+            assertEquals(2,f.state(B).buffs().instances().size());f.completeMoved();
+        }
+    }
+
+    @Test void liveTalliesCannotMoveIntoANoncoordinatedProgram() {
+        for(boolean buff:List.of(false,true)) {
+            var f=new Fixture(buff,false);var before=f.host.checkpoint();var local=new CompiledEffects(f.program.program());
+            if(buff)assertThrows(IllegalArgumentException.class,()->BuffTransfer.prepare(H,f.program,f.state(A),local,f.state(B),Optional.of(A)));
+            else assertThrows(IllegalArgumentException.class,()->CharacterTransfer.prepare(H,Set.of(),f.program,f.state(A),local,f.state(B),Optional.of(A)));
+            f.unchanged(before);
+        }
     }
 
     @Test void detachedWorkAndItsLedgerRemainInTheOriginalDomainAndDoNotBlockCharacterTransfer() {
