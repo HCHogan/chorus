@@ -230,18 +230,28 @@ public interface Action {
         private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact contact(Evaluation e) {
             return ResultShape.impact(e.context().bindings().get(pellet.orElseThrow()));
         }
+        /** The active compiled instruction supplies this contact; historical result scans grant no authority. */
+        public Optional<com.imdomestic.chorus.effect.projectile.ProjectileFlight.Impact> shotContact(Evaluation e) {
+            return pellet.map(_ -> contact(e));
+        }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var command = request(e);
-            if (pellet.isPresent()) com.imdomestic.chorus.effect.projectile.ShotGroups.validateDamage(e.state(), contact(e), command);
+            if (pellet.isPresent()) {
+                var contact = contact(e);
+                var state = e.resourceView().map(view -> view.shotState(contact.member().orElseThrow())).orElse(e.state());
+                com.imdomestic.chorus.effect.projectile.ShotGroups.validateDamage(state, contact, command);
+            }
             return new RuleEngine.Await<>(command);
         }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult receipt) {
             var damage = (DamageReceipt) receipt; var command = e.context().command(DamageCommand.class);
             if (pellet.isEmpty()) return finishDamage(e.state(), command, damage, java.util.Map.of());
             var contact = contact(e); var member = contact.member().orElseThrow();
+            var attribution = java.util.Map.of("shot", member.shot().reference(), "pellet", Integer.toString(member.pellet()), "contact", Long.toString(contact.sequence()));
+            // The coordinator consumes the prepared contact and actual receipt in the issuer's ledger.
+            if (e.resourceView().isPresent()) return finishDamage(e.state(), command, damage, attribution);
             var counted = com.imdomestic.chorus.effect.projectile.ShotGroups.damage(e.state(), contact, command, damage);
-            var completed = finishDamage(counted, command, damage,
-                    java.util.Map.of("shot", member.shot().reference(), "pellet", Integer.toString(member.pellet()), "contact", Long.toString(contact.sequence())));
+            var completed = finishDamage(counted, command, damage, attribution);
             var signals = new java.util.ArrayList<>(completed.emitted());
             signals.addAll(com.imdomestic.chorus.effect.projectile.ShotGroups.progress(e.state(), counted, member));
             return new RuleEngine.Local<>(completed.state(), completed.result(), signals);

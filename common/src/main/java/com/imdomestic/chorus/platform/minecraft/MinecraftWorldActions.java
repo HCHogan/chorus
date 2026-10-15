@@ -53,7 +53,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 if (!present(target) || !level.dimension().identifier().toString().equals(reference.dimension())
                         || !MinecraftEntityLife.get(target).id().equals(reference.life()))
                     yield new DamageReceipt(id, DamageReceipt.Outcome.FAILED, 0, 0, 0, Optional.empty(), false);
-                yield MinecraftDamageExecutor.executeManaged(id, target, Objects.requireNonNull(damageSources.apply(damage)), damage);
+                yield MinecraftDamageExecutor.executeManaged(id, target, Objects.requireNonNull(damageSources.apply(damage)), damage, request);
             }
             case DamageCommand damage -> {
                 String id = sessionId + "/" + request.id().frame() + "/" + request.id().pc() + "/" + request.id().invocation();
@@ -61,7 +61,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
                 if (target == null || target.isRemoved() || target.level() != level) {
                     yield new DamageReceipt(id, DamageReceipt.Outcome.FAILED, 0, 0, 0, Optional.empty(), false);
                 }
-                yield MinecraftDamageExecutor.executeManaged(id, target, Objects.requireNonNull(damageSources.apply(damage)), damage);
+                yield MinecraftDamageExecutor.executeManaged(id, target, Objects.requireNonNull(damageSources.apply(damage)), damage, request);
             }
             case HealingCommand healing -> {
                 String id = sessionId + "/" + request.id().frame() + "/" + request.id().pc() + "/" + request.id().invocation();
@@ -166,8 +166,7 @@ public final class MinecraftWorldActions implements Function<RuleEngine.WorldReq
     private com.imdomestic.chorus.effect.projectile.ProjectileFlight.Receipt launch(com.imdomestic.chorus.effect.projectile.ProjectileFlight.Launch launch) {
         var outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.LAUNCHED;
         var id = Optional.<String>empty();
-        if (launch.member().isPresent() && !com.imdomestic.chorus.effect.projectile.ShotGroups.active(
-                MinecraftEffectRuntime.installed(level).orElseThrow().state().engine().domain(), launch.member().orElseThrow()))
+        if (launch.member().isPresent() && !MinecraftEffectRuntime.installed(level).orElseThrow().shotActive(launch.member().orElseThrow()))
             outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.EXPIRED_SHOT;
         else if (launch.position().isEmpty()) outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.MISSING_POSITION;
         else if (launch.direction().isEmpty()) outcome = com.imdomestic.chorus.effect.projectile.ProjectileFlight.Outcome.MISSING_DIRECTION;

@@ -3,6 +3,8 @@ package com.imdomestic.chorus.platform.minecraft;
 import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.effect.combat.DamageCommand;
 import com.imdomestic.chorus.stat.Numbers;
+import com.imdomestic.chorus.rule.RuleEngine;
+import java.util.Optional;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,18 +16,30 @@ public final class MinecraftDamageExecutor {
         return execute(id, target, source, amount, nonLethal, null);
     }
     static DamageReceipt executeManaged(String id, LivingEntity target, DamageSource source, DamageCommand command) {
+        return executeManaged(id, target, source, command, Optional.empty());
+    }
+    static DamageReceipt executeManaged(String id, LivingEntity target, DamageSource source, DamageCommand command,
+            RuleEngine.WorldRequest request) {
+        return executeManaged(id, target, source, command, Optional.of(request));
+    }
+    private static DamageReceipt executeManaged(String id, LivingEntity target, DamageSource source, DamageCommand command,
+            Optional<RuleEngine.WorldRequest> request) {
         if (command.scalingProfile().isPresent() && !DamageCapture.hasObserver(target)) {
             throw new IllegalStateException("Damage scaling requires an installed ruleset runtime");
         }
-        return execute(id, target, source, command.amount(), command.nonLethal(), command);
+        return execute(id, target, source, command.amount(), command.nonLethal(), command, request);
     }
     private static DamageReceipt execute(String id, LivingEntity target, DamageSource source, double amount, boolean nonLethal, DamageCommand command) {
+        return execute(id, target, source, amount, nonLethal, command, Optional.empty());
+    }
+    private static DamageReceipt execute(String id, LivingEntity target, DamageSource source, double amount, boolean nonLethal, DamageCommand command,
+            Optional<RuleEngine.WorldRequest> request) {
         Numbers.nonnegative(amount, "damage");
         if (amount > Float.MAX_VALUE) throw new IllegalArgumentException("Damage exceeds the native float range");
         if (!(target.level() instanceof ServerLevel level) || !level.getServer().isSameThread()) {
             throw new IllegalStateException("Damage must execute on the server thread");
         }
-        try (var capture = DamageCapture.request(id, target, source, nonLethal, command)) {
+        try (var capture = DamageCapture.request(id, target, source, nonLethal, command, request)) {
             boolean accepted = target.hurtServer(level, source, (float) amount);
             return capture.receipt(accepted);
         }

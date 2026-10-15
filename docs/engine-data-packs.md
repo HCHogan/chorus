@@ -1014,7 +1014,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle`、`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带这两类活动句柄，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟另按[捕获时间线协议](#伤害快照的捕获时间线)核验，group 权限不能代替这项证明。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
+直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle` 已按独立的[射击组协议](#射击组的签发域与跨域接续)支持相同交接；`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟另按[捕获时间线协议](#伤害快照的捕获时间线)核验，group 权限不能代替这项证明。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
 
 ### 角色状态的联合交接
 
@@ -1508,7 +1508,7 @@ Rampage 的可执行例子见 [rampage.json](../common/src/test/resources/effect
 
 协调模式的新 `begin_shot` 在调用域建立本地账本，同时保存该域 issuer 与 `ReferenceFormat.ISSUED_V1`。它的 `reference()` 包含 issuer、id、完整 origin（包括稳定排序的 tags）、pellets、startedAt / dueAt，以无歧义字段边界区分不同世界的同名组。成员伤害事实、shot_progress 及 shot_resolved 使用同一个引用；内容的 once_set 不再把这类新组误合并。普通非协调 begin 保留原本的本地引用约定。
 
-旧 v1 / v2 句柄精确迁移为 `LEGACY`，包括已经带 issuer 的旧 v2，继续以原裸 id 生成事实。`issuedBy` 保留引用格式，`matches` 拒绝不同格式作为同一账本的别名。历史 cause、事件和去重集合不改写，恢复后同一组不会因标识换串被再次计数；旧标识已经缺失的跨域区分无法无损恢复。当前句柄写入独立 `handle_v3`，枚举新增 `reference_format`，旧 DATA 布局保留。此项仅建立身份与兼容协议，ShotGroups 的完整跨域操作、事实投递及活动句柄迁移仍待接入；`Pending.relocated` 继续拒绝直接携带该活动句柄。
+旧 v1 / v2 句柄精确迁移为 `LEGACY`，包括已经带 issuer 的旧 v2，继续以原裸 id 生成事实。`issuedBy` 保留引用格式，`matches` 拒绝不同格式作为同一账本的别名。历史 cause、事件和去重集合不改写，恢复后同一组不会因标识换串被再次计数；旧标识已经缺失的跨域区分无法无损恢复。当前句柄写入独立 `handle_v3`，枚举新增 `reference_format`，旧 DATA 布局保留。协调宿主的活动句柄迁移、账本操作与事实投递见[射击组的签发域与跨域接续](#射击组的签发域与跨域接续)。
 
 | shot_progress / shot_resolved 共有字段 | 含义 |
 | --- | --- |
@@ -1532,7 +1532,21 @@ One-Two Punch 使用 `previous_max_pellets_on_target < 门槛 && max_pellets_on_
 
 攻击寿命为半开区间 `[startedAt, dueAt)`，精确到期的延迟发射也不能重新打开组。超时发布 complete=false 与未结算数量，清理组并停止仍存活的成员；这是一条内容声明的攻击寿命，不是事件循环限制。索引可以在寿命内通过 detached after 延迟发射，但 `damage_snapshot.pellet` 只能在对应接触的同步动作体中使用：编译器不向 after 或嵌套 projectile 传播当前接触的记账资格。延迟爆炸仍可沿用几何与伤害快照，需作为独立伤害或新组建模。
 
-目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。下节 hitscan 也支持同一显式成员和实际伤害统计。原版命中自动归组、完整精准分类、即时武器自动连发、跨组 / 多分量共用一次“下一击”事务、活跃组 / 飞行实体的跨进程存档恢复仍需扩展。Rewind Rounds 已有独立数据定义及显式组数的结算策略，见 [命中计数与补弹](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
+目前提供显式成员 projectile 与 damage_snapshot 记账，One-Two Punch 已有独立内容与实际玩家输入 / 投射物 / 近战验收，仍为 partial，见 [规则集](d2-ruleset.md#one-two-punch雪上加霜)。下节 hitscan 也支持同一显式成员和实际伤害统计。原版命中自动归组、完整精准分类、即时武器自动连发、跨组 / 多分量共用一次“下一击”事务、物理飞行实体的跨进程恢复仍需扩展。Rewind Rounds 已有独立数据定义及显式组数的结算策略，见 [命中计数与补弹](d2-ruleset.md#rewind-rounds-的命中计数与射空补弹)。
+
+### 射击组的签发域与跨域接续
+
+在同一协调宿主内，来源或 Buff 自有 continuation 可携带 `ShotGroups.Handle` 从 A 移到 B，再到 C。原账本、成员状态和 expiry timer 留在 A，原始开始 / 截止时刻不改写；续体自身按剩余时间迁移。旧空 issuer 只在显式 sourceDomain 边界补齐，补齐不改变 LEGACY 引用格式。目标须启用协调路由；未指定签发域的旧本地句柄以最初物理调用域解释，不根据嵌套查询或当前资源 lease 猜测位置。
+
+`ShotRequests` 提供 Reserve、Traced、TracedPath、Launched、Open、Close、Expire 七种请求及统一 Receipt。编译器先在签发域预留索引，再在实际世界执行射线 / 弹体动作，凭原观察确认成员状态。贯穿与反弹保留整个路径回执及每个接触的顺序，第一次观察打开首接触，后续接触逐个开闭；同一弹丸反复命中同一目标仍只计一次。发射参数与历史来源保持捕获值，迁移后伤害的实时查询继续按当前参与者归属读取。原生射线和飞行实体的活动检查读取同一签发域，已进入战斗时使用冻结的 shadow，不重入协调器。
+
+`damage_snapshot.pellet` 的记账权限由当前编译指令、规范化成员、接触序号、目标、原始 DamageCommand 和精确 OperationId 共同固定。宿主保留临时 PreparedDamage，纯宿主在 Finish 凭实际回执更新账本；原生路径把确切 WorldRequest 传到实际 hurt 入口，绑定物理域和 damageId，再于原生完成时联合保留统计。嵌套的同值命令没有外层权限。重复确认同一实际回执不增加统计，矛盾回执或未经实际证据授权的账本变化在发布前拒绝。Pin、NativeShot 与 settlement 证据仅存在于宿主内存，不作为可持久化 DATA 权限。
+
+原生伤害已经发生而外层回调失败时，保留实际 HP / 护盾写入、已确认 hit / effective 统计及尚未处理的事实。伤害事实保留 shot、pellet、contact 归因，进度不会因后续 Finish 再发一次。接触不开新一轮、不自动关闭，也不推测成未命中；pending 和故障诊断保留，拒绝自动重放和成功检查点。没有进入 hurt 的明确 FAILED 回执仍由 Finish 结算，并允许正常结束接触。故障诊断同时保留完整多域观察与独立射击证据；既有 CombatCommit 存储形状不变。
+
+`shot_progress` 和 `shot_resolved` 按发布时的 ParticipantPlacement 投递到 issuer、当前 CHARACTER 域和当前 BUFF 域，同一域去重，保留原始信号 / payload 及组身份。缺少对应 facet 登记时回落 issuer；资源-only 迁移不改变投递位置。调用域中仍保持 damage facts、消费事实、progress 的顺序，其他域进入各自的事实队列。截止只由 issuer 时钟决定，精确到期不允许重新打开成员；已过期的延迟射线回执不能再次发布 summary。
+
+七种请求与 Receipt 新增八个 DATA 身份，原 751 项形状保持不变，总数 759；外层 archive format 5 不变。联合归档同时保存 A 的账本与 B / C 的续体，恢复保留已确认成员和稳定引用，不重放已确认的 begin、发射或伤害；尚未执行的延迟成员按剩余时间继续。真实玩家传送、迁移后的射线 / 弹体、原生未知结果及同进程联合恢复的验收见[实现记录](engine-implementation.md)。本协议不把已飞出的实体搬到目标世界，也不提供物理飞行实体重启重建；独立宿主、EntityAttachments 跨域和历史发射来源生命连续性仍需独立实现。
 
 ### 动态基础容量与数值快照
 
@@ -1811,7 +1825,7 @@ victim 声明必须显式使用 evaluate:on_hit，误用 on_use 在编译时拒�
 
 旧 DamageSnapshot 的八字段布局经 `LegacyDamageSnapshotV1` 精确迁移为 `captureOrigin=empty`，不从存储域、owner 或当前位置补造来源。无捕获来源的旧快照继续使用本地时刻不早于 capturedAt 的原规则，不因读入协调宿主而自动获得跨时钟权限。新记录分别使用 `damage_snapshot_v2`、`capture_origin`、`timeline_identity` 三个 DATA 身份，原 746 项形状保持，共 749 项；外层联合 archive 仍为 format 5。
 
-联合 archive 保存来源时间线身份和目标域的捕获结果 / 延迟工作，恢复不重新捕获、不重放已确认伤害。来源拥有和 Buff 拥有的真实玩家传送、低时钟目标中的实时取样，以及首击后恢复继续第二击的验收状态见[实现记录](engine-implementation.md)。本协议不迁移物理投射物，不解决 ShotGroups / EntityAttachments 活动句柄的跨域操作，也不增加任何效果循环上限。
+联合 archive 保存来源时间线身份和目标域的捕获结果 / 延迟工作，恢复不重新捕获、不重放已确认伤害。来源拥有和 Buff 拥有的真实玩家传送、低时钟目标中的实时取样，以及首击后恢复继续第二击的验收状态见[实现记录](engine-implementation.md)。本协议不迁移物理投射物，也不增加任何效果循环上限；ShotGroups 活动句柄采用独立的[签发域协议](#射击组的签发域与跨域接续)，EntityAttachments 活动句柄的跨域操作仍未完成。
 
 ### 选择事件标签后捕获伤害
 
@@ -2888,7 +2902,7 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 旧未限定句柄在明确迁移边界由 sourceDomain 补齐。没有迁移的旧本地句柄可在明确调用域访问原账本；目标必须启用协调路由，本地 DSL 拒绝使用任何 issuer-qualified 句柄。账本 `matches` 比较全部原身份字段，并拒绝双方已限定但 issuer 不同；它不改变 Java record 的严格 equality。记录新回执保留账本 canonical handle，旧别名不能清除已知 issuer。历史 Summary 仍是不可变数值快照。
 
-四种 live Handle 的 issuer 协议分别增加 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。DamageGroups 后续为事实身份格式增加独立 handle_v3，旧 v1 / v2 布局仍完整保留，详见下节。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。DamageGroups 的成员结算与句柄携带迁移另见下节；tally 路由不授予其他句柄跨域权限。直接携带 ShotGroups / EntityAttachments 句柄的 continuation 迁移仍会拒绝，这两类完整跨域操作尚未实现。
+四种 live Handle 的 issuer 协议分别增加 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。DamageGroups 后续为事实身份格式增加独立 handle_v3，旧 v1 / v2 布局仍完整保留，详见下节。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。DamageGroups 的成员结算与句柄携带迁移另见下节；tally 路由不授予其他句柄跨域权限。ShotGroups 另按[射击组协议](#射击组的签发域与跨域接续)接续；直接携带 EntityAttachments 句柄的 continuation 迁移仍会拒绝，其完整跨域操作尚未实现。
 
 ### 伤害组的签发账本与显式参与者查询
 
@@ -2904,7 +2918,7 @@ Handle 显式保存 `ReferenceFormat`。`ISSUED_V1` 的 `reference()` 将完整 
 
 当前句柄写入 `handle_v3`，格式枚举使用 `reference_format`，共增加两个 DATA 条目；旧 744 项存储形状完全保留，总数为 746。旧 handle / handle_v2 按精确布局解码并迁移为 LEGACY，重新保存写入明确格式，不猜测旧组曾否发出事实。联合宿主 archive 继续使用 format 5，旧 cause、reference 和去重集合原样保存；验收结果见[实现记录](engine-implementation.md)。
 
-此能力不包含 ShotGroups / EntityAttachments 活动句柄迁移，它们仍在预检阶段拒绝。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 则另按[捕获时间线协议](#伤害快照的捕获时间线)核验原域身份、时刻和兼容性。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
+ShotGroups 活动句柄迁移采用独立的[射击组协议](#射击组的签发域与跨域接续)；EntityAttachments 活动句柄仍在预检阶段拒绝。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 则另按[捕获时间线协议](#伤害快照的捕获时间线)核验原域身份、时刻和兼容性。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
 
 `ResourceReadView.combatParticipants(placement, programs)` 接受独立的 `ParticipantPlacement.Directory` 和各域完整程序。它不从资源目录推导参与者位置，也不自行建立原生实体授权。宿主必须在捕获至结算期间固定这些输入；原生路径还须核验实际实体对象、生命与物理域。普通资源视图仍保留本地非资源语义，不自动开启战斗模式。
 

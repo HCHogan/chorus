@@ -6,6 +6,7 @@ import com.imdomestic.chorus.effect.combat.DamageBasis;
 import com.imdomestic.chorus.effect.combat.ShieldDamage;
 import com.imdomestic.chorus.stat.CalculationProfile;
 import com.imdomestic.chorus.stat.Numbers;
+import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -33,6 +34,10 @@ public final class DamageCapture {
         default DamageCommand revise(String id, DamageCommand command) { return command; }
         default DamageCommand begin(String id, DamageCommand command, LivingEntity actualTarget, DamageSource actualSource) {
             return begin(id, command);
+        }
+        default DamageCommand begin(String id, DamageCommand command, LivingEntity actualTarget, DamageSource actualSource,
+                Optional<RuleEngine.WorldRequest> managedRequest) {
+            return begin(id, command, actualTarget, actualSource);
         }
         default DamageCommand revise(String id, DamageCommand command, LivingEntity actualTarget, DamageSource actualSource) {
             return revise(id, command);
@@ -78,9 +83,14 @@ public final class DamageCapture {
         private final Call call;
         private final boolean managed;
         private final DamageCommand description;
+        private final Optional<RuleEngine.WorldRequest> operation;
         private boolean entered;
-        private Request(String id, LivingEntity target, DamageSource source, boolean nonLethal, DamageCommand description) {
-            this.call = new Call(id, target, source, nonLethal); this.description = description; this.managed = description != null; REQUESTS.get().push(this);
+        private Request(String id, LivingEntity target, DamageSource source, boolean nonLethal, DamageCommand description,
+                Optional<RuleEngine.WorldRequest> operation) {
+            this.call = new Call(id, target, source, nonLethal); this.description = description; this.managed = description != null;
+            this.operation = Objects.requireNonNull(operation);
+            if (operation.isPresent() && !managed) throw new IllegalArgumentException("Native operation metadata needs a managed command");
+            REQUESTS.get().push(this);
         }
         public DamageReceipt receipt(boolean accepted) { return call.receipt(accepted); }
         @Override public void close() {
@@ -89,8 +99,12 @@ public final class DamageCapture {
         }
     }
     public static Request request(String id, LivingEntity target, DamageSource source, boolean nonLethal, DamageCommand description) {
+        return request(id, target, source, nonLethal, description, Optional.empty());
+    }
+    static Request request(String id, LivingEntity target, DamageSource source, boolean nonLethal, DamageCommand description,
+            Optional<RuleEngine.WorldRequest> operation) {
         if (id.isBlank()) throw new IllegalArgumentException("Missing damage ID");
-        return new Request(id, target, source, nonLethal, description);
+        return new Request(id, target, source, nonLethal, description, operation);
     }
     private record Delivery(Observer observer, Observed fact, boolean publish) {}
     private static final class Boundary {
@@ -248,7 +262,8 @@ public final class DamageCapture {
             try {
                 if (current == null && (request == null || !request.managed)) observer.prepare();
                 call.command = Objects.requireNonNull(observer.begin(call.id,
-                        call.managedOrigin ? request.description : observer.describe(target, source, amount), target, source));
+                        call.managedOrigin ? request.description : observer.describe(target, source, amount), target, source,
+                        call.managedOrigin ? request.operation : Optional.empty()));
             } catch (RuntimeException | Error error) {
                 rejected(call, current == null, error); throw error;
             }

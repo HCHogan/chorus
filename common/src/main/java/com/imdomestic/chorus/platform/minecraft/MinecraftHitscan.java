@@ -40,7 +40,7 @@ public final class MinecraftHitscan {
     }
     private static List<Observed> observe(ServerLevel level,Hitscan.Query q,long maximumEntities,Set<String> excluded,boolean hitOrigin) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Hitscan requires server thread");
-        if (q.member().isPresent() && !ShotGroups.active(MinecraftEffectRuntime.installed(level).orElseThrow().state().engine().domain(), q.member().orElseThrow()))
+        if (q.member().isPresent() && !MinecraftEffectRuntime.installed(level).orElseThrow().shotActive(q.member().orElseThrow()))
             return List.of(missing(Hitscan.Outcome.EXPIRED_SHOT));
         if (q.position().isEmpty()) return List.of(missing(Hitscan.Outcome.MISSING_POSITION));
         if (q.direction().isEmpty()) return List.of(missing(Hitscan.Outcome.MISSING_DIRECTION));

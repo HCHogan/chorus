@@ -749,5 +749,13 @@
   "chorus:effect/data/damage_snapshot/capture_origin": ["domain:java.lang.String", "timeline:com.imdomestic.chorus.effect.TimelineIdentity"],
   "chorus:effect/timeline_identity": ["value:java.lang.String"],
   "chorus:effect/projectile/shot_groups/handle_v3": ["id:java.lang.String", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin", "pellets:int", "startedAt:long", "dueAt:long", "issuer:java.util.Optional<java.lang.String>", "referenceFormat:com.imdomestic.chorus.effect.projectile.ShotGroups$ReferenceFormat"],
-  "chorus:effect/projectile/shot_groups/reference_format": ["LEGACY", "ISSUED_V1"]
+  "chorus:effect/projectile/shot_groups/reference_format": ["LEGACY", "ISSUED_V1"],
+  "chorus:effect/resource/shot_requests/reserve": ["issuer:java.lang.String", "member:com.imdomestic.chorus.effect.projectile.ShotGroups$Member"],
+  "chorus:effect/resource/shot_requests/traced": ["issuer:java.lang.String", "observation:com.imdomestic.chorus.effect.projectile.Hitscan$Observation"],
+  "chorus:effect/resource/shot_requests/traced_path": ["issuer:java.lang.String", "observation:com.imdomestic.chorus.effect.projectile.Hitscan$PathObservation"],
+  "chorus:effect/resource/shot_requests/launched": ["issuer:java.lang.String", "receipt:com.imdomestic.chorus.effect.projectile.ProjectileFlight$Receipt"],
+  "chorus:effect/resource/shot_requests/open": ["issuer:java.lang.String", "impact:com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact"],
+  "chorus:effect/resource/shot_requests/close": ["issuer:java.lang.String", "impact:com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact"],
+  "chorus:effect/resource/shot_requests/expire": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.projectile.ShotGroups$Handle"],
+  "chorus:effect/resource/shot_requests/receipt": ["request:com.imdomestic.chorus.effect.resource.ShotRequests$Request", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult", "facts:java.util.List<com.imdomestic.chorus.rule.RuleEngine$Signal>"]
 }

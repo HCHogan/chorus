@@ -39,8 +39,7 @@ class ContinuationTransferBoundaryTest {
     }
 
     @Test void remainingUnroutedLiveHandleKindsRejectBeforeChangingTheCapturedBindings() {
-        var handles=List.<RuleEngine.ActionResult>of(
-                new ShotGroups.Handle("shared",source(H).origin(),2,0,1_000_000),attachment());
+        var handles=List.<RuleEngine.ActionResult>of(attachment());
         for(var handle:handles) {
             var original=pending(Map.of("live",handle));
             var error=assertThrows(IllegalArgumentException.class,()->relocate(original,true));
@@ -48,6 +47,22 @@ class ContinuationTransferBoundaryTest {
             assertTrue(error.getMessage().contains(handle.getClass().getName()));
             assertEquals(Map.of("live",handle),original.bindings());
             assertTrue(original.relocatedAt().isEmpty());
+        }
+    }
+
+    @Test void shotGroupsKeepIssuerReferenceAndHistoricalTimeAcrossCoordinatedRelocations() {
+        for(var handle:List.of(new ShotGroups.Handle("shared",source(H).origin(),2,0,1_000_000),
+                ShotGroups.Handle.issued("shared",source(H).origin(),2,0,1_000_000,A))) {
+            var original=pending(Map.of("shot",handle));var moved=relocate(original,true);var qualified=handle.issuedBy(A);
+            assertEquals(qualified,moved.bindings().get("shot"));assertEquals(Map.of("shot",handle),original.bindings());
+            assertEquals(original.cause(),moved.cause());assertEquals(50,moved.causalTime());
+            var again=moved.relocated("twice",moved.scope(),moved.owner().orElseThrow(),70,Optional.of(B),true);
+            var returned=again.relocated("returned",again.scope(),again.owner().orElseThrow(),90,Optional.empty(),true);
+            assertEquals(qualified,returned.bindings().get("shot"));assertEquals(handle.reference(),qualified.reference());
+            assertEquals(0,qualified.startedAt());assertEquals(1_000_000,qualified.dueAt());assertEquals(original.cause(),returned.cause());
+            assertThrows(IllegalArgumentException.class,()->relocate(original,false));
+            assertThrows(IllegalArgumentException.class,()->relocate(moved,false));
+            if(handle.issuer().isEmpty())assertThrows(IllegalArgumentException.class,()->original.relocated("missing",original.scope(),original.owner().orElseThrow(),50,Optional.empty(),true));
         }
     }
 

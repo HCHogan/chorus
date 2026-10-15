@@ -49,8 +49,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     @FunctionalInterface public interface NativeSource {
         DamageCommand describe(LivingEntity target, DamageSource source, float amount);
     }
-    public record Failure(String message, List<DamageCapture.Observed> committedBeforeFailure, long unprocessedFacts, ShieldDamage.Commit committedShields, CombatCommit committedCombat, List<ConsumptionReservations.Claim> pendingConsumptions, List<RuleEngine.Signal> committedCombatFacts) {
-        public Failure { committedBeforeFailure = List.copyOf(committedBeforeFailure); Objects.requireNonNull(committedShields); Objects.requireNonNull(committedCombat); pendingConsumptions = List.copyOf(pendingConsumptions); committedCombatFacts = List.copyOf(committedCombatFacts); }
+    public record Failure(String message, List<DamageCapture.Observed> committedBeforeFailure, long unprocessedFacts, ShieldDamage.Commit committedShields, CombatCommit committedCombat, List<ConsumptionReservations.Claim> pendingConsumptions, List<RuleEngine.Signal> committedCombatFacts,
+            Optional<MinecraftCombat.Failure> coordinated) {
+        public Failure { committedBeforeFailure = List.copyOf(committedBeforeFailure); Objects.requireNonNull(committedShields); Objects.requireNonNull(committedCombat); pendingConsumptions = List.copyOf(pendingConsumptions); committedCombatFacts = List.copyOf(committedCombatFacts); Objects.requireNonNull(coordinated); }
+        public Failure(String message,List<DamageCapture.Observed> committedBeforeFailure,long unprocessedFacts,ShieldDamage.Commit committedShields,
+                CombatCommit committedCombat,List<ConsumptionReservations.Claim> pendingConsumptions,List<RuleEngine.Signal> committedCombatFacts){
+            this(message,committedBeforeFailure,unprocessedFacts,committedShields,committedCombat,pendingConsumptions,committedCombatFacts,Optional.empty());
+        }
     }
     private static final Map<ServerLevel, MinecraftEffectRuntime> LIVE = new ConcurrentHashMap<>();
     private final ServerLevel level;
@@ -381,6 +386,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     private <T> T query(EffectState state,Function<EffectState,T> local,Function<ResourceReadView,T> coordinated){
         return resources(state).map(coordinated).orElseGet(()->local.apply(state));
+    }
+    /** Native rays and flights use the issuing ledger, including inside an already frozen combat callback. */
+    public boolean shotActive(com.imdomestic.chorus.effect.projectile.ShotGroups.Member member){
+        combatThread();
+        if(resourceHost==null)return com.imdomestic.chorus.effect.projectile.ShotGroups.active(view(),member);
+        var snapshot=resourceHost.combat().active()?resourceHost.combat().view(this):resourceHost.view(this,level,resourceOperation);
+        return snapshot.shotActive(member);
     }
     private ActionGate.Decision gate(ActionGate.Kind kind,ActionGate.Phase phase,EffectEvent input){
         return query(view(),s->program.checkAction(s,kind,phase,input),v->program.checkAction(v,kind,phase,input));
@@ -1096,11 +1108,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private EffectState attackView(DamageCommand command) { return attackView(command, activeDamage.isEmpty() ? "" : activeDamage.peek()); }
     @Override public DamageCommand begin(String id,DamageCommand command,LivingEntity target,DamageSource source){
         if(resourceHost==null)return begin(id,command);
-        combatThread();return resourceHost.combat().begin(this,id,command,target,false);
+        combatThread();return resourceHost.combat().begin(this,id,command,target,false,Optional.empty());
+    }
+    @Override public DamageCommand begin(String id,DamageCommand command,LivingEntity target,DamageSource source,
+            Optional<RuleEngine.WorldRequest> managedRequest){
+        if(resourceHost==null)return begin(id,command);
+        combatThread();return resourceHost.combat().begin(this,id,command,target,false,managedRequest);
     }
     @Override public DamageCommand revise(String id,DamageCommand command,LivingEntity target,DamageSource source){
         if(resourceHost==null)return revise(id,command);
-        combatThread();return resourceHost.combat().begin(this,id,command,target,true);
+        combatThread();return resourceHost.combat().begin(this,id,command,target,true,Optional.empty());
     }
     @Override public DamageCommand begin(String id, DamageCommand command) {
         thread();
@@ -1262,8 +1279,10 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         String domain=level.dimension().identifier().toString();var before=evidence.before().domain(domain);var after=evidence.observed().domain(domain);
         var pending=evidence.pending().stream().filter(claim->claim.domain().equals(domain))
                 .map(claim->new ConsumptionReservations.Claim(claim.id(),claim.command())).toList();
+        com.imdomestic.chorus.effect.resource.ShotDamageAccounting.validateLedger(domain,before,after,evidence.shots());
+        var legacyAfter=com.imdomestic.chorus.effect.resource.ShotDamageAccounting.restoreLedger(before,after.withAttachments(before.attachments()));
         failure=Optional.of(new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),evidence.completed().getOrDefault(domain,List.of()),0,
-                new ShieldDamage.Commit(shields),new CombatCommit(before,after.withAttachments(before.attachments())),pending,evidence.facts().getOrDefault(domain,List.of())));
+                new ShieldDamage.Commit(shields),new CombatCommit(before,legacyAfter),pending,evidence.facts().getOrDefault(domain,List.of()),Optional.of(evidence)));
         abilityInputs.clear();chargeInputs.clear();abandonProjectiles();
         Constants.LOG.error("Chorus coordinated combat stopped for {}. Actual writes retained; no automatic replay.",level.dimension().identifier(),error);
     }
@@ -1283,7 +1302,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private void countUnprocessed(long amount) {
         var previous = failure.orElseThrow();
         failure = Optional.of(new Failure(previous.message(), previous.committedBeforeFailure(), Math.addExact(previous.unprocessedFacts(), amount), previous.committedShields(),
-                previous.committedCombat(), previous.pendingConsumptions(), previous.committedCombatFacts()));
+                previous.committedCombat(), previous.pendingConsumptions(), previous.committedCombatFacts(),previous.coordinated()));
     }
     public static void tick(ServerLevel level) {
         var runtime = LIVE.get(level);

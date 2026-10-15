@@ -53,7 +53,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
     OptionalDouble catchDistance(net.minecraft.server.level.ServerPlayer player, MinecraftEffectRuntime expected) {
         if (launch == null || runtime != expected || terminal || isRemoved() || player.level() != level()
                 || ageMicros >= launch.parameters().lifetimeMicros()
-                || launch.member().filter(m -> !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), m)).isPresent()) return OptionalDouble.empty();
+                || launch.member().filter(m -> !runtime.shotActive(m)).isPresent()) return OptionalDouble.empty();
         var destination = launch.parameters().destination().orElse(null);
         if (destination == null || !destination.target().equals(player.getUUID().toString()) || destination.catching().isEmpty()
                 || !matchesDestinationLife(destination, player)) return OptionalDouble.empty();
@@ -73,7 +73,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
         if (runtime != expected) throw new IllegalArgumentException("Projectile belongs to another runtime");
         if (terminal || isRemoved() || runtime.failure().isPresent()
                 || MinecraftEffectRuntime.installed((ServerLevel) level()).orElse(null) != runtime
-                || launch.member().filter(member -> !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), member)).isPresent()) {
+                || launch.member().filter(member -> !runtime.shotActive(member)).isPresent()) {
             abandon(); return false;
         }
         if (!((ServerLevel) level()).isPositionEntityTicking(blockPosition()))
@@ -87,7 +87,7 @@ public final class EffectProjectile extends Projectile implements ItemSupplier {
             if (launch == null || MinecraftEffectRuntime.installed(server).orElse(null) != runtime || runtime.failure().isPresent()) { abandon(); return; }
             runtime.prepare();
             if (isRemoved() || runtime.failure().isPresent() || launch.member().filter(member ->
-                    !com.imdomestic.chorus.effect.projectile.ShotGroups.active(runtime.state().engine().domain(), member)).isPresent()) { abandon(); return; }
+                    !runtime.shotActive(member)).isPresent()) { abandon(); return; }
         }
         super.tick();
         // Semi-implicit Euler: gravity, then per-tick drag, then movement. Units are blocks and 50 ms ticks.

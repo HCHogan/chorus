@@ -7,6 +7,8 @@ import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.buff.BuffTransfer;
 import com.imdomestic.chorus.effect.CharacterTransfer;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
+import com.imdomestic.chorus.effect.combat.DamageCommand;
+import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
@@ -131,8 +133,20 @@ public final class ResourceSessionAuthority {
     private ParticipantPlacement.Directory placement;
     private CombatBoundary activeCombat;
     private record DamageOperation(String caller, RuleEngine.OperationId operation) {}
+    private record PreparedDamage(CombatDomains.Claim claim, Optional<ShotDamageAccounting.Pin> shot,
+            Optional<ShotDamageAccounting.Settled> settled) {
+        private PreparedDamage {
+            Objects.requireNonNull(claim); Objects.requireNonNull(shot); Objects.requireNonNull(settled);
+            if (settled.isPresent() && !shot.equals(Optional.of(settled.orElseThrow().pin())))
+                throw new IllegalArgumentException("Settled shot differs from its prepared damage");
+        }
+        private PreparedDamage settled(ShotDamageAccounting.Settled value) {
+            settled.ifPresent(previous -> previous.requireActual(value.receipt()));
+            return new PreparedDamage(claim, shot, Optional.of(value));
+        }
+    }
     // Active damage authority is ephemeral: an unresolved world operation cannot become a checkpoint.
-    private Map<DamageOperation, CombatDomains.Claim> damagePreparations = Map.of();
+    private Map<DamageOperation, PreparedDamage> damagePreparations = Map.of();
     private boolean working;
     private boolean draining;
     private String lastDrained = "";
@@ -215,10 +229,13 @@ public final class ResourceSessionAuthority {
         private final ResourceSessionAuthority host;
         private final Snapshot before;
         private final String caller;
+        private final Optional<RuleEngine.WorldRequest> request;
         private final Map<String, com.imdomestic.chorus.effect.data.EffectProgram> programs;
+        private final Map<DamageOperation, NativeShot> shotBindings = new LinkedHashMap<>();
+        private final Map<DamageOperation, ShotDamageAccounting.Settled> shotSettlements = new LinkedHashMap<>();
         private Throwable violation;
-        private CombatBoundary(ResourceSessionAuthority host, Snapshot before, String caller) {
-            this.host=host; this.before=before; this.caller=caller;
+        private CombatBoundary(ResourceSessionAuthority host, Snapshot before, String caller, Optional<RuleEngine.WorldRequest> request) {
+            this.host=host; this.before=before; this.caller=caller; this.request=request;
             var programs=new TreeMap<String,com.imdomestic.chorus.effect.data.EffectProgram>();
             before.bindings().forEach((domain,binding)->programs.put(domain,binding.program().program()));
             this.programs=Map.copyOf(programs);
@@ -228,6 +245,7 @@ public final class ResourceSessionAuthority {
         public String caller(){return caller;}
         public Map<String,com.imdomestic.chorus.effect.data.EffectProgram> programs(){return programs;}
         public boolean managed(){return before.caller().isPresent();}
+        public List<ShotDamageAccounting.Settled> shotEvidence(){return List.copyOf(shotSettlements.values());}
         public void violated(Throwable failure){if(violation==null)violation=Objects.requireNonNull(failure);}
         public void requireUnviolated(){if(violation!=null)throw new IllegalStateException("Native combat boundary was reentered",violation);}
         public ResourceReadView view(ResourceAuthority.Worlds shadow,String physical){
@@ -243,7 +261,54 @@ public final class ResourceSessionAuthority {
             var operation=request.map(value->new WorldCaller(caller,binding(caller).session().operation(value)));
             var before=capture(true,operation.map(value->(Caller)value));
             before.worlds().domain(caller);
-            var result=new CombatBoundary(this,before,caller);activeCombat=result;return result;
+            var result=new CombatBoundary(this,before,caller,request);activeCombat=result;return result;
+        });
+    }
+    /** Opaque binding of one actual native call to the caller's exact pending world request. */
+    public static final class NativeShot {
+        private final CombatBoundary boundary;
+        private final DamageOperation operation;
+        private final String physical, damageId;
+        private final ShotDamageAccounting.Pin pin;
+        private NativeShot(CombatBoundary boundary, DamageOperation operation, String physical, String damageId, ShotDamageAccounting.Pin pin) {
+            this.boundary=boundary; this.operation=operation; this.physical=physical; this.damageId=damageId; this.pin=pin;
+        }
+        public Map<String,String> attribution() {
+            return Map.of("shot",pin.handle().reference(),"pellet",Integer.toString(pin.impact().member().orElseThrow().pellet()),
+                    "contact",Long.toString(pin.impact().sequence()));
+        }
+    }
+    public Optional<NativeShot> bindCombatShot(CombatBoundary combat, RuleEngine.WorldRequest request,
+            String physical, String damageId, DamageCommand original) {
+        return combatBoundary(combat, () -> {
+            combat.requireUnviolated(); combat.worlds().domain(physical);
+            if (combat.request.orElse(null) != request || !damageCommand(request.command()).equals(Optional.of(original)))
+                throw new IllegalArgumentException("Native shot does not belong to the exact managed world request");
+            var identity = new DamageOperation(combat.caller(), request.id());
+            var prepared = damagePreparations.get(identity);
+            if (prepared == null || prepared.shot().isEmpty()) return Optional.empty();
+            if (!prepared.claim().command().equals(original) || prepared.settled().isPresent())
+                throw new IllegalArgumentException("Native shot changed or repeated its prepared command");
+            if (damageId == null || damageId.isBlank()) throw new IllegalArgumentException("Missing native shot damage identity");
+            var binding = new NativeShot(combat, identity, physical, damageId, prepared.shot().orElseThrow());
+            if (combat.shotBindings.putIfAbsent(identity, binding) != null)
+                throw new IllegalStateException("A shot operation already has its native damage call");
+            return Optional.of(binding);
+        });
+    }
+    /** A successful native receipt can be retained even if its enclosing callback subsequently fails. */
+    public ShotDamageAccounting.Applied settleCombatShot(CombatBoundary combat, NativeShot shot,
+            ResourceAuthority.Worlds worlds, String physical, DamageReceipt actual) {
+        return combatBoundary(combat, () -> {
+            if (shot.boundary != combat || combat.shotBindings.get(shot.operation) != shot
+                    || !shot.physical.equals(physical) || !shot.damageId.equals(actual.damageId()))
+                throw new IllegalArgumentException("Native shot receipt differs from its prepared call");
+            // Failure retention may run after a detected reentry; it may only keep this already bound actual observation.
+            combat.view(worlds, physical);
+            var applied = ShotDamageAccounting.settle(worlds, shot.pin, actual,
+                    Optional.ofNullable(combat.shotSettlements.get(shot.operation)));
+            combat.shotSettlements.put(shot.operation, applied.settled());
+            return applied;
         });
     }
     private <T> T combatBoundary(CombatBoundary combat,Supplier<T> action){
@@ -269,17 +334,31 @@ public final class ResourceSessionAuthority {
             if(confirmed){
                 combat.requireUnviolated();
                 if(combat.managed()!=result.isPresent())throw new IllegalArgumentException("Managed combat requires exactly one actual operation result");
+                for(var identity:combat.shotBindings.keySet()){
+                    var settled=combat.shotSettlements.get(identity);
+                    if(settled==null||!(result.orElse(null) instanceof DamageReceipt receipt))
+                        throw new IllegalArgumentException("Managed shot completion lacks its bound actual damage receipt");
+                    settled.requireActual(receipt);
+                }
             }
             if(!combat.managed()&&result.isPresent())throw new IllegalArgumentException("Unmanaged combat has no enclosing operation result");
             if(shadow.directory()!=combat.worlds().directory()||!shadow.domains().keySet().equals(combat.worlds().domains().keySet())
                     || !shadow.timelines().equals(combat.worlds().timelines()))
                 throw new IllegalArgumentException("Combat publication changed resource ownership or domain membership");
             facts.keySet().forEach(shadow::domain);
+            var preparedDamage = new HashMap<>(damagePreparations);
+            combat.shotSettlements.forEach((identity, settled) -> {
+                var prepared = preparedDamage.get(identity);
+                if (prepared == null) throw new IllegalStateException("Native shot lost its prepared operation");
+                preparedDamage.put(identity, prepared.settled(settled));
+            });
             var updates=new ArrayList<EffectSession.DomainUpdate>();
             for(var entry:bindings.entrySet()){
                 String domain=entry.getKey();var before=combat.before.worlds().domain(domain);var next=shadow.domain(domain);
                 var emitted=List.copyOf(facts.getOrDefault(domain,List.of()));
-                new com.imdomestic.chorus.effect.combat.CombatCommit(before,next.withAttachments(before.attachments()));
+                ShotDamageAccounting.validateLedger(domain,before,next,combat.shotEvidence());
+                new com.imdomestic.chorus.effect.combat.CombatCommit(before,
+                        ShotDamageAccounting.restoreLedger(before,next.withAttachments(before.attachments())));
                 var lifecycle=com.imdomestic.chorus.effect.target.EntityAttachments.commit(RuleEngine.Empty.INSTANCE,emitted);
                 var expected=lifecycle instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit changes
                         ? changes.apply(next.withAttachments(before.attachments())) : next.withAttachments(before.attachments());
@@ -292,7 +371,7 @@ public final class ResourceSessionAuthority {
                 }else if(next!=before||!emitted.isEmpty())updates.add(entry.getValue().session().prepareInboxDomain(combat.before.timelines().get(domain),next,emitted));
             }
             if(confirmed)combat.requireUnviolated();
-            commit(combat.before,shadow,List.copyOf(updates));activeCombat=null;return null;
+            commit(combat.before,shadow,List.copyOf(updates));damagePreparations=Map.copyOf(preparedDamage);activeCombat=null;return null;
         });
     }
     /** Release a rejected/pre-hurt capture. This does not undo observed writes; the host must retain those separately. */
@@ -583,16 +662,22 @@ public final class ResourceSessionAuthority {
                     // Validate the raw ledger before consuming anything; never synthesize a Finish with altered evidence.
                     compiled.requireActionRoute(ordinary, timeline, request);
                     var identity = new DamageOperation(caller, finish.operation());
-                    var claim = damagePreparations.get(identity);
+                    var prepared = damagePreparations.get(identity);
                     var damage = damageCommand(finish.command()).orElseThrow();
-                    if (claim == null || !claim.command().equals(damage) || !(finish.actual() instanceof com.imdomestic.chorus.effect.combat.DamageReceipt raw))
+                    if (prepared == null || !prepared.claim().command().equals(damage) || !(finish.actual() instanceof com.imdomestic.chorus.effect.combat.DamageReceipt raw))
                         throw new IllegalArgumentException("Damage completion lacks its exact prepared participant authority");
+                    var claim=prepared.claim();
                     // Native damage ids are assigned by the actual world boundary; only the id may change here.
                     var settledClaim = new CombatDomains.Claim(claim.domain(), raw.damageId(), claim.command(), claim.buffs(), claim.group());
                     var consumed = CombatDomains.finish(before.worlds(), before.placement(), settledClaim, raw);
                     preparedWorlds = consumed.worlds(); facts.putAll(consumed.factsByDomain());
                     var settled = consumed.receipt(); var localFacts = facts.remove(caller);
                     if (localFacts != null) settled = settled.withConsumptionFacts(localFacts);
+                    if(prepared.shot().isPresent()){
+                        var shot=ShotDamageAccounting.settle(preparedWorlds,prepared.shot().orElseThrow(),raw,prepared.settled());
+                        preparedWorlds=shot.worlds();
+                        appendFacts(facts,ShotFacts.route(before.placement(),shot.settled().pin().issuer(),shot.facts()));
+                    }
                     outcome = compiled.completeDamageActionRoute(ordinary, new ResourceReadView(preparedWorlds, caller, compiled.program()), timeline, request, settled);
                     nextPreparations.remove(identity);
                 } else {
@@ -606,7 +691,9 @@ public final class ResourceSessionAuthority {
                     case RuleEngine.Local<EffectState> local -> {
                         next = ResourceAuthority.publish(preparedWorlds, caller, preparedWorlds.domain(caller), local.state());
                         actual = ActionRoutes.completed(route, local.result());
-                        if (!local.emitted().isEmpty()) facts.put(caller, local.emitted());
+                        if (!local.emitted().isEmpty()) {
+                            var emitted=new ArrayList<>(local.emitted());emitted.addAll(facts.getOrDefault(caller,List.of()));facts.put(caller,List.copyOf(emitted));
+                        }
                     }
                     case RuleEngine.Await<EffectState> await -> {
                         if (!(route instanceof ActionRoutes.Begin begin)) throw new IllegalArgumentException("Action completion cannot prepare another command");
@@ -614,7 +701,9 @@ public final class ResourceSessionAuthority {
                         damageCommand(await.command()).ifPresent(damage -> {
                             var semantic = request.id().nextInvocation(); var identity = new DamageOperation(caller, semantic);
                             var claim = CombatDomains.capture(before.worlds(), before.placement(), caller, semantic.toString(), damage);
-                            if (nextPreparations.putIfAbsent(identity, claim) != null)
+                            var shot=compiled.actionShotContact(ordinary,timeline,request)
+                                    .map(impact->ShotDamageAccounting.capture(before.worlds(),caller,semantic,impact,damage));
+                            if (nextPreparations.putIfAbsent(identity, new PreparedDamage(claim,shot,Optional.empty())) != null)
                                 throw new IllegalStateException("Coordinated damage operation already has participant authority");
                         });
                     }
@@ -639,9 +728,14 @@ public final class ResourceSessionAuthority {
                 var result = apply(before.worlds(), caller, request.id(), command, frame.retainedResults());
                 after = result.worlds(); receipt = result.receipt();
             }
-            var emitted = ResourceRequests.facts(caller, request.id(), receipt);
-            var facts = emitted.isEmpty() ? Map.<String, List<RuleEngine.Signal>>of()
-                    : Map.of(receipt.recipient().orElseThrow().domain(), emitted);
+            ResourceRequests.Receipt primitive=receipt instanceof ResourceRoutes.Receipt routed?routed.primitive().orElse(null):receipt;
+            Map<String,List<RuleEngine.Signal>> facts;
+            if(primitive instanceof ShotRequests.Receipt shot){
+                facts=ShotFacts.route(before.placement(),shot.request().issuer(),shot.facts());
+            }else{
+                var emitted = ResourceRequests.facts(caller, request.id(), receipt);
+                facts = emitted.isEmpty() ? Map.of() : Map.of(receipt.recipient().orElseThrow().domain(), emitted);
+            }
             commit(before, after, prepare(before, after, Optional.of(receipt), facts)); return receipt;
         });
     }
@@ -649,6 +743,11 @@ public final class ResourceSessionAuthority {
         if (command instanceof com.imdomestic.chorus.effect.combat.DamageCommand damage) return Optional.of(damage);
         if (command instanceof com.imdomestic.chorus.effect.target.EntityAnchor.GuardedDamage guarded) return Optional.of(guarded.damage());
         return Optional.empty();
+    }
+    private static void appendFacts(Map<String,List<RuleEngine.Signal>> target,Map<String,List<RuleEngine.Signal>> added){
+        added.forEach((domain,emitted)->{
+            var values=new ArrayList<>(target.getOrDefault(domain,List.of()));values.addAll(emitted);target.put(domain,List.copyOf(values));
+        });
     }
     private record Applied(ResourceAuthority.Worlds worlds, ResourceRequests.Receipt receipt) {}
     private Applied apply(ResourceAuthority.Worlds worlds, String caller, RuleEngine.OperationId operation,
@@ -678,6 +777,10 @@ public final class ResourceSessionAuthority {
             case EffectHandleRequests.Request handle -> {
                 var result = EffectHandleRequests.apply(worlds, handle);
                 yield new Applied(result.worlds(), result.receipt());
+            }
+            case ShotRequests.Request shot -> {
+                var result=ShotRequests.apply(worlds,shot);
+                yield new Applied(result.worlds(),result.receipt());
             }
             case AbilityResources.Use use -> {
                 var owner = worlds.directory().owner(use.ability().holder());

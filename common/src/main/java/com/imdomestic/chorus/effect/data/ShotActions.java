@@ -40,7 +40,8 @@ public final class ShotActions {
             if (pellet instanceof Value.Constant c) integer(c.value());
         }
         public ShotGroups.Member resolve(Evaluation e) {
-            return new ShotGroups.Member((ShotGroups.Handle) e.context().bindings().get(binding), integer(pellet.evaluate(e).value()));
+            var member = new ShotGroups.Member((ShotGroups.Handle) e.context().bindings().get(binding), integer(pellet.evaluate(e).value()));
+            return e.resourceView().map(view -> view.shotMember(member)).orElse(member);
         }
     }
     public record Prepared(ProjectileFlight.Launch launch) implements RuleEngine.ActionResult {}

@@ -28,12 +28,18 @@ class ActionResourceRoutingTest {
     static class Fixture extends ResourceRoutingTest.Fixture {
         final List<RuleEngine.WorldRequest> calls=new ArrayList<>();
         final List<ActionRoutes.Receipt> routed=new ArrayList<>();
+        final List<ShotRequests.Receipt> shots=new ArrayList<>();
         Function<ActionRoutes.Receipt,RuleEngine.ActionResult> reply=r->r;
         Consumer<RuleEngine.WorldRequest> beforeWorld=r->{};
         Consumer<RuleEngine.WorldRequest> beforeRoute=r->{};
         Fixture(JsonObject data) {super(data);external=this::world;}
         Fixture(JsonObject data,EffectState a,EffectState b) {super(data,a,b);external=this::world;}
         @Override RuleEngine.ActionResult execute(String domain,RuleEngine.WorldRequest request) {
+            if (request.command() instanceof ShotRequests.Request) {
+                var actual=(ShotRequests.Receipt)host.execute(domain,request);assertSame(actual,host.execute(domain,request));
+                assertEquals(actual,EffectCheckpointCodec.DATA.decode(EffectCheckpointCodec.DATA.encode(actual),ShotRequests.Receipt.class));
+                shots.add(actual);return actual;
+            }
             if (!(request.command() instanceof ActionRoutes.Request)) return super.execute(domain,request);
             beforeRoute.accept(request);
             var actual=(ActionRoutes.Receipt)host.execute(domain,request);assertSame(actual,host.execute(domain,request));
@@ -59,7 +65,7 @@ class ActionResourceRoutingTest {
             };
         }
         List<Double> healed() {return calls.stream().map(RuleEngine.WorldRequest::command).filter(HealingCommand.class::isInstance).map(HealingCommand.class::cast).map(HealingCommand::amount).toList();}
-        <T> List<T> completed(Class<T> type) {return routed.stream().filter(ActionRoutes.Completed.class::isInstance).map(ActionRoutes.Completed.class::cast).map(ActionRoutes.Completed::value).filter(type::isInstance).map(type::cast).toList();}
+        <T> List<T> completed(Class<T> type) {return java.util.stream.Stream.concat(routed.stream().filter(ActionRoutes.Completed.class::isInstance).map(ActionRoutes.Completed.class::cast).map(ActionRoutes.Completed::value),shots.stream().map(ShotRequests.Receipt::value)).filter(type::isInstance).map(type::cast).toList();}
         void balance(double value) {
             var session=sessions.get(B);var before=session.coordinationState();var account=before.engine().domain().resources().get(ENERGY);
             EffectSession.commitDomains(List.of(session.prepareInboxDomain(before,before.engine().domain().withResource(new ResourceState(ENERGY,value,account.capacity(),account.timeMicros())),List.of())));

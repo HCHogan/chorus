@@ -12,6 +12,14 @@ final class CheckpointTypes {
         types.put("chorus:effect/resource/effect_handle_requests/group_close", com.imdomestic.chorus.effect.resource.EffectHandleRequests.GroupClose.class);
         types.put("chorus:effect/resource/effect_handle_requests/group_started", com.imdomestic.chorus.effect.resource.EffectHandleRequests.GroupStarted.class);
         types.put("chorus:effect/resource/effect_handle_requests/group_closed", com.imdomestic.chorus.effect.resource.EffectHandleRequests.GroupClosed.class);
+        types.put("chorus:effect/resource/shot_requests/reserve", com.imdomestic.chorus.effect.resource.ShotRequests.Reserve.class);
+        types.put("chorus:effect/resource/shot_requests/traced", com.imdomestic.chorus.effect.resource.ShotRequests.Traced.class);
+        types.put("chorus:effect/resource/shot_requests/traced_path", com.imdomestic.chorus.effect.resource.ShotRequests.TracedPath.class);
+        types.put("chorus:effect/resource/shot_requests/launched", com.imdomestic.chorus.effect.resource.ShotRequests.Launched.class);
+        types.put("chorus:effect/resource/shot_requests/open", com.imdomestic.chorus.effect.resource.ShotRequests.Open.class);
+        types.put("chorus:effect/resource/shot_requests/close", com.imdomestic.chorus.effect.resource.ShotRequests.Close.class);
+        types.put("chorus:effect/resource/shot_requests/expire", com.imdomestic.chorus.effect.resource.ShotRequests.Expire.class);
+        types.put("chorus:effect/resource/shot_requests/receipt", com.imdomestic.chorus.effect.resource.ShotRequests.Receipt.class);
         types.put("chorus:effect/resource/action_routes/begin", com.imdomestic.chorus.effect.resource.ActionRoutes.Begin.class);
         types.put("chorus:effect/resource/action_routes/finish", com.imdomestic.chorus.effect.resource.ActionRoutes.Finish.class);
         types.put("chorus:effect/resource/action_routes/ready", com.imdomestic.chorus.effect.resource.ActionRoutes.Ready.class);

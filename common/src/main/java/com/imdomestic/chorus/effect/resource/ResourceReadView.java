@@ -5,6 +5,8 @@ import com.imdomestic.chorus.effect.TimelineIdentity;
 import com.imdomestic.chorus.effect.combat.DamageGroups;
 import com.imdomestic.chorus.effect.data.EffectProgram;
 import com.imdomestic.chorus.effect.data.DamageSnapshot;
+import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
+import com.imdomestic.chorus.effect.projectile.ShotGroups;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -103,6 +105,31 @@ public final class ResourceReadView {
         var value = DamageGroups.require(worlds.domain(issuer), handle);
         value.handle().requireIssuer(issuer);
         return value;
+    }
+    /** A legacy member belongs to the physical caller, independently of movable participant or resource facets. */
+    public String shotDomain(ShotGroups.Handle handle) {
+        String issuer = handle.issuer().orElseGet(() -> participants.map(Participants::physicalDomain).orElse(domain));
+        compatibleDomain(issuer); worlds.domain(issuer); return issuer;
+    }
+    public String shotDomain(ShotGroups.Member member) { return shotDomain(member.shot()); }
+    public EffectState shotState(ShotGroups.Handle handle) {
+        String issuer = shotDomain(handle); var state = worlds.domain(issuer);
+        ShotRequests.canonicalMember(state, issuer, new ShotGroups.Member(handle, 0));
+        return state;
+    }
+    public EffectState shotState(ShotGroups.Member member) { return shotState(member.shot()); }
+    /** Preserve the ledger's canonical identity, even when the caller supplied an old unqualified alias. */
+    public ShotGroups.Member shotMember(ShotGroups.Member member) {
+        String issuer = shotDomain(member);
+        return ShotRequests.canonicalMember(worlds.domain(issuer), issuer, member);
+    }
+    public boolean shotActive(ShotGroups.Member member) {
+        var canonical = shotMember(member);
+        return ShotGroups.active(worlds.domain(shotDomain(canonical)), canonical);
+    }
+    public boolean shotAccepts(ProjectileFlight.Impact impact) {
+        var member = shotMember(impact.member().orElseThrow(() -> new IllegalArgumentException("Shot contact requires a member")));
+        return ShotGroups.accepts(worlds.domain(shotDomain(member)), impact.withMember(Optional.of(member)));
     }
     private ResourceReadView inDomain(String selected) {
         return selected.equals(domain) ? this : new ResourceReadView(worlds, selected, program, participants);

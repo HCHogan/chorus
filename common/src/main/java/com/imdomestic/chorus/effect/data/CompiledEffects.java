@@ -243,7 +243,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         definitions.add(new RuleEngine.EventRule<>(DamageGroups.DUE, DamageGroups.DUE, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> DamageGroups.close(state, (DamageGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(ShotGroups.DUE, ShotGroups.DUE, (_, _) -> true,
-                List.of(new RuleEngine.Instruction<>((state, context) -> ShotGroups.expire(state, (ShotGroups.Handle) context.event().signal().payload()), ""))));
+                List.of(new RuleEngine.Instruction<>(resourceRouting
+                        ? new Routed(ShotGroups.DUE, e -> {
+                            var handle = (ShotGroups.Handle) e.context().event().signal().payload();
+                            return ResourceRoutes.Plan.write(new ShotRequests.Expire(e.resourceView().orElseThrow().shotDomain(handle), handle),
+                                    receipt -> ((ShotRequests.Receipt) receipt).value());
+                        }, Map.of(), Map.of())
+                        : (state, context) -> ShotGroups.expire(state, (ShotGroups.Handle) context.event().signal().payload()), ""))));
         definitions.add(new RuleEngine.EventRule<>(com.imdomestic.chorus.effect.actor.ActorChange.EVENT, com.imdomestic.chorus.effect.actor.ActorChange.EVENT, (_, _) -> true,
                 List.of(new RuleEngine.Instruction<>((state, context) -> ((com.imdomestic.chorus.effect.actor.ActorChange) context.event().signal().payload()).apply(state, this), ""))));
         definitions.add(new RuleEngine.EventRule<>(SourceChange.EVENT, SourceChange.EVENT, (_, _) -> true,
@@ -1108,6 +1114,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     interface EvaluatedAction {
         RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context context);
         default boolean damagePreparation() { return false; }
+        default Optional<ProjectileFlight.Impact> shotContact(Evaluation evaluation) { return Optional.empty(); }
         default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context context, RuleEngine.ActionResult actual) {
             return new RuleEngine.Local<>(evaluation.state(), actual, List.of());
         }
@@ -1168,6 +1175,14 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** Prove the original preparation and actual world result before deriving any coordinated completion writes. */
     public void requireActionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
         actionRoute(view, state, request);
+    }
+    /** Extract only the pellet explicitly bound by this active damage instruction, before the world request is issued. */
+    public Optional<ProjectileFlight.Impact> actionShotContact(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        var resolved = actionRoute(view, state, request);
+        if (!(resolved.route() instanceof ActionRoutes.Begin)) throw new IllegalArgumentException("Shot authority requires damage preparation");
+        var action = resolved.action();
+        var e = scopedEvaluation(view.state(), resolved.context(), action.results, action.slots, Optional.of(view));
+        return action.action.shotContact(e).map(impact -> impact.withMember(Optional.of(view.shotMember(impact.member().orElseThrow()))));
     }
     /** Completion evaluates settled Buff writes without replacing the original world receipt in the interpreter's evidence. */
     public RuleEngine.Local<EffectState> completeDamageActionRoute(ResourceReadView original, ResourceReadView completion,
@@ -1237,6 +1252,45 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var context = new RuleEngine.Context(frame.event(), frame.rule(), frame.scope(), frame.bindings(), request.id(), frame.retainedResults(), frame.pendingCommand());
         return routed.prepare.apply(scopedEvaluation(view.state(), context, routed.results, routed.slots, Optional.of(view)));
     }
+    /** Prepare geometry with current query inputs and reserve only the member's issuing ledger. */
+    private RuleEngine.Action<EffectState> shotPrepare(String site, Map<String, ResultShape> results, Map<String, String> slots,
+            Function<Evaluation, RuleEngine.ActionResult> prepare, Function<RuleEngine.ActionResult, Optional<ShotGroups.Member>> member) {
+        if (resourceRouting) return new Routed(site, e -> {
+            var prepared = prepare.apply(e); var selected = member.apply(prepared);
+            return selected.map(value -> ResourceRoutes.Plan.write(new ShotRequests.Reserve(e.resourceView().orElseThrow().shotDomain(value), value), _ -> prepared))
+                    .orElseGet(() -> ResourceRoutes.Plan.query(prepared));
+        }, results, slots);
+        return evaluated(site, results, slots, (e, _) -> {
+            var prepared = prepare.apply(e);
+            return new RuleEngine.Local<>(member.apply(prepared).map(value -> ShotGroups.reserve(e.state(), value)).orElse(e.state()), prepared, List.of());
+        });
+    }
+    private RuleEngine.Local<EffectState> shotAcknowledged(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult actual) {
+        if (!resourceRouting || !(actual instanceof ShotRequests.Receipt receipt)
+                || !receipt.request().equals(context.command(ShotRequests.Request.class)))
+            throw new IllegalArgumentException("Shot acknowledgement differs from its issued lifecycle operation");
+        return new RuleEngine.Local<>(state, receipt.value(), List.of());
+    }
+    /** Compiler-owned contact boundaries; historical asynchronous captures never acquire these steps. */
+    private RuleEngine.Action<EffectState> shotContact(String site, Map<String, ResultShape> results, Map<String, String> slots,
+            String binding, boolean open, boolean subsequentOnly) {
+        Function<Evaluation, Optional<ProjectileFlight.Impact>> contact = e -> {
+            var value = e.context().bindings().get(binding);
+            var impact = value instanceof Hitscan.Observation observed ? observed.contact() : Optional.of((ProjectileFlight.Impact) value);
+            return impact.filter(hit -> !subsequentOnly || hit.sequence() > 1);
+        };
+        if (resourceRouting) return new Routed(site, e -> contact.apply(e).map(impact -> {
+            var view = e.resourceView().orElseThrow();
+            var canonical = impact.withMember(Optional.of(view.shotMember(impact.member().orElseThrow())));
+            String issuer = view.shotDomain(canonical.member().orElseThrow());
+            ShotRequests.Request request = open ? new ShotRequests.Open(issuer, canonical) : new ShotRequests.Close(issuer, canonical);
+            return ResourceRoutes.Plan.write(request, receipt -> ((ShotRequests.Receipt) receipt).value());
+        }).orElseGet(() -> ResourceRoutes.Plan.query(RuleEngine.Empty.INSTANCE)), results, slots);
+        return evaluated(site, results, slots, (e, _) -> contact.apply(e)
+                .map(impact -> open ? new RuleEngine.Local<>(ShotGroups.open(e.state(), impact), RuleEngine.Empty.INSTANCE, List.<RuleEngine.Signal>of())
+                        : ShotGroups.close(e.state(), impact))
+                .orElseGet(() -> new RuleEngine.Local<>(e.state(), RuleEngine.Empty.INSTANCE, List.of())));
+    }
     private List<RuleEngine.Instruction<EffectState>> compileRayPath(EffectProgram.Bundle bundle, EffectProgram.Hitscan ray, Value pierces, Optional<Value> bounces, Value hitsPerTarget, boolean hitOrigin,
             Map<String, ResultShape> previous, Map<String, String> previousSlots, String path, String ownerRule, List<RuleEngine.EventRule<EffectState>> continuations) {
         var v=validation(bundle,previous);ray.spec().validate(v);ray.shot().ifPresent(m->m.validate(v));localId(ray.bind());
@@ -1248,19 +1302,25 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if(previous.containsKey(ray.bind()))throw new IllegalArgumentException("Shadowed ray path binding");
         String prepared=path+"prepared",observed=path+"observed",contact=path+"contact";
         var output=new ArrayList<RuleEngine.Instruction<EffectState>>();
-        output.add(new RuleEngine.Instruction<>(evaluated(ownerRule+"/ray/"+path,previous,previousSlots,(e,context)->{
-            var state=e.state();var query=ray.spec().resolve(e,ray.shot().map(m->m.resolve(e)));
+        output.add(new RuleEngine.Instruction<>(shotPrepare(ownerRule+"/ray/"+path,previous,previousSlots,e->{
+            var query=ray.spec().resolve(e,ray.shot().map(m->m.resolve(e)));
             int count=ShotActions.integer(pierces.evaluate(e).value());
             Hitscan.PreparedObservation preparedResult=bounces.isPresent()
                     ? new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Prepared(new com.imdomestic.chorus.effect.projectile.RicochetHitscan.Query(query,count,ShotActions.integer(bounces.orElseThrow().evaluate(e).value()),ShotActions.integer(hitsPerTarget.evaluate(e).value()),hitOrigin))
                     : new Hitscan.PreparedPath(new Hitscan.PiercingQuery(query,count));
-            return new RuleEngine.Local<>(query.member().map(m->ShotGroups.reserve(state,m)).orElse(state),preparedResult,List.of());
+            return preparedResult;
+        }, result -> {
+            var command = ((Hitscan.PreparedObservation) result).command();
+            return (command instanceof Hitscan.PiercingQuery query ? query.ray() : ((RicochetHitscan.Query) command).ray()).member();
         }),prepared));
         output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
             @Override public RuleEngine.Outcome<EffectState> step(EffectState state,RuleEngine.Context context){return new RuleEngine.Await<>(((Hitscan.PreparedObservation)context.bindings().get(prepared)).command());}
-            @Override public RuleEngine.Local<EffectState> complete(EffectState state,RuleEngine.Context context,RuleEngine.ActionResult result){
+            @Override public RuleEngine.Outcome<EffectState> resume(EffectState state,RuleEngine.Context context,RuleEngine.ActionResult result){
+                if (context.pendingCommand().orElseThrow() instanceof ShotRequests.Request) return shotAcknowledged(state, context, result);
                 var receipt=(Hitscan.PathObservation)result;
                 if(!receipt.command().equals(context.command(RuleEngine.WorldCommand.class)))throw new IllegalArgumentException("Ray path receipt differs from query");
+                if (ray.shot().isPresent() && resourceRouting) return new RuleEngine.Await<>(new ShotRequests.TracedPath(
+                        receipt.observations().getFirst().query().member().orElseThrow().shot().issuer().orElseThrow(), receipt));
                 // The first contact uses the ordinary launch/open transition. Subsequent contacts reopen this same member.
                 var initial=ray.shot().isPresent()?ShotGroups.traced(state,receipt.observations().getFirst()):new RuleEngine.Local<>(state,receipt,List.of());
                 return new RuleEngine.Local<>(initial.state(),receipt,initial.emitted());
@@ -1268,15 +1328,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         },observed));
         var results=new LinkedHashMap<>(previous);var slots=new LinkedHashMap<>(previousSlots);results.put(ray.bind(),ResultShape.hitscan(ray.shot().isPresent()));slots.put(ray.bind(),contact);
         var body=new ArrayList<RuleEngine.Instruction<EffectState>>();
-        if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>((state,context)->{
-            var c=(Hitscan.Observation)context.bindings().get(contact);
-            return new RuleEngine.Local<>(c.contact().filter(hit->hit.sequence()>1).isPresent()?ShotGroups.open(state,c.contact().orElseThrow()):state,RuleEngine.Empty.INSTANCE,List.of());
-        },""));
+        if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>(shotContact(ownerRule+"/ray/open/"+path,
+                results,slots,ray.bind(),true,true),""));
         body.addAll(compileSteps(bundle,ray.body(),results,slots,path+"body/",ownerRule,continuations));
-        if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>((state,context)->{
-            var c=(Hitscan.Observation)context.bindings().get(contact);
-            return c.contact().isPresent()?ShotGroups.close(state,c.contact().orElseThrow()):new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
-        },""));
+        if(ray.shot().isPresent())body.add(new RuleEngine.Instruction<>(shotContact(ownerRule+"/ray/close/"+path,
+                results,slots,ray.bind(),false,false),""));
         output.add(new RuleEngine.Instruction<>(new RuleEngine.ForEach<>((state,context)->((Hitscan.PathObservation)context.bindings().get(observed)).observations(),body.size()),contact));
         output.addAll(body);output.add(new RuleEngine.Instruction<>(new RuleEngine.EndEach<>(body.size()),""));return List.copyOf(output);
     }
@@ -1311,6 +1367,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                                 return instruction.action() instanceof Action.Damage || instruction.action() instanceof Action.DamageCaptured
                                         || instruction.action() instanceof Action.CaptureDamage || instruction.action() instanceof Action.CaptureTaggedDamage
                                         || instruction.action() instanceof EntityAnchorActions.Damage;
+                            }
+                            @Override public Optional<ProjectileFlight.Impact> shotContact(Evaluation e) {
+                                return instruction.action() instanceof Action.DamageCaptured captured ? captured.shotContact(e) : Optional.empty();
                             }
                             @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
                                 return instruction.action().execute(e);
@@ -1377,28 +1436,28 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                     ray.spec().validate(validation(bundle, previous)); ray.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(ray.bind());
                     if (previous.containsKey(ray.bind())) throw new IllegalArgumentException("Shadowed hitscan binding");
                     String preparedSlot = path + index + "/ray/prepared", impactSlot = path + index + "/ray/" + ray.bind();
-                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/ray/" + path + index, previous, previousSlots, (e, context) -> {
-                        var state = e.state();
+                    output.add(new RuleEngine.Instruction<>(shotPrepare(ownerRule + "/ray/" + path + index, previous, previousSlots, e -> {
                         var query = ray.spec().resolve(e, ray.shot().map(m -> m.resolve(e)));
-                        return new RuleEngine.Local<>(query.member().map(m -> ShotGroups.reserve(state,m)).orElse(state), new Hitscan.Prepared(query), List.of());
-                    }), preparedSlot));
+                        return new Hitscan.Prepared(query);
+                    }, result -> ((Hitscan.Prepared) result).query().member()), preparedSlot));
                     output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
                         @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
                             return new RuleEngine.Await<>(((Hitscan.Prepared)context.bindings().get(preparedSlot)).query());
                         }
-                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                        @Override public RuleEngine.Outcome<EffectState> resume(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                            if (context.pendingCommand().orElseThrow() instanceof ShotRequests.Request) return shotAcknowledged(state, context, result);
                             var receipt = (Hitscan.Result)result;
                             if (!receipt.query().equals(context.command(Hitscan.Query.class))) throw new IllegalArgumentException("Ray receipt does not match request");
+                            if (ray.shot().isPresent() && resourceRouting) return new RuleEngine.Await<>(new ShotRequests.Traced(
+                                    receipt.query().member().orElseThrow().shot().issuer().orElseThrow(), receipt));
                             return ray.shot().isPresent() ? ShotGroups.traced(state, receipt) : new RuleEngine.Local<>(state, receipt, List.of());
                         }
                     }, impactSlot));
                     var nestedResults = new LinkedHashMap<>(previous); var nestedSlots = new java.util.TreeMap<>(previousSlots);
                     nestedResults.put(ray.bind(), ResultShape.hitscan(ray.shot().isPresent())); nestedSlots.put(ray.bind(),impactSlot);
                     output.addAll(compileSteps(bundle, ray.body(), nestedResults, nestedSlots, path+index+"/ray/body/", ownerRule, continuations));
-                    if (ray.shot().isPresent()) output.add(new RuleEngine.Instruction<>((state, context) -> {
-                        var receipt = (Hitscan.Result)context.bindings().get(impactSlot);
-                        return receipt.contact().isPresent() ? ShotGroups.close(state, receipt.contact().orElseThrow()) : new RuleEngine.Local<>(state,RuleEngine.Empty.INSTANCE,List.of());
-                    }, ""));
+                    if (ray.shot().isPresent()) output.add(new RuleEngine.Instruction<>(shotContact(ownerRule+"/ray/close/"+path+index,
+                            nestedResults,nestedSlots,ray.bind(),false,false), ""));
                 }
                 case EffectProgram.Projectile projectile -> {
                     projectile.spec().validate(validation(bundle, previous)); projectile.shot().ifPresent(m -> m.validate(validation(bundle, previous))); localId(projectile.bind());
@@ -1414,13 +1473,22 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         if (value == null) throw new IllegalArgumentException("Projectile is missing captured binding: " + name);
                         return new RuleEngine.Local<>(state, value, List.of());
                     }, slot)));
-                    if (projectile.shot().isPresent()) body.add(new RuleEngine.Instruction<>((state, context) ->
-                            new RuleEngine.Local<>(ShotGroups.open(state, (ProjectileFlight.Impact) context.bindings().get(impactSlot)), RuleEngine.Empty.INSTANCE, List.of()), ""));
-                    body.addAll(compileSteps(bundle, projectile.body(), nestedResults, nestedSlots, path + index + "/projectile/", ownerRule, continuations));
-                    if (projectile.shot().isPresent()) body.add(new RuleEngine.Instruction<>((state, context) ->
-                            ShotGroups.close(state, (ProjectileFlight.Impact) context.bindings().get(impactSlot)), ""));
+                    var contactBody = new ArrayList<RuleEngine.Instruction<EffectState>>();
+                    if (projectile.shot().isPresent()) contactBody.add(new RuleEngine.Instruction<>(shotContact(definition+"/open",
+                            nestedResults,nestedSlots,projectile.bind(),true,false), ""));
+                    contactBody.addAll(compileSteps(bundle, projectile.body(), nestedResults, nestedSlots, path + index + "/projectile/", ownerRule, continuations));
+                    if (projectile.shot().isPresent()) contactBody.add(new RuleEngine.Instruction<>(shotContact(definition+"/close",
+                            nestedResults,nestedSlots,projectile.bind(),false,false), ""));
+                    if (projectile.shot().isPresent() && resourceRouting) {
+                        String accepts = definition+"/accepts";
+                        body.add(new RuleEngine.Instruction<>(new Routed(accepts, e -> ResourceRoutes.Plan.query(new ResourceRoutes.Decision(
+                                e.resourceView().orElseThrow().shotAccepts((ProjectileFlight.Impact)e.context().bindings().get(projectile.bind())))),
+                                nestedResults,nestedSlots), accepts));
+                        body.add(decisionGuard(accepts,contactBody.size()+1));
+                    }
+                    body.addAll(contactBody);
                     continuations.add(new RuleEngine.EventRule<>(definition, ProjectileFlight.EVENT,
-                            (state, context) -> projectile.shot().isEmpty() || ShotGroups.accepts(state,
+                            (state, context) -> resourceRouting || projectile.shot().isEmpty() || ShotGroups.accepts(state,
                                     (ProjectileFlight.Impact) ((EffectContinuations.Pending) context.scope()).bindings().get(impactSlot)), body));
                     String preparedSlot = path + index + "/prepared";
                     Function<Evaluation, ProjectileFlight.Launch> prepare = e -> {
@@ -1433,25 +1501,36 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                                 previous.get(spec.direction()).direction(e.context().bindings().get(spec.direction())), spec.resolve(e), e.origin().owner(), pending, impactSlot,
                                 projectile.shot().map(m -> m.resolve(e)), e.target(spec.emitter()));
                     };
-                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/projectile/prepare/" + path + index, previous, previousSlots, (e, context) -> {
-                        var launch = prepare.apply(e);
-                        return new RuleEngine.Local<>(ShotGroups.reserve(e.state(), launch.member().orElseThrow()), new ShotActions.Prepared(launch), List.of());
-                    }), preparedSlot));
+                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>(shotPrepare(ownerRule + "/projectile/prepare/" + path + index,
+                            previous,previousSlots,e -> new ShotActions.Prepared(prepare.apply(e)),
+                            result -> ((ShotActions.Prepared)result).launch().member()), preparedSlot));
                     String launchSlot = projectile.launchBind().map(name -> {
                         localId(name);
                         if (name.equals(projectile.bind()) || results.putIfAbsent(name, ResultShape.PROJECTILE_LAUNCH) != null)
                             throw new IllegalArgumentException("Duplicate or shadowed projectile launch binding: " + name);
                         String slot = path + name; slots.put(name, slot); return slot;
                     }).orElse("");
-                    output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/projectile/launch/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                    if (projectile.shot().isPresent()) output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
+                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                            return new RuleEngine.Await<>(((ShotActions.Prepared) context.bindings().get(preparedSlot)).launch());
+                        }
+                        @Override public RuleEngine.Outcome<EffectState> resume(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult result) {
+                            if (context.pendingCommand().orElseThrow() instanceof ShotRequests.Request) return shotAcknowledged(state,context,result);
+                            var receipt = (ProjectileFlight.Receipt) result;
+                            if (!receipt.launch().equals(context.command(ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
+                            if (resourceRouting) return new RuleEngine.Await<>(new ShotRequests.Launched(
+                                    receipt.launch().member().orElseThrow().shot().issuer().orElseThrow(),receipt));
+                            return ShotGroups.launched(state,receipt);
+                        }
+                    }, launchSlot));
+                    else output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/projectile/launch/" + path + index, previous, previousSlots, new EvaluatedAction() {
                         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
-                            return new RuleEngine.Await<>(projectile.shot().isPresent()
-                                    ? ((ShotActions.Prepared) context.bindings().get(preparedSlot)).launch() : prepare.apply(e));
+                            return new RuleEngine.Await<>(prepare.apply(e));
                         }
                         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.Context context, RuleEngine.ActionResult result) {
                             var receipt = (ProjectileFlight.Receipt) result;
                             if (!receipt.launch().equals(context.command(ProjectileFlight.Launch.class))) throw new IllegalArgumentException("Projectile receipt does not match launch");
-                            return projectile.shot().isPresent() ? ShotGroups.launched(e.state(), receipt) : new RuleEngine.Local<>(e.state(), receipt, List.of());
+                            return new RuleEngine.Local<>(e.state(), receipt, List.of());
                         }
                     }), launchSlot));
                 }

@@ -28,6 +28,8 @@ public final class MinecraftCombat {
     private final Deque<Identity> stack = new ArrayDeque<>();
     private final Map<Identity, Known> known = new LinkedHashMap<>();
     private final Map<Identity, Actual> actuals = new LinkedHashMap<>();
+    private final Map<Identity, ResourceSessionAuthority.NativeShot> shotBindings = new LinkedHashMap<>();
+    private final Map<Identity, Map<String, List<RuleEngine.Signal>>> shotFacts = new LinkedHashMap<>();
     private final Set<Identity> emittedDeferred = new HashSet<>();
     private final Map<String, List<RuleEngine.Signal>> facts = new TreeMap<>();
     private final Map<String, List<ShieldDamage.Write>> shields = new TreeMap<>();
@@ -37,10 +39,15 @@ public final class MinecraftCombat {
     /** Diagnostic evidence only. An unknown callback never becomes a successful checkpoint or replay permission. */
     public record Failure(String message, ResourceAuthority.Worlds before, ResourceAuthority.Worlds observed,
             List<CombatDomains.Claim> pending, Map<String, List<DamageCapture.Observed>> completed,
-            Map<String, List<RuleEngine.Signal>> facts, boolean published) {
+            Map<String, List<RuleEngine.Signal>> facts, boolean published, List<ShotDamageAccounting.Settled> shots) {
         public Failure {
             Objects.requireNonNull(message); Objects.requireNonNull(before); Objects.requireNonNull(observed);
-            pending = List.copyOf(pending); completed = immutableLists(completed); facts = immutableLists(facts);
+            pending = List.copyOf(pending); completed = immutableLists(completed); facts = immutableLists(facts); shots=List.copyOf(shots);
+        }
+        public Failure(String message, ResourceAuthority.Worlds before, ResourceAuthority.Worlds observed,
+                List<CombatDomains.Claim> pending, Map<String, List<DamageCapture.Observed>> completed,
+                Map<String, List<RuleEngine.Signal>> facts, boolean published) {
+            this(message,before,observed,pending,completed,facts,published,List.of());
         }
     }
     private static <T> Map<String, List<T>> immutableLists(Map<String, List<T>> values) {
@@ -137,11 +144,16 @@ public final class MinecraftCombat {
         var indexed = level.getEntity(id);
         pin(ownerKey, Life.capture(level, id, indexed));
     }
-    DamageCommand begin(MinecraftEffectRuntime runtime, String id, DamageCommand command, LivingEntity target, boolean revision) {
+    DamageCommand begin(MinecraftEffectRuntime runtime, String id, DamageCommand command, LivingEntity target, boolean revision,
+            Optional<RuleEngine.WorldRequest> managedRequest) {
         capture(runtime); current();
         var key = new Identity(domain(runtime), id);
         if (revision ? !key.equals(stack.peek()) : claims.containsKey(key) || known.containsKey(key))
             throw new IllegalStateException("Native combat reservation identity is not current");
+        if (!revision && world != null && managedRequest.orElse(null) == world.request()) {
+            host.combatAuthority().bindCombatShot(ticket, world.request(), key.domain(), id, command)
+                    .ifPresent(binding -> shotBindings.put(key,binding));
+        }
         pin(runtime, command, target);
         var raw = CombatDomains.capture(shadow, ticket.placement(), key.domain(), id, command);
         var other = claims.entrySet().stream().filter(entry -> !entry.getKey().equals(key)).map(Map.Entry::getValue).toList();
@@ -194,14 +206,32 @@ public final class MinecraftCombat {
     List<RuleEngine.Signal> finished(MinecraftEffectRuntime runtime, String id, DamageCommand command, DamageReceipt receipt, boolean managed) {
         current(); var claim = claim(runtime, command); var key = new Identity(domain(runtime), id);
         if (!key.equals(stack.peek())) throw new IllegalStateException("Native combat receipts completed out of order");
+        var shotEmitted = accountShot(key,receipt);
         var result = CombatDomains.finish(shadow, ticket.placement(), claim, receipt); shadow = result.worlds();
         String completionDomain=managed&&world!=null?domain(world.runtime()):key.domain();
-        var local = result.factsByDomain().getOrDefault(completionDomain, List.of());
+        var emitted=merged(result.factsByDomain(),shotEmitted);
+        var local = emitted.getOrDefault(completionDomain, List.of());
         var observation = new DamageCapture.Observed(command, result.receipt().withConsumptionFacts(local));
         known.put(key, new Known(claim, observation, managed,completionDomain));
-        if (!managed) add(key.domain(), DamageFacts.from(command, observation.receipt()));
-        result.factsByDomain().forEach((domain, emitted) -> { if (!managed || !domain.equals(completionDomain)) add(domain, emitted); });
+        if (!managed) add(key.domain(), damageFacts(key,observation));
+        emitted.forEach((domain, signals) -> { if (!managed || !domain.equals(completionDomain)) add(domain, signals); });
         claims.remove(key); stack.pop(); return local;
+    }
+    private Map<String,List<RuleEngine.Signal>> accountShot(Identity key,DamageReceipt receipt) {
+        var binding=shotBindings.get(key);if(binding==null)return Map.of();
+        var applied=host.combatAuthority().settleCombatShot(ticket,binding,shadow,key.domain(),receipt);shadow=applied.worlds();
+        if(!applied.facts().isEmpty())shotFacts.put(key,ShotFacts.route(ticket.placement(),applied.settled().pin().issuer(),applied.facts()));
+        return shotFacts.getOrDefault(key,Map.of());
+    }
+    private List<RuleEngine.Signal> damageFacts(Identity key,DamageCapture.Observed observation) {
+        var binding=shotBindings.get(key);
+        return DamageFacts.from(observation.command(),observation.receipt(),binding==null?Map.of():binding.attribution());
+    }
+    private static Map<String,List<RuleEngine.Signal>> merged(Map<String,List<RuleEngine.Signal>> first,Map<String,List<RuleEngine.Signal>> second) {
+        var result=new TreeMap<String,List<RuleEngine.Signal>>();
+        first.forEach((domain,values)->result.put(domain,new ArrayList<>(values)));
+        second.forEach((domain,values)->result.computeIfAbsent(domain,_->new ArrayList<>()).addAll(values));
+        return immutableLists(result);
     }
     void abandoned(MinecraftEffectRuntime runtime, String id) {
         var key = new Identity(domain(runtime), id);
@@ -220,7 +250,7 @@ public final class MinecraftCombat {
                     || world.request().command() instanceof com.imdomestic.chorus.effect.target.EntityAnchor.GuardedDamage)
                     && actual.filter(entry.observation().receipt()::equals).isPresent();
             if (!actionCompletes && emittedDeferred.add(knownEntry.getKey())) {
-                add(entry.completionDomain(), DamageFacts.from(entry.observation().command(), entry.observation().receipt()));
+                add(entry.completionDomain(), damageFacts(knownEntry.getKey(),entry.observation()));
                 entry.observation().receipt().consumptionFacts().ifPresent(value -> add(entry.completionDomain(), value));
             }
         }
@@ -250,14 +280,14 @@ public final class MinecraftCombat {
             deferred(Optional.empty()); lifecycle();
             host.combatAuthority().commitCombat(ticket, shadow, Optional.empty(), immutableLists(facts));
         } catch (RuntimeException | Error error) { failed(error); throw error; }
-        var before=ticket.worlds();var committed=shadow;var emitted=immutableLists(facts);var written=immutableLists(shields);
+        var before=ticket.worlds();var committed=shadow;var emitted=immutableLists(facts);var written=immutableLists(shields);var shotEvidence=ticket.shotEvidence();
         var observations=new TreeMap<String,List<DamageCapture.Observed>>();
         known.values().forEach(value->observations.computeIfAbsent(value.claim().domain(),_->new ArrayList<>()).add(value.observation()));
         clear();
         try{host.drain(Math.multiplyExact(Math.max(1, host.combatRuntimes().size()), 256));}
         catch(RuntimeException|Error error){
             if(failure.isEmpty()){
-                var evidence=new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),before,committed,List.of(),observations,emitted,true);
+                var evidence=new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),before,committed,List.of(),observations,emitted,true,shotEvidence);
                 failure=Optional.of(evidence);host.failCombat(error,evidence,written);
             }
             throw error;
@@ -269,17 +299,21 @@ public final class MinecraftCombat {
             if(known.containsKey(key))return;
             var claim=claims.get(key);if(claim==null)return;
             var observation=actual.observation();String completionDomain=actual.managed()&&world!=null?domain(world.runtime()):key.domain();
+            Map<String,List<RuleEngine.Signal>> shotEmitted=Map.of();
             try{
+                shotEmitted=accountShot(key,observation.receipt());
                 var result=CombatDomains.finish(shadow,ticket.placement(),claim,observation.receipt());shadow=result.worlds();
-                var settled=new DamageCapture.Observed(observation.command(),result.receipt().withConsumptionFacts(result.factsByDomain().getOrDefault(completionDomain,List.of())));
+                var emitted=merged(result.factsByDomain(),shotEmitted);
+                var settled=new DamageCapture.Observed(observation.command(),result.receipt().withConsumptionFacts(emitted.getOrDefault(completionDomain,List.of())));
                 known.put(key,new Known(claim,settled,false,completionDomain));
-                add(completionDomain,DamageFacts.from(settled.command(),settled.receipt()));
-                result.factsByDomain().forEach(this::add);claims.remove(key);
+                add(completionDomain,damageFacts(key,settled));
+                emitted.forEach(this::add);claims.remove(key);
             }catch(RuntimeException|Error secondary){
                 if(secondary!=error)error.addSuppressed(secondary);
                 known.put(key,new Known(claim,observation,false,completionDomain));
-                add(completionDomain,DamageFacts.from(observation.command(),observation.receipt()));
+                add(completionDomain,damageFacts(key,observation));
                 observation.receipt().consumptionFacts().ifPresent(emitted->add(completionDomain,emitted));
+                shotEmitted.forEach(this::add);
             }
         });
         var before = ticket.worlds();
@@ -291,7 +325,7 @@ public final class MinecraftCombat {
         var observations = new TreeMap<String, List<DamageCapture.Observed>>();
         known.values().forEach(value -> observations.computeIfAbsent(value.claim().domain(), _ -> new ArrayList<>()).add(value.observation()));
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), before, shadow,
-                List.copyOf(claims.values()), observations, facts, published));
+                List.copyOf(claims.values()), observations, facts, published,ticket.shotEvidence()));
         if (!published) try { host.combatAuthority().abandonCombat(ticket); }
         catch (RuntimeException | Error secondary) { if (secondary != error) error.addSuppressed(secondary); }
         var evidence = failure.orElseThrow(); var committedShields = immutableLists(shields);
@@ -307,6 +341,6 @@ public final class MinecraftCombat {
     }
     private void clear() {
         if (ACTIVE.get() == this) ACTIVE.remove();
-        ticket = null; shadow = null; claims.clear(); stack.clear(); known.clear(); actuals.clear(); emittedDeferred.clear(); facts.clear(); shields.clear(); lives.clear();
+        ticket = null; shadow = null; claims.clear(); stack.clear(); known.clear(); actuals.clear(); shotBindings.clear();shotFacts.clear();emittedDeferred.clear(); facts.clear(); shields.clear(); lives.clear();
     }
 }
