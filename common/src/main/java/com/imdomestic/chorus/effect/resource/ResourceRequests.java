@@ -8,7 +8,7 @@ import java.util.*;
 /** Stable-address world requests. The coordinator commits balances, actual receipts and recipient facts together. */
 public final class ResourceRequests {
     private ResourceRequests() {}
-    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request, ResourceRoutes.Request {}
+    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request, ResourceRoutes.Request, AbilityResources.Use, AbilityResources.Select {}
     public record Read(ResourceState.Key account) implements Request {
         public Read { Objects.requireNonNull(account); }
     }
@@ -24,7 +24,7 @@ public final class ResourceRequests {
             Numbers.fraction(fraction, "refund fraction");
         }
     }
-    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt, ResourceRoutes.Receipt {
+    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt, ResourceRoutes.Receipt, AbilityResources.Used, AbilityResources.Selected {
         Request request();
         Optional<ResourceAuthority.Lease> recipient();
     }
@@ -61,6 +61,8 @@ public final class ResourceRequests {
     }
     /** Data only: invoking this does not execute recipient reactions or authorize another credit. */
     public static List<RuleEngine.Signal> facts(Receipt receipt) {
+        if (receipt instanceof AbilityResources.Selected selected) return selected.facts();
+        if (receipt instanceof AbilityResources.Used used) return AbilityResources.facts(used);
         if (receipt instanceof ResourceRoutes.Receipt route) return route.primitive().map(ResourceRequests::facts).orElseGet(List::of);
         if (receipt instanceof ResourceMutations.Receipt mutation) return ResourceMutations.facts(mutation);
         if (receipt instanceof Granted granted) {
@@ -82,12 +84,23 @@ public final class ResourceRequests {
         new ResourceAuthority.Lease(caller, 1); Objects.requireNonNull(operation);
         if (operation.frame() < 1 || operation.pc() < 0 || operation.invocation() < 0) throw new IllegalArgumentException("Invalid resource operation identity");
         return facts(receipt).stream().map(signal -> {
-            var event = (com.imdomestic.chorus.effect.EffectEvent) signal.payload(); var lease = receipt.recipient().orElseThrow();
+            var event = signal.payload() instanceof com.imdomestic.chorus.effect.EffectEvent direct ? direct
+                    : ((com.imdomestic.chorus.effect.EffectEvent.Carrier) signal.payload()).event();
+            var lease = receipt.recipient().orElseThrow();
             var references = new HashMap<>(event.references());
             references.put("resource_caller_domain", caller);
             references.put("resource_operation", operation.frame() + "/" + operation.pc() + "/" + operation.invocation());
             references.put("resource_recipient_domain", lease.domain()); references.put("resource_lease_generation", Long.toString(lease.generation()));
-            return new RuleEngine.Signal(signal.type(), new com.imdomestic.chorus.effect.EffectEvent(event.actor(), event.victim(), event.source(), event.tags(), event.numbers(), event.flags(), references));
+            var annotated = new com.imdomestic.chorus.effect.EffectEvent(event.actor(), event.victim(), event.source(), event.tags(), event.numbers(), event.flags(), references,
+                    event.impact(), event.reactions(), event.proc(), event.observedBuffs(), event.observedEntities());
+            RuleEngine.Payload payload = switch (signal.payload()) {
+                case com.imdomestic.chorus.effect.EffectEvent ignored -> annotated;
+                case com.imdomestic.chorus.effect.ability.AbilityUse.Started start -> new com.imdomestic.chorus.effect.ability.AbilityUse.Started(annotated, start.definition(), start.receipt());
+                case com.imdomestic.chorus.effect.ability.AbilityUse.Used use -> new com.imdomestic.chorus.effect.ability.AbilityUse.Used(annotated, use.definition(), use.receipt());
+                case com.imdomestic.chorus.effect.SourceChange.Fact source -> new com.imdomestic.chorus.effect.SourceChange.Fact(annotated, source.source(), source.detached());
+                default -> throw new IllegalArgumentException("Unknown resource fact carrier");
+            };
+            return new RuleEngine.Signal(signal.type(), payload);
         }).toList();
     }
 }

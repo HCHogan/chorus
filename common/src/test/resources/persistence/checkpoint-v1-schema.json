@@ -1,4 +1,8 @@
 {
+  "chorus:effect/resource/ability_resources/use": ["ability:com.imdomestic.chorus.effect.ability.AbilityUse$Request"],
+  "chorus:effect/resource/ability_resources/used": ["request:com.imdomestic.chorus.effect.resource.AbilityResources$Use", "result:com.imdomestic.chorus.effect.ability.AbilityUse$Receipt", "before:java.util.Optional<com.imdomestic.chorus.effect.resource.ResourceState>", "started:java.util.Optional<com.imdomestic.chorus.effect.ability.AbilityUse$Started>", "lease:com.imdomestic.chorus.effect.resource.ResourceAuthority$Lease"],
+  "chorus:effect/resource/ability_resources/select": ["change:com.imdomestic.chorus.effect.ability.AbilityChange"],
+  "chorus:effect/resource/ability_resources/selected": ["request:com.imdomestic.chorus.effect.resource.AbilityResources$Select", "facts:java.util.List<com.imdomestic.chorus.rule.RuleEngine$Signal>", "lease:com.imdomestic.chorus.effect.resource.ResourceAuthority$Lease"],
   "chorus:effect/resource/resource_routes/cost": ["request:com.imdomestic.chorus.effect.resource.ResourceRoutes$Request", "primitive:java.util.Optional<com.imdomestic.chorus.effect.resource.ResourceRequests$Receipt>", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult"],
   "chorus:effect/resource/resource_routes/decision": ["passes:boolean"],
   "chorus:effect/resource/resource_routes/request": ["site:java.lang.String"],

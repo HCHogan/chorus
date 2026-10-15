@@ -225,8 +225,35 @@ public final class ResourceSessionAuthority {
                 var result = ResourceMutations.apply(worlds, caller, operation, mutation, retained);
                 yield new Applied(result.worlds(), result.receipt());
             }
+            case AbilityResources.Use use -> {
+                var owner = worlds.directory().owner(use.ability().holder());
+                requireAbilityDomain(owner.lease().domain());
+                var compiled = binding(caller).program();
+                var view = new ResourceReadView(worlds, caller, compiled.program()).owner(use.ability().holder());
+                var transition = compiled.useAbility(view, use.ability(), ResourceMutations.payment(caller, operation));
+                var result = (com.imdomestic.chorus.effect.ability.AbilityUse.Receipt) transition.result();
+                var before = result.cost().map(cost -> view.state().resources().get(cost.receipt().account()));
+                var started = transition.emitted().stream().map(RuleEngine.Signal::payload)
+                        .filter(com.imdomestic.chorus.effect.ability.AbilityUse.Started.class::isInstance)
+                        .map(com.imdomestic.chorus.effect.ability.AbilityUse.Started.class::cast).findFirst();
+                var receipt = new AbilityResources.Used(use, result, before, started, owner.lease());
+                if (!transition.emitted().equals(AbilityResources.facts(receipt))) throw new IllegalStateException("Ability facts differ from accepted transition");
+                yield new Applied(ResourceAuthority.publish(worlds, view.domain(), view.state(), transition.state()), receipt);
+            }
+            case AbilityResources.Select select -> {
+                var owner = worlds.directory().owner(select.change().holder());
+                requireAbilityDomain(owner.lease().domain());
+                var compiled = binding(caller).program();
+                var view = new ResourceReadView(worlds, caller, compiled.program()).owner(select.change().holder());
+                var transition = compiled.changeAbilities(view, select.change());
+                var receipt = new AbilityResources.Selected(select, transition.emitted(), owner.lease());
+                yield new Applied(ResourceAuthority.publish(worlds, view.domain(), view.state(), transition.state()), receipt);
+            }
             case ResourceRoutes.Request ignored -> throw new IllegalArgumentException("Nested resource route");
         };
+    }
+    private void requireAbilityDomain(String domain) {
+        if (!binding(domain).program().resourceRouting()) throw new IllegalStateException("Ability destination requires coordinated compilation");
     }
     public record Drained(int boundaries, boolean pending) {}
     /** Cooperative round-robin scheduling: a finite batch yields with every remaining fact intact, including feedback chains. */

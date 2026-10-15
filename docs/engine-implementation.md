@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：归属领域的技能选择、施放接受与付款
+
+协调编译模式将原 AbilityChange / AbilityUse 输入转换为 AbilityResources.Select / Use。选择在实际归属领域核对旧配置并共同发布来源 / 必要账户；重复选择不补能量，非法多槽变更不部分初始化。施放解析当前选择、替换、门禁、条件、参数和费用，所有相关数值查询携带同一资源视图；跨槽与继承付款政策保留。付款、资源事实和 typed Started / Used 一起提交到归属会话，后续 on_use 由该领域宿主执行。实际付款身份带 caller / operation；技能体保存的退款仍归实际签发会话，改选或资源再次迁移不改变额度。
+
+Used / Selected 回执与事实支持精确编码；资源注释保留完整 EffectEvent 字段，以及技能 / 来源的类型与附带回执。目标会话必须启用协调编译；旧本地状态形式的施放、改选及输入门禁接口在协调模式下拒绝绕过归属。新增四项存储形状至 715，原 711 项与既有检查点格式保持。
+
+新增 14 项核心场景覆盖实际会话中的远端选择 / 替换 / 成本、旧领域来源隔离、初始化后常驻来源反应、重复改选不补满、过期与非法选择、跨槽费用、跨领域资源条件 / 参数 / Profile / 门禁、各种拒绝和免费施放、保存恢复及再次迁移后的延迟退款、同领域执行、未知接受 / 选择和技能世界结果，以及目标编译模式错配。首轮测试补齐带常驻来源时的初始选择一致性，并按 ID 查找折扣夹具，未放宽生产校验；`/tmp/chorus-ability-resource-core2.log` 相关核心回归通过，最终边界场景见 `/tmp/chorus-ability-resource-core3.log`。
+
+完整回归 `/tmp/chorus-ability-resource-full-gate.log` BUILD SUCCESSFUL（4 分 10 秒）：2350 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点通过。`build/reports/ability-resource-routing/audit.json` 核验原 711 项存储形状保持、新增四项至 715、发布主类 1294 / 1287 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+本批尚未启用原生协调宿主，不更新玩家 NBT 或迁移来源 / Buff / 物理实体。普通动作任意资源表达式、原生传送、协调 tick 和联合保存继续待接入；没有新增原作数值或图形客户端验收，Compendium 仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[技能选择与施放](engine-data-packs.md#技能选择与施放的归属领域)。
+
 ### 2026-10-15：普通规则条件与资源动作的协调路由
 
 新增 CompiledEffects.withResourceRouting 显式编译模式。普通规则入口 / 分支条件、资源初始化 / 回能 / 扣费 / 退款 / 容量、Linked / CyclicRecharge、基础技能能量观察和 capture_value 通过固定编译位置的 ResourceRoutes 请求进入协调器。宿主核对实际 pending 帧和完整程序，在同一不可变快照上解析输入并提交资源原语、原 DSL 结果与接收事实；不把闭包、Evaluation 或可变视图放进存储数据。输入表达式使用调用作用域，接收回能和周期产量 Profile 使用归属领域当前状态。已有源 / proc 资格、条件短路、词法绑定与延迟作用域继续保留。

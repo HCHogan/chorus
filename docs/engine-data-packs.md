@@ -986,7 +986,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 上述命令沿用同一 WorldOperation 的重复请求去重、原子余额 / 事实投递与未知结果保护。双账户操作在任何状态发布前完成全部定义和结果验证；第二账户不存在或不合法时，不能只消耗 progress。LinkedRecharge / CyclicRecharge 的事实构造与现有本地 DSL 共用 ResourceFacts，保持原事实次序与数值字段。新增十四个存储身份，原有字段形状保持；这不代表执行中帧或 inbox 已能独立保存。
 
-普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下文的不可变视图与显式编译模式已连接规则条件和资源动作；施放期替换 / 支付及其余动作表达式仍须接通，原生迁移尚未开启。
+普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下文的不可变视图与显式编译模式已连接规则条件、资源动作以及技能选择 / 施放支付；其余动作表达式和原生宿主仍须接通，原生迁移尚未开启。
 
 ### 资源查询的不可变视图
 
@@ -1000,7 +1000,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 普通本地资源写入使用 localResource / requireLocalResource。带视图的 initialize、grant、spend、refund、full charge、resize、能量回充及双账户转换遇到远端分区时，要求改走按地址执行的请求；只读观察不授权在旧领域重建账户。本地账户的纯转换仍可读取视图中的外部资源条件。动作的提案需要查询新建弹匣等非资源数据时，`withLocalState` 只允许同一时刻、完整资源表完全不变的本地提案；它返回新视图，其他领域保持原快照，不发布任何会话状态。
 
-当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。下节的协调编译模式为规则条件与资源动作取得视图；默认本地编译保持原行为。施放期技能替换 / 支付及原生协调输入 / tick / 保存还未启用。
+当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。下节的协调编译模式为规则条件与资源动作取得视图；默认本地编译保持原行为。施放期技能替换 / 支付已接到下述协调接口；原生协调输入 / tick / 保存还未启用。
 
 ### 普通规则的资源请求路由
 
@@ -1022,7 +1022,23 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 协调模式的 EffectSession.Checkpoint 显式记录 resourceRouting，编码为 format 2 并带严格布尔字段 `resource_routing`；普通本地模式继续写原 format 1。读取旧 format 1 得到本地模式。恢复须同时匹配完整目录与编译模式，不能把协调检查点交给默认编译器悄悄恢复为本地写入。原 707 项存储形状不变，仅增加四种路由命令 / 结果形状；格式扩展仍只保存已结算边界，不保存执行中帧、inbox 或可变视图。
 
-本节不等于已经启用整个 Minecraft 宿主的资源迁移：直接 useAbility / changeAbilities 的施放期选择与支付、其他动作内的任意资源表达式（例如伤害值、after 的延迟、范围查询半径）、协调输入 / tick、原生传送和联合保存尚未接齐。需要这些读取时可先用 capture_value 显式取数，但这不代替上述路径的完整接入。Buff、装备、弹药与物理实体也没有因账户路由而自动迁移。
+本节不等于已经启用整个 Minecraft 宿主的资源迁移：技能选择 / 施放已由下节接入；其他动作内的任意资源表达式（例如伤害值、after 的延迟、范围查询半径）、原生协调输入 / tick、传送和联合保存尚未接齐。需要这些读取时可先用 capture_value 显式取数，但这不代替上述路径的完整接入。Buff、装备、弹药与物理实体也没有因账户路由而自动迁移。
+
+### 技能选择与施放的归属领域
+
+协调编译模式下，原有 `AbilityChange.signal()` 和 `AbilityUse.Request.signal()` 自动产生 `AbilityResources.Select` / `Use` 世界请求，仍由 ResourceSessionAuthority.execute 处理。持有者必须先 claim；目标会话也必须使用协调编译且完整目录兼容。调用领域可以与归属领域不同，但选择、临时替换、门禁、施放条件、参数、费用及其 Profile 都以当前归属领域的状态为准。其嵌套资源表达式继续使用同一 ResourceReadView，可读取其他领域中的目标账户。请求中的宿主观测仍来自原输入，这个接口不凭空重新采样实体物理状态。
+
+Select 在归属领域核对 change.before，预检全部槽位和常驻来源，再共同发布新选择、必要账户及来源。已经存在的账户不补满；空分区只在归属领域初始化。初始化、旧来源移除 / 新来源附加、abilities_changed 按原顺序排队，来源反应看到完整的新选择和账户。相同选择没有重复事实；过期 before 或任何非法槽位不能部分改选或初始化。调用领域残留的选择及来源不会被复制到目标。
+
+Use 以归属领域当前基础选择解析各优先级替换，并使用实际调用技能的事件上下文计算费用。definition / base_selection / previous_replacement 与 cost_slot 沿用原政策：读取被选定义的声明费用，不递归跟随付款槽的替换。门禁或条件拒绝在参数 / 扣费前返回，缺少继承费用不会变成免费施放。付款身份使用 caller + 实际 operation，避免不同领域重用同一 cast 字符串时共享退款身份。
+
+接受后，余额与 resource_spent / resource_changed / ability_started / ability_used 作为同一批次发布到归属会话；失败扣费不发施放事实，零费用接受只发两个技能事实。on_use 在该会话后续处理 inbox 时执行，世界动作也由该领域宿主执行；不会在发起方执行另一个领域的角色动作。Started / Used 和 SourceChange.Fact 保留原有类型、完整事件字段及回执，附加 caller / operation / lease 引用不会把它们压成普通 EffectEvent。同领域沿用当前因果父事件，跨领域使用接收方事件身份。
+
+`AbilityResources.Used` 保存请求、原 AbilityUse.Receipt、付款前账户、可选 Started 和接收 lease；`Selected` 保存请求、原顺序的选择事实和 lease。实际写入与这份结果一起提交，同回调重复请求不重复扣费或初始化。完成处理器只交还原结果，不再次投递事实；提交后未知结果保留已付余额 / 选择与 inbox。后续技能世界动作失败也不自动退款或重放。on_use 的 cast_cost 仍是实际付款，RetainCost 的签发领域是执行技能体的归属会话；后续改选、再次迁移或检查点恢复不改变该退款额度和期限。
+
+显式纯查询 / 提案可使用 `abilityInputAllowed(view, request)`、`useAbility(view, request, paymentIdentity)` 和 `changeAbilities(view, change)`；它们先选择 view.owner(holder)，不直接发布任何会话。协调编译下旧的仅传 EffectState 的施放 / 改选 / 输入资格接口拒绝执行，以免绕过资源归属。默认本地编译的接口和行为保持。
+
+本接口新增四种存储形状至 715，原 711 项不变，继续使用已有检查点模式格式。它不更新玩家 NBT，也不把技能配置、来源、Buff、物理效果实体和资源账户一起迁移。原生宿主仍须在账户交接前后同步真实玩家配置、衔接输入 / tick 和联合保存；单独移动账户不会替它完成这些工作。其他动作中的任意资源表达式仍需后续接线。
 
 ### 接收会话的事实投递与反馈链
 
