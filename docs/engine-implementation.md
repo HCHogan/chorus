@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：原生玩家传送的自动交接与输入连续性
+
+ServerPlayer.teleport 已接共享 MinecraftResourceRuntime 的角色迁移。实际原版背包、光标与独立装备槽枚举携带实例；目标索引成功后、post-teleport 回调前发布资源 / Buff / 角色核心状态，再更新装备 / 技能 / 角色核对责任和当前生命绑定。不会重新 attached、初始化、支付或重置剩余阶段。非协调宿主路径、已发射实体及未路由活动句柄继续保留各自明确边界。
+
+整个物理移动窗口禁止共享宿主重入；即使调用者捕获边界拒绝，候选仍不能提交。准备失败不移动玩家；物理移除、插入或后续回调失败则保留已发生写入、使整个宿主停止并拒绝成功检查点。输入准备失败可以在物理移动前恢复原手势，已提交阶段不回滚。
+
+Aim / Charge / Ability 输入增加显式迁移确认和每个手势的 transferRevision，三个不兼容的输入 wire 使用独立 v2 标识。历史 charge holderReference 不变，临时 live binding 严格匹配当前维度、生命和连接；三类网络长按均有 10 tick 心跳 / 40 tick 租期，迁移保留已消耗部分，确认延迟也不会留下永久占用的技能输入。技能网络 HOLD 与核心输入枚举分开，旧存档形状保持。客户端用连续确认链承接实际 LocalPlayer，覆盖同 tick 多次传送及往返后旧报文；载入画面暂停心跳，松开 / 失焦结束原操作，不自动施放。确认到达前已松开的旧手势只能沿迟到确认补发新 epoch 的 CANCEL，不能恢复或释放施放；失败和玩家替换也不把旧许可带给新生命。
+
+十项 NativeCharacterTransferGameTest 覆盖真实携带物品、Buff / 已付资源 / 剩余武器阶段、目标冲突、源移除后故障、目标插入后捕获的重入违规、回调故障与 A→B→C 嵌套、同维度 / 原版 null 返回，以及实际编码解码后的双域同进程恢复。七项 NativeInputTransferGameTest 覆盖冻结 / 撤销、三类长按连续性、同 tick 顺序往返和旧报文、实际重生命令、三类租期、正确心跳及双端真实 tick 过期清理、v2 codec。33 项纯客户端测试验证确认链、40 tick 租期、失焦 / 松开与仅可取消的迟到确认。定向 `/tmp/chorus-native-character-world5.log` 中 17 项 Fabric 场景、33 项客户端测试和 NeoForge 测试编译通过。恢复使用真实序列化归档及当前物理玩家，属于同进程 restore，不是独立进程重启验收。
+
+完整验证：2525 项 JUnit 无失败 / 错误 / 跳过，Fabric 1376 项、NeoForge 1391 项世界测试全部通过，共享场景 1375 项。单元和 Fabric 证据在 `/tmp/chorus-native-character-full-gate2.log`；该轮随后因 NeoForge 已自动注册环境而与新增 JSON 重复，未进入 NeoForge 测试。五份定义已移到 Fabric 专用测试资源并核验输出字节不变，`/tmp/chorus-native-character-neoforge-gate.log` 的全套 NeoForge、双端发布包构建 BUILD SUCCESSFUL（2 分 22 秒）。`build/reports/native-character-transfer/audit.json` 核验全部 730 项旧存储形状不变、1367 / 1360 个发布主类逐字节一致、测试类 / 故障 mixin / 测试环境无泄漏、两次正常停服检查点、Gradle CRLF 及固定研究来源。10 项 Compendium 工具测试、来源和生成报告检查通过。未进行真实图形客户端验收，未增加新的 D2 原作数值校准；Compendium 仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。接口与边界见[原生玩家传送](engine-data-packs.md#原生玩家传送与长按输入交接)。
+
 ### 2026-10-15：角色配置、携带弹药与武器阶段的联合迁移
 
 新增纯 CharacterTransfer 和 ResourceSessionAuthority.prepareCharacterTransfer / commit。装备、基础技能、角色配置、全部该持有者常驻来源、可信携带集合内弹药 / 最近射击、换弹 / 切枪 / 瞄准 / 蓄力与资源 / Buff 共用一个发布边界。来源自有计时器按剩余时间移动，detached 及世界内攻击账本留在原域；不重新附着或支付。目标同身份冲突、未结算阶段、遗漏已装备实例及过期准备拒绝整批发布。

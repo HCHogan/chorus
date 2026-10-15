@@ -17,7 +17,7 @@ public class ResourceEnrollmentGameTest extends com.imdomestic.chorus.test.Resou
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:resource_runtime") @Override
     public void unindexedPlayerCannotCreateAResourceOwnerOrCommitConfiguration(GameTestHelper h){super.unindexedPlayerCannotCreateAResourceOwnerOrCommitConfiguration(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:resource_runtime") @Override
-    public void physicalArrivalPreservesAnExistingEmptyRemoteOwnerAndRoutesLaterInitializationThere(GameTestHelper h){super.physicalArrivalPreservesAnExistingEmptyRemoteOwnerAndRoutesLaterInitializationThere(h);}
+    public void coordinatedPhysicalArrivalMovesAnEmptyLeaseBeforeLaterInitialization(GameTestHelper h){super.coordinatedPhysicalArrivalMovesAnEmptyLeaseBeforeLaterInitialization(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:resource_runtime") @Override
     public void unknownFirstAttachmentRetainsAutoEnrollmentAndPhysicalWriteWithoutReplay(GameTestHelper h){super.unknownFirstAttachmentRetainsAutoEnrollmentAndPhysicalWriteWithoutReplay(h);}
 }

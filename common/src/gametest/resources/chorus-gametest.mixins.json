@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "com.imdomestic.chorus.test.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": ["RestartWorldDataMixin", "RestartUniverseMixin"],
+  "mixins": ["RestartWorldDataMixin", "RestartUniverseMixin", "NativeTransferFailureMixin"],
   "injectors": {"defaultRequire": 1}
 }

@@ -31,6 +31,7 @@ import com.imdomestic.chorus.stat.CalculationProfile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
@@ -94,7 +95,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private record InputKey(java.util.UUID holder, String slot) {}
     private record HeldInput(ServerPlayer player, long gesture, String base, long startedMicros) {}
     private final Map<InputKey, HeldInput> abilityInputs = new java.util.LinkedHashMap<>();
-    private record ChargeInput(ServerPlayer player, net.minecraft.server.network.ServerGamePacketListenerImpl connection, String token, java.util.function.BooleanSupplier held) {}
+    private record ChargeInput(ServerPlayer player, net.minecraft.server.network.ServerGamePacketListenerImpl connection, String token, java.util.function.BooleanSupplier held, com.imdomestic.chorus.effect.target.EntityAnchor.Reference binding) {}
     private final Map<String, ChargeInput> chargeInputs = new java.util.LinkedHashMap<>();
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
     private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
@@ -107,7 +108,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (closed || MinecraftCheckpointLifecycle.deferStop(level.getServer())) return;
         ownerThread();
         if (fact.payload() instanceof com.imdomestic.chorus.effect.target.EntityLifecycle.Removed removed
-                && removed.kind() == com.imdomestic.chorus.effect.target.EntityLifecycle.Kind.TRANSFERRED) {
+                && removed.kind() == com.imdomestic.chorus.effect.target.EntityLifecycle.Kind.TRANSFERRED
+                && (resourceHost == null || !resourceHost.recordTransferRemoval(removed.reference().target()))) {
             // The new dimension owns the current player file. Keep this dimension's historical
             // standing rules, but do not compare them with a legitimately changed returning profile.
             var holder = java.util.UUID.fromString(removed.reference().target());
@@ -306,6 +308,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     public TimelineEngine.State<EffectState> state() { return session.state(); }
     public CompiledEffects program() { return program; }
     public ServerLevel level() { return level; }
+    MinecraftResourceRuntime resourceHost() { return resourceHost; }
     public Optional<MinecraftNativeActions.Report> nativeActionReport(){return nativeActionReport;}
     /** Last actual tracking query, separate from input authorization and collision/damage receipts. */
     public Optional<ProjectileTrackingReport> projectileTrackingReport() { return projectileTrackingReport; }
@@ -779,10 +782,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (!PlayerEquipment.get(player).projection(program.equipment()).equals(view().equipment().getOrDefault(holder, com.imdomestic.chorus.effect.equipment.Loadout.EMPTY)))
             throw new IllegalStateException("Charge differs from physical ownership");
         trackEquipment(player);
-        var before = view();var request=new com.imdomestic.chorus.effect.weapon.WeaponCharge.Request(holder, token, edge, Optional.of(chargeHolder(player)));var resolved=query(before,s->program.charge(s,request),v->program.charge(v,request));
+        var before = view();var accepted=before.charging().get(holder);
+        var reference=edge!=com.imdomestic.chorus.effect.weapon.WeaponCharge.Edge.PRESS&&accepted!=null
+                &&accepted.token().equals(token)&&matchesChargeHolder(accepted,player)?accepted.holderReference():Optional.of(chargeHolder(player));
+        var request=new com.imdomestic.chorus.effect.weapon.WeaponCharge.Request(holder, token, edge, reference);var resolved=query(before,s->program.charge(s,request),v->program.charge(v,request));
         var receipt = (com.imdomestic.chorus.effect.weapon.WeaponCharge.Receipt) resolved.result();
         if (resolved.state().equals(before) && resolved.emitted().isEmpty()) return receipt;
-        if (receipt.outcome() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.ACCEPTED) chargeInputs.put(holder, new ChargeInput(player, player.connection, token, held));
+        if (receipt.outcome() == com.imdomestic.chorus.effect.weapon.WeaponCharge.Outcome.ACCEPTED) chargeInputs.put(holder, new ChargeInput(player, player.connection, token, held, chargeHolder(player)));
         else if (receipt.plan().isPresent()) revokeChargeInput(holder, Optional.of(token));
         try {
             session.observe(nowMicros(), resolved.emitted(), new com.imdomestic.chorus.effect.weapon.WeaponCharge.Commit(before, resolved.state()));
@@ -848,7 +854,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         return new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(player.getUUID().toString(), MinecraftEntityLife.get(player).id(), level.dimension().identifier().toString());
     }
     private boolean matchesChargeHolder(com.imdomestic.chorus.effect.weapon.WeaponCharge.Plan plan, ServerPlayer player) {
-        return plan.holderReference().filter(chargeHolder(player)::equals).isPresent();
+        var current=chargeHolder(player);
+        if(plan.holderReference().filter(current::equals).isPresent())return true;
+        var input=chargeInputs.get(plan.holder());
+        return input!=null&&input.player()==player&&input.connection()==player.connection&&player.connection!=null&&player.connection.player==player
+                &&input.token().equals(plan.token())&&input.binding().equals(current)
+                &&plan.holderReference().filter(old->old.target().equals(current.target())&&old.life().equals(current.life())).isPresent();
     }
     /** Self-owned input: the server derives the weapon, ammunition and fire interval from its real container. */
     public com.imdomestic.chorus.effect.weapon.WeaponFire.Receipt fire(ServerPlayer player) {
@@ -941,6 +952,52 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             }
             chargeInputs.entrySet().removeIf(entry -> { var charge = view().charging().get(entry.getKey()); return charge == null || !charge.token().equals(entry.getValue().token()); });
         } finally { refreshingEquipment = false; }
+    }
+    /** All candidate domains must already be settled before native transport can start. */
+    void requirePlayerTransferBoundary() {
+        checkpointBoundary();
+        if(!nativeLifecycleFacts.isEmpty())throw new IllegalStateException("Player transfer has unprocessed native lifecycle facts");
+        session.checkpoint();
+    }
+    PlayerOwnership preparePlayerOwnership(ServerPlayer player,MinecraftEffectRuntime target) {
+        requirePlayerTransferBoundary();target.requirePlayerTransferBoundary();
+        return new PlayerOwnership(this,target,player);
+    }
+    /** A prepared metadata publication; the host fences every domain until it is committed. */
+    static final class PlayerOwnership {
+        private final MinecraftEffectRuntime source,target;private final ServerPlayer player;private final java.util.UUID id;
+        private final boolean equipment,actor,abilities;private final Map<InputKey,HeldInput> inputs=new LinkedHashMap<>();
+        private final ChargeInput previousCharge,arrivingCharge;private final long from,to;
+        private PlayerOwnership(MinecraftEffectRuntime source,MinecraftEffectRuntime target,ServerPlayer player) {
+            this.source=source;this.target=target;this.player=player;id=player.getUUID();
+            from=source.view().buffs().timeMicros();to=target.view().buffs().timeMicros();
+            equipment=source.equipmentOwnerIds.contains(id);actor=source.actorOwnerIds.contains(id);abilities=source.abilityOwnerIds.contains(id);
+            if(source.equipmentOwners.containsKey(id)&&source.equipmentOwners.get(id)!=player)throw new IllegalStateException("Transfer has another native equipment owner");
+            if(target.equipmentOwnerIds.contains(id)||target.equipmentOwners.containsKey(id)||target.actorOwnerIds.contains(id)||target.abilityOwnerIds.contains(id)
+                    ||target.pendingActorValidation.contains(id)||target.pendingAbilityValidation.contains(id)
+                    ||target.chargeInputs.containsKey(id.toString())||target.abilityInputs.keySet().stream().anyMatch(key->key.holder().equals(id)))
+                throw new IllegalStateException("Destination already owns native player metadata");
+            source.abilityInputs.forEach((key,input)->{if(key.holder().equals(id)){
+                if(input.player()!=player)throw new IllegalStateException("Held ability belongs to another native player");
+                long elapsed=com.imdomestic.chorus.effect.weapon.WeaponPhaseTime.elapsed(from,input.startedMicros());
+                inputs.put(key,new HeldInput(player,input.gesture(),input.base(),Math.subtractExact(to,elapsed)));
+            }});
+            previousCharge=source.chargeInputs.get(id.toString());var charge=source.view().charging().get(id.toString());
+            if(charge!=null){
+                if(!source.matchesChargeHolder(charge,player)||!source.chargeInputAllowed(charge,player))throw new IllegalStateException("Transfer lacks current charge authority");
+                arrivingCharge=new ChargeInput(player,player.connection,charge.token(),previousCharge==null?()->false:previousCharge.held(),
+                        new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(id.toString(),MinecraftEntityLife.get(player).id(),target.level.dimension().identifier().toString()));
+            }else arrivingCharge=null;
+        }
+        void commit() {
+            // Only collections are changed here; every native observation was checked before the core publication.
+            source.equipmentOwners.remove(id);source.equipmentOwnerIds.remove(id);source.actorOwnerIds.remove(id);source.abilityOwnerIds.remove(id);
+            source.pendingActorValidation.remove(id);source.pendingAbilityValidation.remove(id);
+            source.abilityInputs.keySet().removeIf(key->key.holder().equals(id));source.chargeInputs.remove(id.toString());
+            if(equipment){target.equipmentOwners.put(id,player);target.equipmentOwnerIds.add(id);}
+            if(actor)target.actorOwnerIds.add(id);if(abilities)target.abilityOwnerIds.add(id);
+            target.abilityInputs.putAll(inputs);if(arrivingCharge!=null)target.chargeInputs.put(id.toString(),arrivingCharge);
+        }
     }
     public Optional<Failure> failure() { return failure; }
     private void ownerThread() {

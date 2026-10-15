@@ -106,17 +106,20 @@ public class ResourceEnrollmentGameTest {
         }h.succeed();
     }
     @GameCase(environment="chorus_gametest:resource_runtime")
-    public void physicalArrivalPreservesAnExistingEmptyRemoteOwnerAndRoutesLaterInitializationThere(GameTestHelper h) {
+    public void coordinatedPhysicalArrivalMovesAnEmptyLeaseBeforeLaterInitialization(GameTestHelper h) {
         var data=initialized();data.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("rules").get(0).getAsJsonObject().getAsJsonArray("do").remove(1);
         var player=NativeMeleeGameTest.player(h);
         try(var f=new Fixture(h,data,player,false,false)) {
             f.runtime.prepare();var owner=f.host.snapshot().directory().owner(id(player));h.assertTrue(owner.accounts().isEmpty(),"empty admission created energy");
             f.remote.getChunk(new net.minecraft.core.BlockPos(8,90,8));player.teleport(new TeleportTransition(f.remote,new Vec3(8,90,8),Vec3.ZERO,0,0,TeleportTransition.DO_NOTHING));
-            var remote=f.host.runtime(f.remote);remote.prepare();h.assertValueEqual(f.host.snapshot().directory().owner(id(player)),owner,"physical arrival stole old lease");
+            var remote=f.host.runtime(f.remote);remote.prepare();var moved=f.host.snapshot().directory().owner(id(player));
+            h.assertTrue(moved.accounts().isEmpty(),"empty lease migration created energy");
+            h.assertValueEqual(moved.lease().domain(),domain(f.remote),"coordinated physical arrival did not transfer empty authority");
+            h.assertTrue(moved.lease().generation()>owner.lease().generation(),"physical transfer reused old authority lease");
             remote.bind(new EffectSource("enrollment/remote","test:passive",id(player),new BuffInstance.Origin(id(player),"entry","",""),Set.of()));
             f.host.drain(16);h.assertTrue(remote.failure().isEmpty(),"remote initialization failed");
-            near(h,f.runtime.state().engine().domain().resources().get(f.key()).value(),1,"initialization ignored existing empty authority");
-            h.assertTrue(remote.state().engine().domain().resources().isEmpty(),"arrival duplicated energy");
+            near(h,remote.state().engine().domain().resources().get(f.key()).value(),1,"initialization ignored transferred empty authority");
+            h.assertTrue(f.runtime.state().engine().domain().resources().isEmpty(),"departure retained or duplicated energy");
         }h.succeed();
     }
     @GameCase(environment="chorus_gametest:resource_runtime")

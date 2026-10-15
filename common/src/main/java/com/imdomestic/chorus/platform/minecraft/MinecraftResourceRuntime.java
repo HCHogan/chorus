@@ -20,6 +20,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     private record Restoration(MinecraftEffectRuntime.Checkpoint saved,RestorePolicy policy,CompiledEffects program,EffectSession session) {}
     private boolean closing,closed;
     private RuntimeException installationFailure;
+    private MinecraftPlayerTransfer.Handoff playerTransfer;
     public MinecraftResourceRuntime(MinecraftServer server) {
         this.server=Objects.requireNonNull(server);thread();MinecraftCheckpointBoundary.changingRuntime(server);LIVE.add(this);
     }
@@ -27,7 +28,10 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     private void active() {
         thread();if(closed||closing||installationFailure!=null)throw new IllegalStateException("Native resource host is closed or failed",installationFailure);
     }
-    private void ready(){active();if(restoring!=null)throw new IllegalStateException("Not every restored native dimension is connected");}
+    private void ready(){active();transferBoundary();if(restoring!=null)throw new IllegalStateException("Not every restored native dimension is connected");}
+    private void transferBoundary(){
+        if(playerTransfer!=null){var error=new IllegalStateException("Native player transfer has fenced this resource host");playerTransfer.violated(error);throw error;}
+    }
     void enteringRuntime(){thread();if(!closing)ready();}
     private void changing(){ready();MinecraftCheckpointBoundary.enteringResources(server);}
     private static String domain(ServerLevel level) { return level.dimension().identifier().toString(); }
@@ -72,11 +76,37 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
         level(level);var runtime=runtimes.get(domain(level));if(runtime==null)throw new IllegalArgumentException("Dimension is not in this resource host");return runtime;
     }
     ResourceReadView view(MinecraftEffectRuntime runtime,ServerLevel level,RuleEngine.WorldRequest request) {
+        transferBoundary();
         if(runtime(level)!=runtime)throw new IllegalArgumentException("Foreign native resource runtime");
         return request==null?authority.readView(domain(level)):authority.readView(domain(level),request);
     }
     RuleEngine.ActionResult execute(MinecraftEffectRuntime runtime,ServerLevel level,RuleEngine.WorldRequest request) {
         changing();if(runtime(level)!=runtime)throw new IllegalArgumentException("Foreign native resource runtime");return authority.execute(domain(level),request);
+    }
+    void settlePlayerTransfer(){
+        changing();
+        for(var runtime:runtimes.values())runtime.prepare();
+        if(authority.drain(Math.multiplyExact(Math.max(1,runtimes.size()),256)).pending())
+            throw new IllegalStateException("Player transfer waits for pending resource feedback; facts are retained");
+        runtimes.values().forEach(MinecraftEffectRuntime::requirePlayerTransferBoundary);
+    }
+    ResourceSessionAuthority.CharacterHandoff preparePlayerTransfer(String holder,ServerLevel source,ServerLevel destination,Set<String> carried){
+        changing();return authority.prepareCharacterTransfer(holder,domain(source),domain(destination),carried);
+    }
+    void fencePlayerTransfer(MinecraftPlayerTransfer.Handoff handoff){changing();playerTransfer=Objects.requireNonNull(handoff);}
+    void commitPlayerTransfer(MinecraftPlayerTransfer.Handoff handoff,ResourceSessionAuthority.CharacterHandoff core){
+        active();if(playerTransfer!=handoff)throw new IllegalStateException("Native player transfer lost its host fence");
+        handoff.requireUnviolated();authority.commit(core);
+    }
+    void releasePlayerTransfer(MinecraftPlayerTransfer.Handoff handoff){thread();if(playerTransfer==handoff)playerTransfer=null;}
+    boolean recordTransferRemoval(String holder){
+        if(playerTransfer==null||!playerTransfer.holder().equals(holder))return false;
+        playerTransfer.removed();return true;
+    }
+    void failPlayerTransfer(MinecraftPlayerTransfer.Handoff handoff,Throwable failure){
+        thread();releasePlayerTransfer(handoff);
+        if(installationFailure==null)installationFailure=new IllegalStateException("Native character transfer failed at "+handoff.phase(),failure);
+        for(var runtime:runtimes.values())runtime.failed(installationFailure,List.of());
     }
     public record Checkpoint(ResourceSessionAuthority.Checkpoint resources,Map<String,MinecraftEffectRuntime.Checkpoint> dimensions) {
         public Checkpoint {
@@ -159,7 +189,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
         for(var host:List.copyOf(LIVE))if(host.server==server)host.close();
     }
     @Override public void close() {
-        thread();if(closed)return;MinecraftCheckpointBoundary.enteringResources(server);
+        thread();if(closed)return;transferBoundary();MinecraftCheckpointBoundary.enteringResources(server);
         if(closing)throw new IllegalStateException("Reentrant native resource close");
         runtimes.values().forEach(MinecraftEffectRuntime::requireResourceDetach);
         closing=true;RuntimeException failure=null;
