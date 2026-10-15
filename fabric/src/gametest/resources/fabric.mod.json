@@ -201,6 +201,7 @@
       "com.imdomestic.chorus.EquipmentAccessGameTest",
       "com.imdomestic.chorus.EquipmentConfigureGameTest",
       "com.imdomestic.chorus.NativeAttributeGameTest",
+      "com.imdomestic.chorus.ResourceProjectionGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",

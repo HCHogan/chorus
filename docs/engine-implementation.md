@@ -6,6 +6,20 @@
 
 ## 当前证据
 
+### 2026-10-15：原生属性、移动限制与速度上限的协调投影
+
+三个 Minecraft 投影增加显式 ResourceReadView 入口，内部临时 MinecraftProjectionQueries 将同一捕获传递到每个接收者的嵌套 Profile 与条件；既有本地接口保留。完整程序 / 模式校验先于空声明、空持有者及旧状态清理，协调模式不能通过旧接口绕过。属性维持全部计算及冲突检查完成后再写入的边界；移动与速度求值失败继续记录错误、限制对应接收者并向宿主抛错。速度上限变化不返还已消耗的本 tick 位移预算。
+
+beforeLoadedHealth 同样接受资源视图，直接处理未索引的替换实体，按保存生命判断资格，在生命裁剪前重建上限。它不推进规则、不执行治疗，也不注册默认加载钩子。公开的投影构造器供显式宿主管理生命周期；刷新期间使用的视图不进入实体或存档，没有新增持久化形状或格式。
+
+新增八项共享 ResourceProjectionGameTest，验证真实属性及外部 modifier 保留、旧视图冻结 / 新余额更新、玩家输入包及轴锁、水平速度与共享位移预算、缺少账户时的属性整体失败及逐接收者移动限制、错误 / 缺少视图与空投影拒绝、显式加载前钩子的未索引实体 / 存活判定、实际协调动作中先回能再投影并治疗，以及资源往返迁移 / 联合核心恢复后的投影重建。未知治疗回执保留实际生命 / 物理限制，不能保存或重放。来源仍属于查询领域，资源领域的其他增益未混入。
+
+首次定向运行发现 Fabric 测试环境未注册，补齐测试资源；第二次发现新夹具把 grant_energy 的 value_basis 写到 grant_resource，按既有 Codec 修正夹具。`/tmp/chorus-native-projection-targeted3.log` 的八项定向 Fabric 场景及正常停服检查点通过，没有放宽生产校验。
+
+完整回归 `/tmp/chorus-native-projection-full-gate.log` BUILD SUCCESSFUL（4 分 52 秒）：2433 项 JUnit 无失败 / 错误 / 跳过、Fabric 1331 项、NeoForge 1346 项、双端发布包及两次正常停服检查点通过。`build/reports/native-resource-projection/audit.json` 核验 720 项原存储形状保持、发布主类 1316 / 1309 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+本批验证显式协调宿主使用真实原生投影。默认 MinecraftEffectRuntime 仍为本地模式，自动登记资源归属、原生输入 / 物理回调 / 跨维度迁移及完整联合加载保存仍待接通；没有新增图形客户端或原作数值校准。Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[原生投影资源视图](engine-data-packs.md#原生属性与移动投影的资源视图)。
+
 ### 2026-10-15：武器输入及完整阶段流程的协调资源读取
 
 梳理原生输入接线时发现，普通 DSL 已使用协调视图，但武器请求和内部到期处理仍调用本地数值查询。现为装备、开火、换弹、瞄准、切枪和蓄力的完整流程加入临时 WeaponQueries，统一传递同一资源视图到门禁、条件、成本、容量、时长与嵌套 Profile / Pipeline；纯候选状态通过 withLocalState 派生，不能改变资源余额或时间。各类请求与后续阶段复用 ActionRoutes，物理切枪准备 / 回执核对和原事实顺序保留。显式宿主 API 提供 ResourceReadView 重载，协调模式的旧本地入口在提前返回前拒绝。

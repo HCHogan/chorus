@@ -3,6 +3,7 @@ package com.imdomestic.chorus.platform.minecraft;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.attribute.NativeAttributeBinding;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
+import com.imdomestic.chorus.effect.resource.ResourceReadView;
 import java.util.*;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -25,7 +26,7 @@ public final class MinecraftAttributeProjection implements AutoCloseable {
     private final Map<String,Holder<Attribute>> attributes=new LinkedHashMap<>();
     private final Map<Key,Owned> owned=new LinkedHashMap<>();
     private List<Report> reports=List.of();
-    MinecraftAttributeProjection(ServerLevel level,CompiledEffects program){
+    public MinecraftAttributeProjection(ServerLevel level,CompiledEffects program){
         this.level=level;this.program=program;
         var registry=level.registryAccess().lookupOrThrow(Registries.ATTRIBUTE);
         for(var binding:program.program().nativeAttributes())attributes.put(binding.id(),registry.getOrThrow(ResourceKey.create(Registries.ATTRIBUTE,Identifier.parse(binding.attribute()))));
@@ -35,7 +36,8 @@ public final class MinecraftAttributeProjection implements AutoCloseable {
         try{var entity=level.getEntity(UUID.fromString(holder));return entity instanceof LivingEntity living?living:null;}
         catch(IllegalArgumentException invalid){return null;}
     }
-    public void reconcile(EffectState state){reconcile(state,Optional.empty(),0);}
+    public void reconcile(EffectState state){reconcile(new MinecraftProjectionQueries(program,state),Optional.empty(),0);}
+    public void reconcile(ResourceReadView view){reconcile(new MinecraftProjectionQueries(program,view),Optional.empty(),0);}
     boolean tracks(EffectState state,LivingEntity entity){
         if(attributes.isEmpty())return false;
         String holder=entity.getUUID().toString();
@@ -46,12 +48,19 @@ public final class MinecraftAttributeProjection implements AutoCloseable {
     }
     /** NBT attributes are loaded, but vanilla has not yet clamped Health and the entity may not be indexed. */
     public void beforeLoadedHealth(EffectState state,LivingEntity entity,float health){
-        if(entity.level()!=level)throw new IllegalArgumentException("Loading entity belongs to another level");
-        reconcile(state,Optional.of(entity),health);
+        beforeLoadedHealth(new MinecraftProjectionQueries(program,state),entity,health);
     }
-    private void reconcile(EffectState state,Optional<LivingEntity> loading,float loadedHealth){
+    public void beforeLoadedHealth(ResourceReadView view,LivingEntity entity,float health){
+        beforeLoadedHealth(new MinecraftProjectionQueries(program,view),entity,health);
+    }
+    private void beforeLoadedHealth(MinecraftProjectionQueries queries,LivingEntity entity,float health){
+        if(entity.level()!=level)throw new IllegalArgumentException("Loading entity belongs to another level");
+        reconcile(queries,Optional.of(entity),health);
+    }
+    private void reconcile(MinecraftProjectionQueries queries,Optional<LivingEntity> loading,float loadedHealth){
         if(!level.getServer().isSameThread())throw new IllegalStateException("Native attributes require the server thread");
         if(attributes.isEmpty())return;
+        var state=queries.state();
         var holders=new TreeSet<String>();state.sources().values().forEach(s->holders.add(s.holder()));state.buffs().instances().values().forEach(b->holders.add(b.key().holder()));
         holders.addAll(state.equipment().keySet());holders.addAll(state.abilities().keySet());
         loading.ifPresent(entity->holders.retainAll(Set.of(entity.getUUID().toString())));
@@ -60,7 +69,7 @@ public final class MinecraftAttributeProjection implements AutoCloseable {
         var identities=new IdentityHashMap<LivingEntity,String>();
         // Resolve every query and conflict before changing any modifier, including cleanup of old targets.
         for(String holder:holders){
-            var calculated=program.nativeAttributes(state,holder);var target=loading.orElseGet(()->resolve(holder));
+            var calculated=queries.nativeAttributes(holder);var target=loading.orElseGet(()->resolve(holder));
             if(target!=null&&identities.put(target,holder)!=null)throw new IllegalArgumentException("Multiple native attribute references resolve to one entity");
             for(var value:calculated){
                 var binding=value.binding();AttributeInstance attribute=null;Outcome outcome;

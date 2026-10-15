@@ -3,6 +3,7 @@ package com.imdomestic.chorus.platform.minecraft;
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.effect.input.ActionGate;
+import com.imdomestic.chorus.effect.resource.ResourceReadView;
 import java.util.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,15 +14,18 @@ public final class MinecraftMovementProjection implements AutoCloseable {
     private final ServerLevel level;private final CompiledEffects program;
     private final Set<LivingEntity> owned=Collections.newSetFromMap(new IdentityHashMap<>());
     private List<Report> reports=List.of();
-    MinecraftMovementProjection(ServerLevel level,CompiledEffects program){this.level=level;this.program=program;}
+    public MinecraftMovementProjection(ServerLevel level,CompiledEffects program){this.level=level;this.program=program;}
     public List<Report> reports(){return reports;}
     private LivingEntity resolve(String holder){
         try{var entity=level.getEntity(UUID.fromString(holder));return entity instanceof LivingEntity living?living:null;}
         catch(IllegalArgumentException invalid){return null;}
     }
-    public void reconcile(EffectState state){
+    public void reconcile(EffectState state){reconcile(new MinecraftProjectionQueries(program,state));}
+    public void reconcile(ResourceReadView view){reconcile(new MinecraftProjectionQueries(program,view));}
+    private void reconcile(MinecraftProjectionQueries queries){
         if(!level.getServer().isSameThread())throw new IllegalStateException("Movement projection requires the server thread");
         if(!MinecraftMovementInput.hasGates(program))return;
+        var state=queries.state();
         var holders=new TreeSet<String>();state.sources().values().forEach(s->holders.add(s.holder()));state.buffs().instances().values().forEach(b->holders.add(b.key().holder()));
         var desired=new LinkedHashMap<LivingEntity,Integer>();var observations=new ArrayList<Report>();RuntimeException failure=null;
         for(String holder:holders){
@@ -34,7 +38,7 @@ public final class MinecraftMovementProjection implements AutoCloseable {
                 int bit=MinecraftMovementInput.bit(kind);
                 MinecraftNativeActions.Report report;
                 try{
-                    var decision=program.checkAction(state,kind,phase,input);if(!decision.allowed())mask|=bit;
+                    var decision=queries.checkAction(kind,phase,input);if(!decision.allowed())mask|=bit;
                     report=new MinecraftNativeActions.Report(state.buffs().timeMicros(),input,decision.allowed()?MinecraftNativeActions.Outcome.ALLOWED:MinecraftNativeActions.Outcome.RESTRICTED,Optional.of(decision),Optional.empty());
                 }catch(RuntimeException error){
                     // A broken query cannot authorize this input. Other queries still supply their own evidence.
