@@ -63,9 +63,13 @@ class CoordinatedClockTest {
         double healed(){return heals.stream().mapToDouble(h->h.command().amount()).sum();}
         void advance(long time){sessions.get(A).observe(time,List.of());}
         void restore(){
-            host.drain(10);var directory=host.snapshot().directory();
-            for(var domain:List.of(A,B)){var saved=EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(sessions.get(domain).checkpoint()));sessions.put(domain,EffectSession.restore(program,EffectCheckpointTest.clock(),1,saved,r->execute(domain,r)));}
-            connect(directory);
+            host.drain(10);var checkpoint=host.checkpoint();
+            var archive=com.imdomestic.chorus.effect.persistence.CheckpointArchive.coordinated(ResourceCheckpointTest.entries(checkpoint),checkpoint);
+            var saved=com.imdomestic.chorus.effect.persistence.CheckpointArchive.decode(archive.encode()).resourceCheckpoint().orElseThrow();
+            var policies=new TreeMap<String,ResourceSessionAuthority.RestoreBinding>();
+            for(var domain:saved.domains().keySet())policies.put(domain,new ResourceSessionAuthority.RestoreBinding(program,EffectCheckpointTest.clock(),1,r->execute(domain,r)));
+            var restored=ResourceSessionAuthority.restore(saved,policies);host=restored.authority();
+            restored.bindings().forEach((domain,binding)->sessions.put(domain,binding.session()));
         }
     }
     @Test void allContinuousRatesUseTheRemoteBalanceButAdvanceOnlyTheLocalDomain() {

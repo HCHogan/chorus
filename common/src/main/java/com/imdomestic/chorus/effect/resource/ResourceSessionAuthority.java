@@ -2,16 +2,65 @@ package com.imdomestic.chorus.effect.resource;
 
 import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.function.Function;
 
 /** Owner-thread bridge between the pure authority and live settled sessions. Supports explicitly compiled DSL resource routes. */
 public final class ResourceSessionAuthority {
     public record Binding(CompiledEffects program, EffectSession session) {
         public Binding { Objects.requireNonNull(program); Objects.requireNonNull(session); }
+    }
+    /** One settled boundary, including domains with no managed accounts. Contains no live host or callback. */
+    public record Checkpoint(ResourceAuthority.Directory directory, Map<String, EffectSession.Checkpoint> domains) {
+        public Checkpoint {
+            Objects.requireNonNull(directory); domains = Collections.unmodifiableMap(new TreeMap<>(domains));
+            var states = new TreeMap<String, EffectState>();
+            domains.forEach((domain, saved) -> {
+                new ResourceAuthority.Lease(domain, 1); Objects.requireNonNull(saved);
+                if (saved.timeline().timeMicros() != saved.timeline().domain().buffs().timeMicros())
+                    throw new IllegalArgumentException("Resource checkpoint and domain clocks differ");
+                states.put(domain, saved.timeline().domain());
+            });
+            for (var partition : directory.holders().values()) {
+                var saved = domains.get(partition.lease().domain());
+                if (saved == null || !partition.program().equals(saved.program()))
+                    throw new IllegalArgumentException("Resource checkpoint owner catalogue differs from its domain");
+            }
+            new ResourceAuthority.Worlds(directory, states);
+        }
+    }
+    /** Explicit host policies for a fresh session. Physical world restoration remains the caller's responsibility. */
+    public record RestoreBinding(CompiledEffects program, EffectClock clock, int budget,
+            Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world) {
+        public RestoreBinding {
+            Objects.requireNonNull(program); Objects.requireNonNull(clock); Objects.requireNonNull(world);
+            if (budget < 1) throw new IllegalArgumentException("Expected a positive interpreter budget");
+        }
+    }
+    public record Restored(ResourceSessionAuthority authority, Map<String, Binding> bindings) {
+        public Restored { Objects.requireNonNull(authority); bindings = Collections.unmodifiableMap(new TreeMap<>(bindings)); }
+    }
+    /** Validate every catalogue/mode before creating fresh sessions; never replay actions or reuse old clock bindings. */
+    public static Restored restore(Checkpoint checkpoint, Map<String, RestoreBinding> policies) {
+        policies = Map.copyOf(policies);
+        if (!policies.keySet().equals(checkpoint.domains().keySet())) throw new IllegalArgumentException("Resource restore domain set differs");
+        for (var entry : policies.entrySet()) {
+            var program = entry.getValue().program(); var saved = checkpoint.domains().get(entry.getKey());
+            if (program.resourceRouting() != saved.resourceRouting() || !program.program().equals(saved.program()))
+                throw new IllegalArgumentException("Resource restore catalogue or mode differs: " + entry.getKey());
+        }
+        var restored = new TreeMap<String, Binding>();
+        for (var entry : new TreeMap<>(policies).entrySet()) {
+            var policy = entry.getValue();
+            var session = EffectSession.restore(policy.program(), policy.clock(), policy.budget(), checkpoint.domains().get(entry.getKey()), policy.world());
+            restored.put(entry.getKey(), new Binding(policy.program(), session));
+        }
+        return new Restored(new ResourceSessionAuthority(checkpoint.directory(), restored), restored);
     }
     private sealed interface Caller permits WorldCaller, ClockCaller {
         String domain();
@@ -133,6 +182,29 @@ public final class ResourceSessionAuthority {
     }
     /** Capture committed balances, including sessions with queued facts. This is not a settled checkpoint. */
     public ResourceAuthority.Worlds snapshot() { return boundary(() -> capture(true).worlds()); }
+    /** Does not drain inboxes or advance time. Every participant must already be settled and healthy. */
+    public Checkpoint checkpoint() {
+        return boundary(() -> {
+            var timelines = new TreeMap<String, TimelineEngine.State<EffectState>>();
+            bindings.forEach((domain, binding) -> timelines.put(domain, binding.session().state()));
+            var saved = new TreeMap<String, EffectSession.Checkpoint>();
+            for (var entry : bindings.entrySet()) {
+                var binding = entry.getValue(); var checkpoint = binding.session().checkpoint();
+                if (binding.program().resourceRouting() != checkpoint.resourceRouting() || !binding.program().program().equals(checkpoint.program()))
+                    throw new IllegalArgumentException("Resource checkpoint catalogue differs from its live binding");
+                saved.put(entry.getKey(), checkpoint);
+            }
+            var next = directory;
+            for (var partition : directory.holders().values()) {
+                var owner = saved.get(partition.lease().domain());
+                if (owner == null || !partition.program().equals(owner.program()))
+                    throw new IllegalArgumentException("Resource checkpoint owner catalogue differs from its live binding");
+                next = ResourceAuthority.publish(next, partition, owner.timeline().domain());
+            }
+            var result = new Checkpoint(next, saved);
+            unchanged(timelines, Optional.empty()); directory = next; return result;
+        });
+    }
     /** Immutable query input, not a checkpoint or permission to write an account observed in another domain. */
     public ResourceReadView readView(String caller) {
         return boundary(() -> new ResourceReadView(capture(true).worlds(), caller, binding(caller).program().program()));

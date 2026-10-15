@@ -2,10 +2,13 @@ package com.imdomestic.chorus.effect.persistence;
 
 import com.google.gson.*;
 import com.imdomestic.chorus.effect.EffectSession;
+import com.imdomestic.chorus.effect.resource.ResourceAuthority;
+import com.imdomestic.chorus.effect.resource.ResourceSessionAuthority;
 import java.util.*;
 
 /** All dimension snapshots belonging to one host save attempt. The host still proves world writes succeeded. */
-public record CheckpointArchive(List<Entry> dimensions) {
+public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthority.Directory> resourceDirectory) {
+    public CheckpointArchive(List<Entry> dimensions) { this(dimensions, Optional.empty()); }
     public record Entry(String program, String dimension, long gameTime, EffectSession.Checkpoint effects, Set<UUID> equipmentOwners, Set<UUID> actorOwners, Set<UUID> abilityOwners) {
         public Entry(String program, String dimension, long gameTime, EffectSession.Checkpoint effects, Set<UUID> equipmentOwners, Set<UUID> actorOwners) {
             this(program, dimension, gameTime, effects, equipmentOwners, actorOwners, Set.of());
@@ -21,12 +24,29 @@ public record CheckpointArchive(List<Entry> dimensions) {
     public CheckpointArchive {
         dimensions = dimensions.stream().sorted(Comparator.comparing(Entry::dimension)).toList();
         if (dimensions.stream().map(Entry::dimension).distinct().count() != dimensions.size()) throw new IllegalArgumentException("Duplicate saved dimension");
+        Objects.requireNonNull(resourceDirectory);
+        if (resourceDirectory.isPresent()) new ResourceSessionAuthority.Checkpoint(resourceDirectory.orElseThrow(), domains(dimensions));
+        else if (dimensions.stream().anyMatch(entry -> entry.effects().resourceRouting()))
+            throw new IllegalArgumentException("Coordinated sessions require a joint resource checkpoint");
+    }
+    private static Map<String, EffectSession.Checkpoint> domains(List<Entry> dimensions) {
+        var result = new TreeMap<String, EffectSession.Checkpoint>();
+        dimensions.forEach(entry -> result.put(entry.dimension(), entry.effects())); return result;
+    }
+    /** The host must attach metadata to every captured domain, using exactly the captured effects. */
+    public static CheckpointArchive coordinated(List<Entry> dimensions, ResourceSessionAuthority.Checkpoint checkpoint) {
+        if (!domains(dimensions).equals(checkpoint.domains())) throw new IllegalArgumentException("Archive dimensions differ from the joint resource checkpoint");
+        return new CheckpointArchive(dimensions, Optional.of(checkpoint.directory()));
+    }
+    public Optional<ResourceSessionAuthority.Checkpoint> resourceCheckpoint() {
+        return resourceDirectory.map(directory -> new ResourceSessionAuthority.Checkpoint(directory, domains(dimensions)));
     }
     private static void identifier(String value) {
         if (!value.matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) throw new IllegalArgumentException("Expected canonical namespaced identifier: " + value);
     }
     public JsonObject encode() {
-        var output = new JsonObject(); output.addProperty("format", 3); var entries = new JsonArray();
+        var output = new JsonObject(); output.addProperty("format", resourceDirectory.isPresent() ? 4 : 3); var entries = new JsonArray();
+        resourceDirectory.ifPresent(directory -> output.add("resource_directory", ResourceAuthorityCodec.encode(directory)));
         for (var entry : dimensions) {
             var row = new JsonObject(); row.addProperty("program", entry.program()); row.addProperty("dimension", entry.dimension());
             row.addProperty("game_time", Long.toString(entry.gameTime())); row.add("effects", EffectCheckpointCodec.encode(entry.effects()));
@@ -38,11 +58,12 @@ public record CheckpointArchive(List<Entry> dimensions) {
         output.add("dimensions", entries); return output;
     }
     public static CheckpointArchive decode(JsonElement input) {
-        var object = input.getAsJsonObject(); fields(object, Set.of("format", "dimensions"));
+        var object = input.getAsJsonObject();
         if (!(object.get("format") instanceof JsonPrimitive format) || !format.isNumber()
-                || !Set.of(new java.math.BigDecimal(1), new java.math.BigDecimal(2), new java.math.BigDecimal(3)).contains(format.getAsBigDecimal().stripTrailingZeros()))
+                || !Set.of(new java.math.BigDecimal(1), new java.math.BigDecimal(2), new java.math.BigDecimal(3), new java.math.BigDecimal(4)).contains(format.getAsBigDecimal().stripTrailingZeros()))
             throw new IllegalArgumentException("Unsupported checkpoint archive format");
         int version = format.getAsInt();
+        fields(object, version == 4 ? Set.of("format", "dimensions", "resource_directory") : Set.of("format", "dimensions"));
         var entries = new ArrayList<Entry>();
         for (var value : object.getAsJsonArray("dimensions")) {
             var row = value.getAsJsonObject(); var expected = new HashSet<>(Set.of("program", "dimension", "game_time", "effects", "equipment_owners"));
@@ -58,7 +79,7 @@ public record CheckpointArchive(List<Entry> dimensions) {
             entries.add(new Entry(string(row.get("program")), string(row.get("dimension")), Long.parseLong(string(row.get("game_time"))),
                     EffectCheckpointCodec.decode(row.get("effects")), owners, actors, abilities));
         }
-        return new CheckpointArchive(entries);
+        return new CheckpointArchive(entries, version == 4 ? Optional.of(ResourceAuthorityCodec.decode(object.get("resource_directory"))) : Optional.empty());
     }
     static void fields(JsonObject object, Set<String> expected) {
         if (!object.keySet().equals(expected)) throw new IllegalArgumentException("Unexpected checkpoint archive fields");

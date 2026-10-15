@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：资源目录与领域的联合检查点
+
+ResourceSessionAuthority.checkpoint 在同一非重入宿主边界捕获所有已结算会话，核对前后完整时间线身份后才发布目录。Checkpoint 将目录与各领域完整 EffectSession.Checkpoint 一起固定，校验归属领域存在、完整规则目录一致、账户表 / 时钟匹配及无外域副本；包含无受管账户的领域并保留各自编译模式。捕获不推进时间或排空 inbox，活动回调、待处理事实和未知结果继续拒绝保存。restore 要求精确的领域集合 / 程序 / 模式与显式时钟、预算、世界执行器，创建新会话后共同绑定协调器，不重放旧动作。
+
+CheckpointArchive.coordinated 要求宿主元数据对应捕获的全部领域及原 effects，联合 archive format 4 新增必填资源目录。既有本地 format 1–3 可读，本地仍写 format 3；协调会话不能省略目录。WorldCheckpointStore.beginCoordinated 显式启用联合恢复，prepare / 真实 flush 确认 / commit 协议保持。默认 begin 发现联合 archive 时在改写文件前拒绝，避免原生本地宿主仅提取维度而丢弃目录。720 项领域存储形状与 EffectCheckpoint / 目录独立编码格式保持。
+
+新增 13 项 ResourceCheckpointTest，覆盖多域独立时钟 / 序号、迁移后余额与原签发退款额度、混合模式 / 空分区 / 未登记账户、缺失或多余领域 / 同版本不同程序 / 错模式、目录与余额 / 时钟 / 程序错配及副本、待处理 inbox 不被结算、活动回调 / 未知结果拒绝、跨线程和捕获期间会话变更、元数据绑定 / 格式兼容、两轮磁盘保存恢复、缺少确认与本地宿主拒绝时保留原文件，以及将有效旧目录拼接到迁移后状态的拒绝。已有 CoordinatedClockTest 持续恢复场景改走联合 archive 编解码及统一恢复入口，仍验证之前的治疗不重放。定向回归 `/tmp/chorus-resource-checkpoint-core2.log` 通过。
+
+完整回归 `/tmp/chorus-resource-checkpoint-full-gate.log` BUILD SUCCESSFUL（4 分 58 秒）：2420 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点通过。`build/reports/resource-checkpoint/audit.json` 核验原 720 项存储形状保持、发布主类 1313 / 1306 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+默认 Minecraft 宿主尚未切换到协调资源运行，玩家输入 / 物理回调 / 传送与原生保存边界仍需接入。本轮核心存储测试不代表物理世界已完成联合重启验收；没有新增图形客户端或原作数值校准。Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[资源联合检查点](engine-data-packs.md#资源目录与领域的联合检查点)。
+
 ### 2026-10-15：分段回充与连续恢复的协调时钟
 
 ResourceSessionAuthority 为协调会话绑定唯一 ClockOperation 捕获入口；EffectSession 在自身 inbox 结算后、每次时间片推进前读取一致的资源世界快照。CompiledEffects.continuousClock 一次解析本地回充率、健康恢复及其 Profile、护盾恢复条件 / 最大值 / 速率，冻结结果只用于原时间片，不推进外部账户或执行接收 inbox。对应纯查询提供显式视图入口并拒绝协调模式的旧本地重载。

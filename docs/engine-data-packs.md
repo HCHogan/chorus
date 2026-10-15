@@ -936,6 +936,20 @@ transfer 只生成计划，不修改输入。源分区必须已经结算并发�
 
 `ResourceAuthorityCodec` 的独立 format 1 保存 Directory，generation / revision / 时间使用十进制字符串，程序与账户复用已注册的存储编码。重复 holder / 账户 / generation、未知字段、非法数字、分区键或时钟错配拒绝。它不单独证明所属领域的余额和退款账本已经落盘；恢复后仍须以 Worlds 核对所有领域。
 
+### 资源目录与领域的联合检查点
+
+`host.checkpoint()` 捕获 `ResourceSessionAuthority.Checkpoint(directory, domains)`，包含该协调器绑定的全部领域，包括没有受管账户的领域。宿主先完成自己的时间推进并结算 inbox；捕获本身不执行规则、不推进时钟、不排空接收事实。运行中、未结算或结果未知的会话拒绝保存。捕获前后核对每个完整时间线的身份，全部检查通过后才发布本次目录 revision。
+
+检查点将当前已结算状态中的账户表与归属目录一起固定：每个分区必须对应存在的领域、完整 EffectProgram、相同逻辑时间与全部余额 / 容量；其他领域不能保存该受管持有者的副本。源领域的延迟工作、退款账本和事件 / 帧序号仍保存在源领域，未登记的本地账户不因保存自动被 claim。不同领域可保留独立时钟，本地 / 协调编译模式按各会话原样保存。
+
+`CheckpointArchive.coordinated(entries, checkpoint)` 将原生维度名、目录 ID、游戏 tick 和设备 / 角色 / 技能所有者等宿主元数据附到捕获结果。entries 必须恰好包含捕获的全部领域与相同 EffectSession.Checkpoint，不能重新读取另一时刻的效果状态或遗漏空领域。联合 archive 使用 format 4，增加必填的 `resource_directory`，每个领域的 effects 仍只保存一份；目录独立编码仍为 format 1。既有本地 archive format 1–3 继续可读，本地保存仍写 format 3；协调会话不能装进缺少目录的旧格式，空目录也需要显式保存。
+
+恢复时使用 `ResourceSessionAuthority.restore(checkpoint, policies)`，为每个领域明确提供 RestoreBinding：完全匹配的编译目录 / 模式、纯时钟政策、解释器预算和真实世界执行器。领域集合必须完全一致。它创建新的 EffectSession，再统一核对并绑定资源目录，返回 authority 与 bindings；不复用旧协调会话、不执行或重放世界动作、不补能或按墙钟计算离线收益。物理世界、玩家文件和投射物的恢复由宿主负责，不能仅凭这份数据声称已完成世界对账。
+
+`WorldCheckpointStore.beginCoordinated()` 显式接收联合 archive；现有 prepare → 各项真实 flush 确认 → commit 协议保持不变。默认 `begin()` 仅供本地宿主使用，发现联合 archive 时在改写文件或返回可恢复状态前拒绝；原文件保留。成功开启恢复仍会先把旧 COMMITTED 标记改为 RUNNING，之后崩溃不能再次自动重放该检查点。归属、余额或时钟不匹配的目录 / 账户拼接会被联合校验拒绝。未完成保存也不会因目录已写入而变成可恢复状态。
+
+当前已完成核心会话的联合捕获 / 恢复和单文件存储接入。默认 Minecraft 宿主仍使用本地入口，尚未启用协调资源运行、原生迁移或联合 archive 的自动恢复；启用时须接通物理回调、玩家输入 / 传送及原生保存边界，再显式选择协调入口。
+
 ### 把协调结果发布到运行会话
 
 `ResourceSessionAuthority` 将纯协调器绑定到实际 `EffectSession`，让归属目录与双方会话在同一线程中共同更新。每个 domain 只能绑定一个独立会话，编译程序必须与会话固定的完整程序相同。构造时严格核对传入 Directory 与全部会话；恢复时不能通过重新发布余额来掩盖存档错配。

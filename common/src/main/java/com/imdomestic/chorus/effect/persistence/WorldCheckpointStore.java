@@ -52,10 +52,19 @@ public final class WorldCheckpointStore {
     }
     /** Must run under the existing world/process lock, before any live world work or entity loading. */
     public synchronized Session begin() throws IOException {
+        return begin(false);
+    }
+    /** Opt in only when the host restores the directory and every domain together, before accepting live work. */
+    public synchronized Session beginCoordinated() throws IOException {
+        return begin(true);
+    }
+    private Session begin(boolean coordinated) throws IOException {
         var previous = read();
         if (previous.filter(value -> value.phase() != Phase.COMMITTED).isPresent())
             throw new IllegalStateException("World checkpoint has no completed save; retained data requires explicit recovery");
         var run = UUID.randomUUID(); var recovered = previous.flatMap(Disk::archive);
+        if (!coordinated && recovered.flatMap(CheckpointArchive::resourceDirectory).isPresent())
+            throw new IllegalStateException("Resource checkpoint requires coordinated host restoration");
         // Invalidation precedes returning recoverable state. A crash after this point cannot replay the old archive.
         AtomicJsonFile.write(file, new Disk(run, Phase.RUNNING, Optional.empty(), recovered, Set.of(), Set.of(), Optional.empty()).encode());
         return new Session(run, recovered);
