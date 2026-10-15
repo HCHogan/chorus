@@ -72,7 +72,8 @@ public final class ResourceSessionAuthority {
     private record ClockCaller(String domain, EffectSession.ClockOperation operation) implements Caller {
         public TimelineEngine.State<EffectState> state(EffectSession session) { return session.clockState(operation); }
     }
-    private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {}
+    private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines,
+            Optional<Caller> caller, Map<String, Binding> bindings) {}
     /** Prepared handoff is tied to this host and every participating timeline; callers cannot construct its writes. */
     public static final class Handoff {
         private final ResourceSessionAuthority host;
@@ -87,7 +88,7 @@ public final class ResourceSessionAuthority {
         public ResourceAuthority.Transfer transfer() { return transfer; }
     }
     private final Thread ownerThread = Thread.currentThread();
-    private final Map<String, Binding> bindings;
+    private Map<String, Binding> bindings;
     private ResourceAuthority.Directory directory;
     private boolean working;
     private boolean draining;
@@ -106,6 +107,49 @@ public final class ResourceSessionAuthority {
         this.bindings.values().stream().filter(binding -> binding.program().resourceRouting()).forEach(binding -> binding.session().requireClockUnbound());
         this.bindings.forEach((domain, binding) -> {
             if (binding.program().resourceRouting()) binding.session().bindClockCapture(operation -> clockView(domain, operation));
+        });
+    }
+    /** Add late-created domains at one settled boundary. Existing sessions keep their original clock binding. */
+    public void enlist(Map<String, Binding> additions) {
+        boundary(() -> {
+            var added = new TreeMap<>(additions);
+            if (added.isEmpty()) return null;
+            var participants = new TreeMap<>(bindings);
+            var sessions = Collections.newSetFromMap(new IdentityHashMap<EffectSession, Boolean>());
+            bindings.values().forEach(binding -> sessions.add(binding.session()));
+            for (var entry : added.entrySet()) {
+                new ResourceAuthority.Lease(entry.getKey(), 1);
+                var binding = Objects.requireNonNull(entry.getValue());
+                if (participants.putIfAbsent(entry.getKey(), binding) != null)
+                    throw new IllegalArgumentException("Resource domain is already enlisted: " + entry.getKey());
+                if (!sessions.add(binding.session())) throw new IllegalArgumentException("Session bound to more than one resource domain");
+            }
+            Map<String, Binding> nextBindings = Collections.unmodifiableMap(participants);
+            var timelines = new TreeMap<String, TimelineEngine.State<EffectState>>();
+            nextBindings.forEach((domain, binding) -> timelines.put(domain, binding.session().state()));
+            var states = new TreeMap<String, EffectState>();
+            for (var entry : nextBindings.entrySet()) {
+                var binding = entry.getValue(); var checkpoint = binding.session().checkpoint();
+                if (binding.program().resourceRouting() != checkpoint.resourceRouting() || !binding.program().program().equals(checkpoint.program()))
+                    throw new IllegalArgumentException("Enlisted catalogue or mode differs from its session: " + entry.getKey());
+                states.put(entry.getKey(), checkpoint.timeline().domain());
+            }
+            // Prepare lazy account publications without changing the old directory on any failed enlistment.
+            var next = directory;
+            for (var partition : directory.holders().values()) {
+                if (!partition.program().equals(nextBindings.get(partition.lease().domain()).program().program()))
+                    throw new IllegalArgumentException("Resource owner catalogue differs from its live session");
+                next = ResourceAuthority.publish(next, partition, states.get(partition.lease().domain()));
+            }
+            new ResourceAuthority.Worlds(next, states); // Includes managed-account replica and owner-clock checks.
+            unchanged(nextBindings, timelines, Optional.empty());
+            added.values().stream().filter(binding -> binding.program().resourceRouting()).forEach(binding -> binding.session().requireClockUnbound());
+            // Everything that can query user policies has finished; clock binding and publication invoke no callbacks.
+            added.forEach((domain, binding) -> {
+                if (binding.program().resourceRouting()) binding.session().bindClockCapture(operation -> clockView(domain, operation));
+            });
+            bindings = nextBindings; directory = next;
+            return null;
         });
     }
     private <T> T boundary(Supplier<T> action) {
@@ -139,19 +183,22 @@ public final class ResourceSessionAuthority {
             if (!partition.program().equals(binding(domain).program().program())) throw new IllegalArgumentException("Resource owner catalogue differs from its live session");
             if (publish) next = ResourceAuthority.publish(next, partition, states.get(domain));
         }
-        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller);
+        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller, bindings);
         unchanged(timelines, caller); directory = next; return result;
     }
     private void unchanged(Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {
+        unchanged(bindings, timelines, caller);
+    }
+    private static void unchanged(Map<String, Binding> participants, Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {
         timelines.forEach((domain, expected) -> {
-            var session = binding(domain).session();
+            var session = participants.get(domain).session();
             var current = caller.filter(value -> value.domain().equals(domain));
             var actual = current.isPresent() ? current.orElseThrow().state(session) : session.state();
             if (current.isEmpty() && session.running() || actual != expected) throw new IllegalStateException("Live resource domain changed during publication");
         });
     }
     private void current(Snapshot expected) {
-        if (directory != expected.worlds().directory()) throw new IllegalStateException("Resource authority changed since preparation");
+        if (bindings != expected.bindings() || directory != expected.worlds().directory()) throw new IllegalStateException("Resource authority changed since preparation");
         unchanged(expected.timelines(), expected.caller());
     }
     private List<EffectSession.DomainUpdate> prepare(Snapshot before, ResourceAuthority.Worlds after) {

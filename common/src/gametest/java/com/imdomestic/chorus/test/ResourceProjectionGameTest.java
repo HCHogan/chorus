@@ -77,9 +77,10 @@ public class ResourceProjectionGameTest {
             helper=h;this.actor=actor;actor.getAttribute(Attributes.MAX_HEALTH).setBaseValue(20);actor.setHealth(2);
             var local=EffectState.empty().withSource(source("query",actor)).withResource(new ResourceState(key(),.25,1,0));
             var remote=EffectState.empty().withSource(source("remote",actor));
-            Map.of(A,local,B,remote).forEach((domain,state)->sessions.put(domain,new EffectSession(program,clock(),1,state,r->world(domain,r))));
-            var bindings=new TreeMap<String,ResourceSessionAuthority.Binding>();sessions.forEach((domain,s)->bindings.put(domain,new ResourceSessionAuthority.Binding(program,s)));
-            host=new ResourceSessionAuthority(ResourceAuthority.Directory.EMPTY,bindings);host.claim(actor.getUUID().toString(),A);host.commit(host.prepareTransfer(actor.getUUID().toString(),B));
+            sessions.put(A,new EffectSession(program,clock(),1,local,r->world(A,r)));
+            host=new ResourceSessionAuthority(ResourceAuthority.Directory.EMPTY,Map.of(A,new ResourceSessionAuthority.Binding(program,sessions.get(A))));host.claim(actor.getUUID().toString(),A);
+            sessions.put(B,new EffectSession(program,clock(),1,remote,r->world(B,r)));
+            host.enlist(Map.of(B,new ResourceSessionAuthority.Binding(program,sessions.get(B))));host.commit(host.prepareTransfer(actor.getUUID().toString(),B));
             attributes=new MinecraftAttributeProjection(h.getLevel(),program);movement=new MinecraftMovementProjection(h.getLevel(),program);speed=new MinecraftHorizontalSpeedProjection(h.getLevel(),program);
         }
         ResourceState.Key key() { return new ResourceState.Key(actor.getUUID().toString(),"test:energy"); }
