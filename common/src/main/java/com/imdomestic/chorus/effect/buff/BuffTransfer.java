@@ -3,7 +3,6 @@ package com.imdomestic.chorus.effect.buff;
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.effect.resource.ResourceAuthority;
-import com.imdomestic.chorus.effect.resource.RetainedCosts;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
@@ -61,12 +60,7 @@ public final class BuffTransfer {
                 if(!(pending.scope() instanceof BuffRules.Scope scope)||!scope.identity().equals(timer.lifetime().orElseThrow()))
                     throw new IllegalArgumentException("Moved continuation is not bound to its buff lifetime");
                 var owner=new EffectTimers.Owner(Optional.empty(),Optional.of(identity));
-                var bindings=new TreeMap<>(pending.bindings());
-                if(!targetProgram.resourceRouting()&&bindings.values().stream().anyMatch(RetainedCosts.Handle.class::isInstance))
-                    throw new IllegalArgumentException("Moving retained refunds requires coordinated resource routing at the destination");
-                bindings.replaceAll((_,value)->value instanceof RetainedCosts.Handle handle&&handle.issuer().isEmpty()
-                        ?handle.issuedBy(sourceDomain.orElseThrow(()->new IllegalArgumentException("Moving an unqualified refund handle requires its source domain"))):value);
-                signal=new RuleEngine.Signal(signal.type(),new EffectContinuations.Pending(id,pending.definition(),pending.version(),scope.relocated(identity),pending.cause(),bindings,Optional.of(owner),OptionalLong.of(target.buffs().timeMicros())));
+                signal=new RuleEngine.Signal(signal.type(),pending.relocated(id,scope.relocated(identity),owner,target.buffs().timeMicros(),sourceDomain,targetProgram.resourceRouting()));
             }
             var moved=new EffectState.Timer(id,timer.pausedRemaining().isPresent()?Long.MAX_VALUE:deadline(timer.dueAt(),source.buffs().timeMicros(),target.buffs().timeMicros()),
                     timer.intervalMicros(),timer.remaining(),signal,Optional.of(identity),timer.pausedRemaining());

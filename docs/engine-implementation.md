@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：角色配置、携带弹药与武器阶段的联合迁移
+
+新增纯 CharacterTransfer 和 ResourceSessionAuthority.prepareCharacterTransfer / commit。装备、基础技能、角色配置、全部该持有者常驻来源、可信携带集合内弹药 / 最近射击、换弹 / 切枪 / 瞄准 / 蓄力与资源 / Buff 共用一个发布边界。来源自有计时器按剩余时间移动，detached 及世界内攻击账本留在原域；不重新附着或支付。目标同身份冲突、未结算阶段、遗漏已装备实例及过期准备拒绝整批发布。
+
+审查发现跨域移动 after 时，原领域的伤害统计 / 分组 / 射击组 / 附着活动句柄可能读取目标的同名账本。Pending.relocated 已统一拒绝尚未支持签发域路由的四种直接句柄；只读历史快照和现有退款 issuer 路由保留。五项 ContinuationTransferBoundaryTest 验证相同操作 ID、相同时钟但不同账本数值下的拒绝，两条入口的共享预检、准备不部分发布、原延迟仍能正常关闭，以及 detached 工作不随角色移动。后续仍须实现这些活动句柄的跨域操作，拒绝不计作完整支持。
+
+八项 CharacterTransferTest 覆盖选择 / 来源 / Buff / 资源 / 弹药的共同迁移、历史退款、联合存储往返、阶段剩余时间、连续蓄力冷却、往返迁移及未知物理选择结果。三项 CharacterTransferGameTest 使用实际 ServerPlayer 传送、原生持久化容器、正式世界治疗执行器，覆盖来源延迟 / 周期工作、剩余换弹 / 有限弹药守恒，以及治疗后回执未知时保留生命、退款及签发账本，不自动重试。定向 `/tmp/chorus-character-transfer-world1.log` 三场景与 NeoForge 测试编译通过；`/tmp/chorus-weapon-phase-clock-gate.log` 中新增五项句柄边界测试通过。
+
+武器时钟 / 存档部分已独立提交 0b79c489。本次组合完整回归 `/tmp/chorus-character-transfer-full-gate.log` BUILD SUCCESSFUL（4 分 7 秒）：2492 项 JUnit 无失败 / 错误 / 跳过、Fabric 1359 项、NeoForge 1374 项，双端发布包和两次正常停服检查点通过；共享场景 1358 项。`build/reports/character-transfer/audit.json` 核验 f7975d4f 的全部 725 个旧存储形状保持、五项新增（合计 730）、发布主类 1339 / 1332 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源。10 项 Compendium 工具测试、来源和生成报告检查通过。新恢复证据来自联合核心编码与真实传送 / 换弹 / 治疗场景，此批不增加独立进程重启或自动原生迁移验收。
+
+此批提供显式核心协调交接；自动原生传送、容器核对责任、当前实体绑定和输入许可接入仍待完成。充能计划的历史 holderReference 保留原维度，直接套入原生校验不会延续充能，须在真实传送协议中另设 live binding。没有新增原作数值校准，Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[角色状态的联合交接](engine-data-packs.md#角色状态的联合交接)。
+
 ### 2026-10-15：武器阶段的跨领域时钟与旧存档兼容
 
 五类武器阶段 / 射击记录新增 clockOffset，运行判定、计时器和网络投影使用当前领域坐标，历史接受时间、换弹 completionId、数值计算和弹药支付回执保持。已完成瞄准 / 就绪蓄力允许负的本地时间，连续蓄力恢复连同嵌套射击一起移动。新增五个精确旧布局迁移与五个新存储身份，原 725 项形状保持，总数为 730；顶层检查点与网络线格式不变。

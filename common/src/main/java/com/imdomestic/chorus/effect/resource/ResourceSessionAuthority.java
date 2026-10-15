@@ -4,6 +4,7 @@ import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.buff.BuffTransfer;
+import com.imdomestic.chorus.effect.CharacterTransfer;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.rule.RuleEngine;
@@ -101,6 +102,13 @@ public final class ResourceSessionAuthority {
             this.host=host;this.before=before;this.after=after;this.updates=updates;this.buffs=buffs;this.holder=holder;
         }
         public BuffTransfer.Plan buffs() { return buffs; }
+    }
+    public static final class CharacterHandoff {
+        private final BuffHandoff publication;
+        private final CharacterTransfer.Plan character;
+        private CharacterHandoff(BuffHandoff publication,CharacterTransfer.Plan character){this.publication=publication;this.character=character;}
+        public BuffTransfer.Plan buffs(){return publication.buffs();}
+        public CharacterTransfer.Plan character(){return character;}
     }
     private final Thread ownerThread = Thread.currentThread();
     private Map<String, Binding> bindings;
@@ -333,7 +341,9 @@ public final class ResourceSessionAuthority {
     }
     /** The physical/buff source may differ from the current resource owner; even an empty resource partition follows. */
     public BuffHandoff prepareTransferWithBuffs(String holder,String source,String destination) {
-        return boundary(() -> {
+        return boundary(() -> prepareBuffHandoff(holder,source,destination));
+    }
+    private BuffHandoff prepareBuffHandoff(String holder,String source,String destination) {
             settled();if(source.equals(destination))throw new IllegalArgumentException("Buff transfer needs another domain");
             var from=binding(source).program();var to=binding(destination).program();
             var before=capture(true);var worlds=before.worlds();var owner=worlds.directory().owner(holder);
@@ -345,8 +355,18 @@ public final class ResourceSessionAuthority {
             var domains=new TreeMap<>(worlds.domains());domains.put(source,buffs.departure());domains.put(destination,buffs.arrival());
             var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
             return new BuffHandoff(this,before,after,prepare(before,after),buffs,holder);
+    }
+    /** Includes the host's carried item identities; does not execute native transport or move world-bound effects. */
+    public CharacterHandoff prepareCharacterTransfer(String holder,String source,String destination,Set<String> carriedGear) {
+        return boundary(()->{
+            var buffs=prepareBuffHandoff(holder,source,destination);var worlds=buffs.after;
+            var character=CharacterTransfer.prepare(holder,carriedGear,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
+            var domains=new TreeMap<>(worlds.domains());domains.put(source,character.departure());domains.put(destination,character.arrival());
+            var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
+            return new CharacterHandoff(new BuffHandoff(this,buffs.before,after,prepare(buffs.before,after),buffs.buffs,holder),character);
         });
     }
+    public ResourceAuthority.Lease commit(CharacterHandoff handoff){return commit(Objects.requireNonNull(handoff).publication);}
     public ResourceAuthority.Lease commit(BuffHandoff handoff) {
         return boundary(() -> {
             Objects.requireNonNull(handoff);if(handoff.host!=this)throw new IllegalArgumentException("Buff handoff belongs to another host");

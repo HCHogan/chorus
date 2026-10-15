@@ -206,6 +206,7 @@
       "com.imdomestic.chorus.ResourceSaveGameTest",
       "com.imdomestic.chorus.ResourceEnrollmentGameTest",
       "com.imdomestic.chorus.BuffTransferGameTest",
+      "com.imdomestic.chorus.CharacterTransferGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",

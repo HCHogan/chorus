@@ -1000,6 +1000,25 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
+直接捕获的 `DamageTallies.Handle`、`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 目前只有领域内身份，相关账本仍在原领域。因此 Buff 或来源自有工作携带这些活动句柄时，统一在 `Pending.relocated` 拒绝准备；不能把同名句柄交给目标领域，也不能静默删除绑定。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。后续须为这些活动句柄增加签发领域身份及原领域操作协议，才能支持其跨领域继续执行；当前拒绝不计作这种效果已完整支持。
+
+### 角色状态的联合交接
+
+```java
+// 从可信的实际装备 / 携带容器枚举，包含未装备但携带的武器实例。
+var handoff = host.prepareCharacterTransfer(holder, sourceDomain, destinationDomain, carriedGear);
+// 原生宿主核验传送与容器交接后，在同一个完整协议内发布。
+host.commit(handoff);
+```
+
+准备阶段组合资源 / Buff 交接和纯 `CharacterTransfer.prepare`，最终以同一旧快照一次发布所有相关会话。除资源和 Buff 外，还移动该持有者的装备 Loadout、基础技能选择、角色配置、常驻来源、所列武器的弹药 / 最近射击，以及换弹、切枪、瞄准、蓄力计划。它移动已提交状态，不重放 source_attached、初始化弹药、付款或配置反应。底层 Plan 提供 departure / arrival、timerIds 和精确旧快照核验；调用者不能只应用其中一边。
+
+`carriedGear` 是宿主提供的真实携带实例集合，必须包含全部已装备实例；未列出的旧弹药账户留在源领域，不按历史 Shot.holder 猜测物品归属。实例若同时由另一持有者或目标领域装备，或目标已经存在待移入的配置、来源、弹药、射击、阶段、计时器身份，整批拒绝。来源 / 目标须使用相同固定目录并处于已结算边界；过期计划、未完成的换弹插入或收枪提交、已到期而未结算的计时器和时间溢出均拒绝。
+
+武器阶段按[当前领域时钟](#武器阶段的跨领域时钟)保留进度。来源自有的命名计时器和 after 工作随精确匹配的常驻来源移动，保持剩余时间、周期、次数和原历史事件；after 在目标分配无冲突 ID。已完成的 AIMED / READY 状态无需计时器。detached 工作、其他持有者、已发射攻击的分组 / 统计账本、附着实例和保留退款账本留在原领域。两条迁移入口共用上述捕获句柄预检，prepare 失败不发布已经算出的资源 / Buff 候选变化。
+
+当前真实世界测试通过显式核心协调器、实际 ServerPlayer 传送、原生 PlayerEquipment / PlayerAbilities / PlayerActor 容器和正式治疗执行器，验证容器不变、剩余换弹、来源延迟 / 周期工作、联合编码恢复及未知回执后的实际写入保留。自动 MinecraftEffectRuntime 传送钩子、物理对象核对责任和临时输入许可交接仍待接线。尤其 WeaponCharge 的历史 holderReference 不改写维度，原生校验仍要求当前维度匹配；完整接入须另设当前实体绑定并重新核验同一生命及长按许可，不能把历史观察直接改成新世界引用。此入口也不迁移已经发射的投射物、场地实体或附着物。
+
 ### 后续登记新的资源领域
 
 维度或其他规则领域可以晚于协调器创建。宿主在原协调器上调用 `host.enlist(Map.of(domain, new Binding(program, session)))`，也可以一次登记多个领域；无需重建协调器或重新绑定旧会话的连续时钟。空 additions 是无副作用操作。已有 domain 不可覆盖，即使传入同一会话也拒绝；同一会话不能在这一协调器内有两个领域名，新增协调会话必须尚未绑定时钟捕获。

@@ -31,8 +31,8 @@ public final class EffectContinuations {
             Objects.requireNonNull(scope); Objects.requireNonNull(cause); bindings = Map.copyOf(bindings); Objects.requireNonNull(owner);
             Objects.requireNonNull(relocatedAt);
             if (relocatedAt.isPresent() && (relocatedAt.getAsLong() < 0 || relocatedAt.getAsLong() == Long.MAX_VALUE
-                    || owner.flatMap(EffectTimers.Owner::buff).isEmpty() || !(scope instanceof BuffRules.Scope buff) || buff.binding().isEmpty()))
-                throw new IllegalArgumentException("Relocated continuation needs a live buff binding and finite local clock");
+                    || owner.isEmpty() || !(scope instanceof EffectSource || scope instanceof BuffRules.Scope buff && buff.binding().isPresent())))
+                throw new IllegalArgumentException("Relocated continuation needs a live source binding and finite local clock");
             if (id.isBlank() || definition.isBlank() || version.isBlank() || !(scope instanceof EffectSource || scope instanceof BuffRules.Scope || scope instanceof com.imdomestic.chorus.effect.ability.AbilityUse.Scope || scope instanceof com.imdomestic.chorus.effect.weapon.WeaponFire.Scope)) {
                 throw new IllegalArgumentException("Invalid continuation identity or source");
             }
@@ -50,6 +50,24 @@ public final class EffectContinuations {
         }
         /** Local causal boundary; the historical event may belong to a different domain's clock. */
         public long causalTime() { return relocatedAt.orElse(cause.timeMicros()); }
+        public Pending relocated(String id,RuleEngine.Payload scope,EffectTimers.Owner owner,long now,Optional<String> sourceDomain,boolean resourceRouting) {
+            var captured=new TreeMap<>(bindings);
+            captured.forEach((name,value)->{
+                // These bindings address mutable entries which remain in the issuing domain.
+                // Unlike retained refunds they have no issuer-qualified routing protocol yet.
+                // Historical results may contain a handle as evidence, but do not confer this live authority.
+                if(value instanceof com.imdomestic.chorus.effect.combat.DamageTallies.Handle
+                        || value instanceof com.imdomestic.chorus.effect.combat.DamageGroups.Handle
+                        || value instanceof com.imdomestic.chorus.effect.projectile.ShotGroups.Handle
+                        || value instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Handle)
+                    throw new IllegalArgumentException("Moving captured domain-local handle requires issuer routing: "+name+" ("+value.getClass().getName()+")");
+            });
+            if(!resourceRouting&&captured.values().stream().anyMatch(com.imdomestic.chorus.effect.resource.RetainedCosts.Handle.class::isInstance))
+                throw new IllegalArgumentException("Moving retained refunds requires coordinated resource routing at the destination");
+            captured.replaceAll((_,value)->value instanceof com.imdomestic.chorus.effect.resource.RetainedCosts.Handle handle&&handle.issuer().isEmpty()
+                    ?handle.issuedBy(sourceDomain.orElseThrow(()->new IllegalArgumentException("Moving an unqualified refund handle requires its source domain"))):value);
+            return new Pending(id,definition,version,scope,cause,captured,Optional.of(owner),OptionalLong.of(now));
+        }
         public boolean active(EffectState state) { return owner.map(value -> value.active(state.sources(), state.buffs())).orElse(true); }
     }
     public static RuleEngine.Context context(RuleEngine.Context context) {
