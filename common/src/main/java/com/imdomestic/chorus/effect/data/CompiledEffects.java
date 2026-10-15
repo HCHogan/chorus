@@ -1093,13 +1093,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                 (e, context) -> action.execute(e.state(), context, new WeaponQueries(this, e.state(), e.resourceView())));
     }
     /** The raw context retains compiler-private bindings; Evaluation exposes only lexical DSL names. */
-    private interface EvaluatedAction {
+    interface EvaluatedAction {
         RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context context);
         default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context context, RuleEngine.ActionResult actual) {
             return new RuleEngine.Local<>(evaluation.state(), actual, List.of());
         }
     }
-    private RuleEngine.Action<EffectState> evaluated(String site, Map<String, ResultShape> results, Map<String, String> slots, EvaluatedAction action) {
+    RuleEngine.Action<EffectState> evaluated(String site, Map<String, ResultShape> results, Map<String, String> slots, EvaluatedAction action) {
         if (resourceRouting) return new CoordinatedAction(site, results, slots, action);
         return new RuleEngine.Action<>() {
             @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {

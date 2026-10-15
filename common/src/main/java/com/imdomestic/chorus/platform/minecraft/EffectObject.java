@@ -60,7 +60,7 @@ public final class EffectObject extends Entity implements ItemSupplier {
         else if (collector == null) outcome = PickupCollection.ClaimOutcome.MISSING_COLLECTOR;
         else if (position().distanceTo(collector.position()) > query.radius()) outcome = PickupCollection.ClaimOutcome.OUT_OF_RANGE;
         else if (query.lineOfSight() && !MinecraftVisibility.visible(server, point(position()), point(collector.position()))) outcome = PickupCollection.ClaimOutcome.OCCLUDED;
-        else if (!runtime.program().canCollectPickup(runtime.state().engine().domain(), pickup)) outcome = PickupCollection.ClaimOutcome.INELIGIBLE;
+        else if (!runtime.canCollectPickup(pickup)) outcome = PickupCollection.ClaimOutcome.INELIGIBLE;
         if (outcome != PickupCollection.ClaimOutcome.COLLECTED) return new PickupCollection.Claimed(claim, outcome, Optional.empty());
         var contact = new WorldPickup.Contact(WorldPickup.End.COLLECTED, point(position()), Optional.of(query.collector()), age);
         var result = new PickupCollection.Claimed(claim, outcome, Optional.of(contact));
@@ -86,7 +86,7 @@ public final class EffectObject extends Entity implements ItemSupplier {
             var attraction = pickup.parameters().attraction().orElse(null);
             if (attraction == null || attraction.speed() == 0) return;
             var query = new EffectEvent(pickup.recipient(), pickup.recipient(), pickup.origin(), Set.of(pickup.kind()), Map.of());
-            var calculated = runtime.program().calculate(runtime.state().engine().domain(), pickup.recipient(), query, attraction.profile(), new Measure(attraction.radius(), Unit.METER), List.of()).output();
+            var calculated = runtime.calculate(pickup.recipient(), query, attraction.profile(), new Measure(attraction.radius(), Unit.METER)).output();
             if (!calculated.unit().equals(Unit.METER)) throw new IllegalArgumentException("Pickup attraction profile must return meters");
             double radius = Numbers.nonnegative(calculated.value(), "collector attraction radius");
             if (distance > radius || distance == 0) return;
@@ -102,7 +102,7 @@ public final class EffectObject extends Entity implements ItemSupplier {
     }
     private boolean canCollect(ServerLevel server, Vec3 center, double distance) {
         return distance <= pickup.parameters().radius() && MinecraftVisibility.visible(server, point(position()), point(center))
-                && runtime.program().canCollectPickup(runtime.state().engine().domain(), pickup);
+                && runtime.canCollectPickup(pickup);
     }
     private void finish(WorldPickup.End end, Optional<String> collector, long age) {
         var signal = pickup.finish(new WorldPickup.Contact(end, point(position()), collector, age));

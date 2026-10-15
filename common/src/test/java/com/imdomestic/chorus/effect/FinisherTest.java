@@ -7,11 +7,32 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.effect.data.*;
 import com.imdomestic.chorus.effect.finisher.Finisher;
 import com.imdomestic.chorus.effect.persistence.EffectCheckpointCodec;
+import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class FinisherTest {
+    @Test void coordinatedContinuationFinishesAfterItsSourceIsRemovedWithoutReplayingStrike() throws Exception {
+        var p=link("finisher").withResourceRouting();var sessions=new TreeMap<String,EffectSession>();
+        var authority=new ResourceSessionAuthority[1];var hits=new ArrayList<DamageCommand>();var cues=new ArrayList<Action.CueCommand>();
+        for(String domain:List.of("test:a","test:b"))sessions.put(domain,new EffectSession(p,EffectCheckpointTest.clock(),1,
+                domain.equals("test:a")?EffectState.empty().withSource(source("a")):EffectState.empty(),request->{
+            if(request.command() instanceof ResourceRequests.Request)return authority[0].execute(domain,request);
+            if(request.command() instanceof Finisher.Check check)return new Finisher.Checked(check,Finisher.Decision.ALLOWED);
+            if(request.command() instanceof DamageCommand hit){hits.add(hit);return new DamageReceipt("strike",DamageReceipt.Outcome.APPLIED,0,0,10,Optional.of("death"),false);}
+            cues.add((Action.CueCommand)request.command());return RuleEngine.Empty.INSTANCE;
+        }));
+        authority[0]=new ResourceSessionAuthority(ResourceAuthority.Directory.EMPTY,Map.of(
+            "test:a",new ResourceSessionAuthority.Binding(p,sessions.get("test:a")),"test:b",new ResourceSessionAuthority.Binding(p,sessions.get("test:b"))));
+        authority[0].claim("a","test:b");var session=sessions.get("test:a");
+        session.start(0,new RuleEngine.Signal("test:begin",new EffectEvent("a","target",source("a").origin(),Set.of(),Map.of())));
+        session.start(100_000,SourceChange.remove("a"));session.observe(300_000,List.of());
+        assertEquals(1,hits.size());assertEquals(source("a").origin(),hits.getFirst().source());
+        assertTrue(session.state().engine().domain().buffs().instances().isEmpty());
+        session.observe(400_000,List.of());assertEquals(1,hits.size());assertTrue(session.state().idle());
+        authority[0].checkpoint();
+    }
     static EffectSource source(String actor) { return new EffectSource(actor, "test:finisher", actor, new BuffInstance.Origin(actor, actor + "/finisher", "", "", Set.of()), Set.of()); }
     static class Harness {
         final CompiledEffects p; EffectSession session;

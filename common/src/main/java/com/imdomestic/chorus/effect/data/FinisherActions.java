@@ -112,12 +112,14 @@ public final class FinisherActions {
                 return new RuleEngine.Local<>(s, r, List.of(new RuleEngine.Signal(Finisher.STRIKE, p)));
             }
         };
-        var strike = new RuleEngine.Action<EffectState>() {
-            @Override public RuleEngine.Outcome<EffectState> step(EffectState s, RuleEngine.Context c) {
+        var strike = program.evaluated("chorus:internal/finisher/strike",Map.of(),Map.of(),new CompiledEffects.EvaluatedAction() {
+            @Override public RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context c) {
+                var s=evaluation.state();
                 var p = plan(c); if (!p.active(s)) return cancel(s, p, "interrupted");
-                return new RuleEngine.Await<>(program.prepareDamage(s, p.damage()));
+                return new RuleEngine.Await<>(program.prepareDamage(s, p.damage(),evaluation.resourceView()));
             }
-            @Override public RuleEngine.Local<EffectState> complete(EffectState s, RuleEngine.Context c, RuleEngine.ActionResult r) {
+            @Override public RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context c, RuleEngine.ActionResult r) {
+                var s=evaluation.state();
                 var p = plan(c); var damage = (DamageReceipt) r;
                 var finished = Action.finishDamage(s, c.command(DamageCommand.class), damage, Map.of("finisher_id", p.id()));
                 var released = release(finished.state(), p); var facts = new ArrayList<>(finished.emitted()); facts.addAll(released.emitted());
@@ -130,7 +132,7 @@ public final class FinisherActions {
                 }
                 return new RuleEngine.Local<>(released.state(), damage, facts);
             }
-        };
+        });
         return List.of(new RuleEngine.EventRule<>(Finisher.PULSE, Finisher.PULSE, (_, _) -> true, List.of(new RuleEngine.Instruction<>(pulse, ""))),
                 new RuleEngine.EventRule<>(Finisher.STRIKE, Finisher.STRIKE, (_, _) -> true, List.of(new RuleEngine.Instruction<>(strike, ""))));
     }

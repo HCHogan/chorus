@@ -64,7 +64,7 @@ public final class WeaponCommands {
                         var runtime = MinecraftEffectRuntime.installed(player.level()).orElseThrow(() -> new IllegalStateException("No active Chorus runtime")); runtime.prepare();
                         var state = runtime.state().engine().domain(); String holder = player.getUUID().toString();
                         var gear = WeaponReload.drawn(state.equipment().getOrDefault(holder, Loadout.EMPTY)).orElseThrow(() -> new IllegalArgumentException("No drawn weapon"));
-                        var ammo = runtime.program().ammoCapacity(state, gear.instance());
+                        var ammo = runtime.ammoCapacity(gear.instance());
                         String message = "Chorus weapon: " + gear.definition() + " magazine=" + ammo.account().magazine() + "/" + ammo.capacity()
                                 + " reserves=" + ammo.account().reserve().map(r -> Integer.toString(r.rounds())).orElse("unlimited") + " reloading=" + state.reloads().containsKey(holder);
                         context.getSource().sendSuccess(() -> Component.literal(message), false); return 1;
