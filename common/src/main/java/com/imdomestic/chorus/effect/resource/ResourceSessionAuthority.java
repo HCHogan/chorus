@@ -277,6 +277,27 @@ public final class ResourceSessionAuthority {
             current(before); directory = checked.directory(); return directory.owner(holder);
         });
     }
+    /** Admit a batch of observed holders without moving existing leases or running recipient inboxes. */
+    public Map<String, ResourceAuthority.Partition> enroll(Map<String, String> holders) {
+        var requested = Collections.unmodifiableMap(new TreeMap<>(holders));
+        return boundary(() -> {
+            requested.values().forEach(this::binding);
+            var before = capture(true); var next = before.worlds().directory();
+            for (var entry : requested.entrySet()) {
+                var program = binding(entry.getValue()).program();
+                var existing = next.holders().get(entry.getKey());
+                if (existing == null)
+                    next = ResourceAuthority.claim(next, entry.getKey(), entry.getValue(), program, before.worlds().domain(entry.getValue()));
+                else if (!existing.program().equals(program.program()))
+                    throw new IllegalArgumentException("Resource enrollment requires the existing pinned catalogue");
+            }
+            var checked = new ResourceAuthority.Worlds(next, before.worlds().domains());
+            current(before); directory = checked.directory();
+            var enrolled = new TreeMap<String, ResourceAuthority.Partition>();
+            requested.keySet().forEach(holder -> enrolled.put(holder, directory.owner(holder)));
+            return Collections.unmodifiableMap(enrolled);
+        });
+    }
     public Handoff prepareTransfer(String holder, String destination) {
         return boundary(() -> {
             settled();
