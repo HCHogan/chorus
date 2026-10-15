@@ -6,6 +6,16 @@
 
 ## 当前证据
 
+### 2026-10-15：伤害组签发账本与显式跨域战斗纯接口
+
+协调 DSL 的 begin_damage_group / end_damage_group 通过四种新请求 / 回执创建和关闭 issuer 账本，与调用域确定回执共同发布。新组立即限定 issuer；默认 prepareDamage 在实际世界调用前拒绝外域组，本地无协调视图也不能使用限定句柄。Pending 的 damage group 迁移继续拒绝，不把账本生命周期路由当作完整跨域成员伤害。
+
+ResourceReadView 新增显式 combatParticipants 模式，按各参与者时钟读取来源、Buff、装备及嵌套数值，组资格按 issuer 查询；跨域贡献与 retained 历史 generation 独立命名。CombatDomains 提供纯预留视图、消费前观察及实际回执结算提案，保留既有观察和 settled 标记，并将 Buff 生命周期事实分域返回。调用方必须先独立确认参与者状态与资源目录同域，且固定生命和位置；资源-only 迁移不足以证明这一点。因此没有自动切换现有原生查询或 ActionRoutes 完成路径，普通本地 Buff 行为继续保留。正式接入仍需独立的角色 / 来源、Buff-holder 位置授权与联合原生边界。
+
+新增 14 项 CombatDomainsTest、11 项 CombatParticipantQueryTest 和 7 项 ResourceGroupRoutingTest，覆盖三域及域重合、同 ID / generation 隔离、旧别名、不同域时钟、共享一次消费、嵌套预留、旧观察、返迁历史资格、跨域关闭 / 到期 / 联合编码恢复、重复活动回执、提交关闭后未知结果，以及仅迁资源后的本地 Buff 消费和 event_has_buff 历史。旧 issuer 别名测试改用明确的协调视图；四种新请求 / 回执往返通过。首轮 2578 项中两处新增测试样例错误已修正：on_use 样例移除不兼容的消耗策略，foreign group preflight 断言精确的参数异常；生产约束未放宽。
+
+完整 `/tmp/chorus-group-foundation-full-gate.log` BUILD SUCCESSFUL（4 分 21 秒）：2578 项 JUnit 无失败 / 错误 / 跳过，Fabric 1378、NeoForge 1393 项世界回归通过，双端发布包与两次正常停服检查点通过。随后纯预留 helper 补上“自身 claim 也拒绝同身份矛盾输入”的检查与断言；该 helper 未安装到原生路径，最终 `/tmp/chorus-group-foundation-final-core.log` 重跑全部 2578 项 JUnit 及双端发布包通过（39 秒）。`build/reports/group-foundation/audit.json` 核验旧 740 项存储形状不变、新总数 744、1392 / 1385 个发布主类字节一致、无测试内容泄漏和 Gradle CRLF。10 项 Compendium 工具测试、来源与报告检查通过；仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。本批没有新增原生跨域消费、独立进程恢复、图形客户端或原作数值校准声明。接口与剩余范围见[伤害组的签发账本与显式参与者查询](engine-data-packs.md#伤害组的签发账本与显式参与者查询)。
+
 ### 2026-10-15：原生迁移后的伤害统计与联合恢复验收
 
 两项 TallyTransferGameTest 使用真实 ServerPlayer.teleport、目的地 DamageCommand 和原生治疗：来源自有 continuation 随玩家移动，目的地实际损失 3 HP 后只写原世界的统计，嵌套延迟动作回原账本关闭并治疗一次。另一项在伤害已记账、收益未执行时编码 / 解码联合 archive，恢复后继续关闭和收益。测试同时核对实际世界伤害命令调用次数始终为 1，防止原版受击冷却掩盖重放；这是同进程恢复，不是独立进程重启验收。跨域 read 数值、同名碰撞与连续三域迁移由下节核心测试覆盖。

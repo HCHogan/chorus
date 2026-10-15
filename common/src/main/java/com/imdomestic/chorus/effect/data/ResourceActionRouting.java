@@ -3,6 +3,7 @@ package com.imdomestic.chorus.effect.data;
 import com.imdomestic.chorus.effect.resource.*;
 import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.effect.combat.DamageTallies;
+import com.imdomestic.chorus.effect.combat.DamageGroups;
 import com.imdomestic.chorus.rule.RuleEngine;
 import com.imdomestic.chorus.stat.*;
 import java.util.*;
@@ -20,7 +21,8 @@ final class ResourceActionRouting {
                 || action instanceof EnergyActions.GrantAbility || action instanceof EnergyActions.ObserveAbility
                 || action instanceof Action.CaptureValue
                 || action instanceof TallyActions.Begin || action instanceof TallyActions.Record
-                || action instanceof TallyActions.Read || action instanceof TallyActions.Close;
+                || action instanceof TallyActions.Read || action instanceof TallyActions.Close
+                || action instanceof GroupActions.Begin || action instanceof GroupActions.End;
     }
     private static double number(Value value, Evaluation e, Unit unit) {
         var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value();
@@ -29,6 +31,18 @@ final class ResourceActionRouting {
         return ResourceRoutes.Plan.write(request, result);
     }
     static ResourceRoutes.Plan prepare(Action action, Evaluation e) {
+        if (action instanceof GroupActions.Begin begin) {
+            var op = e.context().operation(); long now = e.state().buffs().timeMicros();
+            String issuer = e.resourceView().orElseThrow().domain();
+            var handle = new DamageGroups.Handle("damage-group/" + op.frame() + "/" + op.pc() + "/" + op.invocation(),
+                    begin.origin().resolve(e).owner(), now, Math.addExact(now, Action.micros(begin.lifetime(), e))).issuedBy(issuer);
+            return write(new EffectHandleRequests.GroupBegin(issuer, handle), r -> ((EffectHandleRequests.GroupStarted) r).handle());
+        }
+        if (action instanceof GroupActions.End end) {
+            var handle = (DamageGroups.Handle) e.context().bindings().get(end.group());
+            return write(new EffectHandleRequests.GroupClose(handle.issuer().orElse(e.resourceView().orElseThrow().domain()), handle),
+                    _ -> RuleEngine.Empty.INSTANCE);
+        }
         if (action instanceof TallyActions.Begin begin) {
             var op = e.context().operation(); long now = e.state().buffs().timeMicros();
             String issuer = e.resourceView().orElseThrow().domain();

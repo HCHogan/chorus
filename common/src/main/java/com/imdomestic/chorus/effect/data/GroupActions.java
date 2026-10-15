@@ -24,10 +24,19 @@ public final class GroupActions {
     }
     public record End(String group) implements Action {
         @Override public ResultShape validate(Validation v) { v.result(group).requireDamageGroup(); return ResultShape.EMPTY; }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return DamageGroups.close(e.state(), (DamageGroups.Handle) e.context().bindings().get(group)); }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var handle = (DamageGroups.Handle) e.context().bindings().get(group);
+            if (handle.issuer().isPresent()) throw new IllegalArgumentException("Issuer-qualified damage group requires coordinated routing");
+            return DamageGroups.close(e.state(), handle);
+        }
     }
     static void validate(Optional<String> binding, Validation v) { binding.ifPresent(name -> v.result(name).requireDamageGroup()); }
     static DamageCommand resolve(Optional<String> binding, Evaluation e, DamageCommand command) {
-        return binding.map(name -> command.withGroup((DamageGroups.Handle) e.context().bindings().get(name))).orElse(command);
+        return binding.map(name -> {
+            var handle = (DamageGroups.Handle) e.context().bindings().get(name);
+            if (handle.issuer().isPresent() && e.resourceView().isEmpty())
+                throw new IllegalArgumentException("Issuer-qualified damage group requires coordinated routing");
+            return command.withGroup(handle);
+        }).orElse(command);
     }
 }

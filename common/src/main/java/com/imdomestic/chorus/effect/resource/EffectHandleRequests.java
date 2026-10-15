@@ -3,15 +3,15 @@ package com.imdomestic.chorus.effect.resource;
 import com.imdomestic.chorus.effect.EffectState;
 import com.imdomestic.chorus.effect.combat.DamageReceipt;
 import com.imdomestic.chorus.effect.combat.DamageTallies;
+import com.imdomestic.chorus.effect.combat.DamageGroups;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
 /** Live ledger operations retain their issuing domain independently of a character's resource lease. */
 public final class EffectHandleRequests {
     private EffectHandleRequests() {}
-    public sealed interface Request extends ResourceRequests.Request permits TallyBegin, TallyOperation {
+    public sealed interface Request extends ResourceRequests.Request permits TallyBegin, TallyOperation, GroupBegin, GroupClose {
         String issuer();
-        DamageTallies.Handle handle();
     }
     public sealed interface TallyOperation extends Request permits TallyRecord, TallyRead, TallyClose {}
     private static void validate(String issuer, DamageTallies.Handle handle) {
@@ -33,7 +33,16 @@ public final class EffectHandleRequests {
     public record TallyClose(String issuer, DamageTallies.Handle handle) implements TallyOperation {
         public TallyClose { validate(issuer, handle); }
     }
-    public sealed interface Receipt extends ResourceRequests.Receipt permits TallyStarted, TallyResult {
+    public record GroupBegin(String issuer, DamageGroups.Handle handle) implements Request {
+        public GroupBegin {
+            new ResourceAuthority.Lease(issuer, 1); Objects.requireNonNull(handle).requireIssuer(issuer);
+            if (!handle.issuer().equals(Optional.of(issuer))) throw new IllegalArgumentException("New damage group requires an explicit issuer");
+        }
+    }
+    public record GroupClose(String issuer, DamageGroups.Handle handle) implements Request {
+        public GroupClose { new ResourceAuthority.Lease(issuer, 1); Objects.requireNonNull(handle).requireIssuer(issuer); }
+    }
+    public sealed interface Receipt extends ResourceRequests.Receipt permits TallyStarted, TallyResult, GroupStarted, GroupClosed {
         Request request();
         @Override default Optional<ResourceAuthority.Lease> recipient() { return Optional.empty(); }
     }
@@ -49,6 +58,15 @@ public final class EffectHandleRequests {
             if (request instanceof TallyRead && result.changed()) throw new IllegalArgumentException("Tally read cannot change its ledger");
         }
     }
+    public record GroupStarted(GroupBegin request, DamageGroups.Handle handle) implements Receipt {
+        public GroupStarted {
+            Objects.requireNonNull(request); Objects.requireNonNull(handle);
+            if (!request.handle().equals(handle)) throw new IllegalArgumentException("Started group differs from request");
+        }
+    }
+    public record GroupClosed(GroupClose request) implements Receipt {
+        public GroupClosed { Objects.requireNonNull(request); }
+    }
     public record Applied(ResourceAuthority.Worlds worlds, Receipt receipt) {}
     /** Pure issuer transition; the session coordinator publishes it with the caller's actual receipt. */
     public static Applied apply(ResourceAuthority.Worlds worlds, Request request) {
@@ -58,10 +76,15 @@ public final class EffectHandleRequests {
             case TallyRecord record -> DamageTallies.record(state, record.handle(), record.damage());
             case TallyRead read -> new RuleEngine.Local<>(state, DamageTallies.read(state, read.handle()), List.of());
             case TallyClose close -> DamageTallies.close(state, close.handle());
+            case GroupBegin begin -> DamageGroups.begin(state, begin.handle());
+            case GroupClose close -> DamageGroups.close(state, close.handle());
         };
-        Receipt receipt = request instanceof TallyBegin begin
-                ? new TallyStarted(begin, (DamageTallies.Handle) transition.result())
-                : new TallyResult((TallyOperation) request, (DamageTallies.Result) transition.result());
+        Receipt receipt = switch (request) {
+            case TallyBegin begin -> new TallyStarted(begin, (DamageTallies.Handle) transition.result());
+            case TallyOperation operation -> new TallyResult(operation, (DamageTallies.Result) transition.result());
+            case GroupBegin begin -> new GroupStarted(begin, (DamageGroups.Handle) transition.result());
+            case GroupClose close -> new GroupClosed(close);
+        };
         return new Applied(ResourceAuthority.publish(worlds, request.issuer(), state, transition.state()), receipt);
     }
 }

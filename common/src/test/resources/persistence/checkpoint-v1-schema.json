@@ -738,5 +738,9 @@
   "chorus:effect/resource/effect_handle_requests/tally_read": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.combat.DamageTallies$Handle"],
   "chorus:effect/resource/effect_handle_requests/tally_close": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.combat.DamageTallies$Handle"],
   "chorus:effect/resource/effect_handle_requests/tally_started": ["request:com.imdomestic.chorus.effect.resource.EffectHandleRequests$TallyBegin", "handle:com.imdomestic.chorus.effect.combat.DamageTallies$Handle"],
-  "chorus:effect/resource/effect_handle_requests/tally_result": ["request:com.imdomestic.chorus.effect.resource.EffectHandleRequests$TallyOperation", "result:com.imdomestic.chorus.effect.combat.DamageTallies$Result"]
+  "chorus:effect/resource/effect_handle_requests/tally_result": ["request:com.imdomestic.chorus.effect.resource.EffectHandleRequests$TallyOperation", "result:com.imdomestic.chorus.effect.combat.DamageTallies$Result"],
+  "chorus:effect/resource/effect_handle_requests/group_begin": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.combat.DamageGroups$Handle"],
+  "chorus:effect/resource/effect_handle_requests/group_close": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.combat.DamageGroups$Handle"],
+  "chorus:effect/resource/effect_handle_requests/group_started": ["request:com.imdomestic.chorus.effect.resource.EffectHandleRequests$GroupBegin", "handle:com.imdomestic.chorus.effect.combat.DamageGroups$Handle"],
+  "chorus:effect/resource/effect_handle_requests/group_closed": ["request:com.imdomestic.chorus.effect.resource.EffectHandleRequests$GroupClose"]
 }
