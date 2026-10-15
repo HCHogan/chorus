@@ -938,7 +938,7 @@ transfer 只生成计划，不修改输入。源分区必须已经结算并发�
 
 ### 资源目录与领域的联合检查点
 
-`host.checkpoint()` 捕获 `ResourceSessionAuthority.Checkpoint(directory, domains)`，包含该协调器绑定的全部领域，包括没有受管账户的领域。宿主先完成自己的时间推进并结算 inbox；捕获本身不执行规则、不推进时钟、不排空接收事实。运行中、未结算或结果未知的会话拒绝保存。捕获前后核对每个完整时间线的身份，全部检查通过后才发布本次目录 revision。
+`host.checkpoint()` 捕获 `ResourceSessionAuthority.Checkpoint(directory, domains, placement)`，包含该协调器绑定的全部领域，包括没有受管账户的领域。宿主先完成自己的时间推进并结算 inbox；捕获本身不执行规则、不推进时钟、不排空接收事实。运行中、未结算或结果未知的会话拒绝保存。捕获前后核对每个完整时间线的身份，全部检查通过后才发布本次目录 revision。
 
 检查点将当前已结算状态中的账户表与归属目录一起固定：每个分区必须对应存在的领域、完整 EffectProgram、相同逻辑时间与全部余额 / 容量；其他领域不能保存该受管持有者的副本。源领域的延迟工作、退款账本和事件 / 帧序号仍保存在源领域，未登记的本地账户不因保存自动被 claim。不同领域可保留独立时钟，本地 / 协调编译模式按各会话原样保存。
 
@@ -992,7 +992,7 @@ host.commit(handoff);
 
 联合 Checkpoint 同时固定资源目录、位置目录及全部会话。宿主 archive format 5 增加 `participant_placement`，其独立 codec format 1 用规范十进制字符串保存代次，固定排序并拒绝重复身份 / 代次和额外字段；联合 Checkpoint / Archive 进一步拒绝缺少领域和错置状态。旧 format 4 明确迁移为空位置目录；旧两参核心 / archive 构造器也表达未登记，不从已有来源或 Buff 推断位置。恢复不重放登记、附着或消耗。744 个 DATA 记录形状保持，宿主目录采用独立版本，不将不可达的宿主记录注册进 DATA。
 
-这张目录提供逻辑分区权限，还不能代替原生实体的生命、物理位置与连接绑定。普通本地写入和显式 `combatParticipants()` 查询尚未自动改用这些独立 facet；原生跨域战斗必须再固定实际实体与相应 lease，并共同发布各域消费，不能把本节当作已经接通完整跨域伤害。
+这张目录提供逻辑分区权限，不能代替原生实体的生命、物理位置与连接绑定。`combatParticipants(placement, programs)` 已显式使用独立 character / Buff facet，普通本地写入仍保持自己的作用域。本轮 `MinecraftCombat` 接线在共享宿主的原生伤害边界固定实际实体与相应目录，并共同发布各域消费；双端验收结果见[实现记录](engine-implementation.md)，协议见[原生跨域战斗的联合边界](#原生跨域战斗的联合边界)。仅资源 transfer 不会授予角色或 Buff 的位置权限。
 
 ### 资源与 Buff 自有工作的共同交接
 
@@ -1014,7 +1014,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle` 已能随 Buff 或来源自有工作迁移：协调模式在创建时记录 issuer，旧未限定句柄在明确的交接边界补齐；后续操作回原签发账本，见[伤害统计的签发域路由](#伤害统计的签发域路由)。`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 也已有可选 issuer 及旧布局迁移，但其伤害、弹丸和世界观察入口尚未全部接入跨域协议，`Pending.relocated` 仍拒绝携带这三类直接活动句柄。不能把同名句柄交给目标领域，也不能静默删除绑定；拒绝不计作完整支持。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。
+直接捕获的 `DamageTallies.Handle` 已能随 Buff 或来源自有工作迁移：协调模式在创建时记录 issuer，旧未限定句柄在明确的交接边界补齐；后续操作回原签发账本，见[伤害统计的签发域路由](#伤害统计的签发域路由)。`DamageGroups.Handle`、`ShotGroups.Handle`、`EntityAttachments.Handle` 也已有可选 issuer 及旧布局迁移。本轮 damage group 成员结算已接入联合战斗边界，但 `Pending.relocated` 仍拒绝携带这三类直接活动句柄，弹丸和附着的完整跨域操作也未完成。成员执行与 continuation 携带迁移是分别核验的能力，不能通过目标同名账本或静默删除绑定绕过拒绝；拒绝不计作完整支持。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由。
 
 ### 角色状态的联合交接
 
@@ -1107,7 +1107,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 `program.resourceEvaluation(view, context, resultShapes)` 把视图显式交给普通 Value / Condition。Value.Resource 的 value / capacity / missing 读取受管持有者的实际归属账户，保留该账户原来的时间；不把账户复制或重标记到查询领域。未受管的本地账户仍使用查询领域本地状态。查询中的基础技能选择、SelectedAbilityTag / Resource 条件、AbilityEnergy 与 ObserveAbility 读取账户归属领域的基础技能配置，再一次观察可用账户和独立回充账户；不沿用旧领域留下的选择，也不把施放期替换当成基础选择。
 
-可通过 calculate / calculatePipeline / profileValue / attribute / ammoCapacity 的 resourceView 参数传递同一快照。嵌套 Profile、属性、弹匣容量以及本地回能的倍率 / 周期产量查询继续携带它，保留原数值依赖路径。它只改变资源和基础选择的读取；Buff、装备、来源、活动模式等仍取显式传入的查询领域状态，不自动跨领域合并。需要在接收者上下文计算时，调用者显式选用 `view.owner(holder)`，不能把余额所在领域的转移视为其他状态也已迁移。
+可通过 calculate / calculatePipeline / profileValue / attribute / ammoCapacity 的 resourceView 参数传递同一快照。嵌套 Profile、属性、弹匣容量以及本地回能的倍率 / 周期产量查询继续携带它，保留原数值依赖路径。普通资源视图只改变资源和基础选择的读取；Buff、装备、来源、活动模式等仍取显式传入的查询领域状态，不自动跨领域合并。需要在接收者资源上下文计算时，调用者显式选用 `view.owner(holder)`，不能把余额所在领域的转移视为其他状态也已迁移。战斗专用的 `combatParticipants(placement, programs)` 另按 character / Buff facet 寻址，基础技能等角色查询使用 character 域、Buff 查询使用 Buff 域，资源表达式继续使用资源目录，详见[伤害组与参与者查询](#伤害组的签发账本与显式参与者查询)。
 
 旧视图始终是旧观察：后续回能、改选或再次迁移不修改它，重新查询才得到新视图。Evaluation 要求视图与传入的领域状态是同一个不可变快照，并核对完整程序；不能仅因版本名相同就混用定义。读取受管账户时若定义不兼容或账户缺失，拒绝查询，不回退到旧领域的余额或零值。
 
@@ -1148,6 +1148,8 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 完成阶段使用当前协调快照，但 Context.command 仍是已经执行的原命令，不能重新计算其伤害、持续时间等已接受参数。原生 WorldReceipt 的写集和子事实先按解释器协议处理，动作完成产生的事实随后发布；每阶段重复回调只返回已提交结果。未知世界结果、已发布 Local / 完成结果后回调抛错或返回不同结果均保留已有提交并冻结当前阶段，不自动重放、回滚或保存未完成边界。Cost 封装保留真实认领额度，retain_cost 不能因多一次协调等待而重新开放原付款。
 
+跨域伤害准备使用独立 placement 的战斗视图，普通动作仍使用普通资源视图。纯宿主的 Finish 已接入与原生宿主同级的联合结算协议：在实际回执之后、消费之前捕获缺少的 Buff 观察，按原 issuer 更新 group，按捕获的 BuffPin 消费正确领域，并把各域事实与调用域完成结果共同发布。只能补充可证明的观察 / 消费结果，不能替换原 Ready 命令或实际伤害数值。已由原生共享边界标记 consumptionSettled 的回执不再扣费；未结算的实际回执不能只交给调用域的本地 BuffConsumption。此完成接线的验证范围见[实现记录](engine-implementation.md)，不能把只有跨域准备的自定义宿主当作完整实现。
+
 覆盖入口包括伤害 / 治疗量、状态层数 / 时间、范围查询、组件与数值计算、伤害快照及伤害消费条件、恢复护盾的层最大值、弹药容量和即时换弹完成查询。calculate / pipeline、攻击快照与嵌套 Profile 传递同一资源视图。普通规则、技能 on_use、武器 on_fire 以及延迟 / 命中 / 拾取动作体共用该编译路径。after 的 delay、普通 / 穿透 / 反弹射线参数、投射物（含 shot 成员）及拾取物生成参数也已接入；for_each 继续遍历原先冻结的集合。
 
 拾取物 collect_if 属于世界宿主领取前的资格查询。协调模式必须调用 `canCollectPickup(view, spawn)`，旧的纯本地状态重载明确拒绝；生成时的半径 / 寿命保持固定，领取条件按本次视图查询。这个重载不领取物品，也不代替宿主复核物理接触与实际领取。
@@ -1158,13 +1160,15 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 命中计算必须显式传递本次协调快照。`CompiledEffects.outgoing(view, command, input)`、`defense`、`health`、`shields`，以及 `checkAction(view, kind, phase, input)`、`horizontalSpeedLimit(view, input)`、`nativeAttributes(view, holder)` 均接受 ResourceReadView。查询核对完整程序与精确状态；协调编译模式拒绝上述仅传 EffectState 的旧入口，即使没有修饰项、没有护盾或伤害为零也不绕过检查。本地编译的旧入口保持原有行为。
 
-资源表达式、条件与嵌套 Profile 读取同一份不可变视图；读取不转移来源、装备、Buff 或修饰项提供者。它们仍取自查询领域，资源所在领域的其他增益不会自动并入。动作门禁分别按声明的 actor / victim 读取对应持有者资源；速度上限和原生属性贡献继续保持各自的独立查询上下文。原生属性接口只计算贡献，不修改 Minecraft 属性；动作门禁也不替宿主执行或撤销操作。
+资源表达式、条件与嵌套 Profile 读取同一份不可变视图；读取不转移来源、装备、Buff 或修饰项提供者。普通视图的非资源数据仍取自查询领域，资源所在领域的其他增益不会自动并入。显式战斗视图才按已固定的 character / Buff facet 读取各参与者，保持物理查询域和各自逻辑时钟。动作门禁分别按声明的 actor / victim 读取对应持有者资源；速度上限和原生属性贡献继续保持各自的独立查询上下文。原生属性接口只计算贡献，不修改 Minecraft 属性；动作门禁也不替宿主执行或撤销操作。
 
 DamageSnapshot 的 `resolve(view, event, current)` / `resolveShield` 将视图传入仍未绑定的目标条件与表达式。施放时已经冻结的来源值保留，命中时的目标资源及显式 on_hit 项按本次视图读取；保存恢复不把冻结值重算为当前余额。旧快照保留原 Profile 版本，当前视图核对当前完整程序；有实时项时仍要求其 Profile 布局与快照兼容。模式、捕获时刻及数值依赖循环检查继续生效。
 
 `shields(view, command, input, basis, attackState)` 支持世界侧已保留的攻击者消费提案。目标可用层和 taken_multiplier 从 view.state 读取；攻击修饰从 attackState 读取。内部只通过 `view.withLocalState(attackState)` 派生攻击视图，因此两者共享同一批外部资源快照；余额或时刻不同的 attackState 被拒绝，不能分别捕获两份新旧混合的资源值。护盾结果仍为候选写集，由真实世界结果决定是否提交；已确认的本地护盾写集可以在相同余额 / 时刻下派生后续嵌套命中视图。
 
-世界回调使用 `host.readView(caller, request)` 取得视图，不能在执行中改用无请求的重载。宿主应在一次结算中保持同一资源捕获；后续非资源临时状态通过 withLocalState 派生。读取不推进其他领域、不结算 inbox、不发资源事实。原生投影的显式入口见下节；默认 MinecraftEffectRuntime 尚未切到协调模式。连续资源 / 治疗 / 护盾恢复已接下文的显式会话时钟，原生输入、同一共享宿主的玩家传送及目录与世界的联合保存均已接线。未新增存储形状或检查点格式。
+跨域原生战斗使用另外的 `shields(committedView, attackView, command, input, basis)` 入口：前者选择目标 Buff 所在域的已提交影子层，后者是同一固定世界快照上的消费预留视图。两者都携带原物理域、placement 与目录，不把来源 Buff 拷进目标，也不把目标盾写进资源所在域。该双视图接口用于计算；真正发布由下述联合边界承担。
+
+普通非战斗世界回调使用 `host.readView(caller, request)` 取得视图，不能在执行中改用无请求的重载。活动战斗边界使用已固定的 `ticket.view(shadow, physical)`；此时普通 authority 入口被拒绝，不能重新捕获世界。宿主应在一次结算中保持同一资源捕获；后续非资源临时状态通过 withLocalState 派生。读取不推进其他领域、不结算 inbox、不发资源事实。原生投影的显式入口见下节；默认 MinecraftEffectRuntime 尚未切到协调模式。连续资源 / 治疗 / 护盾恢复已接下文的显式会话时钟，原生输入、同一共享宿主的玩家传送及目录与世界的联合保存均已接线。未新增存储形状或检查点格式。
 
 ### 原生属性与移动投影的资源视图
 
@@ -2046,7 +2050,7 @@ Buff 的 `consume_on_damage.sharing` 默认为 `damage`，逐条伤害消费；�
 
 组的 origin 默认为 bound，也可选 event；成员的伤害 owner 必须一致。lifetime 为正的 second，区间半开；end_damage_group 可提前关闭，截止时自动清理。关闭后再发出成员伤害会明确失败，因此内容应让有效期覆盖所有预期分量。句柄可随显式 after / projectile 绑定传递，已确认的资格独立于原 Buff 后续到期 / 收枪；完整攻击行为由内容决定，不能据此推断所有 D2 技能都应共用资格。
 
-[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。该机制不合并世界动作，全组原子事务和跨运行时恢复尚未实现。
+[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。共享宿主的跨域成员结算见[签发账本与参与者查询](#伤害组的签发账本与显式参与者查询)。一个组可跨多个动作和时刻，组身份不把其全部世界写入变成可回滚事务；活动句柄携带迁移与物理效果实体恢复仍有独立限制。
 
 ## 选择派生动作的来源
 
@@ -2866,23 +2870,44 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 旧未限定句柄在明确迁移边界由 sourceDomain 补齐。没有迁移的旧本地句柄可在明确调用域访问原账本；目标必须启用协调路由，本地 DSL 拒绝使用任何 issuer-qualified 句柄。账本 `matches` 比较全部原身份字段，并拒绝双方已限定但 issuer 不同；它不改变 Java record 的严格 equality。记录新回执保留账本 canonical handle，旧别名不能清除已知 issuer。历史 Summary 仍是不可变数值快照。
 
-四种 live Handle 分别增加新的 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。这项协议不代表 DamageGroups、ShotGroups、EntityAttachments 已能跨域继续，后三者的内部伤害与世界观察入口仍待接线。
+四种 live Handle 分别增加新的 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。tally 路由本身不代表其他句柄也已完整支持跨域。DamageGroups 的成员结算见下节；直接携带 group / shot / attachment 句柄的 continuation 迁移仍会拒绝，ShotGroups 与 EntityAttachments 的完整跨域操作仍待实现。
 
 ### 伤害组的签发账本与显式参与者查询
 
 协调模式的 `begin_damage_group` 通过 `EffectHandleRequests.GroupBegin` 在调用域创建带 issuer 的组；`end_damage_group` 通过 `GroupClose` 回签发域关闭并取消原到期计时器。账本变更与调用域的确定回执共同发布，重复活动请求返回已提交回执。关闭不依赖角色当前资源 lease，也不查找目标域的同名组。新增 GroupBegin / GroupClose / GroupStarted / GroupClosed 四种存储身份；原 740 项形状保持，总数为 744。
 
-普通本地 DSL 拒绝带 issuer 的组；协调查询按 issuer 查账本和原域时钟。本批默认 `prepareDamage` 只接受调用域的组，在发出世界伤害前拒绝其他 issuer。`Pending.relocated` 继续拒绝直接捕获的 damage group，关闭账本的路由不代表组成员已经能随角色迁移执行。
+普通本地 DSL 拒绝带 issuer 的组；普通协调视图的 `prepareDamage` 也在世界调用前拒绝外域组。显式战斗视图才允许按 issuer 使用原账本和原域时钟，不能借目标域同名组继续攻击。本轮共享原生宿主已接入此视图与联合消费，完整验收仍以实现记录为准。`Pending.relocated` 继续拒绝直接捕获的 damage group；执行外域组成员与携带活动句柄迁移 continuation 是两个分别核验的入口。
 
-`ResourceReadView.combatParticipants()` 是纯查询的显式入口。调用方须先独立确认受管参与者的角色、来源和 Buff 与其资源目录归属同域，并从资格捕获到结算固定参与者的生命和位置。只迁移资源账户不满足该前提。普通资源视图、DSL 动作和现有原生伤害保持本地 Buff / 来源语义；没有自动开启这一模式。
+`ResourceReadView.combatParticipants(placement, programs)` 接受独立的 `ParticipantPlacement.Directory` 和各域完整程序。它不从资源目录推导参与者位置，也不自行建立原生实体授权。宿主必须在捕获至结算期间固定这些输入；原生路径还须核验实际实体对象、生命与物理域。普通资源视图仍保留本地非资源语义，不自动开启战斗模式。
 
-显式模式分别读取施加者、受击者和第三方条件目标的状态，以各自时钟判定 Buff 活性；未知持有者只按最初物理调用域解释，不扫描其他世界。嵌套属性、装备和已知武器所有者的弹药查询延续同一参与者映射。分组资格仍保留在 issuer，跨域来源和历史保留资格的数值贡献使用独立身份，避免各 BuffStore 的相同 generation 相撞。
+| 数据 / 查询入口 | 明确的归属 |
+| --- | --- |
+| `characterDomain / characterState / characterView(holder)` | character facet：来源、装备、基础技能、角色和武器阶段 |
+| `buffDomain / buffState / buffView(holder)` | Buff facet：活性、层数、组件、护盾与消费，使用该域自己的时钟 |
+| `owner(holder)` 与资源账户查询 | 资源目录，独立于上述两个 facet |
+| `damageGroupDomain(handle)` 与 `damageGroup(handle)` | issuer 原账本；旧未限定句柄只指最初物理调用域 |
 
-`CombatDomains.view` 在不可变快照上计算嵌套攻击的消费预留，不发事实、不提交状态；`finish` 仅依据实际回执返回各域的候选写入、已结算回执和按域划分的 Buff 生命周期事实。已有原生观察保持；缺失的 Buff 观察在消费前按参与者时钟捕获，观察的事件时间属于物理调用域。候选写入必须由宿主共同发布，已标记结算的回执不会再次扣除或发事实。此工具要求与显式查询相同的参与者放置前提，目前未接入协调器的默认完成路径或原生伤害边界。
+空 Buff 分区也保留自己的 lease。仅资源交接不移动角色或 Buff；Buff-only 交接不移动角色 / 来源。装备附着 Buff 以武器实例为 holder 独立定位，不能由弹药或当前携带位置推断。未登记 holder 仅按最初物理调用域解释，不扫描其他世界寻找同名分区。嵌套 Profile、属性与 source_owner / victim / 第三方条件分别沿实际查询对象的 facet 读取，不能把整份 Evaluation 改成某个 owner 所在域。跨域来源与 group 保留资格的贡献身份分开，避免不同 BuffStore 的相同 generation 相撞。
 
-完整原生接入仍需独立且可核验的角色位置快照、跨运行时共享预留与联合发布；资源目录不能替代角色归属。伤害快照的历史捕获时钟与异钟世界命中也仍需独立协议。本节不改变合法反馈循环、不提供全局反应次数上限，也不增加 Compendium 完整覆盖声明。
+`CombatDomains.capture(worlds, placement, caller, id, command)` 捕获来源、目标及消费候选的 `BuffPin(domain, lease)`；未登记 holder 的 pin 明确记录本域回退，结算前不能悄悄变成新登记的权限。group pin 固定 canonical issuer 与原身份，保留资格仍从原账本当前状态读取。准备后的候选包含原 Buff generation；重新施加或暂停的实例不能被旧回执扣除。
 
-后续位置协议需要分别记录角色 / 来源状态、Buff holder 状态和实际实体绑定，资源 lease 与 group issuer 保持独立。Buff 为空也须保留位置授权；仅资源交接不能移动角色位置，Buff-only 交接不能移动角色 / 来源位置。武器附着 Buff 的 holder 是武器实例，当前 carriedGear 的弹药 / 射击迁移不能视作这些 Buff 已迁移。纯查询与实际消费必须使用同一冻结的位置版本和生命身份，不能在回执时重新解释旧候选；这些要求尚未实现为原生协议。
+`CombatDomains.view` 在各域不可变影子上计算嵌套攻击的消费预留，不发事实、不扣费、不写 group。相同组可共享已捕获资格，不同组不能重复使用已被未决攻击占用的成本。实际 `DamageReceipt` 才授权 `finish` 返回各域候选写入、带 consumptionSettled 标记的回执和按域划分的 Buff 生命周期事实。已有原生观察保持；缺失的 Buff 观察在消费前按各自 Buff 时钟采样，观察事件的时间属于物理调用域。已结算回执直接通过，不再次消费或发事实。
+
+这些返回值必须共同发布。纯宿主 `ActionRoutes.Finish` 的协议要求与原生边界相同：核对原 Ready 命令与实际回执，只补充有证据的观察和消费结果，将 issuer 账本、Buff 域及调用域完成结果作为一个发布批次；不能只启用跨域 prepare 而继续调用本地 BuffConsumption。该完成路径正在本轮一并验收，不能仅凭纯查询测试宣称宿主完整支持。
+
+### 原生跨域战斗的联合边界
+
+同一 `MinecraftResourceRuntime` 下的 installed runtimes 通过 `MinecraftCombat` 共用影子状态、预留和实际护盾写集。伤害仍在目标所在世界执行；character、Buff、资源与 group 可以各在不同领域，既不搬移物理伤害，也不复制外域 BuffStore。各域完整程序、会话时间线、资源目录和 placement 由 `ResourceSessionAuthority.CombatBoundary` 一次捕获，查询与发布必须使用同一能力。
+
+受管调用以整个实际 `world.apply` 回调为边界：回调内连续或嵌套的多个 hurt root 共用一次 ticket，只有回调返回唯一 actual result 后才共同提交，子命中完成不能提前确认父操作。外部原版伤害以最外层 hurt 为边界；父类委托属于同一次命中。普通宿主写入在活动边界内拒绝且留下 sticky violation，调用方 catch 异常不能恢复成功资格。不同共享宿主之间、协调与非协调外层之间的嵌套伤害在进入相应原生 hurt 写入前拒绝，不承诺把两个独立宿主联合提交。
+
+实际目标固定对象引用、UUID、生命标识和物理域；已登记角色还要求本次 character lease 与实际域一致。来源只在明确的角色域查索引，缺失就固定为缺失，不跨域搜索同 UUID。已确认伤害使同一个 body 死亡 / 移除时，其既有 pin 仍可作为本次历史证据；同 UUID 的替身、新生命或跨域变化会使授权失效。历史攻击快照及 Reactions 来源信用不要求发射者一直存活或在线，也不能给新生命授予输入权限。当前 live query 仍读取当前逻辑持有者状态；本次 pin 证明的是捕获至结算期间稳定，不补造发射时的生命证据。
+
+`DamageCapture.Observer.actual(command, receipt, managed)` 在每个已完成原生调用结束时、最外层通知之前报告实际结果。即使后续观察或 finished 回调抛错，已发生的 HP、Absorption 与护盾损失仍留下 raw actual；该通知不能替代 WorldOperation 成功回执。成功的 managed 主命中由动作完成发事实，其余已完成子命中及失败时需要补发的主命中按身份只处理一次。相同接收域内，伤害事实先于对应消费事实；远端消费事实进入自己的 inbox，既有排队事实保留，不虚构全域统一时钟或顺序。实体生命周期事实也在联合发布前纳入对应域，后续反应在发布后运行。
+
+结果未知时，宿主保留已确认 child、实际护盾写入和 raw actual。可由原 claim 与回执证明的消费仍尝试共同保留；若授权已失效而无法发布，则保留 observed shadow、未决 claim 和实际回执作为失败诊断，停止整个共享宿主。`prepareObservedOperationDomain` 只发布已观察状态与事实，不给父操作填写结果、不清除其 pending，也不允许自动重放或检查点。成功联合发布后的反应派发若失败，同样保留已提交结果并停止宿主，不能回滚实际伤害后重试。
+
+此接线没有新增 DATA record 或改变既有存储形状。CombatBoundary、BuffPin / GroupPin、原生对象 pin、共享 shadow 与 actual 诊断都是执行期能力，不序列化成可恢复权限；稳定状态仍按既有联合检查点保存。本轮不限制 Char 等合法反馈循环，预算仅负责让出执行权。历史 launch-life 连续性、伤害快照跨不同逻辑时钟的命中协议仍未完成；真实原生边界与纯 Finish 的最终验收见实现记录，不据此增加 Compendium 的覆盖声明。
 
 
 ## 共享 Strand 防御示例

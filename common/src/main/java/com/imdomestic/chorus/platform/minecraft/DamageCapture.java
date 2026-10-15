@@ -31,7 +31,15 @@ public final class DamageCapture {
         DamageCommand describe(LivingEntity target, DamageSource source, float amount);
         default DamageCommand begin(String id, DamageCommand command) { return command; }
         default DamageCommand revise(String id, DamageCommand command) { return command; }
+        default DamageCommand begin(String id, DamageCommand command, LivingEntity actualTarget, DamageSource actualSource) {
+            return begin(id, command);
+        }
+        default DamageCommand revise(String id, DamageCommand command, LivingEntity actualTarget, DamageSource actualSource) {
+            return revise(id, command);
+        }
         default Optional<List<com.imdomestic.chorus.rule.RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) { return Optional.empty(); }
+        /** An actually completed native call, also delivered before failure flush if post-hurt observation failed. */
+        default void actual(DamageCommand command, DamageReceipt receipt, boolean managed) {}
         default void abandoned(String id) {}
         default void confirmedDeath(String deathId, LivingEntity target) {}
         default Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) { return Optional.empty(); }
@@ -59,6 +67,12 @@ public final class DamageCapture {
         return entity.level() instanceof ServerLevel level ? OBSERVERS.get(level) : null;
     }
     static boolean hasObserver(LivingEntity entity) { return observer(entity) != null; }
+    /** An outer native call with no matching coordinator cannot share this host's atomic publication. */
+    static boolean nestedOutside(MinecraftResourceRuntime host) {
+        Objects.requireNonNull(host);
+        return CALLS.get().stream().anyMatch(call -> !(call.observer instanceof MinecraftEffectRuntime runtime)
+                || runtime.resourceHost() != host);
+    }
 
     public static final class Request implements AutoCloseable {
         private final Call call;
@@ -78,17 +92,43 @@ public final class DamageCapture {
         if (id.isBlank()) throw new IllegalArgumentException("Missing damage ID");
         return new Request(id, target, source, nonLethal, description);
     }
-    private record Delivery(Observer observer, Observed fact) {}
+    private record Delivery(Observer observer, Observed fact, boolean publish) {}
     private static final class Boundary {
         final List<Delivery> committed = new ArrayList<>();
         final LinkedHashSet<Observer> observers = new LinkedHashSet<>();
         Throwable failure;
         void flush() {
-            for (var observer : observers) {
-                var facts = committed.stream().filter(delivery -> delivery.observer() == observer).map(Delivery::fact).toList();
-                if (failure != null) observer.failed(failure, facts);
-                else observer.committed(facts);
+            var deliveries = List.copyOf(committed); var recipients = List.copyOf(observers);
+            committed.clear(); observers.clear();
+            Throwable notificationFailure = null;
+            for (var observer : recipients) {
+                var facts = deliveries.stream().filter(delivery -> delivery.observer() == observer && (failure != null || delivery.publish()))
+                        .map(Delivery::fact).toList();
+                try {
+                    if (failure != null) observer.failed(failure, facts);
+                    else observer.committed(facts);
+                } catch (RuntimeException | Error error) {
+                    if (failure == null) failure = error;
+                    if (notificationFailure == null) notificationFailure = error;
+                    else suppress(notificationFailure, error);
+                }
             }
+            if (notificationFailure instanceof RuntimeException error) throw error;
+            if (notificationFailure instanceof Error error) throw error;
+        }
+    }
+    private static void suppress(Throwable original, Throwable secondary) {
+        if (original != secondary) original.addSuppressed(secondary);
+    }
+    /** A rejected entrance owns no Scope, so it must release its reservation and outer boundary itself. */
+    private static void rejected(Call call, boolean outermost, Throwable error) {
+        if (call.boundary.failure == null) call.boundary.failure = error;
+        try { if (call.observer != null) call.observer.abandoned(call.id); }
+        catch (RuntimeException | Error abandoned) { suppress(error, abandoned); }
+        if (outermost) {
+            CALLS.remove();
+            try { call.boundary.flush(); }
+            catch (RuntimeException | Error notification) { suppress(error, notification); }
         }
     }
     private static final class Call {
@@ -135,6 +175,7 @@ public final class DamageCapture {
         @Override public void close() {
             if (!owner) { call.layer = previousLayer; return; }
             if (CALLS.get().peek() != call) throw new IllegalStateException("Damage calls closed out of order");
+            Throwable closingFailure = null;
             try {
                 if (call.observer != null) {
                     if (completed) {
@@ -145,17 +186,30 @@ public final class DamageCapture {
                     else call.observer.abandoned(call.id);
                 }
             } catch (RuntimeException | Error error) {
-                failed(error);
-                if (call.observer != null) call.observer.abandoned(call.id);
-                throw error;
+                closingFailure = error; failed(error);
+                try { if (call.observer != null) call.observer.abandoned(call.id); }
+                catch (RuntimeException | Error abandoned) { suppress(error, abandoned); }
             } finally {
                 CALLS.get().pop();
                 boolean outermost = CALLS.get().isEmpty();
                 if (outermost) CALLS.remove();
-                if (completed && call.publish) call.boundary.committed.add(new Delivery(call.observer, new Observed(call.command, call.receipt(accepted))));
-                // The managed primary hit is published by Action.complete, never a second time by this observer.
-                if (outermost) call.boundary.flush();
+                if (completed && call.observer != null) try {
+                    var receipt = call.receipt(accepted);
+                    call.boundary.committed.add(new Delivery(call.observer, new Observed(call.command, receipt), call.publish));
+                    call.observer.actual(call.command, receipt, call.managedOrigin);
+                } catch (RuntimeException | Error error) {
+                    failed(error);
+                    if (closingFailure == null) closingFailure = error; else suppress(closingFailure, error);
+                }
+                // Success leaves the managed primary to Action.complete. Failure still needs its actual native receipt,
+                // including when observing entities or finalizing consumption failed after the HP write.
+                if (outermost) try { call.boundary.flush(); }
+                catch (RuntimeException | Error error) {
+                    if (closingFailure == null) closingFailure = error; else suppress(closingFailure, error);
+                }
             }
+            if (closingFailure instanceof RuntimeException error) throw error;
+            if (closingFailure instanceof Error error) throw error;
         }
     }
 
@@ -165,15 +219,23 @@ public final class DamageCapture {
         if (current != null && current.target == target && layer < current.layer) {
             int previous = current.layer; current.layer = layer;
             if (current.source != source) {
+                var previousSource = current.source;
                 current.source = source;
-                if (current.observer != null && !current.managedOrigin) current.command = current.observer.revise(current.id, current.observer.describe(target, source, amount));
+                try {
+                    if (current.observer != null && !current.managedOrigin)
+                        current.command = Objects.requireNonNull(current.observer.revise(current.id,
+                                current.observer.describe(target, source, amount), target, source));
+                } catch (RuntimeException | Error error) {
+                    current.source = previousSource; current.layer = previous;
+                    if (current.boundary.failure == null) current.boundary.failure = error;
+                    throw error;
+                }
             }
             return new Scope(current, false, previous);
         }
         var request = REQUESTS.get().peek();
         var observer = observer(target);
         if (request == null && observer == null && current == null) return null;
-        if (current == null && observer != null && (request == null || !request.managed)) observer.prepare();
         boolean ownedRequest = request != null && !request.entered && request.call.target == target;
         Call call = ownedRequest ? request.call : new Call(NATIVE_PREFIX + NATIVE_IDS.incrementAndGet(), target, source, false);
         if (ownedRequest) request.entered = true;
@@ -182,8 +244,14 @@ public final class DamageCapture {
         call.publish = observer != null && !(ownedRequest && request.managed);
         call.managedOrigin = ownedRequest && request.managed;
         if (observer != null) {
-            call.command = observer.begin(call.id, call.managedOrigin ? request.description : observer.describe(target, source, amount));
             call.boundary.observers.add(observer);
+            try {
+                if (current == null && (request == null || !request.managed)) observer.prepare();
+                call.command = Objects.requireNonNull(observer.begin(call.id,
+                        call.managedOrigin ? request.description : observer.describe(target, source, amount), target, source));
+            } catch (RuntimeException | Error error) {
+                rejected(call, current == null, error); throw error;
+            }
         }
         CALLS.get().push(call); return new Scope(call, true, 0);
     }

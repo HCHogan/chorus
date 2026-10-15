@@ -209,6 +209,8 @@
       "com.imdomestic.chorus.CharacterTransferGameTest",
       "com.imdomestic.chorus.NativeCharacterTransferGameTest",
       "com.imdomestic.chorus.ParticipantPlacementGameTest",
+      "com.imdomestic.chorus.DamageCaptureBoundaryGameTest",
+      "com.imdomestic.chorus.NativeCombatDomainsGameTest",
       "com.imdomestic.chorus.NativeInputTransferGameTest",
       "com.imdomestic.chorus.TallyTransferGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",

@@ -119,7 +119,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if (failure.isPresent()) { countUnprocessed(1); return; }
         nativeLifecycleFacts.add(fact);
     }
-    private List<RuleEngine.Signal> takeNativeLifecycleFacts() {
+    List<RuleEngine.Signal> takeNativeLifecycleFacts() {
         var facts = List.copyOf(nativeLifecycleFacts); nativeLifecycleFacts.clear(); return facts;
     }
 
@@ -156,14 +156,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         if(restoredSession.isPresent()&&!this.session.checkpoint().equals(checkpoint.orElseThrow()))throw new IllegalArgumentException("Prepared native session differs from its checkpoint");
     }
     RuleEngine.ActionResult executeWorld(RuleEngine.WorldRequest request) {
-        if(resourceHost!=null)resourceHost.enteringRuntime();
+        if(resourceHost!=null)resourceHost.enteringRuntime();else MinecraftCombat.uncoordinatedEntry();
         if(request.command() instanceof ResourceRequests.Request){
             if(resourceHost==null)throw new IllegalStateException("Native resource request has no coordinator");
             return resourceHost.execute(this,level,request);
         }
         if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
         operationFacts = new ArrayList<>();resourceOperation=request;
+        boolean coordinatedWorld=false;
         try {
+            if(resourceHost!=null){resourceHost.combat().enterWorld(this,request);coordinatedWorld=true;}
             refreshProjections();
             var actual = switch (request.command()) {
                 case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
@@ -174,11 +176,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 default -> world.apply(request);
             };
             if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
+            if(resourceHost!=null&&resourceHost.combat().active())
+                return resourceHost.combat().completeWorld(this,actual,operationFacts);
             operationFacts.addAll(takeNativeLifecycleFacts());
             var writes = takeWrites();
             return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts,
                     com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, operationFacts));
-        } finally { operationFacts = null;resourceOperation=null; }
+        } catch(RuntimeException|Error error){
+            if(resourceHost!=null)resourceHost.combat().failed(error);
+            throw error;
+        } finally { operationFacts = null;resourceOperation=null;if(coordinatedWorld)resourceHost.combat().leaveWorld(); }
     }
     public static MinecraftEffectRuntime install(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
@@ -1011,8 +1018,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     private void thread() {
         ownerThread();
-        if(resourceHost!=null)resourceHost.enteringRuntime();
+        if(resourceHost!=null)resourceHost.enteringRuntime();else MinecraftCombat.uncoordinatedEntry();
         MinecraftCheckpointBoundary.enteringRuntime(level.getServer(), this);
+    }
+    private void combatThread(){
+        ownerThread();
+        if(resourceHost!=null)resourceHost.enteringCombat();else MinecraftCombat.uncoordinatedEntry();
+        if(resourceHost!=null&&failure.isPresent())throw new IllegalStateException("Failed coordinated runtime cannot authorize native combat");
+        MinecraftCheckpointBoundary.enteringRuntime(level.getServer(),this);
     }
     public long nowMicros() {
         return Math.addExact(originMicros, Math.multiplyExact(Math.subtractExact(level.getGameTime(), originTick), 50_000));
@@ -1033,6 +1046,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         catch (RuntimeException error) { failed(error, List.of()); throw error; }
     }
     @Override public void prepare() {
+        if(resourceHost!=null&&(resourceHost.combat().active()||resourceHost.combat().worldActive())){combatThread();return;}
         thread();
         if (failure.isPresent() || session.running()) return;
         try { validatePendingActors(); validatePendingAbilities(); enrollPlayers(); settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshPlayers(); refreshProjections(); reconcileAbilityInputs(); }
@@ -1067,19 +1081,27 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 ? com.imdomestic.chorus.effect.target.EntityAttachments.time(fact) : fallback;
     }
     @Override public DamageCommand describe(LivingEntity target, DamageSource source, float amount) {
-        thread();
+        combatThread();
         describingDamage++;
         try {
             var command = Objects.requireNonNull(sources.describe(target, source, amount));
-            return failure.isPresent() ? command : program.prepareReactions(view(), command);
+            return failure.isPresent() || resourceHost!=null ? command : program.prepareReactions(view(), command);
         }
-        catch (RuntimeException error) { failed(error, List.of()); return nativeSource(target, source, amount); }
+        catch (RuntimeException error) { if(resourceHost!=null)throw error;failed(error, List.of()); return nativeSource(target, source, amount); }
         finally { describingDamage--; }
     }
     private EffectState attackView(DamageCommand command, String ownId) {
         return ConsumptionReservations.view(view(), command, ownId, List.copyOf(reservations.values()));
     }
     private EffectState attackView(DamageCommand command) { return attackView(command, activeDamage.isEmpty() ? "" : activeDamage.peek()); }
+    @Override public DamageCommand begin(String id,DamageCommand command,LivingEntity target,DamageSource source){
+        if(resourceHost==null)return begin(id,command);
+        combatThread();return resourceHost.combat().begin(this,id,command,target,false);
+    }
+    @Override public DamageCommand revise(String id,DamageCommand command,LivingEntity target,DamageSource source){
+        if(resourceHost==null)return revise(id,command);
+        combatThread();return resourceHost.combat().begin(this,id,command,target,true);
+    }
     @Override public DamageCommand begin(String id, DamageCommand command) {
         thread();
         if (failure.isPresent()) return command;
@@ -1099,6 +1121,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         } catch (RuntimeException error) { failed(error, List.of()); return command; }
     }
     @Override public Optional<List<RuleEngine.Signal>> finished(String id, DamageCommand command, DamageReceipt receipt, boolean managed) {
+        if(resourceHost!=null){combatThread();return Optional.of(resourceHost.combat().finished(this,id,command,receipt,managed));}
         thread();
         if (failure.isPresent()) { if (id.equals(activeDamage.peek())) activeDamage.pop(); return Optional.empty(); }
         try {
@@ -1124,12 +1147,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         recordNativeLifecycle(new com.imdomestic.chorus.effect.target.EntityLifecycle.Died(reference, deathId, observation).signal());
     }
     @Override public Optional<com.imdomestic.chorus.effect.buff.BuffObservation> observeBuffs(DamageCommand command) {
+        if(resourceHost!=null){combatThread();return Optional.of(resourceHost.combat().observeBuffs(this,command));}
         thread();
         if (failure.isPresent()) return Optional.empty();
         return Optional.of(com.imdomestic.chorus.effect.buff.BuffObservation.capture(view().buffs(), command.source().owner(), command.target()));
     }
     @Override public Optional<com.imdomestic.chorus.effect.target.EntityObservation> observeEntities(DamageCommand command, LivingEntity target, DamageSource source) {
-        thread();
+        combatThread();
         if (failure.isPresent()) return Optional.empty();
         var entities = new java.util.HashMap<String, Optional<com.imdomestic.chorus.effect.target.EntityQuery.View>>();
         var positions = new java.util.HashMap<com.imdomestic.chorus.effect.target.PositionQuery, Optional<com.imdomestic.chorus.effect.target.WorldPosition>>();
@@ -1139,8 +1163,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             java.util.UUID ownerId = null;
             try { ownerId = java.util.UUID.fromString(owner); } catch (IllegalArgumentException ignored) { /* Logical aliases need their adapter's resolver. */ }
             if (ownerId != null) {
-                var actor = source.getEntity() != null && source.getEntity().getUUID().equals(ownerId) ? source.getEntity() : level.getEntity(ownerId);
-                observeEntity(owner, actor instanceof LivingEntity living && living.level() == level && !living.isRemoved()
+                var ownerLevel=resourceHost!=null&&resourceHost.combat().active()
+                        ?resourceHost.combatRuntime(resourceHost.combat().view(this).characterDomain(owner)).level():level;
+                var actor = resourceHost!=null ? ownerLevel.getEntity(ownerId)
+                        :source.getEntity() != null && source.getEntity().getUUID().equals(ownerId) ? source.getEntity() : level.getEntity(ownerId);
+                observeEntity(owner, actor instanceof LivingEntity living && living.level() == ownerLevel && !living.isRemoved()
                         ? Optional.of(living) : Optional.empty(), entities, positions);
             }
         }
@@ -1155,11 +1182,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         }
     }
     @Override public void abandoned(String id) {
+        if(resourceHost!=null){resourceHost.combat().abandoned(this,id);return;}
         thread();
         if (id.equals(activeDamage.peek())) activeDamage.pop();
         // Keep uncertain claims reserved until the enclosing boundary reports failure.
     }
+    @Override public void actual(DamageCommand command,DamageReceipt receipt,boolean managed){
+        if(resourceHost!=null)resourceHost.combat().actual(this,command,receipt,managed);
+    }
     @Override public ShieldDamage.Planned shields(DamageCommand command, double amount, DamageBasis basis) {
+        if(resourceHost!=null){combatThread();return resourceHost.combat().shields(this,command,amount,basis);}
         thread();
         if (failure.isPresent()) return ShieldDamage.plan(amount, List.of());
         try {
@@ -1169,14 +1201,19 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             combatView = plan.commit().apply(view); shieldWrites.addAll(plan.commit().writes()); return plan;
         } catch (RuntimeException error) { failed(error, List.of()); return ShieldDamage.plan(amount, List.of()); }
     }
-    private EffectState view() { return combatView == null ? state().engine().domain() : combatView; }
+    private EffectState view() {
+        if(resourceHost!=null&&resourceHost.combat().active())return resourceHost.combat().view(this).state();
+        return combatView == null ? state().engine().domain() : combatView;
+    }
     @Override public Optional<CalculationProfile.Result> outgoing(DamageCommand command, double amount) {
+        if(resourceHost!=null){combatThread();return resourceHost.combat().outgoing(this,command,amount);}
         thread();
         if (failure.isPresent()) return Optional.empty();
         try { return query(attackView(command),s->program.outgoing(s,command,amount),v->program.outgoing(v,command,amount)); }
         catch (RuntimeException error) { failed(error, List.of()); return Optional.empty(); }
     }
     @Override public Optional<CalculationProfile.Result> defense(DamageCommand command, double amount) {
+        if(resourceHost!=null){combatThread();return resourceHost.combat().defense(this,command,amount);}
         thread();
         if (failure.isPresent()) return Optional.empty();
         try { return query(view(),s->program.defense(s,command,amount),v->program.defense(v,command,amount)); }
@@ -1184,6 +1221,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     private CombatCommit combatCommit() { return new CombatCommit(state().engine().domain(), view()); }
     @Override public Optional<CalculationProfile.Result> health(DamageCommand command, double amount) {
+        if(resourceHost!=null){combatThread();return resourceHost.combat().health(this,command,amount);}
         thread();
         if (failure.isPresent()) return Optional.empty();
         // Let the outer native boundary settle prior shield writes before reporting an unknown HP result.
@@ -1193,6 +1231,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var result = combatCommit(); shieldWrites.clear(); combatView = null; completedDamage.clear(); return result;
     }
     @Override public void committed(List<DamageCapture.Observed> observations) {
+        if(resourceHost!=null){resourceHost.combat().committed();return;}
         thread();
         var signals = new ArrayList<>(combatFacts); combatFacts.clear();
         if (failure.isPresent()) { countUnprocessed(observations.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum()); return; }
@@ -1204,6 +1243,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         catch (RuntimeException error) { failed(error, observations, shieldCommit, writes, signals); }
     }
     @Override public void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure) {
+        if(resourceHost!=null&&resourceHost.combat().active()){resourceHost.combat().failed(this,error,committedBeforeFailure);return;}
         if (failure.isPresent()) {
             countUnprocessed(committedBeforeFailure.stream().mapToLong(value -> DamageFacts.from(value.command(), value.receipt()).size()).sum());
             return;
@@ -1216,6 +1256,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             observation.receipt().consumptionFacts().ifPresent(facts::addAll);
         }
         failed(error, List.copyOf(known.values()), new ShieldDamage.Commit(shieldWrites), combatCommit(), facts);
+    }
+    void failedCombat(Throwable error,MinecraftCombat.Failure evidence,List<ShieldDamage.Write> shields){
+        if(failure.isPresent())return;
+        String domain=level.dimension().identifier().toString();var before=evidence.before().domain(domain);var after=evidence.observed().domain(domain);
+        var pending=evidence.pending().stream().filter(claim->claim.domain().equals(domain))
+                .map(claim->new ConsumptionReservations.Claim(claim.id(),claim.command())).toList();
+        failure=Optional.of(new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),evidence.completed().getOrDefault(domain,List.of()),0,
+                new ShieldDamage.Commit(shields),new CombatCommit(before,after.withAttachments(before.attachments())),pending,evidence.facts().getOrDefault(domain,List.of())));
+        abilityInputs.clear();chargeInputs.clear();abandonProjectiles();
+        Constants.LOG.error("Chorus coordinated combat stopped for {}. Actual writes retained; no automatic replay.",level.dimension().identifier(),error);
     }
     private void failed(Throwable error, List<DamageCapture.Observed> committedBeforeFailure, ShieldDamage.Commit committedShields,
             CombatCommit committedCombat, List<RuleEngine.Signal> facts) {

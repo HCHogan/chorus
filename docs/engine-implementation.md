@@ -6,6 +6,24 @@
 
 ## 当前证据
 
+以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
+
+### 2026-10-15：独立参与者查询与原生跨域战斗联合提交
+
+`combatParticipants(placement, programs)` 显式区分角色 / 来源、Buff、资源账户和 damage group issuer；未登记持有者只回退到最初物理调用域，嵌套 Profile / 属性不会把回退域改成某个中间查询域。来源与 Buff 按各自时钟查询，保留资格使用 issuer、完整 group / Buff 身份和 generation，避免不同领域或不同 Buff 的代次碰撞。普通资源视图和普通动作仍保留本地非资源作用域。
+
+纯协调 ActionRoutes 在 Begin 固定原伤害命令、Buff lease 与 group issuer；Finish 核对原 Ready、语义操作和实际回执，再共同发布调用域完成、各域消费及事实。GuardedDamage 保留原 wrapper，实际伤害数值和原始 ledger 不被派生消费结果替换；已结算回执直接通过，不重复消费。临时 claim 只在完成联合提交后删除，未结束或未知操作不能导出成功检查点。EffectSession 新增 observed-operation 提交路径，可保留已观察状态而不把未知父操作改成成功。
+
+共享 Minecraft 宿主通过 MinecraftCombat 维护一次捕获的全部领域影子、嵌套预留、真实护盾写集和事实。受管边界覆盖整个 world callback，连续多个原生 hurt root 共同提交；非受管边界覆盖最外层 hurt。目标固定原对象、UUID、生命及物理域，来源只在明确角色域解析；同一来源对象死亡 / 移除后保留原信用，同 UUID 替换或不同生命不能继承授权。反应回调捕获并吞掉的非法宿主变更仍使边界失败；混合独立宿主在对应 hurt 写入前拒绝。
+
+DamageCapture 在观察 / 消费失败及外层通知之前保留每个已完成原生调用的 actual 回执。未知父结果保留可证明的子命中、护盾和消费写入，不回滚、不重放、不生成父成功回执；不能发布的部分保留不可变诊断。主命中与延迟事实按身份只发布一次，同一接收域内伤害事实先于对应 Buff 消费事实。联合发布后的反应派发失败停止整个共享宿主，已发生结果保持。没有增加根事件、链深度或循环次数限制。
+
+本轮核心覆盖包括 CombatDomains 的 lease / issuer / 预留、独立 facet 与嵌套查询、伤害准备 / Finish、未知观察提交及不可吞掉的边界违规。全部 2660 项 JUnit 在 `/tmp/chorus-combat-targeted4.log` 通过。9 项 NativeCombatDomainsGameTest 的 Fabric 定向场景及 NeoForge 测试编译同轮通过，覆盖三个领域分离、嵌套命中、远端护盾、多 root 延迟发布、未知回调、跨域主命中的 hit → buff_ended、同 body 移除 / 替换和提交后派发失败；另有 5 项 DamageCaptureBoundaryGameTest 覆盖捕获前失败、修订、嵌套实际回执及通知清理。新增夹具修正时钟、消费策略、事件观察方式与真实远端区块 / 实体索引等待，生产资格未放宽。
+
+完整 `/tmp/chorus-combat-full-gate.log` BUILD SUCCESSFUL（3 分 56 秒）：2660 项 JUnit 无失败 / 错误 / 跳过，Fabric 1399、NeoForge 1414 项世界回归通过（共享场景 1398），双端发布包与两次正常停服检查点通过。`build/reports/native-combat/audit.json` 核验全部 744 项旧 DATA 形状相等、1414 / 1407 个发布主类字节一致、无测试内容泄漏和 Gradle CRLF。10 项 Compendium 工具测试、22 张表 / 6666 个保留单元格来源及生成报告检查通过，仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。本轮没有新增独立进程重启验收；原生回归保留已有保存路径，archive 格式未变。核心部分已独立提交并推送为 15dabb61。
+
+本批没有改变 DATA 形状或 archive format，边界、原生对象 pin 与临时 claim 不注册为可序列化执行权限。DamageGroup 自有 continuation 携带迁移、ShotGroups / EntityAttachments 的完整跨域操作、不同逻辑时钟的历史伤害快照及发射时来源生命连续性仍待完成。本次生命校验仅证明捕获至结算期间，不补造历史发射资格。没有新增原作数值校准、完整 Compendium 效果、图形客户端或 UI 验收。接口见[原生跨域战斗的联合边界](engine-data-packs.md#原生跨域战斗的联合边界)。
+
 ### 2026-10-15：角色 / Buff 独立归属、携带效果与原生重生
 
 新增 ParticipantPlacement，将角色 / 来源和 Buff-holder 的位置与资源账户归属分开。两种 facet 独立登记空分区、核对精确 lease 和递增代次，capture / commit / checkpoint 校验受管分区的外域副本。资源-only transfer 保持两张位置表；Buff-only 交接保持角色位置；完整角色迁移按各 Buff 自己的归属收集玩家与可信携带武器实例，已经在目标的 Buff 不重建。准备固定全部时间线和位置目录，返回原域也不能复用旧许可。

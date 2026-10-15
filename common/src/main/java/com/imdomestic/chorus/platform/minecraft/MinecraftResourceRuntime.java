@@ -21,6 +21,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     private boolean closing,closed;
     private RuntimeException installationFailure;
     private MinecraftPlayerTransfer.Handoff playerTransfer;
+    private final MinecraftCombat combat = new MinecraftCombat(this);
     public MinecraftResourceRuntime(MinecraftServer server) {
         this.server=Objects.requireNonNull(server);thread();MinecraftCheckpointBoundary.changingRuntime(server);LIVE.add(this);
     }
@@ -28,11 +29,23 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     private void active() {
         thread();if(closed||closing||installationFailure!=null)throw new IllegalStateException("Native resource host is closed or failed",installationFailure);
     }
-    private void ready(){active();transferBoundary();if(restoring!=null)throw new IllegalStateException("Not every restored native dimension is connected");}
+    private void ready(){active();transferBoundary();combat.changing();if(restoring!=null)throw new IllegalStateException("Not every restored native dimension is connected");}
     private void transferBoundary(){
         if(playerTransfer!=null){var error=new IllegalStateException("Native player transfer has fenced this resource host");playerTransfer.violated(error);throw error;}
     }
     void enteringRuntime(){thread();if(!closing)ready();}
+    void enteringCombat(){active();transferBoundary();combat.entering();if(restoring!=null)throw new IllegalStateException("Not every restored native dimension is connected");}
+    MinecraftCombat combat(){return combat;}
+    ResourceSessionAuthority combatAuthority(){return authority;}
+    Map<String,MinecraftEffectRuntime> combatRuntimes(){return Collections.unmodifiableMap(runtimes);}
+    MinecraftEffectRuntime combatRuntime(String domain){
+        var runtime=runtimes.get(domain);if(runtime==null)throw new IllegalArgumentException("Missing native combat domain: "+domain);return runtime;
+    }
+    public Optional<MinecraftCombat.Failure> combatFailure(){thread();return combat.failure();}
+    void failCombat(Throwable error,MinecraftCombat.Failure evidence,Map<String,List<com.imdomestic.chorus.effect.combat.ShieldDamage.Write>> shields){
+        thread();if(installationFailure==null)installationFailure=new IllegalStateException("Native combat failed; actual writes are retained",error);
+        runtimes.forEach((domain,runtime)->runtime.failedCombat(error,evidence,shields.getOrDefault(domain,List.of())));
+    }
     private void changing(){ready();MinecraftCheckpointBoundary.enteringResources(server);}
     private static String domain(ServerLevel level) { return level.dimension().identifier().toString(); }
     private void level(ServerLevel level) { active();if(level.getServer()!=server)throw new IllegalArgumentException("Resource runtime belongs to another server"); }
@@ -83,6 +96,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     ResourceReadView view(MinecraftEffectRuntime runtime,ServerLevel level,RuleEngine.WorldRequest request) {
         transferBoundary();
         if(runtime(level)!=runtime)throw new IllegalArgumentException("Foreign native resource runtime");
+        if(combat.active())return combat.view(runtime);
         return request==null?authority.readView(domain(level)):authority.readView(domain(level),request);
     }
     RuleEngine.ActionResult execute(MinecraftEffectRuntime runtime,ServerLevel level,RuleEngine.WorldRequest request) {
@@ -199,7 +213,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
         for(var host:List.copyOf(LIVE))if(host.server==server)host.close();
     }
     @Override public void close() {
-        thread();if(closed)return;transferBoundary();MinecraftCheckpointBoundary.enteringResources(server);
+        thread();if(closed)return;transferBoundary();combat.changing();MinecraftCheckpointBoundary.enteringResources(server);
         if(closing)throw new IllegalStateException("Reentrant native resource close");
         runtimes.values().forEach(MinecraftEffectRuntime::requireResourceDetach);
         closing=true;RuntimeException failure=null;
