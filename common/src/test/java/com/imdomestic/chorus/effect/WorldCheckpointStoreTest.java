@@ -81,8 +81,8 @@ class WorldCheckpointStoreTest {
         assertThrows(IllegalStateException.class, () -> store().begin());
         assertThrows(IllegalStateException.class, save::commit);
         assertThrows(IllegalStateException.class, () -> save.failed("late failure from former run"));
-        var next = recovered.prepare(archive(9), Set.of("world")); next.confirm("world"); next.commit();
-        assertEquals(archive(9), store().begin().recovered().orElseThrow());
+        var nextArchive = archive(9); var next = recovered.prepare(nextArchive, Set.of("world")); next.confirm("world"); next.commit();
+        assertEquals(nextArchive, store().begin().recovered().orElseThrow());
     }
     @Test void candidateFileAndPartialOrDuplicateConfirmationsAreNotSuccessfulWorldSaves() throws Exception {
         var session = store().begin(); var save = session.prepare(archive(7), Set.of("player:one", "dimension:overworld"));
@@ -101,11 +101,11 @@ class WorldCheckpointStoreTest {
     }
     @Test void staleCompletionCannotConfirmOrInvalidateAReplacementSave() throws Exception {
         var session = store().begin(); var first = session.prepare(archive(7), Set.of("world")); first.confirm("world");
-        var second = session.prepare(archive(8), Set.of("world"));
+        var replacement = archive(8); var second = session.prepare(replacement, Set.of("world"));
         assertThrows(IllegalStateException.class, () -> first.confirm("world")); assertThrows(IllegalStateException.class, first::commit);
         assertThrows(IllegalStateException.class, () -> first.failed("old asynchronous error"));
         assertThrows(IllegalStateException.class, second::commit); second.confirm("world"); second.commit();
-        assertEquals(archive(8), store().begin().recovered().orElseThrow());
+        assertEquals(replacement, store().begin().recovered().orElseThrow());
     }
     @Test void lateFailureInvalidatesOnlyTheSameCommittedSave() throws Exception {
         var session = store().begin(); var save = session.prepare(archive(7), Set.of("world")); save.confirm("world"); save.commit();

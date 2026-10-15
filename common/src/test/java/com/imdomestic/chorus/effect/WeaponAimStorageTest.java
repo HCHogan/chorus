@@ -24,10 +24,15 @@ class WeaponAimStorageTest {
         assertEquals(ActionGate.Kind.WEAPON_FIRE,saved.program().bundles().stream().filter(b->b.id().equals("test:aim_migration_gate")).findFirst().orElseThrow().actionGates().getFirst().action());
         var h=new WeaponHandlingTest.Harness(new CompiledEffects(saved.program()));h.physical=domain.equipment().get("player");
         h.session=EffectSession.restore(h.program,EffectCheckpointTest.clock(),256,saved,h::world);
-        assertTrue(h.applications.isEmpty());assertTrue(h.cues.isEmpty());assertEquals(saved,h.session.checkpoint());
+        assertTrue(h.applications.isEmpty());assertTrue(h.cues.isEmpty());assertTrue(saved.identity().isEmpty());
+        var upgraded=h.session.checkpoint();var identity=h.session.timelineIdentity();
+        assertEquals(new EffectSession.Checkpoint(saved.program(),saved.timeline(),saved.resourceRouting(),Optional.of(identity)),upgraded);
+        var restored=EffectSession.restore(h.program,EffectCheckpointTest.clock(),256,EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(upgraded)),_->{throw new AssertionError("Restoration replayed world work");});
+        assertEquals(upgraded,restored.checkpoint());assertEquals(identity,restored.timelineIdentity());
         h.until(99_999);assertTrue(h.applications.isEmpty());h.until(100_000);assertEquals(WeaponHandling.Phase.READY,h.plan().phase());assertEquals(250_000,h.plan().dueAt());
         h.until(250_000);assertNull(h.plan());assertEquals(Optional.of("test:secondary"),h.physical.drawn());assertEquals(2,h.applications.size());assertTrue(h.state().aiming().isEmpty());
         assertTrue(h.session.checkpoint().timeline().nextEvent()>saved.timeline().nextEvent());assertTrue(h.session.checkpoint().timeline().nextFrame()>saved.timeline().nextFrame());
+        assertEquals(identity,h.session.timelineIdentity());assertEquals(Optional.of(identity),h.session.checkpoint().identity());
         var encoded=EffectCheckpointCodec.encode(saved);String wire=encoded.toString();
         for(String type:List.of("effect_state_v6","weapon_definition_v4","action_gate/kind_v2"))assertTrue(wire.contains(type));
         assertEquals(saved,EffectCheckpointCodec.decode(encoded));assertEquals(input,oldCheckpoint());

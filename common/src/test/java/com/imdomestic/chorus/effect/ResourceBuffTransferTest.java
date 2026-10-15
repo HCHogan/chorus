@@ -116,7 +116,7 @@ class ResourceBuffTransferTest {
     @Test void aLocalOnlyDestinationCannotSilentlyLoseTheCapturedRemoteRefund() {
         var f=new Fixture();var local=new CompiledEffects(f.p.program());var saved=f.host.checkpoint();
         var domains=new TreeMap<>(saved.domains());var before=domains.get(B);
-        domains.put(B,new EffectSession.Checkpoint(before.program(),before.timeline(),false));
+        domains.put(B,new EffectSession.Checkpoint(before.program(),before.timeline(),false,before.identity()));
         var mixed=new ResourceSessionAuthority.Checkpoint(saved.directory(),domains);
         var restored=ResourceSessionAuthority.restore(mixed,Map.of(
                 A,new ResourceSessionAuthority.RestoreBinding(f.p,EffectCheckpointTest.clock(),1,_ -> RuleEngine.Empty.INSTANCE),

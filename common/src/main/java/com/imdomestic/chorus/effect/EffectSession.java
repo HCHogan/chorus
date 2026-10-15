@@ -18,7 +18,9 @@ public final class EffectSession {
     private final OperationLedger ledger;
     private final Optional<EffectProgram> program;
     private final boolean resourceRouting;
+    private final TimelineIdentity identity;
     public boolean resourceRouting() { return resourceRouting; }
+    public TimelineIdentity timelineIdentity() { return identity; }
     private final Thread ownerThread = Thread.currentThread();
     private TimelineEngine.State<EffectState> state;
     private boolean running;
@@ -29,26 +31,27 @@ public final class EffectSession {
     private final Function<ResourceReadView, EffectClock> clockPolicy;
 
     public EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world) {
-        this(engine, engine.initial(initial), world, Optional.empty(), new OperationLedger(), false, null);
+        this(engine, engine.initial(initial), world, Optional.empty(), new OperationLedger(), false, null, TimelineIdentity.fresh());
     }
     /** A data-defined session pins its complete catalogue, not only its human-readable version label. */
     public EffectSession(CompiledEffects program, EffectClock clock, int budget, EffectState initial, Function<WorldRequest, ActionResult> world) {
         this(program.engine(clock, budget), initial, world, program, clock);
     }
     private EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world, CompiledEffects program, EffectClock clock) {
-        this(engine, engine.initial(initial), world, Optional.of(program.program()), new OperationLedger(), program.resourceRouting(), view -> program.continuousClock(view, clock));
+        this(engine, engine.initial(initial), world, Optional.of(program.program()), new OperationLedger(), program.resourceRouting(), view -> program.continuousClock(view, clock), TimelineIdentity.fresh());
     }
     private EffectSession(TimelineEngine<EffectState> engine, TimelineEngine.State<EffectState> initial,
-            Function<WorldRequest, ActionResult> world, Optional<EffectProgram> program, OperationLedger ledger, boolean resourceRouting, Function<ResourceReadView, EffectClock> clockPolicy) {
+            Function<WorldRequest, ActionResult> world, Optional<EffectProgram> program, OperationLedger ledger, boolean resourceRouting, Function<ResourceReadView, EffectClock> clockPolicy, TimelineIdentity identity) {
         this.engine = Objects.requireNonNull(engine); this.world = Objects.requireNonNull(world);
         this.state = Objects.requireNonNull(initial); this.program = program; this.ledger = ledger; this.resourceRouting = resourceRouting;
-        this.clockPolicy = clockPolicy;
+        this.clockPolicy = clockPolicy; this.identity = Objects.requireNonNull(identity);
     }
     /** Full immutable domain state; host/world state and storage encoding are separate responsibilities. */
-    public record Checkpoint(EffectProgram program, TimelineEngine.Checkpoint<EffectState> timeline, boolean resourceRouting) {
+    public record Checkpoint(EffectProgram program, TimelineEngine.Checkpoint<EffectState> timeline, boolean resourceRouting, Optional<TimelineIdentity> identity) {
         public Checkpoint(EffectProgram program, TimelineEngine.Checkpoint<EffectState> timeline) { this(program, timeline, false); }
+        public Checkpoint(EffectProgram program, TimelineEngine.Checkpoint<EffectState> timeline, boolean resourceRouting) { this(program, timeline, resourceRouting, Optional.empty()); }
         public Checkpoint {
-            Objects.requireNonNull(program); Objects.requireNonNull(timeline);
+            Objects.requireNonNull(program); Objects.requireNonNull(timeline); Objects.requireNonNull(identity);
             if (!program.version().equals(timeline.version())) throw new IllegalArgumentException("Checkpoint catalogue version differs");
         }
     }
@@ -57,7 +60,7 @@ public final class EffectSession {
         if (running) throw new IllegalStateException("Cannot checkpoint during a world boundary");
         var before = state;
         var saved = new Checkpoint(program.orElseThrow(() -> new IllegalStateException("Checkpoint requires a pinned data-defined catalogue")),
-                engine.checkpoint(before), resourceRouting);
+                engine.checkpoint(before), resourceRouting, Optional.of(identity));
         current(before);
         return saved;
     }
@@ -67,7 +70,7 @@ public final class EffectSession {
         if (program.resourceRouting() != checkpoint.resourceRouting() || !program.program().equals(checkpoint.program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
         var engine = program.engine(clock, budget);
         return new EffectSession(engine, engine.restore(checkpoint.timeline()), world, Optional.of(program.program()),
-                OperationLedger.restore(checkpoint.timeline().nextFrame()), program.resourceRouting(), view -> program.continuousClock(view, clock));
+                OperationLedger.restore(checkpoint.timeline().nextFrame()), program.resourceRouting(), view -> program.continuousClock(view, clock), checkpoint.identity().orElseGet(TimelineIdentity::fresh));
     }
     public TimelineEngine.State<EffectState> state() { return state; }
     public boolean running() { return running; }

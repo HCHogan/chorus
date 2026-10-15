@@ -182,7 +182,7 @@ public final class MinecraftCombat {
     }
     private void replace(String domain, EffectState state) {
         var domains = new TreeMap<>(shadow.domains()); domains.put(domain, state);
-        shadow = new ResourceAuthority.Worlds(shadow.directory(), domains);
+        shadow = new ResourceAuthority.Worlds(shadow.directory(), domains, shadow.timelines());
     }
     BuffObservation observeBuffs(MinecraftEffectRuntime runtime, DamageCommand command) {
         current(); var claim = claim(runtime, command);

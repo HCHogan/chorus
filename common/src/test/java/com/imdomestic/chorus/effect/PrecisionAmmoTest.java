@@ -119,10 +119,18 @@ class PrecisionAmmoTest {
     }
     @Test void receiptCleanupAndCountersSurviveCheckpointWithoutDuplicateAmmo() throws Exception {
         var a = new Harness("normal", "normal"); var b = new Harness("normal", "normal");
+        var aIdentity = a.session.timelineIdentity(); var bIdentity = b.session.timelineIdentity(); assertNotEquals(aIdentity, bIdentity);
         for (var h : List.of(a, b)) { h.hit("a"); h.until(1_000_000); h.hit("a"); }
-        b.restore(); assertEquals(a.session.checkpoint(), b.session.checkpoint());
+        b.restore(); assertEquals(bIdentity, b.session.timelineIdentity());
+        assertEquals(a.session.checkpoint().program(), b.session.checkpoint().program());
+        assertEquals(a.session.checkpoint().timeline(), b.session.checkpoint().timeline());
+        assertEquals(a.session.checkpoint().resourceRouting(), b.session.checkpoint().resourceRouting());
         for (var h : List.of(a, b)) { h.until(2_000_000); h.hit("a"); h.until(3_000_000); assertEquals(Set.of("hit/2", "hit/3"), h.receipts(TT, "a")); h.hit("a"); h.until(6_000_000); }
-        assertEquals(a.session.checkpoint(), b.session.checkpoint()); assertEquals(3, b.magazine("a")); assertTrue(b.state().timers().isEmpty());
+        assertEquals(a.session.checkpoint().program(), b.session.checkpoint().program());
+        assertEquals(a.session.checkpoint().timeline(), b.session.checkpoint().timeline());
+        assertEquals(a.session.checkpoint().resourceRouting(), b.session.checkpoint().resourceRouting());
+        assertEquals(aIdentity, a.session.timelineIdentity()); assertEquals(bIdentity, b.session.timelineIdentity());
+        assertEquals(3, b.magazine("a")); assertTrue(b.state().timers().isEmpty());
     }
     @Test void forgettingValidatesDeclaredSetsAndPreservesOtherImmutableComponents() throws Exception {
         var original = new BuffComponents(Map.of("n", 4.0), Map.of("ids", Set.of("old", "new")), Map.of("owner", "player"));

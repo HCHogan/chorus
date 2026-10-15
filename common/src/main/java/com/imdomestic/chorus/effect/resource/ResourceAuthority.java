@@ -1,6 +1,7 @@
 package com.imdomestic.chorus.effect.resource;
 
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.TimelineIdentity;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.effect.data.EffectProgram;
 import java.util.*;
@@ -114,9 +115,16 @@ public final class ResourceAuthority {
         return new Transfer(put(directory, after, next), expected, after, departure, arrival);
     }
     /** Settled supervisor boundary: each managed partition exists only in its named domain. */
-    public record Worlds(Directory directory, Map<String, EffectState> domains) {
+    public record Worlds(Directory directory, Map<String, EffectState> domains, Map<String, TimelineIdentity> timelines) {
+        /** Legacy pure views have no timeline provenance and cannot authorize qualified snapshots. */
+        public Worlds(Directory directory, Map<String, EffectState> domains) { this(directory, domains, Map.of()); }
         public Worlds {
             Objects.requireNonNull(directory); domains = Collections.unmodifiableMap(new TreeMap<>(domains));
+            timelines = Collections.unmodifiableMap(new TreeMap<>(timelines));
+            if (!timelines.isEmpty() && (!timelines.keySet().equals(domains.keySet())
+                    || new HashSet<>(timelines.values()).size() != timelines.size()))
+                throw new IllegalArgumentException("Timeline identities must cover distinct domains exactly");
+            timelines.values().forEach(Objects::requireNonNull);
             domains.forEach((domain, state) -> { new Lease(domain, 1); Objects.requireNonNull(state); });
             for (var partition : directory.holders().values()) {
                 var owner = domains.get(partition.lease().domain());
@@ -142,7 +150,7 @@ public final class ResourceAuthority {
         for (var partition : worlds.directory().holders().values()) if (partition.lease().domain().equals(domain))
             directory = publish(directory, partition, updated);
         var domains = new TreeMap<>(worlds.domains()); domains.put(domain, updated);
-        return new Worlds(directory, domains);
+        return new Worlds(directory, domains, worlds.timelines());
     }
     /** Atomically return both domain writes and the new lease. Replaying an older plan is rejected even after a round trip. */
     public static Worlds commit(Worlds worlds, Transfer transfer, CompiledEffects program) {
@@ -155,7 +163,7 @@ public final class ResourceAuthority {
         var source = transfer.departure().apply(worlds.domain(from), program);
         var destination = transfer.arrival().apply(worlds.domain(to), program);
         var domains = new TreeMap<>(worlds.domains()); domains.put(from, source); domains.put(to, destination);
-        return new Worlds(transfer.directory(), domains);
+        return new Worlds(transfer.directory(), domains, worlds.timelines());
     }
     public record Granted(Worlds worlds, ResourceResult result, Lease recipient) {
         public Granted { Objects.requireNonNull(worlds); Objects.requireNonNull(result); Objects.requireNonNull(recipient); }
@@ -167,7 +175,7 @@ public final class ResourceAuthority {
         var state = worlds.domain(partition.lease().domain()).withResource(result.after());
         var directory = publish(worlds.directory(), partition, state); var domains = new TreeMap<>(worlds.domains());
         domains.put(partition.lease().domain(), state);
-        return new Granted(new Worlds(directory, domains), result, partition.lease());
+        return new Granted(new Worlds(directory, domains, worlds.timelines()), result, partition.lease());
     }
     public record Refunded(Worlds worlds, Optional<Resources.RefundResult> result, Optional<Lease> recipient) {
         public Refunded {
@@ -186,6 +194,6 @@ public final class ResourceAuthority {
         var recipient = (issuer.equals(destination) ? authorization.state() : worlds.domain(destination)).withResource(result.grant().after());
         var directory = publish(worlds.directory(), partition, recipient); var domains = new TreeMap<>(worlds.domains());
         domains.put(issuer, authorization.state()); domains.put(destination, recipient);
-        return new Refunded(new Worlds(directory, domains), Optional.of(result), Optional.of(partition.lease()));
+        return new Refunded(new Worlds(directory, domains, worlds.timelines()), Optional.of(result), Optional.of(partition.lease()));
     }
 }

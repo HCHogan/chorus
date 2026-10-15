@@ -1014,7 +1014,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle`、`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带这两类活动句柄，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟的命中协议是独立限制，不因 group 可迁移而解除。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
+直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle`、`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带这两类活动句柄，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟另按[捕获时间线协议](#伤害快照的捕获时间线)核验，group 权限不能代替这项证明。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
 
 ### 角色状态的联合交接
 
@@ -1134,7 +1134,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Completed 解包后原有结果字段保持可用。Cost 本身保留真实 CostResult，退款额度在 complete 前已进入帧账本。重复执行同一回调得到同一封装结果，不重复发事实；complete 只交还结果，不再次投递资源事实。回调在提交后抛错或返回另一份结果仍冻结调用方，保留接收方已经提交的余额与事件，禁止重放及检查点导出。
 
-协调模式的 EffectSession.Checkpoint 显式记录 resourceRouting，编码为 format 2 并带严格布尔字段 `resource_routing`；普通本地模式继续写原 format 1。读取旧 format 1 得到本地模式。恢复须同时匹配完整目录与编译模式，不能把协调检查点交给默认编译器悄悄恢复为本地写入。原 707 项存储形状不变，仅增加四种路由命令 / 结果形状；格式扩展仍只保存已结算边界，不保存执行中帧、inbox 或可变视图。
+EffectSession.Checkpoint 显式记录 resourceRouting，当前会话写 format 3，包含严格布尔字段 `resource_routing` 与稳定 `timeline_identity`。旧 format 1 读取为本地模式，旧 format 2 保留原编译模式；缺少时间线身份的旧检查点在恢复会话时分配新身份。恢复须同时匹配完整目录与编译模式，不能把协调检查点交给默认编译器悄悄恢复为本地写入。原 707 项存储形状不变，仅增加四种路由命令 / 结果形状；格式扩展仍只保存已结算边界，不保存执行中帧、inbox 或可变视图。
 
 普通动作及结构参数中的资源表达式另走下节的多阶段协议。技能选择 / 施放、显式原生协调组的输入 / tick 及命名目录联合保存已接入；已索引玩家自动登记与同一共享宿主的玩家传送已接入。Buff、装备、携带弹药由联合角色协议移动；物理效果实体继续留在原世界，单独账户路由不会移动这些对象。
 
@@ -1154,7 +1154,7 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 拾取物 collect_if 属于世界宿主领取前的资格查询。协调模式必须调用 `canCollectPickup(view, spawn)`，旧的纯本地状态重载明确拒绝；生成时的半径 / 寿命保持固定，领取条件按本次视图查询。这个重载不领取物品，也不代替宿主复核物理接触与实际领取。
 
-新增 Begin / Finish / Ready / Result / Cost 五种存储形状，原 715 项保持，总计 720；已结算检查点模式仍为本地 format 1 / 协调 format 2。此处没有把任意执行中帧变成可恢复存档。世界侧纯查询和显式会话的连续时钟已有下文的协调入口；旧安装入口保持本地模式；显式共享宿主已接通物理查询、玩家输入、同宿主原生传送与联合保存。本节测试使用显式协调会话和受控世界回执，不代表这些原生路径已经验收。
+新增 Begin / Finish / Ready / Result / Cost 五种存储形状，原 715 项保持，总计 720；当前已结算会话检查点统一使用带编译模式和时间线身份的 format 3，旧本地 format 1 / 协调 format 2 保持可读。此处没有把任意执行中帧变成可恢复存档。世界侧纯查询和显式会话的连续时钟已有下文的协调入口；旧安装入口保持本地模式；显式共享宿主已接通物理查询、玩家输入、同宿主原生传送与联合保存。本节测试使用显式协调会话和受控世界回执，不代表这些原生路径已经验收。
 
 ### 世界侧查询的资源视图
 
@@ -1162,7 +1162,7 @@ ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Complet
 
 资源表达式、条件与嵌套 Profile 读取同一份不可变视图；读取不转移来源、装备、Buff 或修饰项提供者。普通视图的非资源数据仍取自查询领域，资源所在领域的其他增益不会自动并入。显式战斗视图才按已固定的 character / Buff facet 读取各参与者，保持物理查询域和各自逻辑时钟。动作门禁分别按声明的 actor / victim 读取对应持有者资源；速度上限和原生属性贡献继续保持各自的独立查询上下文。原生属性接口只计算贡献，不修改 Minecraft 属性；动作门禁也不替宿主执行或撤销操作。
 
-DamageSnapshot 的 `resolve(view, event, current)` / `resolveShield` 将视图传入仍未绑定的目标条件与表达式。施放时已经冻结的来源值保留，命中时的目标资源及显式 on_hit 项按本次视图读取；保存恢复不把冻结值重算为当前余额。旧快照保留原 Profile 版本，当前视图核对当前完整程序；有实时项时仍要求其 Profile 布局与快照兼容。模式、捕获时刻及数值依赖循环检查继续生效。
+DamageSnapshot 的 `resolve(view, event, current)` / `resolveShield` 将视图传入仍未绑定的目标条件与表达式。施放时已经冻结的来源值保留，命中时的目标资源及显式 on_hit 项按本次视图读取；保存恢复不把冻结值重算为当前余额。旧快照保留原 Profile 版本，当前视图核对当前完整程序；有实时项时仍要求其 Profile 布局与快照兼容。模式、捕获时刻及数值依赖循环检查继续生效；限定快照按[原捕获时间线](#伤害快照的捕获时间线)校验时刻，不将不同域的本地时钟直接比较。
 
 `shields(view, command, input, basis, attackState)` 支持世界侧已保留的攻击者消费提案。目标可用层和 taken_multiplier 从 view.state 读取；攻击修饰从 attackState 读取。内部只通过 `view.withLocalState(attackState)` 派生攻击视图，因此两者共享同一批外部资源快照；余额或时刻不同的 attackState 被拒绝，不能分别捕获两份新旧混合的资源值。护盾结果仍为候选写集，由真实世界结果决定是否提交；已确认的本地护盾写集可以在相同余额 / 时刻下派生后续嵌套命中视图。
 
@@ -1791,9 +1791,23 @@ victim 声明必须显式使用 evaluate:on_hit，误用 on_use 在编译时拒�
 
 时机字段本身不会生成投射物或定时任务。JSON 可用下节的 `capture_damage`、`after` 和 `damage_snapshot` 完成捕获及延迟伤害。Java 宿主也可在释放时调用 `runtime.captureDamage(attack)`，保存返回的 `DamageSnapshot`，命中时把 `snapshot.command(targetUuid)` 提供给原生伤害来源适配或世界命令执行器。捕获要求 attack 有明确 scaling_profile，使用当前已追赶的状态；原始 target 不参与捕获。每次命中可指定不同目标，其余攻击元数据固定。未携带快照的普通 damage 仍按即时查询计算；目标防御 Profile 总是使用命中时当前状态。
 
-快照包含旧 Profile、来源身份与部分求值后的表达式，不包含实体对象或可变装备引用。若新目录提供 on_hit 贡献，其阶段 / 分组结构必须与旧 Profile 相容；不相容会明确失败。计算轨迹逐贡献记录来源版本，不能把旧 Profile 的版本当成所有实时贡献的版本。快照不能跨 PvE / PvP 模式复用，命中时刻也不能早于捕获时刻。
+快照包含旧 Profile、来源身份与部分求值后的表达式，不包含实体对象或可变装备引用。若新目录提供 on_hit 贡献，其阶段 / 分组结构必须与旧 Profile 相容；不相容会明确失败。计算轨迹逐贡献记录来源版本，不能把旧 Profile 的版本当成所有实时贡献的版本。快照不能跨 PvE / PvP 模式复用。捕获时刻的有效性按下述来源时间线协议核验，不将跨域命中的两个本地时钟直接比较。
 
-当前 capture 上下文只有 incoming_damage、damage_type、伤害标签和来源身份；尚未装配的事件测量不会默认为零。自定义 Value / Condition 参与 on_use 时须实现 `snapshot` 部分绑定，返回不可变数据表达式，不能保留 Evaluation 或可变世界状态。on_release / on_tick / on_proc、其他原版投射物自动适配、完整反应规则继承、派生筛选与持久化尚未完成；这些字段不能当作已支持的 JSON 使用。
+当前 capture 上下文只有 incoming_damage、damage_type、伤害标签和来源身份；尚未装配的事件测量不会默认为零。自定义 Value / Condition 参与 on_use 时须实现 `snapshot` 部分绑定，返回不可变数据表达式，不能保留 Evaluation 或可变世界状态。on_release / on_tick / on_proc、其他原版投射物自动适配、完整反应规则继承、派生筛选及物理投射物重启恢复尚未完成；这些字段不能当作已支持的 JSON 使用。
+
+### 伤害快照的捕获时间线
+
+`DamageSnapshot.captureOrigin` 是可选的 `CaptureOrigin(domain, timeline)`，其中 timeline 为来源 EffectSession 的稳定 `TimelineIdentity`。协调捕获从本次不可变 ResourceReadView 保存实际捕获域及身份；不由攻击者的资源 lease、当前角色位置或 Buff 归属推断。`capturedAt` 继续保存原域的逻辑时刻，角色 / Buff continuation 迁移、嵌套延迟及联合恢复都不平移或重写这个历史值。
+
+带 captureOrigin 的快照在世界调用前的 `prepareDamage` 以及命中查询 `resolve` / `resolveShield` 时要求本次视图包含原域及相同 TimelineIdentity，并验证原域当前逻辑时间不早于 capturedAt。来源缺失、同名域已被另一条时间线替换、原域时间落后或缺少必要视图时明确拒绝。目标域的本地时钟可以小于 capturedAt：A 在 10 秒捕获，B 在 0.2 秒命中时，只要捕获来源证明成立，伤害仍在 B 的实际世界执行。PvE / PvP 模式及原有 Profile 兼容检查保持；冻结的 on_use 值和历史来源选择不重算，目标条件与显式 on_hit 贡献按命中时当前视图读取。
+
+有时间线信息的查询还将来源 / Buff 数值贡献按实际提供者的 domain、TimelineIdentity 和原 instance 标识限定，包括当前本地域。捕获与命中查询使用同一规则，同一提供者不会因调用域变化而换名，A 的历史 Buff 与 B 同编号的新 Buff 也不会撞名；stackingKey、分组归约和来源记录保持各自声明。
+
+新 EffectSession 分配稳定时间线身份，当前 `Checkpoint.identity()` 保存为非空值，恢复沿用原身份。旧会话检查点 format 1 / 2 没有身份，解码保留为空，恢复时分配新身份；当前会话保存使用 format 3，包含 `timeline_identity` 和编译模式。身份只区分时间线的延续与替换，不能证明同一 tick 的存档分支未被重放，不能授权对已变化世界回滚、重试未知操作或替代原生实体生命校验。
+
+旧 DamageSnapshot 的八字段布局经 `LegacyDamageSnapshotV1` 精确迁移为 `captureOrigin=empty`，不从存储域、owner 或当前位置补造来源。无捕获来源的旧快照继续使用本地时刻不早于 capturedAt 的原规则，不因读入协调宿主而自动获得跨时钟权限。新记录分别使用 `damage_snapshot_v2`、`capture_origin`、`timeline_identity` 三个 DATA 身份，原 746 项形状保持，共 749 项；外层联合 archive 仍为 format 5。
+
+联合 archive 保存来源时间线身份和目标域的捕获结果 / 延迟工作，恢复不重新捕获、不重放已确认伤害。来源拥有和 Buff 拥有的真实玩家传送、低时钟目标中的实时取样，以及首击后恢复继续第二击的验收状态见[实现记录](engine-implementation.md)。本协议不迁移物理投射物，不解决 ShotGroups / EntityAttachments 活动句柄的跨域操作，也不增加任何效果循环上限。
 
 ### 选择事件标签后捕获伤害
 
@@ -2050,7 +2064,7 @@ Buff 的 `consume_on_damage.sharing` 默认为 `damage`，逐条伤害消费；�
 
 组的 origin 默认为 bound，也可选 event；成员的伤害 owner 必须一致。lifetime 为正的 second，区间半开；end_damage_group 可提前关闭，截止时自动清理。关闭后再发出成员伤害会明确失败，因此内容应让有效期覆盖所有预期分量。句柄可随显式 after / projectile 绑定传递，已确认的资格独立于原 Buff 后续到期 / 收枪；完整攻击行为由内容决定，不能据此推断所有 D2 技能都应共用资格。
 
-[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。共享宿主的跨域成员结算、来源 / Buff 自有 continuation 携带组句柄迁移见[签发账本与参与者查询](#伤害组的签发账本与显式参与者查询)，验收状态见[实现记录](engine-implementation.md)。一个组可跨多个动作和时刻，组身份不把其全部世界写入变成可回滚事务；物理效果实体恢复及 DamageSnapshot 跨不同逻辑时钟仍有独立限制。
+[damage_group.json](../common/src/test/resources/effects/damage_group.json) 及纯核心 / 双端世界测试覆盖直接与快照伤害、独立组、重施加、多层、目标动态条件、盾层 Profile、延迟、关闭 / 到期及未知结果。原版同组嵌套成员可使用同一待定资格，对独立攻击只预留一次成本；首个成功成员确认后，其他成员使用已保存的资格。归组必须由宿主显式传递同一 Handle，不从回调层级、root 或 batch 推断。共享宿主的跨域成员结算、来源 / Buff 自有 continuation 携带组句柄迁移见[签发账本与参与者查询](#伤害组的签发账本与显式参与者查询)，验收状态见[实现记录](engine-implementation.md)。一个组可跨多个动作和时刻，组身份不把其全部世界写入变成可回滚事务；物理效果实体恢复仍有独立限制，DamageSnapshot 的跨时钟命中另须提供[捕获时间线证明](#伤害快照的捕获时间线)。
 
 ## 选择派生动作的来源
 
@@ -2886,7 +2900,7 @@ Handle 显式保存 `ReferenceFormat`。`ISSUED_V1` 的 `reference()` 将完整 
 
 当前句柄写入 `handle_v3`，格式枚举使用 `reference_format`，共增加两个 DATA 条目；旧 744 项存储形状完全保留，总数为 746。旧 handle / handle_v2 按精确布局解码并迁移为 LEGACY，重新保存写入明确格式，不猜测旧组曾否发出事实。联合宿主 archive 继续使用 format 5，旧 cause、reference 和去重集合原样保存；验收结果见[实现记录](engine-implementation.md)。
 
-此能力不包含 ShotGroups / EntityAttachments 活动句柄迁移，它们仍在预检阶段拒绝；也不解决 DamageSnapshot 跨不同逻辑时钟的命中协议。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 仍遵守自己的捕获时刻与兼容性限制。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
+此能力不包含 ShotGroups / EntityAttachments 活动句柄迁移，它们仍在预检阶段拒绝。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 则另按[捕获时间线协议](#伤害快照的捕获时间线)核验原域身份、时刻和兼容性。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
 
 `ResourceReadView.combatParticipants(placement, programs)` 接受独立的 `ParticipantPlacement.Directory` 和各域完整程序。它不从资源目录推导参与者位置，也不自行建立原生实体授权。宿主必须在捕获至结算期间固定这些输入；原生路径还须核验实际实体对象、生命与物理域。普通资源视图仍保留本地非资源语义，不自动开启战斗模式。
 
@@ -2917,7 +2931,7 @@ Handle 显式保存 `ReferenceFormat`。`ISSUED_V1` 的 `reference()` 将完整 
 
 结果未知时，宿主保留已确认 child、实际护盾写入和 raw actual。可由原 claim 与回执证明的消费仍尝试共同保留；若授权已失效而无法发布，则保留 observed shadow、未决 claim 和实际回执作为失败诊断，停止整个共享宿主。`prepareObservedOperationDomain` 只发布已观察状态与事实，不给父操作填写结果、不清除其 pending，也不允许自动重放或检查点。成功联合发布后的反应派发若失败，同样保留已提交结果并停止宿主，不能回滚实际伤害后重试。
 
-此接线没有新增 DATA record 或改变既有存储形状。CombatBoundary、BuffPin / GroupPin、原生对象 pin、共享 shadow 与 actual 诊断都是执行期能力，不序列化成可恢复权限；稳定状态仍按既有联合检查点保存。本轮不限制 Char 等合法反馈循环，预算仅负责让出执行权。历史 launch-life 连续性、伤害快照跨不同逻辑时钟的命中协议仍未完成；真实原生边界与纯 Finish 的最终验收见实现记录，不据此增加 Compendium 的覆盖声明。
+此接线没有新增 DATA record 或改变既有存储形状。CombatBoundary、BuffPin / GroupPin、原生对象 pin、共享 shadow 与 actual 诊断都是执行期能力，不序列化成可恢复权限；稳定状态仍按既有联合检查点保存。本轮不限制 Char 等合法反馈循环，预算仅负责让出执行权。历史 launch-life 连续性仍未完成；伤害快照跨时钟由独立的捕获来源与持久时间线身份证明。真实原生边界、纯 Finish 和跨时钟快照的验收见[实现记录](engine-implementation.md)，不据此增加 Compendium 的覆盖声明。
 
 
 ## 共享 Strand 防御示例
@@ -3361,7 +3375,7 @@ Minecraft 宿主注册 `chorus:forward_ground_speed`，为两端所有具有属�
 
 ## 已结算会话的检查点与恢复
 
-该接口提供完整不可变状态的检查点、format 1 JSON 编解码、单文件原子替换，以及 Minecraft 运行时的捕获 / 恢复入口。默认目录宿主已接入正常停服保存和下次启动恢复，见[自动停服保存与启动恢复](#自动停服保存与启动恢复)；运行中自动保存和崩溃恢复仍未接入。内容作者不需要给每个 Buff 单独选择要保存的字段。
+该接口提供完整不可变状态的检查点、版本化 JSON 编解码、单文件原子替换，以及 Minecraft 运行时的捕获 / 恢复入口。默认目录宿主已接入正常停服保存和下次启动恢复，见[自动停服保存与启动恢复](#自动停服保存与启动恢复)；运行中自动保存和崩溃恢复仍未接入。内容作者不需要给每个 Buff 单独选择要保存的字段。
 
 ```java
 var session = new EffectSession(compiled, clock, 256, initialState, worldExecutor);
@@ -3372,17 +3386,17 @@ var saved = EffectCheckpointCodec.read(path);
 var resumed = EffectSession.restore(compiled, clock, 256, saved, worldExecutor);
 ```
 
-`EffectSession.Checkpoint` 固定完整规则目录、resourceRouting 编译模式与 `TimelineEngine.Checkpoint<EffectState>`，后者携带 domain、timeMicros、nextEvent、nextFrame。恢复要求目录内容及编译模式相等，允许重新编译同一份目录和改变单次 Pump 预算；相同 version 下改数值也会拒绝。协调模式使用上文的 format 2，本地模式与旧文件继续使用 format 1。直接用自定义 TimelineEngine 构建的旧会话未证明数据目录身份，不能调用这个数据目录检查点接口；通用 TimelineEngine 自身的检查点仍由调用方负责规则身份。
+`EffectSession.Checkpoint` 固定完整规则目录、resourceRouting 编译模式、可选 `identity` 与 `TimelineEngine.Checkpoint<EffectState>`，后者携带 domain、timeMicros、nextEvent、nextFrame。恢复要求目录内容及编译模式相等，允许重新编译同一份目录和改变单次 Pump 预算；相同 version 下改数值也会拒绝。当前会话无论本地或协调模式都保存非空 TimelineIdentity，写入 format 3；恢复保留身份。旧 format 1 / 2 读取为空身份，恢复会话时分配新身份，不凭存档位置补造快照来源。直接用自定义 TimelineEngine 构建的旧会话未证明数据目录身份，不能调用这个数据目录检查点接口；通用 TimelineEngine 自身的检查点仍由调用方负责规则身份。
 
 所有领域字段一起保留，尤其包括已脱离来源的 after、其捕获的伤害 / 查询结果、暂停定时器余量、Buff generation、已领取部分退款的保留凭据和随机流游标。不会重新初始化来源、补满资源、清空弹药、重新取攻击快照或重新抽随机数。恢复时保持原逻辑时间，未来推进仍逐个结算原期限；没有隐式补算离线时长。
 
 仅成功排空的边界可捕获。调用世界执行器期间、尚待回执、未处理事实 / Frame、未完成外部请求、失败或被放弃请求均拒绝。已完成回执不在检查点中保留：它们只用于原边界去重，恢复后所有 `< nextFrame` 的世界操作均已退休，晚到旧回执也不能恢复新动作。未知世界结果不能使用这个入口恢复或自动重试。
 
-JSON 顶层固定 `format / program / state / time_micros / next_event / next_frame`。两个数据树使用显式存储类型 ID；节点的 `$` 是类型，`v` 是字段或集合内容。全部字段必填，包括空 Optional / 集合；缺失观察不会解码成零值，空储备账户保持无限、零储备账户仍为有限。长整数和带类型的数值使用十进制字符串，浮点保留原 IEEE 值及负零。Map / Set 编码排序，列表保持顺序。类型表显式登记当前可达内置 record / enum；自定义扩展、Java 比较器或函数代码未注册时编码失败，不能静默删除。解码只构造数据，不执行任何 DSL 动作；装配和恢复仍须经过 CompiledEffects / EffectSession 校验。
+当前 format 3 的 JSON 顶层固定 `format / program / state / time_micros / next_event / next_frame / resource_routing / timeline_identity`；旧 format 1 / 2 使用各自精确字段集合。两个数据树使用显式存储类型 ID；节点的 `$` 是类型，`v` 是字段或集合内容。全部字段必填，包括空 Optional / 集合；缺失观察不会解码成零值，空储备账户保持无限、零储备账户仍为有限。长整数和带类型的数值使用十进制字符串，浮点保留原 IEEE 值及负零。Map / Set 编码排序，列表保持顺序。类型表显式登记当前可达内置 record / enum；自定义扩展、Java 比较器或函数代码未注册时编码失败，不能静默删除。解码只构造数据，不执行任何 DSL 动作；装配和恢复仍须经过 CompiledEffects / EffectSession 校验。
 
 `write` 先完成全量编码，再在目标同目录写临时文件并 force，最后以 ATOMIC_MOVE 替换；不支持原子移动时直接报错，没有非原子覆盖的退路。编码失败保留旧文件，临时文件在完成或失败后清理。该保证只针对单文件可见性，不保证它与 Minecraft 实体 / 物品文件共同提交，也不声称目录元数据的断电持久性。旧文件保留不能作为自动恢复已经发生未知世界写入的理由。
 
-存储 schema 有独立固定清单检查字段 / 泛型类型 / 枚举成员，且可达类型审计会发现新增内置类型漏注册。已有类型的结构变化需要显式版本迁移；只更新 v1 schema 清单不会让旧存档变得兼容。目前仅支持 format 1，未知版本拒绝。
+存储 schema 有独立固定清单检查字段 / 泛型类型 / 枚举成员，且可达类型审计会发现新增内置类型漏注册。已有类型的结构变化需要显式版本迁移；只更新 v1 schema 清单不会让旧存档变得兼容。会话检查点支持精确的 format 1 / 2 / 3，未知版本拒绝。
 
 ### 存储节点的版本迁移
 
@@ -3418,7 +3432,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 和 participant_placement 的 format 5（旧 format 4 的位置目录显式迁移为空）；列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。本地原生会话的 effects 使用 `EffectCheckpointCodec` format 1；明确采用协调编译的命名目录会话使用 format 2，并与目录一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
+`CheckpointArchive` 对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 和 participant_placement 的 format 5（旧 format 4 的位置目录显式迁移为空）；列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。当前原生会话的 effects 使用 `EffectCheckpointCodec` format 3，保存各自编译模式和 timeline_identity；旧 effects format 1 / 2 仍可读。协调目录与这些会话一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 

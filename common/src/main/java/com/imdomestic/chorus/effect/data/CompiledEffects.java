@@ -1706,6 +1706,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     public DamageCommand prepareDamage(EffectState state, DamageCommand command, Optional<ResourceReadView> view) {
         view.ifPresent(v -> v.require(program, state));
+        command.snapshot().ifPresent(snapshot -> snapshot.requireImpact(state, view));
         if (view.isPresent() && !view.orElseThrow().combatParticipantsEnabled()
                 && command.group().flatMap(DamageGroups.Handle::issuer).filter(issuer -> !issuer.equals(view.orElseThrow().domain())).isPresent())
             throw new IllegalArgumentException("Foreign grouped damage preparation requires an explicit combat participant view");
@@ -1808,7 +1809,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return captureDamage(state, attack, Optional.empty());
     }
     public DamageSnapshot captureDamage(EffectState state, DamageCommand attack, Optional<ResourceReadView> view) {
-        view.ifPresent(v -> v.require(program, state));
+        requireWorldQueryView(state, view);
+        var captureOrigin = view.flatMap(ResourceReadView::captureOrigin);
+        if (resourceRouting && captureOrigin.isEmpty()) throw new IllegalArgumentException("Coordinated capture requires a persistent timeline identity");
         settled(state);
         if (attack.snapshot().isPresent()) throw new IllegalArgumentException("Cannot capture an already captured attack");
         if (attack.group().isPresent()) throw new IllegalArgumentException("Assign an attack group at impact, not to a reusable snapshot");
@@ -1822,7 +1825,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var captured = captureContributions(state, attack.source().owner(), event, profileId, view);
         var shieldScaling = attack.shieldScalingProfile().map(id -> new DamageSnapshot.ShieldScaling(
                 new Validation(buffs, Map.of(), false, profiles).multiplierProfile(id), captureContributions(state, attack.source().owner(), event, id, view)));
-        return new DamageSnapshot(state.buffs().timeMicros(), state.mode(), prepareReactions(state, attack, view), profiles.get(profileId), buffs, resources, captured, shieldScaling);
+        return new DamageSnapshot(state.buffs().timeMicros(), state.mode(), prepareReactions(state, attack, view), profiles.get(profileId), buffs, resources, captured, shieldScaling, captureOrigin);
     }
     private List<DamageSnapshot.Contribution> captureContributions(EffectState state, String holder, RuleEngine.Event event, String profileId, Optional<ResourceReadView> view) {
         var captured = new ArrayList<DamageSnapshot.Contribution>();
@@ -1884,6 +1887,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return DamageGroups.require(state, handle);
     }
     private static String modifierInstance(Optional<ResourceReadView> view, String domain, String instance) {
+        // Provider identity must not depend on the physical caller: a frozen A/buff/2 and
+        // a later live B/buff/2 can coexist in one captured calculation after transfer.
+        var timeline = view.flatMap(value -> value.timelineIdentity(domain));
+        if (timeline.isPresent()) return "timeline/" + identityPart(domain) + "/" + identityPart(timeline.orElseThrow().value()) + "/" + instance;
         return view.isPresent() && !view.orElseThrow().domain().equals(domain) ? "domain/" + domain.length() + ":" + domain + "/" + instance : instance;
     }
     private void visitModifiers(EffectState state, String holder, RuleEngine.Event event, String profile, Optional<ResourceReadView> resourceView, java.util.function.Consumer<ModifierSite> visitor) {

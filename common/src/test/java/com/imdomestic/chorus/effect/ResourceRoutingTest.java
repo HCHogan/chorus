@@ -142,16 +142,27 @@ class ResourceRoutingTest {
         var f=new Fixture(data(rule("go",array(spend(.1)))));f.start("go");f.host.drain(4);var directory=f.host.snapshot().directory();
         var paid=f.values(Resources.SpendResult.class).getFirst().receipt().operation();
         for(var domain:List.of(A,B)) {
-            var saved=f.sessions.get(domain).checkpoint();var encoded=EffectCheckpointCodec.encode(saved);assertEquals(2,encoded.get("format").getAsInt());
+            var saved=f.sessions.get(domain).checkpoint();var encoded=EffectCheckpointCodec.encode(saved);assertEquals(3,encoded.get("format").getAsInt());
+            assertTrue(encoded.get("resource_routing").getAsBoolean());assertEquals(saved.identity().orElseThrow().value(),encoded.get("timeline_identity").getAsString());
             assertEquals(saved,EffectCheckpointCodec.decode(encoded));
             assertThrows(IllegalArgumentException.class,()->EffectSession.restore(new CompiledEffects(f.program.program()),EffectCheckpointTest.clock(),1,saved,_->{throw new AssertionError();}));
             var bad=encoded.deepCopy();bad.addProperty("resource_routing","true");assertThrows(IllegalArgumentException.class,()->EffectCheckpointCodec.decode(bad));
+            var legacy=new EffectSession.Checkpoint(saved.program(),saved.timeline(),true);var legacyWire=EffectCheckpointCodec.encode(legacy);
+            assertEquals(2,legacyWire.get("format").getAsInt());assertFalse(legacyWire.has("timeline_identity"));assertEquals(legacy,EffectCheckpointCodec.decode(legacyWire));
+            assertEquals(legacyWire,EffectCheckpointCodec.encode(EffectCheckpointCodec.decode(legacyWire)));
+            assertThrows(IllegalArgumentException.class,()->EffectSession.restore(new CompiledEffects(f.program.program()),EffectCheckpointTest.clock(),1,legacy,_->{throw new AssertionError();}));
             f.sessions.put(domain,EffectSession.restore(f.program,EffectCheckpointTest.clock(),1,EffectCheckpointCodec.decode(encoded),r->f.execute(domain,r)));
+            assertEquals(saved,f.sessions.get(domain).checkpoint());
         }
         f.connect(directory);f.start("go");assertEquals(.2,f.energy());assertNotEquals(paid,f.values(Resources.SpendResult.class).getLast().receipt().operation());
         var local=new EffectSession(new CompiledEffects(f.program.program()),EffectCheckpointTest.clock(),1,empty(0),_->{throw new AssertionError();}).checkpoint();
-        assertEquals(1,EffectCheckpointCodec.encode(local).get("format").getAsInt());assertFalse(EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(local)).resourceRouting());
+        var localWire=EffectCheckpointCodec.encode(local);assertEquals(3,localWire.get("format").getAsInt());assertFalse(localWire.get("resource_routing").getAsBoolean());
+        assertEquals(local,EffectCheckpointCodec.decode(localWire));
         assertThrows(IllegalArgumentException.class,()->EffectSession.restore(f.program,EffectCheckpointTest.clock(),1,local,_->{throw new AssertionError();}));
+        var legacyLocal=new EffectSession.Checkpoint(local.program(),local.timeline());var legacyLocalWire=EffectCheckpointCodec.encode(legacyLocal);
+        assertEquals(1,legacyLocalWire.get("format").getAsInt());assertFalse(legacyLocalWire.has("resource_routing"));assertFalse(legacyLocalWire.has("timeline_identity"));
+        assertEquals(legacyLocal,EffectCheckpointCodec.decode(legacyLocalWire));assertEquals(legacyLocalWire,EffectCheckpointCodec.encode(EffectCheckpointCodec.decode(legacyLocalWire)));
+        assertThrows(IllegalArgumentException.class,()->EffectSession.restore(f.program,EffectCheckpointTest.clock(),1,legacyLocal,_->{throw new AssertionError();}));
     }
     @Test void cyclicEnergyAndSelectedCapacityAreRoutedAsOnePairWithoutBankingExtraProgress() {
         var grant=action("grant_ability_energy","amount",charge(.7));grant.addProperty("slot",SLOT);grant.addProperty("value_basis","fixed");

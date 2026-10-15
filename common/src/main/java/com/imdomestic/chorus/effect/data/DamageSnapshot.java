@@ -13,7 +13,14 @@ import java.util.*;
 /** Immutable attack data. A pinned profile and partially bound expressions survive source removal and catalogue replacement. */
 public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageCommand attack, CalculationProfile profile,
         Map<String, BuffDefinition> buffs, Map<String, ResourceDefinition> resources, List<Contribution> contributions,
-        Optional<ShieldScaling> shieldScaling) implements RuleEngine.ActionResult {
+        Optional<ShieldScaling> shieldScaling, Optional<CaptureOrigin> captureOrigin) implements RuleEngine.ActionResult {
+    /** Historical clock provenance, not a permission to mutate or replay its source timeline. */
+    public record CaptureOrigin(String domain, TimelineIdentity timeline) {
+        public CaptureOrigin {
+            new com.imdomestic.chorus.effect.resource.ResourceAuthority.Lease(domain, 1);
+            Objects.requireNonNull(timeline);
+        }
+    }
     /** A typed component read can be explicitly empty; it never synthesizes an attack. */
     public record Stored(Optional<DamageSnapshot> snapshot) implements RuleEngine.ActionResult {
         public Stored { Objects.requireNonNull(snapshot); }
@@ -21,11 +28,16 @@ public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageComma
     public DamageSnapshot {
         Objects.requireNonNull(mode); Objects.requireNonNull(attack); Objects.requireNonNull(profile);
         buffs = Map.copyOf(buffs); resources = Map.copyOf(resources); contributions = List.copyOf(contributions);
-        Objects.requireNonNull(shieldScaling);
+        Objects.requireNonNull(shieldScaling); Objects.requireNonNull(captureOrigin);
         if (capturedAt < 0 || attack.batch().isPresent() || attack.group().isPresent() || !attack.consumptions().isEmpty() || attack.snapshot().isPresent() || !attack.impact().numbers().isEmpty() || !attack.scalingProfile().equals(Optional.of(profile.id()))) {
             throw new IllegalArgumentException("Invalid damage snapshot input");
         }
         if (!attack.shieldScalingProfile().equals(shieldScaling.map(value -> value.profile().id()))) throw new IllegalArgumentException("Snapshot shield profile differs from attack");
+    }
+    public DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageCommand attack, CalculationProfile profile,
+            Map<String, BuffDefinition> buffs, Map<String, ResourceDefinition> resources, List<Contribution> contributions,
+            Optional<ShieldScaling> shieldScaling) {
+        this(capturedAt, mode, attack, profile, buffs, resources, contributions, shieldScaling, Optional.empty());
     }
     public DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageCommand attack, CalculationProfile profile,
             Map<String, BuffDefinition> buffs, Map<String, ResourceDefinition> resources, List<Contribution> contributions) {
@@ -69,13 +81,23 @@ public record DamageSnapshot(long capturedAt, EffectState.Mode mode, DamageComma
     private List<NumericContribution> resolve(EffectState state, RuleEngine.Event event, List<Contribution> captured, Optional<CompiledEffects> current, Optional<ResourceReadView> view) {
         if (current.filter(CompiledEffects::resourceRouting).isPresent() && view.isEmpty()) throw new IllegalStateException("Coordinated snapshot resolution requires an explicit resource view");
         view.ifPresent(v -> v.require(current.orElseThrow().program(), state));
-        if (state.mode() != mode || state.buffs().timeMicros() < capturedAt) throw new IllegalArgumentException("Snapshot impact changed activity mode or precedes capture");
+        requireImpact(state, view);
         var result = new ArrayList<NumericContribution>();
         for (var contribution : captured) {
             var e = new Evaluation(state, new RuleEngine.Context(event, contribution.instance(), contribution.scope(), Map.of()), buffs, Map.of(), resources, Map.of(), current, view);
             if (contribution.condition().test(e)) result.add(contribution.numeric(contribution.value().evaluate(e)));
         }
         return List.copyOf(result);
+    }
+    /** Check historical ordering before a world call, without evaluating target-dependent modifiers. */
+    public void requireImpact(EffectState state, Optional<ResourceReadView> view) {
+        if (state.mode() != mode) throw new IllegalArgumentException("Snapshot impact changed activity mode");
+        if (captureOrigin.isPresent()) {
+            view.orElseThrow(() -> new IllegalArgumentException("Qualified snapshot requires its captured timeline view"))
+                    .requireCaptureOrigin(captureOrigin.orElseThrow(), capturedAt);
+        } else if (state.buffs().timeMicros() < capturedAt) {
+            throw new IllegalArgumentException("Legacy snapshot impact precedes capture");
+        }
     }
     /** Scope holds source identities only. Values and conditions have already bound all source-side state reads. */
     public record Contribution(String instance, String source, String definition, String version, EffectSource scope,

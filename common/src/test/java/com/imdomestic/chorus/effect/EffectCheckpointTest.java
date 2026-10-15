@@ -92,7 +92,10 @@ class EffectCheckpointTest {
         for (var h : List.of(original, restored)) { h.at(99_999); assertTrue(h.heals.isEmpty()); h.at(100_000); }
         assertEquals(List.of(9.0), restored.heals);
         assertEquals(original.seen, restored.seen);
-        assertEquals(original.session.checkpoint(), restored.session.checkpoint());
+        var originalAfter = original.session.checkpoint(); var restoredAfter = restored.session.checkpoint();
+        assertEquals(originalAfter.program(), restoredAfter.program()); assertEquals(originalAfter.timeline(), restoredAfter.timeline());
+        assertEquals(originalAfter.resourceRouting(), restoredAfter.resourceRouting());
+        assertEquals(checkpoint.identity(), restoredAfter.identity()); assertNotEquals(originalAfter.identity(), restoredAfter.identity());
         assertTrue(restored.seen.getLast().request().id().frame() >= checkpoint.timeline().nextFrame());
     }
     @Test void pausedBuffGenerationAndTimerRemainderSurviveRestoreWithoutCatchUpPulses() throws Exception {

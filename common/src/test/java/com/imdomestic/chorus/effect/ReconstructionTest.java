@@ -131,9 +131,16 @@ class ReconstructionTest {
     }
     @Test void checkpointRestoresTheSameFutureCadenceWithoutReplayingAttachmentsOrTransfers() throws Exception {
         var a = new Harness(); var b = new Harness(); for (var h : List.of(a, b)) h.until(8_000_000);
-        int before = b.cues.size(); b.restore(); assertEquals(before, b.cues.size()); assertEquals(a.session.checkpoint(), b.session.checkpoint());
+        var aIdentity = a.session.timelineIdentity(); var bIdentity = b.session.timelineIdentity(); assertNotEquals(aIdentity, bIdentity);
+        int before = b.cues.size(); b.restore(); assertEquals(before, b.cues.size()); assertEquals(bIdentity, b.session.timelineIdentity());
+        assertEquals(a.session.checkpoint().program(), b.session.checkpoint().program());
+        assertEquals(a.session.checkpoint().timeline(), b.session.checkpoint().timeline());
+        assertEquals(a.session.checkpoint().resourceRouting(), b.session.checkpoint().resourceRouting());
         for (var h : List.of(a, b)) { h.until(11_000_000); h.until(12_000_000); h.until(30_000_000); }
-        assertEquals(a.cues, b.cues); assertEquals(a.session.checkpoint(), b.session.checkpoint());
+        assertEquals(a.cues, b.cues); assertEquals(a.session.checkpoint().program(), b.session.checkpoint().program());
+        assertEquals(a.session.checkpoint().timeline(), b.session.checkpoint().timeline());
+        assertEquals(a.session.checkpoint().resourceRouting(), b.session.checkpoint().resourceRouting());
+        assertEquals(aIdentity, a.session.timelineIdentity()); assertEquals(bIdentity, b.session.timelineIdentity());
     }
     @Test void unknownPostRefillWorldResultRetainsTheTransferAndCannotReplayIt() throws Exception {
         var h = new Harness(); h.failRefill = true; assertThrows(IllegalStateException.class, () -> h.until(6_000_000));

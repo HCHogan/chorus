@@ -37,7 +37,12 @@ class WeaponHandlingStorageTest {
                 default -> throw new AssertionError(request.command());
             };
         });
-        assertTrue(world.isEmpty()); assertEquals(saved, session.checkpoint());
+        assertTrue(world.isEmpty()); assertTrue(saved.identity().isEmpty());
+        var upgraded = session.checkpoint(); var identity = session.timelineIdentity();
+        assertEquals(new EffectSession.Checkpoint(saved.program(), saved.timeline(), saved.resourceRouting(), Optional.of(identity)), upgraded);
+        var restored = EffectSession.restore(program, EffectCheckpointTest.clock(), 256,
+                EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(upgraded)), _ -> { throw new AssertionError("Restoration replayed world work"); });
+        assertEquals(upgraded, restored.checkpoint()); assertEquals(identity, restored.timelineIdentity());
         var reencoded = EffectCheckpointCodec.encode(saved);
         assertTrue(reencoded.toString().contains("chorus:effect/weapon/weapon_definition_v4"));
         assertFalse(reencoded.toString().contains("\"chorus:effect/weapon/weapon_definition\""));
@@ -52,6 +57,7 @@ class WeaponHandlingStorageTest {
         assertTrue(state.buffs().instances().values().stream().anyMatch(b -> b.definition().id().equals("chorus_d2:kill_clip") && b.origin().weapon().equals("a")));
         assertTrue(world.getFirst().id().frame() >= saved.timeline().nextFrame());
         assertTrue(session.checkpoint().timeline().nextEvent() > saved.timeline().nextEvent());
+        assertEquals(identity, session.timelineIdentity()); assertEquals(Optional.of(identity), session.checkpoint().identity());
         assertEquals(input, oldCheckpoint(), "Loading cannot mutate the archived wire data");
     }
     @Test void oldWireTypeRemainsStrictAndCannotSmuggleTheNewBehavior() throws Exception {

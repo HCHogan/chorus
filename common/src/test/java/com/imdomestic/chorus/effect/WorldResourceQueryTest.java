@@ -94,10 +94,11 @@ class WorldResourceQueryTest {
         assertEquals(29,outgoing(f,removed,restored.command(TARGET)),1e-9);
     }
     @Test void deferredVictimConditionsUseTheHitVictimAndMissingAccountsNeverFallBack() {
-        var f=new Fixture();var view=f.view();var snapshot=f.program.captureDamage(view.state(),attack(),Optional.of(view));
+        var f=new Fixture();var captured=f.host.snapshot();var view=new ResourceReadView(captured,A,f.program.program());
+        var snapshot=f.program.captureDamage(view.state(),attack(),Optional.of(view));
         // Unmanaged target has an explicit local account; its low energy suppresses the captured mixed term.
         var local=account(view.state(),"local_target","energy",.1,2);
-        var localWorlds=new ResourceAuthority.Worlds(f.host.snapshot().directory(),Map.of(A,local,B,f.state(B)));
+        var localWorlds=new ResourceAuthority.Worlds(captured.directory(),Map.of(A,local,B,captured.domain(B)),captured.timelines());
         var localView=new ResourceReadView(localWorlds,A,f.program.program());
         assertEquals(10.4,outgoing(f,localView,snapshot.command("local_target")),1e-9);
         assertThrows(IllegalArgumentException.class,()->outgoing(f,view,snapshot.command("missing")));
@@ -190,17 +191,19 @@ class WorldResourceQueryTest {
         f.grant(ENERGY,.5);f.grant(TARGET_ENERGY,.25);
         var data=JsonParser.parseString(data().toString().replace("resource-views","resource-views-next")).getAsJsonObject();
         var p=ResourceReadViewTest.compile(data).withResourceRouting();
-        var local=EffectState.empty().withSource(ResourceReadViewTest.source(HOLDER)).withSource(victimSource());
-        var remote=f.state(B);var directory=ResourceAuthority.claim(ResourceAuthority.Directory.EMPTY,HOLDER,B,p,remote);
+        var current=f.host.snapshot();
+        // A catalogue projection changes current providers, not either timeline's identity or clock.
+        var local=empty(current.domain(A).buffs().timeMicros()).withSource(ResourceReadViewTest.source(HOLDER)).withSource(victimSource());
+        var remote=current.domain(B);var directory=ResourceAuthority.claim(ResourceAuthority.Directory.EMPTY,HOLDER,B,p,remote);
         directory=ResourceAuthority.claim(directory,TARGET,B,p,remote);
-        var view=new ResourceReadView(new ResourceAuthority.Worlds(directory,Map.of(A,local,B,remote)),A,p.program());
+        var view=new ResourceReadView(new ResourceAuthority.Worlds(directory,Map.of(A,local,B,remote),current.timelines()),A,p.program());
         var result=p.outgoing(view,snapshot.command(TARGET),10).orElseThrow();assertEquals(29.9,result.output().value(),1e-9);assertEquals("resource-views",result.trace().version());
         for(var profile:data.getAsJsonArray("profiles"))if(profile.getAsJsonObject().get("id").getAsString().equals("test:attack"))
             profile.getAsJsonObject().getAsJsonArray("steps").get(0).getAsJsonObject().getAsJsonObject("group").addProperty("reduction","max");
         var incompatible=ResourceReadViewTest.compile(data).withResourceRouting();
         var otherDirectory=ResourceAuthority.claim(ResourceAuthority.Directory.EMPTY,HOLDER,B,incompatible,remote);
         otherDirectory=ResourceAuthority.claim(otherDirectory,TARGET,B,incompatible,remote);
-        var otherView=new ResourceReadView(new ResourceAuthority.Worlds(otherDirectory,Map.of(A,local,B,remote)),A,incompatible.program());
+        var otherView=new ResourceReadView(new ResourceAuthority.Worlds(otherDirectory,Map.of(A,local,B,remote),current.timelines()),A,incompatible.program());
         assertTrue(assertThrows(IllegalArgumentException.class,()->incompatible.outgoing(otherView,snapshot.command(TARGET),10)).getMessage().contains("captured profile layout"));
     }
 }

@@ -121,8 +121,10 @@ class ActionResourceRoutingTest {
         var modifier=object("{\"id\":\"damage\",\"profile\":\"test:damage\",\"stage\":\"add\",\"group\":\"add\",\"op\":\"add\",\"evaluate\":\"on_use\",\"stacking_key\":\"test:damage\",\"reference\":\"Synthetic migrated resource\",\"confidence\":\"assumed\"}");modifier.add("value",remote("damage",10));
         d.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("modifiers").add(modifier);
         var f=new Fixture(d);f.start("go");assertEquals(List.of(4.,8.),f.healed());
-        var snapshot=f.completed(DamageSnapshot.class).getFirst();assertEquals(4,snapshot.resolve(f.state(A),ResourceReadViewTest.context(HOLDER,Map.of()).event()).getFirst().amount().value());
-        f.balance(.9);assertEquals(4,snapshot.resolve(f.state(A),ResourceReadViewTest.context(HOLDER,Map.of()).event()).getFirst().amount().value());
+        var snapshot=f.completed(DamageSnapshot.class).getFirst();
+        assertThrows(IllegalArgumentException.class,()->snapshot.resolve(f.state(A),ResourceReadViewTest.context(HOLDER,Map.of()).event()));
+        assertEquals(4,snapshot.resolve(f.host.readView(A),ResourceReadViewTest.context(HOLDER,Map.of()).event(),f.program).getFirst().amount().value());
+        f.balance(.9);assertEquals(4,snapshot.resolve(f.host.readView(A),ResourceReadViewTest.context(HOLDER,Map.of()).event(),f.program).getFirst().amount().value());
     }
 
     @Test void unknownLocalPublicationKeepsTheBuffAndFactsWithoutRepeatingTheAction() {

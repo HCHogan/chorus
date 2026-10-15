@@ -2,6 +2,7 @@ package com.imdomestic.chorus.effect.resource;
 
 import com.imdomestic.chorus.effect.EffectSession;
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.TimelineIdentity;
 import com.imdomestic.chorus.effect.EffectClock;
 import com.imdomestic.chorus.effect.buff.BuffTransfer;
 import com.imdomestic.chorus.effect.CharacterTransfer;
@@ -26,8 +27,12 @@ public final class ResourceSessionAuthority {
         public Checkpoint {
             Objects.requireNonNull(directory); Objects.requireNonNull(placement); domains = Collections.unmodifiableMap(new TreeMap<>(domains));
             var states = new TreeMap<String, EffectState>();
+            var identities = new HashSet<TimelineIdentity>();
             domains.forEach((domain, saved) -> {
                 new ResourceAuthority.Lease(domain, 1); Objects.requireNonNull(saved);
+                saved.identity().ifPresent(identity -> {
+                    if (!identities.add(identity)) throw new IllegalArgumentException("Checkpoint reuses a timeline identity across domains");
+                });
                 if (saved.timeline().timeMicros() != saved.timeline().domain().buffs().timeMicros())
                     throw new IllegalArgumentException("Resource checkpoint and domain clocks differ");
                 states.put(domain, saved.timeline().domain());
@@ -183,7 +188,7 @@ public final class ResourceSessionAuthority {
                     throw new IllegalArgumentException("Resource owner catalogue differs from its live session");
                 next = ResourceAuthority.publish(next, partition, states.get(partition.lease().domain()));
             }
-            new ResourceAuthority.Worlds(next, states); // Includes managed-account replica and owner-clock checks.
+            new ResourceAuthority.Worlds(next, states, timelineIdentities(nextBindings)); // Includes managed-account replica and owner-clock checks.
             ParticipantPlacement.validate(placement, states);
             unchanged(nextBindings, timelines, Optional.empty());
             added.values().stream().filter(binding -> binding.program().resourceRouting()).forEach(binding -> binding.session().requireClockUnbound());
@@ -226,7 +231,8 @@ public final class ResourceSessionAuthority {
         public void violated(Throwable failure){if(violation==null)violation=Objects.requireNonNull(failure);}
         public void requireUnviolated(){if(violation!=null)throw new IllegalStateException("Native combat boundary was reentered",violation);}
         public ResourceReadView view(ResourceAuthority.Worlds shadow,String physical){
-            if(shadow.directory()!=worlds().directory()||!shadow.domains().keySet().equals(worlds().domains().keySet()))
+            if(shadow.directory()!=worlds().directory()||!shadow.domains().keySet().equals(worlds().domains().keySet())
+                    || !shadow.timelines().equals(worlds().timelines()))
                 throw new IllegalArgumentException("Combat query changed its captured resource authority");
             return new ResourceReadView(shadow,physical,programs.get(physical)).combatParticipants(placement(),programs);
         }
@@ -265,7 +271,8 @@ public final class ResourceSessionAuthority {
                 if(combat.managed()!=result.isPresent())throw new IllegalArgumentException("Managed combat requires exactly one actual operation result");
             }
             if(!combat.managed()&&result.isPresent())throw new IllegalArgumentException("Unmanaged combat has no enclosing operation result");
-            if(shadow.directory()!=combat.worlds().directory()||!shadow.domains().keySet().equals(combat.worlds().domains().keySet()))
+            if(shadow.directory()!=combat.worlds().directory()||!shadow.domains().keySet().equals(combat.worlds().domains().keySet())
+                    || !shadow.timelines().equals(combat.worlds().timelines()))
                 throw new IllegalArgumentException("Combat publication changed resource ownership or domain membership");
             facts.keySet().forEach(shadow::domain);
             var updates=new ArrayList<EffectSession.DomainUpdate>();
@@ -299,6 +306,11 @@ public final class ResourceSessionAuthority {
         if (value == null) throw new IllegalArgumentException("Missing live resource domain: " + domain);
         return value;
     }
+    private static Map<String, TimelineIdentity> timelineIdentities(Map<String, Binding> bindings) {
+        var identities = new TreeMap<String, TimelineIdentity>();
+        bindings.forEach((domain, binding) -> identities.put(domain, binding.session().timelineIdentity()));
+        return Map.copyOf(identities);
+    }
     private Snapshot capture(boolean publish) {
         return capture(publish, Optional.empty());
     }
@@ -321,7 +333,7 @@ public final class ResourceSessionAuthority {
             if (publish) next = ResourceAuthority.publish(next, partition, states.get(domain));
         }
         ParticipantPlacement.validate(placement, states);
-        var result = new Snapshot(new ResourceAuthority.Worlds(next, states), Map.copyOf(timelines), caller, bindings, placement);
+        var result = new Snapshot(new ResourceAuthority.Worlds(next, states, timelineIdentities(bindings)), Map.copyOf(timelines), caller, bindings, placement);
         unchanged(timelines, caller); directory = next; return result;
     }
     private void unchanged(Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {
@@ -366,6 +378,7 @@ public final class ResourceSessionAuthority {
     }
     private void commit(Snapshot before, ResourceAuthority.Worlds after, List<EffectSession.DomainUpdate> updates, ParticipantPlacement.Directory nextPlacement) {
         current(before);
+        if (!before.worlds().timelines().equals(after.timelines())) throw new IllegalArgumentException("Publication changed timeline identities");
         ParticipantPlacement.validate(nextPlacement, after.domains());
         EffectSession.commitDomains(updates);
         directory = after.directory(); // Reference assignment only; no rule or host callback can observe half a publication.
@@ -420,7 +433,7 @@ public final class ResourceSessionAuthority {
             settled();
             var before = capture(true);
             var next = ResourceAuthority.claim(directory, holder, domain, binding(domain).program(), before.worlds().domain(domain));
-            var checked = new ResourceAuthority.Worlds(next, before.worlds().domains());
+            var checked = new ResourceAuthority.Worlds(next, before.worlds().domains(), before.worlds().timelines());
             current(before); directory = checked.directory(); return directory.owner(holder);
         });
     }
@@ -446,7 +459,7 @@ public final class ResourceSessionAuthority {
                 else if (!existing.program().equals(program.program()))
                     throw new IllegalArgumentException("Resource enrollment requires the existing pinned catalogue");
             }
-            var checked = new ResourceAuthority.Worlds(next, before.worlds().domains());
+            var checked = new ResourceAuthority.Worlds(next, before.worlds().domains(), before.worlds().timelines());
             current(before); directory = checked.directory(); placement = nextPlacement;
             var enrolled = new TreeMap<String, ResourceAuthority.Partition>();
             requested.keySet().forEach(holder -> enrolled.put(holder, directory.owner(holder)));
@@ -491,7 +504,7 @@ public final class ResourceSessionAuthority {
         var plan=BuffTransfer.prepare(holder,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
         var domains=new TreeMap<>(worlds.domains());domains.put(source,plan.departure());domains.put(destination,plan.arrival());
         var moved=ParticipantPlacement.transfer(locations,ParticipantPlacement.Facet.BUFFS,holder,lease,destination);
-        return new BuffMovement(new ResourceAuthority.Worlds(worlds.directory(),domains),moved,plan);
+        return new BuffMovement(new ResourceAuthority.Worlds(worlds.directory(),domains,worlds.timelines()),moved,plan);
     }
     private BuffHandoff prepareBuffHandoff(String holder,String source,String destination) {
         settled();if(source.equals(destination))throw new IllegalArgumentException("Buff transfer needs another domain");
@@ -519,7 +532,7 @@ public final class ResourceSessionAuthority {
             }
             var character=CharacterTransfer.prepare(holder,carried,binding(source).program(),worlds.domain(source),binding(destination).program(),worlds.domain(destination),Optional.of(source));
             var domains=new TreeMap<>(worlds.domains());domains.put(source,character.departure());domains.put(destination,character.arrival());
-            var after=new ResourceAuthority.Worlds(worlds.directory(),domains);
+            var after=new ResourceAuthority.Worlds(worlds.directory(),domains,worlds.timelines());
             locations=ParticipantPlacement.transfer(locations,ParticipantPlacement.Facet.CHARACTER,holder,locations.owner(ParticipantPlacement.Facet.CHARACTER,holder),destination);
             ParticipantPlacement.validate(locations,after.domains());
             return new CharacterHandoff(new BuffHandoff(this,before,after,prepare(before,after),moves.get(holder),holder,locations),character,moves);
@@ -656,7 +669,7 @@ public final class ResourceSessionAuthority {
             case ResourceRequests.Close close -> {
                 var result=RetainedCosts.close(worlds.domain(close.issuer()),close.handle());
                 var domains=new TreeMap<>(worlds.domains());domains.put(close.issuer(),result.state());
-                yield new Applied(new ResourceAuthority.Worlds(worlds.directory(),domains),new ResourceRequests.Closed(close,(RetainedCosts.Closed)result.result()));
+                yield new Applied(new ResourceAuthority.Worlds(worlds.directory(),domains,worlds.timelines()),new ResourceRequests.Closed(close,(RetainedCosts.Closed)result.result()));
             }
             case ResourceMutations.Request mutation -> {
                 var result = ResourceMutations.apply(worlds, caller, operation, mutation, retained);

@@ -110,7 +110,7 @@ public final class CombatDomains {
         return new Group(pin.domain(), DamageGroups.require(worlds.domain(pin.domain()), pin.handle()));
     }
     private static ResourceAuthority.Worlds updated(ResourceAuthority.Worlds before, Map<String, EffectState> domains) {
-        return domains.equals(before.domains()) ? before : new ResourceAuthority.Worlds(before.directory(), domains);
+        return domains.equals(before.domains()) ? before : new ResourceAuthority.Worlds(before.directory(), domains, before.timelines());
     }
 
     /** Sample pinned Buff stores on their own clocks, before consumption; the observation belongs to the physical event. */

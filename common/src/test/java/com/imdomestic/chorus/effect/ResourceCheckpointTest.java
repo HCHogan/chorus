@@ -43,7 +43,7 @@ class ResourceCheckpointTest {
     static EffectSession.Checkpoint replace(EffectSession.Checkpoint saved, EffectState state) {
         var t = saved.timeline();
         return new EffectSession.Checkpoint(saved.program(), new TimelineEngine.Checkpoint<>(t.version(), state,
-                state.buffs().timeMicros(), t.nextEvent(), t.nextFrame()), saved.resourceRouting());
+                state.buffs().timeMicros(), t.nextEvent(), t.nextFrame()), saved.resourceRouting(), saved.identity());
     }
     @Test void capturePublishesEverySettledDomainWithoutAdvancingClocksOrEventCounters() {
         var f = ResourceSessionAuthorityTest.fixture(initial(0), empty(50_000));

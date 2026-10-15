@@ -1,8 +1,10 @@
 package com.imdomestic.chorus.effect.resource;
 
 import com.imdomestic.chorus.effect.EffectState;
+import com.imdomestic.chorus.effect.TimelineIdentity;
 import com.imdomestic.chorus.effect.combat.DamageGroups;
 import com.imdomestic.chorus.effect.data.EffectProgram;
+import com.imdomestic.chorus.effect.data.DamageSnapshot;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +50,20 @@ public final class ResourceReadView {
     }
     public String domain() { return domain; }
     public EffectState state() { return worlds.domain(domain); }
+    public Optional<TimelineIdentity> timelineIdentity(String selected) {
+        worlds.domain(selected);
+        return Optional.ofNullable(worlds.timelines().get(selected));
+    }
+    /** Provenance describes this exact query scope, independently of any holder's movable lease. */
+    public Optional<DamageSnapshot.CaptureOrigin> captureOrigin() {
+        return timelineIdentity(domain).map(identity -> new DamageSnapshot.CaptureOrigin(domain, identity));
+    }
+    public void requireCaptureOrigin(DamageSnapshot.CaptureOrigin origin, long capturedAt) {
+        if (!origin.timeline().equals(worlds.timelines().get(origin.domain())))
+            throw new IllegalArgumentException("Snapshot capture timeline is absent or replaced");
+        if (worlds.domain(origin.domain()).buffs().timeMicros() < capturedAt)
+            throw new IllegalArgumentException("Capture timeline has not reached the snapshot time");
+    }
     /**
      * Explicit facet queries require their independently captured placement and domain catalogues.
      * The native host must additionally pin entity life and physical binding through settlement.
@@ -97,7 +113,7 @@ public final class ResourceReadView {
         if (local.buffs().timeMicros() != state().buffs().timeMicros() || !local.resources().equals(state().resources()))
             throw new IllegalArgumentException("A resource query projection cannot change balances or advance time");
         var domains = new java.util.TreeMap<>(worlds.domains()); domains.put(domain, local);
-        return new ResourceReadView(new ResourceAuthority.Worlds(worlds.directory(), domains), domain, program, participants);
+        return new ResourceReadView(new ResourceAuthority.Worlds(worlds.directory(), domains, worlds.timelines()), domain, program, participants);
     }
     public void require(EffectProgram expectedProgram, EffectState expectedState) {
         if (!program.equals(expectedProgram) || state() != expectedState)

@@ -69,7 +69,7 @@ class ResourceCombatBoundaryTest {
     private static List<Signal> facts(EffectSession session){return session.state().engine().facts().stream().map(Event::signal).toList();}
     private static ResourceAuthority.Worlds replace(ResourceAuthority.Worlds before,String domain,EffectState state){
         var domains=new TreeMap<>(before.domains());domains.put(domain,state);
-        return new ResourceAuthority.Worlds(before.directory(),domains);
+        return new ResourceAuthority.Worlds(before.directory(),domains,before.timelines());
     }
     /** A confirmed hit spends the Buff in B and retains its eligibility in the issuer's ledger in A. */
     private static Observed observed(ResourceSessionAuthority.CombatBoundary ticket){
@@ -199,11 +199,18 @@ class ResourceCombatBoundaryTest {
     @Test void publicationRequiresCapturedDirectoryMembershipAndCorrectResultArity(){
         var f=new Fixture();var ticket=f.host.beginCombat(A,Optional.empty());var beforeA=f.a.state();var beforeB=f.b.state();
         var cloned=new ResourceAuthority.Worlds(new ResourceAuthority.Directory(ticket.worlds().directory().nextGeneration(),
-                ticket.worlds().directory().holders()),ticket.worlds().domains());
+                ticket.worlds().directory().holders()),ticket.worlds().domains(),ticket.worlds().timelines());
         assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,cloned,Optional.empty(),Map.of()));
         assertThrows(IllegalArgumentException.class,()->ticket.view(cloned,A));
-        var missing=new ResourceAuthority.Worlds(ticket.worlds().directory(),Map.of(A,ticket.worlds().domain(A)));
+        var missing=new ResourceAuthority.Worlds(ticket.worlds().directory(),Map.of(A,ticket.worlds().domain(A)),Map.of(A,ticket.worlds().timelines().get(A)));
         assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,missing,Optional.empty(),Map.of()));
+        var changedIdentities=new TreeMap<>(ticket.worlds().timelines());changedIdentities.put(A,TimelineIdentity.fresh());
+        for(var identities:List.of(Map.<String,TimelineIdentity>of(),changedIdentities)){
+            var changed=new ResourceAuthority.Worlds(ticket.worlds().directory(),ticket.worlds().domains(),identities);
+            assertThrows(IllegalArgumentException.class,()->ticket.view(changed,A));
+            assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,changed,Optional.empty(),Map.of()));
+            assertThrows(IllegalArgumentException.class,()->f.host.retainCombat(ticket,changed,Map.of()));
+        }
         assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,ticket.worlds(),Optional.of(Empty.INSTANCE),Map.of()));
         assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,ticket.worlds(),Optional.empty(),Map.of("test:unknown",List.of(CONFIRMED))));
         assertSame(beforeA,f.a.state());assertSame(beforeB,f.b.state());
