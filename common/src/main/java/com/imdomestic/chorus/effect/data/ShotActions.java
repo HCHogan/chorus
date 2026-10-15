@@ -25,8 +25,12 @@ public final class ShotActions {
         }
         @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
             var op = e.context().operation(); long now = e.state().buffs().timeMicros();
-            return ShotGroups.begin(e.state(), new ShotGroups.Handle("shot-group/" + op.frame() + "/" + op.pc() + "/" + op.invocation(),
-                    e.origin(), integer(pellets.evaluate(e).value()), now, Math.addExact(now, Action.micros(lifetime, e))));
+            String id = "shot-group/" + op.frame() + "/" + op.pc() + "/" + op.invocation();
+            var origin = e.origin(); int count = integer(pellets.evaluate(e).value());
+            long due = Math.addExact(now, Action.micros(lifetime, e));
+            var handle = e.resourceView().map(view -> ShotGroups.Handle.issued(id, origin, count, now, due, view.domain()))
+                    .orElseGet(() -> new ShotGroups.Handle(id, origin, count, now, due));
+            return ShotGroups.begin(e.state(), handle);
         }
     }
     public record Membership(String binding, Value pellet) {

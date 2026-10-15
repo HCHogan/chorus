@@ -8,6 +8,18 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：射击组的事实身份与旧存档去重连续性
+
+协调模式的 begin_shot 在本地账本创建时固定 issuer 和 ISSUED_V1 引用格式。shot 引用包含签发域、组 id、完整 origin（含排序 tags）、弹丸数及原始起止时刻，字符串字段使用长度前缀。成员伤害、进度和完成事实统一使用该引用，防止不同世界的同名组被 once_set 合并。创建沿现有普通 ActionRoutes 原子发布组、到期计时器及回执；没有另加一套创建路径。普通非协调 begin 保留本地旧约定。
+
+旧 v1 / v2 句柄精确迁移为 LEGACY，包括原已携带 issuer 的 v2；补齐 issuer 不升级格式，后续事实继续使用原裸 id。matches 拒绝不同引用格式互为别名，历史 cause、事实及已有去重集合不回写。当前格式新增 shot_groups/handle_v3 与 reference_format 两项 DATA 身份，原 749 项形状逐项保留，合计 751；外层 archive 与会话格式不变。
+
+新增 3 项 ShotGroupBeginIdentityTest、7 项 ShotGroupReferenceTest 与 4 项 ShotGroupSchemaTest，验证真实协调 DSL 创建与重复请求、两域同操作编号的身份隔离、联合 archive 恢复、完整来源及标签顺序、成员伤害 / 进度 / 最终结算引用一致、格式别名拒绝，以及嵌套账本 / timer / continuation / 接触证据的精确迁移。旧已限定 v2 会话保存首颗已命中状态和 once_set 后，恢复并完成第二颗仍只计同一组一次。这里的接触与伤害使用类型化合成回执，不作为新增原生跨域射击验收。
+
+最终 `/tmp/chorus-shot-reference-full-gate.log` BUILD SUCCESSFUL（4 分 14 秒）：2711 项 JUnit 无失败 / 错误 / 跳过，Fabric 1403、NeoForge 1418 项世界回归及双端发布包通过，正常停服检查点两次完成。首轮新到期夹具提前推进了仍持有到期 timer 的状态，修正为按时间线顺序先消费 timer 再派发到期事实，未放宽生产校验。`build/reports/shot-reference/audit.json` 核对旧 749 项存储形状、1421 / 1414 个发布主类字节一致、无测试内容泄漏及加载器 Gradle CRLF；10 项 Compendium 工具测试、来源与报告检查通过，审阅仍为 133 条（131 partial、2 not_applicable、0 verified）。本批没有新增独立进程重启或图形客户端验收。
+
+这一批只完成新组事实身份和存储兼容基础。ShotGroups 的完整跨域发射、接触、伤害记账、迁移后事实投递以及活动句柄迁移仍待完成；EntityAttachments 跨域、物理效果实体重启恢复及历史发射来源生命连续性也仍在后续范围内。Compendium 的逐项完整验收状态不因此提升。
+
 ### 2026-10-15：历史伤害快照的捕获时间线
 
 DamageSnapshot 增加可选 CaptureOrigin，协调捕获保存调用域及该 EffectSession 的稳定 TimelineIdentity，capturedAt 保持原逻辑时刻。准备世界伤害和实际数值查询都从同一不可变 ResourceReadView 核验原域身份及原域时钟；目标域的较低时钟不再使合法快照失败。角色、Buff、资源归属的移动不改捕获来源；各资源变更、迁移及战斗 shadow 保留完整时间线映射，联合发布拒绝替换。on_use 值继续冻结，目标条件与 on_hit 按本次命中视图求值。

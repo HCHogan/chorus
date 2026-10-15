@@ -25,6 +25,7 @@ class EffectHandleIssuerTest {
             "chorus:effect/combat/damage_groups/handle_v2", "chorus:effect/combat/damage_groups/handle",
             "chorus:effect/combat/damage_groups/handle_v3", "chorus:effect/combat/damage_groups/handle",
             "chorus:effect/projectile/shot_groups/handle_v2", "chorus:effect/projectile/shot_groups/handle",
+            "chorus:effect/projectile/shot_groups/handle_v3", "chorus:effect/projectile/shot_groups/handle",
             "chorus:effect/target/entity_attachments/handle_v2", "chorus:effect/target/entity_attachments/handle");
 
     static DamageTallies.Handle tally() { return new DamageTallies.Handle("tally", 0, DUE); }
@@ -270,7 +271,7 @@ class EffectHandleIssuerTest {
         var codec = EffectCheckpointCodec.DATA;
         assertHandleWire(tally().issuedBy(A), tally(), DamageTallies.Handle.class, "chorus:effect/combat/damage_tallies/handle_v2");
         assertHandleWire(damageGroup().issuedBy(A), damageGroup(), DamageGroups.Handle.class, "chorus:effect/combat/damage_groups/handle_v3");
-        assertHandleWire(shot().issuedBy(A), shot(), ShotGroups.Handle.class, "chorus:effect/projectile/shot_groups/handle_v2");
+        assertHandleWire(shot().issuedBy(A), shot(), ShotGroups.Handle.class, "chorus:effect/projectile/shot_groups/handle_v3");
         assertHandleWire(attachment().issuedBy(A), attachment(), EntityAttachments.Handle.class, "chorus:effect/target/entity_attachments/handle_v2");
 
         var current = ledgers(true); var legacy = ledgers(false);

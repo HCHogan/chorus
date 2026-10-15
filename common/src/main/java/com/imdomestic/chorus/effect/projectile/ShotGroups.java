@@ -13,15 +13,28 @@ import java.util.*;
 public final class ShotGroups {
     public static final String DUE = "chorus:internal/shot_due", RESOLVED = "chorus:shot_resolved", PROGRESS = "chorus:shot_progress";
     private ShotGroups() {}
-    public record Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt, Optional<String> issuer)
+    public enum ReferenceFormat { LEGACY, ISSUED_V1 }
+    public record Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt, Optional<String> issuer,
+            ReferenceFormat referenceFormat)
             implements RuleEngine.ActionResult, RuleEngine.Payload {
         public Handle {
             Objects.requireNonNull(id); Objects.requireNonNull(origin); Objects.requireNonNull(issuer); issuer.ifPresent(value -> new ResourceAuthority.Lease(value, 1));
+            Objects.requireNonNull(referenceFormat);
             if (id.isBlank() || pellets < 1 || startedAt < 0 || dueAt <= startedAt || dueAt == Long.MAX_VALUE)
                 throw new IllegalArgumentException("Invalid shot identity, count or lifetime");
+            if (referenceFormat == ReferenceFormat.ISSUED_V1 && issuer.isEmpty())
+                throw new IllegalArgumentException("Issued shot references require an issuer");
+        }
+        public Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt, Optional<String> issuer) {
+            this(id, origin, pellets, startedAt, dueAt, issuer, ReferenceFormat.LEGACY);
         }
         public Handle(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt) { this(id, origin, pellets, startedAt, dueAt, Optional.empty()); }
-        public Handle issuedBy(String domain) { return issuer.isPresent() ? this : new Handle(id, origin, pellets, startedAt, dueAt, Optional.of(domain)); }
+        public static Handle issued(String id, BuffInstance.Origin origin, int pellets, long startedAt, long dueAt, String issuer) {
+            return new Handle(id, origin, pellets, startedAt, dueAt, Optional.of(issuer), ReferenceFormat.ISSUED_V1);
+        }
+        public Handle issuedBy(String domain) {
+            return issuer.isPresent() ? this : new Handle(id, origin, pellets, startedAt, dueAt, Optional.of(domain), referenceFormat);
+        }
         public void requireIssuer(String domain) {
             if (issuer.isPresent() && !issuer.orElseThrow().equals(domain)) throw new IllegalArgumentException("Shot belongs to another issuing domain");
         }
@@ -29,9 +42,20 @@ public final class ShotGroups {
         public boolean matches(Handle other) {
             return other != null && id.equals(other.id) && origin.equals(other.origin) && pellets == other.pellets
                     && startedAt == other.startedAt && dueAt == other.dueAt
+                    && referenceFormat == other.referenceFormat
                     && (issuer.isEmpty() || other.issuer.isEmpty() || issuer.equals(other.issuer));
         }
         public String timerId() { return id + "/expiry"; }
+        /** Preserve existing once-set keys, including those written by issuer-qualified v2 handles. */
+        public String reference() {
+            if (referenceFormat == ReferenceFormat.LEGACY) return id;
+            var result = new StringBuilder("shot-issued/");
+            for (String value : List.of(issuer.orElseThrow(), id, origin.owner(), origin.source(), origin.weapon(), origin.ability()))
+                result.append(value.length()).append(':').append(value).append('/');
+            result.append(origin.tags().size()).append('/');
+            for (String tag : new TreeSet<>(origin.tags())) result.append(tag.length()).append(':').append(tag).append('/');
+            return result.append(pellets).append('/').append(startedAt).append('/').append(dueAt).toString();
+        }
     }
     public record Member(Handle shot, int pellet) {
         public Member { Objects.requireNonNull(shot); if (pellet < 0 || pellet >= shot.pellets()) throw new IllegalArgumentException("Pellet index outside shot"); }
@@ -190,7 +214,7 @@ public final class ShotGroups {
         for (var entry : hits.entrySet()) if (entry.getValue() > maximum) { maximum = entry.getValue(); victim = entry.getKey(); }
         var handle = group.handle(); var event = new EffectEvent(handle.origin().owner(), victim, handle.origin(), handle.origin().tags(), numbers,
                 Map.of("complete", group.complete(), "all_hit", group.complete() && hit == handle.pellets()),
-                Map.of("shot", handle.id(), "origin_source", handle.origin().source()));
+                Map.of("shot", handle.reference(), "origin_source", handle.origin().source()));
         return new Summary(event, handle, group.complete(), hits, effective);
     }
     private static Measure count(int value) { return new Measure(value, Unit.COUNT); }

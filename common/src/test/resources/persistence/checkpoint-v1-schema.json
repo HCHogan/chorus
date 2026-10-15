@@ -747,5 +747,7 @@
   "chorus:effect/combat/damage_groups/reference_format": ["LEGACY", "ISSUED_V1"],
   "chorus:effect/data/damage_snapshot_v2": ["capturedAt:long", "mode:com.imdomestic.chorus.effect.EffectState$Mode", "attack:com.imdomestic.chorus.effect.combat.DamageCommand", "profile:com.imdomestic.chorus.stat.CalculationProfile", "buffs:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.buff.BuffDefinition>", "resources:java.util.Map<java.lang.String, com.imdomestic.chorus.effect.resource.ResourceDefinition>", "contributions:java.util.List<com.imdomestic.chorus.effect.data.DamageSnapshot$Contribution>", "shieldScaling:java.util.Optional<com.imdomestic.chorus.effect.data.DamageSnapshot$ShieldScaling>", "captureOrigin:java.util.Optional<com.imdomestic.chorus.effect.data.DamageSnapshot$CaptureOrigin>"],
   "chorus:effect/data/damage_snapshot/capture_origin": ["domain:java.lang.String", "timeline:com.imdomestic.chorus.effect.TimelineIdentity"],
-  "chorus:effect/timeline_identity": ["value:java.lang.String"]
+  "chorus:effect/timeline_identity": ["value:java.lang.String"],
+  "chorus:effect/projectile/shot_groups/handle_v3": ["id:java.lang.String", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin", "pellets:int", "startedAt:long", "dueAt:long", "issuer:java.util.Optional<java.lang.String>", "referenceFormat:com.imdomestic.chorus.effect.projectile.ShotGroups$ReferenceFormat"],
+  "chorus:effect/projectile/shot_groups/reference_format": ["LEGACY", "ISSUED_V1"]
 }

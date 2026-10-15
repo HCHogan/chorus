@@ -1504,7 +1504,11 @@ Rampage 的可执行例子见 [rampage.json](../common/src/test/resources/effect
 ]
 ```
 
-这是片段：前文需要已捕获的 muzzle / aim / attack，并且还需要索引 1、2 的两个 projectile；完整可运行夹具是 [shot_weapon.json](../common/src/test/resources/effects/shot_weapon.json)。该夹具的三颗弹丸与数值是合成参数，不是 D2 霰弹枪原型。多个显式组可以属于同一次 fire_accepted，以表达未来连发控制的每个逻辑射击；触发身份 `origin.source=shot/<token>` 与整枪组身份 `references.shot=shot-group/...` 不同。
+这是片段：前文需要已捕获的 muzzle / aim / attack，并且还需要索引 1、2 的两个 projectile；完整可运行夹具是 [shot_weapon.json](../common/src/test/resources/effects/shot_weapon.json)。该夹具的三颗弹丸与数值是合成参数，不是 D2 霰弹枪原型。多个显式组可以属于同一次 fire_accepted，以表达未来连发控制的每个逻辑射击；触发身份 `origin.source=shot/<token>` 与整枪组身份 `references.shot` 不同，后者按句柄保存的引用格式生成，应当作不透明字符串使用。
+
+协调模式的新 `begin_shot` 在调用域建立本地账本，同时保存该域 issuer 与 `ReferenceFormat.ISSUED_V1`。它的 `reference()` 包含 issuer、id、完整 origin（包括稳定排序的 tags）、pellets、startedAt / dueAt，以无歧义字段边界区分不同世界的同名组。成员伤害事实、shot_progress 及 shot_resolved 使用同一个引用；内容的 once_set 不再把这类新组误合并。普通非协调 begin 保留原本的本地引用约定。
+
+旧 v1 / v2 句柄精确迁移为 `LEGACY`，包括已经带 issuer 的旧 v2，继续以原裸 id 生成事实。`issuedBy` 保留引用格式，`matches` 拒绝不同格式作为同一账本的别名。历史 cause、事件和去重集合不改写，恢复后同一组不会因标识换串被再次计数；旧标识已经缺失的跨域区分无法无损恢复。当前句柄写入独立 `handle_v3`，枚举新增 `reference_format`，旧 DATA 布局保留。此项仅建立身份与兼容协议，ShotGroups 的完整跨域操作、事实投递及活动句柄迁移仍待接入；`Pending.relocated` 继续拒绝直接携带该活动句柄。
 
 | shot_progress / shot_resolved 共有字段 | 含义 |
 | --- | --- |
