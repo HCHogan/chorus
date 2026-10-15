@@ -106,6 +106,7 @@
       "com.imdomestic.chorus.RegionSaveGameTest",
       "com.imdomestic.chorus.SavedDataSaveGameTest",
       "com.imdomestic.chorus.SaveSerializationGameTest",
+      "com.imdomestic.chorus.MinecraftPhysicalNbtGameTest",
       "com.imdomestic.chorus.WorldSaveGameTest",
       "com.imdomestic.chorus.CheckpointBoundaryGameTest",
       "com.imdomestic.chorus.CheckpointRestartGameTest",

@@ -4,6 +4,8 @@
 
 这是引擎的管理和调试入口。玩家已有独立装备容器和最小装备命令；已有按 K 打开的最小配装页、最小技能命令、单次开火与整弹匣 / 逐次装填的手动换弹命令；子职业 / 解锁和技能按键尚未自动绑定。engine attach 创建的是不保存到玩家档案的管理来源，不伪装成武器或技能信用；equipment 命令操作的实际装备另行持久化。
 
+物理效果持久化现有[独立目录与宿主协议基础](#物理效果目录与原生保存协议基础)，包括可选 archive format 6 和类型化原生 NBT 摘要。原生实体仍为 `noSave`，尚不支持弹体、拾取物或构造物跨重启恢复；这些宿主记录不是新增的内容 DSL。
+
 ## 最小可运行数据包
 
 在测试世界的 `datapacks/chorus-demo/` 下建立两个文件。26.3 的服务端数据包格式为 121.0：
@@ -3451,7 +3453,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 和 participant_placement 的 format 5（旧 format 4 的位置目录显式迁移为空）；列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。当前原生会话的 effects 使用 `EffectCheckpointCodec` format 3，保存各自编译模式和 timeline_identity；旧 effects format 1 / 2 仍可读。协调目录与这些会话一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
+`CheckpointArchive` 未附物理目录时，对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 和 participant_placement 的 format 5（旧 format 4 的位置目录显式迁移为空）；显式附物理目录时采用下节的 format 6。列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。当前原生会话的 effects 使用 `EffectCheckpointCodec` format 3，保存各自编译模式和 timeline_identity；旧 effects format 1 / 2 仍可读。协调目录与这些会话一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 
@@ -3465,6 +3467,36 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 新的 prepare 使旧 Save 句柄失效，旧异步回调不能确认 / 破坏新候选。若宿主过早确认后又收到同次保存失败，failed 会撤销该次 COMMITTED；已经进入下一 run 时拒绝旧回调，不写入新文件。修改过的候选不能被旧句柄提交。编码失败不覆盖原候选或替换它的句柄；磁盘错误继续向调用方传播。
 
 实际写入复用 `AtomicJsonFile`：完整编码后写同目录临时文件、force 文件、原子替换，无非原子回退；不是跨文件事务，也未提供目录元数据断电持久性保证。Store 自身不观察 Minecraft 内部的保存结果，不能把手工 confirm 当作原版保存成功的证据。原版玩家 / level.dat 的部分写入方法会捕获 I/O 异常并只记录日志，实体区域写入也有异步故障上报；自动宿主必须在真正写入 / flush 完成并确认这些故障通道以后提供对应确认。
+
+### 物理效果目录与原生保存协议基础
+
+该协议为实际物理效果保存和恢复提供数据边界，当前尚未接入原生实体的保存 / 加载。`EffectProjectile / EffectObject / EffectConstruct` 仍注册为 `noSave / noSummon`，`MinecraftCheckpointLifecycle` 仍调用 `beginCoordinated`。因此，下面的目录往返与摘要校验不能作为物理实体已经支持跨重启的证据，也没有新增内容作者需要填写的 DSL 字段。
+
+`PhysicalEffects.Identity` 固定规范实体 UUID、`projectile / pickup / construct` 种类、物理领域、`TimelineIdentity` 和程序目录 ID。`Snapshot` 另外保存 revision、capturedGameTime、capturedMicros、chunkX / chunkZ、64 字符小写十六进制 nativeDigest 和类型化 payload：
+
+| payload | 保存的执行与进度数据 |
+| --- | --- |
+| Projectile | 完整原始 Launch、物理 tick 年龄、已飞距离、Progress、仍处于内部的已命中实体 UUID、可选追踪目标 UUID、发射时 owner 分类 |
+| Pickup | 完整原始 Spawn、创建逻辑时刻、是否已经消费 |
+| Construct | 完整原始 Spawn、创建与到期时刻、是否已准入、可选 ended 事实 |
+
+仅活动 payload 可进入 Snapshot：终结弹体、已消费 / 到期拾取物、未准入 / 已结束 / 到期构造物拒绝；投射物进度还核对原始碰撞政策和剩余射程。终态 payload 可单独编解码作诊断，但不因此得到恢复权限。构造物的原生生命、Absorption、属性及生命身份等保留在完整原生 NBT 中，不由这张表复制一套不完整 Mob 状态。追踪 UUID 保留原观察，不在纯解码时查询当前世界、猜测目标生命或重新挑选目标。
+
+`Directory` 的 active / retired 按 UUID 索引且互斥。`admit` 只接受新 UUID 的 revision 0；`replace` 要求相同完整身份、revision 恰好加一、捕获时钟不倒退，并保持原 Launch / Spawn、创建时刻与单调的飞行进度。`retire` 从活动记录的下一 revision 生成 Tombstone；相同终结记录重提幂等，矛盾水位拒绝，终结后不能再登记同一 UUID。Tombstone 只含完整身份、revision 和原因，没有可重放的动作体。它是阻止旧原生数据再次执行的依据，不等同于磁盘删除证明；原生区块最后写入内容和加载准入尚待接通，不能提前丢弃水位。
+
+`PhysicalEffects.validate` 与归档中的全部领域共同核对目录 ID、稳定时间线、payload 程序版本和两种捕获时钟；旧会话缺少持久时间线身份时不能承载这些记录。活动判断发生在记录的捕获时刻，捕获不得晚于对应归档时钟；不把较晚的归档时刻伪装成这个尚未加载实体已经执行过的物理 tick。区块坐标和 nativeDigest 在纯层只是保存的数据；它们与实际实体、实际文件及已应用的原生状态之间的核对由后续宿主完成。
+
+`PhysicalEffectsCodec` 独立 format 1 的顶层仅为 `format / active / retired`；各层字段必须完整且精确，拒绝额外 / 缺失字段、错误类型、重复身份、非规范 UUID / 数值字符串与非有限值。整数和 traveled 使用规范字符串，目录与 inside 集合固定排序。Launch / Spawn / ended 的嵌套值复用 `EffectCheckpointCodec.DATA` 的既有形状；Progress 采用此独立格式中的计数、命中集合与 terminal 字段，不假定它已有 DATA 注册；这些宿主快照和目录没有注册为新 DATA，不改写已有类型 ID 或 schema。
+
+调用 `archive.withPhysicalEffects(directory)` 后，`CheckpointArchive` 写 format 6，顶层固定为 `format / dimensions / resource_directory / participant_placement / physical_effects`。本地归档的两种协调目录同时为 JSON null；协调归档同时保存资源和参与者位置目录，不能只出现其中一种。维度 Entry 布局不变。旧 format 1–5 解码为 `physicalEffects = Optional.empty()`，表示未声明物理目录；它不同于 `Optional.of(Directory.EMPTY)` 所表达的明确空目录。未附目录继续写本地 format 3 / 协调 format 5，旧文件不会在读取时凭空获得物理恢复声明。
+
+具备原生恢复能力的宿主才可调用 `WorldCheckpointStore.beginPhysical()`；该入口同时允许联合领域恢复。`begin / beginCoordinated` 在发现任何已声明的物理目录（包括空目录）时，在改写文件为 RUNNING 之前拒绝并保留原文件。具有物理目录的 `prepare` 要求当前会话显式选择该能力，且 requiredParts 包含独立的 `physical_effects`；其他保存部分成功不能替代它。读取 PREPARED / COMMITTED 磁盘记录时也必须包含该必需项；不能同时删去 required / confirmed 中的实体证明来伪装成功归档。一旦已恢复的归档或本次保存候选带有物理目录，后续候选不能改成没有目录。既有 prepare → 实际完成确认 → commit 及 failed 失效协议保持不变。Store 不观察原生实体写入，手工 `confirm("physical_effects")` 只是可信宿主的声明，不能自行证明恢复链路成立。
+
+目录存在也不足以证明历史连续。`prepare` 在改写候选之前，对恢复归档及上一已准备候选分别调用 `PhysicalEffects.requireSuccessor`：原有 Tombstone 必须完整原样保留；原活动 UUID 必须以同一身份保留，revision / 捕获时钟 / 已确认进度不能倒退，或变成更高 revision 的同身份 Tombstone。同 revision 的完整 Snapshot 必须相等。两次保存之间允许经过多次物理更新，故更高 revision 不要求只加一；这与单步 `replace / retire` 的下一代约束分开。当前尚无带原生删除证明的水位回收协议，因此用空目录、漏项、重写原因或复活旧 UUID 均不能遗忘历史。比较目录本身不授予实体写入权限。
+
+`MinecraftPhysicalNbt.digest` 的摘要格式版本为 1，以独立域标记和版本为前缀，对完整类型化原生 NBT 计算 SHA-256。仅排除根层 `chorus_physical` 键，嵌套同名键仍参与；Compound 键自然排序，List 保留顺序及各元素类型，标量与数组保留原生类型，Float / Double 保留原始 IEEE 位（包括负零与 NaN payload）。`withoutMarker` 返回仅去掉根标记的深复制，不修改输入。摘要输入在读取期间须保持稳定；摘要相等不证明实体已经应用原值，也不证明对应文件写入已经完成。例如原版加载对速度或位置的裁剪仍必须另行核验，不能只比较输入 NBT 就允许运行。
+
+后续原生接线须区分正常停服保存、普通区块卸载和实际终结：原版可能先编码实体再通知卸载移除，因此移除回调本身不能证明磁盘已删除该实体。需要核对最终区块写入及其完成结果、保留必要终结水位、在真正加入世界索引后验证被动加载实体，并在核验前阻止其执行；还需完成三类实体的独立进程恢复与失败场景验收。本阶段保留原生 `noSave` 及原启动入口，既有正常停服与恢复范围不变。
 
 ### 原版玩家与 level.dat 保存证据
 
@@ -3551,7 +3583,7 @@ pendingSave.confirm("saved_data");
 
 `MinecraftCheckpointLifecycle` 已通过必需的服务端 Mixin 接入两个加载器。文件位于实际世界根目录的 `chorus-checkpoint.json`；不需要额外保存命令。适用范围是默认 `EffectPrograms` 目录宿主的正常停服和相同目录下次启动，自定义 Java 执行器仍需自行实现对应保存协议。
 
-启动时，在原版持有世界锁、尚未 createLevels 的阶段调用 Store.begin。缺少文件代表首次使用；已有文件只接受 COMMITTED，并在返回恢复数据之前写成新 run 的 RUNNING。预检全部维度、目录是否存在、完整 EffectProgram 是否相等，以及归档时钟与实际 level.dat 是否一致。各 ServerLevel 构造结束时恢复该维度，早于加载器 level-load 事件和正常初始实体加载；loadLevel 完成时复核归档中的全部维度均已恢复。即使 version 相同，目录内容变化也拒绝启动，不默默丢弃来源、补满能量或回退空状态。
+启动时，在原版持有世界锁、尚未 createLevels 的阶段调用 `Store.beginCoordinated`。缺少文件代表首次使用；已有文件只接受 COMMITTED，并在返回恢复数据之前写成新 run 的 RUNNING；带物理目录的 format 6 归档在改写前拒绝，因为原生物理恢复能力尚未接通。预检全部维度、目录是否存在、完整 EffectProgram 是否相等，以及归档时钟与实际 level.dat 是否一致。各 ServerLevel 构造结束时恢复该维度，早于加载器 level-load 事件和正常初始实体加载；loadLevel 完成时复核归档中的全部维度均已恢复。即使 version 相同，目录内容变化也拒绝启动，不默默丢弃来源、补满能量或回退空状态。
 
 正常停服使用以下顺序：
 

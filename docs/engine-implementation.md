@@ -8,6 +8,18 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：物理效果目录、存档连续性与原生 NBT 摘要
+
+新增 PhysicalEffects，分别保存投射物原始 Launch / 碰撞进度 / 飞行年龄 / 距离 / inside / tracking、拾取物 Spawn / 创建时刻、构造物 Spawn / 准入 / 到期与终结状态。活动快照绑定完整实体身份、物理领域、稳定时间线、目录、双时钟、区块坐标与原生摘要；终结水位只含身份、revision 和原因。单步更新精确递增，跨保存允许多次 revision，但不能改写原始发射 / 生成数据、倒退进度或重新登记已终结 UUID。PhysicalEffectsCodec 使用独立 format 1；Launch / Spawn / Signal 复用已有 DATA，Progress 在独立格式内明确编码，原 762 项 DATA 及 schema 全部保持原形状。
+
+CheckpointArchive 显式附物理目录时写 format 6；旧 format 1–5 保留为未声明目录，与明确空目录不同，未附目录继续写本地 3 / 协调 5。WorldCheckpointStore.beginPhysical 显式选择恢复能力；旧入口在改写文件前拒绝物理归档。保存要求独立 physical_effects 证明，读取磁盘候选 / 已提交记录也核对该必需项。prepare 对恢复归档与上一候选分别验证目录连续性，禁止用 present 但为空的清单抹掉活动记录或终结水位；同 revision 必须完整相等，活动体只能继续或转为更高 revision 的同身份终结记录。未引入原生删除证明和水位回收授权。纯协议、存档与 38 项新回归已提交为 a76451ce。
+
+MinecraftPhysicalNbt 提供完整类型化 NBT 的规范 SHA-256 摘要及去根 marker 的深复制。摘要独立 format 1，只排除根 chorus_physical，保留嵌套同名键、列表次序、数字类型、数组、浮点原始位与字符串边界。10 项共享 MinecraftPhysicalNbtGameTest 在两加载器实际 NBT 实现上验证顺序、精度、NaN payload / 负零、超过双精度整数范围、复制隔离和独立固定向量。摘要不证明实体已经正确应用这些值，也不证明文件已写入。
+
+最终 `/tmp/chorus-physical-protocol-full-gate.log` BUILD SUCCESSFUL（4 分 10 秒）：2799 项 JUnit 无失败 / 错误 / 跳过，Fabric 1420、NeoForge 1435 项世界测试及两次正常停服检查点提交通过。`build/reports/physical-protocol/audit.json` 核验 DATA 762→762 完全相同、1468 / 1461 个发布主类字节一致、无测试内容泄漏、Gradle 文件内容和行尾未改。10 项 Compendium 工具测试、固定来源与生成报告检查通过。初次编译发现纯单元测试不提供 Minecraft NBT 类库，相关断言已完整迁到 GameTest；首次协议测试发现 Progress 并非已有 DATA 类型，已修为独立严格编码并补非法字段 / UUID / 数字及 Long.MAX_VALUE 回归，没有放宽注册表。
+
+本批只完成物理持久化的协议基础。三类实体仍 noSave / noSummon，原生启动仍 beginCoordinated；没有开启物理恢复，也没有新增独立进程重启证据。后续须接通最终区块写入证明、被动加载与真实索引准入、停服保存和实际终结的区别，及三类实体的连续两次跨进程恢复。历史发射来源生命连续性、通用跨世界范围查询 / GuardedDamage 和全部内容校准仍待完成。Compendium 保持 133 项审阅（131 partial、2 not_applicable、0 verified）。协议见[物理效果目录与原生保存协议基础](engine-data-packs.md#物理效果目录与原生保存协议基础)。
+
 ### 2026-10-15：实体附着跨域解析与原生生命周期共同提交
 
 来源 / Buff 自有 continuation 现可携带 EntityAttachments.Handle 在同一协调宿主内跨域接续。Begin / Close 通过 AttachmentRequests 访问签发域；Resolve 从原 issuer 读取当前 Entry / revision，原生查询按不可变实体引用选择实际世界，原样传递调用域的 WorldRequest。完成阶段以 issuer 当前状态核对精确回执，再共同发布原账本变化与调用域结果；不推进观察世界的会话，不沿 UUID 改绑新维度。旧未限定句柄仅由显式 sourceDomain 在迁移时补齐，后续交接保留原 issuer、生命、接触偏移和期限。普通 owner 子视图同时修复了 legacy damage group、shot group、attachment 默认物理根域的保留。
