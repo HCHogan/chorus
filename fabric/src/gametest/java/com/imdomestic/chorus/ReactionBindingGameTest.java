@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class ReactionBindingGameTest extends com.imdomestic.chorus.test.ReactionBindingGameTest {
+    @GameTest(structure = "chorus_gametest:empty") @Override
+    public void unrelatedNativeDamageDoesNotAcquireThisWeaponsReactionCredit(GameTestHelper h) throws Exception { super.unrelatedNativeDamageDoesNotAcquireThisWeaponsReactionCredit(h); }
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:reaction_unbound", maxTicks = 25) @Override
     public void physicalProjectileKeepsOldHitAndKillRulesAfterSourceRemoval(GameTestHelper h) throws Exception { super.physicalProjectileKeepsOldHitAndKillRulesAfterSourceRemoval(h); }
     @GameTest(structure = "chorus_gametest:empty", environment = "chorus_gametest:reaction_replace", maxTicks = 25) @Override

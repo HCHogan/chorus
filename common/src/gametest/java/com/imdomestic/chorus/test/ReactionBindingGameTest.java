@@ -51,7 +51,9 @@ public class ReactionBindingGameTest {
                 if (request.command() instanceof DamageCommand command) hits.add(command);
                 if (request.command() instanceof HealingCommand command) { heals.add(command); if (unknownHeal) throw new IllegalStateException("Injected unknown captured-reaction heal result"); }
                 return receipt;
-            }, (victim, _, amount) -> new DamageCommand(id(victim), source.origin(), amount, "chorus_gametest:delayed", Set.of("test:direct"), Set.of("chorus:weapon_kill"), false));
+            }, (victim, actual, amount) -> actual == nativeDamage
+                    ? new DamageCommand(id(victim), source.origin(), amount, "chorus_gametest:delayed", Set.of("test:direct"), Set.of("chorus:weapon_kill"), false)
+                    : MinecraftEffectRuntime.nativeSource(victim, actual, amount));
         }
         void launch() { runtime.start(new RuleEngine.Signal("test:launch", new EffectEvent(id(owner), id(target), source.origin(), Set.of(), Map.of()))); }
         void settled() { runtime.prepare(); h.assertTrue(runtime.failure().isEmpty() && runtime.state().idle(), "Reaction runtime failed: " + runtime.failure()); }
@@ -86,6 +88,16 @@ public class ReactionBindingGameTest {
                 }
             });
         } catch (RuntimeException | Error error) { t.close(); throw error; }
+    }
+    @GameCase
+    public void unrelatedNativeDamageDoesNotAcquireThisWeaponsReactionCredit(GameTestHelper h) throws Exception {
+        try (var t = new Harness(h)) {
+            t.target.hurtServer(h.getLevel(), h.getLevel().damageSources().generic(), 1); t.settled();
+            near(h, t.target.getHealth(), 99, "unrelated native damage still applies");
+            near(h, t.owner.getHealth(), 10, "unrelated damage must not heal this weapon owner");
+            h.assertTrue(t.amounts().isEmpty(), "unrelated damage acquired synthetic weapon credit");
+        }
+        h.succeed();
     }
     @GameCase
     public void nativeDamageAdapterCapturesImmediateOriginRulesWithoutHostPreprocessing(GameTestHelper h) throws Exception {
