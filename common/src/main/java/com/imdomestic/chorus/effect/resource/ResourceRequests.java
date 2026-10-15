@@ -8,7 +8,7 @@ import java.util.*;
 /** Stable-address world requests. The coordinator commits balances, actual receipts and recipient facts together. */
 public final class ResourceRequests {
     private ResourceRequests() {}
-    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request {}
+    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, ResourceMutations.Request, ResourceRoutes.Request {}
     public record Read(ResourceState.Key account) implements Request {
         public Read { Objects.requireNonNull(account); }
     }
@@ -24,7 +24,7 @@ public final class ResourceRequests {
             Numbers.fraction(fraction, "refund fraction");
         }
     }
-    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt {
+    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, ResourceMutations.Receipt, ResourceRoutes.Receipt {
         Request request();
         Optional<ResourceAuthority.Lease> recipient();
     }
@@ -61,6 +61,7 @@ public final class ResourceRequests {
     }
     /** Data only: invoking this does not execute recipient reactions or authorize another credit. */
     public static List<RuleEngine.Signal> facts(Receipt receipt) {
+        if (receipt instanceof ResourceRoutes.Receipt route) return route.primitive().map(ResourceRequests::facts).orElseGet(List::of);
         if (receipt instanceof ResourceMutations.Receipt mutation) return ResourceMutations.facts(mutation);
         if (receipt instanceof Granted granted) {
             var fact = ResourceFacts.granted(granted.grant(), granted.request().origin());

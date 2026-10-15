@@ -203,6 +203,10 @@ public final class EnergyActions {
     }
     private static Scaling scale(Evaluation e, String resource, Evaluation.Target target, Value amount, EnergyGains.Basis basis,
             Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers) {
+        return scale(e, resource, target, amount, basis, referenceFactors, tags, numbers, false);
+    }
+    static Scaling scale(Evaluation e, String resource, Evaluation.Target target, Value amount, EnergyGains.Basis basis,
+            Map<String, Value> referenceFactors, Set<String> tags, Map<String, Value> numbers, boolean ownerProfiles) {
         var account = e.resource(resource, target);
         var requested = amount.evaluate(e); Validation.same(requested.unit(), Unit.CHARGE);
         var factors = new TreeMap<String, Double>();
@@ -220,13 +224,15 @@ public final class EnergyActions {
             numbers.forEach((name, value) -> measurements.put(name, value.evaluate(e)));
             var refs = new HashMap<>(context.references()); refs.put("resource", resource);
             var query = new EffectEvent(context.actor(), context.victim(), e.origin(), tags, measurements, context.flags(), refs, context.impact()).withObservedBuffs(context.observedBuffs()).withObservedEntities(context.observedEntities());
-            var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, id,
-                    new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of(), e.resourceView()));
+            var queryView = ownerProfiles ? Optional.of(e.resourceView().orElseThrow().owner(account.key().holder())) : e.resourceView();
+            var queryState = ownerProfiles ? queryView.orElseThrow().state() : e.state();
+            var scalarCalculation = definition.gainScalarProfile().map(id -> e.program().orElseThrow().calculate(queryState, account.key().holder(), query, id,
+                    new Measure(definition.gainScalar(), Unit.MULTIPLIER), List.of(), queryView));
             scalarCalculation.ifPresent(result -> Validation.same(result.output().unit(), Unit.MULTIPLIER));
             var scalar = new RecipientScaling(definition.gainScalar(), scalarCalculation.map(result -> result.output().value()).orElse(definition.gainScalar()), scalarCalculation);
             recipient = Optional.of(scalar);
-            var result = e.program().orElseThrow().calculate(e.state(), account.key().holder(), query, profile,
-                    new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of(), e.resourceView());
+            var result = e.program().orElseThrow().calculate(queryState, account.key().holder(), query, profile,
+                    new Measure(normalized.base() * scalar.value(), Unit.CHARGE), List.of(), queryView);
             Validation.same(result.output().unit(), Unit.CHARGE);
             calculation = Optional.of(result); scaled = result.output().value();
         }

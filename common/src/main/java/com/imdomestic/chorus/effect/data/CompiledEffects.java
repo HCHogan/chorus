@@ -31,6 +31,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     private boolean horizontalSpeedLimits;
     public boolean hasHorizontalSpeedLimits(){return horizontalSpeedLimits;}
     private final EffectProgram program;
+    private final boolean resourceRouting;
+    public boolean resourceRouting() { return resourceRouting; }
+    public CompiledEffects withResourceRouting() { return resourceRouting ? this : new CompiledEffects(program, true); }
     private final Map<String, BuffDefinition> buffs;
     private final Map<String, EffectProgram.Bundle> bundles;
     private final Map<String, CalculationProfile> profiles;
@@ -91,7 +94,9 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         return new CompiledEffects(new EffectProgram(version, buffs, bundles, profiles, defense, resources, new EquipmentSchema(slots, items, limits, presentation), abilities, weapons, nativeAttributes, health));
     }
 
-    public CompiledEffects(EffectProgram program) {
+    public CompiledEffects(EffectProgram program) { this(program, false); }
+    private CompiledEffects(EffectProgram program, boolean resourceRouting) {
+        this.resourceRouting = resourceRouting;
         this.program = program;
         if (program.version().isBlank()) throw new IllegalArgumentException("Missing program version");
         this.buffs = index(program.buffs().stream().map(EffectProgram.Buff::definition).toList(), BuffDefinition::id);
@@ -820,7 +825,12 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         rule.procKey().ifPresent(CompiledEffects::namespaced);
         validatePayments(rule.actions(), new HashSet<>());
         rule.condition().validate(validation(bundle, Map.of()));
-        var actions = compileSteps(bundle, rule.actions(), Map.of(), Map.of(), "", bundle.id() + "/rule/" + rule.id(), continuations);
+        var actions = new ArrayList<>(compileSteps(bundle, rule.actions(), Map.of(), Map.of(), "", bundle.id() + "/rule/" + rule.id(), continuations));
+        if (resourceRouting) {
+            String site = bundle.id() + "/rule/" + rule.id() + "/condition";
+            actions.addFirst(decisionGuard(site, actions.size() + 1));
+            actions.addFirst(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceRoutes.Plan.query(new ResourceRoutes.Decision(rule.condition().test(e))), Map.of(), Map.of()), site));
+        }
         return new RuleEngine.EventRule<>(bundle.id() + "/rule/" + rule.id(), rule.on(), (state, context) -> {
             if (rule.procKey().filter(key -> !ProcPolicy.from(context.event().signal().payload()).allows(key)).isPresent()) return false;
             boolean captured = rule.binding() == EffectProgram.ReactionBinding.ORIGIN_BUNDLE
@@ -834,7 +844,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         || !(context.event().signal().payload() instanceof SourceChange.Fact fact)
                         || !fact.detached() || !source.equals(fact.source())) return false;
             }
-            return rule.condition().test(evaluation(state, context, Map.of()));
+            return resourceRouting || rule.condition().test(evaluation(state, context, Map.of()));
         }, actions);
     }
     private static void validatePayments(List<EffectProgram.Step> steps, java.util.Set<String> seen) {
@@ -854,11 +864,47 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
 
     private Evaluation scopedEvaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results, Map<String, String> slots) {
+        return scopedEvaluation(state, context, results, slots, Optional.empty());
+    }
+    private Evaluation scopedEvaluation(EffectState state, RuleEngine.Context context, Map<String, ResultShape> results, Map<String, String> slots, Optional<ResourceReadView> view) {
         var bindings = new HashMap<String, RuleEngine.ActionResult>();
         slots.forEach((name, slot) -> { if (context.bindings().containsKey(slot)) bindings.put(name, context.bindings().get(slot)); });
         var normalized = EffectContinuations.context(context);
         return new Evaluation(state, new RuleEngine.Context(normalized.event(), normalized.ruleInstance(), normalized.scope(), bindings, normalized.operation(), normalized.retainedResults(), normalized.pendingCommand()),
-                buffs, results, resources, normalized.retainedResults(), Optional.of(this));
+                buffs, results, resources, normalized.retainedResults(), Optional.of(this), view);
+    }
+    private final class Routed implements RuleEngine.Action<EffectState> {
+        private final String site;
+        private final Function<Evaluation, ResourceRoutes.Plan> prepare;
+        private final Map<String, ResultShape> results;
+        private final Map<String, String> slots;
+        private Routed(String site, Function<Evaluation, ResourceRoutes.Plan> prepare, Map<String, ResultShape> results, Map<String, String> slots) {
+            this.site = site; this.prepare = prepare; this.results = Map.copyOf(results); this.slots = Map.copyOf(slots);
+        }
+        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+            return new RuleEngine.Await<>(new ResourceRoutes.Request(site));
+        }
+        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult actual) {
+            if (!(actual instanceof ResourceRoutes.Receipt receipt) || !receipt.request().equals(context.command(ResourceRoutes.Request.class))
+                    || !receipt.request().site().equals(site)) throw new IllegalArgumentException("Resource result differs from compiled site");
+            return new RuleEngine.Local<>(state, receipt.value(), List.of());
+        }
+    }
+    private RuleEngine.Instruction<EffectState> decisionGuard(String binding, int skip) {
+        return new RuleEngine.Instruction<>((state, _) -> new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of()), "",
+                (_, context) -> context.result(binding, ResourceRoutes.Decision.class).passes(), skip);
+    }
+    /** Resolve only the instruction actually suspended in the pinned caller frame. */
+    public ResourceRoutes.Plan prepareResourceRoute(ResourceReadView view, RuleEngine.Frame frame, RuleEngine.WorldRequest request) {
+        view.require(program, view.state());
+        if (!resourceRouting || !(request.command() instanceof ResourceRoutes.Request route)
+                || request.id().frame() != frame.id() || request.id().pc() != frame.pc()
+                || !frame.pendingCommand().equals(Optional.of(request.command()))) throw new IllegalArgumentException("Not an active compiled resource route");
+        var definition = definitions.stream().filter(d -> d.definition().equals(frame.definition())).findFirst().orElseThrow();
+        if (frame.pc() >= definition.actions().size() || !(definition.actions().get(frame.pc()).action() instanceof Routed routed)
+                || !routed.site.equals(route.site())) throw new IllegalArgumentException("Resource route site differs from caller instruction");
+        var context = new RuleEngine.Context(frame.event(), frame.rule(), frame.scope(), frame.bindings(), request.id(), frame.retainedResults(), frame.pendingCommand());
+        return routed.prepare.apply(scopedEvaluation(view.state(), context, routed.results, routed.slots, Optional.of(view)));
     }
     private List<RuleEngine.Instruction<EffectState>> compileRayPath(EffectProgram.Bundle bundle, EffectProgram.Hitscan ray, Value pierces, Optional<Value> bounces, Value hitsPerTarget, boolean hitOrigin,
             Map<String, ResultShape> previous, Map<String, String> previousSlots, String path, String ownerRule, List<RuleEngine.EventRule<EffectState>> continuations) {
@@ -925,20 +971,31 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         if (results.putIfAbsent(instruction.bind(), shape) != null) throw new IllegalArgumentException("Duplicate or shadowed result binding: " + instruction.bind());
                         slots.put(instruction.bind(), slot);
                     }
-                    output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
-                        @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
-                            return instruction.action().execute(scopedEvaluation(state, context, previous, previousSlots));
-                        }
-                        @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult receipt) {
-                            return instruction.action().complete(scopedEvaluation(state, context, previous, previousSlots), receipt);
-                        }
-                    }, slot));
+                    if (resourceRouting && ResourceActionRouting.supports(instruction.action())) {
+                        String site = ownerRule + "/action/" + path + index;
+                        output.add(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceActionRouting.prepare(instruction.action(), e), previous, previousSlots), slot));
+                    } else {
+                        output.add(new RuleEngine.Instruction<>(new RuleEngine.Action<>() {
+                            @Override public RuleEngine.Outcome<EffectState> step(EffectState state, RuleEngine.Context context) {
+                                return instruction.action().execute(scopedEvaluation(state, context, previous, previousSlots));
+                            }
+                            @Override public RuleEngine.Local<EffectState> complete(EffectState state, RuleEngine.Context context, RuleEngine.ActionResult receipt) {
+                                return instruction.action().complete(scopedEvaluation(state, context, previous, previousSlots), receipt);
+                            }
+                        }, slot));
+                    }
                 }
                 case EffectProgram.Branch branch -> {
                     branch.condition().validate(validation(bundle, previous));
                     var yes = compileSteps(bundle, branch.then(), previous, previousSlots, path + index + "/then/", ownerRule, continuations);
                     var no = compileSteps(bundle, branch.otherwise(), previous, previousSlots, path + index + "/else/", ownerRule, continuations);
-                    output.add(new RuleEngine.Instruction<>(noop, "", (state, context) -> branch.condition().test(scopedEvaluation(state, context, previous, previousSlots)), yes.size() + 2));
+                    if (resourceRouting) {
+                        String site = ownerRule + "/branch/" + path + index;
+                        output.add(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceRoutes.Plan.query(new ResourceRoutes.Decision(branch.condition().test(e))), previous, previousSlots), site));
+                        output.add(decisionGuard(site, yes.size() + 2));
+                    } else {
+                        output.add(new RuleEngine.Instruction<>(noop, "", (state, context) -> branch.condition().test(scopedEvaluation(state, context, previous, previousSlots)), yes.size() + 2));
+                    }
                     output.addAll(yes);
                     output.add(new RuleEngine.Instruction<>(noop, "", (_, _) -> false, no.size() + 1));
                     output.addAll(no);

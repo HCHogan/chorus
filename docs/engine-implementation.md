@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：普通规则条件与资源动作的协调路由
+
+新增 CompiledEffects.withResourceRouting 显式编译模式。普通规则入口 / 分支条件、资源初始化 / 回能 / 扣费 / 退款 / 容量、Linked / CyclicRecharge、基础技能能量观察和 capture_value 通过固定编译位置的 ResourceRoutes 请求进入协调器。宿主核对实际 pending 帧和完整程序，在同一不可变快照上解析输入并提交资源原语、原 DSL 结果与接收事实；不把闭包、Evaluation 或可变视图放进存储数据。输入表达式使用调用作用域，接收回能和周期产量 Profile 使用归属领域当前状态。已有源 / proc 资格、条件短路、词法绑定与延迟作用域继续保留。
+
+结果封装的 Cost 保留实际付款认领额度，Completed 后原字段仍可读取；重复请求不重复记账或发事实。retain_cost 的签发账本保持原领域，延迟退款路由到当前归属。检查点增加明确的 resourceRouting 模式：协调模式写 format 2，本地模式保留 format 1；恢复拒绝目录或编译模式错配，旧文件按本地模式读取。新增四种路由存储形状至 711，原 707 项保持；该格式仍不允许保存执行中边界或 inbox，也未纳入原生联合迁移保存。
+
+新增 13 项核心场景，使用实际 JSON 规则和 EffectSession，验证迁移后的入口 / 分支读取、原字段驱动后续动作、重复退款、空分区初始化 / 容量 / 整次回充、短路不求值、封存后的延迟退款和再次迁移、接收者当前选择与增益、Linked / Cyclic 双账户变更及满额处理、循环每次独立付款、错误 site / 编译模式、未知或不同回执，以及模式编码 / 恢复后操作身份。首轮两项测试使用了错误的 basis 字段，改为已有 DSL 的 value_basis 后通过；相关核心回归见 `/tmp/chorus-resource-routing-core2.log`，最终 13 项见 `/tmp/chorus-resource-routing-core3.log`。
+
+完整回归 `/tmp/chorus-resource-routing-full-gate.log` BUILD SUCCESSFUL（4 分 20 秒）：2336 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项，两端发布包与两次正常停服检查点通过。`build/reports/resource-routing/audit.json` 核验旧 707 项存储形状保持、新增四项至 711、发布主类 1287 / 1280 个逐字节匹配且无测试泄漏、Gradle CRLF 和固定研究来源。10 项 Compendium 工具测试及来源 / 报告检查通过。
+
+默认原生宿主尚未启用协调编译。其他动作中的任意资源表达式、施放期技能替换 / 支付、原生传送、协调 tick 与联合保存仍须接通。本批未增加原作数值校准、Compendium 完整覆盖或图形客户端验收；审阅保持 133 条（131 partial、2 not_applicable、0 verified）。接口见[普通规则资源路由](engine-data-packs.md#普通规则的资源请求路由)。
+
 ### 2026-10-14：显式资源查询视图与本地写入边界
 
 新增 ResourceReadView，持有固定领域快照与完整程序，不包含可变会话或实时读取回调。ResourceSessionAuthority 提供普通协调边界和当前 WorldOperation 两种读取入口；读取不推进时间或生成事实。Evaluation 的可选视图让资源表达式、基础技能选择 / 能量观察读取当前归属分区，并沿嵌套 Profile、属性、弹匣容量以及本地回能查询传递。领域状态保持本地，不复制远端余额，也不把其他 Buff / 装备状态当作已经迁移。

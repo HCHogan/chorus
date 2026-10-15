@@ -986,7 +986,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 上述命令沿用同一 WorldOperation 的重复请求去重、原子余额 / 事实投递与未知结果保护。双账户操作在任何状态发布前完成全部定义和结果验证；第二账户不存在或不合法时，不能只消耗 progress。LinkedRecharge / CyclicRecharge 的事实构造与现有本地 DSL 共用 ResourceFacts，保持原事实次序与数值字段。新增十四个存储身份，原有字段形状保持；这不代表执行中帧或 inbox 已能独立保存。
 
-普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下一节提供显式只读账户视图；规则条件 / 动作的自动查询边界、施放期替换与支付，以及根据解析结果选择请求仍需接入。当前没有引入隐藏的全局可变余额查询，也没有启用不完整的自动路由。
+普通 DSL 的条件、Value.Resource、能量 Profile、技能替换和支付也读取资源，因此不能仅替换上述写入动作就启用原生迁移。下文的不可变视图与显式编译模式已连接规则条件和资源动作；施放期替换 / 支付及其余动作表达式仍须接通，原生迁移尚未开启。
 
 ### 资源查询的不可变视图
 
@@ -1000,7 +1000,29 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 普通本地资源写入使用 localResource / requireLocalResource。带视图的 initialize、grant、spend、refund、full charge、resize、能量回充及双账户转换遇到远端分区时，要求改走按地址执行的请求；只读观察不授权在旧领域重建账户。本地账户的纯转换仍可读取视图中的外部资源条件。动作的提案需要查询新建弹匣等非资源数据时，`withLocalState` 只允许同一时刻、完整资源表完全不变的本地提案；它返回新视图，其他领域保持原快照，不发布任何会话状态。
 
-当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。普通编译规则目前不会自动获取视图或把本地动作转为世界请求；自动路由、施放期技能替换 / 支付及原生协调输入 / tick / 保存还未启用。
+当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。下节的协调编译模式为规则条件与资源动作取得视图；默认本地编译保持原行为。施放期技能替换 / 支付及原生协调输入 / tick / 保存还未启用。
+
+### 普通规则的资源请求路由
+
+可信宿主对已链接目录调用 `compiled.withResourceRouting()`，用返回的 CompiledEffects 构造会话，并将 ResourceRequests 交给 `host.execute(caller, request)`。编译模式不改写 EffectProgram 中的内容定义。ResourceSessionAuthority 的 Binding 必须与实际会话使用同一完整目录和路由模式；写入前须 claim 每个受管持有者，包括尚无账户的空分区。受管账户即使仍在调用领域，也走同一协议。未 claim 的地址不能通过路由写入时偷偷建立归属。
+
+编译器为普通规则的入口条件、if 分支和下列动作生成固定指令位置的 ResourceRoutes.Request。请求只携带 site 字符串，不保存 Evaluation、闭包、会话或完整世界图。execute 用实际 pending 帧的 definition / pc / 操作身份验证该 site，恢复原词法绑定和延迟作用域，然后基于同一次协调快照解析输入、执行资源原语并提交结果与事实。入口仍先检查 proc 与来源存活 / 捕获资格；分支沿用短路和跳转语义。每个动作使用执行到该位置时的已提交余额，接收方尚未执行的 inbox 反应仍须由宿主继续调度。
+
+| 普通动作 | 协调行为 |
+| --- | --- |
+| initialize_resource、grant_resource、spend_resource、grant_full_charge、resize_resource | 解析实际归属后调用对应原语，返回原 Initialized / ResourceResult / SpendResult / ResizeResult。初始化不在旧领域重建账户。 |
+| refund_cost | 从当前帧已有付款及最新认领额度退款；循环每次付款使用独立操作身份，循环结束或旧绑定不能重置额度。 |
+| retain_cost / refund_retained_cost / close_retained_cost | 保留和关闭仍操作调用领域的签发账本；退款以该领域为 issuer 路由到当前账户归属，延迟动作仍在原签发会话执行。该接口不迁移账本或延迟帧。 |
+| complete_recharge | 在归属领域共同变更进度与可用份数；周期未完成时不求值可选产量表达式。 |
+| grant_energy、grant_ability_energy | 请求量、参考系数和输入测量在调用作用域求值；接收系数、gain Profile 与周期 yield Profile 显式使用归属领域的状态和视图。基础选择与可用 / 回充账户取接收者当前配置。双账户转换共同提交；没有选择 / 资源或独立可用账户已满时保留原 no-op 结果及求值顺序。 |
+| resize_ability_resource、observe_ability_energy | 使用接收者当前基础技能选择。未选择、无资源或固定容量的调整不先计算容量表达式。 |
+| capture_value | 以本次协调视图求值，返回普通 CapturedValue，可供之后的其他动作使用。 |
+
+ResourceRoutes.Result / Cost 封装实际原语回执与原 DSL 结果，Completed 解包后原有结果字段保持可用。Cost 本身保留真实 CostResult，退款额度在 complete 前已进入帧账本。重复执行同一回调得到同一封装结果，不重复发事实；complete 只交还结果，不再次投递资源事实。回调在提交后抛错或返回另一份结果仍冻结调用方，保留接收方已经提交的余额与事件，禁止重放及检查点导出。
+
+协调模式的 EffectSession.Checkpoint 显式记录 resourceRouting，编码为 format 2 并带严格布尔字段 `resource_routing`；普通本地模式继续写原 format 1。读取旧 format 1 得到本地模式。恢复须同时匹配完整目录与编译模式，不能把协调检查点交给默认编译器悄悄恢复为本地写入。原 707 项存储形状不变，仅增加四种路由命令 / 结果形状；格式扩展仍只保存已结算边界，不保存执行中帧、inbox 或可变视图。
+
+本节不等于已经启用整个 Minecraft 宿主的资源迁移：直接 useAbility / changeAbilities 的施放期选择与支付、其他动作内的任意资源表达式（例如伤害值、after 的延迟、范围查询半径）、协调输入 / tick、原生传送和联合保存尚未接齐。需要这些读取时可先用 capture_value 显式取数，但这不代替上述路径的完整接入。Buff、装备、弹药与物理实体也没有因账户路由而自动迁移。
 
 ### 接收会话的事实投递与反馈链
 
@@ -3062,7 +3084,7 @@ var saved = EffectCheckpointCodec.read(path);
 var resumed = EffectSession.restore(compiled, clock, 256, saved, worldExecutor);
 ```
 
-`EffectSession.Checkpoint` 固定完整规则目录与 `TimelineEngine.Checkpoint<EffectState>`，后者携带 domain、timeMicros、nextEvent、nextFrame。恢复要求目录内容相等，允许重新编译同一份目录和改变单次 Pump 预算；相同 version 下改数值也会拒绝。直接用自定义 TimelineEngine 构建的旧会话未证明数据目录身份，不能调用这个数据目录检查点接口；通用 TimelineEngine 自身的检查点仍由调用方负责规则身份。
+`EffectSession.Checkpoint` 固定完整规则目录、resourceRouting 编译模式与 `TimelineEngine.Checkpoint<EffectState>`，后者携带 domain、timeMicros、nextEvent、nextFrame。恢复要求目录内容及编译模式相等，允许重新编译同一份目录和改变单次 Pump 预算；相同 version 下改数值也会拒绝。协调模式使用上文的 format 2，本地模式与旧文件继续使用 format 1。直接用自定义 TimelineEngine 构建的旧会话未证明数据目录身份，不能调用这个数据目录检查点接口；通用 TimelineEngine 自身的检查点仍由调用方负责规则身份。
 
 所有领域字段一起保留，尤其包括已脱离来源的 after、其捕获的伤害 / 查询结果、暂停定时器余量、Buff generation、已领取部分退款的保留凭据和随机流游标。不会重新初始化来源、补满资源、清空弹药、重新取攻击快照或重新抽随机数。恢复时保持原逻辑时间，未来推进仍逐个结算原期限；没有隐式补算离线时长。
 
@@ -3108,7 +3130,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 当前写入独立的 format 3 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。会话 effects 继续使用 `EffectCheckpointCodec`，没有改变其原有 format 1。
+`CheckpointArchive` 当前写入独立的 format 3 宿主归档，列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。当前原生会话仍使用本地模式，effects 继续写 `EffectCheckpointCodec` 的 format 1；核心协调模式的 format 2 尚未接入此联合宿主保存路径。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 

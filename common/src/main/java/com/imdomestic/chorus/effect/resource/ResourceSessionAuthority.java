@@ -8,7 +8,7 @@ import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 import java.util.function.Supplier;
 
-/** Owner-thread bridge between the pure authority and live settled sessions. Does not intercept DSL resource actions. */
+/** Owner-thread bridge between the pure authority and live settled sessions. Supports explicitly compiled DSL resource routes. */
 public final class ResourceSessionAuthority {
     public record Binding(CompiledEffects program, EffectSession session) {
         public Binding { Objects.requireNonNull(program); Objects.requireNonNull(session); }
@@ -66,7 +66,7 @@ public final class ResourceSessionAuthority {
             var binding = entry.getValue();
             var current = caller.filter(value -> value.domain().equals(entry.getKey()));
             var catalogue = current.isPresent() || publish ? binding.session().catalogue() : binding.session().checkpoint().program();
-            if (!binding.program().program().equals(catalogue)) throw new IllegalArgumentException("Live resource catalogue differs from its session");
+            if (binding.program().resourceRouting() != binding.session().resourceRouting() || !binding.program().program().equals(catalogue)) throw new IllegalArgumentException("Live resource catalogue differs from its session");
             var timeline = current.isPresent() ? binding.session().operationState(current.orElseThrow().operation())
                     : publish ? binding.session().coordinationState() : binding.session().state();
             timelines.put(entry.getKey(), timeline); states.put(entry.getKey(), timeline.engine().domain());
@@ -184,31 +184,49 @@ public final class ResourceSessionAuthority {
                 return receipt;
             }
             var before = capture(true, Optional.of(new Caller(caller, operation)));
+            var frame = before.timelines().get(caller).engine().frames().getFirst();
             ResourceAuthority.Worlds after; ResourceRequests.Receipt receipt;
-            switch (command) {
-                case ResourceRequests.Read read -> {
-                    var owner = before.worlds().directory().owner(read.account()); after = before.worlds();
-                    receipt = new ResourceRequests.ReadResult(read, owner.account(read.account().resource()), owner.lease());
+            if (command instanceof ResourceRoutes.Request route) {
+                var compiled = binding(caller).program();
+                var plan = compiled.prepareResourceRoute(new ResourceReadView(before.worlds(), caller, compiled.program()), frame, request);
+                if (plan.primitive().isPresent()) {
+                    var result = apply(before.worlds(), caller, request.id(), plan.primitive().orElseThrow(), frame.retainedResults());
+                    after = result.worlds(); receipt = plan.complete(route, Optional.of(result.receipt()));
+                } else {
+                    after = before.worlds(); receipt = plan.complete(route, Optional.empty());
                 }
-                case ResourceRequests.Grant grant -> {
-                    var result = ResourceAuthority.grant(before.worlds(), grant.account(), grant.requested(), grant.scaled()); after = result.worlds();
-                    receipt = new ResourceRequests.Granted(grant, result.result(), result.recipient());
-                }
-                case ResourceRequests.Refund refund -> {
-                    var result = ResourceAuthority.refund(before.worlds(), refund.issuer(), refund.handle(), refund.fraction()); after = result.worlds();
-                    receipt = new ResourceRequests.Refunded(refund, result.result(), result.recipient());
-                }
-                case ResourceMutations.Request mutation -> {
-                    var frame = before.timelines().get(caller).engine().frames().getFirst();
-                    var result = ResourceMutations.apply(before.worlds(), caller, request.id(), mutation, frame.retainedResults());
-                    after = result.worlds(); receipt = result.receipt();
-                }
+            } else {
+                var result = apply(before.worlds(), caller, request.id(), command, frame.retainedResults());
+                after = result.worlds(); receipt = result.receipt();
             }
             var emitted = ResourceRequests.facts(caller, request.id(), receipt);
             var facts = emitted.isEmpty() ? Map.<String, List<RuleEngine.Signal>>of()
                     : Map.of(receipt.recipient().orElseThrow().domain(), emitted);
             commit(before, after, prepare(before, after, Optional.of(receipt), facts)); return receipt;
         });
+    }
+    private record Applied(ResourceAuthority.Worlds worlds, ResourceRequests.Receipt receipt) {}
+    private Applied apply(ResourceAuthority.Worlds worlds, String caller, RuleEngine.OperationId operation,
+            ResourceRequests.Request command, Map<String, RuleEngine.ActionResult> retained) {
+        return switch (command) {
+            case ResourceRequests.Read read -> {
+                var owner = worlds.directory().owner(read.account());
+                yield new Applied(worlds, new ResourceRequests.ReadResult(read, owner.account(read.account().resource()), owner.lease()));
+            }
+            case ResourceRequests.Grant grant -> {
+                var result = ResourceAuthority.grant(worlds, grant.account(), grant.requested(), grant.scaled());
+                yield new Applied(result.worlds(), new ResourceRequests.Granted(grant, result.result(), result.recipient()));
+            }
+            case ResourceRequests.Refund refund -> {
+                var result = ResourceAuthority.refund(worlds, refund.issuer(), refund.handle(), refund.fraction());
+                yield new Applied(result.worlds(), new ResourceRequests.Refunded(refund, result.result(), result.recipient()));
+            }
+            case ResourceMutations.Request mutation -> {
+                var result = ResourceMutations.apply(worlds, caller, operation, mutation, retained);
+                yield new Applied(result.worlds(), result.receipt());
+            }
+            case ResourceRoutes.Request ignored -> throw new IllegalArgumentException("Nested resource route");
+        };
     }
     public record Drained(int boundaries, boolean pending) {}
     /** Cooperative round-robin scheduling: a finite batch yields with every remaining fact intact, including feedback chains. */

@@ -1,4 +1,8 @@
 {
+  "chorus:effect/resource/resource_routes/cost": ["request:com.imdomestic.chorus.effect.resource.ResourceRoutes$Request", "primitive:java.util.Optional<com.imdomestic.chorus.effect.resource.ResourceRequests$Receipt>", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult"],
+  "chorus:effect/resource/resource_routes/decision": ["passes:boolean"],
+  "chorus:effect/resource/resource_routes/request": ["site:java.lang.String"],
+  "chorus:effect/resource/resource_routes/result": ["request:com.imdomestic.chorus.effect.resource.ResourceRoutes$Request", "primitive:java.util.Optional<com.imdomestic.chorus.effect.resource.ResourceRequests$Receipt>", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult"],
   "chorus:effect/resource/resource_mutations/initialize": ["account:com.imdomestic.chorus.effect.resource.ResourceState$Key", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],
   "chorus:effect/resource/resource_mutations/spend": ["account:com.imdomestic.chorus.effect.resource.ResourceState$Key", "amount:double", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],
   "chorus:effect/resource/resource_mutations/full_charges": ["account:com.imdomestic.chorus.effect.resource.ResourceState$Key", "count:int", "origin:com.imdomestic.chorus.effect.buff.BuffInstance$Origin"],

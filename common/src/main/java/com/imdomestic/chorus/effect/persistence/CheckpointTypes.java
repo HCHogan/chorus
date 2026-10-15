@@ -8,6 +8,11 @@ final class CheckpointTypes {
     private CheckpointTypes() {}
     static RecordTreeCodec create() {
         var types = new LinkedHashMap<String, Class<?>>();
+        types.put("chorus:effect/resource/resource_routes/request", com.imdomestic.chorus.effect.resource.ResourceRoutes.Request.class);
+        types.put("chorus:effect/resource/resource_routes/decision", com.imdomestic.chorus.effect.resource.ResourceRoutes.Decision.class);
+        types.put("chorus:effect/resource/resource_routes/result", com.imdomestic.chorus.effect.resource.ResourceRoutes.Result.class);
+        types.put("chorus:effect/resource/resource_routes/cost", com.imdomestic.chorus.effect.resource.ResourceRoutes.Cost.class);
+
         types.put("chorus:effect/resource/resource_mutations/initialize", com.imdomestic.chorus.effect.resource.ResourceMutations.Initialize.class);
         types.put("chorus:effect/resource/resource_mutations/spend", com.imdomestic.chorus.effect.resource.ResourceMutations.Spend.class);
         types.put("chorus:effect/resource/resource_mutations/full_charges", com.imdomestic.chorus.effect.resource.ResourceMutations.FullCharges.class);

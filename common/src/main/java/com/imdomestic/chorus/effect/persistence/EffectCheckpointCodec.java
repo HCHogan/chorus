@@ -13,12 +13,15 @@ import java.util.Set;
 /** Versioned, exact JSON checkpoint data and atomic single-file replacement; not a Minecraft world-save transaction. */
 public final class EffectCheckpointCodec {
     private EffectCheckpointCodec() {}
-    public static final int FORMAT = 1;
+    public static final int FORMAT = 2;
     public static final RecordTreeCodec DATA = CheckpointTypes.create();
-    private static final Set<String> FIELDS = Set.of("format", "program", "state", "time_micros", "next_event", "next_frame");
+    private static final Set<String> FIELDS_V1 = Set.of("format", "program", "state", "time_micros", "next_event", "next_frame");
+
+    private static final Set<String> FIELDS_V2 = Set.of("format", "program", "state", "time_micros", "next_event", "next_frame", "resource_routing");
 
     public static JsonObject encode(EffectSession.Checkpoint checkpoint) {
-        var output = new JsonObject(); output.addProperty("format", FORMAT);
+        var output = new JsonObject(); output.addProperty("format", checkpoint.resourceRouting() ? FORMAT : 1);
+        if (checkpoint.resourceRouting()) output.addProperty("resource_routing", true);
         output.add("program", DATA.encode(checkpoint.program()));
         var timeline = checkpoint.timeline();
         if (timeline.domain().buffs().timeMicros() != timeline.timeMicros()) throw new IllegalArgumentException("Checkpoint and domain clocks differ");
@@ -30,16 +33,22 @@ public final class EffectCheckpointCodec {
     }
     public static EffectSession.Checkpoint decode(JsonElement input) {
         var object = input.getAsJsonObject();
-        if (!object.keySet().equals(FIELDS)) throw new IllegalArgumentException("Checkpoint fields differ from format 1");
         var format = object.get("format");
-        if (!(format instanceof JsonPrimitive primitive) || !primitive.isNumber() || primitive.getAsBigDecimal().intValueExact() != FORMAT)
-            throw new IllegalArgumentException("Unsupported checkpoint format");
+        if (!(format instanceof JsonPrimitive primitive) || !primitive.isNumber()) throw new IllegalArgumentException("Unsupported checkpoint format");
+        int version = primitive.getAsBigDecimal().intValueExact();
+        if (version != 1 && version != FORMAT) throw new IllegalArgumentException("Unsupported checkpoint format");
+        if (!object.keySet().equals(version == 1 ? FIELDS_V1 : FIELDS_V2)) throw new IllegalArgumentException("Checkpoint fields differ from format " + version);
+        boolean routing = false;
+        if (version == 2) {
+            if (!(object.get("resource_routing") instanceof JsonPrimitive routed) || !routed.isBoolean()) throw new IllegalArgumentException("Invalid resource routing mode");
+            routing = routed.getAsBoolean();
+        }
         var program = DATA.decode(object.get("program"), EffectProgram.class);
         var state = DATA.decode(object.get("state"), EffectState.class);
         long time = sequence(object, "time_micros");
         if (state.buffs().timeMicros() != time) throw new IllegalArgumentException("Checkpoint and domain clocks differ");
         return new EffectSession.Checkpoint(program, new TimelineEngine.Checkpoint<>(program.version(), state, time,
-                sequence(object, "next_event"), sequence(object, "next_frame")));
+                sequence(object, "next_event"), sequence(object, "next_frame")), routing);
     }
     private static long sequence(JsonObject object, String field) {
         var value = object.get(field);
