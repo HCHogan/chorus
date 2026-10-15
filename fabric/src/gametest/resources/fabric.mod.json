@@ -209,6 +209,7 @@
       "com.imdomestic.chorus.CharacterTransferGameTest",
       "com.imdomestic.chorus.NativeCharacterTransferGameTest",
       "com.imdomestic.chorus.NativeInputTransferGameTest",
+      "com.imdomestic.chorus.TallyTransferGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",

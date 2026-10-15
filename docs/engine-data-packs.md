@@ -1097,7 +1097,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 
 普通本地资源写入使用 localResource / requireLocalResource。带视图的 initialize、grant、spend、refund、full charge、resize、能量回充及双账户转换遇到远端分区时，要求改走按地址执行的请求；只读观察不授权在旧领域重建账户。本地账户的纯转换仍可读取视图中的外部资源条件。动作的提案需要查询新建弹匣等非资源数据时，`withLocalState` 只允许同一时刻、完整资源表完全不变的本地提案；它返回新视图，其他领域保持原快照，不发布任何会话状态。
 
-当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。下节的协调编译模式为规则条件与资源动作取得视图；默认本地编译保持原行为。施放期技能替换 / 支付已接到下述协调接口；原生协调输入 / tick / 保存还未启用。
+当前视图是可信 Java 宿主的显式查询输入，不写入 EffectState 或检查点，也不把整个跨领域世界图捕获进延迟动作。查询得到的普通 Measure、AbilityObservation、CalculationProfile.Result 等仍可按原数据协议保存。下节的协调编译模式为规则条件与资源动作取得视图；默认本地编译保持原行为。施放期技能替换 / 支付与原生共享宿主的输入 / tick / 联合保存已接到下述协调接口。
 
 ### 普通规则的资源请求路由
 
@@ -1109,7 +1109,8 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 | --- | --- |
 | initialize_resource、grant_resource、spend_resource、grant_full_charge、resize_resource | 解析实际归属后调用对应原语，返回原 Initialized / ResourceResult / SpendResult / ResizeResult。初始化不在旧领域重建账户。 |
 | refund_cost | 从当前帧已有付款及最新认领额度退款；循环每次付款使用独立操作身份，循环结束或旧绑定不能重置额度。 |
-| retain_cost / refund_retained_cost / close_retained_cost | 保留和关闭仍操作调用领域的签发账本；退款以该领域为 issuer 路由到当前账户归属，延迟动作仍在原签发会话执行。该接口不迁移账本或延迟帧。 |
+| retain_cost / refund_retained_cost / close_retained_cost | 保留在调用领域签发；退款与关闭按 handle.issuer 访问原账本，退款余额进入账户当前归属。来源 / Buff 自有延迟工作可由角色迁移协议移动，账本继续留在原域。 |
+| begin_damage_tally / record_damage / read_damage_tally / close_damage_tally | 创建时记录 issuer；之后按句柄回原域统计、读取或关闭，按原域时钟到期，与调用域确定回执共同提交。详见[签发域路由](#伤害统计的签发域路由)。 |
 | complete_recharge | 在归属领域共同变更进度与可用份数；周期未完成时不求值可选产量表达式。 |
 | grant_energy、grant_ability_energy | 请求量、参考系数和输入测量在调用作用域求值；接收系数、gain Profile 与周期 yield Profile 显式使用归属领域的状态和视图。基础选择与可用 / 回充账户取接收者当前配置。双账户转换共同提交；没有选择 / 资源或独立可用账户已满时保留原 no-op 结果及求值顺序。 |
 | resize_ability_resource、observe_ability_energy | 使用接收者当前基础技能选择。未选择、无资源或固定容量的调整不先计算容量表达式。 |

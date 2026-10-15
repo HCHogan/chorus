@@ -6,6 +6,14 @@
 
 ## 当前证据
 
+### 2026-10-15：原生迁移后的伤害统计与联合恢复验收
+
+两项 TallyTransferGameTest 使用真实 ServerPlayer.teleport、目的地 DamageCommand 和原生治疗：来源自有 continuation 随玩家移动，目的地实际损失 3 HP 后只写原世界的统计，嵌套延迟动作回原账本关闭并治疗一次。另一项在伤害已记账、收益未执行时编码 / 解码联合 archive，恢复后继续关闭和收益。测试同时核对实际世界伤害命令调用次数始终为 1，防止原版受击冷却掩盖重放；这是同进程恢复，不是独立进程重启验收。跨域 read 数值、同名碰撞与连续三域迁移由下节核心测试覆盖。
+
+初次定向遗漏新测试类注册，退出后未完成保存的测试世界已改名保留；随后实际伤害受原版传送保护拒绝，测试补齐真实 teleport ACK 与 level-loaded ACK 后，两场景及 NeoForge 测试编译在 `/tmp/chorus-tally-routing-world5.log` 通过，没有修改生产伤害资格。完整 `/tmp/chorus-tally-routing-full-gate.log` BUILD SUCCESSFUL（3 分 54 秒）：2546 项 JUnit 无失败 / 错误 / 跳过，Fabric 1378、NeoForge 1393 项世界测试通过，共享场景 1377 项，双端发布包及两次正常停服检查点通过。伤害调用计数在该轮 Fabric 编译后加入，NeoForge 全量已包含；最终 `/tmp/chorus-tally-routing-counter-gate.log` 补跑两项 Fabric 场景通过。
+
+`build/reports/tally-routing/audit.json` 核对原 730 项存储形状保持、新总数 740、1382 / 1375 个发布主类字节一致、无测试类 / 测试环境 / 故障 mixin 泄漏以及 Gradle CRLF。Compendium 来源与生成报告检查通过，仍为 133 条审阅（131 partial、2 not_applicable、0 verified）；本批不增加 D2 数值校准、图形客户端或其他三类活动句柄的跨域完成声明。
+
 ### 2026-10-15：伤害统计的跨域签发账本
 
 四类活动句柄增加可选 issuer，保留旧构造器与严格 record equality，纯账本入口通过完整旧身份加兼容 issuer 接受旧别名。DamageTallies 的四个 DSL 动作在协调模式通过 ResourceRoutes / EffectHandleRequests 读取和修改签发域，原域状态与调用域确定回执共同提交。新 begin 立即限定 issuer；来源 / Buff 自有 continuation 迁移只为旧未限定句柄补齐地址，A→B→C 保留最初签发域、原期限和共享 damage_id 去重。目标同名账本不参与查找，普通本地 DSL 拒绝限定句柄。

@@ -54,7 +54,7 @@ public class NativeCharacterTransferGameTest {
     static final class Fixture implements AutoCloseable {
         final GameTestHelper h;final ServerLevel local,remote;final ServerPlayer player;final String holder;
         final Vec3 home;final CompiledEffects program;MinecraftResourceRuntime host;
-        MinecraftEffectRuntime departure,arrival;final List<String> cues=new ArrayList<>();int heals;
+        MinecraftEffectRuntime departure,arrival;final List<String> cues=new ArrayList<>();int heals,damageCalls;
         final AbilityLoadout selected=new AbilityLoadout(Map.of("test:grenade","test:ability"));
         final ActorBinding actor=new ActorBinding("test:actor");
         Fixture(GameTestHelper h){this(h,false,program());}
@@ -86,6 +86,7 @@ public class NativeCharacterTransferGameTest {
             item.setDamageValue(7);item.set(DataComponents.CUSTOM_NAME,Component.literal("Transfer "+suffix));return item;
         }
         RuleEngine.ActionResult world(ServerLevel level,RuleEngine.WorldRequest request){
+            if(request.command() instanceof com.imdomestic.chorus.effect.combat.DamageCommand)damageCalls++;
             var actions=new MinecraftWorldActions(level,id->level.getEntity(UUID.fromString(id)) instanceof LivingEntity e?e:null,
                     _->level.damageSources().generic(),(_,_) -> true,cue->cues.add(cue.cue()));
             var result=actions.apply(request);if(result instanceof HealingReceipt)heals++;return result;
