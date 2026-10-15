@@ -5,6 +5,7 @@ import com.imdomestic.chorus.rule.OperationLedger;
 import com.imdomestic.chorus.rule.TimelineEngine;
 import com.imdomestic.chorus.effect.data.CompiledEffects;
 import com.imdomestic.chorus.effect.data.EffectProgram;
+import com.imdomestic.chorus.effect.resource.ResourceReadView;
 import java.util.Objects;
 import java.util.List;
 import java.util.Optional;
@@ -23,21 +24,25 @@ public final class EffectSession {
     private boolean running;
     private boolean inbox;
     private WorldOperation activeOperation;
+    private ClockOperation activeClock;
+    private Function<ClockOperation, ResourceReadView> clockCapture;
+    private final Function<ResourceReadView, EffectClock> clockPolicy;
 
     public EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world) {
-        this(engine, engine.initial(initial), world, Optional.empty(), new OperationLedger(), false);
+        this(engine, engine.initial(initial), world, Optional.empty(), new OperationLedger(), false, null);
     }
     /** A data-defined session pins its complete catalogue, not only its human-readable version label. */
     public EffectSession(CompiledEffects program, EffectClock clock, int budget, EffectState initial, Function<WorldRequest, ActionResult> world) {
-        this(program.engine(clock, budget), initial, world, program.program(), program.resourceRouting());
+        this(program.engine(clock, budget), initial, world, program, clock);
     }
-    private EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world, EffectProgram program, boolean resourceRouting) {
-        this(engine, engine.initial(initial), world, Optional.of(program), new OperationLedger(), resourceRouting);
+    private EffectSession(TimelineEngine<EffectState> engine, EffectState initial, Function<WorldRequest, ActionResult> world, CompiledEffects program, EffectClock clock) {
+        this(engine, engine.initial(initial), world, Optional.of(program.program()), new OperationLedger(), program.resourceRouting(), view -> program.continuousClock(view, clock));
     }
     private EffectSession(TimelineEngine<EffectState> engine, TimelineEngine.State<EffectState> initial,
-            Function<WorldRequest, ActionResult> world, Optional<EffectProgram> program, OperationLedger ledger, boolean resourceRouting) {
+            Function<WorldRequest, ActionResult> world, Optional<EffectProgram> program, OperationLedger ledger, boolean resourceRouting, Function<ResourceReadView, EffectClock> clockPolicy) {
         this.engine = Objects.requireNonNull(engine); this.world = Objects.requireNonNull(world);
         this.state = Objects.requireNonNull(initial); this.program = program; this.ledger = ledger; this.resourceRouting = resourceRouting;
+        this.clockPolicy = clockPolicy;
     }
     /** Full immutable domain state; host/world state and storage encoding are separate responsibilities. */
     public record Checkpoint(EffectProgram program, TimelineEngine.Checkpoint<EffectState> timeline, boolean resourceRouting) {
@@ -62,13 +67,49 @@ public final class EffectSession {
         if (program.resourceRouting() != checkpoint.resourceRouting() || !program.program().equals(checkpoint.program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
         var engine = program.engine(clock, budget);
         return new EffectSession(engine, engine.restore(checkpoint.timeline()), world, Optional.of(program.program()),
-                OperationLedger.restore(checkpoint.timeline().nextFrame()), program.resourceRouting());
+                OperationLedger.restore(checkpoint.timeline().nextFrame()), program.resourceRouting(), view -> program.continuousClock(view, clock));
     }
     public TimelineEngine.State<EffectState> state() { return state; }
     public boolean running() { return running; }
     public boolean inboxPending() { thread(); return inbox; }
     public EffectProgram catalogue() {
         thread(); return program.orElseThrow(() -> new IllegalStateException("Operation requires a pinned data-defined catalogue"));
+    }
+    /** One coordinator owns time capture for a coordinated session; restore creates a fresh unbound session. */
+    public void requireClockUnbound() {
+        current(state);
+        if (!resourceRouting || clockCapture != null) throw new IllegalStateException("Clock coordination requires an unbound coordinated session");
+    }
+    public void bindClockCapture(Function<ClockOperation, ResourceReadView> capture) {
+        requireClockUnbound(); clockCapture = Objects.requireNonNull(capture);
+    }
+    /** Capability for the exact idle-interpreter boundary currently preparing time advancement. */
+    public static final class ClockOperation {
+        private final EffectSession session;
+        private final TimelineEngine.State<EffectState> before;
+        private final Input input;
+        private ClockOperation(EffectSession session, TimelineEngine.State<EffectState> before, Input input) {
+            this.session = session; this.before = before; this.input = input;
+        }
+    }
+    public TimelineEngine.State<EffectState> clockState(ClockOperation operation) {
+        thread();
+        if (operation.session != this || activeClock != operation || !running || activeOperation != null || state != operation.before
+                || !engine.needsClock(state, operation.input)) throw new IllegalStateException("Clock capture requires the active planning boundary");
+        return state;
+    }
+    private TimelineEngine.Transition<EffectState> transition(Input input) {
+        if (!resourceRouting || !engine.needsClock(state, input)) return engine.transition(state, input);
+        if (clockCapture == null) throw new IllegalStateException("Coordinated time advancement requires a resource authority");
+        if (activeClock != null) throw new IllegalStateException("Reentrant clock planning");
+        var operation = new ClockOperation(this, state, input); activeClock = operation;
+        try {
+            var view = Objects.requireNonNull(clockCapture.apply(operation));
+            view.require(catalogue(), clockState(operation).engine().domain());
+            var proposal = engine.prepareAdvance(state, input, clockPolicy.apply(view));
+            clockState(operation);
+            return engine.transition(state, input, proposal);
+        } finally { activeClock = null; }
     }
     private void thread() {
         if (Thread.currentThread() != ownerThread) throw new IllegalStateException("Effect session belongs to its owner thread");
@@ -188,7 +229,7 @@ public final class EffectSession {
         if (running || !state.idle() || state.engine().failure().isPresent()) throw new IllegalStateException("Cannot interleave or resume a failed world boundary");
         ledger.nextBoundary(); running = true;
         try {
-            drive(engine.transition(state, start));
+            drive(transition(start));
         } finally { running = false; }
     }
     /** Settle committed inbox facts at their original clock before an external input or time advance. */
@@ -208,8 +249,8 @@ public final class EffectSession {
                     if (transition.actions().size() != 1) throw new IllegalStateException("Unsupported multi-command transition");
                     var request = transition.actions().getFirst();
                     var receipt = ledger.execute(request, _ -> executeWorld(request));
-                    transition = engine.transition(state, new Completed(request.id(), receipt));
-                } else if (transition.needsPump()) transition = engine.transition(state, Pump.INSTANCE);
+                    transition = transition(new Completed(request.id(), receipt));
+                } else if (transition.needsPump()) transition = transition(Pump.INSTANCE);
                 else return;
         }
     }

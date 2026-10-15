@@ -733,9 +733,19 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         });
     }
     public TimelineEngine<EffectState> engine(EffectClock clock, int budget) {
-        var configured = clock.withRates((state, account) -> resources.containsKey(account.key().resource())
+        var configured = resourceRouting ? EffectClock.structural().withRecovery(state -> { validateState(state); return List.of(); })
+                : clock.withRates((state, account) -> resources.containsKey(account.key().resource())
                 ? resourceRate(state, account) : clock.resourceRate(state, account)).withRecovery(this::recoveryOffers).withShieldRecovery(this::shieldRecoveryOffers);
         return new TimelineEngine<>(program.version(), definitions, this, configured, budget, this::reconcile);
+    }
+    /** One immutable segment policy. No world view or mutable resource lookup survives in the resulting clock. */
+    public EffectClock continuousClock(ResourceReadView view, EffectClock fallback) {
+        view.require(program, view.state()); settled(view.state());
+        return fallback.withRates((state, account) -> {
+            view.require(program, state); view.requireLocal(account.key());
+            return resources.containsKey(account.key().resource()) ? resourceRate(state, account, Optional.of(view)) : fallback.resourceRate(state, account);
+        }).withRecovery(state -> recoveryOffers(state, Optional.of(view)))
+                .withShieldRecovery(state -> shieldRecoveryOffers(state, Optional.of(view))).frozen(view.state());
     }
     private EffectState reconcile(EffectState state, RuleEngine.Payload committed) {
         return committed instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit commit ? commit.apply(reconcile(state, commit.previous()))
@@ -752,13 +762,30 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         : committed instanceof CombatCommit commit ? commit.apply(state) : ShieldDamage.reconcile(state, committed);
     }
     public EffectClock.Rate resourceRate(EffectState state, ResourceState account) {
+        return resourceRate(state, account, Optional.empty());
+    }
+    public EffectClock.Rate resourceRate(ResourceReadView view, ResourceState account) {
+        return resourceRate(view.state(), account, Optional.of(view));
+    }
+    private EffectClock.Rate resourceRate(EffectState state, ResourceState account, Optional<ResourceReadView> view) {
         var definition = resources.get(account.key().resource());
         if (definition == null) throw new IllegalArgumentException("Unknown resource definition: " + account.key().resource());
         definition.validate(account);
-        double value = resourceCalculation(state, account).map(result -> result.output().value()).orElse(definition.baseRate());
+        double value = resourceCalculation(state, account, view).map(result -> result.output().value()).orElse(definition.baseRate());
         return new EffectClock.Rate(value, definition.thresholds().stream().filter(threshold -> threshold <= account.capacity()).toList());
     }
     public Optional<CalculationProfile.Result> resourceCalculation(EffectState state, ResourceState account) {
+        return resourceCalculation(state, account, Optional.empty());
+    }
+    public Optional<CalculationProfile.Result> resourceCalculation(ResourceReadView view, ResourceState account) {
+        return resourceCalculation(view.state(), account, Optional.of(view));
+    }
+    private Optional<CalculationProfile.Result> resourceCalculation(EffectState state, ResourceState account, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
+        view.ifPresent(v -> {
+            v.requireLocal(account.key());
+            if (!account.equals(state.resources().get(account.key()))) throw new IllegalArgumentException("Rate query requires the current local account");
+        });
         var definition = resources.get(account.key().resource());
         if (definition == null) throw new IllegalArgumentException("Unknown resource definition: " + account.key().resource());
         definition.validate(account); String holder = account.key().holder();
@@ -766,32 +793,39 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var query = new EffectEvent(holder, holder, origin, java.util.Set.of("chorus:resource_rate_query"),
                 Map.of("resource_value", new Measure(account.value(), Unit.CHARGE), "capacity", new Measure(account.capacity(), Unit.CHARGE)),
                 Map.of(), Map.of("resource", definition.id()));
-        return definition.rateProfile().map(id -> calculate(state, holder, query, id, new Measure(definition.baseRate(), Unit.CHARGE_PER_SECOND), List.of()));
+        return definition.rateProfile().map(id -> calculate(state, holder, query, id, new Measure(definition.baseRate(), Unit.CHARGE_PER_SECOND), List.of(), view));
     }
     /** Query from the beginning of a time segment. World health is deliberately not shadowed here. */
     public List<Recovery.Offer> recoveryOffers(EffectState state) {
+        return recoveryOffers(state, Optional.empty());
+    }
+    public List<Recovery.Offer> recoveryOffers(ResourceReadView view) {
+        return recoveryOffers(view.state(), Optional.of(view));
+    }
+    private List<Recovery.Offer> recoveryOffers(EffectState state, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
         validateState(state); var offers = new ArrayList<Recovery.Offer>();
-        for (var source : state.sources().values()) collectRecovery(state, source, sourceId(source), source.holder(), bundle(source.bundle()), offers);
+        for (var source : state.sources().values()) collectRecovery(state, source, sourceId(source), source.holder(), bundle(source.bundle()), offers, view);
         for (var instance : state.buffs().instances().values()) {
             if (instance.pausedAt().isPresent() || instance.activeCount(state.buffs().timeMicros()) == 0) continue;
             String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) continue;
-            collectRecovery(state, new BuffRules.Scope(instance, false), "buff/" + instance.generation(), instance.key().holder(), bundle(bundleId), offers);
+            collectRecovery(state, new BuffRules.Scope(instance, false), "buff/" + instance.generation(), instance.key().holder(), bundle(bundleId), offers, view);
         }
         return List.copyOf(offers);
     }
     private void collectRecovery(EffectState state, RuleEngine.Payload scope, String instanceId, String holder,
-            EffectProgram.Bundle bundle, List<Recovery.Offer> offers) {
+            EffectProgram.Bundle bundle, List<Recovery.Offer> offers, Optional<ResourceReadView> view) {
         if (bundle.recovery().isEmpty()) return;
         // This is a rate query, not a replay of the application event. Event-specific facts are absent.
         var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(), new RuleEngine.Signal("chorus:internal/recovery_query", RuleEngine.Empty.INSTANCE));
-        var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of());
+        var evaluation = evaluation(state, new RuleEngine.Context(event, instanceId, scope, Map.of()), Map.of(), view);
         for (var declaration : bundle.recovery()) {
             if (!declaration.condition().test(evaluation)) continue;
             var rate = declaration.rate().evaluate(evaluation); Validation.same(rate.unit(), declaration.basis().rateUnit());
             if (declaration.profile().isPresent()) {
                 var query = new EffectEvent(holder, holder, evaluation.origin(), declaration.tags(),
                         Map.of("recovery_rate", rate), Map.of(), Map.of("recovery_channel", declaration.channel()));
-                rate = calculate(state, holder, query, declaration.profile().orElseThrow(), rate, List.of()).output();
+                rate = calculate(state, holder, query, declaration.profile().orElseThrow(), rate, List.of(), view).output();
             }
             offers.add(new Recovery.Offer(instanceId + "/recovery/" + declaration.id(), holder, declaration.channel(), declaration.priority(),
                     rate.value(), evaluation.origin(), declaration.tags(), declaration.basis()));
@@ -884,6 +918,13 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Each active layer owns one rate expression. Recovery never reads or invents native health. */
     public List<ShieldRecovery.Offer> shieldRecoveryOffers(EffectState state) {
+        return shieldRecoveryOffers(state, Optional.empty());
+    }
+    public List<ShieldRecovery.Offer> shieldRecoveryOffers(ResourceReadView view) {
+        return shieldRecoveryOffers(view.state(), Optional.of(view));
+    }
+    private List<ShieldRecovery.Offer> shieldRecoveryOffers(EffectState state, Optional<ResourceReadView> view) {
+        requireWorldQueryView(state, view);
         validateState(state); var offers = new ArrayList<ShieldRecovery.Offer>();
         for (var instance : state.buffs().instances().values()) {
             if (instance.pausedAt().isPresent() || instance.activeCount(state.buffs().timeMicros()) == 0) continue;
@@ -891,10 +932,10 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var declaration = shield.recovery().orElseThrow();
             var event = new RuleEngine.Event(0, 0, Optional.empty(), state.buffs().timeMicros(), new RuleEngine.Signal("chorus:internal/shield_recovery_query", RuleEngine.Empty.INSTANCE));
             var context = new RuleEngine.Context(event, "shield/" + instance.generation(), new BuffRules.Scope(instance, false), Map.of());
-            var evaluation = evaluation(state, context, Map.of());
+            var evaluation = evaluation(state, context, Map.of(), view);
             if (!declaration.condition().test(evaluation)) continue;
             var rate = declaration.rate().evaluate(evaluation); Validation.same(rate.unit(), Unit.DAMAGE_PER_SECOND);
-            offers.add(new ShieldRecovery.Offer(instance, shield.capacity(), shieldMaximum(state, instance), rate.value()));
+            offers.add(new ShieldRecovery.Offer(instance, shield.capacity(), shieldMaximum(state, instance, view), rate.value()));
         }
         return List.copyOf(offers);
     }

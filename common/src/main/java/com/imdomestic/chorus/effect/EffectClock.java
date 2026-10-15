@@ -30,16 +30,41 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
     private final Rates rates;
     private final java.util.function.Function<EffectState, List<Recovery.Offer>> recovery;
     private final java.util.function.Function<EffectState, List<ShieldRecovery.Offer>> shieldRecovery;
+    private final boolean structuralOnly;
     public EffectClock(Rates rates) { this(rates, _ -> List.of(), _ -> List.of()); }
     private EffectClock(Rates rates, java.util.function.Function<EffectState, List<Recovery.Offer>> recovery,
             java.util.function.Function<EffectState, List<ShieldRecovery.Offer>> shieldRecovery) {
+        this(rates, recovery, shieldRecovery, false);
+    }
+    private EffectClock(Rates rates, java.util.function.Function<EffectState, List<Recovery.Offer>> recovery,
+            java.util.function.Function<EffectState, List<ShieldRecovery.Offer>> shieldRecovery, boolean structuralOnly) {
         this.rates = Objects.requireNonNull(rates); this.recovery = Objects.requireNonNull(recovery);
         this.shieldRecovery = Objects.requireNonNull(shieldRecovery);
+        this.structuralOnly = structuralOnly;
     }
-    public EffectClock withRecovery(java.util.function.Function<EffectState, List<Recovery.Offer>> value) { return new EffectClock(rates, value, shieldRecovery); }
-    public EffectClock withShieldRecovery(java.util.function.Function<EffectState, List<ShieldRecovery.Offer>> value) { return new EffectClock(rates, recovery, value); }
-    public EffectClock withRates(Rates value) { return new EffectClock(value, recovery, shieldRecovery); }
+    public EffectClock withRecovery(java.util.function.Function<EffectState, List<Recovery.Offer>> value) { return new EffectClock(rates, value, shieldRecovery, structuralOnly); }
+    public EffectClock withShieldRecovery(java.util.function.Function<EffectState, List<ShieldRecovery.Offer>> value) { return new EffectClock(rates, recovery, value, structuralOnly); }
+    public EffectClock withRates(Rates value) { return new EffectClock(value, recovery, shieldRecovery, structuralOnly); }
     public Rate resourceRate(EffectState state, ResourceState account) { return rates.evaluate(state, account); }
+    /** Resolve every continuous input once, before any account or shield is integrated. */
+    public EffectClock frozen(EffectState before) {
+        if (structuralOnly) throw new IllegalStateException("Structural clock cannot supply continuous rates");
+        var resolved = new HashMap<ResourceState.Key, Rate>();
+        before.resources().values().forEach(account -> resolved.put(account.key(), rates.evaluate(before, account)));
+        var health = List.copyOf(recovery.apply(before)); var shields = List.copyOf(shieldRecovery.apply(before));
+        java.util.function.Consumer<EffectState> require = state -> {
+            if (state != before) throw new IllegalArgumentException("Frozen clock requires its exact segment snapshot");
+        };
+        return new EffectClock((state, account) -> {
+            require.accept(state);
+            if (!account.equals(before.resources().get(account.key()))) throw new IllegalArgumentException("Frozen clock requires its current account");
+            return resolved.get(account.key());
+        }, state -> { require.accept(state); return health; }, state -> { require.accept(state); return shields; });
+    }
+    /** Structural deadlines can validate detached coordinated checkpoints without querying unavailable foreign resources. */
+    public static EffectClock structural() {
+        return new EffectClock((_, _) -> new Rate(0, List.of()), _ -> List.of(), _ -> List.of(), true);
+    }
     @Override public long time(EffectState state) { return state.buffs().timeMicros(); }
 
     @Override public long nextDeadline(EffectState state) {
@@ -67,6 +92,7 @@ public final class EffectClock implements TimelineEngine.Clock<EffectState> {
     }
 
     @Override public RuleEngine.Local<EffectState> advance(EffectState state, long until) {
+        if (structuralOnly) throw new IllegalStateException("Coordinated clock requires an explicit advancement proposal");
         if (until < time(state) || until == TimelineEngine.NEVER || until > nextDeadline(state)) throw new IllegalArgumentException("Clock crossed an unsettled boundary");
         var resources = new HashMap<ResourceState.Key, ResourceState>();
         var resourceSignals = new ArrayList<RuleEngine.Signal>();

@@ -173,6 +173,9 @@ class AbilityResourceRoutingTest {
         var f=new Fixture();var directory=f.host.snapshot().directory();var before=f.state(B);
         var local=new CompiledEffects(f.program.program());
         var replacement=new EffectSession(local,EffectCheckpointTest.clock(),1,before,r->{throw new AssertionError("Unexpected local ability execution");});
+        // A fresh coordinator owns fresh sessions; the old authority still owns A's clock capture.
+        var saved=f.sessions.get(A).checkpoint();
+        f.sessions.put(A,EffectSession.restore(f.program,EffectCheckpointTest.clock(),1,saved,r->f.world(A,r)));
         f.sessions.put(B,replacement);
         f.host=new ResourceSessionAuthority(directory,Map.of(A,new ResourceSessionAuthority.Binding(f.program,f.sessions.get(A)),B,new ResourceSessionAuthority.Binding(local,replacement)));
         assertThrows(IllegalStateException.class,f::use);assertEquals(before,f.state(B));assertFalse(replacement.inboxPending());assertTrue(f.heals.isEmpty());

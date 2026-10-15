@@ -13,7 +13,16 @@ public final class ResourceSessionAuthority {
     public record Binding(CompiledEffects program, EffectSession session) {
         public Binding { Objects.requireNonNull(program); Objects.requireNonNull(session); }
     }
-    private record Caller(String domain, EffectSession.WorldOperation operation) {}
+    private sealed interface Caller permits WorldCaller, ClockCaller {
+        String domain();
+        TimelineEngine.State<EffectState> state(EffectSession session);
+    }
+    private record WorldCaller(String domain, EffectSession.WorldOperation operation) implements Caller {
+        public TimelineEngine.State<EffectState> state(EffectSession session) { return session.operationState(operation); }
+    }
+    private record ClockCaller(String domain, EffectSession.ClockOperation operation) implements Caller {
+        public TimelineEngine.State<EffectState> state(EffectSession session) { return session.clockState(operation); }
+    }
     private record Snapshot(ResourceAuthority.Worlds worlds, Map<String, TimelineEngine.State<EffectState>> timelines, Optional<Caller> caller) {}
     /** Prepared handoff is tied to this host and every participating timeline; callers cannot construct its writes. */
     public static final class Handoff {
@@ -45,6 +54,10 @@ public final class ResourceSessionAuthority {
             if (!sessions.add(entry.getValue().session())) throw new IllegalArgumentException("Session bound to more than one resource domain");
         }
         boundary(() -> { capture(false); return null; });
+        this.bindings.values().stream().filter(binding -> binding.program().resourceRouting()).forEach(binding -> binding.session().requireClockUnbound());
+        this.bindings.forEach((domain, binding) -> {
+            if (binding.program().resourceRouting()) binding.session().bindClockCapture(operation -> clockView(domain, operation));
+        });
     }
     private <T> T boundary(Supplier<T> action) {
         if (Thread.currentThread() != ownerThread || working) throw new IllegalStateException("Resource authority requires its nonreentrant owner thread");
@@ -67,7 +80,7 @@ public final class ResourceSessionAuthority {
             var current = caller.filter(value -> value.domain().equals(entry.getKey()));
             var catalogue = current.isPresent() || publish ? binding.session().catalogue() : binding.session().checkpoint().program();
             if (binding.program().resourceRouting() != binding.session().resourceRouting() || !binding.program().program().equals(catalogue)) throw new IllegalArgumentException("Live resource catalogue differs from its session");
-            var timeline = current.isPresent() ? binding.session().operationState(current.orElseThrow().operation())
+            var timeline = current.isPresent() ? current.orElseThrow().state(binding.session())
                     : publish ? binding.session().coordinationState() : binding.session().state();
             timelines.put(entry.getKey(), timeline); states.put(entry.getKey(), timeline.engine().domain());
         }
@@ -84,7 +97,7 @@ public final class ResourceSessionAuthority {
         timelines.forEach((domain, expected) -> {
             var session = binding(domain).session();
             var current = caller.filter(value -> value.domain().equals(domain));
-            var actual = current.isPresent() ? session.operationState(current.orElseThrow().operation()) : session.state();
+            var actual = current.isPresent() ? current.orElseThrow().state(session) : session.state();
             if (current.isEmpty() && session.running() || actual != expected) throw new IllegalStateException("Live resource domain changed during publication");
         });
     }
@@ -107,7 +120,7 @@ public final class ResourceSessionAuthority {
             var emitted = facts.getOrDefault(domain, List.of());
             var caller = before.caller().filter(value -> value.domain().equals(domain));
             if (caller.isPresent())
-                updates.add(entry.getValue().session().prepareOperationDomain(caller.orElseThrow().operation(), before.timelines().get(domain), next, result.orElseThrow(), emitted));
+                updates.add(entry.getValue().session().prepareOperationDomain(((WorldCaller) caller.orElseThrow()).operation(), before.timelines().get(domain), next, result.orElseThrow(), emitted));
             else if (next != before.worlds().domain(domain) || !emitted.isEmpty())
                 updates.add(entry.getValue().session().prepareInboxDomain(before.timelines().get(domain), next, emitted));
         }
@@ -128,8 +141,12 @@ public final class ResourceSessionAuthority {
     public ResourceReadView readView(String caller, RuleEngine.WorldRequest request) {
         return boundary(() -> {
             var operation = binding(caller).session().operation(request);
-            return new ResourceReadView(capture(true, Optional.of(new Caller(caller, operation))).worlds(), caller, binding(caller).program().program());
+            return new ResourceReadView(capture(true, Optional.of(new WorldCaller(caller, operation))).worlds(), caller, binding(caller).program().program());
         });
+    }
+    /** Time planning reads committed foreign snapshots without running a recipient or advancing its clock. */
+    private ResourceReadView clockView(String caller, EffectSession.ClockOperation operation) {
+        return boundary(() -> new ResourceReadView(capture(true, Optional.of(new ClockCaller(caller, operation))).worlds(), caller, binding(caller).program().program()));
     }
     private void settled() { bindings.values().forEach(binding -> binding.session().checkpoint()); }
     public ResourceAuthority.Partition claim(String holder, String domain) {
@@ -183,7 +200,7 @@ public final class ResourceSessionAuthority {
                     throw new IllegalStateException("Active resource request has a conflicting committed result");
                 return receipt;
             }
-            var before = capture(true, Optional.of(new Caller(caller, operation)));
+            var before = capture(true, Optional.of(new WorldCaller(caller, operation)));
             var frame = before.timelines().get(caller).engine().frames().getFirst();
             if (command instanceof ActionRoutes.Request route) {
                 var compiled = binding(caller).program();

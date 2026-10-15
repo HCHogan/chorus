@@ -41,6 +41,19 @@ public final class TimelineEngine<S> {
 
     private final RuleEngine<S> engine;
     private final Clock<S> clock;
+    private final Object clockIdentity = new Object();
+
+    /** Transient pure proposal, bound to one timeline/input. Never a resumable checkpoint or a live clock callback. */
+    public static final class Advance<S> implements Payload {
+        private final Object owner;
+        private final State<S> before;
+        private final Input input;
+        private final long until;
+        private final Local<S> result;
+        private Advance(Object owner, State<S> before, Input input, long until, Local<S> result) {
+            this.owner = owner; this.before = before; this.input = input; this.until = until; this.result = result;
+        }
+    }
 
     public TimelineEngine(String version, List<EventRule<S>> definitions, RuleResolver<S> resolver, Clock<S> clock, int stepsPerTransition) {
         this(version, definitions, resolver, clock, stepsPerTransition, RuleEngine::noWrites);
@@ -53,7 +66,13 @@ public final class TimelineEngine<S> {
             throw new IllegalArgumentException("Reserved timeline rule/event");
         }
         rules.add(new EventRule<>(ADVANCE, ADVANCE, (_, _) -> true, List.of(new Instruction<>((state, context) -> {
-            Local<S> advanced = clock.advance(state, context.event().timeMicros());
+            Local<S> advanced;
+            if (context.event().signal().payload() instanceof Advance<?> raw) {
+                if (raw.owner != clockIdentity || raw.before.engine().domain() != state || raw.until != context.event().timeMicros())
+                    throw new IllegalArgumentException("Clock proposal no longer matches its boundary");
+                @SuppressWarnings("unchecked") var proposal = (Advance<S>) raw;
+                advanced = proposal.result;
+            } else advanced = clock.advance(state, context.event().timeMicros());
             if (clock.time(advanced.state()) != context.event().timeMicros()) throw new IllegalStateException("Clock did not reach the boundary");
             return advanced;
         }, ""))));
@@ -164,12 +183,41 @@ public final class TimelineEngine<S> {
     }
 
     public Transition<S> transition(State<S> state, Input input) {
+        return transition(state, input, Optional.empty());
+    }
+    /** Only an idle interpreter about to advance time needs a fresh external clock capture. */
+    public boolean needsClock(State<S> state, Input input) {
+        if (!state.engine().idle() || state.engine().failure().isPresent()) return false;
+        if (input instanceof Start start) {
+            if (!state.idle()) throw new IllegalStateException("Cannot interleave a requested timeline event");
+            validateStart(state, start);
+            return start.timeMicros() > clock.time(state.engine().domain());
+        }
+        return input == Pump.INSTANCE && state.requested().filter(start -> start.timeMicros() > clock.time(state.engine().domain())).isPresent();
+    }
+    public Advance<S> prepareAdvance(State<S> state, Input input, Clock<S> captured) {
+        if (!needsClock(state, input)) throw new IllegalStateException("Timeline is not ready to plan a clock boundary");
+        var domain = state.engine().domain(); long time = clock.time(domain);
+        if (captured.time(domain) != time) throw new IllegalArgumentException("Clock capture changed the current time");
+        long next = captured.nextDeadline(domain);
+        if (next <= time) throw new IllegalStateException("Clock capture left an unsettled deadline");
+        long requested = input instanceof Start start ? start.timeMicros() : state.requested().orElseThrow().timeMicros();
+        long until = Math.min(requested, next); var result = captured.advance(domain, until);
+        if (captured.time(result.state()) != until || clock.time(result.state()) != until) throw new IllegalArgumentException("Clock proposal did not reach its boundary");
+        return new Advance<>(clockIdentity, state, input, until, result);
+    }
+    public Transition<S> transition(State<S> state, Input input, Advance<S> advance) {
+        if (advance.owner != clockIdentity || advance.before != state || !advance.input.equals(input) || !needsClock(state, input))
+            throw new IllegalArgumentException("Clock proposal belongs to another timeline or input");
+        return transition(state, input, Optional.of(advance));
+    }
+    private Transition<S> transition(State<S> state, Input input, Optional<Advance<S>> advance) {
         Objects.requireNonNull(input);
         if (input instanceof Start start) {
             if (state.engine().failure().isPresent()) throw new IllegalStateException("Failed timeline requires explicit recovery");
             if (!state.idle()) throw new IllegalStateException("Cannot interleave a requested timeline event");
             validateStart(state, start);
-            return dispatch(new State<>(state.engine(), Optional.of(start), Map.of(), Optional.empty()));
+            return dispatch(new State<>(state.engine(), Optional.of(start), Map.of(), Optional.empty()), advance);
         }
         if (input instanceof Completed completed) {
             if (state.receipts().containsKey(completed.operation())) {
@@ -182,7 +230,7 @@ public final class TimelineEngine<S> {
         }
         if (state.engine().failure().isPresent()) return new Transition<>(state, List.of());
         if (!state.engine().idle()) return wrap(state, state.requested(), engine.transition(state.engine(), Pump.INSTANCE));
-        return dispatch(state);
+        return dispatch(state, advance);
     }
 
     private static boolean reserved(Signal signal) {
@@ -190,15 +238,16 @@ public final class TimelineEngine<S> {
         return actual.type().equals(ADVANCE);
     }
 
-    private Transition<S> dispatch(State<S> state) {
+    private Transition<S> dispatch(State<S> state, Optional<Advance<S>> advance) {
         if (state.requested().isEmpty()) return new Transition<>(state, List.of());
         Start requested = state.requested().orElseThrow();
         long time = clock.time(state.engine().domain());
-        long next = clock.nextDeadline(state.engine().domain());
+        long next = advance.map(value -> value.until).orElseGet(() -> clock.nextDeadline(state.engine().domain()));
         if (next <= time) throw new IllegalStateException("Clock left an unsettled deadline");
         if (time < requested.timeMicros()) {
             long until = Math.min(requested.timeMicros(), next);
-            return wrap(state, state.requested(), engine.transition(state.engine(), new Start(until, new Signal(ADVANCE, Empty.INSTANCE))));
+            Payload payload = advance.<Payload>map(value -> value).orElse(Empty.INSTANCE);
+            return wrap(state, state.requested(), engine.transition(state.engine(), new Start(until, new Signal(ADVANCE, payload))));
         }
         return wrap(state, Optional.empty(), engine.transition(state.engine(), requested));
     }

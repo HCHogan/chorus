@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：分段回充与连续恢复的协调时钟
+
+ResourceSessionAuthority 为协调会话绑定唯一 ClockOperation 捕获入口；EffectSession 在自身 inbox 结算后、每次时间片推进前读取一致的资源世界快照。CompiledEffects.continuousClock 一次解析本地回充率、健康恢复及其 Profile、护盾恢复条件 / 最大值 / 速率，冻结结果只用于原时间片，不推进外部账户或执行接收 inbox。对应纯查询提供显式视图入口并拒绝协调模式的旧本地重载。
+
+TimelineEngine 新增绑定精确时间轴 / 输入 / 引擎的临时 Advance 提案，纯准备阶段选择截止点并计算 Local 状态 / 事实；内部指令应用时再核对原状态，让出解释器不会重算。默认协调时钟只做结构与定时边界校验，拒绝实际推进；未绑定的会话也拒绝未来输入。恢复会话必须重新绑定协调器，旧会话不能被第二个协调器复用。已集成片段、阈值 / 到期反应与恢复世界回执继续保持原顺序和未知结果保留政策，没有新增持久化类型或格式。
+
+新增 13 项 CoordinatedClockTest、3 项 TimelineClockProposalTest，覆盖双域独立时钟、嵌套恢复 Profile、阈值先于外部输入、定时反应改变后续远端余额、到期残段、冻结输入一次求值、错误账户 / 程序 / 模式、保存恢复不重放、迁移后唯一回充、未知治疗保留、旧 inbox 先结算、能力失效 / 错会话 / 重入、准备失败不部分推进、结构时钟旁路拒绝及提案身份 / 输入 / 时刻约束。夹具修正使用 charge_fraction_per_second 单位；既有技能错模式测试改用新会话连接新协调器，保留原拒绝断言。`/tmp/chorus-coordinated-clock-core4.log` 的 99 项新增及相关回归通过。
+
+完整回归 `/tmp/chorus-coordinated-clock-full-gate.log` BUILD SUCCESSFUL（4 分 1 秒）：2407 项 JUnit 无失败 / 错误 / 跳过、Fabric 1320 项、NeoForge 1335 项、双端发布包及两次正常停服检查点通过。`build/reports/coordinated-clock/audit.json` 核验原 720 项存储形状完全保持、发布主类 1310 / 1303 个逐字节匹配且无测试泄漏、Gradle CRLF 与固定研究来源；10 项 Compendium 工具测试、来源 / 报告检查通过。
+
+默认 Minecraft 宿主、玩家输入 / 物理传送与目录 / 原生世界联合保存仍未切换到协调实现。本批没有新增图形客户端或原作数值验收，Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[协调连续时钟](engine-data-packs.md#连续状态的协调时钟)。
+
 ### 2026-10-15：世界侧伤害与动作查询的资源视图
 
 CompiledEffects 为 outgoing / defense / health / shields、动作门禁、水平速度上限和原生属性贡献提供 ResourceReadView 入口。协调模式拒绝旧的仅本地状态入口；空结果和零伤害也核对视图。嵌套 Profile、目标提供者、实时 on_hit 条件 / 值以及护盾 taken_multiplier 共用本次不可变资源捕获；来源 / Buff 提供者仍在原查询领域，不合并资源归属领域的其他增益。
