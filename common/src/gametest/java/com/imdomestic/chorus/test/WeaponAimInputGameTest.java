@@ -15,6 +15,23 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.GameType;
 
 public class WeaponAimInputGameTest {
+    @GameCase(environment="chorus_gametest:resource_runtime")
+    public void relocatedAimPayloadPreservesSignedLocalPhaseTimesThroughNativeCodec(GameTestHelper h) {
+        var player=UUID.randomUUID();var dimension=h.getLevel().dimension().identifier().toString();
+        var views=List.of(
+                new View(1,1,1,player,dimension,true,Status.ACTIVE,Phase.ENTERING,"carried",-50_000,150_000),
+                new View(2,1,1,player,dimension,true,Status.ACTIVE,Phase.AIMED,"carried",-300_000,-100_000),
+                new View(3,2,1,player,dimension,false,Status.ACTIVE,Phase.EXITING,"carried",-20_000,80_000));
+        var buffer=new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(),h.getLevel().registryAccess());
+        try {
+            for(var view:views)View.CODEC.encode(buffer,view);
+            for(var view:views)h.assertValueEqual(View.CODEC.decode(buffer),view,"signed aim timestamp or phase changed on wire");
+            h.assertTrue(!buffer.isReadable(),"aim decoder left unread packet fields");
+        } finally {buffer.release();}
+        ResourceProjectionGameTest.refused(h,IllegalArgumentException.class,()->new View(1,1,1,player,dimension,true,Status.ACTIVE,Phase.ENTERING,"carried",-10,-20));
+        ResourceProjectionGameTest.refused(h,ArithmeticException.class,()->new View(1,1,1,player,dimension,true,Status.ACTIVE,Phase.ENTERING,"carried",Long.MIN_VALUE,0));
+        h.succeed();
+    }
     public static CompiledEffects program() {
         var data = ThreadedSpikeGameTest.json("box_breathing_weapon"); RadiantGameTest.merge(data, "box_breathing");
         return EffectCodecs.COMPILED.parse(JsonOps.INSTANCE, data).getOrThrow();

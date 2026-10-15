@@ -14,6 +14,7 @@ class WeaponChargeStorageTest {
         if(!value.isJsonObject())return;var o=value.getAsJsonObject();
         if(o.has("$")&&o.get("$").isJsonPrimitive()){
             String id=o.get("$").getAsString();
+            if(id.equals("chorus:effect/weapon/weapon_charge/plan_v4")){id="chorus:effect/weapon/weapon_charge/plan_v3";o.addProperty("$",id);o.getAsJsonObject("v").remove("clockOffset");}
             if(id.equals("chorus:effect/weapon/weapon_definition/charging_v3")||id.equals("chorus:effect/weapon/weapon_charge/plan_v3")){
                 o.addProperty("$",id.substring(0,id.length()-3)+"_v2");var fields=o.getAsJsonObject("v");fields.remove("repeat");fields.remove("cycle");fields.remove("recovery");
             }
@@ -39,6 +40,7 @@ class WeaponChargeStorageTest {
         if(!value.isJsonObject())return;var o=value.getAsJsonObject();
         if(o.has("$")&&o.get("$").isJsonPrimitive()){
             String id=o.get("$").getAsString();
+            if(id.equals("chorus:effect/weapon/weapon_charge/plan_v4")){id="chorus:effect/weapon/weapon_charge/plan_v3";o.addProperty("$",id);o.getAsJsonObject("v").remove("clockOffset");}
             if(id.equals("chorus:effect/weapon/weapon_definition/charging_v3")||id.equals("chorus:effect/weapon/weapon_charge/plan_v3")){
                 id=id.substring(0,id.length()-3)+"_v2";o.addProperty("$",id);var fields=o.getAsJsonObject("v");fields.remove("repeat");fields.remove("cycle");fields.remove("recovery");
             }

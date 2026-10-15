@@ -28,8 +28,9 @@ public final class WeaponReload {
     }
     public record Plan(String holder, String token, Loadout.Gear gear, BuffInstance.Origin origin,
             long startedAt, long dueAt, Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation,
-            Optional<Portion> portion, int step, Phase phase) implements RuleEngine.Payload {
+            Optional<Portion> portion, int step, Phase phase, long clockOffset) implements RuleEngine.Payload {
         public Plan {
+            WeaponPhaseTime.local(startedAt,clockOffset); WeaponPhaseTime.local(dueAt,clockOffset);
             identity(holder); identity(token); Objects.requireNonNull(gear); Objects.requireNonNull(origin);
             Objects.requireNonNull(input); Objects.requireNonNull(duration); Objects.requireNonNull(calculation);
             Objects.requireNonNull(portion); Objects.requireNonNull(phase);
@@ -47,7 +48,7 @@ public final class WeaponReload {
         }
         public Plan between() {
             if (portion.isEmpty() || phase != Phase.WAITING) throw new IllegalStateException("Not a waiting insertion");
-            return new Plan(holder, token, gear, origin, startedAt, dueAt, input, duration, calculation, portion, step, Phase.BETWEEN_INSERTS);
+            return new Plan(holder, token, gear, origin, startedAt, dueAt, input, duration, calculation, portion, step, Phase.BETWEEN_INSERTS,clockOffset);
         }
         public String timerId() { return "reload/" + holder.length() + ":" + holder + "/" + token + "/" + step; }
         /** Stable within the owning session/checkpoint; each actual insertion has its own receipt identity. */
@@ -57,8 +58,18 @@ public final class WeaponReload {
         }
         public EffectState.Timer timer() {
             if (phase != Phase.WAITING) throw new IllegalStateException("Insertion has already committed");
-            return new EffectState.Timer(timerId(), dueAt, 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
+            return new EffectState.Timer(timerId(), dueTime(), 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
         }
+        public Plan(String holder, String token, Loadout.Gear gear, BuffInstance.Origin origin,
+            long startedAt, long dueAt, Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation,
+            Optional<Portion> portion, int step, Phase phase) { this(holder, token, gear, origin, startedAt, dueAt, input, duration, calculation, portion, step, phase,0); }
+        public long startTime() { return WeaponPhaseTime.local(startedAt,clockOffset); }
+        public long dueTime() { return WeaponPhaseTime.local(dueAt,clockOffset); }
+        public Plan relocated(long sourceNow,long targetNow) {
+            WeaponPhaseTime.elapsed(sourceNow,startTime());
+            return new Plan(holder, token, gear, origin, startedAt, dueAt, input, duration, calculation, portion, step, phase,WeaponPhaseTime.relocate(clockOffset,sourceNow,targetNow));
+        }
+
     }
     public record Receipt(Outcome outcome, Optional<Plan> plan,Optional<com.imdomestic.chorus.effect.input.ActionGate.Decision> restriction) implements RuleEngine.ActionResult {
         public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(plan); if ((outcome == Outcome.ACCEPTED) != plan.isPresent()) throw new IllegalArgumentException("Invalid reload receipt");com.imdomestic.chorus.effect.input.ActionGate.receipt(com.imdomestic.chorus.effect.input.ActionGate.Kind.WEAPON_RELOAD,outcome==Outcome.RESTRICTED,restriction); }

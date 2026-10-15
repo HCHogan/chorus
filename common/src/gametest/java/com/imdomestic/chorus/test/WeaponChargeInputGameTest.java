@@ -15,6 +15,26 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.GameType;
 
 public class WeaponChargeInputGameTest {
+    @GameCase(environment="chorus_gametest:resource_runtime")
+    public void relocatedChargePayloadPreservesSignedMarkersAndProgressThroughNativeCodec(GameTestHelper h) {
+        var player=UUID.randomUUID();var dimension=h.getLevel().dimension().identifier().toString();
+        var charging=new View(1,1,1,player,7,dimension,true,Status.ACTIVE,Phase.CHARGING,"carried",-200_000,-100_000,200_000,0);
+        var ready=new View(2,1,1,player,7,dimension,true,Status.ACTIVE,Phase.READY,"carried",-500_000,-400_000,-100_000,0);
+        var recovering=new View(3,1,1,player,7,dimension,true,Status.ACTIVE,Phase.RECOVERING,"carried",-50_000,-50_000,100_000,0);
+        var views=List.of(charging,ready,recovering);
+        var buffer=new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(),h.getLevel().registryAccess());
+        try {
+            for(var view:views)View.CODEC.encode(buffer,view);
+            for(var view:views){var decoded=View.CODEC.decode(buffer);h.assertValueEqual(decoded,view,"signed charge markers changed on wire");HealingGameTest.near(h,decoded.fraction(),view.fraction(),"charge progress changed on wire");}
+            h.assertTrue(!buffer.isReadable(),"charge decoder left unread packet fields");
+        } finally {buffer.release();}
+        HealingGameTest.near(h,charging.fraction(),.5,"relocated half charge lost elapsed progress");
+        HealingGameTest.near(h,ready.fraction(),1,"charge completed before destination epoch lost ready progress");
+        HealingGameTest.near(h,recovering.fraction(),1./3,"relocated shot recovery lost elapsed progress");
+        ResourceProjectionGameTest.refused(h,IllegalArgumentException.class,()->new View(1,1,1,player,7,dimension,true,Status.ACTIVE,Phase.CHARGING,"carried",-200_000,-100_000,200_000,-1));
+        ResourceProjectionGameTest.refused(h,ArithmeticException.class,()->new View(1,1,1,player,7,dimension,true,Status.ACTIVE,Phase.CHARGING,"carried",Long.MIN_VALUE,0,1,0));
+        h.succeed();
+    }
     public static CompiledEffects program() {
         return program(false);
     }

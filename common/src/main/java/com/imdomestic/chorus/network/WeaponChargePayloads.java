@@ -34,10 +34,11 @@ public final class WeaponChargePayloads {
         public static final Type<View> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_charge_view"));
         public static final StreamCodec<RegistryFriendlyByteBuf, View> CODEC = StreamCodec.ofMember(View::write, View::read);
         public View {
+            Math.subtractExact(fullAt,startedAt); Math.subtractExact(observedAt,startedAt);
             Objects.requireNonNull(player); Objects.requireNonNull(status); Objects.requireNonNull(phase); Objects.requireNonNull(weapon);
             WeaponChargePayloads.dimension(dimension);
             if (revision <= 0 || sequence <= 0 || gesture < 0 || gesture > sequence || held && gesture == 0 || weapon.length() > 512
-                    || startedAt < 0 || minimumAt < startedAt || fullAt < minimumAt || observedAt < 0
+                    || minimumAt < startedAt || fullAt < minimumAt || observedAt < 0
                     || (phase == Phase.OFF ? !weapon.isEmpty() || startedAt != 0 || minimumAt != 0 || fullAt != 0 || held
                         : weapon.isBlank() || fullAt <= startedAt || observedAt < startedAt || !held || status != Status.ACTIVE)
                     || phase == Phase.READY && observedAt < fullAt || (phase == Phase.CHARGING || phase == Phase.RECOVERING) && observedAt >= fullAt)

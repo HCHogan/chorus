@@ -36,13 +36,13 @@ final class CompiledAiming {
         var plan=new WeaponAim.Plan(request.holder(),request.token(),loadout.drawn().orElseThrow(),gear.orElseThrow(),origin,phase,now,Math.addExact(now,WeaponHandling.micros(duration)),input,duration,calculation);
         var updated=previous==null?state:clear(state,previous);updated=updated.withAim(plan);
         var facts=new ArrayList<RuleEngine.Signal>();facts.add(fact(request.pressed()?"chorus:weapon_aim_started":"chorus:weapon_aim_released",plan,"input",now));
-        if(plan.dueAt()==now)facts.add(new RuleEngine.Signal(WeaponAim.DUE,plan));else updated=updated.schedule(plan.timer());
+        if(plan.dueTime()==now)facts.add(new RuleEngine.Signal(WeaponAim.DUE,plan));else updated=updated.schedule(plan.timer());
         return new RuleEngine.Local<>(updated,new WeaponAim.Receipt(WeaponAim.Outcome.ACCEPTED,Optional.of(plan),Optional.empty()),facts);
     }
     private static RuleEngine.Local<EffectState> reject(EffectState state,WeaponAim.Outcome outcome){return new RuleEngine.Local<>(state,new WeaponAim.Receipt(outcome,Optional.empty(),Optional.empty()),List.of());}
     static boolean current(EffectState state,WeaponAim.Plan plan){return plan.equals(state.aiming().get(plan.holder()));}
     static WeaponAim.Verify prepare(EffectState state,WeaponAim.Plan plan){
-        if(!current(state,plan)||plan.phase()==WeaponAim.Phase.AIMED||state.buffs().timeMicros()!=plan.dueAt())throw new IllegalStateException("Aim is not at its accepted boundary");
+        if(!current(state,plan)||plan.phase()==WeaponAim.Phase.AIMED||state.buffs().timeMicros()!=plan.dueTime())throw new IllegalStateException("Aim is not at its accepted boundary");
         return new WeaponAim.Verify(plan);
     }
     static RuleEngine.Local<EffectState> finish(EffectState state,WeaponAim.Plan plan,WeaponAim.Verified result,WeaponQueries program) {
@@ -68,8 +68,8 @@ final class CompiledAiming {
             long now=state.buffs().timeMicros();
             if(!plan.matches(state.equipment().getOrDefault(plan.holder(),Loadout.EMPTY))||state.handling().containsKey(plan.holder())||state.reloads().containsKey(plan.holder()))throw new IllegalArgumentException("Aim conflicts with current equipment or weapon action");
             if(plan.phase()==WeaponAim.Phase.AIMED) {
-                if(plan.dueAt()>now||state.timers().containsKey(plan.timerId()))throw new IllegalArgumentException("Unfinished aim marked ready");
-            }else if(plan.dueAt()<now||plan.dueAt()>now&&!plan.timer().equals(state.timers().get(plan.timerId())))throw new IllegalArgumentException("Aim differs from its accepted deadline");
+                if(plan.dueTime()>now||state.timers().containsKey(plan.timerId()))throw new IllegalArgumentException("Unfinished aim marked ready");
+            }else if(plan.dueTime()<now||plan.dueTime()>now&&!plan.timer().equals(state.timers().get(plan.timerId())))throw new IllegalArgumentException("Aim differs from its accepted deadline");
         }
     }
     private static EffectEvent query(String holder,String token,Loadout.Gear gear,BuffInstance.Origin origin,WeaponAim.Phase phase) {
@@ -79,7 +79,7 @@ final class CompiledAiming {
     private static RuleEngine.Signal fact(String type,WeaponAim.Plan plan,String reason,long now) {
         var base=query(plan.holder(),plan.token(),plan.gear(),plan.origin(),plan.phase());var refs=new HashMap<>(base.references());refs.put("reason",reason);
         var flags=new HashMap<>(base.flags());if(type.equals("chorus:weapon_aim_ended")){flags.put("aim_held",false);flags.put("aim_ready",false);}
-        var event=new EffectEvent(base.actor(),base.victim(),base.source(),base.tags(),Map.of("duration",plan.duration(),"elapsed",new Measure((now-plan.startedAt())/1_000_000.0,Unit.SECOND)),flags,refs);
+        var event=new EffectEvent(base.actor(),base.victim(),base.source(),base.tags(),Map.of("duration",plan.duration(),"elapsed",new Measure(WeaponPhaseTime.elapsed(now,plan.startTime())/1_000_000.0,Unit.SECOND)),flags,refs);
         return new RuleEngine.Signal(type,new WeaponAim.Fact(event,plan));
     }
 }

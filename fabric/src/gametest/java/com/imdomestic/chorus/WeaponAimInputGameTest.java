@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public class WeaponAimInputGameTest extends com.imdomestic.chorus.test.WeaponAimInputGameTest {
+    @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:resource_runtime") @Override
+    public void relocatedAimPayloadPreservesSignedLocalPhaseTimesThroughNativeCodec(GameTestHelper h){super.relocatedAimPayloadPreservesSignedLocalPhaseTimesThroughNativeCodec(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:aim_input_packets",maxTicks=30) @Override
     public void PairedPacketsAreOrderedAndCannotReleaseAnotherGestureOrDimension(GameTestHelper h)throws Exception {super.PairedPacketsAreOrderedAndCannotReleaseAnotherGestureOrDimension(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:aim_input_switch",maxTicks=50) @Override

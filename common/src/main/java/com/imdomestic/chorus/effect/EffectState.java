@@ -40,16 +40,16 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
             }
             if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponReload.Plan plan
                     && (plan.phase() != com.imdomestic.chorus.effect.weapon.WeaponReload.Phase.WAITING || !signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponReload.DUE) || !plan.timerId().equals(id)
-                    || dueAt != plan.dueAt() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
+                    || dueAt != plan.dueTime() || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Reload differs from its one-shot timer");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponHandling.Plan plan
                     && (plan.completed() || !signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponHandling.DUE)
-                    || !plan.timerId().equals(id) || dueAt != plan.dueAt() || dueAt <= plan.startedAt()
+                    || !plan.timerId().equals(id) || dueAt != plan.dueTime() || dueAt <= plan.startTime()
                     || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Handling differs from its one-shot timer");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.weapon.WeaponAim.Plan plan
                     && (plan.phase() == com.imdomestic.chorus.effect.weapon.WeaponAim.Phase.AIMED || !signal.type().equals(com.imdomestic.chorus.effect.weapon.WeaponAim.DUE)
-                    || !plan.timerId().equals(id) || dueAt != plan.dueAt() || dueAt <= plan.startedAt()
+                    || !plan.timerId().equals(id) || dueAt != plan.dueTime() || dueAt <= plan.startTime()
                     || remaining != 1 || intervalMicros != 0 || lifetime.isPresent() || pausedRemaining.isPresent()))
                 throw new IllegalArgumentException("Aim differs from its one-shot timer");
             if (signal.payload() instanceof com.imdomestic.chorus.effect.finisher.Finisher.Plan plan
@@ -85,13 +85,13 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
         Objects.requireNonNull(buffs);
         Objects.requireNonNull(mode); Objects.requireNonNull(random);
         charging = Collections.unmodifiableMap(new TreeMap<>(charging));
-        for (var entry : charging.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startedAt() > buffs.timeMicros())
+        for (var entry : charging.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startTime() > buffs.timeMicros())
             throw new IllegalArgumentException("Wrong charge identity or clock");
         aiming = Collections.unmodifiableMap(new TreeMap<>(aiming));
-        for (var entry : aiming.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startedAt() > buffs.timeMicros())
+        for (var entry : aiming.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startTime() > buffs.timeMicros())
             throw new IllegalArgumentException("Wrong aim identity or clock");
         handling = Collections.unmodifiableMap(new TreeMap<>(handling));
-        for (var entry : handling.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startedAt() > buffs.timeMicros())
+        for (var entry : handling.entrySet()) if (!entry.getKey().equals(entry.getValue().holder()) || entry.getValue().startTime() > buffs.timeMicros())
             throw new IllegalArgumentException("Wrong handling identity or clock");
         damageTallies = Collections.unmodifiableMap(new TreeMap<>(damageTallies));
         for (var entry : damageTallies.entrySet()) if (!entry.getKey().equals(entry.getValue().handle().id())
@@ -108,7 +108,7 @@ public record EffectState(BuffStore buffs, Map<ResourceState.Key, ResourceState>
         for (var entry : shotGroups.entrySet()) if (!entry.getKey().equals(entry.getValue().handle().id()) || entry.getValue().handle().startedAt() > buffs.timeMicros())
             throw new IllegalArgumentException("Wrong shot group identity or clock");
         shots = Collections.unmodifiableMap(new TreeMap<>(shots));
-        for (var entry : shots.entrySet()) if (!entry.getKey().equals(entry.getValue().gear().instance()) || entry.getValue().firedAt() > buffs.timeMicros())
+        for (var entry : shots.entrySet()) if (!entry.getKey().equals(entry.getValue().gear().instance()) || entry.getValue().firedTime() > buffs.timeMicros())
             throw new IllegalArgumentException("Wrong accepted shot identity or clock");
         reloads = Collections.unmodifiableMap(new TreeMap<>(reloads));
         for (var entry : reloads.entrySet()) if (!entry.getKey().equals(entry.getValue().holder())) throw new IllegalArgumentException("Wrong reload holder identity");

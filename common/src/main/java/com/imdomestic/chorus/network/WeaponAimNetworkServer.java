@@ -108,7 +108,7 @@ public final class WeaponAimNetworkServer {
         WeaponAim.Plan plan = s.runtime == null || s.status == Status.FAILED || MinecraftEffectRuntime.installed(s.level).orElse(null) != s.runtime
                 ? null : s.runtime.state().engine().domain().aiming().get(s.player.getUUID().toString());
         var view = new View(s.revision + 1, s.sequence, s.gesture, s.player.getUUID(), dimension(s), s.held, s.status,
-                plan == null ? Phase.OFF : Phase.valueOf(plan.phase().name()), plan == null ? "" : plan.gear().instance(), plan == null ? 0 : plan.startedAt(), plan == null ? 0 : plan.dueAt());
+                plan == null ? Phase.OFF : Phase.valueOf(plan.phase().name()), plan == null ? "" : plan.gear().instance(), plan == null ? 0 : plan.startTime(), plan == null ? 0 : plan.dueTime());
         if (!force && s.last != null && new View(s.last.revision(), view.sequence(), view.gesture(), view.player(), view.dimension(), view.held(), view.status(), view.phase(), view.weapon(), view.startedAt(), view.dueAt()).equals(s.last)) return;
         s.revision = view.revision(); s.last = view; send.accept(s.player, view);
     }

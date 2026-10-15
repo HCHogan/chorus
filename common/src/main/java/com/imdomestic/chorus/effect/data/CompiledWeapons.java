@@ -209,7 +209,7 @@ final class CompiledWeapons {
     }
     RuleEngine.Local<EffectState> next(EffectState state, WeaponReload.Plan previous, WeaponQueries program) {
         if (!previous.equals(state.reloads().get(previous.holder()))) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
-        if (previous.phase() != WeaponReload.Phase.BETWEEN_INSERTS || previous.dueAt() != state.buffs().timeMicros())
+        if (previous.phase() != WeaponReload.Phase.BETWEEN_INSERTS || previous.dueTime() != state.buffs().timeMicros())
             throw new IllegalArgumentException("Reload continuation is not at the committed insertion boundary");
         var view = program.ammoCapacity(state, previous.gear().instance());
         if (view.read(AmmoState.Field.MISSING) == 0 || view.account().reserve().filter(r -> r.rounds() == 0).isPresent())
@@ -227,7 +227,7 @@ final class CompiledWeapons {
     RuleEngine.Local<EffectState> finish(EffectState state, WeaponReload.Plan plan, WeaponReload.Verified verification, WeaponQueries program) {
         if (!verification.query().plan().equals(plan)) throw new IllegalArgumentException("Reload verification belongs to another request");
         if (!plan.equals(state.reloads().get(plan.holder()))) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
-        if (plan.phase() != WeaponReload.Phase.WAITING || state.buffs().timeMicros() != plan.dueAt()) throw new IllegalArgumentException("Reload completion is not at its accepted deadline");
+        if (plan.phase() != WeaponReload.Phase.WAITING || state.buffs().timeMicros() != plan.dueTime()) throw new IllegalArgumentException("Reload completion is not at its accepted deadline");
         var updated = clear(state, plan);
         if (!verification.allowed() || !WeaponReload.drawn(state.equipment().getOrDefault(plan.holder(), Loadout.EMPTY)).filter(plan.gear()::equals).isPresent())
             return new RuleEngine.Local<>(updated, RuleEngine.Empty.INSTANCE, List.of(fact("chorus:reload_cancelled", plan, "host_rejected", Map.of())));
@@ -290,7 +290,7 @@ final class CompiledWeapons {
         });
         var fire = definition.fire().orElseThrow(); long now = state.buffs().timeMicros();
         var previous = state.shots().get(weapon.instance());
-        if (previous != null && now < previous.readyAt()) return rejectFire(state, WeaponFire.Outcome.COOLDOWN);
+        if (previous != null && now < previous.readyTime()) return rejectFire(state, WeaponFire.Outcome.COOLDOWN);
         var tags = new HashSet<>(items.get(weapon.definition()).tags()); tags.addAll(fire.tags());
         var origin = new BuffInstance.Origin(request.holder(), "shot/" + request.token(), weapon.instance(), "", tags);
         var references = new HashMap<>(Map.of("weapon", weapon.instance(), "item", weapon.definition(), "shot", request.token(), "origin_source", origin.source()));
@@ -323,7 +323,7 @@ final class CompiledWeapons {
         }
         var acceptedNumbers = new HashMap<>(query.numbers());
         acceptedNumbers.putAll(Map.of("cost", new Measure(rounds, Unit.ROUND), "interval", interval,
-                        "scheduled_interval", new Measure((shot.readyAt() - now) / 1_000_000.0, Unit.SECOND),
+                        "scheduled_interval", new Measure((shot.readyTime() - now) / 1_000_000.0, Unit.SECOND),
                         "before_magazine", new Measure(cost.before().magazine(), Unit.ROUND), "magazine", new Measure(cost.after().magazine(), Unit.ROUND),
                         "capacity", new Measure(view.capacity(), Unit.ROUND), "unmodified_capacity", new Measure(view.account().capacity(), Unit.ROUND)));
         var accepted = new EffectEvent(query.actor(), query.victim(), origin, tags, acceptedNumbers, query.flags(), query.references());
@@ -337,12 +337,12 @@ final class CompiledWeapons {
         for (var shot : state.shots().values()) if (!definitions.containsKey(shot.gear().definition()) || !state.ammunition().containsKey(shot.gear().instance()))
             throw new IllegalArgumentException("Unknown accepted weapon fire");
         for (var plan : state.reloads().values()) {
-            if (!definitions.containsKey(plan.gear().definition()) || plan.startedAt() > state.buffs().timeMicros() || plan.dueAt() < state.buffs().timeMicros())
+            if (!definitions.containsKey(plan.gear().definition()) || plan.startTime() > state.buffs().timeMicros() || plan.dueTime() < state.buffs().timeMicros())
                 throw new IllegalArgumentException("Unknown or stale accepted reload");
             if (plan.portion().isPresent() != definitions.get(plan.gear().definition()).reload().insert().isPresent()) throw new IllegalArgumentException("Reload mode differs from its weapon definition");
             if (plan.phase() == WeaponReload.Phase.BETWEEN_INSERTS) {
-                if (plan.dueAt() != state.buffs().timeMicros() || state.timers().containsKey(plan.timerId())) throw new IllegalArgumentException("Invalid committed insertion boundary");
-            } else if (plan.dueAt() > state.buffs().timeMicros() && !plan.timer().equals(state.timers().get(plan.timerId()))) throw new IllegalArgumentException("Reload timer differs from its accepted plan");
+                if (plan.dueTime() != state.buffs().timeMicros() || state.timers().containsKey(plan.timerId())) throw new IllegalArgumentException("Invalid committed insertion boundary");
+            } else if (plan.dueTime() > state.buffs().timeMicros() && !plan.timer().equals(state.timers().get(plan.timerId()))) throw new IllegalArgumentException("Reload timer differs from its accepted plan");
         }
     }
     private static EffectState clear(EffectState state, WeaponReload.Plan plan) { return state.withoutReload(plan.holder()).cancel(plan.timerId()); }
@@ -361,7 +361,7 @@ final class CompiledWeapons {
     private static RuleEngine.Signal fact(String type, WeaponReload.Plan plan, String reason, Map<String, Measure> ammo) {
         var numbers = new HashMap<>(ammo); numbers.put("duration", plan.duration()); numbers.put("reload_step", new Measure(plan.step(), Unit.COUNT));
         plan.portion().ifPresent(portion -> numbers.put("planned_rounds", new Measure(portion.rounds(), Unit.ROUND)));
-        numbers.put("scheduled_duration", new Measure((plan.dueAt() - plan.startedAt()) / 1_000_000.0, Unit.SECOND));
+        numbers.put("scheduled_duration", new Measure((plan.dueTime() - plan.startTime()) / 1_000_000.0, Unit.SECOND));
         var references = new HashMap<>(Map.of("weapon", plan.gear().instance(), "item", plan.gear().definition(), "reload", plan.token(), "reason", reason));
         if (type.equals("chorus:reload_finished")) references.put("reload_completion_id", plan.completionId());
         var event = new EffectEvent(plan.holder(), plan.gear().instance(), plan.origin(), plan.origin().tags(), numbers,

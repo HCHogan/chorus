@@ -23,7 +23,7 @@ final class CompiledCharging {
             if(request.edge()==WeaponCharge.Edge.CANCEL)return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"input_cancelled");
             if(!previous.matches(state.equipment().getOrDefault(request.holder(),Loadout.EMPTY)))return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"equipment_changed");
             if(previous.trigger()==WeaponCharge.Trigger.FULL)return ended(state,previous,WeaponCharge.Outcome.CANCELLED,"released_before_full");
-            if(state.buffs().timeMicros()-previous.startedAt()<previous.minimum().micros())return ended(state,previous,WeaponCharge.Outcome.TOO_EARLY,"released_early");
+            if(WeaponPhaseTime.elapsed(state.buffs().timeMicros(),previous.startTime())<previous.minimum().micros())return ended(state,previous,WeaponCharge.Outcome.TOO_EARLY,"released_early");
             return fire(state,previous,"released",weapons,program,List.of());
         }
         if(previous!=null)return reject(state,WeaponCharge.Outcome.ALREADY_HELD);
@@ -33,7 +33,7 @@ final class CompiledCharging {
         if(definition==null||definition.charging().isEmpty())return reject(state,WeaponCharge.Outcome.NOT_CONFIGURED);
         if(state.handling().containsKey(request.holder())||state.reloads().containsKey(request.holder()))return reject(state,WeaponCharge.Outcome.BUSY);
         long now=state.buffs().timeMicros();var shot=state.shots().get(weapon.instance());
-        if(shot!=null&&now<shot.readyAt())return reject(state,WeaponCharge.Outcome.COOLDOWN);
+        if(shot!=null&&now<shot.readyTime())return reject(state,WeaponCharge.Outcome.COOLDOWN);
         var charging=definition.charging().orElseThrow();
         var tags=new HashSet<>(weapons.itemTags(weapon.definition()));tags.addAll(definition.fire().orElseThrow().tags());tags.add("chorus:weapon_charge");
         var origin=new BuffInstance.Origin(request.holder(),"charge/"+request.token(),weapon.instance(),"",tags);
@@ -109,8 +109,8 @@ final class CompiledCharging {
             var definition=weapons.definition(plan.gear().definition());long now=state.buffs().timeMicros();
             if(definition==null||definition.charging().isEmpty()||!plan.matches(state.equipment().getOrDefault(plan.holder(),Loadout.EMPTY))||state.handling().containsKey(plan.holder())||state.reloads().containsKey(plan.holder()))throw new IllegalArgumentException("Charge conflicts with current weapon action");
             if(plan.trigger()!=definition.charging().orElseThrow().trigger()||plan.repeat()!=definition.charging().orElseThrow().repeat()||plan.trigger()==WeaponCharge.Trigger.FULL&&plan.phase()==WeaponCharge.Phase.READY)throw new IllegalArgumentException("Charge trigger differs from its accepted lifecycle");
-            if(plan.recovery().isPresent()&&(!plan.recovery().orElseThrow().equals(state.shots().get(plan.gear().instance()))||now<plan.fullAt()))throw new IllegalArgumentException("Charge recovery differs from current shot");
-            if(plan.phase()==WeaponCharge.Phase.READY){if(plan.fullAt()>now||state.timers().containsKey(plan.timerId()))throw new IllegalArgumentException("Unfinished charge marked ready");}
+            if(plan.recovery().isPresent()&&(!plan.recovery().orElseThrow().equals(state.shots().get(plan.gear().instance()))||now<plan.fullTime()))throw new IllegalArgumentException("Charge recovery differs from current shot");
+            if(plan.phase()==WeaponCharge.Phase.READY){if(plan.fullTime()>now||state.timers().containsKey(plan.timerId()))throw new IllegalArgumentException("Unfinished charge marked ready");}
             else if(plan.dueAt()<now||plan.dueAt()>now&&!plan.timer().equals(state.timers().get(plan.timerId())))throw new IllegalArgumentException("Charge differs from accepted deadline");
         }
     }

@@ -4,6 +4,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 public final class WeaponChargeInputGameTest extends com.imdomestic.chorus.test.WeaponChargeInputGameTest {
+    @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:resource_runtime") @Override
+    public void relocatedChargePayloadPreservesSignedMarkersAndProgressThroughNativeCodec(GameTestHelper h){super.relocatedChargePayloadPreservesSignedMarkersAndProgressThroughNativeCodec(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:charge_input_packets",maxTicks=25) @Override
     public void pairedPacketsUseServerTokensAndCannotReleaseAnotherGestureOrDimension(GameTestHelper h)throws Exception {super.pairedPacketsUseServerTokensAndCannotReleaseAnotherGestureOrDimension(h);}
     @GameTest(structure="chorus_gametest:empty",environment="chorus_gametest:charge_input_progress",maxTicks=65) @Override

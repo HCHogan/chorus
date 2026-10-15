@@ -19,8 +19,9 @@ public final class WeaponAim {
         public RuleEngine.Signal signal(){return new RuleEngine.Signal(REQUEST,this);}
     }
     public record Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
-            long startedAt,long dueAt,Measure input,Measure duration,Optional<CalculationPipeline.Result> calculation) implements RuleEngine.Payload {
+            long startedAt,long dueAt,Measure input,Measure duration,Optional<CalculationPipeline.Result> calculation, long clockOffset) implements RuleEngine.Payload {
         public Plan {
+            WeaponPhaseTime.local(startedAt,clockOffset); WeaponPhaseTime.local(dueAt,clockOffset);
             text(holder);text(token);text(slot);Objects.requireNonNull(gear);Objects.requireNonNull(origin);Objects.requireNonNull(phase);
             Objects.requireNonNull(input);Objects.requireNonNull(duration);Objects.requireNonNull(calculation);
             if(!origin.owner().equals(holder)||!origin.weapon().equals(gear.instance())||startedAt<0||dueAt==Long.MAX_VALUE
@@ -33,12 +34,21 @@ public final class WeaponAim {
         public String timerId(){return "aim/"+holder.length()+":"+holder+"/"+token;}
         public EffectState.Timer timer(){
             if(phase==Phase.AIMED||dueAt<=startedAt)throw new IllegalStateException("No pending timed aim transition");
-            return new EffectState.Timer(timerId(),dueAt,0,1,new RuleEngine.Signal(DUE,this),Optional.empty());
+            return new EffectState.Timer(timerId(),dueTime(),0,1,new RuleEngine.Signal(DUE,this),Optional.empty());
         }
         public Plan aimed(){
             if(phase!=Phase.ENTERING)throw new IllegalStateException("Only an entering aim can complete");
-            return new Plan(holder,token,slot,gear,origin,Phase.AIMED,startedAt,dueAt,input,duration,calculation);
+            return new Plan(holder,token,slot,gear,origin,Phase.AIMED,startedAt,dueAt,input,duration,calculation,clockOffset);
         }
+        public Plan(String holder,String token,String slot,Loadout.Gear gear,BuffInstance.Origin origin,Phase phase,
+            long startedAt,long dueAt,Measure input,Measure duration,Optional<CalculationPipeline.Result> calculation) { this(holder, token, slot, gear, origin, phase, startedAt, dueAt, input, duration, calculation,0); }
+        public long startTime() { return WeaponPhaseTime.local(startedAt,clockOffset); }
+        public long dueTime() { return WeaponPhaseTime.local(dueAt,clockOffset); }
+        public Plan relocated(long sourceNow,long targetNow) {
+            WeaponPhaseTime.elapsed(sourceNow,startTime());
+            return new Plan(holder, token, slot, gear, origin, phase, startedAt, dueAt, input, duration, calculation,WeaponPhaseTime.relocate(clockOffset,sourceNow,targetNow));
+        }
+
     }
     public record Receipt(Outcome outcome,Optional<Plan> plan,Optional<ActionGate.Decision> restriction) implements RuleEngine.ActionResult {
         public Receipt {Objects.requireNonNull(outcome);Objects.requireNonNull(plan);ActionGate.receipt(ActionGate.Kind.WEAPON_AIM,outcome==Outcome.RESTRICTED,restriction);if((outcome==Outcome.ACCEPTED)!=plan.isPresent())throw new IllegalArgumentException("Accepted aim needs its plan");}

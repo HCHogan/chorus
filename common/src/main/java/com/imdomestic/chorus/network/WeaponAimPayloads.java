@@ -34,10 +34,11 @@ public final class WeaponAimPayloads {
         public static final Type<View> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_aim_view"));
         public static final StreamCodec<RegistryFriendlyByteBuf, View> CODEC = StreamCodec.ofMember(View::write, View::read);
         public View {
+            Math.subtractExact(dueAt,startedAt);
             Objects.requireNonNull(player); Objects.requireNonNull(status); Objects.requireNonNull(phase); Objects.requireNonNull(weapon);
             WeaponAimPayloads.dimension(dimension);
             if (revision <= 0 || sequence <= 0 || gesture < 0 || gesture > sequence || held && gesture == 0 || weapon.length() > 512
-                    || startedAt < 0 || dueAt < startedAt || (phase == Phase.OFF ? !weapon.isEmpty() || startedAt != 0 || dueAt != 0 : weapon.isBlank()))
+                    || dueAt < startedAt || (phase == Phase.OFF ? !weapon.isEmpty() || startedAt != 0 || dueAt != 0 : weapon.isBlank()))
                 throw new IllegalArgumentException("Invalid aim projection");
         }
         private void write(RegistryFriendlyByteBuf b) {

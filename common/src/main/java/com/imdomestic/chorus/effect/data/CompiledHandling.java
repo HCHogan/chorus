@@ -68,13 +68,13 @@ final class CompiledHandling {
     private static RuleEngine.Local<EffectState> schedule(EffectState state, WeaponHandling.Plan plan) {
         var updated = state.withHandling(plan); var facts = new ArrayList<RuleEngine.Signal>();
         facts.add(fact("chorus:weapon_handling_started", plan, "accepted"));
-        if (plan.dueAt() == plan.startedAt()) facts.add(new RuleEngine.Signal(WeaponHandling.DUE, plan));
+        if (plan.dueTime() == plan.startTime()) facts.add(new RuleEngine.Signal(WeaponHandling.DUE, plan));
         else updated = updated.schedule(plan.timer());
         return new RuleEngine.Local<>(updated, RuleEngine.Empty.INSTANCE, facts);
     }
     static boolean current(EffectState state, WeaponHandling.Plan plan) { return plan.equals(state.handling().get(plan.holder())); }
     static WeaponHandling.Apply prepare(EffectState state, WeaponHandling.Plan plan, WeaponQueries program) {
-        if (!current(state, plan) || plan.completed() || plan.dueAt() != state.buffs().timeMicros()) throw new IllegalStateException("Handling is not at its accepted boundary");
+        if (!current(state, plan) || plan.completed() || plan.dueTime() != state.buffs().timeMicros()) throw new IllegalStateException("Handling is not at its accepted boundary");
         var change = plan.change(state.equipment().getOrDefault(plan.holder(), Loadout.EMPTY));
         // Validate the complete pure equipment transition before requesting a physical mutation.
         program.changeEquipment(clear(state, plan), change);
@@ -96,7 +96,7 @@ final class CompiledHandling {
     }
     static RuleEngine.Local<EffectState> next(EffectState state, WeaponHandling.Plan previous, CompiledWeapons weapons, WeaponQueries program) {
         if (!current(state, previous)) return new RuleEngine.Local<>(state, RuleEngine.Empty.INSTANCE, List.of());
-        if (!previous.completed() || previous.dueAt() != state.buffs().timeMicros()) throw new IllegalStateException("Not a committed stow boundary");
+        if (!previous.completed() || previous.dueTime() != state.buffs().timeMicros()) throw new IllegalStateException("Not a committed stow boundary");
         if (previous.target().isEmpty()) return new RuleEngine.Local<>(clear(state, previous), RuleEngine.Empty.INSTANCE,
                 List.of(fact("chorus:weapon_switch_finished", previous, "completed")));
         // Stow reactions have run; the new weapon samples its own current modifiers at this phase boundary.
@@ -114,17 +114,17 @@ final class CompiledHandling {
     static void validate(EffectState state) {
         for (var plan : state.handling().values()) {
             long now = state.buffs().timeMicros();
-            if (plan.startedAt() > now || plan.dueAt() < now || !plan.matches(state.equipment().getOrDefault(plan.holder(), Loadout.EMPTY)))
+            if (plan.startTime() > now || plan.dueTime() < now || !plan.matches(state.equipment().getOrDefault(plan.holder(), Loadout.EMPTY)))
                 throw new IllegalArgumentException("Stale accepted handling phase");
             if (plan.completed()) {
-                if (plan.dueAt() != now || state.timers().containsKey(plan.timerId())) throw new IllegalArgumentException("Invalid stow completion boundary");
-            } else if (plan.dueAt() > now && !plan.timer().equals(state.timers().get(plan.timerId())))
+                if (plan.dueTime() != now || state.timers().containsKey(plan.timerId())) throw new IllegalArgumentException("Invalid stow completion boundary");
+            } else if (plan.dueTime() > now && !plan.timer().equals(state.timers().get(plan.timerId())))
                 throw new IllegalArgumentException("Handling timer differs from its accepted phase");
         }
     }
     private static RuleEngine.Signal fact(String type, WeaponHandling.Plan plan, String reason) {
         var event = new EffectEvent(plan.holder(), plan.gear().instance(), plan.origin(), plan.origin().tags(),
-                Map.of("duration", plan.duration(), "scheduled_duration", new Measure((plan.dueAt() - plan.startedAt()) / 1_000_000.0, Unit.SECOND)), Map.of(),
+                Map.of("duration", plan.duration(), "scheduled_duration", new Measure((plan.dueTime() - plan.startTime()) / 1_000_000.0, Unit.SECOND)), Map.of(),
                 Map.of("weapon", plan.gear().instance(), "item", plan.gear().definition(), "switch", plan.token(),
                         "handling_phase", plan.phase().name().toLowerCase(Locale.ROOT), "reason", reason));
         return new RuleEngine.Signal(type, new WeaponHandling.Fact(event, plan));

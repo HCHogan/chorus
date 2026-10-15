@@ -20,8 +20,9 @@ public final class WeaponFire {
     }
     /** Retained by physical instance, including across stowing and same-runtime ownership changes. */
     public record Shot(String holder, String token, Loadout.Gear gear, BuffInstance.Origin origin,
-            long firedAt, long readyAt, Measure input, Measure interval, Optional<CalculationProfile.Result> calculation, Ammunition.Result cost) {
+            long firedAt, long readyAt, Measure input, Measure interval, Optional<CalculationProfile.Result> calculation, Ammunition.Result cost, long clockOffset) {
         public Shot {
+            WeaponPhaseTime.local(firedAt,clockOffset); WeaponPhaseTime.local(readyAt,clockOffset);
             identity(holder); identity(token); Objects.requireNonNull(gear); Objects.requireNonNull(origin);
             Objects.requireNonNull(input); Objects.requireNonNull(interval); Objects.requireNonNull(calculation); Objects.requireNonNull(cost);
             if (firedAt < 0 || readyAt != Math.addExact(firedAt, micros(interval)) || readyAt == Long.MAX_VALUE
@@ -33,6 +34,15 @@ public final class WeaponFire {
             });
             if (calculation.isEmpty() && !input.equals(interval)) throw new IllegalArgumentException("Unexplained fire interval");
         }
+        public Shot(String holder, String token, Loadout.Gear gear, BuffInstance.Origin origin,
+            long firedAt, long readyAt, Measure input, Measure interval, Optional<CalculationProfile.Result> calculation, Ammunition.Result cost) { this(holder, token, gear, origin, firedAt, readyAt, input, interval, calculation, cost,0); }
+        public long firedTime() { return WeaponPhaseTime.local(firedAt,clockOffset); }
+        public long readyTime() { return WeaponPhaseTime.local(readyAt,clockOffset); }
+        public Shot relocated(long sourceNow,long targetNow) {
+            WeaponPhaseTime.elapsed(sourceNow,firedTime());
+            return new Shot(holder, token, gear, origin, firedAt, readyAt, input, interval, calculation, cost,WeaponPhaseTime.relocate(clockOffset,sourceNow,targetNow));
+        }
+
     }
     public record Receipt(Outcome outcome, Optional<Shot> shot,Optional<com.imdomestic.chorus.effect.input.ActionGate.Decision> restriction) implements RuleEngine.ActionResult {
         public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(shot); if ((outcome == Outcome.ACCEPTED) != shot.isPresent()) throw new IllegalArgumentException("Invalid fire receipt");com.imdomestic.chorus.effect.input.ActionGate.receipt(com.imdomestic.chorus.effect.input.ActionGate.Kind.WEAPON_FIRE,Set.of(com.imdomestic.chorus.effect.input.ActionGate.Phase.START,com.imdomestic.chorus.effect.input.ActionGate.Phase.COMPLETE),outcome==Outcome.RESTRICTED,restriction); }

@@ -19,8 +19,9 @@ public final class WeaponHandling {
     }
     public record Plan(String holder, String token, Optional<String> targetSlot, Optional<Loadout.Gear> target,
             String phaseSlot, Loadout.Gear gear, BuffInstance.Origin origin, Phase phase, long startedAt, long dueAt,
-            Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation, boolean completed) implements RuleEngine.Payload {
+            Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation, boolean completed, long clockOffset) implements RuleEngine.Payload {
         public Plan {
+            WeaponPhaseTime.local(startedAt,clockOffset); WeaponPhaseTime.local(dueAt,clockOffset);
             identity(holder); identity(token); Objects.requireNonNull(targetSlot); Objects.requireNonNull(target);
             targetSlot.ifPresent(WeaponHandling::slot); slot(phaseSlot);
             Objects.requireNonNull(gear); Objects.requireNonNull(origin); Objects.requireNonNull(phase);
@@ -34,11 +35,11 @@ public final class WeaponHandling {
             });
             if (calculation.isEmpty() && !input.equals(duration)) throw new IllegalArgumentException("Unexplained handling duration");
         }
-        public Plan between() { return new Plan(holder, token, targetSlot, target, phaseSlot, gear, origin, phase, startedAt, dueAt, input, duration, calculation, true); }
+        public Plan between() { return new Plan(holder, token, targetSlot, target, phaseSlot, gear, origin, phase, startedAt, dueAt, input, duration, calculation, true,clockOffset); }
         public String timerId() { return "handling/" + holder.length() + ":" + holder + "/" + token + "/" + phase.name().toLowerCase(Locale.ROOT); }
         public EffectState.Timer timer() {
             if (completed || dueAt <= startedAt) throw new IllegalStateException("Only a pending positive duration owns a timer");
-            return new EffectState.Timer(timerId(), dueAt, 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
+            return new EffectState.Timer(timerId(), dueTime(), 0, 1, new RuleEngine.Signal(DUE, this), Optional.empty());
         }
         public boolean matches(Loadout loadout) {
             if (targetSlot.isPresent() && !target.equals(Optional.ofNullable(loadout.slots().get(targetSlot.orElseThrow())))) return false;
@@ -50,6 +51,16 @@ public final class WeaponHandling {
             if (completed || !matches(before)) throw new IllegalArgumentException("Handling no longer owns this selection");
             return new EquipmentChange(holder, before, new Loadout(before.slots(), phase == Phase.STOW ? Optional.empty() : targetSlot, before.grants()));
         }
+        public Plan(String holder, String token, Optional<String> targetSlot, Optional<Loadout.Gear> target,
+            String phaseSlot, Loadout.Gear gear, BuffInstance.Origin origin, Phase phase, long startedAt, long dueAt,
+            Measure input, Measure duration, Optional<CalculationPipeline.Result> calculation, boolean completed) { this(holder, token, targetSlot, target, phaseSlot, gear, origin, phase, startedAt, dueAt, input, duration, calculation, completed,0); }
+        public long startTime() { return WeaponPhaseTime.local(startedAt,clockOffset); }
+        public long dueTime() { return WeaponPhaseTime.local(dueAt,clockOffset); }
+        public Plan relocated(long sourceNow,long targetNow) {
+            WeaponPhaseTime.elapsed(sourceNow,startTime());
+            return new Plan(holder, token, targetSlot, target, phaseSlot, gear, origin, phase, startedAt, dueAt, input, duration, calculation, completed,WeaponPhaseTime.relocate(clockOffset,sourceNow,targetNow));
+        }
+
     }
     public record Receipt(Outcome outcome, Optional<Plan> plan) implements RuleEngine.ActionResult {
         public Receipt { Objects.requireNonNull(outcome); Objects.requireNonNull(plan); if ((outcome == Outcome.ACCEPTED) != plan.isPresent()) throw new IllegalArgumentException("Invalid handling receipt"); }

@@ -130,7 +130,7 @@ public final class WeaponChargeNetworkServer {
     private void publish(Session s, boolean force) {
         var plan = s.held && s.status == Status.ACTIVE ? plan(s) : null;
         long observed = plan == null ? 0 : s.runtime.state().engine().timeMicros();
-        long started = plan == null ? 0 : plan.recovery().map(com.imdomestic.chorus.effect.weapon.WeaponFire.Shot::firedAt).orElse(plan.startedAt());
+        long started = plan == null ? 0 : plan.recovery().map(com.imdomestic.chorus.effect.weapon.WeaponFire.Shot::firedTime).orElse(plan.startTime());
         long minimum = plan == null ? 0 : plan.recovery().isPresent() ? started : Math.addExact(started, plan.minimum().micros());
         var view = new View(s.revision + 1, s.sequence, s.gesture, s.player.getUUID(), s.player.getId(), dimension(s), plan != null, s.status,
                 plan == null ? Phase.OFF : Phase.valueOf(plan.phase().name()), plan == null ? "" : plan.gear().instance(),
