@@ -8,6 +8,20 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：实体附着跨域解析与原生生命周期共同提交
+
+来源 / Buff 自有 continuation 现可携带 EntityAttachments.Handle 在同一协调宿主内跨域接续。Begin / Close 通过 AttachmentRequests 访问签发域；Resolve 从原 issuer 读取当前 Entry / revision，原生查询按不可变实体引用选择实际世界，原样传递调用域的 WorldRequest。完成阶段以 issuer 当前状态核对精确回执，再共同发布原账本变化与调用域结果；不推进观察世界的会话，不沿 UUID 改绑新维度。旧未限定句柄仅由显式 sourceDomain 在迁移时补齐，后续交接保留原 issuer、生命、接触偏移和期限。普通 owner 子视图同时修复了 legacy damage group、shot group、attachment 默认物理根域的保留。
+
+实际原生死亡 / 移除当场捕获匹配的完整句柄与时间线，产生宿主专属 admission；联合边界以有序 settlement 证明每一项附件差异与通知。物理观察时间保持在原 payload，不与外域 startedAt 比较，也不替换接收域时钟。动作外排队事实先共同发布并排空，再推进各运行时；后建或完整身份不同的同名实例不受旧 admission 影响。同一实例在此期间产生新的查询 revision 仍可按原资格处理，death → removal 依次结算，FIXED 状态不再移动。只有实际 admission 能授权写入，转发公共事实不足以更改账本。未发布 token 拒绝检查点；未知回调保留实际变化、原操作 pending、事实与诊断，不重放或制造成功结果。
+
+新增 7 项 AttachmentRequestsTest、6 项 AttachmentRoutingTest、8 项 AttachmentLifecycleAccountingTest、3 项 ResourceReadPhysicalRootTest；另更新 continuation 交接与原生战斗证明回归。覆盖 A→B→C 的来源 / Buff 续体、caller / issuer / physical 三域分离、异钟到期、同名账本隔离、完整 revision 与旧回执、实际旧 v1 archive 解码、两次联合恢复、已提交 Close 后回调丢失，以及伪造差异 / 原始通知不足以授权写入、错域 / 错生命 / 时间线替换拒绝。新增 Begin / Close / Receipt 三项 DATA，原 759 项形状完整保留，总数 762；旧 Commit 和 Handle 布局及外层 archive format 5 不变，原生临时权限不进 DATA。
+
+四项共享 EntityAttachmentTransferGameTest 使用真实玩家 A→B 传送与原版 ACK。FOLLOW 场景由 B 查询 A 的实际尸体，再在第二次观察回调中实际移除目标，确认较晚返回的 AVAILABLE 不能覆盖 FIX 的历史位置；WAIT 场景携带 Buff 自有续体，实际卸载标记、联合编码 / 恢复与同生命实体 NBT 重载后继续第二次查询；END 场景验证真实死亡和实体原生跨维度移除；未知场景在实际 discard 后令转发回调抛错，确认 A 的附着变化、B 的精确 pending 操作及故障事实保留，检查点拒绝，12 tick 后仍无重放或后续关闭。
+
+最终 `/tmp/chorus-attachment-routing-full-gate2.log` BUILD SUCCESSFUL（3 分 45 秒）：2761 项 JUnit 无失败 / 错误 / 跳过，Fabric 1410、NeoForge 1425 项世界回归通过，双端发布包与两次正常停服检查点通过。`build/reports/attachment-routing/audit.json` 核验原 759 项 DATA 形状、1455 / 1448 个发布主类字节一致、无测试内容泄漏及 Gradle 行尾保持。10 项 Compendium 工具测试、固定来源与生成报告检查通过。初次新夹具编译修正了 EntityAttachments 通配导入歧义及原版 ACK 的 checked exception；新纯夹具改用合法领域名、有效异钟账本与实际时钟推进清理到期状态，未放宽生产校验。引擎、协议与纯测试已提交为 0a6b03a9，原生场景及本记录另行提交。
+
+本批验收是同进程联合 archive 与实体 NBT 往返，没有新增独立进程物理效果恢复；附着位置也不自动授权跨世界 select_targets、AOE 或 GuardedDamage。真实区块加载协调、物理效果实体重启重建及历史发射来源生命连续性仍待完成。Compendium 保持 133 项审阅（131 partial、2 not_applicable、0 verified），没有把通用机制测试升级为全部原作数值验收。接口见[附着的签发域与跨域解析](engine-data-packs.md#实体附着的签发域与跨域解析)。
+
 ### 2026-10-15：射击组跨域接续与实际伤害记账
 
 同一协调宿主内，来源 / Buff 自有 continuation 可携带 ShotGroups.Handle 跨域迁移。七种 ShotRequests 原语将预留、射线 / 路径观察、发射、接触开闭及到期送回原 issuer，账本与 expiry timer 保留原域；完整路径回执与历史来源不改写。原生射线 / 弹体的活动检查使用签发域，已进入原生战斗时读取冻结 shadow。shot_progress / shot_resolved 按原 issuer 和当前 CHARACTER / BUFF facet 投递，同域去重，资源 lease 不影响路由。
