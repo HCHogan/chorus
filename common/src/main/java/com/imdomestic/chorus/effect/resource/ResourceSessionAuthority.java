@@ -132,6 +132,8 @@ public final class ResourceSessionAuthority {
     private ResourceAuthority.Directory directory;
     private ParticipantPlacement.Directory placement;
     private CombatBoundary activeCombat;
+    private long nextLifecycle = 1;
+    private final Map<Long, NativeLifecycle> pendingLifecycle = new LinkedHashMap<>();
     private record DamageOperation(String caller, RuleEngine.OperationId operation) {}
     private record PreparedDamage(CombatDomains.Claim claim, Optional<ShotDamageAccounting.Pin> shot,
             Optional<ShotDamageAccounting.Settled> settled) {
@@ -233,6 +235,7 @@ public final class ResourceSessionAuthority {
         private final Map<String, com.imdomestic.chorus.effect.data.EffectProgram> programs;
         private final Map<DamageOperation, NativeShot> shotBindings = new LinkedHashMap<>();
         private final Map<DamageOperation, ShotDamageAccounting.Settled> shotSettlements = new LinkedHashMap<>();
+        private final Map<Long, AttachmentLifecycleAccounting.Settled> lifecycleSettlements = new LinkedHashMap<>();
         private Throwable violation;
         private CombatBoundary(ResourceSessionAuthority host, Snapshot before, String caller, Optional<RuleEngine.WorldRequest> request) {
             this.host=host; this.before=before; this.caller=caller; this.request=request;
@@ -246,6 +249,7 @@ public final class ResourceSessionAuthority {
         public Map<String,com.imdomestic.chorus.effect.data.EffectProgram> programs(){return programs;}
         public boolean managed(){return before.caller().isPresent();}
         public List<ShotDamageAccounting.Settled> shotEvidence(){return List.copyOf(shotSettlements.values());}
+        public List<AttachmentLifecycleAccounting.Settled> lifecycleEvidence(){return List.copyOf(lifecycleSettlements.values());}
         public void violated(Throwable failure){if(violation==null)violation=Objects.requireNonNull(failure);}
         public void requireUnviolated(){if(violation!=null)throw new IllegalStateException("Native combat boundary was reentered",violation);}
         public ResourceReadView view(ResourceAuthority.Worlds shadow,String physical){
@@ -263,6 +267,60 @@ public final class ResourceSessionAuthority {
             before.worlds().domain(caller);
             var result=new CombatBoundary(this,before,caller,request);activeCombat=result;return result;
         });
+    }
+    /** Opaque native occurrence. Queueing preserves exactly which attachment instances already existed. */
+    public static final class NativeLifecycle {
+        private final ResourceSessionAuthority host;
+        private final long sequence;
+        private final AttachmentLifecycleAccounting.Admission admission;
+        private NativeLifecycle(ResourceSessionAuthority host, long sequence, AttachmentLifecycleAccounting.Admission admission) {
+            this.host = host; this.sequence = sequence; this.admission = admission;
+        }
+        public long sequence() { return sequence; }
+        public RuleEngine.Signal fact() { return admission.fact(); }
+        public AttachmentLifecycleAccounting.Admission admission() { return admission; }
+    }
+    private NativeLifecycle lifecycle(ResourceAuthority.Worlds worlds, String physical, RuleEngine.Signal fact) {
+        var admitted = AttachmentLifecycleAccounting.capture(worlds, physical, fact);
+        long sequence = nextLifecycle; nextLifecycle = Math.incrementExact(nextLifecycle);
+        var token = new NativeLifecycle(this, sequence, admitted); pendingLifecycle.put(sequence, token); return token;
+    }
+    /** No session or clock changes: safe while a native transfer has prepared, but not published, its handoff. */
+    public NativeLifecycle captureLifecycle(String physical, RuleEngine.Signal fact) {
+        return boundary(() -> lifecycle(capture(true).worlds(), physical, fact));
+    }
+    public NativeLifecycle captureCombatLifecycle(CombatBoundary combat, ResourceAuthority.Worlds worlds, String physical, RuleEngine.Signal fact) {
+        return combatBoundary(combat, () -> {
+            combat.view(worlds, physical);
+            return lifecycle(worlds, physical, fact);
+        });
+    }
+    public record LifecycleApplied(ResourceAuthority.Worlds worlds, AttachmentLifecycleAccounting.Settled settled,
+            Map<String, List<RuleEngine.Signal>> facts) {}
+    public LifecycleApplied settleCombatLifecycle(CombatBoundary combat, NativeLifecycle token, ResourceAuthority.Worlds worlds) {
+        return combatBoundary(combat, () -> {
+            if (token == null || token.host != this || pendingLifecycle.get(token.sequence) != token)
+                throw new IllegalArgumentException("Lifecycle occurrence belongs to another host or was already published");
+            combat.view(worlds, token.admission.physical());
+            var previous = combat.lifecycleSettlements.get(token.sequence);
+            if (previous != null) return new LifecycleApplied(worlds, previous, Map.of());
+            var applied = AttachmentLifecycleAccounting.settle(worlds, token.admission);
+            combat.lifecycleSettlements.put(token.sequence, applied.settled());
+            return new LifecycleApplied(applied.worlds(), applied.settled(), AttachmentLifecycleAccounting.facts(token.admission, combat.placement()));
+        });
+    }
+    /** Pure-host queued observation publication, with no recipient rule execution or physical-clock conversion. */
+    public void publishLifecycle(String caller, List<NativeLifecycle> queued) {
+        var combat = beginCombat(caller, Optional.empty()); var worlds = combat.worlds();
+        var facts = new TreeMap<String, List<RuleEngine.Signal>>();
+        try {
+            for (var token : queued.stream().sorted(Comparator.comparingLong(NativeLifecycle::sequence)).toList()) {
+                var applied = settleCombatLifecycle(combat, token, worlds); worlds = applied.worlds(); appendFacts(facts, applied.facts());
+            }
+            commitCombat(combat, worlds, Optional.empty(), facts);
+        } catch (RuntimeException | Error error) {
+            if (activeCombat == combat) abandonCombat(combat); throw error;
+        }
     }
     /** Opaque binding of one actual native call to the caller's exact pending world request. */
     public static final class NativeShot {
@@ -357,12 +415,14 @@ public final class ResourceSessionAuthority {
                 String domain=entry.getKey();var before=combat.before.worlds().domain(domain);var next=shadow.domain(domain);
                 var emitted=List.copyOf(facts.getOrDefault(domain,List.of()));
                 ShotDamageAccounting.validateLedger(domain,before,next,combat.shotEvidence());
+                AttachmentLifecycleAccounting.validateLedger(domain,before,next,combat.lifecycleEvidence());
+                var expectedLifecycle = new ArrayList<RuleEngine.Signal>();
+                for (var settled : combat.lifecycleEvidence()) expectedLifecycle.addAll(
+                        AttachmentLifecycleAccounting.facts(settled.admission(), combat.placement()).getOrDefault(domain, List.of()));
+                if (!emitted.stream().filter(com.imdomestic.chorus.effect.target.EntityAttachments::lifecycle).toList().equals(expectedLifecycle))
+                    throw new IllegalArgumentException("Native publication lost or duplicated its lifecycle notifications");
                 new com.imdomestic.chorus.effect.combat.CombatCommit(before,
                         ShotDamageAccounting.restoreLedger(before,next.withAttachments(before.attachments())));
-                var lifecycle=com.imdomestic.chorus.effect.target.EntityAttachments.commit(RuleEngine.Empty.INSTANCE,emitted);
-                var expected=lifecycle instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Commit changes
-                        ? changes.apply(next.withAttachments(before.attachments())) : next.withAttachments(before.attachments());
-                if(!expected.equals(next))throw new IllegalArgumentException("Combat publication lacks its attachment lifecycle evidence");
                 var caller=combat.before.caller().filter(value->value.domain().equals(domain));
                 if(caller.isPresent()){
                     var operation=((WorldCaller)caller.orElseThrow()).operation();
@@ -371,7 +431,8 @@ public final class ResourceSessionAuthority {
                 }else if(next!=before||!emitted.isEmpty())updates.add(entry.getValue().session().prepareInboxDomain(combat.before.timelines().get(domain),next,emitted));
             }
             if(confirmed)combat.requireUnviolated();
-            commit(combat.before,shadow,List.copyOf(updates));damagePreparations=Map.copyOf(preparedDamage);activeCombat=null;return null;
+            commit(combat.before,shadow,List.copyOf(updates));damagePreparations=Map.copyOf(preparedDamage);
+            combat.lifecycleSettlements.keySet().forEach(pendingLifecycle::remove);activeCombat=null;return null;
         });
     }
     /** Release a rejected/pre-hurt capture. This does not undo observed writes; the host must retain those separately. */
@@ -471,6 +532,7 @@ public final class ResourceSessionAuthority {
     public Checkpoint checkpoint() {
         return boundary(() -> {
             if (!damagePreparations.isEmpty()) throw new IllegalStateException("Unresolved coordinated damage preparation cannot be checkpointed");
+            if (!pendingLifecycle.isEmpty()) throw new IllegalStateException("Unpublished native lifecycle observations cannot be checkpointed");
             var timelines = new TreeMap<String, TimelineEngine.State<EffectState>>();
             bindings.forEach((domain, binding) -> timelines.put(domain, binding.session().state()));
             var saved = new TreeMap<String, EffectSession.Checkpoint>();
@@ -658,7 +720,18 @@ public final class ResourceSessionAuthority {
                 var facts = new TreeMap<String, List<RuleEngine.Signal>>();
                 ResourceAuthority.Worlds preparedWorlds = before.worlds();
                 RuleEngine.Outcome<EffectState> outcome;
-                if (route instanceof ActionRoutes.Finish finish && damageCommand(finish.command()).isPresent()) {
+                if (route instanceof ActionRoutes.Finish finish
+                        && finish.command() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Query query) {
+                    compiled.requireActionRoute(ordinary,timeline,request);
+                    if(!(finish.actual() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Observed observed))
+                        throw new IllegalArgumentException("Attachment completion lacks its actual query observation");
+                    var issuer=ordinary.attachmentDomain(query.expected().handle());
+                    var issuerBefore=before.worlds().domain(issuer);
+                    var transition=com.imdomestic.chorus.effect.target.EntityAttachments.resolvedIssued(issuerBefore,issuer,query,observed);
+                    preparedWorlds=ResourceAuthority.publish(before.worlds(),issuer,issuerBefore,transition.state());
+                    outcome=compiled.completeAttachmentActionRoute(ordinary,new ResourceReadView(preparedWorlds,caller,compiled.program()),
+                            timeline,request,(com.imdomestic.chorus.effect.target.EntityAttachments.Resolution)transition.result());
+                } else if (route instanceof ActionRoutes.Finish finish && damageCommand(finish.command()).isPresent()) {
                     // Validate the raw ledger before consuming anything; never synthesize a Finish with altered evidence.
                     compiled.requireActionRoute(ordinary, timeline, request);
                     var identity = new DamageOperation(caller, finish.operation());
@@ -780,6 +853,10 @@ public final class ResourceSessionAuthority {
             }
             case ShotRequests.Request shot -> {
                 var result=ShotRequests.apply(worlds,shot);
+                yield new Applied(result.worlds(),result.receipt());
+            }
+            case AttachmentRequests.Request attachment -> {
+                var result=AttachmentRequests.apply(worlds,attachment);
                 yield new Applied(result.worlds(),result.receipt());
             }
             case AbilityResources.Use use -> {

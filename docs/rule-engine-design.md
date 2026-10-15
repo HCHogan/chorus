@@ -639,7 +639,11 @@ ResourceSessionAuthority 已把该协议接到实际 EffectSession：先核对�
 
 原生交接先结算来源状态和过期输入许可，捕获真实携带集合与配置，再禁止宿主重入；目标实体索引确认后、post-teleport 回调前发布核心状态、物理核对责任和临时输入。被捕获的重入错误也使候选失效。物理结果未知时保留实际写入并停止整个宿主，不回滚或保存成功检查点。瞄准 / 蓄力 / 技能的跨维度确认包含连续 transferRevision，延续同一连接和生命的原手势、原租期；回到原维度也不能使旧报文重新有效。历史 charge 引用与当前 live binding 分开。详见[原生玩家传送协议](engine-data-packs.md#原生玩家传送与长按输入交接)。
 
-领域内 live handle 的权限始终属于原签发账本。DamageTallies / DamageGroups / ShotGroups / EntityAttachments 的句柄具有可选 issuer，旧字段布局经精确迁移保留；完整 Java equality 仍严格，账本入口另以 matches 接受未限定的旧别名。协调模式下伤害统计在创建时签发，record / read / close 经协调器访问原域账本，并与调用域回执共同发布。来源或 Buff 自有 continuation 现可直接携带 DamageTallies / DamageGroups / ShotGroups 句柄迁移，目标必须启用协调路由；旧空 issuer 由显式 sourceDomain 补齐，缺少 sourceDomain 时拒绝，多次迁移保持原 issuer。账本、到期计时器和已保留资格留在原域，不复制、不重建、不重算期限，也不在目标搜索同名记录。`Pending.relocated` 仍拒绝直接捕获的 EntityAttachments 活动句柄，其完整跨域操作尚未完成；DamageSnapshot 另按[捕获时间线协议](engine-data-packs.md#伤害快照的捕获时间线)核对原域身份与时钟。只读历史结果和既有退款路由保持。此边界不限制合法反馈循环，也不以全局深度上限替代生命周期规则。见[伤害统计的签发域路由](engine-data-packs.md#伤害统计的签发域路由)及[伤害组协议](engine-data-packs.md#伤害组的签发账本与显式参与者查询)。
+领域内 live handle 的权限始终属于原签发账本。DamageTallies / DamageGroups / ShotGroups / EntityAttachments 的句柄具有可选 issuer，旧字段布局经精确迁移保留；完整 Java equality 仍严格，账本入口另以 matches 接受未限定的旧别名。协调模式下伤害统计在创建时签发，record / read / close 经协调器访问原域账本，并与调用域回执共同发布。来源或 Buff 自有 continuation 可直接携带 DamageTallies / DamageGroups / ShotGroups 句柄迁移；EntityAttachments 也已接通相同的协调交接。目标必须启用协调路由；旧空 issuer 由显式 sourceDomain 补齐，缺少 sourceDomain 时拒绝，多次迁移保持原 issuer。账本、到期计时器和已保留资格留在原域，不复制、不重建、不重算期限，也不在目标搜索同名记录。EntityAttachments 的签发账本、物理实体观察和调用续体分别寻址，详见[附着跨域协议](engine-data-packs.md#实体附着的签发域与跨域解析)；DamageSnapshot 另按[捕获时间线协议](engine-data-packs.md#伤害快照的捕获时间线)核对原域身份与时钟。只读历史结果和既有退款路由保持。此边界不限制合法反馈循环，也不以全局深度上限替代生命周期规则。见[伤害统计的签发域路由](engine-data-packs.md#伤害统计的签发域路由)及[伤害组协议](engine-data-packs.md#伤害组的签发账本与显式参与者查询)。
+
+本轮实体附着跨域实现把三种位置分开：`begin_entity_attachment` 在 A 签发，Entry 与期限留在 A；玩家 / Buff 自有续体可移到 B；`resolve_entity_attachment` 从 A 取得当前 Entry，原生查询只到 `initial.reference.dimension` 指定的同一宿主已安装世界 C，结果和 B 的确切挂起请求一起完成。转发不推进 C 的会话或时钟，不把实体当前世界猜作引用原世界，也不改变后续普通动作的物理域。`end_entity_attachment` 只关闭 A，迁移时旧无 issuer 句柄仅由显式 sourceDomain 补齐。
+
+原生死亡 / 移除当场捕获匹配句柄、原始事实和参与时间线；联合边界按捕获资格更新各 issuer 的 follow / fix / wait / end 状态，再投递公共通知。物理观察时刻不拿来比较另一域的开始 / 期限，新建实例不会继承旧通知。查询回调已实际移除实体而后失败时，保留实际移除、各域已确认附着变化、待回执操作和诊断，禁止重放与成功检查点。旧本地 `EntityAttachments.Commit` DATA 形状保留；协调路径采用宿主临时捕获能力，另新增 Begin / Close / Receipt 三种存储记录，不保存可恢复的原生授权。本轮核心回归及四项共享世界场景的双加载器验收已通过，具体范围以[实现记录](engine-implementation.md)为准；它不授予任意远端范围查询或 GuardedDamage 写入，也不完成物理实体跨进程恢复。
 
 射击组保持稳定事实身份：新协调 `begin_shot` 保存 issuer 和 `ISSUED_V1`，`shot` 引用包含签发域、id、完整 origin、弹丸数及原始起止时刻。命中、进度和完成事实使用同一标识，避免不同域的同名组被 once_set 合并。旧 v1 / v2（包括已限定 issuer 的 v2）保存为 `LEGACY`，永久保留裸 id；补齐 issuer 不切换格式，不回写历史事实或去重集合。存储新增独立 handle_v3 与 reference_format，旧布局精确迁移。协调模式下，索引预留、射线观察、弹体发射、接触开闭及到期通过显式 ShotRequests 更新原签发账本；来源 / Buff 自有延迟可携带该句柄迁移。实际伤害只凭当前接触绑定的原命令和实际回执记账，原生调用还核验确切的挂起 WorldRequest，嵌套同值命令不能借用外层资格。进度与完成事实投递原签发域及当前角色 / Buff 归属域，相同域只投递一次；资源账户位置不参与决定。原生伤害回调未知时保留已观察伤害和统计，未完成的接触不自动关闭；已提交的接触开闭不回滚，不重试或生成成功检查点。此协议不迁移物理飞行实体；详见[射击组的签发域与跨域接续](engine-data-packs.md#射击组的签发域与跨域接续)。
 
@@ -1805,7 +1809,7 @@ UUID 目标绑定不等同生命代际身份。EntityAnchor.Reference 保存 tar
 
 位置查询通过后，目标仍可能在下一次宿主写入前改变，因此 damage_entity_snapshot 在实际伤害边界再次校验生命和维度；失败不产生命中/击杀或消耗增益。它复用普通快照伤害的计算、攻击组和回执完成逻辑，没有引入另一套数值公式。原有状态转换接口保持不变。
 
-通用死亡和移除事实现已驱动每个附着实例的 follow/fix/wait/end 策略。单独的生命引用依然只是查询时校验；附着 end 则永久删除该实例，同一生命回来也不会恢复。实际区块协调、旋转/缩放和物理世界重启仍待补齐，全局 Buff、技能目标与既有 UUID 绑定没有自动迁移。[具体边界](d2-ruleset.md#timed-payload-的延迟附着)、[声明契约](engine-data-packs.md#独立实体附着实例)。
+通用死亡和移除事实现已驱动每个附着实例的 follow/fix/wait/end 策略。单独的生命引用依然只是查询时校验；附着 end 则永久删除该实例，同一生命回来也不会恢复。实际区块协调、旋转/缩放和物理世界重启仍待补齐；附着句柄随角色 / Buff 续体交接另遵守[签发域协议](engine-data-packs.md#实体附着的签发域与跨域解析)，不会改写原实体生命与维度引用。[具体边界](d2-ruleset.md#timed-payload-的延迟附着)、[声明契约](engine-data-packs.md#独立实体附着实例)。
 
 
 ### 实体移除的历史事实
@@ -1829,9 +1833,9 @@ Explosive Head 通过已保存位置、带单位的 Profile 查询、数值捕�
 
 ### 附着的提交与通知时序
 
-保持 `(状态, 事件) → (新状态, 动作列表)` 的纯转换接口。附着状态更新使用宿主回执中已确认的 Commit，在后续依赖动作运行前生效；生命周期公共通知仍在父 frame 后反应，重新转发通知不重复状态写入。否则，同一父 frame 在旧目标死亡后新建的实例可能被晚到的旧通知错误终止。
+保持 `(状态, 事件) → (新状态, 动作列表)` 的纯转换接口。本地附着状态更新使用宿主回执中已确认的 Commit，在后续依赖动作运行前生效；协调模式改用宿主捕获的生命周期资格和联合发布，见[跨域协议](engine-data-packs.md#实体附着的签发域与跨域解析)。生命周期公共通知仍在父 frame 后反应，重新转发通知不重复状态写入。否则，同一父 frame 在旧目标死亡后新建的实例可能被晚到的旧通知错误终止。
 
-世界查询携带实例 Entry/revision，完成时拒绝用旧观察复活已结束或已改变的实例。动作外待处理事实在捕获时刻结算，再推进到之后的引信；出错保留尚未处理的已知证据。检查点 v4 保存实例状态，精确旧 v3 迁移为空实例集合。这些时序与寿命约束不构成全局防循环机制。
+世界查询携带实例 Entry/revision，完成时拒绝用旧观察复活已结束或已改变的实例。本地模式的动作外事实按捕获时刻结算；协调模式先联合发布并排空已知生命周期，再推进各运行时的时钟与引信，接收域通知使用自身当前逻辑时刻，payload 的原始物理观察时间保持不变。出错保留尚未处理的已知证据。检查点 v4 保存实例状态，精确旧 v3 迁移为空实例集合。这些时序与寿命约束不构成全局防循环机制。
 
 ### 武器蓄力是射击之前的独立状态
 

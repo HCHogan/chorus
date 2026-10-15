@@ -114,10 +114,14 @@ public final class EntityAttachments {
     public static long time(RuleEngine.Signal fact) {
         return switch (fact.payload()) { case EntityLifecycle.Died d -> d.observation().timeMicros(); case EntityLifecycle.Removed r -> r.observation().timeMicros(); default -> throw new IllegalArgumentException("Not a lifecycle observation"); };
     }
-    private static EntityAnchor.Reference reference(RuleEngine.Signal fact) {
+    public static EntityAnchor.Reference reference(RuleEngine.Signal fact) {
+        if (!lifecycle(fact)) throw new IllegalArgumentException("Not a lifecycle observation");
         return switch (fact.payload()) { case EntityLifecycle.Died d -> d.reference(); case EntityLifecycle.Removed r -> r.reference(); default -> throw new IllegalArgumentException("Not a lifecycle observation"); };
     }
-    private static Optional<Entry> change(Entry entry, RuleEngine.Signal fact) {
+    public static Optional<Entry> change(Entry entry, RuleEngine.Signal fact) {
+        if (!entry.handle().initial().reference().equals(reference(fact)))
+            throw new IllegalArgumentException("Attachment lifecycle observed another entity life");
+        if (entry.phase() == Phase.FIXED) return Optional.of(entry);
         if (fact.payload() instanceof EntityLifecycle.Died died) {
             var last = died.anchor(entry.handle().initial().anchor()).requireObservation();
             return switch (entry.handle().policy().death()) {
@@ -162,6 +166,34 @@ public final class EntityAttachments {
         if (entry.isEmpty() || entry.orElseThrow().phase() == Phase.FIXED || state.buffs().timeMicros() >= handle.expiresAt())
             return new RuleEngine.Local<>(state, local(state, handle, entry), List.of());
         return new RuleEngine.Await<>(new Query(entry.orElseThrow()));
+    }
+    /** Resolve a live issuer entry without rewriting a legacy ledger merely to qualify its query. */
+    public static RuleEngine.Outcome<EffectState> resolveIssued(EffectState state, String issuer, Handle handle) {
+        handle.requireIssuer(issuer); var canonical = handle.issuedBy(issuer);
+        var entry = find(state, canonical).map(value -> issued(value, issuer));
+        if (entry.isEmpty() || entry.orElseThrow().phase() == Phase.FIXED || state.buffs().timeMicros() >= canonical.expiresAt())
+            return new RuleEngine.Local<>(state, local(state, canonical, entry), List.of());
+        return new RuleEngine.Await<>(new Query(entry.orElseThrow()));
+    }
+    private static Entry issued(Entry entry, String issuer) {
+        entry.handle().requireIssuer(issuer);
+        return new Entry(entry.handle().issuedBy(issuer), entry.phase(), entry.last(), entry.revision(), entry.reason());
+    }
+    /** Only issuer qualification may differ from the exact revision which the world observed. */
+    public static RuleEngine.Local<EffectState> resolvedIssued(EffectState state, String issuer, Query query, Observed receipt) {
+        query.expected().handle().requireIssuer(issuer);
+        if (!query.expected().handle().issuer().equals(Optional.of(issuer)))
+            throw new IllegalArgumentException("Coordinated attachment query needs its explicit issuer");
+        if (!query.equals(receipt.query())) throw new IllegalArgumentException("Attachment receipt differs from its issued query");
+        var found = find(state, query.expected().handle());
+        if (found.isEmpty()) return resolved(state, query, receipt);
+        var canonical = issued(found.orElseThrow(), issuer);
+        if (!canonical.equals(query.expected()))
+            return new RuleEngine.Local<>(state, local(state, query.expected().handle(), Optional.of(canonical)), List.of());
+        var entries = new TreeMap<>(state.attachments()); entries.put(canonical.handle().id(), canonical);
+        var result = resolved(state.withAttachments(entries), query, receipt);
+        // A missing/wrong-dimension observation must not itself rewrite a legacy entry.
+        return result.state().attachments().equals(entries) ? new RuleEngine.Local<>(state, result.result(), result.emitted()) : result;
     }
     public static RuleEngine.Local<EffectState> resolved(EffectState state, Query issued, Observed receipt) {
         if (!issued.equals(receipt.query())) throw new IllegalArgumentException("Attachment receipt differs from its issued query");

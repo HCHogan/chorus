@@ -102,6 +102,17 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     RuleEngine.ActionResult execute(MinecraftEffectRuntime runtime,ServerLevel level,RuleEngine.WorldRequest request) {
         changing();if(runtime(level)!=runtime)throw new IllegalArgumentException("Foreign native resource runtime");return authority.execute(domain(level),request);
     }
+    /** The entity's immutable world reference selects the observer; the caller retains its operation. */
+    RuleEngine.ActionResult attachmentQuery(MinecraftEffectRuntime caller,ServerLevel level,RuleEngine.WorldRequest request) {
+        enteringCombat();
+        if(runtime(level)!=caller)throw new IllegalArgumentException("Foreign native attachment caller");
+        if(!(request.command() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Query query))
+            throw new IllegalArgumentException("Expected an attachment observation request");
+        String dimension=query.expected().handle().initial().reference().dimension();
+        var observer=runtimes.get(dimension);
+        if(observer==null)throw new IllegalArgumentException("Attachment entity dimension is not in this resource host: "+dimension);
+        return observer.executeAttachmentQuery(request);
+    }
     void settlePlayerTransfer(){
         changing();
         for(var runtime:runtimes.values())runtime.prepare();

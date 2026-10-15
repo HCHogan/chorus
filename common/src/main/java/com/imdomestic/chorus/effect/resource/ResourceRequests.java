@@ -8,7 +8,7 @@ import java.util.*;
 /** Stable-address world requests. The coordinator commits balances, actual receipts and recipient facts together. */
 public final class ResourceRequests {
     private ResourceRequests() {}
-    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, Close, ResourceMutations.Request, ResourceRoutes.Request, AbilityResources.Use, AbilityResources.Select, ActionRoutes.Request, EffectHandleRequests.Request, ShotRequests.Request {}
+    public sealed interface Request extends RuleEngine.WorldCommand permits Read, Grant, Refund, Close, ResourceMutations.Request, ResourceRoutes.Request, AbilityResources.Use, AbilityResources.Select, ActionRoutes.Request, EffectHandleRequests.Request, ShotRequests.Request, AttachmentRequests.Request {}
     public record Read(ResourceState.Key account) implements Request {
         public Read { Objects.requireNonNull(account); }
     }
@@ -32,7 +32,7 @@ public final class ResourceRequests {
         public Closed { Objects.requireNonNull(request);Objects.requireNonNull(closed); }
         @Override public Optional<ResourceAuthority.Lease> recipient() { return Optional.empty(); }
     }
-    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, Closed, ResourceMutations.Receipt, ResourceRoutes.Receipt, AbilityResources.Used, AbilityResources.Selected, ActionRoutes.Receipt, EffectHandleRequests.Receipt, ShotRequests.Receipt {
+    public sealed interface Receipt extends RuleEngine.ActionResult permits ReadResult, Granted, Refunded, Closed, ResourceMutations.Receipt, ResourceRoutes.Receipt, AbilityResources.Used, AbilityResources.Selected, ActionRoutes.Receipt, EffectHandleRequests.Receipt, ShotRequests.Receipt, AttachmentRequests.Receipt {
         Request request();
         Optional<ResourceAuthority.Lease> recipient();
     }

@@ -30,7 +30,7 @@ public final class AttachmentActions {
             });
             return HANDLE;
         }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+        EntityAttachments.Handle handle(Evaluation e) {
             var initial = e.context().result(reference, EntityAnchor.Result.class).requireObservation();
             var contact = e.results().get(position).position(e.context().bindings().get(position)).orElseThrow(() -> new IllegalArgumentException("Attachment contact is unavailable"));
             long now = e.state().buffs().timeMicros(); long until = Long.MAX_VALUE;
@@ -40,21 +40,41 @@ public final class AttachmentActions {
                 until = Math.addExact(now, duration);
             }
             var op = e.context().operation();
-            return EntityAttachments.begin(e.state(), new EntityAttachments.Handle("attachment/" + op.frame() + "/" + op.pc() + "/" + op.invocation(), now, until, initial, contact, policy));
+            var handle = new EntityAttachments.Handle("attachment/" + op.frame() + "/" + op.pc() + "/" + op.invocation(), now, until, initial, contact, policy);
+            return e.resourceView().map(view -> handle.issuedBy(view.domain())).orElse(handle);
+        }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            return EntityAttachments.begin(e.state(), handle(e));
         }
     }
     public record Resolve(String attachment) implements Action {
         public Resolve { EffectTimers.localName(attachment); }
         @Override public ResultShape validate(Validation v) { v.result(attachment).requireAttachment(); return RESULT; }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return EntityAttachments.resolve(e.state(), e.context().result(attachment, EntityAttachments.Handle.class)); }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var handle=e.context().result(attachment,EntityAttachments.Handle.class);
+            if(e.resourceView().isEmpty()) {
+                if(handle.issuer().isPresent())throw new IllegalStateException("Issued attachment requires coordinated routing");
+                return EntityAttachments.resolve(e.state(),handle);
+            }
+            var view=e.resourceView().orElseThrow();var canonical=view.attachmentHandle(handle);
+            return switch(EntityAttachments.resolveIssued(view.attachmentState(canonical),view.attachmentDomain(canonical),canonical)) {
+                case RuleEngine.Local<EffectState> local -> new RuleEngine.Local<>(e.state(),local.result(),local.emitted());
+                case RuleEngine.Await<EffectState> await -> await;
+            };
+        }
         @Override public RuleEngine.Local<EffectState> complete(Evaluation e, RuleEngine.ActionResult value) {
+            if(e.resourceView().isPresent())throw new IllegalStateException("Issued attachment completion requires joint publication");
             return EntityAttachments.resolved(e.state(), e.context().command(EntityAttachments.Query.class), (EntityAttachments.Observed) value);
         }
     }
     public record End(String attachment) implements Action {
         public End { EffectTimers.localName(attachment); }
         @Override public ResultShape validate(Validation v) { v.result(attachment).requireAttachment(); return ResultShape.EMPTY; }
-        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) { return EntityAttachments.close(e.state(), e.context().result(attachment, EntityAttachments.Handle.class)); }
+        @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e) {
+            var handle=e.context().result(attachment,EntityAttachments.Handle.class);
+            if(handle.issuer().isPresent())throw new IllegalStateException("Issued attachment requires coordinated routing");
+            return EntityAttachments.close(e.state(),handle);
+        }
     }
     public record Entity(String resolution) implements Action {
         public Entity { EffectTimers.localName(resolution); }

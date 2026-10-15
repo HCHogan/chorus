@@ -7,6 +7,7 @@ import com.imdomestic.chorus.effect.data.EffectProgram;
 import com.imdomestic.chorus.effect.data.DamageSnapshot;
 import com.imdomestic.chorus.effect.projectile.ProjectileFlight;
 import com.imdomestic.chorus.effect.projectile.ShotGroups;
+import com.imdomestic.chorus.effect.target.EntityAttachments;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,6 +16,7 @@ import java.util.Optional;
 public final class ResourceReadView {
     private final ResourceAuthority.Worlds worlds;
     private final String domain;
+    private final String physicalDomain;
     private final EffectProgram program;
     private final Optional<Participants> participants;
     private record Participants(String physicalDomain, ParticipantPlacement.Directory placement,
@@ -25,14 +27,15 @@ public final class ResourceReadView {
     }
 
     public ResourceReadView(ResourceAuthority.Worlds worlds, String domain, EffectProgram program) {
-        this(worlds, domain, program, Optional.empty());
+        this(worlds, domain, domain, program, Optional.empty());
     }
-    private ResourceReadView(ResourceAuthority.Worlds worlds, String domain, EffectProgram program, Optional<Participants> participants) {
+    private ResourceReadView(ResourceAuthority.Worlds worlds, String domain, String physicalDomain, EffectProgram program, Optional<Participants> participants) {
         this.worlds = Objects.requireNonNull(worlds); this.domain = Objects.requireNonNull(domain); this.program = Objects.requireNonNull(program);
+        this.physicalDomain = Objects.requireNonNull(physicalDomain);
         this.participants = Objects.requireNonNull(participants);
-        worlds.domain(domain);
+        worlds.domain(domain); worlds.domain(physicalDomain);
         participants.ifPresent(capture -> {
-            worlds.domain(capture.physicalDomain());
+            if (!physicalDomain.equals(capture.physicalDomain())) throw new IllegalArgumentException("Participant query changed its physical root");
             if (!capture.programs().keySet().equals(worlds.domains().keySet()))
                 throw new IllegalArgumentException("Participant query needs every domain's pinned catalogue");
             ParticipantPlacement.validate(capture.placement(), worlds.domains());
@@ -78,7 +81,7 @@ public final class ResourceReadView {
                 throw new IllegalArgumentException("A participant query cannot replace its captured authority");
             return this;
         }
-        return new ResourceReadView(worlds, domain, program, Optional.of(new Participants(domain, placement, programs)));
+        return new ResourceReadView(worlds, domain, physicalDomain, program, Optional.of(new Participants(physicalDomain, placement, programs)));
     }
     public boolean combatParticipantsEnabled() { return participants.isPresent(); }
     private String participantDomain(ParticipantPlacement.Facet facet, String holder) {
@@ -96,7 +99,7 @@ public final class ResourceReadView {
     public ResourceReadView buffView(String holder) { return inDomain(buffDomain(holder)); }
     /** A legacy group belongs only to the physical caller, even inside a nested participant query. */
     public String damageGroupDomain(DamageGroups.Handle handle) {
-        String issuer = handle.issuer().orElseGet(() -> participants.map(Participants::physicalDomain).orElse(domain));
+        String issuer = handle.issuer().orElse(physicalDomain);
         compatibleDomain(issuer); return issuer;
     }
     public DamageGroups.Group damageGroup(DamageGroups.Handle handle) {
@@ -108,7 +111,7 @@ public final class ResourceReadView {
     }
     /** A legacy member belongs to the physical caller, independently of movable participant or resource facets. */
     public String shotDomain(ShotGroups.Handle handle) {
-        String issuer = handle.issuer().orElseGet(() -> participants.map(Participants::physicalDomain).orElse(domain));
+        String issuer = handle.issuer().orElse(physicalDomain);
         compatibleDomain(issuer); worlds.domain(issuer); return issuer;
     }
     public String shotDomain(ShotGroups.Member member) { return shotDomain(member.shot()); }
@@ -131,8 +134,22 @@ public final class ResourceReadView {
         var member = shotMember(impact.member().orElseThrow(() -> new IllegalArgumentException("Shot contact requires a member")));
         return ShotGroups.accepts(worlds.domain(shotDomain(member)), impact.withMember(Optional.of(member)));
     }
+    /** An old local alias belongs to this physical root, not to a nested participant or resource account. */
+    public String attachmentDomain(EntityAttachments.Handle handle) {
+        String issuer = handle.issuer().orElse(physicalDomain);
+        compatibleDomain(issuer); worlds.domain(issuer); return issuer;
+    }
+    public EffectState attachmentState(EntityAttachments.Handle handle) {
+        String issuer = attachmentDomain(handle); var state = worlds.domain(issuer);
+        AttachmentRequests.canonicalHandle(state, issuer, handle); return state;
+    }
+    /** Missing entries remain missing; qualification never discovers a same-id entry in a different domain. */
+    public EntityAttachments.Handle attachmentHandle(EntityAttachments.Handle handle) {
+        String issuer = attachmentDomain(handle);
+        return AttachmentRequests.canonicalHandle(worlds.domain(issuer), issuer, handle);
+    }
     private ResourceReadView inDomain(String selected) {
-        return selected.equals(domain) ? this : new ResourceReadView(worlds, selected, program, participants);
+        return selected.equals(domain) ? this : new ResourceReadView(worlds, selected, physicalDomain, program, participants);
     }
     /** A pure local action may query a proposed non-resource change; foreign snapshots and every balance stay frozen. */
     public ResourceReadView withLocalState(EffectState local) {
@@ -140,7 +157,7 @@ public final class ResourceReadView {
         if (local.buffs().timeMicros() != state().buffs().timeMicros() || !local.resources().equals(state().resources()))
             throw new IllegalArgumentException("A resource query projection cannot change balances or advance time");
         var domains = new java.util.TreeMap<>(worlds.domains()); domains.put(domain, local);
-        return new ResourceReadView(new ResourceAuthority.Worlds(worlds.directory(), domains, worlds.timelines()), domain, program, participants);
+        return new ResourceReadView(new ResourceAuthority.Worlds(worlds.directory(), domains, worlds.timelines()), domain, physicalDomain, program, participants);
     }
     public void require(EffectProgram expectedProgram, EffectState expectedState) {
         if (!program.equals(expectedProgram) || state() != expectedState)

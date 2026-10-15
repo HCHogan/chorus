@@ -104,6 +104,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private final Map<String, ChargeInput> chargeInputs = new java.util.LinkedHashMap<>();
     private final Set<EffectProjectile> projectiles = new java.util.LinkedHashSet<>();
     private final List<RuleEngine.Signal> nativeLifecycleFacts = new ArrayList<>();
+    private final List<com.imdomestic.chorus.effect.resource.ResourceSessionAuthority.NativeLifecycle> nativeAttachmentFacts = new ArrayList<>();
     private List<RuleEngine.Signal> settlingLifecycleFacts = List.of();
     private final boolean observesLandings;
     boolean observesLandings() { return observesLandings; }
@@ -122,8 +123,16 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             abilityOwnerIds.remove(holder); pendingAbilityValidation.remove(holder);
         }
         if (failure.isPresent()) { countUnprocessed(1); return; }
+        if (resourceHost != null && com.imdomestic.chorus.effect.target.EntityAttachments.lifecycle(fact)) {
+            resourceHost.combat().recordLifecycle(this, fact); return;
+        }
         nativeLifecycleFacts.add(fact);
     }
+    void queueNativeLifecycle(com.imdomestic.chorus.effect.resource.ResourceSessionAuthority.NativeLifecycle fact) { nativeAttachmentFacts.add(fact); }
+    List<com.imdomestic.chorus.effect.resource.ResourceSessionAuthority.NativeLifecycle> takeNativeAttachmentFacts() {
+        var facts = List.copyOf(nativeAttachmentFacts); nativeAttachmentFacts.clear(); return facts;
+    }
+    boolean hasNativeLifecycleFacts() { return !nativeLifecycleFacts.isEmpty() || !nativeAttachmentFacts.isEmpty(); }
     List<RuleEngine.Signal> takeNativeLifecycleFacts() {
         var facts = List.copyOf(nativeLifecycleFacts); nativeLifecycleFacts.clear(); return facts;
     }
@@ -178,6 +187,8 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
                 case com.imdomestic.chorus.effect.weapon.WeaponAim.Verify command -> verifyAim(command);
                 case com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify command -> verifyCharge(command);
                 case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
+                case com.imdomestic.chorus.effect.target.EntityAttachments.Query ignored ->
+                    resourceHost==null?world.apply(request):resourceHost.attachmentQuery(this,level,request);
                 default -> world.apply(request);
             };
             if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
@@ -191,6 +202,14 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             if(resourceHost!=null)resourceHost.combat().failed(error);
             throw error;
         } finally { operationFacts = null;resourceOperation=null;if(coordinatedWorld)resourceHost.combat().leaveWorld(); }
+    }
+    /** Runs only the selected world's callback, inside the original caller's native operation boundary. */
+    RuleEngine.ActionResult executeAttachmentQuery(RuleEngine.WorldRequest request) {
+        combatThread();
+        if(!(request.command() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Query query)
+                ||!query.expected().handle().initial().reference().dimension().equals(level.dimension().identifier().toString()))
+            throw new IllegalArgumentException("Attachment observation belongs to another native dimension");
+        return world.apply(request);
     }
     public static MinecraftEffectRuntime install(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
@@ -1066,6 +1085,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     /** Settle older native observations before advancing to a later fuse deadline. */
     private void settleNativeLifecycle() {
+        if (resourceHost != null) { resourceHost.combat().settleLifecycle(this); return; }
         var pending = takeNativeLifecycleFacts();
         int begin = 0;
         while (begin < pending.size()) {
@@ -1280,6 +1300,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         var pending=evidence.pending().stream().filter(claim->claim.domain().equals(domain))
                 .map(claim->new ConsumptionReservations.Claim(claim.id(),claim.command())).toList();
         com.imdomestic.chorus.effect.resource.ShotDamageAccounting.validateLedger(domain,before,after,evidence.shots());
+        com.imdomestic.chorus.effect.resource.AttachmentLifecycleAccounting.validateLedger(domain,before,after,evidence.attachments());
         var legacyAfter=com.imdomestic.chorus.effect.resource.ShotDamageAccounting.restoreLedger(before,after.withAttachments(before.attachments()));
         failure=Optional.of(new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),evidence.completed().getOrDefault(domain,List.of()),0,
                 new ShieldDamage.Commit(shields),new CombatCommit(before,legacyAfter),pending,evidence.facts().getOrDefault(domain,List.of()),Optional.of(evidence)));
@@ -1293,6 +1314,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             return;
         }
         var knownFacts = new ArrayList<>(facts); knownFacts.addAll(settlingLifecycleFacts); knownFacts.addAll(takeNativeLifecycleFacts());
+        takeNativeAttachmentFacts().forEach(value -> knownFacts.add(value.fact()));
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), committedBeforeFailure, 0,
                 committedShields, committedCombat, List.copyOf(reservations.values()), knownFacts));
         abilityInputs.clear(); chargeInputs.clear();

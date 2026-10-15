@@ -219,14 +219,26 @@ class ResourceCombatBoundaryTest {
 
     @Test void attachmentWritesNeedMatchingLifecycleFactsAndCommitTogetherWithRemoteConsumption(){
         var policy=EntityAttachmentTest.policy(EntityAttachments.DeathPolicy.END,EntityAttachments.RemovalPolicy.END);
-        var attachment=EntityAttachmentTest.handle("contact",2,policy);
+        var reference=new com.imdomestic.chorus.effect.target.EntityAnchor.Reference("target","life",A);
+        var point=new com.imdomestic.chorus.effect.target.WorldPosition(A,2,2,3);
+        var anchor=new com.imdomestic.chorus.effect.target.EntityAnchor.Observation(reference,point,
+                com.imdomestic.chorus.effect.target.TargetQuery.Anchor.FEET,true);
+        var attachment=new EntityAttachments.Handle("contact",0,1_000_000,anchor,point,policy);
         var f=new Fixture(EffectCheckpointTest.clock(),state->EntityAttachments.begin(state,attachment).state());
-        var ticket=f.host.beginCombat(A,Optional.empty());var observed=observed(ticket);var death=EntityAttachmentTest.died(10);
+        var ticket=f.host.beginCombat(A,Optional.empty());var observed=observed(ticket);
+        var oldObservation=EntityAttachmentTest.observation(true,false,10);
+        var positions=new HashMap<com.imdomestic.chorus.effect.target.PositionQuery,Optional<com.imdomestic.chorus.effect.target.WorldPosition>>();
+        oldObservation.positions().keySet().forEach(query->positions.put(query,Optional.of(point)));
+        var death=new com.imdomestic.chorus.effect.target.EntityLifecycle.Died(reference,"damage/death",
+                new com.imdomestic.chorus.effect.target.EntityObservation(0,oldObservation.entities(),positions)).signal();
         var shadow=replace(observed.worlds(),A,EntityAttachmentTest.observe(observed.worlds().domain(A),death));
         var beforeA=f.a.state();var beforeB=f.b.state();
         assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,shadow,Optional.empty(),observed.facts()));
         assertSame(beforeA,f.a.state());assertSame(beforeB,f.b.state());
         var proven=new TreeMap<>(observed.facts());proven.put(A,List.of(CONFIRMED,death));
+        assertThrows(IllegalArgumentException.class,()->f.host.commitCombat(ticket,shadow,Optional.empty(),proven));
+        var token=f.host.captureCombatLifecycle(ticket,observed.worlds(),A,death);
+        var settled=f.host.settleCombatLifecycle(ticket,token,observed.worlds());assertEquals(shadow,settled.worlds());
         f.host.commitCombat(ticket,shadow,Optional.empty(),proven);assertObserved(f);
         assertTrue(state(f.a).attachments().isEmpty());assertEquals(List.of(CONFIRMED,death),facts(f.a));
         f.a.drain();f.b.drain();assertDoesNotThrow(f.host::checkpoint);

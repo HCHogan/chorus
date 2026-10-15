@@ -38,15 +38,21 @@ class ContinuationTransferBoundaryTest {
         return pending.relocated("moved",pending.scope(),pending.owner().orElseThrow(),50,Optional.of(A),resourceRouting);
     }
 
-    @Test void remainingUnroutedLiveHandleKindsRejectBeforeChangingTheCapturedBindings() {
-        var handles=List.<RuleEngine.ActionResult>of(attachment());
-        for(var handle:handles) {
+    @Test void attachmentsKeepTheirOriginalIssuerLifeAndClockAcrossCoordinatedRelocations() {
+        for(var handle:List.of(attachment(),attachment().issuedBy(A))) {
             var original=pending(Map.of("live",handle));
-            var error=assertThrows(IllegalArgumentException.class,()->relocate(original,true));
-            assertTrue(error.getMessage().contains("issuer routing"));
-            assertTrue(error.getMessage().contains(handle.getClass().getName()));
+            var moved=relocate(original,true);var qualified=handle.issuedBy(A);
+            assertEquals(qualified,moved.bindings().get("live"));
             assertEquals(Map.of("live",handle),original.bindings());
             assertTrue(original.relocatedAt().isEmpty());
+            var again=moved.relocated("twice",moved.scope(),moved.owner().orElseThrow(),70,Optional.of(B),true);
+            var returned=again.relocated("returned",again.scope(),again.owner().orElseThrow(),90,Optional.empty(),true);
+            assertEquals(qualified,returned.bindings().get("live"));assertEquals(original.cause(),returned.cause());
+            assertEquals(0,qualified.startedAt());assertEquals(1_000_000,qualified.expiresAt());
+            assertEquals(handle.initial(),qualified.initial());assertEquals(handle.contact(),qualified.contact());
+            assertThrows(IllegalArgumentException.class,()->relocate(original,false));
+            assertThrows(IllegalArgumentException.class,()->relocate(moved,false));
+            if(handle.issuer().isEmpty())assertThrows(IllegalArgumentException.class,()->original.relocated("missing",original.scope(),original.owner().orElseThrow(),50,Optional.empty(),true));
         }
     }
 

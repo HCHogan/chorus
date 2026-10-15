@@ -1014,7 +1014,7 @@ host.commit(handoff);
 
 旧无 issuer 的句柄在交接时由显式 sourceDomain 补齐，原账本及已认领额度不复制、不重建；没有 sourceDomain 的纯交接遇到这种句柄会拒绝。携带保留退款句柄的工作要求目标使用协调资源路由，本地模式无法读取原签发账本，预检会拒绝该目标。已限定 issuer 不随下一次迁移改写，旧别名访问不会清除账本已知的 issuer。Scope / Pending / Handle 分别使用新的 scope_v2 / pending_v2 / handle_v2 存储身份；三个旧字段布局经显式迁移读取，原有顶层检查点格式保持。
 
-直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle` 已按独立的[射击组协议](#射击组的签发域与跨域接续)支持相同交接；`EntityAttachments.Handle` 虽已有可选 issuer 及旧布局迁移，`Pending.relocated` 仍拒绝直接携带，其完整跨域操作尚未完成。不能通过目标同名账本或静默删除绑定绕过拒绝。DamageSnapshot 跨不同逻辑时钟另按[捕获时间线协议](#伤害快照的捕获时间线)核验，group 权限不能代替这项证明。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
+直接捕获的 `DamageTallies.Handle` 和 `DamageGroups.Handle` 已能随 Buff 或来源自有工作迁移：目标必须使用协调路由；协调模式在创建时记录 issuer，旧空 issuer 在交接时由显式 sourceDomain 补齐，没有 sourceDomain 时拒绝。后续迁移不改原 issuer，账本、到期计时器和已保留资格留在原域，不复制或重建。统计操作和组的成员查询 / 关闭继续访问原账本，见[伤害统计路由](#伤害统计的签发域路由)及[伤害组路由](#伤害组的签发账本与显式参与者查询)。`ShotGroups.Handle` 已按独立的[射击组协议](#射击组的签发域与跨域接续)支持相同交接；本轮 `EntityAttachments.Handle` 也允许按[附着协议](#实体附着的签发域与跨域解析)直接携带；目标本地模式、缺少必要 sourceDomain 或不兼容账本仍在预检阶段拒绝，不能通过同名查找或删除绑定绕过。DamageSnapshot 跨不同逻辑时钟另按[捕获时间线协议](#伤害快照的捕获时间线)核验，group 权限不能代替这项证明。已完成统计、附着查询结果和 DamageBatch 等只读历史数据继续允许捕获，保留退款句柄走上述 issuer 路由；具体验收见[实现记录](engine-implementation.md)。
 
 ### 角色状态的联合交接
 
@@ -1127,6 +1127,7 @@ Spent 与 PaymentRefunded 实现 CostResult。Completed 先保留实际世界回
 | refund_cost | 从当前帧已有付款及最新认领额度退款；循环每次付款使用独立操作身份，循环结束或旧绑定不能重置额度。 |
 | retain_cost / refund_retained_cost / close_retained_cost | 保留在调用领域签发；退款与关闭按 handle.issuer 访问原账本，退款余额进入账户当前归属。来源 / Buff 自有延迟工作可由角色迁移协议移动，账本继续留在原域。 |
 | begin_damage_tally / record_damage / read_damage_tally / close_damage_tally | 创建时记录 issuer；之后按句柄回原域统计、读取或关闭，按原域时钟到期，与调用域确定回执共同提交。详见[签发域路由](#伤害统计的签发域路由)。 |
+| begin_entity_attachment / end_entity_attachment | 本轮通过 AttachmentRequests.Begin / Close 创建或关闭原 issuer 账本，与调用域回执共同发布；resolve_entity_attachment 另按原账本、实体世界与调用域三段完成。见[附着协议](#实体附着的签发域与跨域解析)。 |
 | complete_recharge | 在归属领域共同变更进度与可用份数；周期未完成时不求值可选产量表达式。 |
 | grant_energy、grant_ability_energy | 请求量、参考系数和输入测量在调用作用域求值；接收系数、gain Profile 与周期 yield Profile 显式使用归属领域的状态和视图。基础选择与可用 / 回充账户取接收者当前配置。双账户转换共同提交；没有选择 / 资源或独立可用账户已满时保留原 no-op 结果及求值顺序。 |
 | resize_ability_resource、observe_ability_energy | 使用接收者当前基础技能选择。未选择、无资源或固定容量的调整不先计算容量表达式。 |
@@ -1546,7 +1547,7 @@ One-Two Punch 使用 `previous_max_pellets_on_target < 门槛 && max_pellets_on_
 
 `shot_progress` 和 `shot_resolved` 按发布时的 ParticipantPlacement 投递到 issuer、当前 CHARACTER 域和当前 BUFF 域，同一域去重，保留原始信号 / payload 及组身份。缺少对应 facet 登记时回落 issuer；资源-only 迁移不改变投递位置。调用域中仍保持 damage facts、消费事实、progress 的顺序，其他域进入各自的事实队列。截止只由 issuer 时钟决定，精确到期不允许重新打开成员；已过期的延迟射线回执不能再次发布 summary。
 
-七种请求与 Receipt 新增八个 DATA 身份，原 751 项形状保持不变，总数 759；外层 archive format 5 不变。联合归档同时保存 A 的账本与 B / C 的续体，恢复保留已确认成员和稳定引用，不重放已确认的 begin、发射或伤害；尚未执行的延迟成员按剩余时间继续。真实玩家传送、迁移后的射线 / 弹体、原生未知结果及同进程联合恢复的验收见[实现记录](engine-implementation.md)。本协议不把已飞出的实体搬到目标世界，也不提供物理飞行实体重启重建；独立宿主、EntityAttachments 跨域和历史发射来源生命连续性仍需独立实现。
+七种请求与 Receipt 新增八个 DATA 身份，原 751 项形状保持不变，总数 759；外层 archive format 5 不变。联合归档同时保存 A 的账本与 B / C 的续体，恢复保留已确认成员和稳定引用，不重放已确认的 begin、发射或伤害；尚未执行的延迟成员按剩余时间继续。真实玩家传送、迁移后的射线 / 弹体、原生未知结果及同进程联合恢复的验收见[实现记录](engine-implementation.md)。本协议不把已飞出的实体搬到目标世界，也不提供物理飞行实体重启重建；独立宿主和历史发射来源生命连续性仍需独立实现；本轮 EntityAttachments 跨域解析采用独立的[附着协议](#实体附着的签发域与跨域解析)。
 
 ### 动态基础容量与数值快照
 
@@ -1825,7 +1826,7 @@ victim 声明必须显式使用 evaluate:on_hit，误用 on_use 在编译时拒�
 
 旧 DamageSnapshot 的八字段布局经 `LegacyDamageSnapshotV1` 精确迁移为 `captureOrigin=empty`，不从存储域、owner 或当前位置补造来源。无捕获来源的旧快照继续使用本地时刻不早于 capturedAt 的原规则，不因读入协调宿主而自动获得跨时钟权限。新记录分别使用 `damage_snapshot_v2`、`capture_origin`、`timeline_identity` 三个 DATA 身份，原 746 项形状保持，共 749 项；外层联合 archive 仍为 format 5。
 
-联合 archive 保存来源时间线身份和目标域的捕获结果 / 延迟工作，恢复不重新捕获、不重放已确认伤害。来源拥有和 Buff 拥有的真实玩家传送、低时钟目标中的实时取样，以及首击后恢复继续第二击的验收状态见[实现记录](engine-implementation.md)。本协议不迁移物理投射物，也不增加任何效果循环上限；ShotGroups 活动句柄采用独立的[签发域协议](#射击组的签发域与跨域接续)，EntityAttachments 活动句柄的跨域操作仍未完成。
+联合 archive 保存来源时间线身份和目标域的捕获结果 / 延迟工作，恢复不重新捕获、不重放已确认伤害。来源拥有和 Buff 拥有的真实玩家传送、低时钟目标中的实时取样，以及首击后恢复继续第二击的验收状态见[实现记录](engine-implementation.md)。本协议不迁移物理投射物，也不增加任何效果循环上限；ShotGroups 活动句柄采用独立的[签发域协议](#射击组的签发域与跨域接续)，EntityAttachments 活动句柄本轮接入独立的[附着协议](#实体附着的签发域与跨域解析)。
 
 ### 选择事件标签后捕获伤害
 
@@ -2902,7 +2903,7 @@ radius 有限非负；opens_after 默认 0，closes_after 必填且严格大于 
 
 旧未限定句柄在明确迁移边界由 sourceDomain 补齐。没有迁移的旧本地句柄可在明确调用域访问原账本；目标必须启用协调路由，本地 DSL 拒绝使用任何 issuer-qualified 句柄。账本 `matches` 比较全部原身份字段，并拒绝双方已限定但 issuer 不同；它不改变 Java record 的严格 equality。记录新回执保留账本 canonical handle，旧别名不能清除已知 issuer。历史 Summary 仍是不可变数值快照。
 
-四种 live Handle 的 issuer 协议分别增加 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。DamageGroups 后续为事实身份格式增加独立 handle_v3，旧 v1 / v2 布局仍完整保留，详见下节。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。DamageGroups 的成员结算与句柄携带迁移另见下节；tally 路由不授予其他句柄跨域权限。ShotGroups 另按[射击组协议](#射击组的签发域与跨域接续)接续；直接携带 EntityAttachments 句柄的 continuation 迁移仍会拒绝，其完整跨域操作尚未实现。
+四种 live Handle 的 issuer 协议分别增加 handle_v2 存储身份，原四个 handle ID 对应精确旧布局迁移；新增六个 tally 请求 / 回执类型，原 730 项存储形状不变。DamageGroups 后续为事实身份格式增加独立 handle_v3，旧 v1 / v2 布局仍完整保留，详见下节。联合检查点同时保存 A 的账本与 B 的 continuation；恢复不重新 begin、不刷新期限或重放已确认伤害。DamageGroups 的成员结算与句柄携带迁移另见下节；tally 路由不授予其他句柄跨域权限。ShotGroups 另按[射击组协议](#射击组的签发域与跨域接续)接续；本轮直接携带 EntityAttachments 句柄的 continuation 按[附着协议](#实体附着的签发域与跨域解析)接续。
 
 ### 伤害组的签发账本与显式参与者查询
 
@@ -2918,7 +2919,7 @@ Handle 显式保存 `ReferenceFormat`。`ISSUED_V1` 的 `reference()` 将完整 
 
 当前句柄写入 `handle_v3`，格式枚举使用 `reference_format`，共增加两个 DATA 条目；旧 744 项存储形状完全保留，总数为 746。旧 handle / handle_v2 按精确布局解码并迁移为 LEGACY，重新保存写入明确格式，不猜测旧组曾否发出事实。联合宿主 archive 继续使用 format 5，旧 cause、reference 和去重集合原样保存；验收结果见[实现记录](engine-implementation.md)。
 
-ShotGroups 活动句柄迁移采用独立的[射击组协议](#射击组的签发域与跨域接续)；EntityAttachments 活动句柄仍在预检阶段拒绝。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 则另按[捕获时间线协议](#伤害快照的捕获时间线)核验原域身份、时刻和兼容性。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
+ShotGroups 活动句柄迁移采用独立的[射击组协议](#射击组的签发域与跨域接续)；EntityAttachments 活动句柄本轮按[附着协议](#实体附着的签发域与跨域解析)开放协调交接。普通即时 `damage` 可以随迁移后的 continuation 执行，带历史数值快照的 `damage_snapshot` 则另按[捕获时间线协议](#伤害快照的捕获时间线)核验原域身份、时刻和兼容性。真实传送、原域保留资格、关闭和联合恢复的验收状态见[实现记录](engine-implementation.md)。
 
 `ResourceReadView.combatParticipants(placement, programs)` 接受独立的 `ParticipantPlacement.Directory` 和各域完整程序。它不从资源目录推导参与者位置，也不自行建立原生实体授权。宿主必须在捕获至结算期间固定这些输入；原生路径还须核验实际实体对象、生命与物理域。普通资源视图仍保留本地非资源语义，不自动开启战斗模式。
 
@@ -4240,9 +4241,33 @@ Minecraft 宿主以碰撞盒当前无重叠、向下偏移 `1e-6` 方块后出�
 
 FOLLOWING/WAITING 解析发出携带当前 Entry/revision 的世界查询。查询期间若已确认的生命周期改变实例，完成阶段优先采用新状态，旧回执不能恢复已结束/固定/等待的实例；若新状态仍需查询，本次返回没有位置的 missing/waiting，内容可以显式安排下一次解析。遇到替换生命时删除实例并返回 replaced；无匹配历史事实的 missing/wrong_dimension 不臆造脱离点。一次解析不是对后续整个爆炸的锁，伤害仍使用独立写入校验。
 
-已确认生命周期通过回执的 EntityAttachments.Commit 在依赖动作继续前更新状态；公共事实仍排队到父 frame 后反应。转发或重新 emit 同名公共通知不会再次应用这些状态写入，避免旧通知终止刚创建的新实例。动作外待处理的原生事实先按捕获时间分组结算（不回退已前进的逻辑时间），然后才推进到新的输入或引信截止时间；这些外部事实与新输入各有自己的 Start 边界。结算故障保留当前及尚未处理的已知事实，不自动重放奖励。没有加入根事件、链深度或循环次数上限。
+本地模式中，已确认生命周期通过回执的 EntityAttachments.Commit 在依赖动作继续前更新状态；公共事实仍排队到父 frame 后反应。转发或重新 emit 同名公共通知不会再次应用这些状态写入，避免旧通知终止刚创建的新实例。动作外待处理的原生事实先按捕获时间分组结算（不回退已前进的逻辑时间），然后才推进到新的输入或引信截止时间；这些外部事实与新输入各有自己的 Start 边界。结算故障保留当前及尚未处理的已知事实，不自动重放奖励。没有加入根事件、链深度或循环次数上限。
 
 附着阶段的 effect_state_v4 包含 attachments；旧 v3 对应精确旧记录并迁移为空附着集合，v1/v2 迁移继续保留。当前蓄力阶段采用下文的 effect_state_v5，继续保存所有附着。Handle、Entry、策略、查询、回执、Commit 与四个动作有独立存储 ID。领域检查点保存偏移、策略、阶段、期限和续体；宿主实体 NBT 重载保留同生命可供 WAIT 恢复。实际区块卸载/加载协调、同对象自定义复活、旋转/缩放和物理世界整体重启仍需独立实现及验收。
+
+### 实体附着的签发域与跨域解析
+
+本轮实现开放同一协调宿主内的 `EntityAttachments.Handle` 接续，已通过核心回归和双加载器真实世界验收；具体范围以[实现记录](engine-implementation.md)为准。来源或 Buff 自有 Pending 可从 A 迁到 B，再到 C，目标必须启用协调路由。旧空 issuer 只由显式 sourceDomain 补齐，后续交接不改原 issuer；缺少 sourceDomain 或目标使用本地模式时拒绝。账本、原始 startedAt / expiresAt、接触偏移和生命周期策略留在 A，不复制、不重建、不续期；续体自身仍按剩余时间移动，detached 工作保持原归属。
+
+协调 `begin_entity_attachment` 在当前调用域建立限定 issuer 的句柄，`end_entity_attachment` 按句柄回原签发账本关闭；两者通过 `AttachmentRequests.Begin / Close` 与调用域确定回执共同发布。`ResourceReadView.attachmentDomain / attachmentState / attachmentHandle` 只解析该账本并核对完整句柄，缺失仍是缺失，不搜索其他域的同名实例。未限定的旧别名在普通协调查询中仅按最初物理调用域解释；嵌套参与者视图或资源账户 lease 不改变这个默认域。本地非协调 DSL 拒绝限定 issuer 的句柄。
+
+解析分成三个位置，不能从其中一个推断另两个：
+
+| 位置 | 职责 |
+| --- | --- |
+| 签发域 A | 保存 Entry / revision，按 A 的时钟检查期限，并结算当前生命周期状态。 |
+| 实体引用域 C | `handle.initial.reference.dimension` 指定原生观察世界；实际 UUID、生命、锚点与可用状态在这里读取。 |
+| 调用域 B | 保留已迁移的词法绑定、挂起操作和后续规则帧，接收本次解析结果。 |
+
+`resolve_entity_attachment` 从 A 捕获规范 Entry / revision；FOLLOWING / WAITING 才发出原 `EntityAttachments.Query`。原生转发要求 C 是同一服务端、同一协调宿主中已安装的运行时，只执行 C 的世界回调，原样传递 B 的确切 WorldRequest；不进入 C 的 session、不 prepare、不 drain、不推进其时钟。实体当前进入另一维度时，旧引用仍指向 C，由原生 transferred 策略决定 WAIT / FIX / END，不能沿 UUID 搜索新世界或默许改绑。
+
+完成阶段核验原准备命令、实际 Observed 回执和 B 的操作身份，再以 A 的当前 Entry / 时钟调用 `resolvedIssued`。查询期间的新死亡 / 移除状态优先；陈旧 AVAILABLE 回执不能复活已经固定或结束的实例。A 的账本变化和 B 的解析结果共同提交，重复同一已确认操作不重放观察或反应。FIXED / CLOSED / EXPIRED 等已知结果可直接由原账本返回；返回的历史位置仍带原物理维度。此转发只授权附着观察，不自动把 B 的后续 select_targets、范围伤害或 GuardedDamage 发送到 C；跨世界爆炸需要另行声明和实现其世界操作协议。
+
+原生生命周期在实际死亡 / 移除边界捕获原始事实、当时匹配的完整句柄及各会话时间线身份，产生宿主专属的临时能力。联合边界只对这些被捕获实例执行 follow / fix / wait / end，不以实体域的观察时刻比较另一个 issuer 的开始时间，也不改写事实时间。期限仍由 issuer 时钟判断；后来新建或同名替换的实例不能被旧通知追认。世界回调中的捕获先写入共同影子状态，再与各域变化及事实一起发布；动作外排队的捕获在下一宿主结算边界处理，先处理已知生命周期，再推进引信或新的输入。公共通知按物理观察域与匹配 issuer 投递，同域去重，使用接收域当前逻辑时刻进入 inbox；payload 的原始物理观察时间保持不变。重新 emit 公共事实不生成新的状态写入权限。
+
+若转发回调已经实际退休实体，再抛错或丢失回执，实际移除和已确认的 issuer 状态变化保留，各域诊断同时保留捕获 / 结算证据；B 的挂起请求仍未完成，不猜测成 MISSING 或成功，不继续后续关闭 / 爆炸，不自动重试，也不导出成功检查点。这个未知结果边界与合法反馈循环无关，不增加事件链深度或循环次数限制。
+
+旧 `EntityAttachments.Commit` 及既有 Handle / Entry / Query / Observed 的 DATA 布局保留，本地模式继续使用 Commit；协调模式不把旧单域 Commit 冒充跨域授权。新增三个 DATA 身份分别为 `AttachmentRequests.Begin`、`Close`、`Receipt`（两种请求及一种回执），原 759 项形状不变；外层 archive 仍为 format 5。生命周期捕获能力、联合影子状态与故障证据属于宿主临时数据，不序列化成可恢复权限。联合 archive 保存 A 的账本与 B 的剩余续体，恢复不重新 begin、不刷新期限或重放已完成解析。本轮世界场景覆盖真实玩家传送、原生尸体 / 移除、同生命 NBT 重载和同进程联合恢复；通过范围不代表实际区块卸载 / 加载协调或物理实体跨进程重建已经完成。
 
 ## 武器蓄力与配对松开
 

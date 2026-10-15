@@ -33,16 +33,24 @@ public final class MinecraftCombat {
     private final Set<Identity> emittedDeferred = new HashSet<>();
     private final Map<String, List<RuleEngine.Signal>> facts = new TreeMap<>();
     private final Map<String, List<ShieldDamage.Write>> shields = new TreeMap<>();
+    private final Map<Long, ResourceSessionAuthority.NativeLifecycle> lifecycleQueue = new TreeMap<>();
     private final Map<LifeKey, Life> lives = new LinkedHashMap<>();
     private Optional<Failure> failure = Optional.empty();
 
     /** Diagnostic evidence only. An unknown callback never becomes a successful checkpoint or replay permission. */
     public record Failure(String message, ResourceAuthority.Worlds before, ResourceAuthority.Worlds observed,
             List<CombatDomains.Claim> pending, Map<String, List<DamageCapture.Observed>> completed,
-            Map<String, List<RuleEngine.Signal>> facts, boolean published, List<ShotDamageAccounting.Settled> shots) {
+            Map<String, List<RuleEngine.Signal>> facts, boolean published, List<ShotDamageAccounting.Settled> shots,
+            List<AttachmentLifecycleAccounting.Settled> attachments, List<AttachmentLifecycleAccounting.Admission> lifecycle) {
         public Failure {
             Objects.requireNonNull(message); Objects.requireNonNull(before); Objects.requireNonNull(observed);
             pending = List.copyOf(pending); completed = immutableLists(completed); facts = immutableLists(facts); shots=List.copyOf(shots);
+            attachments=List.copyOf(attachments); lifecycle=List.copyOf(lifecycle);
+        }
+        public Failure(String message, ResourceAuthority.Worlds before, ResourceAuthority.Worlds observed,
+                List<CombatDomains.Claim> pending, Map<String, List<DamageCapture.Observed>> completed,
+                Map<String, List<RuleEngine.Signal>> facts, boolean published, List<ShotDamageAccounting.Settled> shots) {
+            this(message,before,observed,pending,completed,facts,published,shots,List.of(),List.of());
         }
         public Failure(String message, ResourceAuthority.Worlds before, ResourceAuthority.Worlds observed,
                 List<CombatDomains.Claim> pending, Map<String, List<DamageCapture.Observed>> completed,
@@ -257,10 +265,35 @@ public final class MinecraftCombat {
     }
     private void lifecycle() {
         host.combatRuntimes().forEach((domain, runtime) -> {
-            var emitted = runtime.takeNativeLifecycleFacts(); add(domain, emitted);
-            var commit = EntityAttachments.commit(RuleEngine.Empty.INSTANCE, emitted);
-            if (commit instanceof EntityAttachments.Commit changes) replace(domain, changes.apply(shadow.domain(domain)));
+            add(domain, runtime.takeNativeLifecycleFacts());
+            for (var token : runtime.takeNativeAttachmentFacts()) lifecycleQueue.put(token.sequence(), token);
         });
+        for (var token : lifecycleQueue.values()) settleLifecycle(token);
+    }
+    private void settleLifecycle(ResourceSessionAuthority.NativeLifecycle token) {
+        var applied=host.combatAuthority().settleCombatLifecycle(ticket,token,shadow); shadow=applied.worlds();
+        applied.facts().forEach(this::add);
+    }
+    /** Capture at the committed native event, before any later source can create another attachment. */
+    void recordLifecycle(MinecraftEffectRuntime runtime, RuleEngine.Signal fact) {
+        if (host.combatRuntime(domain(runtime)) != runtime || !domain(runtime).equals(EntityAttachments.reference(fact).dimension()))
+            throw new IllegalArgumentException("Lifecycle observation belongs to another physical runtime");
+        if (!active() && !worldActive()) {
+            runtime.queueNativeLifecycle(host.combatAuthority().captureLifecycle(domain(runtime),fact)); return;
+        }
+        capture(runtime); lifecycle();
+        var token=host.combatAuthority().captureCombatLifecycle(ticket,shadow,domain(runtime),fact);
+        lifecycleQueue.put(token.sequence(),token); settleLifecycle(token);
+    }
+    /** All domains settle older physical facts jointly before any one runtime advances its clock or fuse. */
+    void settleLifecycle(MinecraftEffectRuntime runtime) {
+        if (active() || worldActive()) throw new IllegalStateException("Queued lifecycle cannot drain an active native callback");
+        if (host.combatRuntimes().values().stream().noneMatch(MinecraftEffectRuntime::hasNativeLifecycleFacts)) return;
+        try { capture(runtime); lifecycle(); committed(); }
+        catch (RuntimeException | Error error) { failed(error); throw error; }
+    }
+    private List<AttachmentLifecycleAccounting.Admission> lifecycleEvidence() {
+        return lifecycleQueue.values().stream().map(ResourceSessionAuthority.NativeLifecycle::admission).toList();
     }
     RuleEngine.ActionResult completeWorld(MinecraftEffectRuntime runtime, RuleEngine.ActionResult actual, List<RuleEngine.Signal> additional) {
         if (world == null || world.runtime() != runtime) throw new IllegalStateException("Native combat lost its world callback");
@@ -281,13 +314,14 @@ public final class MinecraftCombat {
             host.combatAuthority().commitCombat(ticket, shadow, Optional.empty(), immutableLists(facts));
         } catch (RuntimeException | Error error) { failed(error); throw error; }
         var before=ticket.worlds();var committed=shadow;var emitted=immutableLists(facts);var written=immutableLists(shields);var shotEvidence=ticket.shotEvidence();
+        var attachments=ticket.lifecycleEvidence();var lifecycle=lifecycleEvidence();
         var observations=new TreeMap<String,List<DamageCapture.Observed>>();
         known.values().forEach(value->observations.computeIfAbsent(value.claim().domain(),_->new ArrayList<>()).add(value.observation()));
         clear();
         try{host.drain(Math.multiplyExact(Math.max(1, host.combatRuntimes().size()), 256));}
         catch(RuntimeException|Error error){
             if(failure.isEmpty()){
-                var evidence=new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),before,committed,List.of(),observations,emitted,true,shotEvidence);
+                var evidence=new Failure(error.getClass().getSimpleName()+": "+error.getMessage(),before,committed,List.of(),observations,emitted,true,shotEvidence,attachments,lifecycle);
                 failure=Optional.of(evidence);host.failCombat(error,evidence,written);
             }
             throw error;
@@ -325,7 +359,7 @@ public final class MinecraftCombat {
         var observations = new TreeMap<String, List<DamageCapture.Observed>>();
         known.values().forEach(value -> observations.computeIfAbsent(value.claim().domain(), _ -> new ArrayList<>()).add(value.observation()));
         failure = Optional.of(new Failure(error.getClass().getSimpleName() + ": " + error.getMessage(), before, shadow,
-                List.copyOf(claims.values()), observations, facts, published,ticket.shotEvidence()));
+                List.copyOf(claims.values()), observations, facts, published,ticket.shotEvidence(),ticket.lifecycleEvidence(),lifecycleEvidence()));
         if (!published) try { host.combatAuthority().abandonCombat(ticket); }
         catch (RuntimeException | Error secondary) { if (secondary != error) error.addSuppressed(secondary); }
         var evidence = failure.orElseThrow(); var committedShields = immutableLists(shields);
@@ -341,6 +375,6 @@ public final class MinecraftCombat {
     }
     private void clear() {
         if (ACTIVE.get() == this) ACTIVE.remove();
-        ticket = null; shadow = null; claims.clear(); stack.clear(); known.clear(); actuals.clear(); shotBindings.clear();shotFacts.clear();emittedDeferred.clear(); facts.clear(); shields.clear(); lives.clear();
+        ticket = null; shadow = null; claims.clear(); stack.clear(); known.clear(); actuals.clear(); shotBindings.clear();shotFacts.clear();emittedDeferred.clear(); facts.clear(); shields.clear(); lives.clear(); lifecycleQueue.clear();
     }
 }

@@ -1114,6 +1114,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     interface EvaluatedAction {
         RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context context);
         default boolean damagePreparation() { return false; }
+        default boolean attachmentResolution() { return false; }
         default Optional<ProjectileFlight.Impact> shotContact(Evaluation evaluation) { return Optional.empty(); }
         default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context context, RuleEngine.ActionResult actual) {
             return new RuleEngine.Local<>(evaluation.state(), actual, List.of());
@@ -1175,6 +1176,21 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** Prove the original preparation and actual world result before deriving any coordinated completion writes. */
     public void requireActionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
         actionRoute(view, state, request);
+    }
+    /** The issuer has already reconciled the exact native observation; only the caller's result is completed here. */
+    public RuleEngine.Local<EffectState> completeAttachmentActionRoute(ResourceReadView original, ResourceReadView completion,
+            RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request,
+            com.imdomestic.chorus.effect.target.EntityAttachments.Resolution resolution) {
+        var resolved=actionRoute(original,state,request);
+        if(!(resolved.route() instanceof ActionRoutes.Finish finish)
+                || !(finish.command() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Query query)
+                || !(finish.actual() instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Observed observed)
+                || !observed.query().equals(query) || !resolved.action().action.attachmentResolution()
+                || !resolution.handle().matches(query.expected().handle())
+                || completion.combatParticipantsEnabled() || !original.domain().equals(completion.domain()))
+            throw new IllegalArgumentException("Attachment completion requires its prepared query and ordinary caller scope");
+        completion.require(program,completion.state());
+        return new RuleEngine.Local<>(completion.state(),resolution,List.of());
     }
     /** Extract only the pellet explicitly bound by this active damage instruction, before the world request is issued. */
     public Optional<ProjectileFlight.Impact> actionShotContact(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
@@ -1363,6 +1379,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         output.add(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceActionRouting.prepare(instruction.action(), e), previous, previousSlots), slot));
                     } else {
                         output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/action/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                            @Override public boolean attachmentResolution() { return instruction.action() instanceof AttachmentActions.Resolve; }
                             @Override public boolean damagePreparation() {
                                 return instruction.action() instanceof Action.Damage || instruction.action() instanceof Action.DamageCaptured
                                         || instruction.action() instanceof Action.CaptureDamage || instruction.action() instanceof Action.CaptureTaggedDamage

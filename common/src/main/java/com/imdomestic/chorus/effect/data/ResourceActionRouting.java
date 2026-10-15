@@ -22,7 +22,8 @@ final class ResourceActionRouting {
                 || action instanceof Action.CaptureValue
                 || action instanceof TallyActions.Begin || action instanceof TallyActions.Record
                 || action instanceof TallyActions.Read || action instanceof TallyActions.Close
-                || action instanceof GroupActions.Begin || action instanceof GroupActions.End;
+                || action instanceof GroupActions.Begin || action instanceof GroupActions.End
+                || action instanceof AttachmentActions.Begin || action instanceof AttachmentActions.End;
     }
     private static double number(Value value, Evaluation e, Unit unit) {
         var measured = value.evaluate(e); Validation.same(measured.unit(), unit); return measured.value();
@@ -31,6 +32,14 @@ final class ResourceActionRouting {
         return ResourceRoutes.Plan.write(request, result);
     }
     static ResourceRoutes.Plan prepare(Action action, Evaluation e) {
+        if(action instanceof AttachmentActions.Begin begin) {
+            var handle=begin.handle(e);
+            return write(new AttachmentRequests.Begin(e.resourceView().orElseThrow().domain(),handle),r->((AttachmentRequests.Receipt)r).value());
+        }
+        if(action instanceof AttachmentActions.End end) {
+            var view=e.resourceView().orElseThrow();var handle=view.attachmentHandle(e.context().result(end.attachment(),com.imdomestic.chorus.effect.target.EntityAttachments.Handle.class));
+            return write(new AttachmentRequests.Close(view.attachmentDomain(handle),handle),r->((AttachmentRequests.Receipt)r).value());
+        }
         if (action instanceof GroupActions.Begin begin) {
             var op = e.context().operation(); long now = e.state().buffs().timeMicros();
             String issuer = e.resourceView().orElseThrow().domain();

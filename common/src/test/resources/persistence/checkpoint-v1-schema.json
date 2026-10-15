@@ -757,5 +757,8 @@
   "chorus:effect/resource/shot_requests/open": ["issuer:java.lang.String", "impact:com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact"],
   "chorus:effect/resource/shot_requests/close": ["issuer:java.lang.String", "impact:com.imdomestic.chorus.effect.projectile.ProjectileFlight$Impact"],
   "chorus:effect/resource/shot_requests/expire": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.projectile.ShotGroups$Handle"],
-  "chorus:effect/resource/shot_requests/receipt": ["request:com.imdomestic.chorus.effect.resource.ShotRequests$Request", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult", "facts:java.util.List<com.imdomestic.chorus.rule.RuleEngine$Signal>"]
+  "chorus:effect/resource/shot_requests/receipt": ["request:com.imdomestic.chorus.effect.resource.ShotRequests$Request", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult", "facts:java.util.List<com.imdomestic.chorus.rule.RuleEngine$Signal>"],
+  "chorus:effect/resource/attachment_requests/begin": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.target.EntityAttachments$Handle"],
+  "chorus:effect/resource/attachment_requests/close": ["issuer:java.lang.String", "handle:com.imdomestic.chorus.effect.target.EntityAttachments$Handle"],
+  "chorus:effect/resource/attachment_requests/receipt": ["request:com.imdomestic.chorus.effect.resource.AttachmentRequests$Request", "value:com.imdomestic.chorus.rule.RuleEngine$ActionResult"]
 }

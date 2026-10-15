@@ -20,6 +20,9 @@ final class CheckpointTypes {
         types.put("chorus:effect/resource/shot_requests/close", com.imdomestic.chorus.effect.resource.ShotRequests.Close.class);
         types.put("chorus:effect/resource/shot_requests/expire", com.imdomestic.chorus.effect.resource.ShotRequests.Expire.class);
         types.put("chorus:effect/resource/shot_requests/receipt", com.imdomestic.chorus.effect.resource.ShotRequests.Receipt.class);
+        types.put("chorus:effect/resource/attachment_requests/begin", com.imdomestic.chorus.effect.resource.AttachmentRequests.Begin.class);
+        types.put("chorus:effect/resource/attachment_requests/close", com.imdomestic.chorus.effect.resource.AttachmentRequests.Close.class);
+        types.put("chorus:effect/resource/attachment_requests/receipt", com.imdomestic.chorus.effect.resource.AttachmentRequests.Receipt.class);
         types.put("chorus:effect/resource/action_routes/begin", com.imdomestic.chorus.effect.resource.ActionRoutes.Begin.class);
         types.put("chorus:effect/resource/action_routes/finish", com.imdomestic.chorus.effect.resource.ActionRoutes.Finish.class);
         types.put("chorus:effect/resource/action_routes/ready", com.imdomestic.chorus.effect.resource.ActionRoutes.Ready.class);
