@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.function.Function;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 /** Explicit native host for a group of coordinated dimensions. Default catalogue startup remains separate. */
 public final class MinecraftResourceRuntime implements AutoCloseable {
@@ -42,9 +43,20 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
         try { MinecraftEffectRuntime.attachCoordinated(runtime);return runtime; }
         catch(RuntimeException failure){installationFailure=failure;throw failure;}
     }
-    /** The holder must be registered before its first routed resource write; physical ownership is not inferred. */
+    /** Explicit enrollment for non-player holders; duplicate claims remain errors. */
     public ResourceAuthority.Partition claim(String holder,ServerLevel owner) {
         changing();level(owner);runtime(owner);return authority.claim(holder,domain(owner));
+    }
+    /** Only indexed native players establish an initial lease; an existing remote owner is never replaced. */
+    void enrollPlayers(MinecraftEffectRuntime runtime,ServerLevel level,Collection<ServerPlayer> players) {
+        changing();if(runtime(level)!=runtime)throw new IllegalArgumentException("Foreign native resource runtime");
+        var holders=new TreeMap<String,String>();
+        for(var player:List.copyOf(players)) {
+            if(player.level()!=level||player.isRemoved()||level.getEntity(player.getUUID())!=player)
+                throw new IllegalArgumentException("Resource enrollment requires the indexed player in this dimension");
+            if(holders.put(player.getUUID().toString(),domain(level))!=null)throw new IllegalArgumentException("Duplicate native resource holder");
+        }
+        if(!holders.isEmpty())authority.enroll(holders);
     }
     /** Only resource accounts move. Entity, equipment, actor and ability configuration migration is separate. */
     public void transfer(String holder,ServerLevel destination) {

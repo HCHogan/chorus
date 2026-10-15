@@ -32,7 +32,7 @@ public class CheckpointRestartGameTest {
             h.assertTrue(status.restoredDimensions().isEmpty(), "save phase reused an old runtime");
             var player = NativeMeleeGameTest.player(h); String holder = player.getUUID().toString();
             var runtime = coordinated?EffectPrograms.installCoordinated(h.getLevel(),PROGRAM,EffectState.Mode.PVP):EffectPrograms.install(h.getLevel(), PROGRAM, EffectState.Mode.PVP);
-            if(coordinated){EffectPrograms.installCoordinated(server.getLevel(Level.NETHER),PROGRAM,EffectState.Mode.PVE);EffectPrograms.resourceRuntime(server).orElseThrow().claim(holder,h.getLevel());}
+            if(coordinated)EffectPrograms.installCoordinated(server.getLevel(Level.NETHER),PROGRAM,EffectState.Mode.PVE);
             else EffectPrograms.install(server.getLevel(Level.NETHER), PROGRAM, EffectState.Mode.PVE);
             var item = new ItemStack(Items.DIAMOND_CHESTPLATE);
             item.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear("restart-armor", "test:arms", Map.of()));

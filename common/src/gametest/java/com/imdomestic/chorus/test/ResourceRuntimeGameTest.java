@@ -33,6 +33,9 @@ public class ResourceRuntimeGameTest {
         MinecraftResourceRuntime host;MinecraftEffectRuntime runtime;boolean loseReceipt;int heals;final List<DamageReceipt> hits=new ArrayList<>();
         Consumer<RuleEngine.WorldRequest> beforeWorld=_ -> {};
         Fixture(GameTestHelper h,JsonObject data,LivingEntity actor,boolean initial){
+            this(h,data,actor,initial,true);
+        }
+        Fixture(GameTestHelper h,JsonObject data,LivingEntity actor,boolean initial,boolean claim){
             this.h=h;this.local=h.getLevel();this.remote=Objects.requireNonNull(local.getServer().getLevel(Level.NETHER));this.actor=actor;program=compile(data);
             actor.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);actor.setHealth(2);
             damageSource=local.damageSources().generic();
@@ -43,7 +46,7 @@ public class ResourceRuntimeGameTest {
                 var state=initial?EffectState.empty().withSource(source("query",actor)).withResource(new ResourceState(key(),.25,1,0)):EffectState.empty();
                 runtime=host.install(local,program,state,clock(),this::world,nativeSource);
                 host.install(remote,program,EffectState.empty(),clock(),r->{throw new IllegalStateException("Unexpected remote world command: "+r.command());},MinecraftEffectRuntime::nativeSource);
-                host.claim(id(actor),local);
+                if(claim)host.claim(id(actor),local);
             }catch(RuntimeException|Error failure){host.close();actor.discard();throw failure;}
         }
         ResourceState.Key key(){return new ResourceState.Key(id(actor),"test:energy");}
@@ -57,7 +60,7 @@ public class ResourceRuntimeGameTest {
         Map<String,MinecraftResourceRuntime.RestoreBinding> policies(){return Map.of(
             domain(local),new MinecraftResourceRuntime.RestoreBinding(local,program,clock(),this::world,nativeSource),
             domain(remote),new MinecraftResourceRuntime.RestoreBinding(remote,program,clock(),_ -> RuleEngine.Empty.INSTANCE,MinecraftEffectRuntime::nativeSource));}
-        @Override public void close(){try{host.close();}finally{if(actor instanceof ServerPlayer p)local.getServer().getPlayerList().remove(p);actor.discard();}}
+        @Override public void close(){try{host.close();}finally{if(actor instanceof ServerPlayer p&&p.connection!=null)local.getServer().getPlayerList().remove(p);actor.discard();}}
     }
     static Fixture projection(GameTestHelper h){
         var data=data();data.getAsJsonArray("bundles").get(0).getAsJsonObject().getAsJsonArray("rules").add(object("""

@@ -451,6 +451,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     void commitPlayerActor(ServerPlayer player, ActorChange change, Runnable save) {
         prepareActorChange(); Objects.requireNonNull(save);
         if (player.level() != level || !change.holder().equals(player.getUUID().toString())) throw new IllegalArgumentException("Actor belongs to another player or dimension");
+        enrollPlayer(player);
         var transition = change.apply(view(), program);
         transferringActor = true;
         try { save.run(); actorOwnerIds.add(player.getUUID()); }
@@ -487,6 +488,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         } finally { refreshingActors = false; }
     }
     private void refreshPlayers() { refreshActors(); refreshEquipment(); refreshAbilities(); }
+    private void enrollPlayers() {
+        if(resourceHost!=null)resourceHost.enrollPlayers(this,level,List.copyOf(level.players()).stream()
+                .filter(player->!player.isRemoved()&&player.level()==level&&level.getEntity(player.getUUID())==player).toList());
+    }
+    private void enrollPlayer(ServerPlayer player) {
+        if(resourceHost!=null)resourceHost.enrollPlayers(this,level,List.of(player));
+    }
     void prepareAbilityChange() {
         thread(); prepare();
         if (failure.isPresent() || session.running() || !state().idle()) throw new IllegalStateException("Ability selection requires a healthy idle runtime");
@@ -494,6 +502,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     void commitPlayerAbilities(ServerPlayer player, AbilityChange change, Runnable save) {
         prepareAbilityChange(); Objects.requireNonNull(save);
         if (player.level() != level || !change.holder().equals(player.getUUID().toString())) throw new IllegalArgumentException("Abilities belong to another player or dimension");
+        enrollPlayer(player);
         var transition = abilityChange(change);var prepared=preparedPublication(transition);
         transferringAbilities = true;
         try { save.run(); abilityOwnerIds.add(player.getUUID()); }
@@ -892,6 +901,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public void trackEquipment(ServerPlayer player) {
         thread(); if (player.level() != level) throw new IllegalArgumentException("Equipment owner is in another level");
+        enrollPlayer(player);
         equipmentOwners.put(player.getUUID(), player);
         equipmentOwnerIds.add(player.getUUID());
     }
@@ -946,7 +956,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             invalidateAbilityInput(change);
         }
         try {
-            validatePendingActors(); validatePendingAbilities(); refreshActors(); refreshAbilities();
+            validatePendingActors(); validatePendingAbilities(); enrollPlayers(); refreshActors(); refreshAbilities();
             settleNativeLifecycle();
             session.start(nowMicros(), signal);
             refreshPlayers(); refreshProjections(); reconcileAbilityInputs();
@@ -956,7 +966,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     @Override public void prepare() {
         thread();
         if (failure.isPresent() || session.running()) return;
-        try { validatePendingActors(); validatePendingAbilities(); settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshPlayers(); refreshProjections(); reconcileAbilityInputs(); }
+        try { validatePendingActors(); validatePendingAbilities(); enrollPlayers(); settleNativeLifecycle(); if (nowMicros() != state().engine().timeMicros()) session.observe(nowMicros(), List.of()); refreshPlayers(); refreshProjections(); reconcileAbilityInputs(); }
         catch (RuntimeException error) { failed(error, List.of()); }
     }
     /** Settle older native observations before advancing to a later fuse deadline. */

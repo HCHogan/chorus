@@ -60,7 +60,7 @@ public class ResourceSaveGameTest {
             var runtime=EffectPrograms.installCoordinated(h.getLevel(),PROGRAM,EffectState.Mode.PVP);
             var remote=Objects.requireNonNull(server.getLevel(Level.NETHER));EffectPrograms.installCoordinated(remote,PROGRAM,EffectState.Mode.PVE);
             local=EffectPrograms.install(Objects.requireNonNull(server.getLevel(Level.END)),PROGRAM,EffectState.Mode.PVE);
-            var host=EffectPrograms.resourceRuntime(server).orElseThrow();host.claim(id(player),h.getLevel());
+            var host=EffectPrograms.resourceRuntime(server).orElseThrow();
             PlayerAbilities.get(player).configure(player,new AbilityLoadout(Map.of("test:grenade","test:restart_ability")),0);
             h.assertValueEqual(runtime.useAbility(player,"test:grenade").outcome(),AbilityUse.Outcome.ACCEPTED,"native payment");host.transfer(id(player),remote);
             try(var boundary=MinecraftCheckpointBoundary.open(server)){
@@ -76,21 +76,23 @@ public class ResourceSaveGameTest {
     }
     @GameCase(environment="chorus_gametest:resource_save")
     public void frozenNativeSaveRejectsDirectoryOperationsEvenWhenCallerCatchesTheError(GameTestHelper h){
-        var server=h.getLevel().getServer();EffectPrograms.installCoordinated(h.getLevel(),PROGRAM,EffectState.Mode.PVE);
+        var server=h.getLevel().getServer();var player=NativeMeleeGameTest.player(h);EffectPrograms.installCoordinated(h.getLevel(),PROGRAM,EffectState.Mode.PVE);
         var host=EffectPrograms.resourceRuntime(server).orElseThrow();
         try{
             host.claim("save-owner",h.getLevel());
             var mutations=List.<Runnable>of(()->host.claim("new-owner",h.getLevel()),()->host.transfer("save-owner",h.getLevel()),
-                    ()->host.grant(new ResourceState.Key("save-owner","test:restart_energy"),.1,.1),()->host.drain(1),host::close);
+                    ()->host.grant(new ResourceState.Key("save-owner","test:restart_energy"),.1,.1),()->host.drain(1),host::close,()->host.runtime(h.getLevel()).prepare());
             for(var mutation:mutations){
-                var directory=host.snapshot().directory();
                 try(var boundary=MinecraftCheckpointBoundary.open(server)){
+                    // Preparing the save may legitimately enroll a joining player before the freeze.
+                    var directory=boundary.archive().resourceDirectory().orElseThrow();
+                    h.assertTrue(directory.holders().containsKey(id(player)),"save did not enroll indexed player before freezing");
                     refused(h,IllegalStateException.class,mutation);h.assertTrue(!boundary.issues().isEmpty(),"caught operation erased save violation");
                     refused(h,IllegalStateException.class,boundary::requireUnchanged);
+                    h.assertValueEqual(host.snapshot().directory(),directory,"rejected operation changed frozen resource directory");
                 }
-                h.assertValueEqual(host.snapshot().directory(),directory,"rejected operation changed resource directory");
             }
-        }finally{host.close();}
+        }finally{host.close();server.getPlayerList().remove(player);player.discard();}
         h.assertTrue(EffectPrograms.resourceRuntime(server).isEmpty(),"closed catalogue host remained registered");h.succeed();
     }
 }
