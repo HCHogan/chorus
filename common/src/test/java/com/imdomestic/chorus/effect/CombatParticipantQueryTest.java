@@ -51,7 +51,15 @@ class CombatParticipantQueryTest {
         return new ResourceAuthority.Worlds(directory, Map.of(A, a, B, b, C, c));
     }
     static ResourceReadView view(CompiledEffects program, ResourceAuthority.Worlds worlds) { return new ResourceReadView(worlds, A, program.program()); }
-    static ResourceReadView combat(CompiledEffects program, ResourceAuthority.Worlds worlds) { return view(program, worlds).combatParticipants(); }
+    static ParticipantPlacement.Directory placement(String owner, String victim, String third) {
+        var domains = Map.of(OWNER, owner, VICTIM, victim, THIRD, third);
+        return ParticipantPlacement.enroll(ParticipantPlacement.Directory.EMPTY, domains, domains);
+    }
+    static ResourceReadView combat(CompiledEffects program, ResourceAuthority.Worlds worlds) { return combat(program, worlds, placement(B, A, C)); }
+    static ResourceReadView combat(CompiledEffects program, ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement) {
+        var programs = new TreeMap<String, EffectProgram>(); worlds.domains().keySet().forEach(domain -> programs.put(domain, program.program()));
+        return view(program, worlds).combatParticipants(placement, programs);
+    }
     static DamageCommand attack() {
         return new DamageCommand(VICTIM, ORIGIN, 10, "minecraft:generic", Set.of("test:melee"), Set.of(), false,
                 Optional.of("test:melee"), Optional.empty(), ImpactData.EMPTY);
@@ -67,15 +75,15 @@ class CombatParticipantQueryTest {
         var program = compile(data()); var a = empty(50_000_000); var b = empty(100_000_000); var c = empty(0);
         var legacy = new DamageGroups.Handle("group", OWNER, a.buffs().timeMicros(), a.buffs().timeMicros() + 1_000_000);
         a = DamageGroups.begin(a, legacy).state();
-        var ordinary = view(program, worlds(program, a, b, c)); var combat = ordinary.combatParticipants();
-        assertSame(a, ordinary.participantState(OWNER)); assertSame(b, ordinary.owner(OWNER).state());
-        assertSame(b, combat.participantState(OWNER)); assertSame(a, combat.participantView(OWNER).participantState("unmanaged"));
-        assertSame(a, combat.owner(OWNER).participantState("unmanaged"));
-        assertEquals(legacy, combat.participantView(OWNER).damageGroup(legacy).handle());
+        var worlds = worlds(program, a, b, c); var ordinary = view(program, worlds); var combat = combat(program, worlds);
+        assertSame(a, ordinary.characterState(OWNER)); assertSame(a, ordinary.buffState(OWNER)); assertSame(b, ordinary.owner(OWNER).state());
+        assertSame(b, combat.characterState(OWNER)); assertSame(b, combat.buffState(OWNER)); assertSame(a, combat.characterView(OWNER).characterState("unmanaged"));
+        assertSame(a, combat.owner(OWNER).buffState("unmanaged"));
+        assertEquals(legacy, combat.characterView(OWNER).damageGroup(legacy).handle());
         var projected = b.withAmmo(new AmmoState("weapon", 2, 6, Optional.empty()));
-        var nested = combat.participantView(OWNER).withLocalState(projected);
-        assertSame(projected, nested.state()); assertSame(a, nested.participantState("unmanaged"));
-        nested.require(program.program(), projected); assertSame(b, combat.participantState(OWNER));
+        var nested = combat.characterView(OWNER).withLocalState(projected);
+        assertSame(projected, nested.state()); assertSame(a, nested.characterState("unmanaged"));
+        nested.require(program.program(), projected); assertSame(b, combat.characterState(OWNER));
     }
 
     @Test void ownerAndVictimBuffsWithEqualGenerationsHaveIndependentContributionsAndClocks() throws Exception {
@@ -119,7 +127,9 @@ class CombatParticipantQueryTest {
         var worlds = worlds(program, a, b, c); var view = combat(program, worlds);
         assertThrows(IllegalArgumentException.class, () -> program.prepareDamage(a, attack().withGroup(handle), Optional.of(view(program, worlds))));
         var prepared = program.prepareDamage(a, attack().withGroup(handle), Optional.of(view));
-        var finished = CombatDomains.finish(worlds, A, prepared, new DamageReceipt("hit", DamageReceipt.Outcome.APPLIED, 0, 0, 10, Optional.empty(), false));
+        var placements = placement(B, A, C);
+        var claim = CombatDomains.capture(worlds, placements, A, "hit", prepared);
+        var finished = CombatDomains.finish(worlds, placements, claim, new DamageReceipt("hit", DamageReceipt.Outcome.APPLIED, 0, 0, 10, Optional.empty(), false));
         assertTrue(finished.worlds().domain(B).buffs().instances().isEmpty());
         var later = combat(program, finished.worlds()); var command = attack().withGroup(handle);
         assertTrue(program.prepareDamage(later.state(), command, Optional.of(later)).consumptions().isEmpty());
@@ -154,10 +164,73 @@ class CombatParticipantQueryTest {
         var directory = ResourceAuthority.claim(ResourceAuthority.Directory.EMPTY, OWNER, A, program, a);
         directory = ResourceAuthority.claim(directory, VICTIM, A, program, a);
         var worlds = new ResourceAuthority.Worlds(directory, Map.of(A, a, B, empty(0), C, empty(0)));
-        var view = combat(program, worlds); var command = attack().withGroup(handle);
+        var view = combat(program, worlds, placement(A, A, C)); var command = attack().withGroup(handle);
         var result = program.outgoing(view, command, 10).orElseThrow();
         assertEquals(40, result.output().value()); assertEquals(2, result.inputs().contributions().stream().map(NumericContribution::id).distinct().count());
         assertTrue(program.prepareDamage(a, command, Optional.of(view)).consumptions().isEmpty());
+    }
+
+    @Test void retainedGrantsUseTheirFullBuffKeysEvenWhenHistoricalGenerationsMatch() throws Exception {
+        var data = data();
+        var second = data.getAsJsonArray("buffs").get(0).getAsJsonObject().deepCopy();
+        second.getAsJsonObject("definition").addProperty("id", "test:second_hit"); second.addProperty("bundle", "test:second_hit");
+        data.getAsJsonArray("buffs").add(second);
+        var bundle = data.getAsJsonArray("bundles").get(1).getAsJsonObject().deepCopy(); bundle.addProperty("id", "test:second_hit");
+        bundle.getAsJsonArray("modifiers").get(0).getAsJsonObject().getAsJsonObject("value").addProperty("buff", "test:second_hit");
+        data.getAsJsonArray("bundles").add(bundle);
+        var program = compile(data);
+        var firstGrant = grant(program, empty(0), "test:next_hit", OWNER, ORIGIN).buffs().instances().values().iterator().next();
+        var secondGrant = grant(program, empty(0), "test:second_hit", OWNER, ORIGIN).buffs().instances().values().iterator().next();
+        assertEquals(firstGrant.generation(), secondGrant.generation()); assertNotEquals(firstGrant.key(), secondGrant.key());
+        var handle = new DamageGroups.Handle("historical", OWNER, 0, 1_000_000);
+        var local = DamageGroups.begin(empty(0), handle).state();
+        local = local.withDamageGroup(local.damageGroups().get(handle.id()).retain(firstGrant).retain(secondGrant));
+        var localResult = program.outgoing(local, attack().withGroup(handle), 10).orElseThrow();
+        assertEquals(40, localResult.output().value());
+        assertEquals(2, localResult.inputs().contributions().stream().map(NumericContribution::id).distinct().count());
+        var foreign = handle.issuedBy(C); var issuer = DamageGroups.begin(empty(0), foreign).state();
+        issuer = issuer.withDamageGroup(issuer.damageGroups().get(handle.id()).retain(firstGrant).retain(secondGrant));
+        var view = combat(program, worlds(program, empty(50_000_000), empty(100_000_000), issuer));
+        var result = program.outgoing(view, attack().withGroup(foreign), 10).orElseThrow();
+        assertEquals(40, result.output().value());
+        assertEquals(2, result.inputs().contributions().stream().map(NumericContribution::id).distinct().count());
+        assertTrue(result.inputs().contributions().stream().allMatch(value -> value.source().instance().equals("credit")));
+        assertTrue(program.prepareDamage(view.state(), attack().withGroup(foreign), Optional.of(view)).consumptions().isEmpty());
+    }
+
+    @Test void shieldLayersUseCommittedBuffStorageWhileAttackScalingKeepsTheWholeReservationOverlay() throws Exception {
+        var data = data();
+        data.getAsJsonArray("buffs").add(object("""
+                {"definition":{"id":"test:shield","version":"test-1","duration":"permanent",
+                  "components":{"numbers":{"capacity":{"initial":100,"unit":"damage"}}}},
+                 "shield":{"capacity":"capacity"}}
+                """));
+        data.getAsJsonArray("profiles").add(object("""
+                {"id":"test:shield_attack","version":"test-1","input_unit":"multiplier",
+                 "steps":[{"type":"chorus:apply","id":"bonus","operation":"multiply","group":{"name":"bonus","reduction":"sum"}}]}
+                """));
+        var modifiers = data.getAsJsonArray("bundles").get(1).getAsJsonObject().getAsJsonArray("modifiers");
+        var modifier = modifiers.get(0).getAsJsonObject().deepCopy(); modifier.addProperty("profile", "test:shield_attack");
+        modifier.addProperty("id", "shield_bonus"); modifiers.add(modifier);
+        var program = compile(data);
+        var a = empty(50_000_000); var b = grant(program, empty(100_000_000), "test:next_hit", OWNER, ORIGIN);
+        var c = grant(program, empty(0), "test:shield", VICTIM, ORIGIN);
+        var placement = ParticipantPlacement.enroll(ParticipantPlacement.Directory.EMPTY,
+                Map.of(OWNER, A, VICTIM, A, THIRD, C), Map.of(OWNER, B, VICTIM, C, THIRD, C));
+        var committed = combat(program, worlds(program, a, b, c), placement);
+        var attack = new DamageCommand(VICTIM, ORIGIN, 10, "minecraft:generic", Set.of("test:melee"), Set.of(), false,
+                Optional.empty(), Optional.empty(), ImpactData.EMPTY, Optional.of("test:shield_attack"));
+        assertEquals(25, program.shields(committed.buffView(VICTIM), committed, attack, 10, DamageBasis.EMPTY).budget().shieldLoss());
+        // An overlay may reserve Buffs in multiple domains; the physical root must keep all of it.
+        var overlayWorlds = worlds(program, a, b.withBuffs(new BuffStore(b.buffs().timeMicros(), b.buffs().nextGeneration(), Map.of())),
+                c.withBuffs(new BuffStore(c.buffs().timeMicros(), c.buffs().nextGeneration(), Map.of())));
+        var overlay = combat(program, overlayWorlds, placement);
+        var plan = program.shields(committed.buffView(VICTIM), overlay, attack, 10, DamageBasis.EMPTY);
+        assertEquals(1, plan.layers().size()); assertEquals(10, plan.budget().shieldLoss());
+        assertEquals(1, plan.layers().getFirst().attackScaling().orElseThrow().output().value());
+        assertEquals(90, plan.commit().apply(c).buffs().instances().values().iterator().next().components().numbers().get("capacity"));
+        assertEquals(100, c.buffs().instances().values().iterator().next().components().numbers().get("capacity"));
+        assertTrue(overlay.buffState(VICTIM).buffs().instances().isEmpty());
     }
 
     @Test void foreignBuffScopeReadsEachReferencedHolderWithoutReplacingThePhysicalEvaluation() throws Exception {
@@ -168,7 +241,7 @@ class CombatParticipantQueryTest {
         var thirdOrigin = new BuffInstance.Origin(THIRD, "third-credit", "weapon", "");
         var a = empty(50_000_000); var b = grant(program, empty(100_000_000).withMode(EffectState.Mode.PVP), "test:next_hit", OWNER, thirdOrigin).withSource(source(OWNER));
         var c = grant(program, empty(0), "test:marker", THIRD, thirdOrigin);
-        var view = view(program, worlds(program, a, b, c)).combatParticipants();
+        var view = combat(program, worlds(program, a, b, c));
         var buff = b.buffs().instances().values().iterator().next(); var e = evaluation(program, view, new BuffRules.Scope(buff, false));
         assertSame(a, e.state()); assertEquals(EffectState.Mode.PVE, e.state().mode()); assertEquals(buff, e.ownBuff());
         assertTrue(new Condition.HasBuff("test:marker", Evaluation.Target.SOURCE_OWNER, 1).test(e));
@@ -192,7 +265,7 @@ class CombatParticipantQueryTest {
                 """));
         var program = compile(data); var a = empty(50_000_000).withAmmo(new AmmoState("weapon", 1, 6, Optional.empty()));
         var b = grant(program, empty(100_000_000), "test:next_hit", OWNER, ORIGIN).withSource(source(OWNER)).withAmmo(new AmmoState("weapon", 4, 6, Optional.empty()));
-        var view = view(program, worlds(program, a, b, empty(0))).combatParticipants(); var e = evaluation(program, view, source(OWNER));
+        var view = combat(program, worlds(program, a, b, empty(0))); var e = evaluation(program, view, source(OWNER));
         var zero = new Value.Constant(0, Unit.STAT_POINT);
         assertEquals(10, new Value.Attribute("test:points", zero, Evaluation.Target.SELF).evaluate(e).value());
         assertEquals(10, new Value.ProfileValue("test:points", zero, Evaluation.Target.SELF).evaluate(e).value());
@@ -221,10 +294,12 @@ class CombatParticipantQueryTest {
                 """));
         var program = compile(data); var current = source(OWNER);
         var stale = new EffectSource("old-source", "test:control", OWNER, ORIGIN, Set.of());
-        var a = empty(0).withSource(stale); var b = empty(0).withSource(current);
+        var a = empty(0); var b = empty(0).withSource(current);
         var worlds = worlds(program, a, b, empty(0));
         assertEquals(List.of(current), program.prepareReactions(a, attack(), Optional.of(combat(program, worlds))).reactions().orElseThrow().sources());
-        assertEquals(List.of(stale), program.prepareReactions(a, attack(), Optional.of(view(program, worlds))).reactions().orElseThrow().sources());
+        var local = a.withSource(stale); var duplicated = worlds(program, local, b, empty(0));
+        assertEquals(List.of(stale), program.prepareReactions(local, attack(), Optional.of(view(program, duplicated))).reactions().orElseThrow().sources());
+        assertThrows(IllegalStateException.class, () -> combat(program, duplicated), "explicit placement cannot accept a copied character partition");
     }
 
     @Test void defenseHealthAndShieldScalingKeepParticipantReadsAndPhysicalShieldLayers() throws Exception {

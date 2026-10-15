@@ -891,10 +891,18 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     public ShieldDamage.Planned shields(ResourceReadView view, DamageCommand command, double input, DamageBasis basis, EffectState attackState) {
         return shields(view.state(), command, input, basis, attackState, Optional.of(view));
     }
+    /** The host pins target Buff storage and the whole reservation overlay at the same native boundary. */
+    public ShieldDamage.Planned shields(ResourceReadView committed, ResourceReadView attack, DamageCommand command, double input, DamageBasis basis) {
+        return shields(committed.state(), command, input, basis, attack.state(), Optional.of(committed), Optional.of(attack));
+    }
     private ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis, EffectState attackState, Optional<ResourceReadView> view) {
+        return shields(state, command, input, basis, attackState, view, view.map(v -> v.withLocalState(attackState)));
+    }
+    private ShieldDamage.Planned shields(EffectState state, DamageCommand command, double input, DamageBasis basis, EffectState attackState,
+            Optional<ResourceReadView> view, Optional<ResourceReadView> attackView) {
         requireWorldQueryView(state, view);
+        requireWorldQueryView(attackState, attackView);
         command.group().ifPresent(handle -> damageGroup(state, handle, view));
-        var attackView = view.map(v -> v.withLocalState(attackState));
         settled(state); Numbers.nonnegative(input, "shield input");
         Objects.requireNonNull(basis);
         if (basis.outgoing().isPresent() && !command.scalingProfile().equals(Optional.of(basis.outgoing().orElseThrow().trace().profile()))) {
@@ -1099,6 +1107,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     /** The raw context retains compiler-private bindings; Evaluation exposes only lexical DSL names. */
     interface EvaluatedAction {
         RuleEngine.Outcome<EffectState> execute(Evaluation evaluation, RuleEngine.Context context);
+        default boolean damagePreparation() { return false; }
         default RuleEngine.Local<EffectState> complete(Evaluation evaluation, RuleEngine.Context context, RuleEngine.ActionResult actual) {
             return new RuleEngine.Local<>(evaluation.state(), actual, List.of());
         }
@@ -1138,6 +1147,52 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
     }
     /** Evaluate only the pinned active instruction; completion must prove both preparation and the actual world result. */
     public RuleEngine.Outcome<EffectState> evaluateActionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        return evaluateActionRoute(view, Optional.empty(), state, request);
+    }
+    /** Only damage preparation may read independent participant facets; all local writes and completions keep their ordinary scope. */
+    public RuleEngine.Outcome<EffectState> evaluateActionRoute(ResourceReadView ordinary, ResourceReadView damagePreparation,
+            RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        if (ordinary.combatParticipantsEnabled() || !damagePreparation.combatParticipantsEnabled()
+                || !ordinary.domain().equals(damagePreparation.domain()))
+            throw new IllegalArgumentException("Damage preparation requires paired ordinary and participant views of the caller");
+        damagePreparation.require(program, state.domain());
+        return evaluateActionRoute(ordinary, Optional.of(damagePreparation), state, request);
+    }
+    private RuleEngine.Outcome<EffectState> evaluateActionRoute(ResourceReadView view, Optional<ResourceReadView> damagePreparation,
+            RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        var resolved = actionRoute(view, state, request); var route = resolved.route(); var action = resolved.action();
+        var selected = route instanceof ActionRoutes.Begin && action.action.damagePreparation() ? damagePreparation.orElse(view) : view;
+        var e = scopedEvaluation(view.state(), resolved.context(), action.results, action.slots, Optional.of(selected));
+        return route instanceof ActionRoutes.Finish finish ? action.action.complete(e, resolved.context(), finish.actual()) : action.action.execute(e, resolved.context());
+    }
+    /** Prove the original preparation and actual world result before deriving any coordinated completion writes. */
+    public void requireActionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
+        actionRoute(view, state, request);
+    }
+    /** Completion evaluates settled Buff writes without replacing the original world receipt in the interpreter's evidence. */
+    public RuleEngine.Local<EffectState> completeDamageActionRoute(ResourceReadView original, ResourceReadView completion,
+            RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request, DamageReceipt settled) {
+        var resolved = actionRoute(original, state, request);
+        if (!(resolved.route() instanceof ActionRoutes.Finish finish) || !(finish.actual() instanceof DamageReceipt raw)
+                || !(finish.command() instanceof DamageCommand || finish.command() instanceof com.imdomestic.chorus.effect.target.EntityAnchor.GuardedDamage)
+                || completion.combatParticipantsEnabled() || !original.domain().equals(completion.domain()) || !settled.consumptionSettled())
+            throw new IllegalArgumentException("Coordinated damage completion requires its original result and ordinary caller scope");
+        completion.require(program, completion.state());
+        // Only consumption facts and a previously absent pre-consumption Buff observation may be added.
+        var expected = raw;
+        if (raw.consumptionSettled()) {
+            if (!raw.equals(settled)) throw new IllegalArgumentException("Cannot replace already settled damage evidence");
+        } else {
+            expected = expected.withObservedBuffs(settled.observedBuffs().orElseThrow(() -> new IllegalArgumentException("Missing pre-consumption Buff observation")))
+                    .withConsumptionFacts(settled.consumptionFacts().orElseThrow());
+            if (!expected.equals(settled)) throw new IllegalArgumentException("Coordinated completion changed actual damage evidence");
+        }
+        var action = resolved.action();
+        var e = scopedEvaluation(completion.state(), resolved.context(), action.results, action.slots, Optional.of(completion));
+        return action.action.complete(e, resolved.context(), settled);
+    }
+    private record ActionRouteEvaluation(ActionRoutes.Request route, CoordinatedAction action, RuleEngine.Context context) {}
+    private ActionRouteEvaluation actionRoute(ResourceReadView view, RuleEngine.State<EffectState> state, RuleEngine.WorldRequest request) {
         view.require(program, state.domain());
         if (!resourceRouting || !(request.command() instanceof ActionRoutes.Request route) || !state.pending().equals(Optional.of(request.id())) || state.frames().isEmpty())
             throw new IllegalArgumentException("Not an active coordinated action");
@@ -1161,8 +1216,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             semanticOperation = request.id().nextInvocation(); pending = Optional.empty();
         }
         var context = new RuleEngine.Context(frame.event(), frame.rule(), frame.scope(), frame.bindings(), semanticOperation, frame.retainedResults(), pending);
-        var e = scopedEvaluation(view.state(), context, action.results, action.slots, Optional.of(view));
-        return route instanceof ActionRoutes.Finish finish ? action.action.complete(e, context, finish.actual()) : action.action.execute(e, context);
+        return new ActionRouteEvaluation(route, action, context);
     }
     private static RuleEngine.ActionResult unwrapped(RuleEngine.ActionResult receipt) {
         return receipt instanceof RuleEngine.WorldReceipt envelope ? envelope.value() : receipt;
@@ -1253,6 +1307,11 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
                         output.add(new RuleEngine.Instruction<>(new Routed(site, e -> ResourceActionRouting.prepare(instruction.action(), e), previous, previousSlots), slot));
                     } else {
                         output.add(new RuleEngine.Instruction<>(evaluated(ownerRule + "/action/" + path + index, previous, previousSlots, new EvaluatedAction() {
+                            @Override public boolean damagePreparation() {
+                                return instruction.action() instanceof Action.Damage || instruction.action() instanceof Action.DamageCaptured
+                                        || instruction.action() instanceof Action.CaptureDamage || instruction.action() instanceof Action.CaptureTaggedDamage
+                                        || instruction.action() instanceof EntityAnchorActions.Damage;
+                            }
                             @Override public RuleEngine.Outcome<EffectState> execute(Evaluation e, RuleEngine.Context context) {
                                 return instruction.action().execute(e);
                             }
@@ -1652,7 +1711,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             throw new IllegalArgumentException("Foreign grouped damage preparation requires an explicit combat participant view");
         settled(state);
         var group = command.group().map(handle -> damageGroup(state, handle, view));
-        var ownerState = view.map(v -> v.participantState(command.source().owner())).orElse(state);
+        var ownerState = view.map(v -> v.buffState(command.source().owner())).orElse(state);
         settled(ownerState);
         var candidates = new ArrayList<BuffConsumption.Candidate>();
         var event = queryEvent(state, damageQuery(command, command.amount()));
@@ -1677,7 +1736,7 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         if (command.reactions().isPresent()) {
             command.reactions().orElseThrow().requireCompatible(program); return command;
         }
-        var ownerState = view.map(v -> v.participantState(command.source().owner())).orElse(state);
+        var ownerState = view.map(v -> v.characterState(command.source().owner())).orElse(state);
         settled(ownerState);
         var sources = ownerState.sources().values().stream().filter(s -> s.holder().equals(command.source().owner())
                 && sourceRules.get(s.bundle()).stream().anyMatch(r -> originRules.contains(r.definition()))).toList();
@@ -1836,18 +1895,20 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
         var holders = new java.util.LinkedHashSet<String>(); holders.add(holder);
         if (!query.victim().isBlank()) holders.add(query.victim());
         for (String participantHolder : holders) {
-            var participantState = resourceView.map(v -> v.participantState(participantHolder)).orElse(state);
-            String participantDomain = resourceView.map(v -> v.participantDomain(participantHolder)).orElse("");
-            settled(participantState);
-            for (var source : participantState.sources().values()) if (source.holder().equals(participantHolder)) {
-                visitBundle(state, event, source, modifierInstance(resourceView, participantDomain, sourceId(source)), source.instance(),
+            var characterState = resourceView.map(v -> v.characterState(participantHolder)).orElse(state);
+            String characterDomain = resourceView.map(v -> v.characterDomain(participantHolder)).orElse("");
+            var buffState = resourceView.map(v -> v.buffState(participantHolder)).orElse(state);
+            String buffDomain = resourceView.map(v -> v.buffDomain(participantHolder)).orElse("");
+            settled(characterState); if (buffState != characterState) settled(buffState);
+            for (var source : characterState.sources().values()) if (source.holder().equals(participantHolder)) {
+                visitBundle(state, event, source, modifierInstance(resourceView, characterDomain, sourceId(source)), source.instance(),
                         bundle(source.bundle()), profile, null, holder, query.victim(), resourceView, visitor);
             }
-            for (var instance : participantState.buffs().instances().values()) {
+            for (var instance : buffState.buffs().instances().values()) {
                 if (group.filter(g -> g.grants().containsKey(instance.key())).isPresent()) continue;
-                if (!instance.key().holder().equals(participantHolder) || instance.activeCount(participantState.buffs().timeMicros()) == 0
+                if (!instance.key().holder().equals(participantHolder) || instance.activeCount(buffState.buffs().timeMicros()) == 0
                         || !instance.affects(query.source().weapon(), query.source().ability())) continue;
-                visitBuffModifiers(state, event, profile, instance, false, modifierInstance(resourceView, participantDomain, "buff/" + instance.generation()),
+                visitBuffModifiers(state, event, profile, instance, false, modifierInstance(resourceView, buffDomain, "buff/" + instance.generation()),
                         holder, query.victim(), resourceView, visitor);
             }
         }
@@ -1857,18 +1918,17 @@ public final class CompiledEffects implements RuleEngine.RuleResolver<EffectStat
             var policy = consumptions.get(instance.definition().id());
             if (policy == null || policy.sharing() != BuffConsumption.Sharing.GROUP) throw new IllegalArgumentException("Incompatible retained consumption policy");
             var context = new RuleEngine.Context(event, "consume/" + instance.generation(), new BuffRules.Scope(instance, false, true), Map.of());
-            String instanceId = "buff/" + instance.generation();
-            if (resourceView.isPresent()) {
-                var view = resourceView.orElseThrow(); String issuer = view.damageGroupDomain(handle.orElseThrow());
-                // A retained generation belongs to its historical store, even after the owner returns here.
-                if (view.combatParticipantsEnabled() || !issuer.equals(view.domain()) || !view.participantDomain(instance.key().holder()).equals(view.domain())) {
-                    String groupId = handle.orElseThrow().id();
-                    instanceId = "retained/" + issuer.length() + ":" + issuer + "/" + groupId.length() + ":" + groupId + "/" + instanceId;
-                }
-            }
+            // A group can retain equal generations from different historical stores. The full key
+            // distinguishes those grants even when its current owner and issuer have returned here.
+            var identity = group.orElseThrow().handle(); var key = instance.key();
+            String issuer = resourceView.map(view -> view.damageGroupDomain(handle.orElseThrow())).orElse("");
+            String instanceId = "retained/" + identityPart(issuer) + "/" + identityPart(identity.id()) + "/" + identityPart(identity.owner())
+                    + "/" + identity.startedAt() + "/" + identity.dueAt() + "/" + identityPart(key.holder())
+                    + "/" + identityPart(key.definition()) + "/" + identityPart(key.instance()) + "/buff/" + instance.generation();
             if (policy.condition().test(evaluation(state, context, Map.of(), resourceView))) visitBuffModifiers(state, event, profile, instance, true, instanceId, holder, query.victim(), resourceView, visitor);
         }
     }
+    private static String identityPart(String value) { return value.length() + ":" + value; }
     private void visitBuffModifiers(EffectState state, RuleEngine.Event event, String profile, BuffInstance instance, boolean retained, String instanceId, String holder, String victim, Optional<ResourceReadView> resourceView, java.util.function.Consumer<ModifierSite> visitor) {
         String bundleId = buffBundles.get(instance.definition().id()); if (bundleId == null) return;
         String id = "buff/" + instance.generation();

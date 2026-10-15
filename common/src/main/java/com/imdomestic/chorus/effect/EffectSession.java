@@ -174,14 +174,27 @@ public final class EffectSession {
         return prepareOperationDomain(operation, expected, domain, result, List.of());
     }
     public DomainUpdate prepareOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected, EffectState domain, ActionResult result, List<Signal> facts) {
-        currentOperation(operation, expected);
-        if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
         Objects.requireNonNull(result);
         if (result instanceof WorldReceipt) throw new IllegalArgumentException("Commit the action result, not a world receipt envelope");
+        return prepareOperationDomain(operation, expected, domain, Optional.of(result), facts);
+    }
+    /**
+     * Preserve confirmed child writes when the enclosing world operation has no known result.
+     * Its pending operation and unknown ledger entry remain intact; this does not authorize retry,
+     * resume the interpreter, or turn an already confirmed operation back into an unknown one.
+     */
+    public DomainUpdate prepareObservedOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected,
+            EffectState domain, List<Signal> facts) {
+        return prepareOperationDomain(operation, expected, domain, Optional.empty(), facts);
+    }
+    private DomainUpdate prepareOperationDomain(WorldOperation operation, TimelineEngine.State<EffectState> expected,
+            EffectState domain, Optional<ActionResult> result, List<Signal> facts) {
+        currentOperation(operation, expected);
+        if (operation.committed.isPresent()) throw new IllegalStateException("World operation already committed its result");
         var next = engine.replacePendingDomain(expected, operation.request.id(), domain);
         next = engine.enqueue(next, facts, Optional.of(expected.engine().frames().getFirst().event()));
         currentOperation(operation, expected);
-        return new DomainUpdate(this, expected, next, Optional.of(new OperationCommit(operation, Optional.of(result))), false, false);
+        return new DomainUpdate(this, expected, next, Optional.of(new OperationCommit(operation, result)), false, false);
     }
     /** The trusted host validates domain semantics. Preparation may inspect clock policy but executes no rules. */
     public DomainUpdate prepareDomain(TimelineEngine.State<EffectState> expected, EffectState domain) {

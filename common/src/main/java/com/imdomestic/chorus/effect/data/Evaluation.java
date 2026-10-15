@@ -122,14 +122,16 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public ResourceState localResource(String id, Target target) { return localResource(new ResourceState.Key(target(target), id)); }
     public java.util.Optional<com.imdomestic.chorus.effect.ability.AbilityDefinition> selectedAbility(String holder, String slot) {
-        var ownerState = resourceView.map(view -> view.owner(holder).state()).orElse(state);
+        var ownerState = resourceView.map(view -> view.combatParticipantsEnabled() ? view.characterState(holder) : view.owner(holder).state()).orElse(state);
         return program.orElseThrow(() -> new IllegalArgumentException("Selected ability requires a compiled program")).selectedAbility(ownerState, holder, slot);
     }
-    public EffectState participantState(String holder) { return resourceView.map(view -> view.participantState(holder)).orElse(state); }
-    public java.util.Optional<ResourceReadView> participantView(String holder) { return resourceView.map(view -> view.participantView(holder)); }
+    public EffectState characterState(String holder) { return resourceView.map(view -> view.characterState(holder)).orElse(state); }
+    public java.util.Optional<ResourceReadView> characterView(String holder) { return resourceView.map(view -> view.characterView(holder)); }
+    public EffectState buffState(String holder) { return resourceView.map(view -> view.buffState(holder)).orElse(state); }
+    public java.util.Optional<ResourceReadView> buffView(String holder) { return resourceView.map(view -> view.buffView(holder)); }
     private java.util.Optional<ResourceReadView> ammunitionView(Target weapon) {
-        if (weapon == Target.THIS_WEAPON) return participantView(origin().owner());
-        if (weapon == Target.EVENT_WEAPON) return participantView(event().source().owner());
+        if (weapon == Target.THIS_WEAPON) return characterView(origin().owner());
+        if (weapon == Target.EVENT_WEAPON) return characterView(event().source().owner());
         return resourceView;
     }
     public com.imdomestic.chorus.effect.ammo.AmmoState ammo(Target weapon) {
@@ -159,12 +161,12 @@ public record Evaluation(EffectState state, RuleEngine.Context context, Map<Stri
     }
     public BuffInstance ownBuff() {
         if (!(context.scope() instanceof BuffRules.Scope scope)) throw new IllegalArgumentException("This value requires a buff source");
-        return scope.current(participantState(scope.snapshot().key().holder()).buffs()).orElseThrow(() -> new IllegalArgumentException("Buff source is no longer active"));
+        return scope.current(buffState(scope.snapshot().key().holder()).buffs()).orElseThrow(() -> new IllegalArgumentException("Buff source is no longer active"));
     }
     public BuffInstance readBuff(String id, Target target) {
         var key = key(id, target);
         if (context.scope() instanceof BuffRules.Scope scope && (scope.ended() || scope.retained()) && scope.snapshot().key().equals(key)) return scope.snapshot();
-        return participantState(key.holder()).buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Missing buff instance: " + key));
+        return buffState(key.holder()).buffs().active(key).orElseThrow(() -> new IllegalArgumentException("Missing buff instance: " + key));
     }
     public boolean enhanced() {
         return origin().tags().contains("chorus:enhanced");

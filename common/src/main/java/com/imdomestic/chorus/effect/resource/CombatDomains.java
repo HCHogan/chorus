@@ -8,12 +8,7 @@ import com.imdomestic.chorus.effect.combat.*;
 import com.imdomestic.chorus.rule.RuleEngine;
 import java.util.*;
 
-/**
- * Pure combat accounting for snapshots whose managed participants have already been placed with
- * their resource authority. The caller must establish that character/source/buff placement first;
- * a resource-only handoff does not establish it. Participant placement and life must stay fixed from
- * eligibility capture through settlement. This helper is not installed in native combat.
- */
+/** Pure combat accounting against explicit Buff placement, independent of character and resource ownership. */
 public final class CombatDomains {
     private CombatDomains() {}
 
@@ -23,11 +18,41 @@ public final class CombatDomains {
             Objects.requireNonNull(value).handle().requireIssuer(domain);
         }
     }
-    /** The physical domain disambiguates both local damage ids and legacy group handles. */
-    public record Claim(String domain, String id, DamageCommand command) {
+    /** An unmanaged holder is pinned to the physical caller and must remain unmanaged until settlement. */
+    public record BuffPin(String domain, Optional<ParticipantPlacement.Lease> lease) {
+        public BuffPin {
+            new ResourceAuthority.Lease(domain, 1);
+            Objects.requireNonNull(lease).ifPresent(value -> value.require(domain));
+        }
+    }
+    /** Only group identity is captured; grants always come from the issuer's current state. */
+    public record GroupPin(String domain, DamageGroups.Handle handle) {
+        public GroupPin {
+            new ResourceAuthority.Lease(domain, 1); Objects.requireNonNull(handle);
+            if (!handle.issuer().equals(Optional.of(domain))) throw new IllegalArgumentException("Unqualified combat group pin");
+        }
+    }
+    /** Physical domain and id identify a reservation. Every participant's Buff lease is captured explicitly. */
+    public record Claim(String domain, String id, DamageCommand command, Map<String, BuffPin> buffs, Optional<GroupPin> group) {
         public Claim {
             new ResourceAuthority.Lease(domain, 1); Objects.requireNonNull(command);
             if (id == null || id.isBlank()) throw new IllegalArgumentException("Missing combat reservation identity");
+            buffs = Collections.unmodifiableMap(new TreeMap<>(buffs)); Objects.requireNonNull(group);
+            if (!buffs.keySet().equals(holders(command))) throw new IllegalArgumentException("Incomplete combat Buff pins");
+            for (var pin : buffs.values()) {
+                Objects.requireNonNull(pin);
+                if (pin.lease().isEmpty() && !pin.domain().equals(domain)) throw new IllegalArgumentException("Foreign unmanaged combat Buff pin");
+            }
+            var expected = command.group().map(handle -> {
+                String issuer = handle.issuer().orElse(domain);
+                return new GroupPin(issuer, handle.issuedBy(issuer));
+            });
+            if (!group.equals(expected)) throw new IllegalArgumentException("Combat group pin differs from command");
+        }
+        public BuffPin buff(String holder) {
+            var pin = buffs.get(holder);
+            if (pin == null) throw new IllegalArgumentException("Uncaptured combat Buff holder: " + holder);
+            return pin;
         }
     }
     public record Finished(ResourceAuthority.Worlds worlds, DamageReceipt receipt,
@@ -46,53 +71,84 @@ public final class CombatDomains {
     public static Group group(ResourceAuthority.Worlds worlds, String caller, DamageGroups.Handle handle) {
         worlds.domain(caller); Objects.requireNonNull(handle);
         String issuer = handle.issuer().orElse(caller);
-        var value = DamageGroups.require(worlds.domain(issuer), handle);
-        return new Group(issuer, value);
+        return new Group(issuer, DamageGroups.require(worlds.domain(issuer), handle));
     }
-    private static String owner(ResourceAuthority.Worlds worlds, String caller, String holder) {
-        var partition = worlds.directory().holders().get(holder);
-        // Unmanaged identities authorize only the operation's explicit local domain.
-        return partition == null ? caller : partition.lease().domain();
+    private static Set<String> holders(DamageCommand command) {
+        var result = new TreeSet<String>();
+        if (!command.source().owner().isBlank()) result.add(command.source().owner());
+        result.add(command.target());
+        command.consumptions().forEach(candidate -> result.add(candidate.key().holder()));
+        return result;
+    }
+    /** Capture before native execution. Neither resource partitions nor state scans establish Buff authority. */
+    public static Claim capture(ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement,
+            String caller, String id, DamageCommand command) {
+        worlds.domain(caller); Objects.requireNonNull(command); ParticipantPlacement.validate(placement, worlds.domains());
+        var buffs = new TreeMap<String, BuffPin>();
+        for (String holder : holders(command)) {
+            var lease = Optional.ofNullable(placement.buffs().get(holder));
+            buffs.put(holder, new BuffPin(lease.map(ParticipantPlacement.Lease::domain).orElse(caller), lease));
+        }
+        var group = command.group().map(handle -> {
+            var resolved = group(worlds, caller, handle);
+            return new GroupPin(resolved.domain(), handle.issuedBy(resolved.domain()));
+        });
+        return new Claim(caller, id, command, buffs, group);
+    }
+    private static void current(ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement, Claim claim) {
+        Objects.requireNonNull(claim); worlds.domain(claim.domain()); ParticipantPlacement.validate(placement, worlds.domains());
+        claim.buffs().forEach((holder, pin) -> {
+            worlds.domain(pin.domain());
+            if (!pin.lease().equals(Optional.ofNullable(placement.buffs().get(holder))))
+                throw new IllegalStateException("Stale combat Buff placement for " + holder);
+        });
+    }
+    private static void receipt(Claim claim, DamageReceipt receipt) {
+        if (!claim.id().equals(receipt.damageId())) throw new IllegalArgumentException("Combat receipt identity differs from claim");
+    }
+    private static Group group(ResourceAuthority.Worlds worlds, GroupPin pin) {
+        return new Group(pin.domain(), DamageGroups.require(worlds.domain(pin.domain()), pin.handle()));
     }
     private static ResourceAuthority.Worlds updated(ResourceAuthority.Worlds before, Map<String, EffectState> domains) {
         return domains.equals(before.domains()) ? before : new ResourceAuthority.Worlds(before.directory(), domains);
     }
 
-    /** Sample each participant on its own clock, before consumption; the observation belongs to the caller's event. */
-    public static DamageReceipt observe(ResourceAuthority.Worlds worlds, String caller, DamageCommand command, DamageReceipt receipt) {
-        worlds.domain(caller); Objects.requireNonNull(command); Objects.requireNonNull(receipt);
-        if (receipt.observedBuffs().isPresent() || receipt.consumptionSettled()) return receipt;
+    /** Sample pinned Buff stores on their own clocks, before consumption; the observation belongs to the physical event. */
+    public static DamageReceipt observe(ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement, Claim claim, DamageReceipt receipt) {
+        Objects.requireNonNull(receipt);
+        if (receipt.consumptionSettled()) return receipt;
+        current(worlds, placement, claim); receipt(claim, receipt);
+        if (receipt.observedBuffs().isPresent()) return receipt;
         var holders = new TreeMap<String, List<BuffObservation.Entry>>();
-        for (String holder : List.of(command.source().owner(), command.target())) if (!holder.isBlank()) {
-            var store = worlds.domain(owner(worlds, caller, holder)).buffs();
+        for (String holder : List.of(claim.command().source().owner(), claim.command().target())) if (!holder.isBlank()) {
+            var store = worlds.domain(claim.buff(holder).domain()).buffs();
             holders.put(holder, BuffObservation.capture(store, holder).require(holder));
         }
-        return receipt.withObservedBuffs(new BuffObservation(worlds.domain(caller).buffs().timeMicros(), holders));
+        return receipt.withObservedBuffs(new BuffObservation(worlds.domain(claim.domain()).buffs().timeMicros(), holders));
     }
 
     /**
-     * Only an actual receipt authorizes consumption. The caller publishes all returned changes together.
-     * The empty receipt marker prevents a local completion path from consuming or emitting remote facts again.
-     * Managed participants must satisfy the class's placement precondition; this method does not move them.
+     * Only an actual receipt authorizes consumption. All returned domains must be published together.
+     * Settled receipts pass through; their marker prevents local completion from charging or emitting facts again.
      */
-    public static Finished finish(ResourceAuthority.Worlds worlds, String caller, DamageCommand command, DamageReceipt receipt) {
-        worlds.domain(caller); Objects.requireNonNull(command); Objects.requireNonNull(receipt);
+    public static Finished finish(ResourceAuthority.Worlds worlds, ParticipantPlacement.Directory placement, Claim claim, DamageReceipt receipt) {
+        Objects.requireNonNull(receipt);
         if (receipt.consumptionSettled()) return new Finished(worlds, receipt, Map.of());
-        receipt = observe(worlds, caller, command, receipt);
+        receipt = observe(worlds, placement, claim, receipt);
         var domains = new TreeMap<>(worlds.domains());
         var facts = new TreeMap<String, List<RuleEngine.Signal>>();
         boolean hit = receipt.outcome() != DamageReceipt.Outcome.CANCELLED && receipt.outcome() != DamageReceipt.Outcome.FAILED;
-        for (var candidate : command.consumptions()) {
+        for (var candidate : claim.command().consumptions()) {
             if (!hit || candidate.when() == BuffConsumption.When.EFFECTIVE_DAMAGE && receipt.effective(true) <= 0) continue;
             if (candidate.shared().isPresent()) {
-                var current = group(updated(worlds, domains), caller, command.group().orElseThrow());
+                var current = group(updated(worlds, domains), claim.group().orElseThrow());
                 if (current.value().grants().containsKey(candidate.key())) continue;
                 var issuer = domains.get(current.domain());
                 domains.put(current.domain(), issuer.withDamageGroup(current.value().retain(candidate.shared().orElseThrow())));
             }
-            String domain = owner(worlds, caller, candidate.key().holder());
+            String domain = claim.buff(candidate.key().holder()).domain();
             var state = domains.get(domain); var active = state.buffs().active(candidate.key());
-            // Old attacks may retain their captured eligibility but cannot charge a new application.
+            // Captured eligibility never charges a newer application or a paused Buff.
             if (active.isEmpty() || active.orElseThrow().generation() != candidate.generation()
                     || active.orElseThrow().pausedAt().isPresent()) continue;
             var consumed = Buffs.consume(state.buffs(), candidate.key(), candidate.stacks());
@@ -102,45 +158,38 @@ public final class CombatDomains {
         return new Finished(updated(worlds, domains), receipt.withConsumptionFacts(List.of()), facts);
     }
 
-    private record Identity(String domain, String id) {}
-    private record Shared(String domain, DamageGroups.Handle handle, BuffInstance.Key key, long generation) {
-        Shared(Group group, BuffInstance.Key key, long generation) {
-            this(group.domain(), group.value().handle().issuedBy(group.domain()), key, generation);
-        }
+    private record Identity(String domain, String id) {
+        Identity(Claim claim) { this(claim.domain(), claim.id()); }
     }
-    private static boolean same(Group left, Group right) {
-        return left.domain().equals(right.domain())
-                && left.value().handle().issuedBy(left.domain()).equals(right.value().handle().issuedBy(right.domain()));
-    }
+    private record Shared(GroupPin group, BuffInstance.Key key, long generation) {}
     /**
-     * Read-only outgoing eligibility: an unfinished outer hit reserves its captured cost without
-     * publishing buff lifecycle facts or changing group grants. Defensive queries keep the committed view.
-     * The caller must establish participant placement for the attack and every claim before using this overlay.
+     * Read-only outgoing eligibility. Other unfinished hits reserve their captured costs without
+     * lifecycle facts or group writes. Defense queries keep the committed worlds.
      */
-    public static ResourceAuthority.Worlds view(ResourceAuthority.Worlds committed, String caller, DamageCommand attack,
-            String ownId, List<Claim> open) {
-        committed.domain(caller); Objects.requireNonNull(attack); Objects.requireNonNull(ownId);
-        var attackGroup = attack.group().map(handle -> group(committed, caller, handle));
+    public static ResourceAuthority.Worlds view(ResourceAuthority.Worlds committed, ParticipantPlacement.Directory placement,
+            Claim attack, List<Claim> open) {
+        current(committed, placement, attack);
+        attack.group().ifPresent(pin -> group(committed, pin));
         var domains = new TreeMap<>(committed.domains()); var shared = new HashSet<Shared>();
-        var identities = new HashMap<Identity, DamageCommand>();
+        var identities = new HashMap<Identity, Claim>();
+        // The querying claim participates in duplicate checking too; an older pin cannot masquerade as its own revision.
+        identities.put(new Identity(attack), attack);
         for (var claim : open) {
-            committed.domain(claim.domain());
-            var previous = identities.putIfAbsent(new Identity(claim.domain(), claim.id()), claim.command());
+            current(committed, placement, claim);
+            var identity = new Identity(claim); var previous = identities.putIfAbsent(identity, claim);
             if (previous != null) {
-                if (!previous.equals(claim.command())) throw new IllegalArgumentException("Conflicting combat reservation identity");
+                if (!previous.equals(claim)) throw new IllegalArgumentException("Conflicting combat reservation identity");
                 continue;
             }
-            if (claim.domain().equals(caller) && claim.id().equals(ownId)) continue;
             for (var candidate : claim.command().consumptions()) {
-                if (!candidate.key().holder().equals(attack.source().owner())) continue;
-                Group claimGroup = null;
+                if (!candidate.key().holder().equals(attack.command().source().owner())) continue;
+                GroupPin claimGroup = null;
                 if (candidate.shared().isPresent()) {
-                    claimGroup = group(committed, claim.domain(), claim.command().group().orElseThrow());
-                    if (attackGroup.isPresent() && same(attackGroup.orElseThrow(), claimGroup)) continue;
-                    if (claimGroup.value().grants().containsKey(candidate.key())) continue;
+                    claimGroup = claim.group().orElseThrow();
+                    if (attack.group().equals(Optional.of(claimGroup))) continue;
+                    if (group(committed, claimGroup).value().grants().containsKey(candidate.key())) continue;
                 }
-                // A foreign unmanaged claim cannot reserve a same-named buff in the query's caller.
-                String domain = owner(committed, claim.domain(), candidate.key().holder());
+                String domain = claim.buff(candidate.key().holder()).domain();
                 var state = domains.get(domain); var active = state.buffs().active(candidate.key());
                 if (active.isEmpty() || active.orElseThrow().generation() != candidate.generation()
                         || active.orElseThrow().pausedAt().isPresent()) continue;

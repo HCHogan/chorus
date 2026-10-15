@@ -162,12 +162,16 @@ class ResourceGroupRoutingTest {
         }
     }
 
-    @Test void defaultDslRejectsForeignCombatMembershipBeforeIssuingAnyPhysicalDamage()throws Exception{
-        var f=new Fixture(true);f.capture(f.handle(A));
-        var error=assertThrows(IllegalArgumentException.class,f::run);
-        assertEquals("Foreign grouped damage preparation requires an explicit combat participant view",error.getMessage());
-        assertTrue(f.damages.isEmpty());assertTrue(f.completions.isEmpty());assertEquals(1,stacks(f.state(C)));
-        for(String domain:List.of(A,B,C))assertTrue(f.state(domain).damageGroups().values().iterator().next().grants().isEmpty());
+    @Test void defaultDslConsumesOnlyTheCurrentBuffOwnerAndRetainsTheForeignIssuerGroup()throws Exception{
+        var f=new Fixture(true);var issuer=f.handle(A);var local=f.handle(C);var neighbor=f.handle(B);f.capture(issuer);f.run();
+        assertEquals(List.of(25.,25.,10.),f.amounts);assertEquals(0,stacks(f.state(C)));
+        assertEquals(3,f.completions.size());assertEquals(1,f.completions.getFirst().states().get(A).damageGroups().get(issuer.id()).grants().size());
+        assertTrue(f.completions.getFirst().states().get(C).damageGroups().get(local.id()).grants().isEmpty());
+        assertTrue(f.completions.getFirst().states().get(B).damageGroups().get(neighbor.id()).grants().isEmpty());
+        assertTrue(f.state(A).damageGroups().isEmpty());assertEquals(local,f.handle(C));assertEquals(neighbor,f.handle(B));
+        assertObservation(f.completions.getFirst(),1,0);assertObservation(f.completions.get(1),0,0);
+        assertEquals(List.of(C+"/test:historical",C+"/test:consumed-before-fact"),f.cues);
+        assertEquals(3,f.repeatedFinishes);assertDoesNotThrow(f.host::checkpoint);
     }
 
     @Test void groupRequestsAndReceiptsRoundTripWithTheirExactQualifiedIssuer(){
