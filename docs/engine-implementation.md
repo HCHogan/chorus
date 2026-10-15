@@ -8,6 +8,22 @@
 
 以下按实施批次倒序记录；较早批次的限制描述保留当时的验收范围，当前能力以最新批次为准。
 
+### 2026-10-15：历史伤害快照的捕获时间线
+
+DamageSnapshot 增加可选 CaptureOrigin，协调捕获保存调用域及该 EffectSession 的稳定 TimelineIdentity，capturedAt 保持原逻辑时刻。准备世界伤害和实际数值查询都从同一不可变 ResourceReadView 核验原域身份及原域时钟；目标域的较低时钟不再使合法快照失败。角色、Buff、资源归属的移动不改捕获来源；各资源变更、迁移及战斗 shadow 保留完整时间线映射，联合发布拒绝替换。on_use 值继续冻结，目标条件与 on_hit 按本次命中视图求值。
+
+原生传送回归另发现 A 的历史 Buff 与 B 新 Buff 同 generation、同 modifier ID 的贡献碰撞。当前带时间线的查询统一按实际提供者域 / 时间线限定来源与 Buff instance，包括本地域；捕获后保留这一身份，跨调用域查询不再换名。修复保留原 stackingKey 和分组算法，测试继续使用相同编号与 modifier ID。
+
+新会话获得独立身份，当前会话检查点使用 format 3 保存身份与编译模式，恢复延续同一时间线。旧 format 1 / 2 精确读取为空身份，激活时分配新身份；旧八字段 DamageSnapshot 精确迁移为无捕获来源，仍采用原有本地时间检查，不猜测其捕获域。新增 damage_snapshot_v2、capture_origin、timeline_identity 三项 DATA 身份，原 746 项形状保持，共 749 项；外层宿主 archive format 5 不变。时间线身份不等于同 tick 分支顺序证明，也不能替代历史发射时的实体生命归属。
+
+新增 12 项 DamageSnapshotTimelineTest 和 6 项 SnapshotTimelineCheckpointTest，覆盖真实 DSL 捕获 / Buff 组件 / 角色迁移 / 编码恢复 / 返回原域、三个参与者归属与捕获域独立、未来 / 回退 / 缺失 / 替换时间线的准备阶段拒绝、严格旧格式迁移、重复身份拒绝及数值贡献跨调用域稳定。两项 DamageSnapshotTransferGameTest 使用实际 ServerPlayer.teleport 和原版 ACK：高时钟 A 的快照在低时钟 B 连续造成 6 和 4.5 HP 损失，分别核对 on_use 冻结及 on_hit 移除，伤害调用为 0→1→2；Buff 自有版本在首击后和结束后联合恢复均不重放。没有修改原版受击保护或通过重命名 modifier 避开碰撞。
+
+最终 `/tmp/chorus-snapshot-clock-full-gate3.log` BUILD SUCCESSFUL（4 分 19 秒）：2697 项 JUnit 无失败 / 错误 / 跳过，Fabric 1403、NeoForge 1418 项世界回归通过（共享场景 1402），双端发布包和两次正常停服检查点通过。`build/reports/snapshot-clock/audit.json` 核验全部旧 DATA 形状、1419 / 1412 个发布主类字节一致、无测试内容泄漏及 Gradle CRLF。10 项 Compendium 工具测试、22 张表 / 6666 个保留单元格来源与报告检查通过，仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。核心协议、兼容与纯测试已独立提交推送为 8337c513。
+
+独立进程验收 `build/checkpoint-restart/20261015T091442Z-1d086035/report.json` 通过：Fabric / NeoForge 各四进程完成正常保存、正常恢复、注入保存失败及拒绝恢复失败存档。两域 effects 实际保存 format 3、不同规范时间线 UUID，并在新进程恢复与再次保存后逐域保持相等；实际玩家文件、装备 / 技能配置、远端资源余额和两种参与者位置继续通过既有核对。失败存档拒绝启动且文件 SHA-256 不变。独立进程验收证明会话时间线与既有世界保存协议的连续性，快照迁移后两次真实命中和恢复不重放由上述同进程世界场景验证。
+
+ShotGroups / EntityAttachments 的完整跨域操作、物理弹体 / 构造物 / 拾取物重启恢复及历史发射时来源生命连续性仍待完成；本批不增加原作数值校准、完整 Compendium 条目或图形客户端验收声明。
+
 ### 2026-10-15：活动伤害组随角色与 Buff 延续迁移
 
 EffectContinuations.Pending 允许在协调目标中携带 DamageGroups.Handle。首次迁移的旧无 issuer 句柄必须由显式 sourceDomain 补齐，已限定句柄在连续迁移和嵌套 after 捕获时保持原签发身份。CharacterTransfer / BuffTransfer 只移动其自有续体，不移动 damage group 账本、保留资格或原域 expiry timer；后续成员伤害沿既有跨域战斗边界消费，end_damage_group 回原 issuer 关闭。非协调目标仍前置拒绝，ShotGroups / EntityAttachments 的直接活动句柄继续等待各自完整路由。

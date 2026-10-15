@@ -60,7 +60,15 @@ def committed(folder, coordinated=False):
         require(isinstance(next_generation, str) and str(int(next_generation)) == next_generation
                 and int(next_generation) > max(generations) and len(set(generations)) == 2,
                 f"Invalid participant placement generation allocator: {folder}")
-        require(all(row["effects"]["format"] == 2 for row in entries), f"Lost coordinated compilation mode: {folder}")
+        require(all(row["effects"]["resource_routing"] is True for row in entries), f"Lost coordinated compilation mode: {folder}")
+    identities = []
+    for row in entries:
+        effects = row["effects"]
+        require(effects["format"] == 3, f"Missing persistent timeline format: {folder}")
+        identity = effects["timeline_identity"]
+        require(isinstance(identity, str) and str(uuid.UUID(identity)) == identity, f"Invalid timeline identity: {folder}")
+        identities.append(identity)
+    require(len(set(identities)) == len(identities), f"Dimensions share a timeline identity: {folder}")
     overworld = next(row for row in entries if row["dimension"] == "minecraft:overworld")
     require(player in overworld["actor_owners"], f"Player actor ownership missing: {folder}")
     require(player in overworld["ability_owners"], f"Player ability ownership missing: {folder}")
@@ -107,6 +115,10 @@ def main():
         first = committed(folder, args.coordinated)
         execute(loader, good, "restore")
         second = committed(folder, args.coordinated)
+        first_timelines = {row["dimension"]: row["effects"]["timeline_identity"] for row in first["archive"]["dimensions"]}
+        second_timelines = {row["dimension"]: row["effects"]["timeline_identity"] for row in second["archive"]["dimensions"]}
+        require(first_timelines == second_timelines, "Clean process restart replaced persistent timeline identities")
+        rows[-1]["timeline_identities"] = second_timelines
         require(first["run"] != second["run"] and first["save"] != second["save"], "Restart reused old run/save identity")
         require(first["archive"]["dimensions"][0]["equipment_owners"] == second["archive"]["dimensions"][0]["equipment_owners"],
                 "Real player's equipment ownership changed across restart")
