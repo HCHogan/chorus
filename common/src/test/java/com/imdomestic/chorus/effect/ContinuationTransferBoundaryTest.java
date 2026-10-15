@@ -39,7 +39,7 @@ class ContinuationTransferBoundaryTest {
     }
 
     @Test void remainingUnroutedLiveHandleKindsRejectBeforeChangingTheCapturedBindings() {
-        var handles=List.<RuleEngine.ActionResult>of(new DamageGroups.Handle("shared",H,0,1_000_000),
+        var handles=List.<RuleEngine.ActionResult>of(
                 new ShotGroups.Handle("shared",source(H).origin(),2,0,1_000_000),attachment());
         for(var handle:handles) {
             var original=pending(Map.of("live",handle));
@@ -49,6 +49,22 @@ class ContinuationTransferBoundaryTest {
             assertEquals(Map.of("live",handle),original.bindings());
             assertTrue(original.relocatedAt().isEmpty());
         }
+    }
+
+    @Test void damageGroupsKeepTheirOriginalIssuerAcrossEveryCoordinatedRelocation() {
+        var handle=new DamageGroups.Handle("shared",H,0,1_000_000);var original=pending(Map.of("group",handle));
+        var moved=relocate(original,true);var qualified=handle.issuedBy(A);
+        assertEquals(qualified,moved.bindings().get("group"));assertEquals(Map.of("group",handle),original.bindings());
+        assertEquals(original.cause(),moved.cause());assertEquals(50,moved.causalTime());assertTrue(original.relocatedAt().isEmpty());
+        var again=moved.relocated("twice",moved.scope(),moved.owner().orElseThrow(),70,Optional.of(B),true);
+        var returned=again.relocated("returned",again.scope(),again.owner().orElseThrow(),90,Optional.of(B),true);
+        assertEquals(qualified,again.bindings().get("group"));assertEquals(qualified,returned.bindings().get("group"));
+        assertEquals(original.cause(),returned.cause());assertEquals(90,returned.causalTime());
+        assertThrows(IllegalArgumentException.class,()->relocate(original,false));
+        assertThrows(IllegalArgumentException.class,()->relocate(moved,false));
+        assertThrows(IllegalArgumentException.class,()->original.relocated("missing",original.scope(),original.owner().orElseThrow(),50,Optional.empty(),true));
+        var alreadyQualified=moved.relocated("qualified",moved.scope(),moved.owner().orElseThrow(),100,Optional.empty(),true);
+        assertEquals(qualified,alreadyQualified.bindings().get("group"));
     }
 
     @Test void legacyTalliesAcquireTheirFirstIssuerAndRequireACoordinatedDestination() {

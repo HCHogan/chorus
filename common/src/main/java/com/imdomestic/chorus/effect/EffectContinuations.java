@@ -56,8 +56,7 @@ public final class EffectContinuations {
                 // These bindings address mutable entries which remain in the issuing domain.
                 // These families do not yet route every internal operation to their issuer.
                 // Historical results may contain a handle as evidence, but do not confer this live authority.
-                if(value instanceof com.imdomestic.chorus.effect.combat.DamageGroups.Handle
-                        || value instanceof com.imdomestic.chorus.effect.projectile.ShotGroups.Handle
+                if(value instanceof com.imdomestic.chorus.effect.projectile.ShotGroups.Handle
                         || value instanceof com.imdomestic.chorus.effect.target.EntityAttachments.Handle)
                     throw new IllegalArgumentException("Moving captured domain-local handle requires issuer routing: "+name+" ("+value.getClass().getName()+")");
             });
@@ -65,10 +64,14 @@ public final class EffectContinuations {
                 throw new IllegalArgumentException("Moving retained refunds requires coordinated resource routing at the destination");
             if(!resourceRouting&&captured.values().stream().anyMatch(com.imdomestic.chorus.effect.combat.DamageTallies.Handle.class::isInstance))
                 throw new IllegalArgumentException("Moving damage tallies requires coordinated issuer routing at the destination");
+            if(!resourceRouting&&captured.values().stream().anyMatch(com.imdomestic.chorus.effect.combat.DamageGroups.Handle.class::isInstance))
+                throw new IllegalArgumentException("Moving damage groups requires coordinated issuer routing at the destination");
             captured.replaceAll((_,value)->value instanceof com.imdomestic.chorus.effect.resource.RetainedCosts.Handle handle&&handle.issuer().isEmpty()
                     ?handle.issuedBy(sourceDomain.orElseThrow(()->new IllegalArgumentException("Moving an unqualified refund handle requires its source domain"))):value);
             captured.replaceAll((_,value)->value instanceof com.imdomestic.chorus.effect.combat.DamageTallies.Handle handle&&handle.issuer().isEmpty()
                     ?handle.issuedBy(sourceDomain.orElseThrow(()->new IllegalArgumentException("Moving an unqualified tally requires its source domain"))):value);
+            captured.replaceAll((_,value)->value instanceof com.imdomestic.chorus.effect.combat.DamageGroups.Handle handle&&handle.issuer().isEmpty()
+                    ?handle.issuedBy(sourceDomain.orElseThrow(()->new IllegalArgumentException("Moving an unqualified damage group requires its source domain"))):value);
             return new Pending(id,definition,version,scope,cause,captured,Optional.of(owner),OptionalLong.of(now));
         }
         public boolean active(EffectState state) { return owner.map(value -> value.active(state.sources(), state.buffs())).orElse(true); }

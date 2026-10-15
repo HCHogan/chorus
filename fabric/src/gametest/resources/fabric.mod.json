@@ -213,6 +213,7 @@
       "com.imdomestic.chorus.NativeCombatDomainsGameTest",
       "com.imdomestic.chorus.NativeInputTransferGameTest",
       "com.imdomestic.chorus.TallyTransferGameTest",
+      "com.imdomestic.chorus.DamageGroupTransferGameTest",
       "com.imdomestic.chorus.AttributeLoadGameTest",
       "com.imdomestic.chorus.AmplifiedGameTest",
       "com.imdomestic.chorus.ActionGateGameTest",
