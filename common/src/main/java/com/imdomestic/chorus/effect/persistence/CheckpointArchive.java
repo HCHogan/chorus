@@ -9,7 +9,9 @@ import java.util.*;
 
 /** All dimension snapshots belonging to one host save attempt. The host still proves world writes succeeded. */
 public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthority.Directory> resourceDirectory,
-        Optional<ParticipantPlacement.Directory> placement) {
+        Optional<ParticipantPlacement.Directory> placement, Optional<PhysicalEffects.Directory> physicalEffects) {
+    public CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthority.Directory> resourceDirectory,
+            Optional<ParticipantPlacement.Directory> placement) { this(dimensions, resourceDirectory, placement, Optional.empty()); }
     public CheckpointArchive(List<Entry> dimensions) { this(dimensions, Optional.empty(), Optional.empty()); }
     public CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthority.Directory> resourceDirectory) {
         this(dimensions, resourceDirectory, resourceDirectory.map(_ -> ParticipantPlacement.Directory.EMPTY));
@@ -29,12 +31,17 @@ public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthori
     public CheckpointArchive {
         dimensions = dimensions.stream().sorted(Comparator.comparing(Entry::dimension)).toList();
         if (dimensions.stream().map(Entry::dimension).distinct().count() != dimensions.size()) throw new IllegalArgumentException("Duplicate saved dimension");
-        Objects.requireNonNull(resourceDirectory); Objects.requireNonNull(placement);
+        Objects.requireNonNull(resourceDirectory); Objects.requireNonNull(placement); Objects.requireNonNull(physicalEffects);
         if (resourceDirectory.isPresent() != placement.isPresent())
             throw new IllegalArgumentException("Resource and participant directories require one joint checkpoint");
         if (resourceDirectory.isPresent()) new ResourceSessionAuthority.Checkpoint(resourceDirectory.orElseThrow(), domains(dimensions), placement.orElseThrow());
         else if (dimensions.stream().anyMatch(entry -> entry.effects().resourceRouting()))
             throw new IllegalArgumentException("Coordinated sessions require a joint resource checkpoint");
+        if (physicalEffects.isPresent()) {
+            var catalogues = new TreeMap<String, String>(); var gameTimes = new TreeMap<String, Long>();
+            dimensions.forEach(entry -> { catalogues.put(entry.dimension(), entry.program()); gameTimes.put(entry.dimension(), entry.gameTime()); });
+            PhysicalEffects.validate(physicalEffects.orElseThrow(), domains(dimensions), catalogues, gameTimes);
+        }
     }
     private static Map<String, EffectSession.Checkpoint> domains(List<Entry> dimensions) {
         var result = new TreeMap<String, EffectSession.Checkpoint>();
@@ -48,13 +55,23 @@ public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthori
     public Optional<ResourceSessionAuthority.Checkpoint> resourceCheckpoint() {
         return resourceDirectory.map(directory -> new ResourceSessionAuthority.Checkpoint(directory, domains(dimensions), placement.orElseThrow()));
     }
+    /** Declares a physical manifest explicitly; an empty tracked manifest differs from legacy absence. */
+    public CheckpointArchive withPhysicalEffects(PhysicalEffects.Directory directory) {
+        return new CheckpointArchive(dimensions, resourceDirectory, placement, Optional.of(directory));
+    }
     private static void identifier(String value) {
         if (!value.matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) throw new IllegalArgumentException("Expected canonical namespaced identifier: " + value);
     }
     public JsonObject encode() {
-        var output = new JsonObject(); output.addProperty("format", resourceDirectory.isPresent() ? 5 : 3); var entries = new JsonArray();
-        resourceDirectory.ifPresent(directory -> output.add("resource_directory", ResourceAuthorityCodec.encode(directory)));
-        placement.ifPresent(directory -> output.add("participant_placement", ParticipantPlacementCodec.encode(directory)));
+        var output = new JsonObject(); output.addProperty("format", physicalEffects.isPresent() ? 6 : resourceDirectory.isPresent() ? 5 : 3); var entries = new JsonArray();
+        if (physicalEffects.isPresent()) {
+            output.add("resource_directory", resourceDirectory.<JsonElement>map(ResourceAuthorityCodec::encode).orElse(JsonNull.INSTANCE));
+            output.add("participant_placement", placement.<JsonElement>map(ParticipantPlacementCodec::encode).orElse(JsonNull.INSTANCE));
+            output.add("physical_effects", PhysicalEffectsCodec.encode(physicalEffects.orElseThrow()));
+        } else {
+            resourceDirectory.ifPresent(directory -> output.add("resource_directory", ResourceAuthorityCodec.encode(directory)));
+            placement.ifPresent(directory -> output.add("participant_placement", ParticipantPlacementCodec.encode(directory)));
+        }
         for (var entry : dimensions) {
             var row = new JsonObject(); row.addProperty("program", entry.program()); row.addProperty("dimension", entry.dimension());
             row.addProperty("game_time", Long.toString(entry.gameTime())); row.add("effects", EffectCheckpointCodec.encode(entry.effects()));
@@ -68,10 +85,11 @@ public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthori
     public static CheckpointArchive decode(JsonElement input) {
         var object = input.getAsJsonObject();
         if (!(object.get("format") instanceof JsonPrimitive format) || !format.isNumber()
-                || !Set.of(new java.math.BigDecimal(1), new java.math.BigDecimal(2), new java.math.BigDecimal(3), new java.math.BigDecimal(4), new java.math.BigDecimal(5)).contains(format.getAsBigDecimal().stripTrailingZeros()))
+                || !Set.of(new java.math.BigDecimal(1), new java.math.BigDecimal(2), new java.math.BigDecimal(3), new java.math.BigDecimal(4), new java.math.BigDecimal(5), new java.math.BigDecimal(6)).contains(format.getAsBigDecimal().stripTrailingZeros()))
             throw new IllegalArgumentException("Unsupported checkpoint archive format");
         int version = format.getAsInt();
-        fields(object, version == 5 ? Set.of("format", "dimensions", "resource_directory", "participant_placement")
+        fields(object, version == 6 ? Set.of("format", "dimensions", "resource_directory", "participant_placement", "physical_effects")
+                : version == 5 ? Set.of("format", "dimensions", "resource_directory", "participant_placement")
                 : version == 4 ? Set.of("format", "dimensions", "resource_directory") : Set.of("format", "dimensions"));
         var entries = new ArrayList<Entry>();
         for (var value : object.getAsJsonArray("dimensions")) {
@@ -89,9 +107,11 @@ public record CheckpointArchive(List<Entry> dimensions, Optional<ResourceAuthori
                     EffectCheckpointCodec.decode(row.get("effects")), owners, actors, abilities));
         }
         return new CheckpointArchive(entries,
-                version >= 4 ? Optional.of(ResourceAuthorityCodec.decode(object.get("resource_directory"))) : Optional.empty(),
-                version == 5 ? Optional.of(ParticipantPlacementCodec.decode(object.get("participant_placement")))
-                        : version == 4 ? Optional.of(ParticipantPlacement.Directory.EMPTY) : Optional.empty());
+                version >= 4 && !(version == 6 && object.get("resource_directory").isJsonNull())
+                        ? Optional.of(ResourceAuthorityCodec.decode(object.get("resource_directory"))) : Optional.empty(),
+                version >= 5 && !object.get("participant_placement").isJsonNull() ? Optional.of(ParticipantPlacementCodec.decode(object.get("participant_placement")))
+                        : version == 4 ? Optional.of(ParticipantPlacement.Directory.EMPTY) : Optional.empty(),
+                version == 6 ? Optional.of(PhysicalEffectsCodec.decode(object.get("physical_effects"))) : Optional.empty());
     }
     static void fields(JsonObject object, Set<String> expected) {
         if (!object.keySet().equals(expected)) throw new IllegalArgumentException("Unexpected checkpoint archive fields");

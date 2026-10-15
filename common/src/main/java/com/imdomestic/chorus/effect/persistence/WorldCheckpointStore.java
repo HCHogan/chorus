@@ -18,6 +18,8 @@ public final class WorldCheckpointStore {
             if (phase == Phase.RUNNING ? save.isPresent() || !required.isEmpty() || !confirmed.isEmpty() || failure.isPresent()
                     : save.isEmpty() || archive.isEmpty() || required.isEmpty()) throw new IllegalArgumentException("Invalid checkpoint store phase");
             if (phase == Phase.COMMITTED && (!required.equals(confirmed) || failure.isPresent())) throw new IllegalArgumentException("Unproven committed checkpoint");
+            if (phase != Phase.RUNNING && archive.flatMap(CheckpointArchive::physicalEffects).isPresent() && !required.contains("physical_effects"))
+                throw new IllegalArgumentException("Physical checkpoint has no native entity save proof requirement");
         }
         JsonObject encode() {
             var out = new JsonObject(); out.addProperty("format", 1); out.addProperty("run", run.toString()); out.addProperty("phase", phase.name());
@@ -52,29 +54,36 @@ public final class WorldCheckpointStore {
     }
     /** Must run under the existing world/process lock, before any live world work or entity loading. */
     public synchronized Session begin() throws IOException {
-        return begin(false);
+        return begin(false, false);
     }
     /** Opt in only when the host restores the directory and every domain together, before accepting live work. */
     public synchronized Session beginCoordinated() throws IOException {
-        return begin(true);
+        return begin(true, false);
     }
-    private Session begin(boolean coordinated) throws IOException {
+    /** Opt in only when the host also authenticates saved physical entities before allowing them to execute. */
+    public synchronized Session beginPhysical() throws IOException {
+        return begin(true, true);
+    }
+    private Session begin(boolean coordinated, boolean physical) throws IOException {
         var previous = read();
         if (previous.filter(value -> value.phase() != Phase.COMMITTED).isPresent())
             throw new IllegalStateException("World checkpoint has no completed save; retained data requires explicit recovery");
         var run = UUID.randomUUID(); var recovered = previous.flatMap(Disk::archive);
         if (!coordinated && recovered.flatMap(CheckpointArchive::resourceDirectory).isPresent())
             throw new IllegalStateException("Resource checkpoint requires coordinated host restoration");
+        if (!physical && recovered.flatMap(CheckpointArchive::physicalEffects).isPresent())
+            throw new IllegalStateException("Physical checkpoint requires native entity restoration");
         // Invalidation precedes returning recoverable state. A crash after this point cannot replay the old archive.
         AtomicJsonFile.write(file, new Disk(run, Phase.RUNNING, Optional.empty(), recovered, Set.of(), Set.of(), Optional.empty()).encode());
-        return new Session(run, recovered);
+        return new Session(run, recovered, physical);
     }
     public final class Session {
         private final UUID run;
         private final Optional<CheckpointArchive> recovered;
+        private final boolean physical;
         private Save current;
         private boolean committed;
-        private Session(UUID run, Optional<CheckpointArchive> recovered) { this.run = run; this.recovered = recovered; }
+        private Session(UUID run, Optional<CheckpointArchive> recovered, boolean physical) { this.run = run; this.recovered = recovered; this.physical = physical; }
         public Optional<CheckpointArchive> recovered() { return recovered; }
         private Disk owned() throws IOException {
             var disk = read().orElseThrow(() -> new IllegalStateException("Checkpoint store disappeared"));
@@ -86,6 +95,15 @@ public final class WorldCheckpointStore {
             synchronized (WorldCheckpointStore.this) {
             Objects.requireNonNull(archive); required = Set.copyOf(required);
             if (required.isEmpty() || required.stream().anyMatch(String::isBlank)) throw new IllegalArgumentException("Expected named world save parts");
+            if (archive.physicalEffects().isPresent() && (!physical || !required.contains("physical_effects")))
+                throw new IllegalStateException("Physical checkpoint requires an opted-in host and native entity save proof");
+            if (archive.physicalEffects().isEmpty() && (recovered.flatMap(CheckpointArchive::physicalEffects).isPresent()
+                    || current != null && current.archive.physicalEffects().isPresent()))
+                throw new IllegalStateException("A physical checkpoint cannot discard its entity manifest");
+            archive.physicalEffects().ifPresent(next -> {
+                recovered.flatMap(CheckpointArchive::physicalEffects).ifPresent(previous -> PhysicalEffects.requireSuccessor(previous, next));
+                if (current != null) current.archive.physicalEffects().ifPresent(previous -> PhysicalEffects.requireSuccessor(previous, next));
+            });
             if (committed) throw new IllegalStateException("Committed run cannot continue world work");
             var disk = owned();
             if (disk.phase() == Phase.COMMITTED) throw new IllegalStateException("Run was already committed");
