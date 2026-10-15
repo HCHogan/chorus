@@ -60,7 +60,11 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
                 throw new IllegalArgumentException("Resource enrollment requires the indexed player in this dimension");
             if(holders.put(player.getUUID().toString(),domain(level))!=null)throw new IllegalArgumentException("Duplicate native resource holder");
         }
-        if(!holders.isEmpty())authority.enroll(holders);
+        if(!holders.isEmpty()) {
+            var existing=authority.participants();var buffs=new TreeMap<String,String>();
+            holders.forEach((holder,domain)->{if(!existing.buffs().containsKey(holder))buffs.put(holder,domain);});
+            authority.enroll(holders,holders,buffs);
+        }
     }
     /** Only resource accounts move. Entity, equipment, actor and ability configuration migration is separate. */
     public void transfer(String holder,ServerLevel destination) {
@@ -70,6 +74,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
         changing();return authority.grant(account,requested,scaled);
     }
     public ResourceAuthority.Worlds snapshot() { ready();return authority.snapshot(); }
+    public ParticipantPlacement.Directory participants() { ready();return authority.participants(); }
     public ResourceSessionAuthority.Drained drain(int boundaries) { changing();return authority.drain(boundaries); }
     ResourceSessionAuthority.Checkpoint settledResources(){ready();return authority.checkpoint();}
     public MinecraftEffectRuntime runtime(ServerLevel level) {
@@ -92,6 +97,11 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
     }
     ResourceSessionAuthority.CharacterHandoff preparePlayerTransfer(String holder,ServerLevel source,ServerLevel destination,Set<String> carried){
         changing();return authority.prepareCharacterTransfer(holder,domain(source),domain(destination),carried);
+    }
+    ResourceSessionAuthority.CharacterHandoff preparePlayerTransfer(MinecraftPlayerTransfer.Handoff handoff,String holder,
+            ServerLevel source,ServerLevel destination,Set<String> carried){
+        active();if(playerTransfer!=handoff)throw new IllegalStateException("Native player replacement lost its host fence");
+        handoff.requireUnviolated();return authority.prepareCharacterTransfer(holder,domain(source),domain(destination),carried);
     }
     void fencePlayerTransfer(MinecraftPlayerTransfer.Handoff handoff){changing();playerTransfer=Objects.requireNonNull(handoff);}
     void commitPlayerTransfer(MinecraftPlayerTransfer.Handoff handoff,ResourceSessionAuthority.CharacterHandoff core){
@@ -148,7 +158,7 @@ public final class MinecraftResourceRuntime implements AutoCloseable {
                 });
                 plans.put(domain,new Restoration(checkpoint,policy,compiled,session));bindings.put(domain,new ResourceSessionAuthority.Binding(compiled,session));
             }
-            host.authority=new ResourceSessionAuthority(saved.resources().directory(),bindings);host.restoring=Map.copyOf(plans);return host;
+            host.authority=new ResourceSessionAuthority(saved.resources().directory(),saved.resources().placement(),bindings);host.restoring=Map.copyOf(plans);return host;
         }catch(RuntimeException failure){host.installationFailure=failure;try{host.close();}catch(RuntimeException cleanup){failure.addSuppressed(cleanup);}throw failure;}
     }
     /** Safe before other levels exist: only immutable resource queries may run until finishRestore. */

@@ -6,6 +6,24 @@
 
 ## 当前证据
 
+### 2026-10-15：角色 / Buff 独立归属、携带效果与原生重生
+
+新增 ParticipantPlacement，将角色 / 来源和 Buff-holder 的位置与资源账户归属分开。两种 facet 独立登记空分区、核对精确 lease 和递增代次，capture / commit / checkpoint 校验受管分区的外域副本。资源-only transfer 保持两张位置表；Buff-only 交接保持角色位置；完整角色迁移按各 Buff 自己的归属收集玩家与可信携带武器实例，已经在目标的 Buff 不重建。准备固定全部时间线和位置目录，返回原域也不能复用旧许可。
+
+核心联合检查点及宿主 archive format 5 保存位置目录；旧 format 4 和旧两参构造明确表示未登记，不从来源 / Buff 扫描猜测。独立 codec 严格保存规范字符串代次，联合恢复检查领域和状态。13 项 ParticipantPlacementTest、10 项 ParticipantAuthorityTest、8 项 ParticipantCheckpointTest 覆盖三域分离、空分区往返、过期 / 冲突、携带及留置武器 Buff、resident 目标、严格新旧格式与恢复。旧迁移测试的恢复夹具改为传递并核对 placement，原完整检查点相等断言保留。核心提交 924bb0d8 已推送；全部 2609 项 JUnit 在 `/tmp/chorus-participant-core3.log` 通过。
+
+原生登记同时确认实际索引玩家的角色位置与首次 Buff 位置，保留已有远端资源 / Buff。普通传送继续共同交接两种 facet。PlayerList.respawn 的真实替换入口另接共享协议：移除前结算和冻结，restoreFrom 后检查新生命 / 保留生命与实际携带集合，插入确认后发布核心和元数据；旧实例输入退役，已支付资源不重新初始化。已登记角色前往缺少同宿主的目标在物理移除前拒绝。移除后的未知结果保留实际移除及原核心，不回滚、不重试、不保存成功检查点。
+
+7 项 ParticipantPlacementGameTest 覆盖资源-only 迁移 / 恢复、空 Buff 往返、携带武器 Buff、真实跨域死亡 / keep-all 替换、未安装目标前置拒绝和移除后故障。`/tmp/chorus-participant-targeted2.log` 中 7 项 Fabric 场景及 NeoForge 测试编译通过。首轮夹具补齐原版 teleport / load ACK 和直接调用 respawn 后由调用者完成的 connection.player 绑定，生产资格未放宽。keep-all 场景验证 PlayerList 的真实替换路径，不作为完整 End 通关画面或图形客户端验收。
+
+原生冻结保存从同一捕获中取资源和位置两目录，冻结后同时核对不变；命名目录启动入口及分阶段 restore 都保留 placement，避免旧兼容构造悄悄清空新字段。独立重启验收增加玩家在主世界、资源在下界时的位置 / 代次精确一致检查。
+
+完整 `/tmp/chorus-participant-full-gate.log` BUILD SUCCESSFUL（3 分 34 秒）：2609 项 JUnit 无失败 / 错误 / 跳过，Fabric 1385、NeoForge 1400 项世界回归通过（共享场景 1384），双端发布包和两次正常停服检查点通过。全部 744 项 DATA 存储形状保持；宿主 archive 的 format 5 为独立版本。10 项 Compendium 工具测试、来源及报告检查通过，仍为 133 条审阅（131 partial、2 not_applicable、0 verified）。
+
+独立进程验收 `build/checkpoint-restart/20261015T073652Z-fc84ba5a/report.json` 通过：Fabric / NeoForge 各四进程，正常保存和重启保留角色 / Buff 的主世界归属、资源的下界归属及原 placement generation；资源-only 往返不重写它们。失败保存后的启动被拒绝，原失败检查点字节及 SHA-256 保持。`build/reports/participant-placement/audit.json` 核验上述门禁与八进程报告、旧 744 项形状相等、1400 / 1393 个发布主类逐字节一致、无测试内容泄漏及 Gradle CRLF。
+
+这批接通独立归属和生命周期迁移，原生跨域伤害仍需把实体生命 / 物理域与各 facet lease 冻结，并改造查询和联合消费。现有 combatParticipants 纯接口仍要求调用方证明共同位置，不自动据新目录启用。DamageGroup 自有 continuation、ShotGroups / EntityAttachments 路由及跨时钟历史伤害快照仍待完成；没有新增 D2 数值校准或完整效果验收。接口见[角色与 Buff 的独立归属](engine-data-packs.md#角色与-buff-的独立归属)。
+
 ### 2026-10-15：伤害组签发账本与显式跨域战斗纯接口
 
 协调 DSL 的 begin_damage_group / end_damage_group 通过四种新请求 / 回执创建和关闭 issuer 账本，与调用域确定回执共同发布。新组立即限定 issuer；默认 prepareDamage 在实际世界调用前拒绝外域组，本地无协调视图也不能使用限定句柄。Pending 的 damage group 迁移继续拒绝，不把账本生命周期路由当作完整跨域成员伤害。

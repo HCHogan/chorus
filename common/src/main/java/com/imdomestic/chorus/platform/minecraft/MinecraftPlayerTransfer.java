@@ -23,9 +23,12 @@ public final class MinecraftPlayerTransfer {
         private final MinecraftEffectRuntime source,target;
         private final ServerPlayer player;
         private final Physical before;
-        private final MinecraftEffectRuntime.PlayerOwnership ownership;
-        private final ResourceSessionAuthority.CharacterHandoff core;
+        private MinecraftEffectRuntime.PlayerOwnership ownership;
+        private ResourceSessionAuthority.CharacterHandoff core;
         private final List<InputTransfer> inputs;
+        private boolean respawn,keepAll;
+        private ServerPlayer replacement;
+        private Physical replacementBefore;
         private Phase phase=Phase.PREPARED;
         private Throwable violation;
         private Handoff(MinecraftResourceRuntime host,MinecraftEffectRuntime source,MinecraftEffectRuntime target,ServerPlayer player,
@@ -39,7 +42,7 @@ public final class MinecraftPlayerTransfer {
         void removed(){if(phase==Phase.PREPARED)phase=Phase.REMOVED;}
         private boolean committed(){return phase==Phase.COMMITTED||phase==Phase.RETURNED;}
     }
-    /** Returns null for unchanged native paths: same world, removed player, or no shared coordinated host. */
+    /** Returns null for local/removed/unmanaged paths; registered characters require their shared host. */
     public static Handoff begin(ServerPlayer player,ServerLevel destination){
         if(!player.level().getServer().isSameThread())throw new IllegalStateException("Native player transfer belongs to server thread");
         for(var active:ACTIVE.get())if(active.player==player&&!active.committed()){
@@ -48,6 +51,9 @@ public final class MinecraftPlayerTransfer {
         if(player.isRemoved()||player.level()==destination)return null;
         var source=MinecraftEffectRuntime.installed(player.level()).orElse(null);
         var target=MinecraftEffectRuntime.installed(destination).orElse(null);
+        if(source!=null&&source.resourceHost()!=null&&(target==null||source.resourceHost()!=target.resourceHost())
+                &&source.resourceHost().participants().characters().containsKey(player.getUUID().toString()))
+            throw new IllegalStateException("Registered characters cannot leave their coordinated resource host");
         if(source==null||target==null||source.resourceHost()==null||source.resourceHost()!=target.resourceHost())return null;
         if(destination.getServer()!=player.level().getServer())throw new IllegalArgumentException("Native transfer belongs to another server");
         var host=source.resourceHost();host.settlePlayerTransfer();
@@ -73,6 +79,68 @@ public final class MinecraftPlayerTransfer {
             for(var input:inputs)try{input.abort();}catch(RuntimeException cleanup){error.addSuppressed(cleanup);}
             throw error;
         }
+    }
+    /** Called after vanilla chooses the respawn level, before it removes the previous player. */
+    public static Handoff beginRespawn(ServerPlayer previous,ServerLevel destination,boolean keepAll){
+        if(!previous.level().getServer().isSameThread())throw new IllegalStateException("Native respawn belongs to server thread");
+        for(var active:ACTIVE.get())if(active.player==previous&&!active.committed()){
+            var error=new IllegalStateException("Reentrant respawn before character publication");active.violated(error);throw error;
+        }
+        if(previous.level()==destination)return null;
+        var source=MinecraftEffectRuntime.installed(previous.level()).orElse(null);
+        var target=MinecraftEffectRuntime.installed(destination).orElse(null);
+        if(source!=null&&source.resourceHost()!=null&&(target==null||source.resourceHost()!=target.resourceHost())
+                &&source.resourceHost().participants().characters().containsKey(previous.getUUID().toString()))
+            throw new IllegalStateException("Registered characters cannot leave their coordinated resource host");
+        if(source==null||target==null||source.resourceHost()==null||source.resourceHost()!=target.resourceHost())return null;
+        if(destination.getServer()!=previous.level().getServer())throw new IllegalArgumentException("Native respawn belongs to another server");
+        var host=source.resourceHost();host.settlePlayerTransfer();
+        // A replacement entity never inherits a held input, even when vanilla preserves its life for End return.
+        WeaponAimNetworkServer.LIVE.disconnected(previous.connection);
+        WeaponChargeNetworkServer.LIVE.disconnected(previous.connection);
+        AbilityInputNetworkServer.LIVE.disconnected(previous.connection);
+        host.settlePlayerTransfer();
+        if(previous.level()!=source.level()||destination.getEntity(previous.getUUID())!=null
+                ||!previous.isRemoved()&&source.level().getEntity(previous.getUUID())!=previous
+                ||previous.connection==null||previous.connection.player!=previous)
+            throw new IllegalStateException("Native respawn requires the original connection and unambiguous player");
+        var handoff=new Handoff(host,source,target,previous,new Physical(previous),null,null,List.of());
+        handoff.respawn=true;handoff.keepAll=keepAll;
+        host.fencePlayerTransfer(handoff);ACTIVE.get().addLast(handoff);return handoff;
+    }
+    /** restoreFrom has completed; vanilla's actual retained inventory is now available, before target insertion. */
+    public static void prepareRespawn(Handoff handoff,ServerPlayer replacement,ServerLevel destination){
+        if(handoff==null)return;
+        handoff.requireUnviolated();
+        if(!handoff.respawn||handoff.replacement!=null||handoff.target.level()!=destination||replacement.level()!=destination
+                ||replacement==handoff.player||replacement.isRemoved()||destination.getEntity(replacement.getUUID())!=null
+                ||handoff.source.level().getEntity(handoff.player.getUUID())==handoff.player||!handoff.player.isRemoved())
+            throw new IllegalStateException("Native respawn replacement cannot be prepared");
+        handoff.phase=Phase.REMOVED;handoff.before.requireReplacement(replacement,handoff.keepAll);
+        var physical=new Physical(replacement);
+        handoff.core=handoff.host.preparePlayerTransfer(handoff,handoff.holder(),handoff.source.level(),destination,physical.carried());
+        handoff.ownership=new MinecraftEffectRuntime.PlayerOwnership(handoff.source,handoff.target,handoff.player,replacement);
+        handoff.replacement=replacement;handoff.replacementBefore=physical;
+    }
+    /** The replacement has been indexed, while connection.player still legitimately refers to the previous instance. */
+    public static void insertedRespawn(Handoff handoff,ServerPlayer replacement,ServerLevel destination){
+        if(handoff==null)return;
+        if(!handoff.respawn||handoff.replacement!=replacement||handoff.target.level()!=destination||replacement.level()!=destination
+                ||replacement.isRemoved()||destination.getEntity(replacement.getUUID())!=replacement
+                ||handoff.source.level().getEntity(replacement.getUUID())!=null)
+            throw new IllegalStateException("Native respawn insertion could not be confirmed");
+        handoff.phase=Phase.INDEXED;handoff.requireUnviolated();
+        handoff.replacementBefore.requireSame(replacement,handoff.player);
+        handoff.host.commitPlayerTransfer(handoff,handoff.core);handoff.phase=Phase.CORE_COMMITTED;
+        handoff.ownership.commit();handoff.phase=Phase.COMMITTED;handoff.host.releasePlayerTransfer(handoff);
+        // The vanilla caller binds connection.player after PlayerList.respawn returns. Normal prepare then reconciles
+        // the replacement's post-death equipment without replaying the standing actor/ability source attachments.
+    }
+    public static void returnedRespawn(Handoff handoff,ServerPlayer result){
+        if(handoff==null)return;
+        if(!handoff.respawn||!handoff.committed()||result!=handoff.replacement)
+            throw new IllegalStateException("Native respawn returned without a confirmed character publication");
+        handoff.phase=Phase.RETURNED;
     }
     /** Called immediately after ServerLevel.addDuringTeleport has successfully returned. */
     public static void inserted(ServerPlayer player,ServerLevel destination){
@@ -141,14 +209,25 @@ public final class MinecraftPlayerTransfer {
                     ||!actor.projection(runtime.program(),holder).equals(Optional.ofNullable(state.actors().get(holder)))||actor.inactiveReason().isPresent())
                 throw new IllegalStateException("Native player configuration does not match the active character projection");
         }
-        void requireSame(ServerPlayer player){
+        void requireSame(ServerPlayer player){requireSame(player,player);}
+        void requireSame(ServerPlayer player,ServerPlayer connectionPlayer){
             var current=PlayerEquipment.get(player).snapshot();
             if(!playerId.equals(player.getUUID())||!life.equals(MinecraftEntityLife.get(player).id())||connection!=player.connection
-                    ||connection!=null&&connection.player!=player||equipment.revision()!=current.revision()||!equipment.drawn().equals(current.drawn())
+                    ||connection!=null&&connection.player!=connectionPlayer||equipment.revision()!=current.revision()||!equipment.drawn().equals(current.drawn())
                     ||!equipment.grants().equals(current.grants())||!sameStacks(equipment.items(),current.items())
                     ||!abilities.equals(PlayerAbilities.get(player).snapshot())||!actor.equals(PlayerActor.get(player).snapshot())
                     ||menu!=player.containerMenu||!ItemStack.matches(cursor,menu.getCarried())||!sameInventory(inventory,inventory(player)))
                 throw new IllegalStateException("Native player identity or carried configuration changed during transport");
+        }
+        void requireReplacement(ServerPlayer player,boolean keepAll){
+            var current=PlayerEquipment.get(player).snapshot();
+            if(!playerId.equals(player.getUUID())||connection!=player.connection||connection==null
+                    ||keepAll!=life.equals(MinecraftEntityLife.get(player).id())
+                    ||!equipment.drawn().equals(current.drawn())||!equipment.grants().equals(current.grants())
+                    ||!sameStacks(equipment.items(),current.items())||current.revision()<=equipment.revision()
+                    ||!abilities.loadout().equals(PlayerAbilities.get(player).snapshot().loadout())
+                    ||!actor.binding().equals(PlayerActor.get(player).snapshot().binding()))
+                throw new IllegalStateException("Native respawn identity or persistent configuration differs from restoreFrom");
         }
         boolean unchangedAtSource(ServerPlayer player,ServerLevel source){
             requireSame(player);return player.level()==source&&!player.isRemoved()&&source.getEntity(playerId)==player

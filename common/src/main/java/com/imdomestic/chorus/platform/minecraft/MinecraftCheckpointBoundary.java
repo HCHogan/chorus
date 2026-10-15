@@ -77,8 +77,9 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                 var saved = boundary.inspect(entry.getValue());
                 entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners(), saved.abilityOwners()));
             }
-            var directory=resources.map(host->host.settledResources().directory());
-            boundary.archive = new CheckpointArchive(entries,directory); boundary.requireUnchanged(); return boundary;
+            var captured=resources.map(MinecraftResourceRuntime::settledResources);
+            boundary.archive = new CheckpointArchive(entries,captured.map(saved->saved.directory()),captured.map(saved->saved.placement()));
+            boundary.requireUnchanged(); return boundary;
         } catch (RuntimeException | Error failure) { boundary.close(); throw failure; }
     }
     private MinecraftEffectRuntime.Checkpoint inspect(MinecraftEffectRuntime runtime) {
@@ -109,8 +110,10 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                     throw new IllegalStateException("Rule state changed during checkpoint boundary");
             }
             var resources=EffectPrograms.resourceRuntime(server);
-            if(!resources.map(host->host.settledResources().directory()).equals(archive.resourceDirectory()))
-                throw new IllegalStateException("Resource directory changed during checkpoint boundary");
+            var captured=resources.map(MinecraftResourceRuntime::settledResources);
+            if(!captured.map(saved->saved.directory()).equals(archive.resourceDirectory())
+                    ||!captured.map(saved->saved.placement()).equals(archive.placement()))
+                throw new IllegalStateException("Resource or participant directory changed during checkpoint boundary");
         } catch (RuntimeException failure) { throw reject(failure.toString()); }
     }
     /** Return actual native evidence while all rule runtimes remain pinned; this does not commit a store or stop the server. */

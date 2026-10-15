@@ -942,7 +942,7 @@ transfer 只生成计划，不修改输入。源分区必须已经结算并发�
 
 检查点将当前已结算状态中的账户表与归属目录一起固定：每个分区必须对应存在的领域、完整 EffectProgram、相同逻辑时间与全部余额 / 容量；其他领域不能保存该受管持有者的副本。源领域的延迟工作、退款账本和事件 / 帧序号仍保存在源领域，未登记的本地账户不因保存自动被 claim。不同领域可保留独立时钟，本地 / 协调编译模式按各会话原样保存。
 
-`CheckpointArchive.coordinated(entries, checkpoint)` 将原生维度名、目录 ID、游戏 tick 和设备 / 角色 / 技能所有者等宿主元数据附到捕获结果。entries 必须恰好包含捕获的全部领域与相同 EffectSession.Checkpoint，不能重新读取另一时刻的效果状态或遗漏空领域。联合 archive 使用 format 4，增加必填的 `resource_directory`，每个领域的 effects 仍只保存一份；目录独立编码仍为 format 1。既有本地 archive format 1–3 继续可读，本地保存仍写 format 3；协调会话不能装进缺少目录的旧格式，空目录也需要显式保存。
+`CheckpointArchive.coordinated(entries, checkpoint)` 将原生维度名、目录 ID、游戏 tick 和设备 / 角色 / 技能所有者等宿主元数据附到捕获结果。entries 必须恰好包含捕获的全部领域与相同 EffectSession.Checkpoint，不能重新读取另一时刻的效果状态或遗漏空领域。联合 archive 使用 format 5，必填 `resource_directory` 和 `participant_placement`，每个领域的 effects 仍只保存一份；两种目录独立编码均为 format 1。旧 format 4 保留资源目录，位置目录显式迁移为空。既有本地 archive format 1–3 继续可读，本地保存仍写 format 3；协调会话不能装进缺少目录的旧格式，空目录也需要显式保存。
 
 恢复时使用 `ResourceSessionAuthority.restore(checkpoint, policies)`，为每个领域明确提供 RestoreBinding：完全匹配的编译目录 / 模式、纯时钟政策、解释器预算和真实世界执行器。领域集合必须完全一致。它创建新的 EffectSession，再统一核对并绑定资源目录，返回 authority 与 bindings；不复用旧协调会话、不执行或重放世界动作、不补能或按墙钟计算离线收益。物理世界、玩家文件和投射物的恢复由宿主负责，不能仅凭这份数据声称已完成世界对账。
 
@@ -979,6 +979,20 @@ host.commit(handoff);
 网络 Aim / Charge 投影采用当前领域的坐标，允许负开始时间，并在构造时检查时间顺序与差值溢出；线格式保持。它只投影服务器已经接受的状态，不据此授予跨维度长按许可或改写实体生命观察。原生玩家传送仍须单独交接真实容器、当前实体绑定及临时输入许可。
 
 存储身份分别升级为 `weapon_reload/plan_v2`、`weapon_handling/plan_v2`、`weapon_aim/plan_v2`、`weapon_fire/shot_v2`、`weapon_charge/plan_v4`。五个精确旧字段布局由 Legacy 记录迁移为 offset 0；更早的 charge v1 / v2 迁移继续有效。既有 725 个形状不变，仅新增五个形状，顶层检查点格式保持。
+
+### 角色与 Buff 的独立归属
+
+`ParticipantPlacement.Directory` 独立保存 `characters` 和 `buffs` 两张 holder → Lease 表；每个 Lease 包含 domain 和 generation。CHARACTER 覆盖角色的来源、装备、基础技能、角色配置和武器阶段，BUFFS 覆盖该持有者的全部 Buff。资源账户仍以 ResourceAuthority.Directory 为准；伤害组、退款和统计仍以各自的 issuer 为准。资源在 B、角色在 A、Buff 在 C 是合法状态，不能通过其中一张表推断另两张。
+
+`host.enrollParticipants(characters, buffs)` 显式登记已由宿主确认的分区；需要与资源一起登记时使用 `enroll(resources, characters, buffs)`。空分区也有 lease。同域重复登记保留原对象和代次；已登记到另一领域的分区不能通过重复观察夺取。整批先校验领域存在及全部会话中受管分区没有外域副本，再共同发布。未登记的持有者保持本地语义，不扫描状态猜测归属。`host.participants()` 返回不可变目录，读取本身不建立归属。
+
+迁移严格核对旧 lease；即使 A→B→A 且状态相同，新 generation 仍使旧计划失效。角色和 Buff 使用同一递增序列但各有独立 lease。协调器捕获、候选发布及恢复都验证目录与状态，准备计划还固定全部会话时间线和领域表。只有目录修改而状态未变，也会使旧计划失效。
+
+资源-only transfer 保持两张表不变。`prepareTransferWithBuffs` 只移动资源与指定 Buff 分区，不改变角色归属；sourceDomain 必须匹配 Buff 的显式归属。`prepareCharacterTransfer` 从角色源域移动角色，并从每个 Buff 持有者各自的归属域收集玩家和可信携带装备实例的 Buff。未登记的携带实例由显式源域采纳；有外域副本则拒绝。留在世界中的装备 Buff 不随玩家移动。已经在目的地的 Buff 分区保持原代次、实例和期限，不重新授予；`CharacterHandoff.buffTransfers()` 提供每个携带持有者的计划，`buffs()` 继续表示玩家本身。
+
+联合 Checkpoint 同时固定资源目录、位置目录及全部会话。宿主 archive format 5 增加 `participant_placement`，其独立 codec format 1 用规范十进制字符串保存代次，固定排序并拒绝重复身份 / 代次和额外字段；联合 Checkpoint / Archive 进一步拒绝缺少领域和错置状态。旧 format 4 明确迁移为空位置目录；旧两参核心 / archive 构造器也表达未登记，不从已有来源或 Buff 推断位置。恢复不重放登记、附着或消耗。744 个 DATA 记录形状保持，宿主目录采用独立版本，不将不可达的宿主记录注册进 DATA。
+
+这张目录提供逻辑分区权限，还不能代替原生实体的生命、物理位置与连接绑定。普通本地写入和显式 `combatParticipants()` 查询尚未自动改用这些独立 facet；原生跨域战斗必须再固定实际实体与相应 lease，并共同发布各域消费，不能把本节当作已经接通完整跨域伤害。
 
 ### 资源与 Buff 自有工作的共同交接
 
@@ -1031,7 +1045,9 @@ host.commit(handoff);
 
 客户端只在同一物理按住且收到显式确认后承接新 LocalPlayer；载入画面期间暂停心跳，保留实际键鼠观测。松开、失焦、死亡、更换连接或不相干界面结束操作，不将释放误当作新施放。已结束的手势短暂保留仅可取消的记录：若确认包迟到，可用确认后的 epoch 补发 CANCEL，不能恢复长按或补发 RELEASE；更换连接立即清除。三类长按均以 10 tick 心跳续租，40 tick 没有有效心跳就由服务器结束权限；迁移只换算剩余租期。技能 HOLD 仅属于网络协议，不改变可存档的核心 AbilityInput.Edge，也不会重新 PRESS 或支付。客户端等待阶段最多保留 40 次未消费的传送观察 / 确认，超过后仅结束该长按权限，不终止原生传送或规则反馈链。40 tick 输入租期及客户端等待界限属于 Chorus 传输政策，不是 D2 数值，也不限制规则反馈循环。
 
-当前范围是同一共享宿主内的原生玩家传送。缺少安装目标、跨独立宿主、跨服务器、非玩家及物理投射物 / 场地实体重启仍需专门协议；直接捕获且尚无签发域路由的活动句柄仍在准备阶段拒绝。服务端世界测试和客户端纯状态机测试不等于真实图形客户端的键鼠 / 载入画面验收。
+PlayerList.respawn 使用单独的替换协议：原版选定目标维度后、移除旧对象前结算并冻结共享宿主；restoreFrom 后按新对象实际保留的背包准备核心迁移，在 addRespawnedPlayer 确认索引后联合发布角色 / Buff / 资源与核对责任。普通死亡更换生命，keep-all 返回保留生命，但两者都退役旧对象的长按输入；新对象不能释放旧手势。原版调用者在返回后再绑定 connection.player，协议不会将这一正常过渡当作错误。若物理替换失败，继续保留已发生写入并停止共享宿主，不生成成功检查点。
+
+当前范围是同一共享宿主内的原生玩家传送和跨域替换。已登记角色前往未安装目标或另一个宿主时，普通 teleport 在物理移除前明确拒绝，不能通过离开再返回绕过归属协议。跨服务器、非玩家及物理投射物 / 场地实体重启仍需专门协议；直接捕获且尚无签发域路由的活动句柄仍在准备阶段拒绝。服务端世界测试和客户端纯状态机测试不等于真实图形客户端的键鼠 / 载入画面验收。
 
 ### 后续登记新的资源领域
 
@@ -1051,7 +1067,7 @@ host.commit(handoff);
 
 整批候选先核对领域、目录及跨领域账户副本，再一次发布目录。任一条目不合法，不发布其他新持有者。参与会话必须健康且非执行中，允许保留已提交的接收 inbox；登记不消费事实、不推进时间、不执行动作，也不绑定新时钟。已提交的账户进度可按既有 capture 协议发布。新增归属使旧 Handoff 失效；状态未变的重复 / 空登记保留原目录身份。检查点沿用原资源目录格式。
 
-Minecraft 的自动调用只接受本维度实际索引的 ServerPlayer 对象，不凭 UUID 字符串、未索引的 NBT 替代对象或来源声称登记玩家。恢复的角色 / 技能配置先通过一致性校验；分阶段启动未完成及保存已冻结时不允许登记。其他实体和虚拟持有者仍由可信宿主显式 claim / enroll。完整传送协议还需交接技能、角色、装备、Buff、弹药与在途工作；发现玩家出现在另一维度不会自动夺取原有资源归属。
+Minecraft 的自动调用只接受本维度实际索引的 ServerPlayer 对象，不凭 UUID 字符串、未索引的 NBT 替代对象或来源声称登记玩家。 资源与角色 / Buff 首次登记在同一边界发布：角色归属必须与当前物理域一致，已登记的远端 Buff 归属保持，不按资源账户推断。恢复的角色 / 技能配置先通过一致性校验；分阶段启动未完成及保存已冻结时不允许登记。其他实体和虚拟持有者仍由可信宿主显式 claim / enroll。完整传送协议还需交接技能、角色、装备、Buff、弹药与在途工作；发现玩家出现在另一维度不会自动夺取原有资源归属。
 
 ### 执行中的资源请求与回执
 
@@ -1182,13 +1198,13 @@ DamageSnapshot 的 `resolve(view, event, current)` / `resolveShield` 将视图�
 
 `EffectPrograms.installCoordinated(level, catalogueId, mode)` 显式选用协调模式，按服务器复用一个 MinecraftResourceRuntime；`resourceRuntime(server)` 返回该组以供 claim / transfer / grant。旧 install 继续安装本地会话，旧本地存档不自动更改编译模式或重建满能量。协调组可以与无受管账户副本的旧本地维度同服保存；资源目录只由协调编译会话持有，不把旧本地账户自动吸收为受管分区。
 
-MinecraftCheckpointBoundary 先推进各运行时至当前世界 tick，再按每个参与维度 256 个边界的保存工作预算结算协调 inbox；仍有事件时拒绝本次成功保存，保留全部状态与队列。预算不会截断合法反馈链或丢弃反应。随后固定所有维度、规则、玩家元数据与资源目录，写入已有 CheckpointArchive format 4。无协调组时继续使用本地 format 3。准备期间产生的真实世界写入不会因后续保存失败而回滚。
+MinecraftCheckpointBoundary 先推进各运行时至当前世界 tick，再按每个参与维度 256 个边界的保存工作预算结算协调 inbox；仍有事件时拒绝本次成功保存，保留全部状态与队列。预算不会截断合法反馈链或丢弃反应。随后固定所有维度、规则、玩家元数据与资源目录，写入 CheckpointArchive format 5，同时固定独立角色 / Buff 归属。无协调组时继续使用本地 format 3。准备期间产生的真实世界写入不会因后续保存失败而回滚。
 
 冻结后，目录 claim、transfer、grant、drain、组关闭以及原生运行时变更均被拒绝；即使调用方捕获异常，也会记录边界违规并阻止提交。最终检查同时核对全部领域状态、玩家配置、完整规则目录、世界时刻和资源目录。原生文件、region stores、SavedData 以及规则边界四项实际完成证据全部成立，才在释放原世界锁之前标记 COMMITTED。自定义 Java 宿主仍不能伪装成命名目录宿主。
 
 启动改用 WorldCheckpointStore.beginCoordinated，继续在接受任何世界工作之前作废上次可恢复标记。先核对保存的全部维度、目录内容及 level.dat 时刻，再用 `MinecraftResourceRuntime.prepareRestore` 创建所有协调核心会话与完整目录。`restoreLevel` 在每个 ServerLevel 构造尾部连接已有会话及原生执行器；其他维度尚未连接时，实体 NBT 属性钩子仍能查询其已恢复的资源。这个阶段只允许加载所需的只读查询，输入、推进、资源写入及保存均拒绝。`finishRestore` 只在全部维度连接成功后开放工作，不重放旧动作。
 
-后续维度连接失败会停止整组并保留已附着的失败证据，整体关闭清理观察器；未完整恢复的启动不生成成功检查点。未知世界结果、未完成保存和文件写入失败仍不能自动重试。未完成保存的启动拒绝发生在文件改写之前。旧本地 archive 1–3 保持原逐维度恢复路径；format 4 内的独立本地维度同样保留本地模式，但不能作为路由分区的所有者。
+后续维度连接失败会停止整组并保留已附着的失败证据，整体关闭清理观察器；未完整恢复的启动不生成成功检查点。未知世界结果、未完成保存和文件写入失败仍不能自动重试。未完成保存的启动拒绝发生在文件改写之前。旧本地 archive 1–3 保持原逐维度恢复路径；format 4 / 5 内的独立本地维度同样保留本地模式，但不能作为路由分区的所有者。
 
 验收使用四项共享 GameTest 检查加载顺序、后续连接失败、混合本地 / 协调归档及实际 native save、保存冻结后的目录操作。`tools/checkpoint_restart.py --coordinated` 使用独立保存 / 恢复进程，保留实际 level.dat、玩家文件、装备 / 角色 / 技能配置和远端已花费账户；另注入原生玩家文件写入失败，验证后续启动拒绝且检查点原字节保持。该能力没有自动迁移玩家、装备、技能配置、Buff 或物理效果实体，也不代表完整 D2 内容 / UI 验收。
 
@@ -1244,7 +1260,7 @@ EffectSession 的 inbox 标记只表示尚未开始处理的已提交事实。`p
 
 snapshot 可以读取带队列的已提交余额，但登记 / 归属移交和检查点仍要求先结算队列。若调用方在入账后丢失回执，或接收方执行了结果未知的世界动作，保留已提交余额及其他领域的待处理事实，停止自动 drain / 重放。带未处理事实或失败 / 待回执状态的会话不能导出已结算检查点；当前没有把 inbox 改为可独立持久化的邮件存储。原生宿主接入后必须在正常输入 / tick / 保存边界安排完整的协调结算，不能只保存 Directory。
 
-命名目录协调宿主现在将该目录写入联合 format 4，并在原生启动前恢复完整核心会话；本地宿主保持 format 3。旧领域资源请求和延迟退款按目录路由，账户回执和签发账本共同保存。实际玩家传送通过[联合角色协议](#原生玩家传送与长按输入交接)共同交接资源、Buff、角色来源、携带弹药与武器阶段，不依靠重新同步选择来恢复。物理实体与跨独立宿主仍需另外实现，资源分区转移自身不承担这些功能。
+命名目录协调宿主现在将该目录与独立角色 / Buff 归属写入联合 format 5，并在原生启动前恢复完整核心会话；本地宿主保持 format 3。旧领域资源请求和延迟退款按目录路由，账户回执和签发账本共同保存。实际玩家传送通过[联合角色协议](#原生玩家传送与长按输入交接)共同交接资源、Buff、角色来源、携带弹药与武器阶段，不依靠重新同步选择来恢复。物理实体与跨独立宿主仍需另外实现，资源分区转移自身不承担这些功能。
 
 ## 整数弹药与弹匣转移
 
@@ -3367,7 +3383,7 @@ var resumed = EffectPrograms.restore(level, programId, saved);
 
 ### 多维度归档与宿主保存确认
 
-`CheckpointArchive` 对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 的 format 4；列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。本地原生会话的 effects 使用 `EffectCheckpointCodec` format 1；明确采用协调编译的命名目录会话使用 format 2，并与目录一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
+`CheckpointArchive` 对本地会话写入 format 3 宿主归档，对协调组写入携带 resource_directory 和 participant_placement 的 format 5（旧 format 4 的位置目录显式迁移为空）；列表中的每个 Entry 保存 program 目录 ID、dimension、十进制字符串 game_time、完整会话 effects，以及 equipment_owners、actor_owners 和 ability_owners UUID 集合。旧 format 1 / 2 分别按原字段严格解码；旧 format 1 迁移为空 actor_owners，两种旧格式均迁移为空 ability_owners，不推测历史领域选择是否属于玩家配置。维度和持有者排序后编码，重复维度 / UUID、非规范身份、错误类型 / 字段 / 版本拒绝。空维度列表表示该次保存明确没有运行时；它与没有文件或无法读取的文件不同。本地原生会话的 effects 使用 `EffectCheckpointCodec` format 1；明确采用协调编译的命名目录会话使用 format 2，并与目录一起进入联合宿主保存路径。协调 / 本地混合归档保留每个会话原模式，受管资源不得在其他领域重复出现。
 
 `EffectPrograms.checkpoint(level, id)` 捕获默认 Minecraft 目录宿主，`EffectPrograms.restore(level, entry)` 按当前目录恢复归档项。捕获会检查运行时确实由该默认入口创建、目录 ID 和完整内容相符；自定义 Java 世界执行器 / 来源适配器 / 时钟即使使用相同 DSL，也不能冒充默认宿主。自定义宿主仍可使用底层 runtime.checkpoint / restore，但持久化其宿主策略需要明确的适配协议。已重载为不同内容的目录不会被当作旧运行时身份，旧状态不能被隐式迁移。
 

@@ -79,11 +79,13 @@ public class BuffTransferGameTest {
         void restore() {
             var saved=host.checkpoint();var domains=new TreeMap<String,EffectSession.Checkpoint>();
             saved.domains().forEach((domain,value)->domains.put(domain,EffectCheckpointCodec.decode(EffectCheckpointCodec.encode(value))));
-            var decoded=new ResourceSessionAuthority.Checkpoint(ResourceAuthorityCodec.decode(ResourceAuthorityCodec.encode(saved.directory())),domains);
+            var decoded=new ResourceSessionAuthority.Checkpoint(ResourceAuthorityCodec.decode(ResourceAuthorityCodec.encode(saved.directory())),domains,
+                    ParticipantPlacementCodec.decode(ParticipantPlacementCodec.encode(saved.placement())));
             var result=ResourceSessionAuthority.restore(decoded,Map.of(
                     A,new ResourceSessionAuthority.RestoreBinding(p,clock(),1,r->execute(A,r)),
                     B,new ResourceSessionAuthority.RestoreBinding(p,clock(),1,r->execute(B,r))));
             host=result.authority();sessions.clear();result.bindings().forEach((domain,value)->sessions.put(domain,value.session()));
+            h.assertValueEqual(host.participants(),saved.placement(),"restore lost explicit buff placement");
             h.assertValueEqual(host.checkpoint(),saved,"restore changed committed handoff");
         }
         @Override public void close(){local.getServer().getPlayerList().remove(player);player.discard();}

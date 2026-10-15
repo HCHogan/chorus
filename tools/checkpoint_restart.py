@@ -37,12 +37,29 @@ def committed(folder, coordinated=False):
     require({row["dimension"] for row in entries} == {"minecraft:overworld", "minecraft:the_nether"},
             f"Missing dimension archive: {folder}")
     player = (folder / "chorus-restart-fixture-player.txt").read_text(encoding="utf-8")
-    require(saved["archive"]["format"] == (4 if coordinated else 3), f"Player-configuration archive format missing: {folder}")
+    require(saved["archive"]["format"] == (5 if coordinated else 3), f"Player-configuration archive format missing: {folder}")
     if coordinated:
         require("resource_directory" in saved["archive"], f"Missing joint resource directory: {folder}")
         owners = saved["archive"]["resource_directory"]["holders"]
         require(len(owners) == 1 and owners[0]["holder"] == player and owners[0]["domain"] == "minecraft:the_nether",
                 f"Remote resource ownership changed: {folder}")
+        require("participant_placement" in saved["archive"], f"Missing independent participant placement: {folder}")
+        placement = saved["archive"]["participant_placement"]
+        require(set(placement) == {"format", "next_generation", "characters", "buffs"} and placement["format"] == 1,
+                f"Unexpected participant placement format: {folder}")
+        generations = []
+        for facet in ("characters", "buffs"):
+            locations = placement[facet]
+            require(len(locations) == 1 and locations[0]["holder"] == player and locations[0]["domain"] == "minecraft:overworld",
+                    f"Resource-only migration moved player {facet}: {folder}")
+            generation = locations[0]["generation"]
+            require(isinstance(generation, str) and str(int(generation)) == generation and int(generation) > 0,
+                    f"Invalid player {facet} placement generation: {folder}")
+            generations.append(int(generation))
+        next_generation = placement["next_generation"]
+        require(isinstance(next_generation, str) and str(int(next_generation)) == next_generation
+                and int(next_generation) > max(generations) and len(set(generations)) == 2,
+                f"Invalid participant placement generation allocator: {folder}")
         require(all(row["effects"]["format"] == 2 for row in entries), f"Lost coordinated compilation mode: {folder}")
     overworld = next(row for row in entries if row["dimension"] == "minecraft:overworld")
     require(player in overworld["actor_owners"], f"Player actor ownership missing: {folder}")
@@ -97,6 +114,9 @@ def main():
                 "Real player's actor ownership changed across restart")
         require(first["archive"]["dimensions"][0]["ability_owners"] == second["archive"]["dimensions"][0]["ability_owners"],
                 "Real player's ability ownership changed across restart")
+        if args.coordinated:
+            require(first["archive"]["participant_placement"] == second["archive"]["participant_placement"],
+                    "Player participant placement or generations changed across restart and resource-only round trip")
 
         bad = stamp + "-failure"
         folder = world(loader, bad)

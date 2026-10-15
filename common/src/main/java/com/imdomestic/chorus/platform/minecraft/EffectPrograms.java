@@ -76,7 +76,7 @@ public final class EffectPrograms {
             policies.put(entry.dimension(),new MinecraftResourceRuntime.RestorePolicy(program,new EffectClock((_,_)->new EffectClock.Rate(0,List.of())),EffectPrograms::world,MinecraftEffectRuntime::nativeSource));
         }
         // Native local-mode sessions cannot own routed partitions; old local archives still restore separately.
-        var resources=new ResourceSessionAuthority.Checkpoint(archive.resourceDirectory().orElseThrow(),effects);
+        var resources=new ResourceSessionAuthority.Checkpoint(archive.resourceDirectory().orElseThrow(),effects,archive.placement().orElseThrow());
         var host=MinecraftResourceRuntime.prepareRestore(server,new MinecraftResourceRuntime.Checkpoint(resources,dimensions),policies);
         RESOURCE_HOSTS.put(server,host);RESTORING.put(server,java.util.Map.copyOf(names));
     }

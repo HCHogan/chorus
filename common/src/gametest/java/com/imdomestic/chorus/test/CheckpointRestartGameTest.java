@@ -4,6 +4,8 @@ import com.google.gson.JsonParser;
 import com.imdomestic.chorus.effect.*;
 import com.imdomestic.chorus.effect.ability.*;
 import com.imdomestic.chorus.effect.equipment.Loadout;
+import com.imdomestic.chorus.effect.persistence.ParticipantPlacementCodec;
+import com.imdomestic.chorus.effect.resource.ParticipantPlacement;
 import com.imdomestic.chorus.effect.resource.ResourceState;
 import com.imdomestic.chorus.platform.minecraft.*;
 import com.imdomestic.chorus.registry.ChorusComponents;
@@ -18,6 +20,17 @@ import net.minecraft.world.level.storage.LevelResource;
 /** Opt-in two-process test. Normal gates check startup invalidation without leaving a runtime installed. */
 public class CheckpointRestartGameTest {
     private static final Identifier PROGRAM = Identifier.parse("chorus_gametest:checkpoint_restart");
+    private static ParticipantPlacement.Directory placement(GameTestHelper h, MinecraftResourceRuntime host, String holder) {
+        var current = host.participants();
+        h.assertValueEqual(current.characters().keySet(), Set.of(holder), "exact player character directory");
+        h.assertValueEqual(current.buffs().keySet(), Set.of(holder), "exact player Buff directory");
+        var character = current.characters().get(holder); var buffs = current.buffs().get(holder);
+        h.assertValueEqual(character.domain(), "minecraft:overworld", "character placement must follow the native player");
+        h.assertValueEqual(buffs.domain(), "minecraft:overworld", "Buff placement must remain in the original physical domain");
+        h.assertTrue(character.generation() != buffs.generation() && current.nextGeneration() > character.generation()
+                && current.nextGeneration() > buffs.generation(), "participant generations must retain distinct valid leases");
+        return current;
+    }
     @GameCase(environment = "chorus_gametest:checkpoint_restart", maxTicks = 400)
     public void checkpointRestartUsesNativeFilesAndAutomaticLifecycle(GameTestHelper h) throws Exception {
         var server = h.getLevel().getServer(); var status = MinecraftCheckpointLifecycle.status(server).orElseThrow();
@@ -44,7 +57,11 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.ACCEPTED, "native selected ability paid for cast"); h.assertValueEqual(player.getHealth(), 29f, "initialize once and pay for one cast");
             h.assertValueEqual(player.getMaxHealth(), 30f, "equipped temporary capacity");
             Files.writeString(metadata, holder);
-            if(coordinated)EffectPrograms.resourceRuntime(server).orElseThrow().transfer(holder,server.getLevel(Level.NETHER));
+            if(coordinated){
+                var host=EffectPrograms.resourceRuntime(server).orElseThrow();var before=placement(h,host,holder);
+                host.transfer(holder,server.getLevel(Level.NETHER));
+                h.assertValueEqual(placement(h,host,holder),before,"resource-only transfer changed participant leases before save");
+            }
             if (phase.equals("save_failure")) {
                 MinecraftWorldSave.save(server).requireSuccess();
                 var paths = (MinecraftPlayerSaveAccess) MinecraftWorldSave.bindings(server).playerStorage();
@@ -60,6 +77,14 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(runtime.state().engine().domain().mode(), EffectState.Mode.PVP, "overworld mode preserved");
             h.assertValueEqual(nether.state().engine().domain().mode(), EffectState.Mode.PVE, "nether mode preserved");
             var holder = UUID.fromString(Files.readString(metadata));
+            Optional<ParticipantPlacement.Directory> savedPlacement=Optional.empty();
+            if(coordinated){
+                var archive=disk.getAsJsonObject("archive");
+                h.assertValueEqual(archive.get("format").getAsInt(),5,"restart must preserve both directories in archive format 5");
+                savedPlacement=Optional.of(ParticipantPlacementCodec.decode(archive.get("participant_placement")));
+                h.assertValueEqual(placement(h,EffectPrograms.resourceRuntime(server).orElseThrow(),holder.toString()),savedPlacement.orElseThrow(),
+                        "participant directory changed before native player login");
+            }
             var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(new com.mojang.authlib.GameProfile(holder, "melee-test"), false);
             var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND); new io.netty.channel.embedded.EmbeddedChannel(connection);
             // 26.3 loads player NBT in PrepareSpawnTask, before PlayerList.placeNewPlayer indexes it.
@@ -91,15 +116,20 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(owner.state().engine().domain().resources().get(account).value(),0d,"paid resource stayed spent across process restart");
             if(coordinated){
                 var host=EffectPrograms.resourceRuntime(server).orElseThrow();
+                h.assertValueEqual(placement(h,host,holder.toString()),savedPlacement.orElseThrow(),"real login changed saved participant generations");
                 h.assertValueEqual(host.snapshot().directory().holders().get(holder.toString()).lease().domain(),"minecraft:the_nether","joint directory lost remote ownership");
                 h.assertTrue(!runtime.state().engine().domain().resources().containsKey(account),"login recreated migrated account");
                 ResourceProjectionGameTest.refused(h,IllegalStateException.class,()->runtime.useAbility(player,"test:grenade"));
                 host.transfer(holder.toString(),h.getLevel());
+                h.assertValueEqual(placement(h,host,holder.toString()),savedPlacement.orElseThrow(),"resource-only return changed participant placement");
             }
             h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "restart did not grant a free cast");
             h.assertValueEqual(player.getHealth(), 29f, "rejected restart cast changed real health");
             h.assertTrue(runtime.failure().isEmpty(), "restored runtime failed on real login or cast");
-            if(coordinated)EffectPrograms.resourceRuntime(server).orElseThrow().transfer(holder.toString(),server.getLevel(Level.NETHER));
+            if(coordinated){
+                var host=EffectPrograms.resourceRuntime(server).orElseThrow();host.transfer(holder.toString(),server.getLevel(Level.NETHER));
+                h.assertValueEqual(placement(h,host,holder.toString()),savedPlacement.orElseThrow(),"resource-only round trip changed participant generations before second save");
+            }
         } else throw new IllegalArgumentException("Unexpected restart phase: " + phase);
         h.succeed();
     }

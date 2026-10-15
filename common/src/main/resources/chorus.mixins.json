@@ -15,6 +15,7 @@
     "ServerGroundContactMixin",
     "ServerPlayerLifeMixin",
     "ServerPlayerTransferMixin",
+    "PlayerListRespawnMixin",
     "PlayerSaveCaptureMixin",
     "LevelSaveCaptureMixin",
     "SaveReplacementMixin",

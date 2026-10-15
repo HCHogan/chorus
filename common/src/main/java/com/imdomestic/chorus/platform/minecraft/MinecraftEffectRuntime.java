@@ -969,21 +969,27 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         private final boolean equipment,actor,abilities;private final Map<InputKey,HeldInput> inputs=new LinkedHashMap<>();
         private final ChargeInput previousCharge,arrivingCharge;private final long from,to;
         private PlayerOwnership(MinecraftEffectRuntime source,MinecraftEffectRuntime target,ServerPlayer player) {
+            this(source,target,player,player);
+        }
+        PlayerOwnership(MinecraftEffectRuntime source,MinecraftEffectRuntime target,ServerPlayer previous,ServerPlayer player) {
+            boolean replacing=previous!=player;
             this.source=source;this.target=target;this.player=player;id=player.getUUID();
             from=source.view().buffs().timeMicros();to=target.view().buffs().timeMicros();
-            equipment=source.equipmentOwnerIds.contains(id);actor=source.actorOwnerIds.contains(id);abilities=source.abilityOwnerIds.contains(id);
-            if(source.equipmentOwners.containsKey(id)&&source.equipmentOwners.get(id)!=player)throw new IllegalStateException("Transfer has another native equipment owner");
+            equipment=source.equipmentOwnerIds.contains(id)||replacing&&(!PlayerEquipment.get(player).isEmpty()||!PlayerEquipment.get(player).grants().isEmpty());
+            actor=source.actorOwnerIds.contains(id)||replacing&&PlayerActor.get(player).configured();
+            abilities=source.abilityOwnerIds.contains(id)||replacing&&PlayerAbilities.get(player).configured();
+            if(source.equipmentOwners.containsKey(id)&&source.equipmentOwners.get(id)!=previous)throw new IllegalStateException("Transfer has another native equipment owner");
             if(target.equipmentOwnerIds.contains(id)||target.equipmentOwners.containsKey(id)||target.actorOwnerIds.contains(id)||target.abilityOwnerIds.contains(id)
                     ||target.pendingActorValidation.contains(id)||target.pendingAbilityValidation.contains(id)
                     ||target.chargeInputs.containsKey(id.toString())||target.abilityInputs.keySet().stream().anyMatch(key->key.holder().equals(id)))
                 throw new IllegalStateException("Destination already owns native player metadata");
-            source.abilityInputs.forEach((key,input)->{if(key.holder().equals(id)){
+            if(!replacing)source.abilityInputs.forEach((key,input)->{if(key.holder().equals(id)){
                 if(input.player()!=player)throw new IllegalStateException("Held ability belongs to another native player");
                 long elapsed=com.imdomestic.chorus.effect.weapon.WeaponPhaseTime.elapsed(from,input.startedMicros());
                 inputs.put(key,new HeldInput(player,input.gesture(),input.base(),Math.subtractExact(to,elapsed)));
             }});
             previousCharge=source.chargeInputs.get(id.toString());var charge=source.view().charging().get(id.toString());
-            if(charge!=null){
+            if(charge!=null&&!replacing){
                 if(!source.matchesChargeHolder(charge,player)||!source.chargeInputAllowed(charge,player))throw new IllegalStateException("Transfer lacks current charge authority");
                 arrivingCharge=new ChargeInput(player,player.connection,charge.token(),previousCharge==null?()->false:previousCharge.held(),
                         new com.imdomestic.chorus.effect.target.EntityAnchor.Reference(id.toString(),MinecraftEntityLife.get(player).id(),target.level.dimension().identifier().toString()));
