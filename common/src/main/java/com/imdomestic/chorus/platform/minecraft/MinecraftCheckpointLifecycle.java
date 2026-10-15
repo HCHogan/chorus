@@ -58,7 +58,7 @@ public final class MinecraftCheckpointLifecycle {
         thread(server);
         if (RUNS.containsKey(server)) throw new IllegalStateException("Checkpoint run already started");
         final Run run;
-        try { run = new Run(server, new WorldCheckpointStore(file(server)).begin()); }
+        try { run = new Run(server, new WorldCheckpointStore(file(server)).beginCoordinated()); }
         catch (IOException error) { throw new UncheckedIOException("Cannot open Chorus world checkpoint", error); }
         RUNS.put(server, run);
         for (var saved : run.recovered.values()) {
@@ -70,6 +70,7 @@ public final class MinecraftCheckpointLifecycle {
             if (saved.gameTime() != server.getWorldData().overworldData().getGameTime())
                 throw new IllegalStateException("Chorus checkpoint and level.dat have different world clocks");
         }
+        run.session.recovered().ifPresent(archive->EffectPrograms.prepareResources(server,archive));
     }
     /** Constructor tail precedes loader level-load events and normal initial chunk/entity loading. */
     public static void created(ServerLevel level) {
@@ -77,11 +78,14 @@ public final class MinecraftCheckpointLifecycle {
         thread(run.server); String id = level.dimension().identifier().toString(); var saved = run.recovered.get(id);
         if (saved == null) return;
         if (run.restored.contains(id)) throw new IllegalStateException("Saved Chorus dimension constructed twice: " + id);
-        EffectPrograms.restore(level, saved); run.restored.add(id);
+        if(saved.effects().resourceRouting())EffectPrograms.restoreResourceLevel(level);
+        else EffectPrograms.restore(level, saved);
+        run.restored.add(id);
     }
     public static void started(MinecraftServer server) {
         thread(server); var run = Objects.requireNonNull(RUNS.get(server), "Missing checkpoint startup");
         if (!run.restored.equals(run.recovered.keySet())) throw new IllegalStateException("Not every saved Chorus dimension was restored");
+        EffectPrograms.finishResources(server);
         run.started = true;
     }
     /** Loader unload callbacks must not remove projections or sources before the last native writes finish. */

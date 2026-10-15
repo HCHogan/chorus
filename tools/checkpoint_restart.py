@@ -27,7 +27,7 @@ def checkpoint(folder):
     return json.loads((folder / "chorus-checkpoint.json").read_text(encoding="utf-8"))
 
 
-def committed(folder):
+def committed(folder, coordinated=False):
     saved = checkpoint(folder)
     require(saved["phase"] == "COMMITTED" and saved["failure"] is None, f"Uncommitted checkpoint: {folder}")
     require(set(saved["required"]) == set(saved["confirmed"]) == {
@@ -37,7 +37,13 @@ def committed(folder):
     require({row["dimension"] for row in entries} == {"minecraft:overworld", "minecraft:the_nether"},
             f"Missing dimension archive: {folder}")
     player = (folder / "chorus-restart-fixture-player.txt").read_text(encoding="utf-8")
-    require(saved["archive"]["format"] == 3, f"Player-configuration archive format missing: {folder}")
+    require(saved["archive"]["format"] == (4 if coordinated else 3), f"Player-configuration archive format missing: {folder}")
+    if coordinated:
+        require("resource_directory" in saved["archive"], f"Missing joint resource directory: {folder}")
+        owners = saved["archive"]["resource_directory"]["holders"]
+        require(len(owners) == 1 and owners[0]["holder"] == player and owners[0]["domain"] == "minecraft:the_nether",
+                f"Remote resource ownership changed: {folder}")
+        require(all(row["effects"]["format"] == 2 for row in entries), f"Lost coordinated compilation mode: {folder}")
     overworld = next(row for row in entries if row["dimension"] == "minecraft:overworld")
     require(player in overworld["actor_owners"], f"Player actor ownership missing: {folder}")
     require(player in overworld["ability_owners"], f"Player ability ownership missing: {folder}")
@@ -49,6 +55,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--loader", choices=["fabric", "neoforge", "both"], default="both")
     parser.add_argument("--java-home", help="Optional Gradle Java home; JDK21 is inherited from the environment")
+    parser.add_argument("--coordinated", action="store_true", help="Exercise catalogue-backed coordinated resources and remote ownership")
     args = parser.parse_args()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
     output = ROOT / "build/checkpoint-restart" / stamp
@@ -61,7 +68,7 @@ def main():
         if args.java_home:
             command.append("-Dorg.gradle.java.home=" + args.java_home)
         task = ":fabric:runGameTest" if loader == "fabric" else ":neoforge:runGameTestServer"
-        command += [f"-PchorusRestartRun={fixture}", f"-PchorusRestartPhase={phase}", task, "--console=plain"]
+        command += [f"-PchorusRestartRun={fixture}", f"-PchorusRestartPhase={phase + ('_coordinated' if args.coordinated else '')}", task, "--console=plain"]
         log = output / f"{loader}-{phase}.log"
         print(f"{loader}: {phase}", flush=True)
         with log.open("w", encoding="utf-8") as stream:
@@ -80,9 +87,9 @@ def main():
         folder = world(loader, good)
         require(not folder.exists(), f"Refusing to reuse existing test world: {folder}")
         execute(loader, good, "save")
-        first = committed(folder)
+        first = committed(folder, args.coordinated)
         execute(loader, good, "restore")
-        second = committed(folder)
+        second = committed(folder, args.coordinated)
         require(first["run"] != second["run"] and first["save"] != second["save"], "Restart reused old run/save identity")
         require(first["archive"]["dimensions"][0]["equipment_owners"] == second["archive"]["dimensions"][0]["equipment_owners"],
                 "Real player's equipment ownership changed across restart")
@@ -104,7 +111,7 @@ def main():
         rows[-1]["retained_checkpoint_sha256"] = hashlib.sha256(before).hexdigest()
 
     report = output / "report.json"
-    report.write_text(json.dumps({"status": "passed", "processes": rows}, indent=2) + "\n", encoding="utf-8")
+    report.write_text(json.dumps({"status": "passed", "coordinated": args.coordinated, "processes": rows}, indent=2) + "\n", encoding="utf-8")
     print(f"Passed clean restart and rejected failed-save restart: {report}", flush=True)
 
 

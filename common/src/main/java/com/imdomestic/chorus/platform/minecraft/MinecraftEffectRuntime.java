@@ -54,6 +54,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private static final Map<ServerLevel, MinecraftEffectRuntime> LIVE = new ConcurrentHashMap<>();
     private final ServerLevel level;
     private final EffectSession session;
+    private final Function<RuleEngine.WorldRequest,RuleEngine.ActionResult> world;
     private final NativeSource sources;
     private final CompiledEffects program;
     private final MinecraftResourceRuntime resourceHost;
@@ -134,7 +135,12 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     private MinecraftEffectRuntime(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources, Optional<EffectSession.Checkpoint> checkpoint,
             MinecraftResourceRuntime resourceHost) {
-        this.level = Objects.requireNonNull(level); this.sources = Objects.requireNonNull(sources);
+        this(level,program,initial,clock,world,sources,checkpoint,resourceHost,Optional.empty());
+    }
+    private MinecraftEffectRuntime(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
+            Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources, Optional<EffectSession.Checkpoint> checkpoint,
+            MinecraftResourceRuntime resourceHost,Optional<EffectSession> restoredSession) {
+        this.level = Objects.requireNonNull(level); this.sources = Objects.requireNonNull(sources);this.world=Objects.requireNonNull(world);
         this.program = Objects.requireNonNull(program);this.resourceHost=resourceHost;
         if(program.resourceRouting()!=(resourceHost!=null))throw new IllegalArgumentException("Coordinated native programs require their resource host");
         this.observesLandings = program.program().bundles().stream().flatMap(b -> b.rules().stream())
@@ -143,32 +149,34 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
         this.nativeMovement = new MinecraftMovementProjection(level,program);
         this.nativeHorizontalSpeed = new MinecraftHorizontalSpeedProjection(level,program);
         this.originTick = level.getGameTime(); this.originMicros = initial.buffs().timeMicros();
-        Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> executor = request -> {
-            if(request.command() instanceof ResourceRequests.Request){
-                if(resourceHost==null)throw new IllegalStateException("Native resource request has no coordinator");
-                return resourceHost.execute(this,level,request);
-            }
-            if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
-            operationFacts = new ArrayList<>();resourceOperation=request;
-            try {
-                refreshProjections();
-                var actual = switch (request.command()) {
-                    case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
-                    case com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command -> applyHandling(command);
-                    case com.imdomestic.chorus.effect.weapon.WeaponAim.Verify command -> verifyAim(command);
-                    case com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify command -> verifyCharge(command);
-                    case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
-                    default -> world.apply(request);
-                };
-                if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
-                operationFacts.addAll(takeNativeLifecycleFacts());
-                var writes = takeWrites();
-                return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts,
-                        com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, operationFacts));
-            } finally { operationFacts = null;resourceOperation=null; }
-        };
-        this.session = checkpoint.map(saved -> EffectSession.restore(program, clock, 256, saved, executor))
-                .orElseGet(() -> new EffectSession(program, clock, 256, initial, executor));
+        this.session = restoredSession.orElseGet(()->checkpoint.map(saved -> EffectSession.restore(program, clock, 256, saved, this::executeWorld))
+                .orElseGet(() -> new EffectSession(program, clock, 256, initial, this::executeWorld)));
+        if(restoredSession.isPresent()&&!this.session.checkpoint().equals(checkpoint.orElseThrow()))throw new IllegalArgumentException("Prepared native session differs from its checkpoint");
+    }
+    RuleEngine.ActionResult executeWorld(RuleEngine.WorldRequest request) {
+        if(resourceHost!=null)resourceHost.enteringRuntime();
+        if(request.command() instanceof ResourceRequests.Request){
+            if(resourceHost==null)throw new IllegalStateException("Native resource request has no coordinator");
+            return resourceHost.execute(this,level,request);
+        }
+        if (operationFacts != null) throw new IllegalStateException("Reentrant world operation");
+        operationFacts = new ArrayList<>();resourceOperation=request;
+        try {
+            refreshProjections();
+            var actual = switch (request.command()) {
+                case com.imdomestic.chorus.effect.weapon.WeaponReload.Verify query -> verifyReload(query);
+                case com.imdomestic.chorus.effect.weapon.WeaponHandling.Apply command -> applyHandling(command);
+                case com.imdomestic.chorus.effect.weapon.WeaponAim.Verify command -> verifyAim(command);
+                case com.imdomestic.chorus.effect.weapon.WeaponCharge.Verify command -> verifyCharge(command);
+                case com.imdomestic.chorus.effect.weapon.InstantReload.Check query -> verifyInstantReload(query);
+                default -> world.apply(request);
+            };
+            if (failure.isPresent()) throw new IllegalStateException("Native operation failed: " + failure.orElseThrow().message());
+            operationFacts.addAll(takeNativeLifecycleFacts());
+            var writes = takeWrites();
+            return operationFacts.isEmpty() && !writes.changed() ? actual : new RuleEngine.WorldReceipt(actual, operationFacts,
+                    com.imdomestic.chorus.effect.target.EntityAttachments.commit(writes, operationFacts));
+        } finally { operationFacts = null;resourceOperation=null; }
     }
     public static MinecraftEffectRuntime install(ServerLevel level, CompiledEffects program, EffectState initial, EffectClock clock,
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
@@ -213,23 +221,23 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             Function<RuleEngine.WorldRequest, RuleEngine.ActionResult> world, NativeSource sources) {
         if (!level.getServer().isSameThread()) throw new IllegalStateException("Runtime belongs to the server thread");
         MinecraftCheckpointBoundary.changingRuntime(level.getServer());
-        return restoreDetached(level,program,checkpoint,clock,world,sources,null,true);
+        return restoreDetached(level,program,checkpoint,clock,world,sources,null,true,Optional.empty());
     }
     static MinecraftEffectRuntime coordinated(ServerLevel level,CompiledEffects program,EffectState initial,EffectClock clock,
             Function<RuleEngine.WorldRequest,RuleEngine.ActionResult> world,NativeSource sources,MinecraftResourceRuntime host,Optional<Checkpoint> saved){
         if(!level.getServer().isSameThread())throw new IllegalStateException("Runtime belongs to the server thread");
-        return saved.map(checkpoint->restoreDetached(level,program,checkpoint,clock,world,sources,host,false))
+        return saved.map(checkpoint->restoreDetached(level,program,checkpoint,clock,world,sources,host,false,Optional.empty()))
                 .orElseGet(()->new MinecraftEffectRuntime(level,program,initial,clock,world,sources,Optional.empty(),host));
     }
     private static MinecraftEffectRuntime restoreDetached(ServerLevel level,CompiledEffects program,Checkpoint checkpoint,EffectClock clock,
-            Function<RuleEngine.WorldRequest,RuleEngine.ActionResult> world,NativeSource sources,MinecraftResourceRuntime host,boolean attach){
+            Function<RuleEngine.WorldRequest,RuleEngine.ActionResult> world,NativeSource sources,MinecraftResourceRuntime host,boolean attach,Optional<EffectSession> restoredSession){
         if (!level.dimension().identifier().toString().equals(checkpoint.dimension()) || level.getGameTime() != checkpoint.gameTime())
             throw new IllegalArgumentException("Checkpoint belongs to a different dimension or world save clock");
         if (!program.program().equals(checkpoint.effects().program())) throw new IllegalArgumentException("Checkpoint catalogue content differs");
         validateCheckpointEquipment(level, program, checkpoint);
         validateCheckpointActors(level, program, checkpoint);
         validateCheckpointAbilities(level, program, checkpoint);
-        var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()),host);
+        var runtime = new MinecraftEffectRuntime(level, program, checkpoint.effects().timeline().domain(), clock, world, sources, Optional.of(checkpoint.effects()),host,restoredSession);
         runtime.equipmentOwnerIds.addAll(checkpoint.equipmentOwners());
         runtime.actorOwnerIds.addAll(checkpoint.actorOwners());
         runtime.pendingActorValidation.addAll(checkpoint.actorOwners());
@@ -243,9 +251,13 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             runtime.equipmentOwners.put(player.getUUID(), player);
         return attach?attach(runtime):runtime;
     }
+    static MinecraftEffectRuntime connectRestored(ServerLevel level,CompiledEffects program,Checkpoint checkpoint,EffectClock clock,
+            Function<RuleEngine.WorldRequest,RuleEngine.ActionResult> world,NativeSource source,MinecraftResourceRuntime host,EffectSession session){
+        return restoreDetached(level,program,checkpoint,clock,world,source,host,false,Optional.of(session));
+    }
     EffectSession resourceSession(){return session;}
     static void attachCoordinated(MinecraftEffectRuntime runtime){attach(runtime);}
-    void requireResourceDetach(){if(!closed){thread();if(session.running())throw new IllegalStateException("Cannot detach a running resource runtime");}}
+    void requireResourceDetach(){if(!closed){ownerThread();MinecraftCheckpointBoundary.enteringRuntime(level.getServer(),this);if(session.running())throw new IllegalStateException("Cannot detach a running resource runtime");}}
     static void validateCheckpointEquipment(ServerLevel level, CompiledEffects program, Checkpoint checkpoint) {
         // A mismatch with an already-present player's physical container is not an equipment-change event to replay.
         for (var player : level.players()) {
@@ -920,6 +932,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     private void thread() {
         ownerThread();
+        if(resourceHost!=null)resourceHost.enteringRuntime();
         MinecraftCheckpointBoundary.enteringRuntime(level.getServer(), this);
     }
     public long nowMicros() {

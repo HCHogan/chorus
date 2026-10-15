@@ -38,6 +38,10 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
         if (boundary != null && !boundary.settling && boundary.inspecting != runtime)
             throw boundary.reject("Cannot operate a runtime inside a checkpoint boundary");
     }
+    static void enteringResources(MinecraftServer server){
+        var boundary=ACTIVE.get(server);
+        if(boundary!=null&&!boundary.settling)throw boundary.reject("Cannot change resources inside a checkpoint boundary");
+    }
     private static Map<String, ServerLevel> levels(MinecraftServer server) {
         var result = new TreeMap<String, ServerLevel>();
         server.getAllLevels().forEach(level -> result.put(level.dimension().identifier().toString(), level));
@@ -60,7 +64,10 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
         try {
             // Preparing can execute due rules across dimensions, but cannot recursively open another boundary.
             // Committed work is never rolled back if this phase fails.
-            new TreeMap<>(runtimes).values().forEach(MinecraftEffectRuntime::checkpoint);
+            new TreeMap<>(runtimes).values().forEach(MinecraftEffectRuntime::prepare);
+            var resources=EffectPrograms.resourceRuntime(server);
+            if(resources.isPresent()&&resources.orElseThrow().drain(Math.max(1,runtimes.size())*256).pending())
+                throw new IllegalStateException("Resource feedback remains pending at the save boundary");
             if (!levels.equals(levels(server)) || !runtimes.equals(runtimes(levels)))
                 throw new IllegalStateException("World dimensions or runtimes changed while settling checkpoints");
             boundary.settling = false;
@@ -70,7 +77,8 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                 var saved = boundary.inspect(entry.getValue());
                 entries.add(new CheckpointArchive.Entry(names.get(entry.getKey()), saved.dimension(), saved.gameTime(), saved.effects(), saved.equipmentOwners(), saved.actorOwners(), saved.abilityOwners()));
             }
-            boundary.archive = new CheckpointArchive(entries); boundary.requireUnchanged(); return boundary;
+            var directory=resources.map(host->host.settledResources().directory());
+            boundary.archive = new CheckpointArchive(entries,directory); boundary.requireUnchanged(); return boundary;
         } catch (RuntimeException | Error failure) { boundary.close(); throw failure; }
     }
     private MinecraftEffectRuntime.Checkpoint inspect(MinecraftEffectRuntime runtime) {
@@ -100,6 +108,9 @@ public final class MinecraftCheckpointBoundary implements AutoCloseable {
                 if (!saved.effects().equals(entry.effects()) || !saved.equipmentOwners().equals(entry.equipmentOwners()) || !saved.actorOwners().equals(entry.actorOwners()) || !saved.abilityOwners().equals(entry.abilityOwners()))
                     throw new IllegalStateException("Rule state changed during checkpoint boundary");
             }
+            var resources=EffectPrograms.resourceRuntime(server);
+            if(!resources.map(host->host.settledResources().directory()).equals(archive.resourceDirectory()))
+                throw new IllegalStateException("Resource directory changed during checkpoint boundary");
         } catch (RuntimeException failure) { throw reject(failure.toString()); }
     }
     /** Return actual native evidence while all rule runtimes remain pinned; this does not commit a store or stop the server. */

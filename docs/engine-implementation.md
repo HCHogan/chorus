@@ -6,6 +6,18 @@
 
 ## 当前证据
 
+### 2026-10-15：命名目录的协调原生保存与分阶段重启恢复
+
+EffectPrograms 新增 installCoordinated，使用明确的默认时钟与世界执行器，在同一服务器复用协调原生组。旧 install 及本地存档模式保持。保存边界准备各世界并结算协调 inbox 后冻结资源目录和全部原生领域；冻结后的目录操作会记录违规，即使异常被捕获也不能提交。原 flush / 文件 / region / SavedData / 世界锁协议保持，联合 archive 使用既有 format 4，不增加存储形状。
+
+原生启动先恢复全部核心会话和资源目录，再在各 ServerLevel 构造尾部连接原生观察器。prepareRestore / restoreLevel / finishRestore 将“加载所需的完整资源查询”与“允许实际执行”明确分开；其他维度尚未连接时 NBT 加载可读取其已恢复资源，输入、时间推进和资源写入仍拒绝。后续连接失败保留已附着证据并允许整组清理，不重放世界操作。无受管分区副本的本地维度可与协调组同归档，仍保留本地恢复模式。
+
+四项新增 ResourceSaveGameTest 覆盖未完成连接时的真实实体 NBT、后续维度时刻错误与清理、混合本地 / 协调归档及实际原生保存、保存冻结后被捕获的目录操作。扩展独立进程脚本 --coordinated，验证玩家位于主世界、资源归属下界时的正常停服 / 重启，实际玩家文件、配置、花费及目录保持；另验证原生写入失败和后续启动拒绝。定向四场景在 `/tmp/chorus-native-resource-save-targeted2.log` 全部通过。
+
+双端独立进程验收已通过：协调组报告 `build/checkpoint-restart/20261015T034523Z-e74bbe3e/report.json`，旧本地回归报告 `build/checkpoint-restart/20261015T034750Z-3872977d/report.json`。每份包含 Fabric / NeoForge 各四进程，共 16 次保存、恢复、失败保存与拒绝恢复；失败启动前后检查点原字节及 SHA-256 保持。完整回归 `/tmp/chorus-native-resource-save-full-gate.log` BUILD SUCCESSFUL（4 分 38 秒）：2448 项 JUnit 无失败 / 错误 / 跳过、Fabric 1344 项、NeoForge 1359 项、双端发布包及两次正常停服检查点通过。`build/reports/native-resource-save/audit.json` 核验 720 项原存储形状保持、发布主类 1321 / 1314 个逐字节匹配且无测试泄漏、Gradle CRLF、固定研究来源及两份重启报告；10 项 Compendium 工具测试和来源 / 报告检查通过。
+
+自动归属登记、传送时的技能 / 装备 / 角色 / Buff / 物理效果实体交接，以及所有新安装默认采用协调模式仍待完成。无新增原作数值或图形客户端验收；Compendium 保持 133 条审阅（131 partial、2 not_applicable、0 verified）。接口见[协调保存与启动恢复](engine-data-packs.md#命名目录的协调保存与启动恢复)。
+
 ### 2026-10-15：显式协调组连接真实 Minecraft 运行时
 
 新增 MinecraftResourceRuntime，先创建未注册会话、加入既有 ResourceSessionAuthority，再安装原生观察器。资源请求直接交给协调器，source_attached 初始化不会被提前发生的属性查询打断；真正世界操作前捕获当前请求的资源视图，普通原生伤害、输入、拾取及自动 NBT 属性加载使用组内当前捕获。原生查询和武器流程传递资源视图，内部终结技 strike 改用既有 ActionRoutes 的准备 / 世界结果 / 完成协议。

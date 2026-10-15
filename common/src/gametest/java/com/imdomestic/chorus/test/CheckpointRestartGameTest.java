@@ -26,12 +26,14 @@ public class CheckpointRestartGameTest {
         h.assertValueEqual(disk.get("phase").getAsString(), "RUNNING", "old recoverable mark must be invalidated before tests/world work");
         String phase = System.getProperty("chorus.test.restart.phase");
         if (phase == null) { h.succeed(); return; }
+        boolean coordinated=phase.contains("_coordinated");phase=phase.replace("_coordinated","");
         var metadata = server.getWorldPath(LevelResource.ROOT).resolve("chorus-restart-fixture-player.txt");
         if (phase.startsWith("save")) {
             h.assertTrue(status.restoredDimensions().isEmpty(), "save phase reused an old runtime");
             var player = NativeMeleeGameTest.player(h); String holder = player.getUUID().toString();
-            var runtime = EffectPrograms.install(h.getLevel(), PROGRAM, EffectState.Mode.PVP);
-            EffectPrograms.install(server.getLevel(Level.NETHER), PROGRAM, EffectState.Mode.PVE);
+            var runtime = coordinated?EffectPrograms.installCoordinated(h.getLevel(),PROGRAM,EffectState.Mode.PVP):EffectPrograms.install(h.getLevel(), PROGRAM, EffectState.Mode.PVP);
+            if(coordinated){EffectPrograms.installCoordinated(server.getLevel(Level.NETHER),PROGRAM,EffectState.Mode.PVE);EffectPrograms.resourceRuntime(server).orElseThrow().claim(holder,h.getLevel());}
+            else EffectPrograms.install(server.getLevel(Level.NETHER), PROGRAM, EffectState.Mode.PVE);
             var item = new ItemStack(Items.DIAMOND_CHESTPLATE);
             item.set(ChorusComponents.EQUIPMENT.get(), new Loadout.Gear("restart-armor", "test:arms", Map.of()));
             player.getInventory().setItem(0, item); var equipment = PlayerEquipment.get(player);
@@ -42,6 +44,7 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.ACCEPTED, "native selected ability paid for cast"); h.assertValueEqual(player.getHealth(), 29f, "initialize once and pay for one cast");
             h.assertValueEqual(player.getMaxHealth(), 30f, "equipped temporary capacity");
             Files.writeString(metadata, holder);
+            if(coordinated)EffectPrograms.resourceRuntime(server).orElseThrow().transfer(holder,server.getLevel(Level.NETHER));
             if (phase.equals("save_failure")) {
                 MinecraftWorldSave.save(server).requireSuccess();
                 var paths = (MinecraftPlayerSaveAccess) MinecraftWorldSave.bindings(server).playerStorage();
@@ -83,10 +86,20 @@ public class CheckpointRestartGameTest {
             h.assertValueEqual(player.getMaxHealth(), 30f, "rules restored before real login/NBT clamped capacity");
             h.assertValueEqual(player.getHealth(), 29f, "real player NBT health and no initialization replay");
             h.assertValueEqual(PlayerEquipment.get(player).item("test:arms").get(ChorusComponents.EQUIPMENT.get()).instance(), "restart-armor", "actual player equipment file");
-            h.assertValueEqual(runtime.state().engine().domain().resources().get(new ResourceState.Key(holder.toString(), "test:restart_energy")).value(), 0d, "paid resource stayed spent across process restart");
+            var account=new ResourceState.Key(holder.toString(),"test:restart_energy");
+            var owner=coordinated?nether:runtime;
+            h.assertValueEqual(owner.state().engine().domain().resources().get(account).value(),0d,"paid resource stayed spent across process restart");
+            if(coordinated){
+                var host=EffectPrograms.resourceRuntime(server).orElseThrow();
+                h.assertValueEqual(host.snapshot().directory().holders().get(holder.toString()).lease().domain(),"minecraft:the_nether","joint directory lost remote ownership");
+                h.assertTrue(!runtime.state().engine().domain().resources().containsKey(account),"login recreated migrated account");
+                ResourceProjectionGameTest.refused(h,IllegalStateException.class,()->runtime.useAbility(player,"test:grenade"));
+                host.transfer(holder.toString(),h.getLevel());
+            }
             h.assertValueEqual(runtime.useAbility(player, "test:grenade").outcome(), AbilityUse.Outcome.INSUFFICIENT_ENERGY, "restart did not grant a free cast");
             h.assertValueEqual(player.getHealth(), 29f, "rejected restart cast changed real health");
             h.assertTrue(runtime.failure().isEmpty(), "restored runtime failed on real login or cast");
+            if(coordinated)EffectPrograms.resourceRuntime(server).orElseThrow().transfer(holder.toString(),server.getLevel(Level.NETHER));
         } else throw new IllegalArgumentException("Unexpected restart phase: " + phase);
         h.succeed();
     }
