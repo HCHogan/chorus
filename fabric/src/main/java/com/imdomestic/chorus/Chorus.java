@@ -19,6 +19,7 @@ public class Chorus implements ModInitializer {
         // Use Fabric to bootstrap the Common mod.
         Constants.LOG.info("Hello Fabric world!");
         CommonClass.init();
+        net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry.clientboundPlay().register(com.imdomestic.chorus.network.InputTransferPayload.TYPE,com.imdomestic.chorus.network.InputTransferPayload.CODEC);
         net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.MODIFY.register(context ->
                 context.modifyAll((type, builder) -> builder.add(com.imdomestic.chorus.registry.ChorusAttributes.forwardGroundSpeed())));
         net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry.register(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_CONSTRUCT.get(), com.imdomestic.chorus.platform.minecraft.EffectConstruct.attributes());
@@ -46,6 +47,7 @@ public class Chorus implements ModInitializer {
         ServerTickEvents.END_LEVEL_TICK.register(MinecraftEffectRuntime::tick);
         ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE::tick);
         ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE::tick);
+        ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE::tick);
         ServerTickEvents.END_LEVEL_TICK.register(com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE::tick);
         ServerLevelEvents.UNLOAD.register((server, level) -> MinecraftEffectRuntime.unload(level));
         ServerLifecycleEvents.SERVER_STOPPED.register(MinecraftEffectRuntime::stop);

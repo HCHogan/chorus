@@ -19,17 +19,20 @@ public final class WeaponChargeNetworkServer {
     private static final class Session {
         final ServerGamePacketListenerImpl connection;
         ServerPlayer player; ServerLevel level; MinecraftEffectRuntime runtime;
-        String life, token = "", weapon = ""; long sequence, revision, gesture, refreshed; boolean held;
-        Status status = Status.IDLE; View last;
+        String life, token = "", weapon = ""; long sequence, revision, gesture, refreshed, transferRevision; boolean held;
+        Status status = Status.IDLE; View last;Object transferring;
         Session(ServerPlayer player) { connection = player.connection; owner(player); }
         void owner(ServerPlayer next) { player = next; level = next.level(); life = MinecraftEntityLife.get(next).id(); }
     }
     private final Map<ServerGamePacketListenerImpl, Session> sessions = new IdentityHashMap<>();
     private final BiConsumer<ServerPlayer, View> send;
-    public WeaponChargeNetworkServer(BiConsumer<ServerPlayer, View> send) { this.send = Objects.requireNonNull(send); }
+    private final BiConsumer<ServerPlayer,InputTransferPayload> sendTransfer;
+    public WeaponChargeNetworkServer(BiConsumer<ServerPlayer, View> send) { this(send,(player,payload)->Services.PLATFORM.sendInputTransfer(player,payload)); }
+    public WeaponChargeNetworkServer(BiConsumer<ServerPlayer, View> send,BiConsumer<ServerPlayer,InputTransferPayload> sendTransfer) { this.send = Objects.requireNonNull(send);this.sendTransfer=Objects.requireNonNull(sendTransfer); }
     private static void thread(ServerLevel level) { if (!level.getServer().isSameThread()) throw new IllegalStateException("Charge input belongs to server thread"); }
     public Reply request(ServerPlayer player, Input input) {
         thread(player.level()); var s = sessions.computeIfAbsent(player.connection, _ -> new Session(player));
+        if(s.transferring!=null)return Reply.REJECTED;
         if (input.sequence() <= s.sequence) return Reply.DUPLICATE;
         s.sequence = input.sequence(); // Rejected or uncertain requests are consumed too.
         try {
@@ -43,6 +46,8 @@ public final class WeaponChargeNetworkServer {
             if (runtime == null || runtime.failure().isPresent()) {
                 s.held = false; s.status = runtime == null ? Status.UNAVAILABLE : Status.FAILED; publish(s, true); return Reply.REJECTED;
             }
+            if(s.held&&s.level.getGameTime()-s.refreshed>=LEASE_TICKS)cancel(s,"input_expired");
+            if(input.transferRevision()!=(input.edge()==Edge.PRESS&&!s.held?0:s.transferRevision)){publish(s,true);return Reply.REJECTED;}
             // Retire matched terminal intent before prepare can settle an overdue automatic cycle.
             // Unmatched gestures and release-triggered shots retain their normal preflight path.
             var pending = plan(s);
@@ -54,11 +59,11 @@ public final class WeaponChargeNetworkServer {
             maintain(s); // Check expiry before a late HOLD or RELEASE can extend/use it.
             if (input.edge() == Edge.PRESS) {
                 if (!s.held) {
-                    s.gesture = input.gesture(); s.token = UUID.randomUUID().toString(); s.refreshed = s.level.getGameTime();
+                    s.transferRevision=0;s.gesture = input.gesture(); s.token = UUID.randomUUID().toString(); s.refreshed = s.level.getGameTime();
                     String token = s.token; s.held = true;
                     var receipt = runtime.charge(s.player, token, WeaponCharge.Edge.PRESS,
-                            () -> s.held && s.token.equals(token) && s.runtime == runtime && eligible(s)
-                                    && MinecraftEffectRuntime.installed(s.level).orElse(null) == runtime
+                            () -> s.held && s.token.equals(token) && s.runtime != null && eligible(s)
+                                    && MinecraftEffectRuntime.installed(s.level).orElse(null) == s.runtime
                                     && s.level.getGameTime() - s.refreshed < LEASE_TICKS);
                     s.held = receipt.outcome() == WeaponCharge.Outcome.ACCEPTED;
                     s.weapon = receipt.plan().map(plan -> plan.gear().instance()).orElse("");
@@ -111,7 +116,7 @@ public final class WeaponChargeNetworkServer {
     }
     public void tick(ServerLevel level) {
         thread(level);
-        for (var s : List.copyOf(sessions.values())) if (s.level == level) {
+        for (var s : List.copyOf(sessions.values())) if (s.level == level&&s.transferring==null) {
             try {
                 var runtime = MinecraftEffectRuntime.installed(level).orElse(null);
                 if (!eligible(s)) cancel(s, "input_ineligible");
@@ -121,6 +126,16 @@ public final class WeaponChargeNetworkServer {
                 publish(s, false);
             } catch (RuntimeException error) { failed(s, error); }
         }
+    }
+    /** Settle this connection's existing lease before the host captures any transfer proposal. Never renews it. */
+    public void settleTransfer(ServerPlayer player) {
+        thread(player.level());var s=sessions.get(player.connection);if(s==null)return;
+        if(s.transferring!=null)throw new IllegalStateException("Charge transfer is already prepared");
+        var runtime=MinecraftEffectRuntime.installed(s.level).orElse(null);
+        if(!eligible(s))cancel(s,"input_ineligible");
+        else if(s.runtime!=runtime)replaceRuntime(s,runtime);
+        else if(runtime!=null&&runtime.failure().isPresent()){s.held=false;s.status=Status.FAILED;}
+        else maintain(s);
     }
     private Reply failed(Session s, RuntimeException error) {
         s.held = false; s.status = Status.FAILED;
@@ -138,8 +153,30 @@ public final class WeaponChargeNetworkServer {
         if (!force && s.last != null && new View(s.last.revision(), view.sequence(), view.gesture(), view.player(), view.entity(), view.dimension(), view.held(), view.status(), view.phase(), view.weapon(), view.startedAt(), view.minimumAt(), view.fullAt(), view.observedAt()).equals(s.last)) return;
         s.revision = view.revision(); s.last = view; send.accept(s.player, view);
     }
+    public InputTransfer prepareTransfer(ServerPlayer player,MinecraftEffectRuntime source,MinecraftEffectRuntime target) {
+        thread(player.level());var s=sessions.get(player.connection);if(s==null||!s.held)return InputTransfer.NONE;
+        if(s.transferring!=null||s.player!=player||s.runtime!=source||s.level!=source.level()||!eligible(s)
+                ||source==target||target.level().getServer()!=player.level().getServer()
+                ||MinecraftEffectRuntime.installed(target.level()).orElse(null)!=target)throw new IllegalStateException("Charge gesture cannot transfer");
+        long elapsed=Math.subtractExact(s.level.getGameTime(),s.refreshed);
+        if(elapsed<0)throw new IllegalStateException("Charge lease clock moved backwards");
+        long refreshed=Math.subtractExact(target.level().getGameTime(),elapsed),revision=s.held?Math.incrementExact(s.revision):s.revision;
+        Math.incrementExact(revision); // Reserve both the confirmation and its following view before freezing.
+        long previousRevision=s.transferRevision;var marker=new Object();s.transferring=marker;String from=dimension(s);boolean held=s.held;
+        return new InputTransfer(){boolean committed,finished,aborted;
+            private void current(){if(finished||s.transferring!=marker||sessions.get(s.connection)!=s)throw new IllegalStateException("Stale charge transfer");}
+            public void commit(){current();if(committed||s.connection.player!=player||player.level()!=target.level()||!s.life.equals(MinecraftEntityLife.get(player).id()))throw new IllegalStateException("Charge transfer lost native owner");s.level=target.level();s.runtime=target;s.refreshed=refreshed;s.revision=revision;s.transferRevision=revision;committed=true;}
+            public void publish(){current();if(!committed)throw new IllegalStateException("Charge transfer not committed");s.transferring=null;finished=true;
+                if(held)sendTransfer.accept(player,new InputTransferPayload(InputTransferPayload.Kind.CHARGE,"",player.getUUID(),player.getId(),from,dimension(s),s.sequence,s.gesture,revision,previousRevision));
+                WeaponChargeNetworkServer.this.publish(s,true);}
+            public void fail(){if(aborted)return;if(finished&&s.transferring!=null&&s.transferring!=marker)return;s.held=false;s.status=Status.FAILED;if(s.transferring==marker)s.transferring=null;finished=true;}
+            public void abort(){current();if(committed)throw new IllegalStateException("Committed charge transfer cannot abort");s.transferring=null;finished=true;aborted=true;}
+        };
+    }
+    /** Current epoch of this connection gesture; ordinary projections do not advance it. */
+    public long transferRevision(ServerPlayer player){thread(player.level());var s=sessions.get(player.connection);return s==null||s.player!=player?0:s.transferRevision;}
     public void disconnected(ServerGamePacketListenerImpl connection) {
-        var s = sessions.remove(connection); if (s != null) { thread(s.level); cancel(s, "input_disconnected"); }
+        var s = sessions.remove(connection); if (s != null) { thread(s.level);if(s.transferring!=null){s.held=false;s.status=Status.CANCELLED;return;}cancel(s, "input_disconnected"); }
         MinecraftEffectRuntime.cancelChargeInputs(connection); // Includes self-owned command gestures.
     }
     public void quiesce(MinecraftServer server) {

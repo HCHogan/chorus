@@ -4,6 +4,10 @@ import com.imdomestic.chorus.platform.services.IPlatformHelper;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class FabricPlatformHelper implements IPlatformHelper {
+    @Override public void sendInputTransfer(net.minecraft.server.level.ServerPlayer player,com.imdomestic.chorus.network.InputTransferPayload payload) {
+        if(net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(player,com.imdomestic.chorus.network.InputTransferPayload.TYPE))
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,payload);
+    }
     @Override public void sendWeaponChargeView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.WeaponChargePayloads.View view) {
         if (net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(player, com.imdomestic.chorus.network.WeaponChargePayloads.View.TYPE))
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player, view);

@@ -305,6 +305,7 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
     }
     public TimelineEngine.State<EffectState> state() { return session.state(); }
     public CompiledEffects program() { return program; }
+    public ServerLevel level() { return level; }
     public Optional<MinecraftNativeActions.Report> nativeActionReport(){return nativeActionReport;}
     /** Last actual tracking query, separate from input authorization and collision/damage receipts. */
     public Optional<ProjectileTrackingReport> projectileTrackingReport() { return projectileTrackingReport; }
@@ -570,6 +571,11 @@ public final class MinecraftEffectRuntime implements DamageCapture.Observer, Aut
             var selected = program.selectedAbility(view(), entry.getKey().holder().toString(), entry.getKey().slot());
             return selected.isEmpty() || !selected.orElseThrow().id().equals(held.base()) || !mayHold(player, entry.getKey().slot(), held.gesture(), nowMicros() - held.startedMicros());
         });
+    }
+    /** Pure identity check for a prepared native input handoff; never advances time or grants input. */
+    public boolean hasAbilityInput(ServerPlayer player,String slot,long gesture) {
+        ownerThread();var input=abilityInputs.get(new InputKey(player.getUUID(),slot));
+        return input!=null&&input.player()==player&&input.gesture()==gesture&&inputEligible(player);
     }
     /** Read-only server observation for input feedback. Preparing also discards invalid holds. */
     public java.util.OptionalLong heldAbilityInput(ServerPlayer player, String slot) {

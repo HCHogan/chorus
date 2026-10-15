@@ -32,6 +32,7 @@ public class Chorus {
         eventBus.addListener((net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) -> event.put(com.imdomestic.chorus.registry.ChorusEntities.EFFECT_CONSTRUCT.get(), com.imdomestic.chorus.platform.minecraft.EffectConstruct.attributes().build()));
         eventBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> {
             var registrar = event.registrar("1").optional();
+            registrar.playToClient(com.imdomestic.chorus.network.InputTransferPayload.TYPE,com.imdomestic.chorus.network.InputTransferPayload.CODEC);
             registrar.playToClient(com.imdomestic.chorus.network.MovementInputPayload.TYPE, com.imdomestic.chorus.network.MovementInputPayload.CODEC);
             registrar.playToClient(com.imdomestic.chorus.network.HorizontalSpeedPayload.TYPE, com.imdomestic.chorus.network.HorizontalSpeedPayload.CODEC);
             registrar.playToServer(com.imdomestic.chorus.network.FinisherInputPayload.TYPE, com.imdomestic.chorus.network.FinisherInputPayload.CODEC,
@@ -57,7 +58,7 @@ public class Chorus {
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.RegisterCommandsEvent event) ->
                 com.imdomestic.chorus.platform.minecraft.EffectCommands.register(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel() instanceof ServerLevel level) { MinecraftEffectRuntime.tick(level); com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.tick(level); }
+            if (event.getLevel() instanceof ServerLevel level) { MinecraftEffectRuntime.tick(level); com.imdomestic.chorus.network.WeaponAimNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.WeaponChargeNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.AbilityInputNetworkServer.LIVE.tick(level); com.imdomestic.chorus.network.EquipmentNetworkServer.LIVE.tick(level); }
         });
         NeoForge.EVENT_BUS.addListener((LevelEvent.Unload event) -> {
             if (event.getLevel() instanceof ServerLevel level) MinecraftEffectRuntime.unload(level);

@@ -5,6 +5,10 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 
 public class NeoForgePlatformHelper implements IPlatformHelper {
+    @Override public void sendInputTransfer(net.minecraft.server.level.ServerPlayer player,com.imdomestic.chorus.network.InputTransferPayload payload) {
+        if(player.connection.hasChannel(com.imdomestic.chorus.network.InputTransferPayload.TYPE))
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,payload);
+    }
     @Override public void sendWeaponChargeView(net.minecraft.server.level.ServerPlayer player, com.imdomestic.chorus.network.WeaponChargePayloads.View view) {
         if (player.connection.hasChannel(com.imdomestic.chorus.network.WeaponChargePayloads.View.TYPE))
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, view);

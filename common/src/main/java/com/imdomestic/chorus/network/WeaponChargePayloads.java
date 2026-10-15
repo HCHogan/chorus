@@ -16,16 +16,17 @@ public final class WeaponChargePayloads {
         if (value == null || value.length() > 512) throw new IllegalArgumentException("Invalid charge dimension");
         Identifier.parse(value);
     }
-    public record Input(long sequence, long gesture, String dimension, Edge edge) implements CustomPacketPayload {
-        public static final Type<Input> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_charge_input"));
+    public record Input(long sequence, long gesture, String dimension, Edge edge,long transferRevision) implements CustomPacketPayload {
+        public static final Type<Input> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_charge_input_v2"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Input> CODEC = StreamCodec.ofMember(Input::write, Input::read);
         public Input {
             Objects.requireNonNull(edge); WeaponChargePayloads.dimension(dimension);
-            if (sequence <= 0 || gesture <= 0 || gesture > sequence || edge == Edge.PRESS && sequence != gesture)
+            if (sequence <= 0 || gesture <= 0 || gesture > sequence || transferRevision<0 || edge == Edge.PRESS && sequence != gesture)
                 throw new IllegalArgumentException("Invalid charge input sequence");
         }
-        private void write(RegistryFriendlyByteBuf b) { b.writeVarLong(sequence); b.writeVarLong(gesture); b.writeUtf(dimension, 512); b.writeEnum(edge); }
-        private static Input read(RegistryFriendlyByteBuf b) { return new Input(b.readVarLong(), b.readVarLong(), b.readUtf(512), b.readEnum(Edge.class)); }
+        public Input(long sequence,long gesture,String dimension,Edge edge){this(sequence,gesture,dimension,edge,0);}
+        private void write(RegistryFriendlyByteBuf b) { b.writeVarLong(sequence); b.writeVarLong(gesture); b.writeUtf(dimension, 512); b.writeEnum(edge);b.writeVarLong(transferRevision); }
+        private static Input read(RegistryFriendlyByteBuf b) { return new Input(b.readVarLong(), b.readVarLong(), b.readUtf(512), b.readEnum(Edge.class),b.readVarLong()); }
         @Override public Type<Input> type() { return TYPE; }
     }
     /** Server samples are display-only. Native entity ids can survive respawn; clients must also bind a gesture to their player object. */

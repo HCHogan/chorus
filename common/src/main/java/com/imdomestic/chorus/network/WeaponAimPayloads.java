@@ -16,16 +16,17 @@ public final class WeaponAimPayloads {
         if (value == null || value.length() > 512) throw new IllegalArgumentException("Invalid aim dimension");
         Identifier.parse(value);
     }
-    public record Input(long sequence, long gesture, String dimension, Edge edge) implements CustomPacketPayload {
-        public static final Type<Input> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_aim_input"));
+    public record Input(long sequence, long gesture, String dimension, Edge edge,long transferRevision) implements CustomPacketPayload {
+        public static final Type<Input> TYPE = new Type<>(Identifier.fromNamespaceAndPath("chorus", "weapon_aim_input_v2"));
         public static final StreamCodec<RegistryFriendlyByteBuf, Input> CODEC = StreamCodec.ofMember(Input::write, Input::read);
         public Input {
             Objects.requireNonNull(edge); WeaponAimPayloads.dimension(dimension);
-            if (sequence <= 0 || gesture <= 0 || gesture > sequence || edge == Edge.PRESS && sequence != gesture)
+            if (sequence <= 0 || gesture <= 0 || gesture > sequence || transferRevision<0 || edge == Edge.PRESS && sequence != gesture)
                 throw new IllegalArgumentException("Invalid aim input sequence");
         }
-        private void write(RegistryFriendlyByteBuf b) { b.writeVarLong(sequence); b.writeVarLong(gesture); b.writeUtf(dimension, 512); b.writeEnum(edge); }
-        private static Input read(RegistryFriendlyByteBuf b) { return new Input(b.readVarLong(), b.readVarLong(), b.readUtf(512), b.readEnum(Edge.class)); }
+        public Input(long sequence,long gesture,String dimension,Edge edge){this(sequence,gesture,dimension,edge,0);}
+        private void write(RegistryFriendlyByteBuf b) { b.writeVarLong(sequence); b.writeVarLong(gesture); b.writeUtf(dimension, 512); b.writeEnum(edge);b.writeVarLong(transferRevision); }
+        private static Input read(RegistryFriendlyByteBuf b) { return new Input(b.readVarLong(), b.readVarLong(), b.readUtf(512), b.readEnum(Edge.class),b.readVarLong()); }
         @Override public Type<Input> type() { return TYPE; }
     }
     /** Revision orders unsolicited phase changes as well as input acknowledgements. Times are server logical microseconds. */
